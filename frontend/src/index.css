@@ -1,0 +1,39 @@
+/* Importamos tipografias para que la interfaz tenga una base visual mas cuidada. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap');
+/* Tailwind se inyecta desde aqui para poder usar sus utilidades en todos los componentes. */
+@import 'tailwindcss';
+
+:root {
+  /* Fuente principal de toda la aplicacion. */
+  font-family: 'Inter', sans-serif;
+  /* Color base del texto. */
+  color: #0f172a;
+  /* Fondo general de la interfaz. */
+  background-color: #f8fafc;
+  /* Mejoras de renderizado de texto. */
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  /* Hace mas predecible el calculo de tamanos de todos los elementos. */
+  box-sizing: border-box;
+}
+
+body {
+  /* Quitamos el margen por defecto del navegador. */
+  margin: 0;
+}
+
+button,
+input {
+  /* Fuerza a que botones e inputs hereden la misma tipografia global. */
+  font: inherit;
+}
+
+#root {
+  /* Permite que la app ocupe todo el alto de la ventana. */
+  min-height: 100vh;
+}

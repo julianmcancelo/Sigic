@@ -1,0 +1,73 @@
+# Dependencias
+node_modules/
+jspm_packages/
+.pnp
+.pnp.js
+
+# Build y Distribución
+dist/
+dist-ssr/
+build/
+*.exe
+*.spec
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Entorno y Secretos
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Base de Datos (Local)
+*.db
+*.sqlite
+*.sqlite3
+
+# Editores y Sistema
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+.claude/
+.gemini/
+
+# Archivos de Imagen (Ignorar capturas temporales, mantener assets oficiales)
+*.png
+*.jpg
+*.jpeg
+*.svg
+!logo-oficial.png
+!frontend/public/
+!assets/
+
+# Limpieza Personalizada y Backups
+_basura/
+SiGIC-main/
+scratch/
+.vite/
+*.lnk
+iniciar.bat
+
+# SQLite adicionales
+*.db-shm
+*.db-wal

@@ -1,0 +1,14 @@
+[
+  {
+    "id": "529358f7-0757-4d9c-a7b6-b01bca92dde2",
+    "egresadoId": "c851f339-51d4-44ef-9c7d-4136672e94c9",
+    "nombre": "Abel Cancelo",
+    "dni": "11460563",
+    "telefono": "1171631886",
+    "correo": "",
+    "relacion": "Padre / Madre",
+    "presente": false,
+    "fechaPresente": null,
+    "creadoEn": "2026-04-20T23:13:36.007Z"
+  }
+]
