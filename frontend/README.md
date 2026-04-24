@@ -1,88 +1,81 @@
 <div align="center">
-  <img src="https://ibeltran.com.ar/img/logo/footer.png" alt="Instituto Tecnológico Beltrán" width="180" />
+  <img src="public/logo-oficial.png" alt="SiGIC Logo" width="180" />
 
-  <h2>Módulo Login</h2>
-  <p>Sistema de acceso institucional — Instituto Tecnológico Beltrán</p>
+  <h2>SiGIC - Frontend</h2>
+  <p>Sistema de Gestión Institucional de Ceremonias — Instituto Tecnológico Beltrán</p>
 
   ![React](https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react&logoColor=white)
   ![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=flat&logo=vite&logoColor=white)
   ![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=flat&logo=tailwindcss&logoColor=white)
-  ![Estado](https://img.shields.io/badge/Estado-En%20desarrollo-29ABE2?style=flat)
+  ![Estado](https://img.shields.io/badge/Estado-En%20Producción-29ABE2?style=flat)
 </div>
 
 ---
 
 ## Descripción
 
-Módulo frontend de autenticación institucional. Incluye pantalla de login con validación, panel de bienvenida con información en tiempo real y accesos rápidos.
+SiGIC es una plataforma integral diseñada para la gestión profesional de actos de colación y ceremonias institucionales. Este frontend proporciona una interfaz moderna, reactiva y optimizada para la administración de invitados, diseño de anfiteatros y control de acceso.
 
 ---
 
-## Estructura
+## Módulos Principales
+
+*   **Panel de Control**: Vista general con estadísticas en tiempo real, clima y accesos rápidos.
+*   **Gestión de Ceremonias**: Creación y configuración de eventos específicos.
+*   **Administración de Invitados**: Registro, importación y seguimiento de asistentes.
+*   **Editor de Anfiteatro**: Herramienta visual para diseñar la disposición de asientos y asignar roles.
+*   **Selección de Asientos**: Interfaz interactiva para que los egresados elijan su ubicación.
+*   **Control de Ingreso**: Sistema de validación de credenciales mediante códigos QR.
+
+---
+
+## Estructura del Proyecto
 
 ```text
-Modulos/Login/
-├── public/
+frontend/
+├── public/              # Assets estáticos y plantillas (QR, logos)
 └── src/
-    ├── componentes/
-    │   ├── panel/              # Tarjetas del panel de bienvenida
-    │   ├── CampoFormulario.jsx # Input reutilizable con toggle de contraseña
-    │   └── FormularioInicioSesion.jsx
-    ├── datos/                  # Credenciales demo y datos estáticos
-    ├── layouts/                # LayoutAutenticacion (split-screen)
-    ├── paginas/                # PaginaInicioSesion · PantallaBienvenida
-    └── utilidades/             # Validaciones, clima y formateo de fechas
+    ├── componentes/     # Componentes atómicos y específicos del panel
+    ├── datos/           # Configuraciones y datos maestros
+    ├── layouts/         # Estructuras base de la aplicación (Auth, Panel)
+    ├── paginas/         # Vistas principales (Login, Dashboard, Editores)
+    ├── servicios/       # Integración con la API Backend
+    └── utilidades/      # Funciones de apoyo (Formateo, Clima, Validaciones)
 ```
 
 ---
 
-## Flujo de la aplicación
+## Desarrollo
 
-```
-[ Pantalla de Login ]
-        |
-  Credenciales OK?
-        |
-        └── Si  →  [ Panel de Bienvenida ]
-                        ├── Saludo personalizado
-                        ├── Fecha y hora en tiempo real
-                        ├── Clima actual (Open-Meteo API)
-                        └── Accesos rápidos
-```
+### Requisitos Previos
+- Node.js (versión recomendada LTS)
+- NPM o Yarn
 
----
-
-## Comandos
-
+### Comandos
 ```bash
 # Instalar dependencias
 npm install
 
-# Desarrollo
+# Iniciar servidor de desarrollo
 npm run dev
 
-# Build de producción
+# Compilar para producción
 npm run build
 
-# Lint
-npm run lint
-
-# Preview del build
+# Previsualizar build localmente
 npm run preview
 ```
 
 ---
 
-## Arquitectura
-
-| Carpeta | Responsabilidad |
-|---|---|
-| `componentes/` | Piezas visuales reutilizables e independientes |
-| `paginas/` | Orquestadoras de estado y composición |
-| `layouts/` | Estructura visual de pantallas completas |
-| `datos/` | Datos estáticos centralizados |
-| `utilidades/` | Funciones puras sin efectos secundarios |
+## Estética y Diseño
+El proyecto utiliza una estética Glassmorphic moderna con:
+- Micro-animaciones para mejorar la experiencia de usuario.
+- Diseño responsivo adaptado a tablets y laptops.
+- Tipografía limpia y paleta de colores institucional.
 
 ---
 
-> Todos los comandos deben ejecutarse desde `Modulos/Login`
+<div align="center">
+  <sub>Desarrollado para el Instituto Tecnológico Beltrán</sub>
+</div>
