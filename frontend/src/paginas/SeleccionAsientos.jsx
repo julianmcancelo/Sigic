@@ -1,4 +1,14 @@
+import React, { useState, useEffect } from 'react';
 import { MapaAsientos } from '@jcancelo/mapa-asientos-sigic';
+import { BASE } from '../servicios/api';
+
+const LEYENDA = [
+  { rol: 'egresado', color: 'bg-indigo-600', label: 'Egresados' },
+  { rol: 'autoridad', color: 'bg-slate-900', label: 'Autoridades' },
+  { rol: 'discapacitado', color: 'bg-purple-600', label: 'Accesibilidad' },
+  { rol: 'reservado', color: 'bg-amber-500', label: 'Reservado' },
+  { rol: 'disponible', color: 'bg-white border border-slate-200', label: 'Disponible' },
+];
 
 export function SeleccionAsientos({
   ceremoniaId,
