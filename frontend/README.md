@@ -12,13 +12,17 @@
 
 ---
 
-## Descripción
+## 🚀 Descripción
 
 SiGIC es una plataforma integral diseñada para la gestión profesional de actos de colación y ceremonias institucionales. Este frontend proporciona una interfaz moderna, reactiva y optimizada para la administración de invitados, diseño de anfiteatros y control de acceso.
 
 ---
 
+<<<<<<< HEAD
 ## Módulos Principales
+=======
+## 🛠️ Módulos Principales
+>>>>>>> a2a1c0a431b3a78665bae35fdc268bd94b6b07ea
 
 *   **Panel de Control**: Vista general con estadísticas en tiempo real, clima y accesos rápidos.
 *   **Gestión de Ceremonias**: Creación y configuración de eventos específicos.
@@ -29,7 +33,11 @@ SiGIC es una plataforma integral diseñada para la gestión profesional de actos
 
 ---
 
+<<<<<<< HEAD
 ## Estructura del Proyecto
+=======
+## 📂 Estructura del Proyecto
+>>>>>>> a2a1c0a431b3a78665bae35fdc268bd94b6b07ea
 
 ```text
 frontend/
@@ -45,7 +53,11 @@ frontend/
 
 ---
 
+<<<<<<< HEAD
 ## Desarrollo
+=======
+## 💻 Desarrollo
+>>>>>>> a2a1c0a431b3a78665bae35fdc268bd94b6b07ea
 
 ### Requisitos Previos
 - Node.js (versión recomendada LTS)
@@ -68,8 +80,13 @@ npm run preview
 
 ---
 
+<<<<<<< HEAD
 ## Estética y Diseño
 El proyecto utiliza una estética Glassmorphic moderna con:
+=======
+## 🎨 Estética y Diseño
+El proyecto utiliza una estética **Glassmorphic** moderna con:
+>>>>>>> a2a1c0a431b3a78665bae35fdc268bd94b6b07ea
 - Micro-animaciones para mejorar la experiencia de usuario.
 - Diseño responsivo adaptado a tablets y laptops.
 - Tipografía limpia y paleta de colores institucional.

@@ -1,0 +1,26 @@
+{
+  "name": "@jcancelo/mapa-asientos-sigic",
+  "version": "1.0.4",
+  "description": "Librería profesional de visualización de mapas de asientos para eventos institucionales.",
+  "main": "index.js",
+  "scripts": {
+    "install": "node scripts/bienvenida.js"
+  },
+  "keywords": [
+    "react",
+    "seating-chart",
+    "mapa-asientos",
+    "anfiteatro",
+    "sigic"
+  ],
+  "author": "Julian Cancelo",
+  "license": "MIT",
+  "peerDependencies": {
+    "lucide-react": ">=0.200.0",
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "dependencies": {
+    "@jcancelo/mapa-asientos-sigic": "^1.0.3"
+  }
+}
