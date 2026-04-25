@@ -18,6 +18,13 @@ Para integrar esta libreria en su flujo de trabajo, ejecute el siguiente comando
 npm install @jcancelo/mapa-asientos-sigic
 ```
 
+### Importacion de Estilos
+Para que los componentes se visualicen correctamente, debe importar el archivo CSS en el punto de entrada de su aplicacion (ej. `main.js` o `App.js`):
+
+```javascript
+import '@jcancelo/mapa-asientos-sigic/dist/style.css';
+```
+
 ---
 
 ## Guia de Uso
