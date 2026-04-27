@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="public/logo-oficial.png" alt="SiGIC Logo" width="180" />
+  <img src="public/logo-oficial.png" alt="SiGIC Logo" width="220" />
 
   <h2>SiGIC - Frontend</h2>
   <p>Sistema de Gestión Institucional de Ceremonias — Instituto Tecnológico Beltrán</p>
@@ -18,26 +18,18 @@ SiGIC es una plataforma integral diseñada para la gestión profesional de actos
 
 ---
 
-<<<<<<< HEAD
-## Módulos Principales
-=======
 ## 🛠️ Módulos Principales
->>>>>>> a2a1c0a431b3a78665bae35fdc268bd94b6b07ea
 
 *   **Panel de Control**: Vista general con estadísticas en tiempo real, clima y accesos rápidos.
 *   **Gestión de Ceremonias**: Creación y configuración de eventos específicos.
 *   **Administración de Invitados**: Registro, importación y seguimiento de asistentes.
 *   **Editor de Anfiteatro**: Herramienta visual para diseñar la disposición de asientos y asignar roles.
-*   **Selección de Asientos**: Interfaz interactiva para que los egresados elijan su ubicación.
+*   **Selección de Asientos**: Interfaz interactiva para que los egresados eliju su ubicación.
 *   **Control de Ingreso**: Sistema de validación de credenciales mediante códigos QR.
 
 ---
 
-<<<<<<< HEAD
-## Estructura del Proyecto
-=======
 ## 📂 Estructura del Proyecto
->>>>>>> a2a1c0a431b3a78665bae35fdc268bd94b6b07ea
 
 ```text
 frontend/
@@ -53,11 +45,7 @@ frontend/
 
 ---
 
-<<<<<<< HEAD
-## Desarrollo
-=======
 ## 💻 Desarrollo
->>>>>>> a2a1c0a431b3a78665bae35fdc268bd94b6b07ea
 
 ### Requisitos Previos
 - Node.js (versión recomendada LTS)
@@ -80,13 +68,8 @@ npm run preview
 
 ---
 
-<<<<<<< HEAD
-## Estética y Diseño
-El proyecto utiliza una estética Glassmorphic moderna con:
-=======
 ## 🎨 Estética y Diseño
 El proyecto utiliza una estética **Glassmorphic** moderna con:
->>>>>>> a2a1c0a431b3a78665bae35fdc268bd94b6b07ea
 - Micro-animaciones para mejorar la experiencia de usuario.
 - Diseño responsivo adaptado a tablets y laptops.
 - Tipografía limpia y paleta de colores institucional.
