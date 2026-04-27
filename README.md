@@ -109,7 +109,7 @@ npm run dev
 
 ## Equipo de Desarrollo
 
-Este proyecto ha sido desarrollado como parte de las Practicas Profesionalizantes del **Instituto Tecnologico Beltran (ITB)**.
+Este proyecto ha sido desarrollado como parte de las Practicas Profesionalizantes por un equipo de alumnos que se encuentran cursando el ultimo tramo de la carrera de **Analista de Sistemas** en el **Instituto Tecnologico Beltran (ITB)**.
 
 | Integrante | Rol |
 |---|---|
@@ -118,8 +118,6 @@ Este proyecto ha sido desarrollado como parte de las Practicas Profesionalizante
 | Contreras Villalba Sol Heilin | Desarrollo / Documentacion |
 | Frassia Matias | Desarrollo |
 | Santillan Luis Gabriel | Desarrollo |
-
-**Carrera:** Tecnicatura Superior en Desarrollo de Software
 
 **Año:** 2026
 
