@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@jcancelo/mapa-asientos-sigic": "^1.0.3",
+    "@jcancelo/mapa-asientos-sigic": "^2.0.0",
     "@radix-ui/react-dialog": "^1.1.15",
     "@tailwindcss/vite": "^4.2.2",
     "dayjs": "^1.11.20",
