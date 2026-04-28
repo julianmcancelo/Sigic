@@ -58,6 +58,7 @@ Thumbs.db
 *.svg
 !logo-oficial.png
 !frontend/public/
+!Assets/
 !assets/
 
 # Limpieza Personalizada y Backups
