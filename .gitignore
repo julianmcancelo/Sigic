@@ -60,6 +60,10 @@ Thumbs.db
 !frontend/public/
 !Assets/
 !assets/
+!Assets/*.png
+!Assets/*.jpg
+!Assets/*.jpeg
+!Assets/*.svg
 
 # Limpieza Personalizada y Backups
 _basura/
