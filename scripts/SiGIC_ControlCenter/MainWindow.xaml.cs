@@ -323,6 +323,22 @@ namespace SiGIC_ControlCenter
 
         // ── Manejo de Procesos ──────────────────────────────────────────────────────────
 
+        private void ConfigurarEntornoNode(ProcessStartInfo psi)
+        {
+            string wingetNodePath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                @"Microsoft\WinGet\Packages\OpenJS.NodeJS.22_Microsoft.Winget.Source_8wekyb3d8bbwe\node-v22.22.3-win-x64"
+            );
+
+            if (Directory.Exists(wingetNodePath))
+            {
+                string pathVar = psi.EnvironmentVariables.ContainsKey("PATH") 
+                    ? psi.EnvironmentVariables["PATH"] 
+                    : (Environment.GetEnvironmentVariable("PATH") ?? "");
+                psi.EnvironmentVariables["PATH"] = wingetNodePath + ";" + pathVar;
+            }
+        }
+
         private void btnInfra_Click(object sender, RoutedEventArgs e)
         {
             if (isInfraActive)
@@ -359,6 +375,7 @@ namespace SiGIC_ControlCenter
                     CreateNoWindow = true,
                     UseShellExecute = false
                 };
+                ConfigurarEntornoNode(infoBackend);
                 infoBackend.EnvironmentVariables["PORT"] = config.BackendPort;
                 if (!string.IsNullOrEmpty(config.DatabaseUrl))
                 {
@@ -377,6 +394,7 @@ namespace SiGIC_ControlCenter
                     CreateNoWindow = true,
                     UseShellExecute = false
                 };
+                ConfigurarEntornoNode(infoFrontend);
                 infoFrontend.EnvironmentVariables["VITE_API_BASE_URL"] = $"{config.BackendUrl.TrimEnd('/')}{config.FrontendApiPath}";
 
                 frontendProcess = Process.Start(infoFrontend);
@@ -549,6 +567,7 @@ namespace SiGIC_ControlCenter
                     CreateNoWindow = true,
                     UseShellExecute = false
                 };
+                ConfigurarEntornoNode(infoDb);
 
                 if (!string.IsNullOrEmpty(config.DatabaseUrl))
                 {
@@ -615,6 +634,7 @@ namespace SiGIC_ControlCenter
                     CreateNoWindow = true,
                     UseShellExecute = false
                 };
+                ConfigurarEntornoNode(infoReset);
 
                 if (!string.IsNullOrEmpty(config.DatabaseUrl))
                 {
