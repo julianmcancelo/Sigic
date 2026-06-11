@@ -1,130 +1,103 @@
 <p align="center">
-  <img src="Assets/banner.png" alt="SiGIC - Sistema de Gestion de Invitados y Ceremonias" width="100%">
+  <img src="assets/logo-oficial.png" alt="Logo SiGIC" width="200" />
 </p>
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Node.js-v18+-339933?style=flat&logo=node.js&logoColor=white" alt="Node.js">
-  <img src="https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react&logoColor=white" alt="React">
-  <img src="https://img.shields.io/badge/Vite-8-646CFF?style=flat&logo=vite&logoColor=white" alt="Vite">
-  <img src="https://img.shields.io/badge/SQLite-3-003B57?style=flat&logo=sqlite&logoColor=white" alt="SQLite">
-  <img src="https://img.shields.io/badge/Estado-Produccion-29ABE2?style=flat" alt="Estado">
-</p>
+# SiGIC - Sistema de Gestión de Invitados y Ceremonias
+
+**Instituto Tecnológico Beltrán — 2026**
 
 ---
 
-## Acerca del Proyecto
+## Estado actual
+SiGIC es una plataforma integral que desarrollamos para administrar ceremonias de colación de principio a fin. Actualmente, la aplicación funciona utilizando PostgreSQL como motor de base de datos principal, con un backend robusto en Node.js y clientes frontend desarrollados en React y Flutter.
 
-**SiGIC** es una plataforma integral desarrollada para la organizacion, control de acceso y gestion de ubicaciones en ceremonias de graduacion y eventos institucionales masivos.
-
-El sistema permite administrar el ciclo de vida completo de un evento: desde el diseño del anfiteatro y la asignacion de asientos, hasta el registro de invitados y la validacion de credenciales en tiempo real mediante codigos QR.
-
-Este proyecto se destaca por su arquitectura modular, utilizando componentes propios publicados en el registro oficial de NPM como dependencias independientes.
-
----
-
-## Funcionalidades Principales
-
-| Modulo | Descripcion |
-|---|---|
-| **Centro de Control** | Aplicacion de escritorio para el despliegue unificado de toda la infraestructura (backend y frontend) en un solo paso. |
-| **Gestion de Ceremonias** | Creacion y configuracion de eventos con parametros como fecha, lugar y capacidad maxima de invitados. |
-| **Padron de Egresados** | Registro dinamico con soporte para importacion masiva desde archivos Excel y envio de invitaciones por correo electronico. |
-| **Editor de Anfiteatro** | Herramienta visual interactiva para disenar la disposicion de asientos y gestionar el aforo por zonas. |
-| **Libreria de Asientos** | Motor de renderizado modular publicado como paquete NPM (`@jcancelo/mapa-asientos-sigic`) para la gestion reactiva de ubicaciones. |
-| **Control de Acceso** | Modulo mobile optimizado para el escaneo y validacion de credenciales QR en tiempo real durante el evento. |
+## Qué resuelve
+- Alta y gestión de ceremonias de graduación.
+- Padrón unificado de egresados y sus invitados.
+- Registro y control de acceso automatizado por QR en portería.
+- Configuración visual de anfiteatros, sectores y asientos.
+- Asignación de profesores y entregadores de diplomas.
+- Panel operativo y métricas en tiempo real.
 
 ---
 
-## Arquitectura del Sistema
-
-El proyecto sigue una arquitectura de tres capas con separacion clara de responsabilidades:
-
+## Estructura del proyecto
+A continuación, se presenta la estructura simplificada del código en desarrollo:
 ```text
 SiGIC/
-├── frontend/                        # Interfaz de usuario (React + Vite + TailwindCSS)
-│   ├── src/
-│   │   ├── componentes/             # Componentes atomicos y de UI
-│   │   ├── paginas/                 # Vistas principales del panel
-│   │   ├── servicios/               # Capa de integracion con la API
-│   │   ├── layouts/                 # Estructuras de pagina (Auth, Panel)
-│   │   └── utilidades/              # Funciones auxiliares
-│   └── public/                      # Assets estaticos (logos, plantillas QR)
-│
-├── backend/                         # Servidor API REST (Node.js + Express)
-│   ├── rutas/                       # Endpoints organizados por recurso
-│   ├── servicios/                   # Logica de negocio (email, autenticacion)
-│   ├── datos/                       # Seeds y datos maestros
-│   └── db.js                        # Capa de acceso a datos (SQLite)
-│
-├── mobile/                          # Modulo de Control de Acceso
-│
-├── dist/                            # Distribucion del Centro de Control
-└── SiGIC_Control_Center_Pro.py      # Lanzador Maestro del sistema
+├── codigo/
+│   ├── servidor/           # Backend (API REST + base de datos)
+│   │   ├── datos/          # Esquema SQL y datos semilla
+│   │   ├── rutas/          # Controladores y endpoints REST
+│   │   ├── middleware/     # Filtros de autenticación (JWT) y rate limiting
+│   │   ├── servicios/      # Notificaciones (email) y tokens de sesión
+│   │   └── scripts/        # Tareas de administración (inicializar, respaldar, resetear)
+│   └── interfaz/
+│       ├── web/            # Portal de gestión administrativa (React + Vite)
+│       ├── movil/          # Portal de autogestión de egresados (React + Vite)
+│       └── flutter/        # App móvil para escaneo en portería (Flutter)
+├── scripts/                # Panel de Control nativo de Windows (Python)
+├── LEEME.md                # Guía de configuración y seguridad detallada
+├── README.md               # Este archivo (resumen del proyecto)
+├── CHANGELOG.md            # Historial de versiones y cambios
+└── .gitignore
 ```
 
 ---
 
-## Stack Tecnologico
-
-| Capa | Tecnologias |
-|---|---|
-| **Frontend** | React 19, Vite 8, TailwindCSS 4, Lucide Icons |
-| **Backend** | Node.js, Express, SQLite, Nodemailer |
-| **Librerias Propias** | `@jcancelo/mapa-asientos-sigic` v2.0 (NPM) |
-| **Infraestructura** | Python (Centro de Control), QR Code (credenciales) |
+## Seguridad
+- Autenticación segura mediante tokens de sesión firmados (JWT HS256) generados por el servidor.
+- Control de acceso y autorización por rol jerárquico verificado en cada endpoint de la API.
+- Rate limiting en memoria para prevenir ataques de fuerza bruta en inicio de sesión y validación OTP.
+- Para conocer la configuración y el modelo de seguridad en detalle, consultar la sección correspondiente en [LEEME.md](file:///d:/Sigic/LEEME.md).
 
 ---
 
-## Instalacion y Despliegue
+## Requisitos
+- Node.js 18+
+- npm
+- Python 3.x (opcional, requerido para el Control Center)
 
-### Requisitos Previos
+---
 
-- Node.js v18 o superior
-- NPM
-- Python 3.x (solo para el Centro de Control)
+## Arranque rápido
 
-### Despliegue Automatizado
-
-Ejecutar el Centro de Control para levantar toda la infraestructura:
-
+### Opción 1: Control Center (Recomendado)
+Para iniciar todos los componentes de forma unificada bajo Windows, ejecutar:
 ```bash
-python SiGIC_Control_Center_Pro.py
+python scripts/SiGIC_Control_Center_Pro.py
 ```
 
-### Instalacion Manual
+### Opción 2: Manual
 
-```bash
-# Servidor API
-cd backend
-npm install
-npm start
+1. **Servidor Backend:**
+   ```bash
+   cd codigo/servidor
+   npm install
+   npm start
+   ```
 
-# Interfaz de usuario
-cd frontend
-npm install
-npm run dev
-```
+2. **Administración Web:**
+   ```bash
+   cd codigo/interfaz/web
+   npm install
+   npm run dev
+   ```
+
+3. **Portal Móvil:**
+   ```bash
+   cd codigo/interfaz/movil
+   npm install
+   npm run dev
+   ```
 
 ---
 
 ## Equipo de Desarrollo
+Proyecto desarrollado por el equipo de Prácticas Profesionalizantes del Instituto Tecnológico Beltrán:
 
-Este proyecto ha sido desarrollado como parte de las Practicas Profesionalizantes por un equipo de alumnos que se encuentran cursando el ultimo tramo de la carrera de **Analista de Sistemas** en el **Instituto Tecnologico Beltran (ITB)**.
-
-| Integrante | Rol |
-|---|---|
-| Alfonso Alan Alexis | Desarrollo |
-| Cancelo Julian | Desarrollo / Documentacion |
-| Contreras Villalba Sol Heilin | Desarrollo / Documentacion |
-| Frassia Matias | Desarrollo |
-| Santillan Luis Gabriel | Desarrollo |
-
-**Año:** 2026
-
----
-
-<p align="center">
-  <img src="Assets/logo.png" alt="SiGIC" width="120">
-  <br>
-  <sub>Instituto Tecnologico Beltran — Avellaneda, Buenos Aires, Argentina</sub>
-</p>
+*   Alfonso Alan Alexis
+*   Cancelo Julian
+*   Contreras Villalba Sol Heilin
+*   Frassia Matias
+*   Santillan Luis Gabriel

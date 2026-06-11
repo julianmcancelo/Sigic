@@ -1,0 +1,79 @@
+/* Importamos tipografias para que la interfaz tenga una base visual mas cuidada. */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap');
+/* Tailwind se inyecta desde aqui para poder usar sus utilidades en todos los componentes. */
+@import 'tailwindcss';
+
+:root {
+  /* Fuente principal de toda la aplicacion. */
+  font-family: 'Inter', sans-serif;
+  /* Color base del texto. */
+  color: #0f172a;
+  /* Fondo general de la interfaz. */
+  background-color: #f8fafc;
+  /* Mejoras de renderizado de texto. */
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  /* Hace mas predecible el calculo de tamanos de todos los elementos. */
+  box-sizing: border-box;
+}
+
+body {
+  /* Quitamos el margen por defecto del navegador. */
+  margin: 0;
+}
+
+button,
+input {
+  /* Fuerza a que botones e inputs hereden la misma tipografia global. */
+  font: inherit;
+}
+
+#root {
+  /* Permite que la app ocupe todo el alto de la ventana. */
+  min-height: 100vh;
+}
+
+/* ─── Ajustes de layout para el mapa de asientos (@jcancelo/mapa-asientos-sigic) ───
+   El contenido del mapa se centra con flexbox dentro de un contenedor con scroll;
+   cuando la grilla es más ancha que la tarjeta, ese centrado recorta el lado
+   izquierdo (la barra "Escenario" aparecía cortada). Con width: max-content el
+   contenido define su ancho real, el escenario queda proporcional a la grilla
+   y el margen automático centra sin dejar zonas inaccesibles. */
+.sigic-wrapper {
+  max-width: 100%;
+}
+
+.sigic-mapa__contenido {
+  width: max-content;
+  min-width: 100%;
+  margin-inline: auto;
+  /* La librería hace zoom con transform: scale(), pero un ancestro con
+     transform se vuelve el "containing block" de los tooltips (position:
+     fixed), que aparecían lejos del asiento. Anulamos el transform y el
+     zoom se aplica escalando las variables de tamaño (ver regla siguiente). */
+  transform: none !important;
+}
+
+/* El zoom se traduce a tamaño real de asiento vía variables, que el wrapper
+   de la app define en línea (--mapa-*). Así el layout crece o se achica de
+   verdad: sin huecos al alejar ni recortes al acercar. */
+.sigic-zoom-por-variables .sigic-wrapper {
+  --sigic-seat-w: var(--mapa-seat-w, 38px);
+  --sigic-seat-h: var(--mapa-seat-h, 44px);
+  --sigic-gap-asientos: var(--mapa-gap-asientos, 6px);
+  --sigic-gap-filas: var(--mapa-gap-filas, 8px);
+}
+
+/* Las animaciones de entrada usan fill-mode "both", que deja el transform del
+   ultimo keyframe aplicado para siempre; ese transform residual tambien
+   capturaba los tooltips (position: fixed). Sin fill-mode la animacion se ve
+   igual (termina en el estado natural) pero no deja transform persistente. */
+.sigic-zoom-por-variables .sigic-wrapper,
+.sigic-zoom-por-variables .sigic-grilla {
+  animation-fill-mode: none !important;
+}

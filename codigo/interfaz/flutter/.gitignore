@@ -1,0 +1,36 @@
+# Archivos y directorios miscelaneos
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+migrate_working_dir/
+
+# Archivos de IntelliJ
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# Artefactos de Flutter/Dart/Pub
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+
+# Symbolication y obfuscacion
+app.*.symbols
+app.*.map.json
+
+# Artefactos de Android Studio
+/android/app/debug
+/android/app/profile
+/android/app/release

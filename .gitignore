@@ -1,15 +1,23 @@
-# Dependencias
+﻿# Dependencias
 node_modules/
 jspm_packages/
 .pnp
 .pnp.js
+mobile/.expo/
+mobile/.expo-shared/
 
-# Build y Distribución
+# Build y Distribucion
 dist/
 dist-ssr/
 build/
 *.exe
 *.spec
+mobile_flutter/build/
+mobile_flutter/.dart_tool/
+mobile_flutter/.flutter-plugins
+mobile_flutter/.flutter-plugins-dependencies
+mobile_flutter/.packages
+mobile_flutter/.metadata
 
 # Logs
 logs
@@ -50,13 +58,14 @@ Thumbs.db
 *.swp
 .claude/
 .gemini/
+.cursor/
+.qodo/
 
 # Archivos de Imagen (Ignorar capturas temporales, mantener assets oficiales)
 *.png
 *.jpg
 *.jpeg
 *.svg
-!logo-oficial.png
 !frontend/public/
 !Assets/
 !assets/
@@ -76,3 +85,6 @@ iniciar.bat
 # SQLite adicionales
 *.db-shm
 *.db-wal
+backend/datos/backup_postgres.sql
+backend/datos/sigic_backup.db
+tools/sigic_control_config.json
