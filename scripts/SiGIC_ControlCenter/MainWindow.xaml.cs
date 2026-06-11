@@ -37,6 +37,16 @@ namespace SiGIC_ControlCenter
         private string lastFrontendState = "";
         private string lastDbState = "";
 
+        private struct DbStats
+        {
+            public bool Ok;
+            public string Mode;
+            public int Egresados;
+            public int Invitados;
+            public int Ceremonias;
+            public string Error;
+        }
+
         public MainWindow()
         {
             InitializeComponent();
@@ -490,6 +500,7 @@ namespace SiGIC_ControlCenter
         private async Task BucleMonitoreo()
         {
             var cliente = new HttpClient();
+            cliente.Timeout = TimeSpan.FromSeconds(4);
             // Evitar alerta del túnel local si se usa ngrok/localtunnel
             cliente.DefaultRequestHeaders.Add("Bypass-Tunnel-Reminder", "true");
 
@@ -500,37 +511,62 @@ namespace SiGIC_ControlCenter
                     // 1. Chequeo Backend
                     string bUrl = config.BackendUrl;
                     bool backendOk = false;
+                    long backendLatency = 0;
                     try
                     {
+                        var sw = Stopwatch.StartNew();
                         var res = await cliente.GetAsync($"{bUrl.TrimEnd('/')}{config.FrontendApiPath}/health");
+                        sw.Stop();
                         backendOk = res.IsSuccessStatusCode;
+                        backendLatency = sw.ElapsedMilliseconds;
                     }
                     catch { }
 
                     // 2. Chequeo Frontend
                     string fUrl = config.FrontendUrl;
                     bool frontendOk = false;
+                    long frontendLatency = 0;
                     try
                     {
+                        var sw = Stopwatch.StartNew();
                         var res = await cliente.GetAsync(fUrl);
+                        sw.Stop();
                         frontendOk = res.IsSuccessStatusCode;
+                        frontendLatency = sw.ElapsedMilliseconds;
                     }
                     catch { }
 
-                    // 3. Chequeo Base de Datos (ejecuta el script de node idéntico a Python)
-                    bool dbOk = ProbarDbLocal();
+                    // 3. Chequeo Base de Datos con obtención de métricas
+                    DbStats dbStats = ObtenerDbStats();
+                    bool dbOk = dbStats.Ok;
 
                     // Actualizar interfaz
                     Dispatcher.Invoke(() =>
                     {
+                        // Backend
                         lblEstadoBackend.Content = backendOk ? "Conectado" : "Sin conexión";
+                        lblDetalleBackend.Content = backendOk ? $"Latencia: {backendLatency} ms" : "Puerto: 3001";
                         ActualizarColorTarjetaEstado(lblEstadoBackend);
 
+                        // Frontend
                         lblEstadoFrontend.Content = frontendOk ? "Conectado" : "Sin conexión";
+                        lblDetalleFrontend.Content = frontendOk ? $"Latencia: {frontendLatency} ms" : "Puerto: 5173";
                         ActualizarColorTarjetaEstado(lblEstadoFrontend);
 
+                        // Base de Datos
                         lblEstadoDB.Content = dbOk ? "Conectado" : "Sin conexión";
+                        lblTituloDB.Content = dbOk ? $"Base de Datos ({dbStats.Mode})" : "Base de Datos";
+                        lblDetalleDB.Content = dbOk 
+                            ? $"Graduados: {dbStats.Egresados} | Invitados: {dbStats.Invitados} | Ceremonias: {dbStats.Ceremonias}"
+                            : "Puerto local inactivo";
                         ActualizarColorTarjetaEstado(lblEstadoDB);
+
+                        // Global
+                        lblEstadoGeneral.Content = (backendOk && frontendOk && dbOk) ? "Operativo" : (isInfraActive ? "Falla" : "Standby");
+                        lblDetalleGeneral.Content = (backendOk && frontendOk && dbOk) 
+                            ? "Todos los servicios en línea" 
+                            : (isInfraActive ? "Fallo en algún servicio" : "Servicios en standby");
+                        ActualizarColorTarjetaGeneral();
 
                         // Registrar en log solo si cambió de estado
                         string curB = backendOk ? "Ok" : "Falla";
@@ -542,7 +578,7 @@ namespace SiGIC_ControlCenter
                             lastBackendState = curB;
                             lastFrontendState = curF;
                             lastDbState = curD;
-                            Log($"Estado de servicios → Backend: {curB} | Frontend: {curF} | DB: {curD}", "AUDIT");
+                            Log($"Estado de servicios → Backend: {curB} ({backendLatency}ms) | Frontend: {curF} ({frontendLatency}ms) | DB: {curD} ({dbStats.Mode})", "AUDIT");
                         }
                     });
                 }
@@ -555,17 +591,19 @@ namespace SiGIC_ControlCenter
             }
         }
 
-        private bool ProbarDbLocal()
+        private DbStats ObtenerDbStats()
         {
+            var stats = new DbStats { Ok = false, Mode = "Desconocido", Error = "Sin conexión" };
             try
             {
                 var infoDb = new ProcessStartInfo
                 {
                     FileName = "node.exe",
-                    Arguments = "-e \"const {query}=require('./db');query('SELECT 1 as ok').then(()=>{process.exit(0)}).catch(()=>{process.exit(2)})\"",
+                    Arguments = "-e \"const {query}=require('./db'); Promise.all([query('SELECT COUNT(*) as cnt FROM egresados').then(r => Number(r.rows[0].cnt)).catch(() => 0), query('SELECT COUNT(*) as cnt FROM invitados').then(r => Number(r.rows[0].cnt)).catch(() => 0), query('SELECT COUNT(*) as cnt FROM ceremonias WHERE activa = 1').then(r => Number(r.rows[0].cnt)).catch(() => 0)]).then(([eg, inv, cer]) => { console.log(JSON.stringify({ok:true, mode: process.env.DATABASE_URL ? 'PostgreSQL' : 'SQLite', egresados:eg, invitados:inv, ceremonias:cer})); process.exit(0); }).catch(e => { console.log(JSON.stringify({ok:false, err:e.message})); process.exit(1); })\"",
                     WorkingDirectory = backendDir,
                     CreateNoWindow = true,
-                    UseShellExecute = false
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true
                 };
                 ConfigurarEntornoNode(infoDb);
 
@@ -578,13 +616,45 @@ namespace SiGIC_ControlCenter
                 {
                     if (proc != null)
                     {
+                        string output = proc.StandardOutput.ReadToEnd();
                         proc.WaitForExit(6000);
-                        return proc.ExitCode == 0;
+                        if (proc.ExitCode == 0 && !string.IsNullOrWhiteSpace(output))
+                        {
+                            var lineas = output.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                            foreach (var linea in lineas)
+                            {
+                                var trimLinea = linea.Trim();
+                                if (trimLinea.StartsWith("{") && trimLinea.EndsWith("}"))
+                                {
+                                    try
+                                    {
+                                        using (var doc = System.Text.Json.JsonDocument.Parse(trimLinea))
+                                        {
+                                            var root = doc.RootElement;
+                                            if (root.TryGetProperty("ok", out var okProp) && okProp.GetBoolean())
+                                            {
+                                                stats.Ok = true;
+                                                stats.Mode = root.GetProperty("mode").GetString() ?? "Desconocido";
+                                                stats.Egresados = root.GetProperty("egresados").GetInt32();
+                                                stats.Invitados = root.GetProperty("invitados").GetInt32();
+                                                stats.Ceremonias = root.GetProperty("ceremonias").GetInt32();
+                                                stats.Error = "";
+                                                return stats;
+                                            }
+                                        }
+                                    }
+                                    catch { }
+                                }
+                            }
+                        }
                     }
                 }
             }
-            catch { }
-            return false;
+            catch (Exception ex)
+            {
+                stats.Error = ex.Message;
+            }
+            return stats;
         }
 
         // ── Eventos de la Interfaz ───────────────────────────────────────────────────────

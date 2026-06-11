@@ -186,6 +186,7 @@
                     <StackPanel>
                         <Label Content="Estado global" FontSize="11" Foreground="{DynamicResource TextSuaveBrush}" Padding="0"/>
                         <Label x:Name="lblEstadoGeneral" Content="Standby" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextSuaveBrush}" Padding="0,2,0,0"/>
+                        <Label x:Name="lblDetalleGeneral" Content="Servicios inactivos" FontSize="9.5" Foreground="{DynamicResource TextSuaveBrush}" Padding="0,2,0,0"/>
                     </StackPanel>
                 </Border>
 
@@ -194,8 +195,9 @@
                         Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}"
                         Padding="14,10">
                     <StackPanel>
-                        <Label Content="Backend" FontSize="11" Foreground="{DynamicResource TextSuaveBrush}" Padding="0"/>
+                        <Label Content="Servicio Backend" FontSize="11" Foreground="{DynamicResource TextSuaveBrush}" Padding="0"/>
                         <Label x:Name="lblEstadoBackend" Content="—" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextSuaveBrush}" Padding="0,2,0,0"/>
+                        <Label x:Name="lblDetalleBackend" Content="Puerto: 3001" FontSize="9.5" Foreground="{DynamicResource TextSuaveBrush}" Padding="0,2,0,0"/>
                     </StackPanel>
                 </Border>
 
@@ -204,18 +206,20 @@
                         Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}"
                         Padding="14,10">
                     <StackPanel>
-                        <Label Content="Frontend" FontSize="11" Foreground="{DynamicResource TextSuaveBrush}" Padding="0"/>
+                        <Label Content="Servicio Frontend" FontSize="11" Foreground="{DynamicResource TextSuaveBrush}" Padding="0"/>
                         <Label x:Name="lblEstadoFrontend" Content="—" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextSuaveBrush}" Padding="0,2,0,0"/>
+                        <Label x:Name="lblDetalleFrontend" Content="Puerto: 5173" FontSize="9.5" Foreground="{DynamicResource TextSuaveBrush}" Padding="0,2,0,0"/>
                     </StackPanel>
                 </Border>
 
-                <!-- Tarjeta: PostgreSQL -->
+                <!-- Tarjeta: Base de Datos -->
                 <Border Grid.Column="3" Margin="4,0,0,0" CornerRadius="8" BorderThickness="1" 
                         Background="{DynamicResource CardBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}"
                         Padding="14,10">
                     <StackPanel>
-                        <Label Content="PostgreSQL" FontSize="11" Foreground="{DynamicResource TextSuaveBrush}" Padding="0"/>
+                        <Label x:Name="lblTituloDB" Content="Base de Datos" FontSize="11" Foreground="{DynamicResource TextSuaveBrush}" Padding="0"/>
                         <Label x:Name="lblEstadoDB" Content="—" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextSuaveBrush}" Padding="0,2,0,0"/>
+                        <Label x:Name="lblDetalleDB" Content="Sin consultas" FontSize="9.5" Foreground="{DynamicResource TextSuaveBrush}" Padding="0,2,0,0"/>
                     </StackPanel>
                 </Border>
             </Grid>
