@@ -6,18 +6,18 @@
 
   ![React](https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react&logoColor=white)
   ![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=flat&logo=vite&logoColor=white)
-  ![Estado](https://img.shields.io/badge/Estado-En%20Producción-29ABE2?style=flat)
+  ![Estado](https://img.shields.io/badge/Estado-En%20Desarrollo-29ABE2?style=flat)
 </div>
 
 ---
 
-## 🚀 Descripción
+## Descripción
 
 Este es el cliente móvil de autogestión para graduados e invitados de SiGIC. Proporciona una interfaz web móvil fluida, optimizada y responsiva que permite a los egresados confirmar su asistencia, registrar acompañantes, seleccionar sus ubicaciones en el anfiteatro y descargar sus credenciales digitales con código QR.
 
 ---
 
-## 🛠️ Módulos Principales
+## Módulos Principales
 
 *   **Autogestión de Egresados**: Acceso rápido con código OTP enviado por correo electrónico o link mágico.
 *   **Gestión de Acompañantes**: Registro de invitados según el límite de cupos establecido por la administración.
@@ -26,7 +26,7 @@ Este es el cliente móvil de autogestión para graduados e invitados de SiGIC. P
 
 ---
 
-## 📂 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```text
 codigo/interfaz/movil/
@@ -42,7 +42,7 @@ codigo/interfaz/movil/
 
 ---
 
-## 💻 Desarrollo
+## Desarrollo
 
 ### Requisitos Previos
 - Node.js (versión recomendada LTS)
@@ -65,7 +65,7 @@ npm run preview
 
 ---
 
-## 🎨 Diseño Móvil
+## Diseño Móvil
 El diseño está pensado desde un enfoque **Mobile First**:
 - Estilo moderno basado en desenfoques (Glassmorphism).
 - Interacciones fluidas y micro-animaciones optimizadas para gestos táctiles.

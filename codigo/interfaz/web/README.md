@@ -7,18 +7,18 @@
   ![React](https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react&logoColor=white)
   ![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=flat&logo=vite&logoColor=white)
   ![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=flat&logo=tailwindcss&logoColor=white)
-  ![Estado](https://img.shields.io/badge/Estado-En%20Producción-29ABE2?style=flat)
+  ![Estado](https://img.shields.io/badge/Estado-En%20Desarrollo-29ABE2?style=flat)
 </div>
 
 ---
 
-## 🚀 Descripción
+## Descripción
 
 Este es el portal web de administración centralizada de SiGIC. Proporciona una interfaz de escritorio moderna, reactiva y optimizada para los administradores y personal administrativo del Instituto Tecnológico Beltrán. Desde aquí se gestionan las ceremonias, el padrón de alumnos, los docentes, la distribución física del anfiteatro y se realiza el seguimiento en tiempo real del evento.
 
 ---
 
-## 🛠️ Módulos Principales
+## Módulos Principales
 
 *   **Panel de Control**: Vista unificada con indicadores del estado del servidor, clima y accesos rápidos de administración.
 *   **Gestión de Ceremonias**: Planificación, creación y activación de colaciones.
@@ -28,7 +28,7 @@ Este es el portal web de administración centralizada de SiGIC. Proporciona una 
 
 ---
 
-## 📂 Estructura del Proyecto
+## Estructura del Proyecto
 
 ```text
 codigo/interfaz/web/
@@ -44,7 +44,7 @@ codigo/interfaz/web/
 
 ---
 
-## 💻 Desarrollo
+## Desarrollo
 
 ### Requisitos Previos
 - Node.js (versión recomendada LTS)
@@ -67,7 +67,7 @@ npm run preview
 
 ---
 
-## 🎨 Estética y Diseño
+## Estética y Diseño
 El portal de administración utiliza una estética moderna con efectos semi-transparentes (Glassmorphism):
 - Panel estructurado optimizado para pantallas medianas y grandes.
 - Paleta de colores sobria alineada a la identidad del Instituto Beltrán.
