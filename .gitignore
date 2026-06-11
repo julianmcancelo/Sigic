@@ -1,4 +1,4 @@
-﻿# Dependencias
+# Dependencias
 node_modules/
 jspm_packages/
 .pnp
@@ -88,3 +88,8 @@ iniciar.bat
 backend/datos/backup_postgres.sql
 backend/datos/sigic_backup.db
 tools/sigic_control_config.json
+
+# C# / .NET
+scripts/SiGIC_ControlCenter/bin/
+scripts/SiGIC_ControlCenter/obj/
+scripts/SiGIC_ControlCenter/.vs/
