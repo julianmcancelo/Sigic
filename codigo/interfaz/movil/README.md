@@ -1,12 +1,11 @@
 <div align="center">
   <img src="public/logo-oficial.png" alt="SiGIC Logo" width="220" />
 
-  <h2>SiGIC - Frontend</h2>
-  <p>Sistema de Gestión Institucional de Ceremonias — Instituto Tecnológico Beltrán</p>
+  <h2>SiGIC - Portal Móvil</h2>
+  <p>Cliente Móvil de Autogestión y Portería — Instituto Tecnológico Beltrán</p>
 
   ![React](https://img.shields.io/badge/React-19-61DAFB?style=flat&logo=react&logoColor=white)
   ![Vite](https://img.shields.io/badge/Vite-8-646CFF?style=flat&logo=vite&logoColor=white)
-  ![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?style=flat&logo=tailwindcss&logoColor=white)
   ![Estado](https://img.shields.io/badge/Estado-En%20Producción-29ABE2?style=flat)
 </div>
 
@@ -14,33 +13,31 @@
 
 ## 🚀 Descripción
 
-SiGIC es una plataforma integral diseñada para la gestión profesional de actos de colación y ceremonias institucionales. Este frontend proporciona una interfaz moderna, reactiva y optimizada para la administración de invitados, diseño de anfiteatros y control de acceso.
+Este es el cliente móvil de autogestión para graduados e invitados de SiGIC. Proporciona una interfaz web móvil fluida, optimizada y responsiva que permite a los egresados confirmar su asistencia, registrar acompañantes, seleccionar sus ubicaciones en el anfiteatro y descargar sus credenciales digitales con código QR.
 
 ---
 
 ## 🛠️ Módulos Principales
 
-*   **Panel de Control**: Vista general con estadísticas en tiempo real, clima y accesos rápidos.
-*   **Gestión de Ceremonias**: Creación y configuración de eventos específicos.
-*   **Administración de Invitados**: Registro, importación y seguimiento de asistentes.
-*   **Editor de Anfiteatro**: Herramienta visual para diseñar la disposición de asientos y asignar roles.
-*   **Selección de Asientos**: Interfaz interactiva para que los egresados eliju su ubicación.
-*   **Control de Ingreso**: Sistema de validación de credenciales mediante códigos QR.
+*   **Autogestión de Egresados**: Acceso rápido con código OTP enviado por correo electrónico o link mágico.
+*   **Gestión de Acompañantes**: Registro de invitados según el límite de cupos establecido por la administración.
+*   **Selección de Asientos**: Mapa de butacas interactivo adaptado a pantallas táctiles para la reserva de ubicaciones.
+*   **Credencial Digital**: Generación dinámica y descarga de la credencial de acceso con código QR.
 
 ---
 
 ## 📂 Estructura del Proyecto
 
 ```text
-frontend/
-├── public/              # Assets estáticos y plantillas (QR, logos)
+codigo/interfaz/movil/
+├── public/              # Recursos estáticos y plantillas del portal móvil
 └── src/
-    ├── componentes/     # Componentes atómicos y específicos del panel
-    ├── datos/           # Configuraciones y datos maestros
-    ├── layouts/         # Estructuras base de la aplicación (Auth, Panel)
-    ├── paginas/         # Vistas principales (Login, Dashboard, Editores)
-    ├── servicios/       # Integración con la API Backend
-    └── utilidades/      # Funciones de apoyo (Formateo, Clima, Validaciones)
+    ├── componentes/     # Tarjetas, modales y botones responsivos
+    ├── datos/           # Configuraciones y mocks locales de clima y accesos
+    ├── layouts/         # Contenedores de pantallas (Autenticación, Panel)
+    ├── paginas/         # Vistas del portal (Registro, Selección de Asientos, Bienvenida)
+    ├── servicios/       # Conexión con el servidor backend (API)
+    └── utilidades/      # Validaciones y funciones de apoyo
 ```
 
 ---
@@ -68,11 +65,11 @@ npm run preview
 
 ---
 
-## 🎨 Estética y Diseño
-El proyecto utiliza una estética **Glassmorphic** moderna con:
-- Micro-animaciones para mejorar la experiencia de usuario.
-- Diseño responsivo adaptado a tablets y laptops.
-- Tipografía limpia y paleta de colores institucional.
+## 🎨 Diseño Móvil
+El diseño está pensado desde un enfoque **Mobile First**:
+- Estilo moderno basado en desenfoques (Glassmorphism).
+- Interacciones fluidas y micro-animaciones optimizadas para gestos táctiles.
+- Layouts 100% adaptables a cualquier dispositivo móvil.
 
 ---
 

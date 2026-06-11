@@ -1,17 +1,32 @@
-# sigic_porteria
+# SiGIC - Portería (App Móvil)
 
-A new Flutter project.
+**Instituto Tecnológico Beltrán — 2026**
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## Descripción
+Esta es la aplicación móvil para el control de acceso en portería desarrollada en **Flutter**. Su función principal es escanear las credenciales con código QR de los egresados e invitados en la entrada del evento, validar sus permisos en tiempo real contra el servidor backend y registrar su ingreso.
 
-A few resources to get you started if this is your first Flutter project:
+## Características
+- Escaneo rápido mediante cámara integrada de códigos QR.
+- Conexión segura con la API del servidor usando tokens JWT.
+- Validación inmediata de estado (Presente/Ausente) y detalles de la ceremonia.
+- Interfaz fluida y optimizada para dispositivos móviles (Android / iOS).
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+## Configuración y Ejecución
+Para iniciar el proyecto en tu entorno de desarrollo local:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+1. **Instalar dependencias:**
+   ```bash
+   flutter pub get
+   ```
+
+2. **Ejecutar la aplicación:**
+   ```bash
+   flutter run
+   ```
+
+3. **Compilar para producción (Android APK):**
+   ```bash
+   flutter build apk --split-per-abi
+   ```
