@@ -247,65 +247,74 @@ export function ManualUsuarioWeb({ onVolver }) {
           
           {/* TAB 1: ADMINISTRADOR */}
           {tabActiva === 'admin' && (
-            <div className="space-y-6 animate-fade-in">
+            <div className="space-y-6 animate-fade-in text-white/80">
               <div className="border-b border-white/5 pb-4">
                 <span className="text-[9px] font-black uppercase tracking-widest text-[#29ABE2]">Rol Técnico Institucional</span>
                 <h3 className="text-xl font-black text-white mt-1">Manual de Gestión y Configuración</h3>
-                <p className="text-xs text-white/60 mt-1">Administrá ceremonias, importá egresados, enviá notificaciones y diseñá el anfiteatro de butacas.</p>
+                <p className="text-xs text-white/60 mt-1">Soporte y flujo de trabajo para el personal administrativo de SiGIC.</p>
               </div>
 
               {/* Layout Split de 2 columnas */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 {/* Columna Izquierda: Instrucciones */}
-                <div className="lg:col-span-7 space-y-4">
-                  {/* Paso 1: Setup */}
-                  <div className="bg-white/5 border border-white/5 p-4 rounded-xl relative overflow-hidden group hover:border-[#29ABE2]/30 transition-all">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="h-7 w-7 rounded-lg bg-[#29ABE2]/10 border border-[#29ABE2]/30 flex items-center justify-center text-xs font-bold text-[#29ABE2]">1</span>
-                      <h4 className="text-xs font-black uppercase tracking-wider text-white">Configuración Inicial</h4>
-                    </div>
-                    <p className="text-[11px] text-white/60 leading-relaxed">
-                      Al forzar el setup desde el Centro de Control o iniciar en limpio, registrá la cuenta de <strong>Super-Administrador</strong>, el nombre de la institución y el lugar del evento para configurar la base de datos de manera automática.
+                <div className="lg:col-span-7 space-y-6 text-xs leading-relaxed">
+                  
+                  <div>
+                    <h4 className="text-white font-bold text-sm mb-1.5">7.1 Configuración Inicial (Setup)</h4>
+                    <p className="mb-2">
+                      Al forzar la instalación o realizar un restablecimiento de datos a través del Centro de Control de Windows, la aplicación web ingresará de forma obligatoria en el **Asistente de Setup Inicial**.
+                    </p>
+                    <p className="mb-2 font-semibold text-[#29ABE2]">Procedimiento de registro:</p>
+                    <ol className="list-decimal list-inside space-y-1 pl-2 text-white/70">
+                      <li>Completar los datos personales del Super-Administrador (Nombre, Correo y Contraseña).</li>
+                      <li>Registrar el Nombre Formal de la Institución y el lugar inicial previsto para el evento.</li>
+                      <li>Confirmar la configuración para que el servidor impacte las tablas en la base de datos PostgreSQL.</li>
+                    </ol>
+                  </div>
+
+                  <div>
+                    <h4 className="text-white font-bold text-sm mb-1.5">7.2 Creación y Gestión de Ceremonias</h4>
+                    <p className="mb-2">
+                      El sistema permite crear múltiples colaciones independientes. Sin embargo, para evitar conflictos de aforo, **el sistema solo admite una única ceremonia activa a la vez**.
+                    </p>
+                    <p className="mb-2 font-semibold text-[#29ABE2]">Procedimiento operativo:</p>
+                    <ol className="list-decimal list-inside space-y-1 pl-2 text-white/70">
+                      <li>Ingresar a la pestaña de "Ceremonias" en el panel lateral.</li>
+                      <li>Definir el nombre del acto, lugar físico, fecha y el cupo máximo de acompañantes.</li>
+                      <li>Presionar el botón **Marcar como Activa** sobre el evento deseado para habilitar la autogestión de sus egresados.</li>
+                    </ol>
+                  </div>
+
+                  <div>
+                    <h4 className="text-white font-bold text-sm mb-1.5">7.3 Carga Masiva del Padrón de Egresados</h4>
+                    <p className="mb-2">
+                      Para poblar los graduados asignados al evento activo, el administrador puede realizar una importación directa arrastrando un archivo de Excel (.xlsx) que contenga la estructura unificada de datos.
+                    </p>
+                    <p className="mb-2 font-semibold text-[#29ABE2]">Campos requeridos de la planilla:</p>
+                    <ul className="list-disc list-inside space-y-1 pl-2 text-white/70">
+                      <li><code className="text-[#29ABE2]">nombre</code>: Apellido y Nombre del egresado.</li>
+                      <li><code className="text-[#29ABE2]">dni</code>: Documento Único (en formato numérico plano).</li>
+                      <li><code className="text-[#29ABE2]">correo</code>: Dirección electrónica oficial.</li>
+                      <li><code className="text-[#29ABE2]">legajo</code>, <code className="text-[#29ABE2]">carrera</code>, <code className="text-[#29ABE2]">anio_inscripcion</code> y <code className="text-[#29ABE2]">promedio</code>.</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h4 className="text-white font-bold text-sm mb-1.5">7.4 Envío y Reenvío de Invitaciones</h4>
+                    <p className="mb-2">
+                      Una vez validado el padrón, el administrador ejecuta el envío de invitaciones por email. Cada alumno recibirá un correo con su **Token de Acceso** único para ingresar de forma segura.
+                    </p>
+                    <p className="mb-2 font-semibold text-[#29ABE2]">Soporte de reenvíos:</p>
+                    <p className="text-white/70 pl-2">
+                      Si el correo rebota, el administrador puede editar los datos del estudiante en pantalla y presionar el botón de **Reenvío Individual** (icono de avión de papel) para forzar un nuevo despacho del token.
                     </p>
                   </div>
 
-                  {/* Paso 2: Ceremonias */}
-                  <div className="bg-white/5 border border-white/5 p-4 rounded-xl relative overflow-hidden group hover:border-[#29ABE2]/30 transition-all">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="h-7 w-7 rounded-lg bg-[#29ABE2]/10 border border-[#29ABE2]/30 flex items-center justify-center text-xs font-bold text-[#29ABE2]">2</span>
-                      <h4 className="text-xs font-black uppercase tracking-wider text-white">Gestión de Ceremonias</h4>
-                    </div>
-                    <p className="text-[11px] text-white/60 leading-relaxed">
-                      Creá eventos e ingresá el cupo máximo de acompañantes permitidos por egresado. Marcá una <strong>Ceremonia Activa</strong> como prioritaria para que el sistema asocie los accesos a ella.
-                    </p>
-                  </div>
-
-                  {/* Paso 3: Carga Padrón */}
-                  <div className="bg-white/5 border border-white/5 p-4 rounded-xl relative overflow-hidden group hover:border-[#29ABE2]/30 transition-all">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="h-7 w-7 rounded-lg bg-[#29ABE2]/10 border border-[#29ABE2]/30 flex items-center justify-center text-xs font-bold text-[#29ABE2]">3</span>
-                      <h4 className="text-xs font-black uppercase tracking-wider text-white">Carga Masiva (Excel)</h4>
-                    </div>
-                    <p className="text-[11px] text-white/60 leading-relaxed">
-                      Importá la nómina de graduados arrastrando una planilla Excel (.xlsx). El sistema validará la estructura (Nombre, DNI, Legajo, Carrera y Promedio) notificando errores antes de guardar en base.
-                    </p>
-                  </div>
-
-                  {/* Paso 4: Notificaciones */}
-                  <div className="bg-white/5 border border-white/5 p-4 rounded-xl relative overflow-hidden group hover:border-[#29ABE2]/30 transition-all">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="h-7 w-7 rounded-lg bg-[#29ABE2]/10 border border-[#29ABE2]/30 flex items-center justify-center text-xs font-bold text-[#29ABE2]">4</span>
-                      <h4 className="text-xs font-black uppercase tracking-wider text-white">Envío de Invitaciones</h4>
-                    </div>
-                    <p className="text-[11px] text-white/60 leading-relaxed">
-                      Hacé clic en <strong>Enviar Invitaciones</strong> en masa o de forma individual. Cada egresado recibirá un mail automático formal de la institución con un link encriptado único para ingresar a su autogestión.
-                    </p>
-                  </div>
                 </div>
 
                 {/* Columna Derecha: Wireframe */}
                 <div className="lg:col-span-5 space-y-3 lg:sticky lg:top-4">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-[#29ABE2] block">Vista Previa: Panel General</span>
+                  <span className="text-[9px] font-black uppercase tracking-widest text-[#29ABE2] block">Panel General de Administración</span>
                   <WireframeAdmin />
                 </div>
               </div>
@@ -343,61 +352,66 @@ export function ManualUsuarioWeb({ onVolver }) {
 
           {/* TAB 2: EGRESADO */}
           {tabActiva === 'egresado' && (
-            <div className="space-y-6 animate-fade-in">
+            <div className="space-y-6 animate-fade-in text-white/80">
               <div className="border-b border-white/5 pb-4">
                 <span className="text-[9px] font-black uppercase tracking-widest text-[#29ABE2]">Rol del Estudiante Graduado</span>
                 <h3 className="text-xl font-black text-white mt-1">Manual de Autogestión del Portal</h3>
-                <p className="text-xs text-white/60 mt-1">Confirmá tu presencia, registrá acompañantes, seleccioná tus butacas y obtené tus credenciales QR.</p>
+                <p className="text-xs text-white/60 mt-1">Confirmación de asistencia, registro de familiares y reserva de butacas.</p>
               </div>
 
               {/* Layout Split de 2 columnas */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 {/* Columna Izquierda: Instrucciones */}
-                <div className="lg:col-span-7 space-y-4">
-                  <div className="flex gap-4 items-start bg-white/5 p-4 rounded-xl border border-white/5">
-                    <div className="h-8 w-8 rounded-full bg-[#29ABE2]/10 text-[#29ABE2] border border-[#29ABE2]/20 flex items-center justify-center font-bold text-xs shrink-0">1</div>
-                    <div>
-                      <h4 className="text-xs font-black uppercase tracking-wider text-white mb-1">Acceso Seguro por OTP</h4>
-                      <p className="text-[11px] text-white/60 leading-relaxed">
-                        Haciendo clic en tu link del email ingresás automáticamente. Si entrás manualmente, completá tu correo y el sistema te enviará una clave numérica temporal (OTP) de 6 dígitos que deberás colocar para validar tu sesión.
-                      </p>
-                    </div>
+                <div className="lg:col-span-7 space-y-6 text-xs leading-relaxed">
+                  
+                  <div>
+                    <h4 className="text-white font-bold text-sm mb-1.5">7.5 Autogestión del Egresado y Validación OTP</h4>
+                    <p className="mb-2">
+                      El acceso a la autogestión es estrictamente individual. Si se ingresa de forma manual a la plataforma web, el graduado deberá verificar su identidad mediante el ingreso de un código OTP temporal.
+                    </p>
+                    <p className="mb-2 font-semibold text-[#29ABE2]">Pasos para acceder:</p>
+                    <ol className="list-decimal list-inside space-y-1 pl-2 text-white/70">
+                      <li>Ingresar a la plataforma web del sistema y colocar su correo registrado en la base.</li>
+                      <li>Abrir su bandeja de entrada y copiar el código OTP de 6 dígitos enviado por el servidor.</li>
+                      <li>Pegar el código en pantalla para que el servidor emita su token de sesión.</li>
+                    </ol>
                   </div>
 
-                  <div className="flex gap-4 items-start bg-white/5 p-4 rounded-xl border border-white/5">
-                    <div className="h-8 w-8 rounded-full bg-[#29ABE2]/10 text-[#29ABE2] border border-[#29ABE2]/20 flex items-center justify-center font-bold text-xs shrink-0">2</div>
-                    <div>
-                      <h4 className="text-xs font-black uppercase tracking-wider text-white mb-1">Declaración de Asistencia (Irreversible)</h4>
-                      <p className="text-[11px] text-white/60 leading-relaxed">
-                        Marcá si asistirás o no a la colación. <strong>Importante:</strong> Confirmar inasistencia (Rechazar) es un paso irreversible en el servidor que inhabilita tu enlace y libera tus butacas automáticamente para el uso de la institución.
-                      </p>
-                    </div>
+                  <div>
+                    <h4 className="text-white font-bold text-sm mb-1.5">7.6 Declaración de Asistencia (Aceptación/Rechazo)</h4>
+                    <p className="mb-2">
+                      Al acceder al portal, el graduado debe registrar de forma inicial su decisión de presenciar el evento de colación.
+                    </p>
+                    <p className="mb-2 text-white/70 pl-2">
+                      Si declara **asistir (Aceptar)**, se habilitará el flujo para cargar acompañantes y elegir asientos. En caso de declarar que **no asistirá (Rechazar)**, el sistema registrará la inasistencia de forma irreversible en el servidor, liberando sus asientos automáticamente para otros alumnos y cancelando sus credenciales.
+                    </p>
                   </div>
 
-                  <div className="flex gap-4 items-start bg-white/5 p-4 rounded-xl border border-white/5">
-                    <div className="h-8 w-8 rounded-full bg-[#29ABE2]/10 text-[#29ABE2] border border-[#29ABE2]/20 flex items-center justify-center font-bold text-xs shrink-0">3</div>
-                    <div>
-                      <h4 className="text-xs font-black uppercase tracking-wider text-white mb-1">Carga de Acompañantes y Asientos</h4>
-                      <p className="text-[11px] text-white/60 leading-relaxed">
-                        Completá el Nombre, DNI, Teléfono y Relación de tus invitados. Marcá si alguno posee movilidad reducida. Luego, seleccioná tu ubicación en el plano y asignale las butacas verdes contiguas a tus acompañantes.
-                      </p>
-                    </div>
+                  <div>
+                    <h4 className="text-white font-bold text-sm mb-1.5">7.7 Carga de Acompañantes e Indicador de Movilidad Reducida</h4>
+                    <p className="mb-2">
+                      El egresado tiene permitido registrar a sus acompañantes (Nombre, DNI, Teléfono y Relación) de acuerdo al límite establecido por la institución.
+                    </p>
+                    <p className="mb-2 text-white/70 pl-2">
+                      Si algún invitado posee dificultades físicas o requiere silla de ruedas, debe marcar la casilla de **Movilidad Reducida**. Esta alerta se grabará en el sistema para que los organizadores preparen su asistencia en sala y para que la aplicación del portero emita un aviso visual prioritario en la entrada del anfiteatro.
+                    </p>
                   </div>
 
-                  <div className="flex gap-4 items-start bg-white/5 p-4 rounded-xl border border-white/5">
-                    <div className="h-8 w-8 rounded-full bg-[#29ABE2]/10 text-[#29ABE2] border border-[#29ABE2]/20 flex items-center justify-center font-bold text-xs shrink-0">4</div>
-                    <div>
-                      <h4 className="text-xs font-black uppercase tracking-wider text-white mb-1">Descarga de Credencial Oficial (QR)</h4>
-                      <p className="text-[11px] text-white/60 leading-relaxed">
-                        El sistema emitirá tu credencial digital y la de tus invitados. Guardá los archivos con los códigos QR en tu celular o imprimilos. Cada invitado ingresará mostrando su respectivo código QR en el acceso del salón.
-                      </p>
-                    </div>
+                  <div>
+                    <h4 className="text-white font-bold text-sm mb-1.5">7.8 Selección Visual de Asientos y Descarga QR</h4>
+                    <p className="mb-2 font-semibold text-[#29ABE2]">Procedimiento de reservación:</p>
+                    <ol className="list-decimal list-inside space-y-1 pl-2 text-white/70">
+                      <li>Ingresar al plano gráfico interactivo del anfiteatro.</li>
+                      <li>Hacer clic en las butacas disponibles (color azul para el graduado, color verde para acompañantes) asegurando que se sienten juntos.</li>
+                      <li>Confirmar la asignación y hacer clic en **Descargar Credenciales** para obtener los archivos oficiales con los códigos QR únicos encriptados.</li>
+                    </ol>
                   </div>
+
                 </div>
 
                 {/* Columna Derecha: Wireframe */}
                 <div className="lg:col-span-5 space-y-3 lg:sticky lg:top-4">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-[#29ABE2] block">Simulador: Plano de Asientos</span>
+                  <span className="text-[9px] font-black uppercase tracking-widest text-[#29ABE2] block">Plano de Selección de Asientos</span>
                   <WireframeEgresado />
                 </div>
               </div>
@@ -406,73 +420,69 @@ export function ManualUsuarioWeb({ onVolver }) {
 
           {/* TAB 3: PORTERIA */}
           {tabActiva === 'porteria' && (
-            <div className="space-y-6 animate-fade-in">
+            <div className="space-y-6 animate-fade-in text-white/80">
               <div className="border-b border-white/5 pb-4">
                 <span className="text-[9px] font-black uppercase tracking-widest text-[#29ABE2]">Rol de Acreditación y Seguridad</span>
                 <h3 className="text-xl font-black text-white mt-1">Manual de Control de Accesos (Portería)</h3>
-                <p className="text-xs text-white/60 mt-1">Utilizá la aplicación móvil basada en Flutter para escanear credenciales y registrar presentismo.</p>
+                <p className="text-xs text-white/60 mt-1">Escaneo de credenciales en el acceso al salón el día del evento.</p>
               </div>
 
               {/* Layout Split de 2 columnas */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 {/* Columna Izquierda: Instrucciones */}
-                <div className="lg:col-span-7 space-y-4">
-                  {/* Caso Verde */}
-                  <div className="border border-emerald-500/20 bg-emerald-950/20 p-4 rounded-xl flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center shrink-0">
-                      <CheckCircle2 size={18} />
+                <div className="lg:col-span-7 space-y-6 text-xs leading-relaxed">
+                  
+                  <div>
+                    <h4 className="text-white font-bold text-sm mb-1.5">7.10 Acreditación y Control de Accesos por Cámara</h4>
+                    <p className="mb-2">
+                      El personal de portería y acreditación utiliza una aplicación móvil basada en Flutter que controla la cámara del dispositivo para escanear de forma rápida las credenciales QR impresas o digitales provistas por los egresados e invitados.
+                    </p>
+                    <p className="mb-2 font-semibold text-[#29ABE2]">Validación de códigos QR:</p>
+                    <p className="mb-2">
+                      Al enfocar una credencial, el software procesa el token digital y devuelve de manera inmediata el resultado mediante un color y un sonido en pantalla:
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    {/* Caso Verde */}
+                    <div className="border border-emerald-500/20 bg-emerald-950/20 p-3.5 rounded-xl flex items-start gap-3">
+                      <CheckCircle2 className="text-emerald-400 shrink-0 mt-0.5" size={16} />
+                      <div>
+                        <h5 className="font-bold text-emerald-400 uppercase tracking-wider text-[10px]">Acceso Autorizado (Pantalla Verde)</h5>
+                        <p className="text-emerald-100/70 text-[11px] mt-0.5 leading-snug">
+                          Indica que el código QR es legítimo, pertenece a la ceremonia activa y posee una butaca asignada. Muestra el Nombre y el Asiento en pantalla para agilizar el ingreso.
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="text-xs font-black uppercase tracking-wider text-emerald-400">Acceso Permitido (Verde)</h4>
-                      <p className="text-[11px] text-emerald-100/60 leading-relaxed">
-                        La credencial es válida para la ceremonia activa y el asiento está verificado. Muestra los datos de la persona y la fila/asiento asignado.
-                      </p>
+
+                    {/* Caso Naranja */}
+                    <div className="border border-amber-500/20 bg-amber-950/20 p-3.5 rounded-xl flex items-start gap-3">
+                      <AlertTriangle className="text-amber-400 shrink-0 mt-0.5" size={16} />
+                      <div>
+                        <h5 className="font-bold text-amber-400 uppercase tracking-wider text-[10px]">Acceso Duplicado (Pantalla Naranja)</h5>
+                        <p className="text-amber-100/70 text-[11px] mt-0.5 leading-snug">
+                          El código es válido pero la persona **ya ingresó anteriormente** al salón. Esta alerta inmediata permite frenar fraudes o copias físicas de las credenciales, derivando el caso a la mesa de ayuda.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Caso Rojo */}
+                    <div className="border border-rose-500/20 bg-rose-950/20 p-3.5 rounded-xl flex items-start gap-3">
+                      <XCircle className="text-rose-400 shrink-0 mt-0.5" size={16} />
+                      <div>
+                        <h5 className="font-bold text-rose-400 uppercase tracking-wider text-[10px]">Acceso Denegado (Pantalla Roja)</h5>
+                        <p className="text-rose-100/70 text-[11px] mt-0.5 leading-snug">
+                          Token de credencial inválido, código de otra ceremonia del instituto o asociado a alumnos que declararon inasistencia. Se deniega el paso físico de forma inmediata.
+                        </p>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Caso Naranja */}
-                  <div className="border border-amber-500/20 bg-amber-950/20 p-4 rounded-xl flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 flex items-center justify-center shrink-0">
-                      <AlertTriangle size={18} />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-black uppercase tracking-wider text-amber-400">Ya Registrado (Alerta Naranja)</h4>
-                      <p className="text-[11px] text-amber-100/60 leading-relaxed">
-                        El código QR es válido pero esa persona <strong>ya ingresó anteriormente</strong> al salón. Alerta inmediata ante fotocopias o fraude.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Caso Rojo */}
-                  <div className="border border-rose-500/20 bg-rose-950/20 p-4 rounded-xl flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 flex items-center justify-center shrink-0">
-                      <XCircle size={18} />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-black uppercase tracking-wider text-rose-400">Acceso Denegado (Rojo)</h4>
-                      <p className="text-[11px] text-rose-100/60 leading-relaxed">
-                        Token QR incorrecto, de otra ceremonia, egresado con inasistencia declarada o butacas no asignadas.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Alerta Movilidad Reducida */}
-                  <div className="border border-sky-500/30 bg-sky-950/15 p-4 rounded-xl flex items-center gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-500/10 border border-sky-500/30 text-sky-400 shrink-0">
-                      <ScanLine size={20} />
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-black uppercase tracking-wider text-sky-400 mb-0.5">Indicador de Movilidad Reducida</h4>
-                      <p className="text-[11px] text-sky-100/60 leading-relaxed">
-                        Si el invitado escaneado tiene movilidad reducida declarada, la pantalla verde emitirá un aviso visual especial en portería para alertar a los organizadores y proveer asistencia física directa hacia su butaca asignada.
-                      </p>
-                    </div>
-                  </div>
                 </div>
 
                 {/* Columna Derecha: Wireframe */}
                 <div className="lg:col-span-5 space-y-3 lg:sticky lg:top-4">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-[#29ABE2] block">Simulador: Visor QR de Portero</span>
+                  <span className="text-[9px] font-black uppercase tracking-widest text-[#29ABE2] block">Aplicación del Acreditador en Portería</span>
                   <WireframePorteria />
                 </div>
               </div>
@@ -481,48 +491,47 @@ export function ManualUsuarioWeb({ onVolver }) {
 
           {/* TAB 4: RESOLUCION DE PROBLEMAS */}
           {tabActiva === 'faq' && (
-            <div className="space-y-6 animate-fade-in">
+            <div className="space-y-6 animate-fade-in text-white/80">
               <div className="border-b border-white/5 pb-4">
                 <span className="text-[9px] font-black uppercase tracking-widest text-[#29ABE2]">Soporte Técnico Especializado</span>
                 <h3 className="text-xl font-black text-white mt-1">Resolución de Incidentes</h3>
-                <p className="text-xs text-white/60 mt-1">Soluciones rápidas a inconvenientes operativos típicos durante la ceremonia o el montaje.</p>
+                <p className="text-xs text-white/60 mt-1">Procedimientos prácticos de resolución a problemas recurrentes.</p>
               </div>
 
               {/* Layout Split de 2 columnas */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 {/* Columna Izquierda: Preguntas */}
-                <div className="lg:col-span-7 space-y-4">
-                  <div className="bg-white/5 border border-white/5 p-4 rounded-xl">
-                    <h4 className="text-xs font-bold text-white flex items-center gap-2">
-                      <ShieldAlert size={14} className="text-[#29ABE2]" /> ¿Cómo recupero el enlace de un graduado si no recibió el correo?
-                    </h4>
-                    <p className="text-[11px] text-white/60 mt-2 leading-relaxed">
-                      En **Gestión de Graduados**, el administrador puede verificar el correo, reenviar individualmente, o simplemente copiar el **Token de Acceso** único de la fila del graduado y proveerle el link manual: <code className="bg-black/30 px-1 py-0.5 rounded font-mono text-[#29ABE2]">http://localhost:5173/?token=TOKEN_DE_8_DIGITOS</code>.
+                <div className="lg:col-span-7 space-y-5 text-xs leading-relaxed">
+                  
+                  <div>
+                    <h4 className="text-white font-bold text-sm mb-1.5">¿Cómo recupero el enlace de un graduado si no recibió el correo?</h4>
+                    <p className="text-white/70">
+                      En **Gestión de Graduados**, el administrador puede verificar el correo de la fila del graduado. Si persiste el inconveniente, copie su **Token de Acceso** único y provéale la dirección web manual:
+                    </p>
+                    <code className="block bg-black/45 p-2 rounded font-mono text-[#29ABE2] text-[10px] mt-2 select-all border border-white/5">
+                      http://localhost:5173/?token=PEGAR_EL_TOKEN_AQUI
+                    </code>
+                  </div>
+
+                  <div>
+                    <h4 className="text-white font-bold text-sm mb-1.5">El Centro de Control muestra "Sin conexión" en el Backend.</h4>
+                    <p className="text-white/70">
+                      Asegúrese de que el puerto **3001** no esté siendo utilizado por otro servicio. Verifique que la conexión a internet sea estable (necesaria para el backend al consultar PostgreSQL en Neon Cloud) y revise que las credenciales de base de datos del archivo <code className="bg-black/30 px-1 py-0.5 rounded font-mono text-[10px]">.env</code> en la carpeta del servidor no tengan errores de tipeo.
                     </p>
                   </div>
 
-                  <div className="bg-white/5 border border-white/5 p-4 rounded-xl">
-                    <h4 className="text-xs font-bold text-white flex items-center gap-2">
-                      <ShieldAlert size={14} className="text-[#29ABE2]" /> El Centro de Control muestra "Sin conexión" en el Backend.
-                    </h4>
-                    <p className="text-[11px] text-white/60 mt-2 leading-relaxed">
-                      Asegúrese de que el puerto <strong>3001</strong> no esté siendo usado por otra aplicación o base de datos local. Verifique que la conexión a internet sea estable (para el backend que conecta a la base PostgreSQL en Neon Cloud) y que el archivo <code className="bg-black/30 px-1 py-0.5 rounded font-mono">.env</code> de la carpeta del servidor no tenga credenciales de base de datos incorrectas.
+                  <div>
+                    <h4 className="text-white font-bold text-sm mb-1.5">¿Cómo se limpia la base de datos para una nueva colación?</h4>
+                    <p className="text-white/70">
+                      Abra el **Centro de Control de Windows (C#)** y haga clic en **Forzar Setup Inicial**. Esta acción vaciará por completo las tablas relacionales de la base de datos ( SQLite y Neon Cloud ), dejando la infraestructura en limpio para registrar la ceremonia del próximo ciclo lectivo.
                     </p>
                   </div>
 
-                  <div className="bg-white/5 border border-white/5 p-4 rounded-xl">
-                    <h4 className="text-xs font-bold text-white flex items-center gap-2">
-                      <ShieldAlert size={14} className="text-[#29ABE2]" /> ¿Cómo limpio las butacas y el padrón para una nueva colación?
-                    </h4>
-                    <p className="text-[11px] text-white/60 mt-2 leading-relaxed">
-                      En el Centro de Control de Windows, pulse en <strong>Forzar Setup Inicial</strong>. Esto vaciará todas las tablas e inhabilitará los enlaces anteriores para permitir al administrador configurar una nueva ceremonia en limpio sin dejar remanentes de datos.
-                    </p>
-                  </div>
                 </div>
 
                 {/* Columna Derecha: Diagrama */}
                 <div className="lg:col-span-5 space-y-3 lg:sticky lg:top-4">
-                  <span className="text-[9px] font-black uppercase tracking-widest text-[#29ABE2] block">Arquitectura del Ecosistema</span>
+                  <span className="text-[9px] font-black uppercase tracking-widest text-[#29ABE2] block">Ecosistema y Flujo de Datos</span>
                   <DiagramaArquitectura />
                 </div>
               </div>
