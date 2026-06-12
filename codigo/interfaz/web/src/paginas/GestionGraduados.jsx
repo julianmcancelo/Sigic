@@ -32,7 +32,7 @@ const ESTADOS_FLUJO = {
   RECHAZADO:         { etiqueta: 'No aceptó',        color: 'bg-red-50/80 text-red-700 border border-red-200/50',        iconKey: 'RECHAZADO' },
 }
 
-export function GestionGraduados({ usuario, onVolver, onCerrarSesion }) {
+export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader }) {
   // Función para obtener el componente de ícono correspondiente (sin emojis)
   function obtenerIconoEstado(key, size = 12) {
     switch(key) {
@@ -153,14 +153,16 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion }) {
   const invitadosDe = (id) => invitados.filter(i => i.egresadoId === id || i.egresado_id === id)
 
   return (
-    <div className="min-h-screen bg-[#F0F4F8]">
-      <HeaderGlobal
-        titulo="Gestión de Graduados"
-        onVolver={onVolver}
-        onCerrarSesion={onCerrarSesion}
-      />
+    <div className={sinHeader ? '' : 'min-h-screen bg-[#F0F4F8]'}>
+      {!sinHeader && (
+        <HeaderGlobal
+          titulo="Gestión de Graduados"
+          onVolver={onVolver}
+          onCerrarSesion={onCerrarSesion}
+        />
+      )}
 
-      <main className="mx-auto max-w-7xl px-5 py-8">
+      <main className={`mx-auto max-w-7xl ${sinHeader ? 'px-0 py-4' : 'px-5 py-8'}`}>
         {/* Encabezado Principal */}
         <section className="mb-8 overflow-hidden rounded-[40px] bg-slate-900 p-8 text-white shadow-2xl shadow-slate-900/20 relative">
           <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500/10 rounded-full blur-[100px] -mr-32 -mt-32" />

@@ -8,7 +8,7 @@ import {
 import { obtenerAjustes, actualizarAjuste } from '../servicios/api'
 import { HeaderGlobal } from '../componentes/HeaderGlobal'
 
-export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, ceremoniaActiva }) {
+export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, ceremoniaActiva, sinHeader }) {
   const [ajustes, setAjustes]         = useState({})
   const [cargando, setCargando]       = useState(true)
   const [guardando, setGuardando]     = useState(null)
@@ -84,15 +84,17 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
   }
 
   return (
-    <div className="min-h-screen bg-[#f1f5f9] font-sans selection:bg-sky-100">
-      <HeaderGlobal 
-        titulo="Panel de Ajustes"
-        subtitulo="Configuración del Hábitat"
-        onVolver={onVolver}
-        onCerrarSesion={onCerrarSesion}
-      />
+    <div className={`${sinHeader ? '' : 'bg-[#f1f5f9] min-h-screen'} font-sans selection:bg-sky-100`}>
+      {!sinHeader && (
+        <HeaderGlobal 
+          titulo="Panel de Ajustes"
+          subtitulo="Configuración del Hábitat"
+          onVolver={onVolver}
+          onCerrarSesion={onCerrarSesion}
+        />
+      )}
 
-      <main className="max-w-6xl mx-auto p-10 pb-32">
+      <main className={`max-w-6xl mx-auto ${sinHeader ? 'p-0 py-4 pb-16' : 'p-10 pb-32'}`}>
         {/* HÁBITAT SELECCIONADO */}
         <div className="mb-12 bg-slate-900 rounded-[40px] p-10 text-white shadow-2xl shadow-slate-900/20 flex flex-col md:flex-row justify-between items-center gap-8 relative overflow-hidden">
           <div className="relative z-10">

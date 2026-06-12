@@ -25,8 +25,8 @@ import { AsistenteSetup } from './paginas/AsistenteSetup'
 import { PantallaAceptacion } from './paginas/PantallaAceptacion'
 import { GestionProfesores } from './paginas/GestionProfesores'
 import { ManualUsuarioWeb } from './paginas/ManualUsuarioWeb'
-import { PantallaBienvenidaPro } from './paginas/PantallaBienvenidaPro'
-import { PanelReportes } from './paginas/PanelReportes'
+import { PantallaBienvenidaPro } from './paginas/v2/PantallaBienvenidaPro'
+import { PanelReportes } from './paginas/v2/PanelReportes'
 
 // Componentes Globales
 import { ControlExpositor } from './componentes/ControlExpositor'
@@ -361,6 +361,9 @@ function App() {
           onCambiarVersion={() => {
             setVersionAdmin('clasica')
             localStorage.setItem('version_admin', 'clasica')
+          }}
+          onCambioCeremonia={() => {
+            obtenerCeremoniaActiva().then(setCeremoniaActiva)
           }}
         />
       )

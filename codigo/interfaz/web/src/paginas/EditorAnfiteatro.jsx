@@ -8,7 +8,7 @@ import { BASE, obtenerGraduados, obtenerInvitados, cabeceras } from '../servicio
 import { SeleccionAsientos } from './SeleccionAsientos';
 import { HeaderGlobal } from '../componentes/HeaderGlobal';
 
-export function EditorAnfiteatro({ ceremoniaId, onVolver }) {
+export function EditorAnfiteatro({ ceremoniaId, onVolver, sinHeader }) {
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [mensaje, setMensaje] = useState(null);
@@ -163,8 +163,8 @@ export function EditorAnfiteatro({ ceremoniaId, onVolver }) {
   }
 
   return (
-    <div ref={containerRef} className={`bg-[#f1f5f9] font-sans selection:bg-sky-100 flex flex-col ${fullscreen ? 'h-screen w-screen' : 'min-h-screen'}`}>
-      {!fullscreen && (
+    <div ref={containerRef} className={`${sinHeader ? '' : 'bg-[#f1f5f9] min-h-screen'} font-sans selection:bg-sky-100 flex flex-col ${fullscreen ? 'h-screen w-screen' : ''}`}>
+      {!fullscreen && !sinHeader && (
         <HeaderGlobal 
           titulo="Diseño del Anfiteatro"
           subtitulo="Arquitectura de Hábitat"
@@ -172,7 +172,7 @@ export function EditorAnfiteatro({ ceremoniaId, onVolver }) {
         />
       )}
 
-      <main className={`flex-1 mx-auto w-full flex flex-col lg:flex-row transition-all duration-300 ${fullscreen ? 'p-4 gap-4 max-w-[1920px]' : 'p-8 gap-8 max-w-7xl'}`}>
+      <main className={`flex-1 mx-auto w-full flex flex-col lg:flex-row transition-all duration-300 ${fullscreen ? 'p-4 gap-4 max-w-[1920px]' : sinHeader ? 'p-0 py-4 gap-4 max-w-7xl' : 'p-8 gap-8 max-w-7xl'}`}>
         {/* PANEL DE CONTROL LATERAL */}
         <aside className={`flex flex-col gap-4 transition-all duration-300 relative ${sidebarColapsada ? 'w-16' : 'w-full lg:w-80'}`}>
           <button 

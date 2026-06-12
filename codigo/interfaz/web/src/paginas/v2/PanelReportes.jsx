@@ -4,15 +4,15 @@ import {
   ArrowLeft, Download, Search, AlertCircle, FileSpreadsheet,
   TrendingUp, Award, Calendar, CheckSquare, Square, RefreshCw
 } from 'lucide-react'
-import { HeaderGlobal } from '../componentes/HeaderGlobal'
-import { obtenerGraduados, obtenerInvitados, marcarPresente } from '../servicios/api'
+import { HeaderGlobal } from '../../componentes/HeaderGlobal'
+import { obtenerGraduados, obtenerInvitados, marcarPresente } from '../../servicios/api'
 
 // ─── Colores del sistema (Identical to Version 1) ─────────────────
 const DARK   = '#2A3448'
 const ACCENT = '#0EA5E9'
 const BG     = '#F8FAFC'
 
-export function PanelReportes({ usuario, onVolver, onCerrarSesion }) {
+export function PanelReportes({ usuario, onVolver, onCerrarSesion, sinHeader }) {
   const [graduados, setGraduados] = useState([])
   const [invitados, setInvitados] = useState([])
   const [cargando, setCargando] = useState(true)
@@ -163,16 +163,18 @@ export function PanelReportes({ usuario, onVolver, onCerrarSesion }) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: BG }}>
-      <HeaderGlobal 
-        titulo="Reportes y Estadísticas"
-        subtitulo="Auditoría General de Ceremonias"
-        usuario={usuario}
-        onVolver={onVolver}
-        onCerrarSesion={onCerrarSesion}
-      />
+    <div className={`${sinHeader ? '' : 'min-h-screen'} flex flex-col`} style={{ background: BG }}>
+      {!sinHeader && (
+        <HeaderGlobal 
+          titulo="Reportes y Estadísticas"
+          subtitulo="Auditoría General de Ceremonias"
+          usuario={usuario}
+          onVolver={onVolver}
+          onCerrarSesion={onCerrarSesion}
+        />
+      )}
 
-      <main className="flex-1 mx-auto max-w-7xl w-full px-5 py-8">
+      <main className={`flex-1 mx-auto w-full ${sinHeader ? 'p-0 py-4 max-w-7xl' : 'px-5 py-8 max-w-7xl'}`}>
         {/* Banner Encabezado */}
         <section className="mb-8 overflow-hidden rounded-[32px] bg-slate-900 p-8 text-white shadow-2xl shadow-slate-900/20 relative">
           <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500/10 rounded-full blur-[100px] -mr-32 -mt-32" />
@@ -209,11 +211,17 @@ export function PanelReportes({ usuario, onVolver, onCerrarSesion }) {
         )}
 
         {cargando ? (
-          <div className="flex justify-center py-24">
-            <div className="text-center">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-sky-500 border-t-transparent mx-auto mb-4" />
-              <p className="text-xs font-bold uppercase tracking-widest text-sky-500">Calculando indicadores del evento...</p>
+          <div className="flex flex-col items-center justify-center py-20 select-none">
+            <div className="relative w-14 h-14 flex items-center justify-center mb-4">
+              <div className="absolute inset-0 rounded-full border-3 border-t-[#0ea5e9] border-r-transparent border-b-transparent border-l-transparent animate-spin" style={{ animationDuration: '0.8s' }} />
+              <div className="absolute inset-1 rounded-full border-3 border-b-indigo-500 border-t-transparent border-r-transparent border-l-transparent animate-spin" style={{ animationDuration: '1.2s', animationDirection: 'reverse' }} />
+              <img 
+                src="/logo-oficial.png" 
+                alt="SiGIC" 
+                className="h-7 w-auto object-contain animate-pulse z-10 filter drop-shadow-[0_0_6px_rgba(14,165,233,0.5)]" 
+              />
             </div>
+            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 animate-pulse">Calculando indicadores...</p>
           </div>
         ) : (
           <div className="grid lg:grid-cols-4 gap-8">

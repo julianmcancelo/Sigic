@@ -6,7 +6,7 @@ import {
 import { obtenerCeremonias, crearCeremonia, activarCeremonia, eliminarCeremonia } from '../servicios/api'
 import { HeaderGlobal } from '../componentes/HeaderGlobal'
 
-export function GestionCeremonias({ onVolver, onCambioCeremonia }) {
+export function GestionCeremonias({ onVolver, onCambioCeremonia, sinHeader }) {
   const [ceremonias, setCeremonias] = useState([])
   const [cargando, setCargando] = useState(true)
   const [mostrarForm, setMostrarForm] = useState(false)
@@ -64,14 +64,16 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia }) {
   }
 
   return (
-    <div className="min-h-screen bg-[#f1f5f9] font-sans selection:bg-sky-100">
-      <HeaderGlobal 
-        titulo="Gestión de Ceremonias"
-        subtitulo="SiGIC Multi-Hábitat"
-        onVolver={onVolver}
-      />
+    <div className={`${sinHeader ? '' : 'min-h-screen bg-[#f1f5f9]'} font-sans selection:bg-sky-100`}>
+      {!sinHeader && (
+        <HeaderGlobal 
+          titulo="Gestión de Ceremonias"
+          subtitulo="SiGIC Multi-Hábitat"
+          onVolver={onVolver}
+        />
+      )}
 
-      <main className="max-w-7xl mx-auto p-10">
+      <main className={`mx-auto ${sinHeader ? 'p-0 py-4' : 'max-w-7xl p-10'}`}>
         {/* ALERTAS ESTILIZADAS */}
         {mensaje && (
           <div className={`mb-10 p-6 rounded-[28px] border-2 flex justify-between items-center animate-in slide-in-from-top duration-500 ${
