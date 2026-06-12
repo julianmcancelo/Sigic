@@ -25,6 +25,7 @@ import { AsistenteSetup } from './paginas/AsistenteSetup'
 import { PantallaAceptacion } from './paginas/PantallaAceptacion'
 import { GestionProfesores } from './paginas/GestionProfesores'
 import { ManualUsuarioWeb } from './paginas/ManualUsuarioWeb'
+import { PantallaBienvenidaOscura } from './paginas/PantallaBienvenidaOscura'
 
 // Componentes Globales
 import { ControlExpositor } from './componentes/ControlExpositor'
@@ -59,6 +60,9 @@ function App() {
 
   // ─── 3. ESTADO DE NAVEGACIÓN ───
   const [pantallaAdmin, setPantallaAdmin] = useState('bienvenida')
+  const [versionAdmin, setVersionAdmin] = useState(
+    () => localStorage.getItem('version_admin') || 'clasica'
+  )
 
   const [vistaLogin, setVistaLogin] = useState(() => {
     const p = window.location.pathname
@@ -328,12 +332,27 @@ function App() {
         />
       )
     } else {
-      contenido = (
+      contenido = versionAdmin === 'clasica' ? (
         <PantallaBienvenida
           usuario={adminUser}
           ceremoniaActiva={ceremoniaActiva}
           onCerrarSesion={cerrarSesionAdmin}
           onNavegar={setPantallaAdmin}
+          onCambiarVersion={() => {
+            setVersionAdmin('pro')
+            localStorage.setItem('version_admin', 'pro')
+          }}
+        />
+      ) : (
+        <PantallaBienvenidaOscura
+          usuario={adminUser}
+          ceremoniaActiva={ceremoniaActiva}
+          onCerrarSesion={cerrarSesionAdmin}
+          onNavegar={setPantallaAdmin}
+          onCambiarVersion={() => {
+            setVersionAdmin('clasica')
+            localStorage.setItem('version_admin', 'clasica')
+          }}
         />
       )
     }

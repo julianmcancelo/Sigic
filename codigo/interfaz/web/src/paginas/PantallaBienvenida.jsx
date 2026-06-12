@@ -182,7 +182,7 @@ function AccesoGrande({ icono: Icono, titulo, descripcion, pantalla, badge, onCl
 // ════════════════════════════════════════════════════════════════
 // PANTALLA PRINCIPAL
 // ════════════════════════════════════════════════════════════════
-export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar }) {
+export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambiarVersion }) {
   const [fechaActual, setFechaActual]       = useState(() => new Date())
   const [temperatura, setTemperatura]       = useState(null)
   const [modalPermisos, setModalPermisos]   = useState(false)
@@ -363,7 +363,7 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar }) {
                 </div>
               )}
               
-              <div className="flex flex-col items-end gap-3">
+              <div className="flex flex-col items-end gap-2.5">
                 <div className="flex items-center gap-3 rounded-2xl bg-emerald-50/50 border border-emerald-100 px-5 py-3">
                   <span className="relative flex h-2.5 w-2.5">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
@@ -373,7 +373,14 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar }) {
                     Sesión activa
                   </span>
                 </div>
-                <span className="text-[12px] font-bold text-slate-300 uppercase tracking-widest">
+                <button
+                  type="button"
+                  onClick={onCambiarVersion}
+                  className="flex items-center gap-1.5 bg-[#0d1b2e] hover:bg-slate-800 text-white text-[9px] font-black uppercase tracking-wider px-3.5 py-1.5 rounded-full border border-slate-700 active:scale-95 transition-all shadow-md cursor-pointer"
+                >
+                  <LayoutGrid size={12} /> Versión 2 (Modo Pro)
+                </button>
+                <span className="text-[12px] font-bold text-slate-350 uppercase tracking-widest">
                   {diaSemana}, {dia} {mes}
                 </span>
               </div>
