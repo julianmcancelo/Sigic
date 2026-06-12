@@ -6,292 +6,52 @@ import {
 } from 'lucide-react'
 
 // ==========================================
-// WIREFRAME 1: ADMINISTRADOR (MAQUETA DE NAVEGADOR)
+// WIREFRAME 1: ADMINISTRADOR (REAL MOCKUP IMAGE)
 // ==========================================
 function WireframeAdmin() {
-  const [metricas] = useState({ egresados: 124, invitados: 248, confirmados: '89%' })
   return (
-    <div className="w-full bg-[#1e293b]/95 border border-white/10 rounded-xl overflow-hidden shadow-2xl text-[10px] text-white/80 font-sans">
-      {/* Cabecera del navegador */}
-      <div className="bg-slate-800 px-3 py-2 flex items-center gap-1.5 border-b border-white/5">
-        <div className="w-2 h-2 rounded-full bg-rose-500" />
-        <div className="w-2 h-2 rounded-full bg-amber-500" />
-        <div className="w-2 h-2 rounded-full bg-emerald-500" />
-        <div className="bg-slate-900/60 px-3 py-0.5 rounded text-[8px] text-white/40 ml-2 select-none flex-1 truncate font-mono">
-          admin.sigic.beltran.edu.ar/dashboard
-        </div>
-      </div>
-      {/* Cuerpo del Navegador */}
-      <div className="flex min-h-[220px]">
-        {/* Barra lateral */}
-        <div className="w-24 bg-slate-900 p-2 border-r border-white/5 flex flex-col gap-1.5 shrink-0">
-          <div className="h-4 bg-sky-500/10 rounded flex items-center gap-1 px-1 text-sky-400 font-bold select-none text-[7.5px]">
-            <span className="h-1.5 w-1.5 rounded-full bg-sky-400" /> SiGIC Admin
-          </div>
-          <div className="h-3.5 bg-white/5 rounded border border-[#29ABE2]/30 flex items-center gap-1 px-1 text-white select-none text-[7px]">
-            Panel General
-          </div>
-          <div className="h-3.5 hover:bg-white/5 rounded flex items-center gap-1 px-1 text-white/50 select-none text-[7px] cursor-pointer">
-            Graduados
-          </div>
-          <div className="h-3.5 hover:bg-white/5 rounded flex items-center gap-1 px-1 text-white/50 select-none text-[7px] cursor-pointer">
-            Ceremonias
-          </div>
-          <div className="h-3.5 hover:bg-white/5 rounded flex items-center gap-1 px-1 text-white/50 select-none text-[7px] cursor-pointer">
-            Butacas
-          </div>
-        </div>
-        {/* Contenido Principal */}
-        <div className="flex-1 p-3 bg-slate-950/40 flex flex-col gap-2">
-          {/* Barra de título interna */}
-          <div className="flex items-center justify-between border-b border-white/5 pb-1">
-            <span className="font-bold text-white text-[9px]">Panel General</span>
-            <div className="flex items-center gap-1 text-[7.5px]">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-white/60">Colación Activa</span>
-            </div>
-          </div>
-          {/* Fila de Tarjetas de Métricas */}
-          <div className="grid grid-cols-3 gap-1.5">
-            <div className="bg-slate-900/60 border border-white/5 rounded p-1 text-center">
-              <span className="block text-white/40 text-[6.5px] uppercase tracking-wider font-bold">Graduados</span>
-              <span className="block text-sky-400 text-[10px] font-black mt-0.5">{metricas.egresados}</span>
-            </div>
-            <div className="bg-slate-900/60 border border-white/5 rounded p-1 text-center">
-              <span className="block text-white/40 text-[6.5px] uppercase tracking-wider font-bold">Invitados</span>
-              <span className="block text-emerald-400 text-[10px] font-black mt-0.5">{metricas.invitados}</span>
-            </div>
-            <div className="bg-slate-900/60 border border-white/5 rounded p-1 text-center">
-              <span className="block text-white/40 text-[6.5px] uppercase tracking-wider font-bold">Asistencias</span>
-              <span className="block text-amber-400 text-[10px] font-black mt-0.5">{metricas.confirmados}</span>
-            </div>
-          </div>
-          {/* Tabla de Graduados simulada */}
-          <div className="border border-white/5 rounded bg-slate-900/40 overflow-hidden flex-1 flex flex-col">
-            <div className="bg-slate-900/80 px-2 py-1 border-b border-white/5 font-bold text-[7.5px] text-white/60">
-              Padrón Reciente
-            </div>
-            <div className="p-1.5 space-y-1 text-[7px] overflow-y-auto max-h-[100px]">
-              <div className="flex justify-between items-center bg-white/5 px-1.5 py-0.5 rounded border border-white/[0.02]">
-                <span className="text-white font-medium">Gomez, Lucía (Tec. Sistemas)</span>
-                <span className="px-1 py-0.2 rounded bg-emerald-500/10 text-emerald-400 font-bold border border-emerald-500/20 text-[6px]">Confirmado</span>
-              </div>
-              <div className="flex justify-between items-center bg-white/5 px-1.5 py-0.5 rounded border border-white/[0.02]">
-                <span className="text-white font-medium">Martínez, Pedro (Ing. Redes)</span>
-                <span className="px-1 py-0.2 rounded bg-amber-500/10 text-amber-400 font-bold border border-amber-500/20 text-[6px]">Pendiente</span>
-              </div>
-              <div className="flex justify-between items-center bg-white/5 px-1.5 py-0.5 rounded border border-white/[0.02]">
-                <span className="text-white font-medium">Pérez, Juan (Tec. Redes)</span>
-                <span className="px-1 py-0.2 rounded bg-sky-500/10 text-sky-400 font-bold border border-sky-500/20 text-[6px]">Enviado</span>
-              </div>
-            </div>
-          </div>
-        </div>
+    <div className="w-full overflow-hidden rounded-xl border border-white/10 shadow-2xl bg-slate-950/40 relative group">
+      <img 
+        src="/manual/admin_wireframe.png" 
+        alt="Dashboard de Administración - Padrón y Ceremonias" 
+        className="w-full h-auto object-cover hover:scale-[1.02] transition-transform duration-300 relative z-10"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3 z-20 pointer-events-none">
+        <span className="text-[9px] font-bold text-white/90">Vista Real: Panel de Administración Web</span>
       </div>
     </div>
   )
 }
 
 // ==========================================
-// WIREFRAME 2: SELECCION DE ASIENTOS INTERACTIVO
+// WIREFRAME 2: SELECCION DE ASIENTOS (REAL MOCKUP IMAGE)
 // ==========================================
 function WireframeEgresado() {
-  // 0: libre, 1: egresado (seleccionado), 2: invitado (seleccionado), 3: ocupado por otros
-  const [asientos, setAsientos] = useState([
-    [3, 3, 0, 3, 3, 3],
-    [3, 1, 2, 2, 0, 0],
-    [0, 0, 0, 0, 3, 3],
-    [0, 0, 3, 0, 0, 0],
-  ])
-
-  function toggleAsiento(filaIdx, colIdx) {
-    const nuevo = [...asientos]
-    const actual = nuevo[filaIdx][colIdx]
-    if (actual === 0) {
-      // Validar si ya hay un egresado seleccionado (máximo 1)
-      nuevo[filaIdx][colIdx] = 2 // Selecciona como invitado
-    } else if (actual === 2) {
-      nuevo[filaIdx][colIdx] = 0 // Libera asiento
-    }
-    setAsientos(nuevo)
-  }
-
-  const filas = ['A', 'B', 'C', 'D']
-
   return (
-    <div className="w-full bg-[#1e293b]/95 border border-white/10 rounded-xl overflow-hidden shadow-2xl text-[10px] text-white/80 font-sans">
-      {/* Cabecera del navegador */}
-      <div className="bg-slate-800 px-3 py-2 flex items-center gap-1.5 border-b border-white/5">
-        <div className="w-2 h-2 rounded-full bg-rose-500" />
-        <div className="w-2 h-2 rounded-full bg-amber-500" />
-        <div className="w-2 h-2 rounded-full bg-emerald-500" />
-        <div className="bg-slate-900/60 px-3 py-0.5 rounded text-[8px] text-white/40 ml-2 select-none flex-1 truncate font-mono">
-          graduados.sigic.beltran.edu.ar/seleccion-asientos
-        </div>
-      </div>
-      <div className="p-3 bg-slate-950/40 flex flex-col gap-2">
-        {/* Barra superior de pasos */}
-        <div className="flex items-center justify-between border-b border-white/5 pb-1">
-          <span className="font-bold text-white text-[9px]">Mapa de Asientos</span>
-          <span className="text-[7px] bg-[#29ABE2]/20 text-[#29ABE2] px-1.5 py-0.2 rounded border border-[#29ABE2]/30 uppercase font-black">Paso 3 de 4</span>
-        </div>
-
-        {/* Escenario */}
-        <div className="w-full bg-[#29ABE2]/10 border border-[#29ABE2]/20 rounded text-center py-1 font-bold text-[#29ABE2] text-[8px] tracking-widest uppercase">
-          Escenario Principal
-        </div>
-
-        {/* Cuadrícula de asientos */}
-        <div className="flex flex-col gap-1.5 py-2 items-center">
-          {asientos.map((fila, filaIdx) => (
-            <div key={filaIdx} className="flex gap-1.5 items-center">
-              <span className="w-3 text-right text-[7px] font-bold opacity-40 mr-1">{filas[filaIdx]}</span>
-              {fila.map((estado, colIdx) => {
-                let color = 'bg-slate-700/50 border-slate-600 hover:bg-slate-600/70 hover:border-slate-500'
-                let label = 'Libre'
-                if (estado === 1) {
-                  color = 'bg-[#29ABE2] border-sky-400 text-white shadow-[0_0_8px_rgba(41,171,226,0.6)] font-bold'
-                  label = 'Egresado'
-                } else if (estado === 2) {
-                  color = 'bg-emerald-500 border-emerald-400 text-white shadow-[0_0_8px_rgba(16,185,129,0.6)] font-bold'
-                  label = 'Invitado'
-                } else if (estado === 3) {
-                  color = 'bg-rose-500/20 border-rose-500/20 text-rose-500/40 cursor-not-allowed'
-                  label = 'Ocupado'
-                }
-                return (
-                  <button
-                    key={colIdx}
-                    onClick={() => estado !== 3 && estado !== 1 && toggleAsiento(filaIdx, colIdx)}
-                    disabled={estado === 3 || estado === 1}
-                    className={`h-4.5 w-4.5 rounded-md border flex items-center justify-center text-[7px] transition-all cursor-pointer ${color}`}
-                    title={`Butaca ${filas[filaIdx]}${colIdx + 1} (${label})`}
-                  >
-                    {colIdx + 1}
-                  </button>
-                )
-              })}
-            </div>
-          ))}
-        </div>
-
-        {/* Leyenda explicativa */}
-        <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[6.5px] border-t border-white/5 pt-1.5 opacity-90">
-          <div className="flex items-center gap-1">
-            <span className="h-2 w-2 rounded bg-[#29ABE2] inline-block shadow-[0_0_3px_rgba(41,171,226,0.6)]" />
-            <span>Tu ubicación (Graduado)</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <span className="h-2 w-2 rounded bg-emerald-500 inline-block shadow-[0_0_3px_rgba(16,185,129,0.6)]" />
-            <span>Tus acompañantes</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <span className="h-2 w-2 rounded bg-slate-700/50 border border-slate-600 inline-block" />
-            <span>Disponible (Clic)</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <span className="h-2 w-2 rounded bg-rose-500/20 border border-rose-500/20 inline-block" />
-            <span>Ocupado por otros</span>
-          </div>
-        </div>
+    <div className="w-full overflow-hidden rounded-xl border border-white/10 shadow-2xl bg-slate-950/40 relative group">
+      <img 
+        src="/manual/egresado_wireframe.png" 
+        alt="Portal del Graduado - Selección de Asiento" 
+        className="w-full h-auto object-cover hover:scale-[1.02] transition-transform duration-300 relative z-10"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-3 z-20 pointer-events-none">
+        <span className="text-[9px] font-bold text-white/90">Vista Real: Mapa de Selección de Butacas</span>
       </div>
     </div>
   )
 }
 
 // ==========================================
-// WIREFRAME 3: PORTERIA SCANNER MOVIL INTERACTIVO
+// WIREFRAME 3: PORTERIA SCANNER MOVIL (REAL MOCKUP IMAGE)
 // ==========================================
 function WireframePorteria() {
-  const [estadoScan, setEstadoScan] = useState('idle')
-
-  const estados = {
-    idle: {
-      titulo: 'ESPERANDO QR',
-      claseCard: 'border-white/5 bg-slate-900/60 text-white/50',
-      descripcion: 'Coloque el código QR del graduado o acompañante frente al visor de la cámara.',
-      icono: <ScanLine size={14} className="text-white/40 animate-pulse" />
-    },
-    success: {
-      titulo: 'ACCESO PERMITIDO',
-      claseCard: 'border-emerald-500/30 bg-emerald-950/20 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.1)]',
-      descripcion: 'Graduado: Gomez, Lucía. Asiento: A-2. ¡Acreditación registrada correctamente!',
-      icono: <CheckCircle2 size={14} className="text-emerald-400" />
-    },
-    error: {
-      titulo: 'ACCESO DENEGADO',
-      claseCard: 'border-rose-500/30 bg-rose-950/20 text-rose-400 shadow-[0_0_15px_rgba(244,63,94,0.1)]',
-      descripcion: 'Código inválido o de otra colación. Verifique la credencial física.',
-      icono: <XCircle size={14} className="text-rose-400" />
-    }
-  }
-
-  const actual = estados[estadoScan]
-
   return (
-    <div className="w-[170px] h-[310px] rounded-[24px] border-4 border-slate-700 bg-slate-950 p-2.5 flex flex-col gap-2 shadow-2xl relative select-none mx-auto">
-      {/* Notch del Celular */}
-      <div className="absolute top-1 left-1/2 transform -translate-x-1/2 h-1 w-10 bg-slate-700 rounded-full" />
-      
-      {/* App Header */}
-      <div className="text-center pt-1 border-b border-white/5">
-        <span className="text-[7px] font-black uppercase text-sky-400 tracking-wider">SiGIC Portería</span>
-      </div>
-
-      {/* Visor Cámara */}
-      <div className="bg-slate-900 rounded-xl h-[140px] border border-white/5 relative overflow-hidden flex items-center justify-center">
-        {/* Laser animado de escaneo */}
-        {estadoScan === 'idle' && (
-          <div 
-            className="absolute left-0 w-full h-[1.5px] bg-[#0ea5e9] shadow-[0_0_6px_#0ea5e9]"
-            style={{ animation: 'escanear-laser 2.2s ease-in-out infinite' }}
-          />
-        )}
-        
-        {/* Rectángulo de enfoque */}
-        <div className="absolute h-16 w-16 border-2 border-white/10 rounded-lg flex items-center justify-center border-dashed">
-          <QrCode size={30} className={`opacity-20 ${estadoScan === 'idle' ? 'animate-pulse' : ''}`} />
-        </div>
-        
-        {/* Color overlay de validación */}
-        {estadoScan !== 'idle' && (
-          <div className={`absolute inset-0 opacity-10 ${
-            estadoScan === 'success' ? 'bg-emerald-500' : 'bg-rose-500'
-          }`} />
-        )}
-      </div>
-
-      {/* Resultados de Escaneo */}
-      <div className={`border rounded-xl p-2 flex-1 flex flex-col gap-1 transition-all duration-300 ${actual.claseCard}`}>
-        <div className="flex items-center gap-1 border-b border-white/5 pb-1">
-          {actual.icono}
-          <span className="text-[7px] font-black tracking-wider uppercase">{actual.titulo}</span>
-        </div>
-        <p className="text-[6px] leading-snug opacity-80">{actual.descripcion}</p>
-      </div>
-
-      {/* Botones de simulación interactiva */}
-      <div className="grid grid-cols-2 gap-1 mt-auto">
-        <button
-          onClick={() => setEstadoScan(estadoScan === 'success' ? 'idle' : 'success')}
-          className="py-1 rounded bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/20 text-[6px] uppercase transition active:scale-95 cursor-pointer"
-        >
-          {estadoScan === 'success' ? 'Reset' : 'Simular OK'}
-        </button>
-        <button
-          onClick={() => setEstadoScan(estadoScan === 'error' ? 'idle' : 'error')}
-          className="py-1 rounded bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 font-bold border border-rose-500/20 text-[6px] uppercase transition active:scale-95 cursor-pointer"
-        >
-          {estadoScan === 'error' ? 'Reset' : 'Simular Error'}
-        </button>
-      </div>
-
-      <style>{`
-        @keyframes escanear-laser {
-          0%, 100% { top: 10% }
-          50% { top: 90% }
-        }
-      `}</style>
+    <div className="w-[185px] mx-auto overflow-hidden rounded-[26px] border-4 border-slate-700 shadow-2xl bg-slate-950/40 relative group">
+      <img 
+        src="/manual/porteria_wireframe.png" 
+        alt="Escáner QR Móvil - Acreditación" 
+        className="w-full h-auto object-cover hover:scale-[1.02] transition-transform duration-300"
+      />
     </div>
   )
 }
