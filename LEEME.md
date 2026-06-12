@@ -55,11 +55,13 @@ SiGIC/
 │       └── flutter/               # Aplicación móvil para control de accesos (Flutter)
 │
 ├── scripts/
-│   └── SiGIC_Control_Center_Pro.py # Panel de administración nativo de Windows (Python)
+│   ├── SiGIC_ControlCenter.exe     # Centro de control compilado para Windows (.NET 8)
+│   └── SiGIC_ControlCenter/        # Proyecto de desarrollo C# WPF estilo Fluent
 │
-├── LEEME.md                       # Este archivo
-├── README.md                      # Resumen del proyecto
-├── CHANGELOG.md                   # Historial de cambios
+├── MANUAL.md                       # Manual de usuario completo para Administradores, Egresados y Portería
+├── LEEME.md                        # Este archivo de documentación de desarrollo
+├── README.md                       # Resumen del proyecto en inglés
+├── CHANGELOG.md                    # Historial de cambios
 └── .gitignore
 ```
 
@@ -67,11 +69,9 @@ SiGIC/
 
 ## Inicio Rápido
 
-### 1. Panel de Control (Recomendado)
-Para lanzar todos los servicios de forma unificada desde Windows, podemos usar nuestro panel de control nativo:
-```bash
-python scripts/SiGIC_Control_Center_Pro.py
-```
+### 1. Centro de Control (Recomendado para Windows)
+Para lanzar todos los servicios de forma unificada desde Windows, podemos usar nuestro Centro de Control nativo haciendo doble clic sobre el ejecutable:
+👉 **[SiGIC_ControlCenter.exe](file:///d:/Sigic/scripts/SiGIC_ControlCenter.exe)** (en la carpeta `scripts/`).
 
 ### 2. Puesta en Marcha Manual
 
@@ -93,7 +93,7 @@ npm run dev              # Corre en el puerto 5173
 ```bash
 cd codigo/interfaz/movil
 npm install
-npm run dev
+npm run dev              # Corre en el puerto 5173
 ```
 
 #### App de Portería (Flutter)
@@ -102,6 +102,11 @@ cd codigo/interfaz/flutter
 flutter pub get
 flutter run
 ```
+
+---
+
+## Manual de Usuario Completo
+Para conocer las guías de uso paso a paso orientadas al usuario final (Administración, Alumnos y Portería), consulte el archivo **[Manual de Usuario (MANUAL.md)](file:///d:/Sigic/MANUAL.md)** en la raíz del repositorio.
 
 ---
 

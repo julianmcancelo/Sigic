@@ -57,8 +57,11 @@ SiGIC/
 │       ├── web/            # Panel de control administrativo (React + Vite)
 │       ├── movil/          # Portal de autogestión de graduados (React + Vite)
 │       └── flutter/        # App móvil para control de acceso (Flutter)
-├── scripts/                # Panel de Control nativo de Windows (Python)
-├── LEEME.md                # Configuración avanzada de seguridad y despliegue
+├── scripts/                # Centro de Control nativo de Windows (C# WPF .NET 8)
+│   ├── SiGIC_ControlCenter.exe   # Ejecutable principal compilado
+│   └── SiGIC_ControlCenter/      # Código fuente del proyecto C# WPF
+├── MANUAL.md               # Manual de usuario completo (Administración, Alumnos y Portería)
+├── LEEME.md                # Configuración avanzada de seguridad y despliegue (en español)
 ├── README.md               # Este archivo de presentación general
 ├── CHANGELOG.md            # Historial de versiones y cambios del código
 └── .gitignore
@@ -83,15 +86,15 @@ El ecosistema de seguridad de SiGIC fue diseñado bajo estándares de producció
 ## Puesta en Marcha
 
 ### Requisitos Previos
-- **Node.js** v18 o superior
+- **Node.js** v20 o v22 (LTS recomendado, necesario para evitar la compilación nativa de `better-sqlite3`)
 - **NPM** (gestor de paquetes de Node)
-- **Python** v3.x (opcional, requerido para Control Center en Windows)
+- **.NET 8 Runtime / SDK** (requerido para ejecutar o compilar el Centro de Control nativo en Windows)
 
-### 1. Vía Control Center (Recomendado)
-Nuestro panel nativo Fluent para Windows te permite encender todas las terminales y bases de datos en un solo clic:
-```bash
-python scripts/SiGIC_Control_Center_Pro.py
-```
+### 1. Vía Centro de Control (Recomendado para Windows)
+El nuevo panel de control nativo desarrollado en C# y WPF con diseño estilo Fluent permite administrar e iniciar toda la infraestructura (backend, frontend y monitoreo de base de datos) con un solo clic.
+
+Para ejecutarlo, simplemente haga doble clic sobre el ejecutable:
+👉 [SiGIC_ControlCenter.exe](file:///d:/Sigic/scripts/SiGIC_ControlCenter.exe) (ubicado en la carpeta `scripts/`).
 
 ### 2. Arranque Manual de Servicios
 
@@ -113,6 +116,12 @@ python scripts/SiGIC_Control_Center_Pro.py
     npm install
     npm run dev
     ```
+
+---
+
+## Manual de Usuario Completo
+
+Para conocer en detalle el flujo operativo de la plataforma para cada rol de usuario (Administradores, Egresados y Portería), consulte nuestro **[Manual de Usuario Completo (MANUAL.md)](file:///d:/Sigic/MANUAL.md)** en la raíz del repositorio.
 
 ---
 
