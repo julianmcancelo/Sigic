@@ -24,6 +24,7 @@ import { EditorAnfiteatro } from './paginas/EditorAnfiteatro'
 import { AsistenteSetup } from './paginas/AsistenteSetup'
 import { PantallaAceptacion } from './paginas/PantallaAceptacion'
 import { GestionProfesores } from './paginas/GestionProfesores'
+import { ManualUsuarioWeb } from './paginas/ManualUsuarioWeb'
 
 // Componentes Globales
 import { ControlExpositor } from './componentes/ControlExpositor'
@@ -112,8 +113,13 @@ function App() {
   // Escucha eventos globales para cambiar de vista
   useEffect(() => {
     const manejarNav = () => setVistaLogin('graduado')
+    const manejarManual = () => setVistaLogin('manual')
     window.addEventListener('ir-a-login-egresado', manejarNav)
-    return () => window.removeEventListener('ir-a-login-egresado', manejarNav)
+    window.addEventListener('ir-a-manual', manejarManual)
+    return () => {
+      window.removeEventListener('ir-a-login-egresado', manejarNav)
+      window.removeEventListener('ir-a-manual', manejarManual)
+    }
   }, [])
 
   // ─── 4. LÓGICA DE ADMINISTRACIÓN ───
@@ -348,6 +354,12 @@ function App() {
         onVolver={() => setVistaLogin(null)} 
       />
     )
+  } else if (vistaLogin === 'manual') {
+    contenido = (
+      <ManualUsuarioWeb 
+        onVolver={() => setVistaLogin(null)} 
+      />
+    )
   }
 
   // CASO E: Selección Inicial
@@ -356,6 +368,7 @@ function App() {
       <PantallaSeleccionLogin 
         onSeleccionarAdmin={() => setVistaLogin('admin')}
         onSeleccionarEgresado={() => setVistaLogin('graduado')}
+        onSeleccionarManual={() => setVistaLogin('manual')}
       />
     )
   }
