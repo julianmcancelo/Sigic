@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { 
   GraduationCap, Calendar, Users, FileSpreadsheet, Settings, 
   LogOut, Search, Bell, Eye, Edit3, CheckCircle2, AlertTriangle, 
-  XCircle, LayoutGrid, HelpCircle, Map
+  XCircle, LayoutGrid, HelpCircle, Map, BarChart3, Award
 } from 'lucide-react'
 import { BASE, cabeceras } from '../servicios/api'
 
@@ -80,13 +80,8 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
       >
         {/* Logo */}
         <div className="p-6 border-b flex items-center gap-3" style={{ borderBottomColor: '#f1f5f9' }}>
-          <div 
-            className="h-9 w-9 rounded-xl flex items-center justify-center text-white shadow-lg shadow-sky-500/20"
-            style={{
-              background: `linear-gradient(135deg, ${ACCENT} 0%, #4f46e5 100%)`
-            }}
-          >
-            <GraduationCap size={20} />
+          <div className="h-9 w-9 rounded-xl flex items-center justify-center overflow-hidden shrink-0 border border-slate-100 shadow-sm bg-slate-50">
+            <img src="/logo-oficial.png" alt="Logo" className="h-8 w-auto object-contain" />
           </div>
           <div>
             <span className="font-black tracking-tight text-lg" style={{ color: DARK }}>SiGIC</span>
@@ -129,6 +124,16 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
           </button>
 
           <button 
+            onClick={() => onNavegar('gestion-profesores')}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-50 text-xs font-bold"
+            style={{ color: '#78909c' }}
+            onMouseEnter={e => e.currentTarget.style.color = DARK}
+            onMouseLeave={e => e.currentTarget.style.color = '#78909c'}
+          >
+            <Award size={16} /> Profesores
+          </button>
+
+          <button 
             onClick={() => onNavegar('control-ingreso')}
             className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-50 text-xs font-bold"
             style={{ color: '#78909c' }}
@@ -146,6 +151,16 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
             onMouseLeave={e => e.currentTarget.style.color = '#78909c'}
           >
             <Map size={16} /> Butacas
+          </button>
+
+          <button 
+            onClick={() => onNavegar('panel-reportes')}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all hover:bg-slate-50 text-xs font-bold"
+            style={{ color: '#78909c' }}
+            onMouseEnter={e => e.currentTarget.style.color = DARK}
+            onMouseLeave={e => e.currentTarget.style.color = '#78909c'}
+          >
+            <BarChart3 size={16} /> Reportes
           </button>
 
           <button 

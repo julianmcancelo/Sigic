@@ -65,7 +65,7 @@ export function LayoutAutenticacion({ children }) {
               <div className="absolute inset-0 m-auto w-52 h-52 border border-indigo-500/5 rounded-full anillo-gira-inv"></div>
               <div className="absolute inset-0 bg-sky-500 blur-[60px] opacity-15 animate-pulse rounded-full"></div>
               <img
-                src="https://ibeltran.com.ar/img/logo/footer.png"
+                src="/logo-oficial.png"
                 alt="Instituto Tecnologico Beltran"
                 className="h-28 w-auto object-contain drop-shadow-2xl relative z-10 logo-flotar"
               />

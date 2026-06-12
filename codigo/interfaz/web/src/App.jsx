@@ -26,6 +26,7 @@ import { PantallaAceptacion } from './paginas/PantallaAceptacion'
 import { GestionProfesores } from './paginas/GestionProfesores'
 import { ManualUsuarioWeb } from './paginas/ManualUsuarioWeb'
 import { PantallaBienvenidaPro } from './paginas/PantallaBienvenidaPro'
+import { PanelReportes } from './paginas/PanelReportes'
 
 // Componentes Globales
 import { ControlExpositor } from './componentes/ControlExpositor'
@@ -326,6 +327,14 @@ function App() {
     } else if (pantallaAdmin === 'gestion-profesores') {
       contenido = (
         <GestionProfesores
+          usuario={adminUser}
+          onVolver={() => setPantallaAdmin('bienvenida')}
+          onCerrarSesion={cerrarSesionAdmin}
+        />
+      )
+    } else if (pantallaAdmin === 'panel-reportes') {
+      contenido = (
+        <PanelReportes
           usuario={adminUser}
           onVolver={() => setPantallaAdmin('bienvenida')}
           onCerrarSesion={cerrarSesionAdmin}
