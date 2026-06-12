@@ -25,7 +25,7 @@ import { AsistenteSetup } from './paginas/AsistenteSetup'
 import { PantallaAceptacion } from './paginas/PantallaAceptacion'
 import { GestionProfesores } from './paginas/GestionProfesores'
 import { ManualUsuarioWeb } from './paginas/ManualUsuarioWeb'
-import { PantallaBienvenidaOscura } from './paginas/PantallaBienvenidaOscura'
+import { PantallaBienvenidaPro } from './paginas/PantallaBienvenidaPro'
 
 // Componentes Globales
 import { ControlExpositor } from './componentes/ControlExpositor'
@@ -344,7 +344,7 @@ function App() {
           }}
         />
       ) : (
-        <PantallaBienvenidaOscura
+        <PantallaBienvenidaPro
           usuario={adminUser}
           ceremoniaActiva={ceremoniaActiva}
           onCerrarSesion={cerrarSesionAdmin}
