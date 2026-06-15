@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="codigo/plataforma-nextjs/public/logo-oficial.png" alt="Logo SiGIC" width="200" />
+  <img src="codigo/plataforma/public/logo-oficial.png" alt="Logo SiGIC" width="200" />
 </p>
 
 # SiGIC — Sistema de Gestión Integral de Colación
@@ -21,7 +21,7 @@ El código fuente del proyecto está organizado en la carpeta `codigo/` y las he
 ```text
 SiGIC/
 ├── codigo/
-│   ├── plataforma-nextjs/       # Plataforma Web y API Serverless (Next.js + Neon PostgreSQL)
+│   ├── plataforma/              # Plataforma Web y API Serverless (Next.js + Neon PostgreSQL)
 │   │   ├── src/
 │   │   │   ├── app/            # App Router (páginas web y endpoints de API)
 │   │   │   ├── componentes/    # Componentes compartidos de React
@@ -52,7 +52,7 @@ SiGIC/
 
 1. Ingresa a la carpeta del proyecto:
    ```bash
-   cd codigo/plataforma-nextjs
+   cd codigo/plataforma
    ```
 2. Instala las dependencias:
    ```bash
@@ -96,7 +96,7 @@ SiGIC/
 
 ## Variables de Entorno
 
-Para ejecutar la plataforma web localmente, debes crear el archivo `.env.local` en la ruta `codigo/plataforma-nextjs/.env.local` con las siguientes configuraciones:
+Para ejecutar la plataforma web localmente, debes crear el archivo `.env.local` en la ruta `codigo/plataforma/.env.local` con las siguientes configuraciones:
 
 ```ini
 # Conexión a Base de Datos (Neon Cloud)

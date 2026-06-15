@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="codigo/plataforma-nextjs/public/logo-oficial.png" alt="Logo SiGIC" width="220" />
+  <img src="codigo/plataforma/public/logo-oficial.png" alt="Logo SiGIC" width="220" />
 </p>
 
 <h1 align="center">SiGIC</h1>
@@ -46,7 +46,7 @@ El código fuente principal está consolidado en dos aplicaciones activas (web y
 ```text
 SiGIC/
 ├── codigo/
-│   ├── plataforma-nextjs/       # Plataforma Web y API Serverless (Next.js + Neon PostgreSQL)
+│   ├── plataforma/              # Plataforma Web y API Serverless (Next.js + Neon PostgreSQL)
 │   └── movil-reactnative/       # Aplicación móvil de Acreditación (React Native + Expo)
 ├── respaldo_legacy/             # Respaldo de código clásico V1 (Vite + Node Express) - Gitignored
 ├── scripts/                     # Herramientas administrativas locales de Windows (.NET 8)
@@ -83,9 +83,9 @@ El ecosistema de seguridad de SiGIC opera bajo estrictos estándares de producci
 ### 1. Iniciar la Plataforma Web (Next.js)
 1. Ve al directorio del frontend/backend:
    ```bash
-   cd codigo/plataforma-nextjs
+   cd codigo/plataforma
    ```
-2. Crea un archivo `.env.local` con las credenciales de base de datos (PostgreSQL), secreto JWT y SMTP (ver detalles en `codigo/plataforma-nextjs/README.md`).
+2. Crea un archivo `.env.local` con las credenciales de base de datos (PostgreSQL), secreto JWT y SMTP (ver detalles en `codigo/plataforma/README.md`).
 3. Instala e inicia el servidor de desarrollo:
    ```bash
    npm install

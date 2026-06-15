@@ -73,11 +73,11 @@ Thumbs.db
 !Assets/*.jpg
 !Assets/*.jpeg
 !Assets/*.svg
-!codigo/plataforma-nextjs/public/
-!codigo/plataforma-nextjs/public/*.png
-!codigo/plataforma-nextjs/public/*.jpg
-!codigo/plataforma-nextjs/public/*.jpeg
-!codigo/plataforma-nextjs/public/*.svg
+!codigo/plataforma/public/
+!codigo/plataforma/public/*.png
+!codigo/plataforma/public/*.jpg
+!codigo/plataforma/public/*.jpeg
+!codigo/plataforma/public/*.svg
 !codigo/movil-reactnative/assets/
 !codigo/movil-reactnative/assets/images/*.png
 !codigo/movil-reactnative/assets/images/*.jpg

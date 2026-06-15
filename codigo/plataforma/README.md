@@ -40,7 +40,7 @@ Anteriormente, el backend (Node.js Express) y el frontend administrativo (React 
 El código del proyecto se organiza bajo la carpeta `src/` siguiendo el patrón estándar de Next.js:
 
 ```text
-plataforma-nextjs/
+plataforma/
 ├── public/                 # Assets de imagen públicos (logos, favicons y badges)
 ├── src/
 │   ├── app/                # Ruteador Next.js App Router
@@ -79,7 +79,7 @@ plataforma-nextjs/
 *   **NPM** o cualquier gestor alternativo (Yarn, Pnpm, Bun)
 
 ### 1. Configuración de Variables de Entorno
-Crea un archivo `.env.local` en la raíz de `codigo/plataforma-nextjs/` con la siguiente estructura:
+Crea un archivo `.env.local` en la raíz de `codigo/plataforma/` con la siguiente estructura:
 
 ```env
 # Conexión a Base de Datos (Neon PostgreSQL o Postgres local)
