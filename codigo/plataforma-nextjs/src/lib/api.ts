@@ -2,7 +2,7 @@
 // Apunta de forma híbrida al backend local de Next.js para lo ya migrado
 // y al backend clásico (puerto 3001) para lo que está en transición.
 
-export const BASE_CLASSIC = 'http://localhost:3001/api';
+export const BASE_CLASSIC = '/api';
 export const BASE_LOCAL = '/api';
 export const BASE = BASE_CLASSIC;
 
@@ -403,5 +403,51 @@ export async function responderInvitacion(graduadoId: string | number, respuesta
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'No se pudo registrar la respuesta a la invitación');
+  return json;
+}
+
+export async function obtenerUsuarios() {
+  const res = await fetch(`${BASE_CLASSIC}/usuarios`, { headers: cabeceras() });
+  if (!res.ok) throw new Error('No se pudieron cargar los usuarios del sistema');
+  return res.json();
+}
+
+export async function crearUsuario(datos: any) {
+  const res = await fetch(`${BASE_CLASSIC}/usuarios`, {
+    method: 'POST',
+    headers: cabeceras(),
+    body: JSON.stringify(datos)
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo crear el usuario');
+  return json;
+}
+
+export async function actualizarUsuarioEstado(id: string, activo: number) {
+  const res = await fetch(`${BASE_CLASSIC}/usuarios/${id}/estado`, {
+    method: 'PUT',
+    headers: cabeceras(),
+    body: JSON.stringify({ activo })
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo actualizar el estado del usuario');
+  return json;
+}
+
+export async function actualizarUsuarioRol(id: string, rol: string) {
+  const res = await fetch(`${BASE_CLASSIC}/usuarios/${id}/rol`, {
+    method: 'PUT',
+    headers: cabeceras(),
+    body: JSON.stringify({ rol })
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo actualizar el rol del usuario');
+  return json;
+}
+
+export async function obtenerUsuarioToken(id: string) {
+  const res = await fetch(`${BASE_CLASSIC}/usuarios/${id}/token`, { headers: cabeceras() });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo generar el token del usuario');
   return json;
 }

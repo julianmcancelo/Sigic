@@ -6,7 +6,8 @@ const { Router } = require('express');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 const db = require('../db');
-const { requiereRol } = require('../middleware/autenticacion');
+const { requiereRol, ROLES_GESTION } = require('../middleware/autenticacion');
+const tokens = require('../servicios/tokens');
 
 const router = Router();
 
@@ -14,8 +15,8 @@ const ROLES_VALIDOS = ['SUPER_ADMIN', 'ADMINISTRATIVO', 'ADMIN', 'PORTERIA', 'AU
 const RONDAS_BCRYPT = 12;
 const LARGO_MINIMO_PASSWORD = 8;
 
-// Todas las rutas de este módulo requieren SUPER_ADMIN autenticado por token
-router.use(requiereRol('SUPER_ADMIN'));
+// Todas las rutas de este módulo requieren roles de gestión autorizados
+router.use(requiereRol(...ROLES_GESTION));
 
 /**
  * Evita dejar el sistema sin ningún SUPER_ADMIN activo.
@@ -112,6 +113,30 @@ router.put('/:id/estado', async (req, res) => {
   } catch (error) {
     console.error('Error actualizando estado:', error);
     res.status(500).json({ error: 'No se pudo actualizar el estado del usuario' });
+  }
+});
+
+router.get('/:id/token', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const result = await db.query('SELECT * FROM usuarios_sistema WHERE id = $1', [id]);
+    const usuario = result.rows[0];
+    if (!usuario) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+    
+    // Generar token de larga duración (30 días) para el personal de seguridad
+    const token = tokens.firmar({
+      tipo: 'personal',
+      id: usuario.id,
+      rol: usuario.rol,
+      nombre: usuario.nombre,
+    }, 30 * 24 * 60 * 60);
+    
+    res.json({ ok: true, token });
+  } catch (error) {
+    console.error('Error generando token de usuario:', error);
+    res.status(500).json({ error: 'No se pudo generar el token' });
   }
 });
 

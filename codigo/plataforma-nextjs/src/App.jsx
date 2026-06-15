@@ -9,7 +9,7 @@
  * 3. Si rechaza → Inhabilitado, se cierra sesión automáticamente
  */
 import { useState, useEffect, useRef } from 'react'
-import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, RefreshCw } from 'lucide-react'
+import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, RefreshCw, Shield } from 'lucide-react'
 
 // Importación de Páginas
 import { PaginaInicioSesion } from './paginas/PaginaInicioSesion'
@@ -28,6 +28,7 @@ import { GestionProfesores } from './paginas/GestionProfesores'
 import { ManualUsuarioWeb } from './paginas/ManualUsuarioWeb'
 import { PantallaBienvenidaPro } from './paginas/v2/PantallaBienvenidaPro'
 import { PanelReportes } from './paginas/v2/PanelReportes'
+import { GestionPorteria } from './paginas/v2/GestionPorteria'
 
 // Componentes Globales
 import { ControlExpositor } from './componentes/ControlExpositor'
@@ -478,6 +479,14 @@ function App() {
           onCerrarSesion={cerrarSesionAdmin}
         />
       )
+    } else if (pantallaAdmin === 'gestion-porteria') {
+      contenido = (
+        <GestionPorteria
+          usuario={adminUser}
+          onVolver={() => setPantallaAdmin('bienvenida')}
+          onCerrarSesion={cerrarSesionAdmin}
+        />
+      )
     } else {
       contenido = versionAdmin === 'clasica' ? (
         <PantallaBienvenida
@@ -574,6 +583,7 @@ function AdminDock({ pantallaActual, onNavegar, posicion, setPosicion }) {
     { id: 'gestion-profesores', titulo: 'Docentes', icono: GraduationCap },
     { id: 'seleccion-asientos', titulo: 'Anfiteatro', icono: MapPin },
     { id: 'panel-reportes', titulo: 'Reportes', icono: BarChart3 },
+    { id: 'gestion-porteria', titulo: 'Seguridad', icono: Shield },
     { id: 'ajustes', titulo: 'Ajustes', icono: Settings },
     { id: 'gestion-ceremonias', titulo: 'Ceremonias', icono: Calendar },
   ]

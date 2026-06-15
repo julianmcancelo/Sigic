@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { 
   GraduationCap, Calendar, Users, FileSpreadsheet, Settings, 
   LogOut, Search, Bell, Eye, Edit3, CheckCircle2, AlertTriangle, 
-  XCircle, LayoutGrid, HelpCircle, Map, BarChart3, Award, UserCheck, TrendingUp
+  XCircle, LayoutGrid, HelpCircle, Map, BarChart3, Award, UserCheck, TrendingUp, Shield
 } from 'lucide-react'
 import { BASE, cabeceras } from '../../servicios/api'
 import { obtenerDetalleClima } from '../../utilidades/clima'
@@ -17,6 +17,7 @@ import { EditorAnfiteatro } from './EditorAnfiteatro'
 import { PanelAjustes } from './PanelAjustes'
 import { PanelReportes } from './PanelReportes'
 import { ManualUsuarioWeb } from './ManualUsuarioWeb'
+import { GestionPorteria } from './GestionPorteria'
 
 // ─── Colores del sistema (Identical to Version 1) ─────────────────
 const DARK   = '#2A3448'
@@ -291,6 +292,7 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
           {renderMenuItem(Users, 'Acreditación', 'acreditacion')}
           {renderMenuItem(Map, 'Butacas', 'butacas')}
           {renderMenuItem(BarChart3, 'Reportes', 'reportes')}
+          {renderMenuItem(Shield, 'Seguridad', 'seguridad')}
           {renderMenuItem(Settings, 'Configuración', 'configuracion')}
           {renderMenuItem(HelpCircle, 'Manual de Ayuda', 'manual')}
         </nav>
@@ -740,6 +742,15 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
               onCerrarSesion={onCerrarSesion}
               onNavegar={setVistaActiva}
               ceremoniaActiva={ceremoniaActiva}
+            />
+          )}
+
+          {/* VISTA SEGURIDAD */}
+          {vistaActiva === 'seguridad' && (
+            <GestionPorteria 
+              usuario={usuario}
+              onVolver={() => setVistaActiva('dashboard')}
+              onCerrarSesion={onCerrarSesion}
             />
           )}
 
