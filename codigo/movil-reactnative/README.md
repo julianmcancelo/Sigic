@@ -1,56 +1,111 @@
-# Welcome to your Expo app 👋
+<p align="center">
+  <img src="https://sigic-one.vercel.app/logo-oficial.png" alt="Logo SiGIC" width="180" />
+</p>
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+<h1 align="center">SiGIC — App Móvil de Acreditación</h1>
+<p align="center">
+  <strong>Escáner QR de Control de Accesos para Personal de Portería</strong><br>
+  <em>Instituto Tecnológico Beltrán — Proyecto Final 2026</em>
+</p>
 
-## Get started
+<p align="center">
+  <img src="https://img.shields.io/badge/React_Native-Expo-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React Native" />
+  <img src="https://img.shields.io/badge/Expo-SDK_52-000000?style=for-the-badge&logo=expo&logoColor=white" alt="Expo SDK" />
+  <img src="https://img.shields.io/badge/Android-✓-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android" />
+  <img src="https://img.shields.io/badge/iOS-✓-000000?style=for-the-badge&logo=apple&logoColor=white" alt="iOS" />
+</p>
 
-1. Install dependencies
+---
 
-   ```bash
-   npm install
-   ```
+## Descripción
 
-2. Start the app
+Esta aplicación es el **sistema de acreditación en campo** de SiGIC. Permite al personal de portería escanear los códigos QR de los graduados e invitados para validar su acceso a la ceremonia de colación en tiempo real.
 
-   ```bash
-   npx expo start
-   ```
+La app se conecta directamente a la **API Serverless de la Plataforma Web** (Next.js en Vercel) mediante JWT, validando la identidad de cada credencial escaneada contra la base de datos PostgreSQL en Neon Cloud.
 
-In the output, you'll find options to open the app in a
+---
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Funcionalidades
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- 📷 **Escáner QR en tiempo real** — Lectura fluida de credenciales digitales de graduados e invitados
+- 🔐 **Login seguro con JWT** — Autenticación del personal de portería con token de sesión persistente
+- ✅ **Validación de acceso instantánea** — Respuesta visual inmediata (verde/rojo) al escanear cada credencial
+- 🔒 **Autorización por ceremonia** — El acceso a la API se bloquea si el portero no está habilitado para el evento activo
+- 📶 **Estado de conectividad** — Indicador en vivo del estado de conexión con el servidor
 
-## Get a fresh project
+---
 
-When you're ready, run:
+## Estructura del Proyecto
 
-```bash
-npm run reset-project
+```text
+movil-reactnative/
+├── app/
+│   ├── (tabs)/
+│   │   ├── index.tsx         # Pantalla principal del escáner QR
+│   │   └── dashboard.tsx     # Dashboard de estadísticas de ingresos
+│   ├── login.tsx             # Pantalla de inicio de sesión (portería)
+│   └── _layout.tsx           # Layout global de la app
+├── components/               # Componentes reutilizables de la interfaz
+├── constants/                # Colores, URLs base y configuración
+├── hooks/                    # Custom hooks (useAuth, useSesion)
+├── assets/                   # Imágenes, íconos y fuentes
+├── app.json                  # Configuración de Expo (nombre, ícono, permisos)
+└── package.json              # Dependencias del proyecto
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+---
 
-### Other setup steps
+## Puesta en Marcha Local
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+### Requisitos Previos
 
-## Learn more
+- **Node.js** v20 o v22 (LTS)
+- **NPM** (o Yarn/Bun)
+- **Expo Go** instalado en el dispositivo móvil ([Android](https://play.google.com/store/apps/details?id=host.exp.exponent) / [iOS](https://apps.apple.com/app/expo-go/id982107779))
 
-To learn more about developing your project with Expo, look at the following resources:
+> [!IMPORTANT]
+> La app necesita que la Plataforma Web (`codigo/plataforma`) esté activa y accesible en red. En producción apunta a `https://sigic-one.vercel.app`. Para desarrollo local, actualiza la URL base en `constants/` para que apunte a tu IP local.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### Instalación e Inicio
 
-## Join the community
+```bash
+# 1. Ingresar al directorio
+cd codigo/movil-reactnative
 
-Join our community of developers creating universal apps.
+# 2. Instalar dependencias
+npm install
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+# 3. Iniciar el bundler de Expo
+npx expo start
+```
+
+Escanea el código QR que aparece en la terminal con la cámara (iOS) o con Expo Go (Android) para cargar la app en tu dispositivo.
+
+### Opciones de Ejecución
+
+| Plataforma | Comando |
+|---|---|
+| Dispositivo físico (Expo Go) | `npx expo start` |
+| Emulador Android | `npx expo start --android` |
+| Simulador iOS | `npx expo start --ios` |
+| Navegador web | `npx expo start --web` |
+
+---
+
+## Seguridad
+
+- **Tokens JWT persistentes:** El token de sesión del portero se almacena en el dispositivo y se envía en cada petición a la API.
+- **Autorización por ceremonia:** El backend valida si el portero está habilitado para la ceremonia actualmente activa. Si no lo está, la app muestra un error de acceso.
+- **Comunicación TLS:** Todas las llamadas a la API de Vercel viajan bajo HTTPS con cifrado TLS.
+
+---
+
+## Equipo de Desarrollo
+
+- **Alfonso Alan Alexis**
+- **Cancelo Julian**
+- **Contreras Villalba Sol Heilin**
+- **Frassia Matias**
+- **Santillan Luis Gabriel**
+
+**Instituto Tecnológico Beltrán — 2026**
