@@ -1,7 +1,4 @@
 import nodemailer from 'nodemailer';
-import path from 'path';
-
-const RUTA_LOGO = path.join(process.cwd(), 'public/logo-oficial.png');
 
 let transportador: nodemailer.Transporter | null = null;
 
@@ -62,13 +59,6 @@ export async function enviarCorreo(destinatario: string, asunto: string, cuerpoH
       to: destinatario,
       subject: asunto,
       html: cuerpoHTML,
-      attachments: [
-        {
-          filename: 'logo.png',
-          path: RUTA_LOGO,
-          cid: 'logo_sigic', 
-        },
-      ],
     });
     console.log(`✓ Correo enviado a [${destinatario}]`);
     if (transportador.options.host?.includes('ethereal.email')) {
@@ -98,7 +88,8 @@ export async function enviarCorreo(destinatario: string, asunto: string, cuerpoH
 /**
  * PLANTILLA: Invitación / Registro de Invitados
  */
-export function generarPlantillaInvitacion(nombreEgresado: string, linkRegistro: string) {
+export function generarPlantillaInvitacion(nombreEgresado: string, linkRegistro: string, hostBase: string) {
+  const linkLogo = `${hostBase}/logo-oficial.png`;
   return `
     <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#f0f4f8">
       <tr>
@@ -108,8 +99,8 @@ export function generarPlantillaInvitacion(nombreEgresado: string, linkRegistro:
             <!-- HEADER -->
             <tr>
               <td align="center" bgcolor="#2A3448" style="padding: 40px; border-bottom: 4px solid #29ABE2;">
-                <!-- Logo -->
-                <img src="cid:logo_sigic" alt="SiGIC" width="120" style="display: block; margin-bottom: 20px; outline: none; border: none; text-decoration: none;">
+                <!-- Logo desde URL absoluta -->
+                <img src="${linkLogo}" alt="SiGIC" width="120" style="display: block; margin-bottom: 20px; outline: none; border: none; text-decoration: none;">
                 <h1 style="color: #ffffff; margin: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">Portal del Graduado</h1>
                 <p style="color: #94a3b8; margin: 8px 0 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; font-weight: bold;">Instituto Tecnológico Beltrán</p>
               </td>
@@ -187,7 +178,8 @@ export function generarPlantillaInvitacion(nombreEgresado: string, linkRegistro:
 /**
  * PLANTILLA: Código de Verificación (OTP)
  */
-export function generarPlantillaOTP(codigo: string) {
+export function generarPlantillaOTP(codigo: string, hostBase: string) {
+  const linkLogo = `${hostBase}/logo-oficial.png`;
   return `
     <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#f0f4f8">
       <tr>
@@ -195,7 +187,7 @@ export function generarPlantillaOTP(codigo: string) {
           <table width="500" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff" style="max-width: 500px; border-radius: 24px; overflow: hidden; border: 1px solid #e2e8f0;">
             <tr>
               <td align="center" bgcolor="#2A3448" style="padding: 35px;">
-                <img src="cid:logo_sigic" alt="SiGIC" width="100">
+                <img src="${linkLogo}" alt="SiGIC" width="100">
               </td>
             </tr>
             <tr>

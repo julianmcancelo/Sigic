@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
+import { router } from 'expo-router';
 import {
   getApiUrl,
   getToken,
@@ -275,7 +276,7 @@ export default function IndexScreen() {
               <View style={styles.statusRow}>
                 <View style={[styles.dot, { backgroundColor: token ? '#10b981' : '#ef4444' }]} />
                 <Text style={[styles.statusLabel, { color: colors.textSecondary }]}>
-                  {token ? `Servidor: ${apiUrlState}` : 'Sin iniciar sesión de seguridad'}
+                  {token ? `Servidor: ${apiUrl}` : 'Sin iniciar sesión de seguridad'}
                 </Text>
               </View>
             </View>
@@ -323,24 +324,51 @@ export default function IndexScreen() {
               </TouchableOpacity>
             </>
           ) : (
-            <View style={[styles.cardInfo, { backgroundColor: colors.backgroundElement }]}>
-              <Image 
-                source={require('@/assets/images/logo-oficial.png')} 
-                style={styles.infoLogo} 
-                contentFit="contain" 
-              />
-              <Text style={[styles.infoTitle, { color: colors.text }]}>Acreditación SiGIC</Text>
-              <Text style={[styles.infoBody, { color: colors.textSecondary }]}>
-                Para poder escanear ingresos, es necesario iniciar sesión como Personal de Seguridad.
-              </Text>
-              <Text style={[styles.infoBody, { color: colors.textSecondary, marginTop: Spacing.one }]}>
-                Podés escanear un código QR de configuración de ruta o código QR de acceso de Personal, o configurarlo manualmente en la pestaña **Ajustes**.
-              </Text>
+            <View style={styles.welcomeContainer}>
+              <View style={styles.welcomeLogoContainer}>
+                <Image 
+                  source={require('@/assets/images/logo-glow.png')} 
+                  style={styles.welcomeLogoGlow} 
+                />
+                <View style={styles.welcomeLogoBg}>
+                  <Image 
+                    source={require('@/assets/images/logo-oficial.png')} 
+                    style={styles.welcomeLogo} 
+                    contentFit="contain" 
+                  />
+                </View>
+              </View>
+              
+              <View style={styles.welcomeInfo}>
+                <Text style={[styles.welcomeTitle, { color: colors.text }]}>SiGIC Entry</Text>
+                <Text style={[styles.welcomeSubtitle, { color: colors.textSecondary }]}>
+                  Control de Acceso & Acreditación
+                </Text>
+                
+                <View style={[styles.welcomeCard, { backgroundColor: colors.backgroundElement, borderColor: colors.backgroundSelected }]}>
+                  <Ionicons name="shield-checkmark" size={22} color="#0ea5e9" />
+                  <Text style={[styles.welcomeCardBody, { color: colors.text }]}>
+                    Iniciá sesión escaneando el QR de acceso o vinculando el servidor de la ceremonia.
+                  </Text>
+                </View>
+              </View>
 
-              <TouchableOpacity style={styles.buttonPrimary} onPress={triggerScanMode}>
-                <Ionicons name="camera-outline" size={20} color="#fff" />
-                <Text style={styles.buttonText}>Escanear QR de Acceso</Text>
-              </TouchableOpacity>
+              <View style={styles.welcomeActions}>
+                <TouchableOpacity style={styles.welcomeButtonPrimary} onPress={triggerScanMode}>
+                  <Ionicons name="qr-code" size={20} color="#ffffff" />
+                  <Text style={styles.welcomeButtonPrimaryText}>Escanear QR de Acceso</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                  style={[styles.welcomeButtonSecondary, { borderColor: colors.backgroundSelected }]} 
+                  onPress={() => router.push('/explore')}
+                >
+                  <Ionicons name="settings" size={16} color={colors.textSecondary} />
+                  <Text style={[styles.welcomeButtonSecondaryText, { color: colors.textSecondary }]}>
+                    Configurar Manualmente
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           )}
         </View>
@@ -741,24 +769,115 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textTransform: 'uppercase',
   },
-  cardInfo: {
-    padding: Spacing.four,
-    borderRadius: 24,
+  welcomeContainer: {
+    flex: 1,
     alignItems: 'center',
-    textAlign: 'center',
-    gap: Spacing.two,
+    justifyContent: 'center',
+    paddingVertical: Spacing.four,
+    gap: Spacing.four,
+    width: '100%',
   },
-  centerIcon: {
-    marginBottom: Spacing.one,
+  welcomeLogoContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 200,
+    height: 200,
+    position: 'relative',
   },
-  infoTitle: {
-    fontSize: 18,
+  welcomeLogoGlow: {
+    width: 220,
+    height: 220,
+    position: 'absolute',
+    opacity: 0.12,
+  },
+  welcomeLogoBg: {
+    width: 130,
+    height: 130,
+    borderRadius: 65,
+    backgroundColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 3,
+  },
+  welcomeLogo: {
+    width: 90,
+    height: 90,
+  },
+  welcomeInfo: {
+    alignItems: 'center',
+    gap: 6,
+    width: '100%',
+  },
+  welcomeTitle: {
+    fontSize: 30,
     fontWeight: '900',
+    letterSpacing: -1,
   },
-  infoBody: {
-    fontSize: 13,
-    textAlign: 'center',
-    lineHeight: 20,
+  welcomeSubtitle: {
+    fontSize: 11.5,
+    fontWeight: 'bold',
+    textTransform: 'uppercase',
+    letterSpacing: 1.5,
+  },
+  welcomeCard: {
+    marginTop: Spacing.two,
+    padding: Spacing.three,
+    borderRadius: 20,
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    width: '100%',
+  },
+  welcomeCardBody: {
+    flex: 1,
+    fontSize: 12.5,
+    lineHeight: 18,
+    fontWeight: '500',
+  },
+  welcomeActions: {
+    width: '100%',
+    gap: Spacing.two,
+    marginTop: Spacing.two,
+  },
+  welcomeButtonPrimary: {
+    backgroundColor: '#0ea5e9',
+    height: 50,
+    borderRadius: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    width: '100%',
+    shadowColor: '#0ea5e9',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  welcomeButtonPrimaryText: {
+    color: '#ffffff',
+    fontSize: 14.5,
+    fontWeight: 'bold',
+  },
+  welcomeButtonSecondary: {
+    backgroundColor: 'transparent',
+    borderWidth: 1.5,
+    height: 46,
+    borderRadius: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    width: '100%',
+  },
+  welcomeButtonSecondaryText: {
+    fontSize: 13.5,
+    fontWeight: 'bold',
   },
   buttonPrimary: {
     backgroundColor: '#0ea5e9',

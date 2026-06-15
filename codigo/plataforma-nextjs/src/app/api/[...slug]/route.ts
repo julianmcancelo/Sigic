@@ -830,7 +830,7 @@ export async function POST(
 
       const hostBase = process.env.FRONTEND_URL || req.headers.get('origin') || 'http://localhost:3000';
       const linkAcceso = `${hostBase}/?token=${graduado.token}`;
-      const plantilla = generarPlantillaInvitacion(graduado.nombre, linkAcceso);
+      const plantilla = generarPlantillaInvitacion(graduado.nombre, linkAcceso, hostBase);
       
       await enviarCorreo(graduado.correo, 'Invitación a Ceremonia de Colación - SiGIC', plantilla);
       return NextResponse.json({ ok: true, mensaje: 'Invitación enviada correctamente' }, { headers });
@@ -869,7 +869,8 @@ export async function POST(
         [graduado.id, otpHash, ip]
       );
 
-      const htmlOTP = generarPlantillaOTP(otp);
+      const hostBase = process.env.FRONTEND_URL || req.headers.get('origin') || 'http://localhost:3000';
+      const htmlOTP = generarPlantillaOTP(otp, hostBase);
       await enviarCorreo(graduado.correo, 'Tu código de acceso - SiGIC', htmlOTP);
       return NextResponse.json({ ok: true, mensaje: 'Código enviado correctamente' }, { headers });
     }
