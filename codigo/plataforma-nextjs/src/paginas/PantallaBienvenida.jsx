@@ -481,6 +481,29 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
     },
   ]
 
+  if (cargandoStats) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC] select-none">
+        <div className="text-center space-y-5 p-10 rounded-[32px] bg-white border border-slate-100 shadow-xl shadow-slate-100/50">
+          {/* Double ring orbit spinner */}
+          <div className="relative w-16 h-16 mx-auto flex items-center justify-center">
+            <div className="absolute inset-0 rounded-full border-4 border-t-[#0ea5e9] border-r-transparent border-b-transparent border-l-transparent animate-spin" style={{ animationDuration: '0.8s' }} />
+            <div className="absolute inset-1.5 rounded-full border-4 border-b-indigo-500 border-t-transparent border-r-transparent border-l-transparent animate-spin" style={{ animationDuration: '1.2s', animationDirection: 'reverse' }} />
+            <img 
+              src="/logo-oficial.png" 
+              alt="SiGIC" 
+              className="h-8 w-auto object-contain animate-pulse z-10 filter drop-shadow-[0_0_8px_rgba(14,165,233,0.4)]" 
+            />
+          </div>
+          <div className="space-y-1.5">
+            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-700">Iniciando Centro de Control</p>
+            <p className="text-[8px] font-bold text-sky-500 uppercase tracking-widest animate-pulse">Sincronizando Entornos...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen" style={{ background: BG }}>
 
@@ -538,13 +561,6 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
                       Operador Activo
                     </span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={onCambiarVersion}
-                    className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-[9.5px] font-black uppercase tracking-wider px-4 py-2 rounded-full border border-slate-700 active:scale-95 transition-all shadow-md shadow-slate-950/10 cursor-pointer"
-                  >
-                    <LayoutGrid size={12} className="text-sky-450" /> Versión 2 (Modo Pro)
-                  </button>
                 </div>
               </div>
             </section>
@@ -560,11 +576,7 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
 
           {/* SEGUNDA FILA BENTO: Tarjetas de estadísticas (4 columnas uniformes) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {cargandoStats ? (
-              <>
-                <SkeletonStat /><SkeletonStat /><SkeletonStat /><SkeletonStat />
-              </>
-            ) : !backendOnline ? (
+            {!backendOnline ? (
               <div
                 className="col-span-1 sm:col-span-2 lg:col-span-4 flex items-center gap-3.5 rounded-[28px] border px-6 py-5 bg-red-50 border-red-150 text-red-500"
               >
