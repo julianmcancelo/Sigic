@@ -76,6 +76,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
     }
 
+    // Si el rol es PORTERIA, validar que esté autorizado para la ceremonia activa actual
+    if (usuario.rol === 'PORTERIA') {
+      const activeCer = await query('SELECT id FROM ceremonias WHERE activa = 1 LIMIT 1');
+      if (activeCer.rows.length === 0) {
+        return NextResponse.json({ error: 'No hay ninguna ceremonia activa configurada en el sistema.' }, { status: 403 });
+      }
+      const authCheck = await query(
+        'SELECT 1 FROM ceremonias_usuarios_autorizados WHERE ceremonia_id = $1 AND usuario_id = $2',
+        [activeCer.rows[0].id, usuario.id]
+      );
+      if (authCheck.rows.length === 0) {
+        return NextResponse.json({ error: 'No estás autorizado para trabajar en la ceremonia activa actual.' }, { status: 403 });
+      }
+    }
+
     // 3. Actualizar fecha del último login
     await query('UPDATE usuarios_sistema SET ultimo_login = CURRENT_TIMESTAMP WHERE id = $1', [usuario.id]);
 

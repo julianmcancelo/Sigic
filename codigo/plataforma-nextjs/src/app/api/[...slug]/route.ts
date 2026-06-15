@@ -57,7 +57,39 @@ async function esPersonalValido(req: NextRequest, rolesPermitidos = ROLES_LECTUR
   const auth = obtenerUsuarioAutenticado(req);
   if (!auth.valido) return false;
   const datos = auth.datos!;
-  return datos.tipo === 'personal' && datos.rol && rolesPermitidos.includes(datos.rol);
+  const esRolValido = datos.tipo === 'personal' && datos.rol && rolesPermitidos.includes(datos.rol);
+  if (!esRolValido) return false;
+
+  // Si es SUPER_ADMIN, siempre tiene acceso
+  if (datos.rol === 'SUPER_ADMIN') return true;
+
+  // Si el rol es PORTERIA, debe estar autorizado para la ceremonia activa actual
+  if (datos.rol === 'PORTERIA') {
+    const activeCer = await query('SELECT id FROM ceremonias WHERE activa = 1 LIMIT 1');
+    if (activeCer.rows.length === 0) return false; // Bloquear si no hay ceremonia activa
+    
+    const authCheck = await query(
+      'SELECT 1 FROM ceremonias_usuarios_autorizados WHERE ceremonia_id = $1 AND usuario_id = $2',
+      [activeCer.rows[0].id, datos.id]
+    );
+    return authCheck.rows.length > 0;
+  }
+
+  return true;
+}
+
+async function inicializarTablasAdicionales() {
+  try {
+    await query(`
+      CREATE TABLE IF NOT EXISTS ceremonias_usuarios_autorizados (
+        ceremonia_id VARCHAR(50) NOT NULL,
+        usuario_id VARCHAR(50) NOT NULL,
+        PRIMARY KEY (ceremonia_id, usuario_id)
+      )
+    `);
+  } catch (e) {
+    console.error('Error al inicializar tabla ceremonias_usuarios_autorizados:', e);
+  }
 }
 
 async function esUltimoSuperAdmin(id: string) {
@@ -74,6 +106,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string[] }> }
 ) {
+  await inicializarTablasAdicionales();
   const { slug } = await params;
   const headers = corsHeaders(req);
   const path = slug.join('/');
@@ -261,6 +294,18 @@ export async function GET(
         return NextResponse.json({ error: 'No hay ninguna ceremonia activa' }, { status: 404, headers });
       }
       return NextResponse.json(result.rows[0], { headers });
+    }
+
+    if (slug[0] === 'ceremonias' && slug[2] === 'autorizados' && slug[1]) {
+      const ceremoniaId = slug[1];
+      const isPersonal = await esPersonalValido(req, ROLES_GESTION);
+      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+
+      const result = await query(
+        'SELECT usuario_id FROM ceremonias_usuarios_autorizados WHERE ceremonia_id = $1',
+        [ceremoniaId]
+      );
+      return NextResponse.json(result.rows.map((r: any) => r.usuario_id), { headers });
     }
 
     // -------------------------------------------------------------
@@ -473,6 +518,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string[] }> }
 ) {
+  await inicializarTablasAdicionales();
   const { slug } = await params;
   const headers = corsHeaders(req);
   const path = slug.join('/');
@@ -697,6 +743,16 @@ export async function POST(
          VALUES ($1, $2, $3, $4, $5, 1)`,
         [id, nombre, email.toLowerCase(), hash, rolNormalizado]
       );
+
+      if (rolNormalizado === 'PORTERIA') {
+        const activeCer = await query('SELECT id FROM ceremonias WHERE activa = 1 LIMIT 1');
+        if (activeCer.rows.length > 0) {
+          await query(
+            'INSERT INTO ceremonias_usuarios_autorizados (ceremonia_id, usuario_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+            [activeCer.rows[0].id, id]
+          );
+        }
+      }
 
       return NextResponse.json({ ok: true, usuario: { id, nombre, email: email.toLowerCase(), rol: rolNormalizado, activo: 1 } }, { headers });
     }
@@ -957,6 +1013,7 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string[] }> }
 ) {
+  await inicializarTablasAdicionales();
   const { slug } = await params;
   const headers = corsHeaders(req);
   const path = slug.join('/');
@@ -1026,6 +1083,29 @@ export async function PUT(
       }
 
       return NextResponse.json({ ok: true, mensaje: 'Ceremonia activada correctamente' }, { headers });
+    }
+
+    if (slug[0] === 'ceremonias' && slug[2] === 'autorizados' && slug[3] && slug[1]) {
+      const ceremoniaId = slug[1];
+      const userId = slug[3];
+      const isPersonal = await esPersonalValido(req, ROLES_GESTION);
+      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+
+      const { autorizado } = body;
+      if (autorizado) {
+        await query(
+          `INSERT INTO ceremonias_usuarios_autorizados (ceremonia_id, usuario_id)
+           VALUES ($1, $2)
+           ON CONFLICT (ceremonia_id, usuario_id) DO NOTHING`,
+          [ceremoniaId, userId]
+        );
+      } else {
+        await query(
+          'DELETE FROM ceremonias_usuarios_autorizados WHERE ceremonia_id = $1 AND usuario_id = $2',
+          [ceremoniaId, userId]
+        );
+      }
+      return NextResponse.json({ ok: true }, { headers });
     }
 
     if (slug[0] === 'ceremonias' && slug[1] && !slug[2]) {
@@ -1255,6 +1335,7 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string[] }> }
 ) {
+  await inicializarTablasAdicionales();
   const { slug } = await params;
   const headers = corsHeaders(req);
   const path = slug.join('/');

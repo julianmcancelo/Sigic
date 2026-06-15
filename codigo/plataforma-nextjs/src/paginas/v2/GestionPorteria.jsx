@@ -9,6 +9,10 @@ import {
   actualizarUsuarioEstado, 
   actualizarUsuarioRol, 
   obtenerUsuarioToken,
+  obtenerCeremonias,
+  obtenerCeremoniaActiva,
+  obtenerAutorizacionesCeremonia,
+  actualizarAutorizacionCeremonia,
   BASE_CLASSIC
 } from '../../servicios/api'
 import { QRCodeSVG } from 'qrcode.react'
@@ -21,6 +25,13 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
   const [exito, setExito] = useState(null)
+
+  // Estados de Ceremonia y Autorización
+  const [ceremonias, setCeremonias] = useState([])
+  const [cargandoCeremonias, setCargandoCeremonias] = useState(true)
+  const [ceremoniaSeleccionadaId, setCeremoniaSeleccionadaId] = useState('')
+  const [autorizadosMap, setAutorizadosMap] = useState({})
+  const [guardandoAutorizacion, setGuardandoAutorizacion] = useState(null)
 
   // Modales y formularios
   const [mostrarModalNuevo, setMostrarModalNuevo] = useState(false)
@@ -45,7 +56,63 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
 
   useEffect(() => {
     cargarUsuarios()
+    cargarCeremonias()
   }, [])
+
+  useEffect(() => {
+    if (ceremoniaSeleccionadaId) {
+      cargarAutorizaciones()
+    }
+  }, [ceremoniaSeleccionadaId])
+
+  async function cargarCeremonias() {
+    setCargandoCeremonias(true)
+    try {
+      const list = await obtenerCeremonias()
+      setCeremonias(list)
+      const activa = await obtenerCeremoniaActiva()
+      if (activa) {
+        setCeremoniaSeleccionadaId(activa.id)
+      } else if (list.length > 0) {
+        setCeremoniaSeleccionadaId(list[0].id)
+      }
+    } catch (err) {
+      console.error('Error al cargar ceremonias:', err)
+    } finally {
+      setCargandoCeremonias(false)
+    }
+  }
+
+  async function cargarAutorizaciones() {
+    try {
+      const list = await obtenerAutorizacionesCeremonia(ceremoniaSeleccionadaId)
+      const map = {}
+      list.forEach(userId => {
+        map[userId] = true
+      })
+      setAutorizadosMap(map)
+    } catch (err) {
+      console.error('Error al cargar autorizaciones:', err)
+    }
+  }
+
+  async function handleToggleAutorizacion(userId) {
+    if (!ceremoniaSeleccionadaId) return
+    setGuardandoAutorizacion(userId)
+    setError(null)
+    const actualmenteAutorizado = !!autorizadosMap[userId]
+    try {
+      await actualizarAutorizacionCeremonia(ceremoniaSeleccionadaId, userId, !actualmenteAutorizado)
+      setAutorizadosMap(prev => ({
+        ...prev,
+        [userId]: !actualmenteAutorizado
+      }))
+    } catch (err) {
+      setError(err.message || 'No se pudo actualizar la autorización del usuario.')
+    } finally {
+      setGuardandoAutorizacion(null)
+    }
+  }
 
   async function cargarUsuarios() {
     setCargando(true)
@@ -169,6 +236,39 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
         </div>
       )}
 
+      {/* CONTROL DE ACCESOS POR CEREMONIA SELECTOR */}
+      <div className="bg-white border border-slate-100 rounded-3xl p-6 mb-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-sky-50 flex items-center justify-center text-sky-600">
+            <Settings size={20} />
+          </div>
+          <div>
+            <h3 className="text-sm font-black text-slate-800">Control de Accesos por Ceremonia</h3>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+              Elegí una ceremonia para configurar qué personal de seguridad está autorizado para trabajar.
+            </p>
+          </div>
+        </div>
+        
+        <div className="w-full md:w-auto flex items-center gap-2">
+          {cargandoCeremonias ? (
+            <span className="text-[10px] font-bold text-slate-400 uppercase animate-pulse">Cargando ceremonias...</span>
+          ) : (
+            <select
+              value={ceremoniaSeleccionadaId}
+              onChange={e => setCeremoniaSeleccionadaId(e.target.value)}
+              className="w-full md:w-64 bg-slate-50 border border-slate-200 focus:border-[#0ea5e9] focus:bg-white text-xs font-bold rounded-xl px-4 py-3 text-slate-800 outline-none transition-all"
+            >
+              {ceremonias.map(c => (
+                <option key={c.id} value={c.id}>
+                  {c.nombre} {c.activa === 1 ? '(Activa)' : ''}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+      </div>
+
       {/* USER LIST CARDS */}
       {cargando ? (
         <div className="flex flex-col items-center justify-center py-20">
@@ -187,6 +287,7 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                   <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-wider">Nombre</th>
                   <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-wider">Email</th>
                   <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-wider">Rol</th>
+                  <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-wider">Autorización</th>
                   <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-wider">Estado</th>
                   <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-wider">Último Login</th>
                   <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-wider text-right">Acciones QR / Operación</th>
@@ -195,7 +296,7 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
               <tbody className="divide-y divide-slate-100 text-slate-700">
                 {usuarios.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="text-center py-10 text-xs font-semibold text-slate-400">
+                    <td colSpan={7} className="text-center py-10 text-xs font-semibold text-slate-400">
                       No hay usuarios registrados. Registrá uno nuevo para comenzar.
                     </td>
                   </tr>
@@ -228,6 +329,32 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                           <option value="ADMINISTRATIVO">ADMINISTRATIVO</option>
                           <option value="AUDITOR">AUDITOR (Lectura)</option>
                         </select>
+                      </td>
+                      <td className="px-6 py-4">
+                        {u.rol === 'PORTERIA' ? (
+                          <button
+                            onClick={() => handleToggleAutorizacion(u.id)}
+                            disabled={guardandoAutorizacion === u.id}
+                            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider border transition ${
+                              autorizadosMap[u.id]
+                                ? 'bg-emerald-50 border-emerald-100 text-emerald-700 hover:bg-emerald-100'
+                                : 'bg-slate-50 border-slate-250 text-slate-500 hover:bg-slate-100'
+                            }`}
+                          >
+                            {guardandoAutorizacion === u.id ? (
+                              <RefreshCw size={10} className="animate-spin text-slate-400" />
+                            ) : autorizadosMap[u.id] ? (
+                              <CheckCircle2 size={10} />
+                            ) : (
+                              <X size={10} />
+                            )}
+                            {autorizadosMap[u.id] ? 'Autorizado' : 'Sin Acceso'}
+                          </button>
+                        ) : (
+                          <span className="text-[9px] font-black uppercase tracking-wider text-sky-600 bg-sky-50 border border-sky-100 px-2.5 py-1 rounded-full">
+                            Acceso Global
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         <button

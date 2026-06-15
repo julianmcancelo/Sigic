@@ -451,3 +451,21 @@ export async function obtenerUsuarioToken(id: string) {
   if (!res.ok) throw new Error(json.error || 'No se pudo generar el token del usuario');
   return json;
 }
+
+export async function obtenerAutorizacionesCeremonia(ceremoniaId: string) {
+  const res = await fetch(`${BASE_CLASSIC}/ceremonias/${ceremoniaId}/autorizados`, { headers: cabeceras() });
+  if (!res.ok) throw new Error('No se pudieron obtener las autorizaciones para esta ceremonia');
+  return res.json();
+}
+
+export async function actualizarAutorizacionCeremonia(ceremoniaId: string, usuarioId: string, autorizado: boolean) {
+  const res = await fetch(`${BASE_CLASSIC}/ceremonias/${ceremoniaId}/autorizados/${usuarioId}`, {
+    method: 'PUT',
+    headers: cabeceras(),
+    body: JSON.stringify({ autorizado })
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo actualizar la autorización');
+  return json;
+}
+
