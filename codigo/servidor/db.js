@@ -438,6 +438,11 @@ function normalizeParam(val) {
   return val;
 }
 
+function normalizeParamPostgres(val) {
+  if (val instanceof Date) return val.toISOString();
+  return val;
+}
+
 /**
  * Orquestador principal de queries.
  * Redirige la consulta directamente a PostgreSQL si está conectado,
@@ -446,7 +451,8 @@ function normalizeParam(val) {
 const query = async (text, params = []) => {
   if (mode === 'postgres') {
     // Si estamos en Postgres, ejecutamos de forma nativa e ideal
-    const res = await pool.query(text, params);
+    const normalizedParams = params.map(normalizeParamPostgres);
+    const res = await pool.query(text, normalizedParams);
     return res;
   } else {
     // Si estamos en SQLite local, aplicamos compatibilidad hacia atrás
