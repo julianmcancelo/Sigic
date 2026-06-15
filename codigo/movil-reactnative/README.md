@@ -27,11 +27,11 @@ La app se conecta directamente a la **API Serverless de la Plataforma Web** (Nex
 
 ## Funcionalidades
 
-- 📷 **Escáner QR en tiempo real** — Lectura fluida de credenciales digitales de graduados e invitados
-- 🔐 **Login seguro con JWT** — Autenticación del personal de portería con token de sesión persistente
-- ✅ **Validación de acceso instantánea** — Respuesta visual inmediata (verde/rojo) al escanear cada credencial
-- 🔒 **Autorización por ceremonia** — El acceso a la API se bloquea si el portero no está habilitado para el evento activo
-- 📶 **Estado de conectividad** — Indicador en vivo del estado de conexión con el servidor
+- **Escáner QR en tiempo real** — Lectura fluida de credenciales digitales de graduados e invitados
+- **Login seguro con JWT** — Autenticación del personal de portería con token de sesión persistente
+- **Validación de acceso instantánea** — Respuesta visual inmediata (verde/rojo) al escanear cada credencial
+- **Autorización por ceremonia** — El acceso a la API se bloquea si el portero no está habilitado para el evento activo
+- **Estado de conectividad** — Indicador en vivo del estado de conexión con el servidor
 
 ---
 

@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <a href="https://sigic-one.vercel.app">🌐 Ver Demo en Vivo</a>
+  <a href="https://sigic-one.vercel.app">Ver Demo en Vivo &rarr; sigic-one.vercel.app</a>
 </p>
 
 > [!NOTE]
