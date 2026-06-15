@@ -5,7 +5,7 @@ import { ModalConfirmacion } from '../ModalConfirmacion'
 export function BarraSuperior({ usuario, temperatura, onCerrarSesion }) {
   const [modalAbierto, setModalAbierto] = useState(false)
   const textoTemperatura = temperatura !== null ? `${temperatura}\u00B0C` : '--'
-  const logoInstitucional = `${import.meta.env.BASE_URL}footer.png`
+  const logoInstitucional = '/footer.png'
 
   return (
     <header

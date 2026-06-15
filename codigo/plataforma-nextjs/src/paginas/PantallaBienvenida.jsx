@@ -196,7 +196,7 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
   const [cargandoStats, setCargandoStats]   = useState(true)
   const [backendOnline, setBackendOnline]   = useState(true)
 
-  const logoInstitucional = `${import.meta.env.BASE_URL}footer.png`
+  const logoInstitucional = '/footer.png'
 
   // ── Carga de datos unificada ─────────────────
   useEffect(() => {

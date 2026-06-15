@@ -1,6 +1,6 @@
 export function LogoBeltran({ size = 48, variant = 'light' }) {
   const iconSize = Math.round(size * 0.85)
-  const logoInstitucional = `${import.meta.env.BASE_URL}footer.png`
+  const logoInstitucional = '/footer.png'
 
   const colorNombre = variant === 'dark' ? '#FFFFFF' : '#1A2535'
   const colorSubtitulo = variant === 'dark' ? '#29ABE2' : '#546E7A'
