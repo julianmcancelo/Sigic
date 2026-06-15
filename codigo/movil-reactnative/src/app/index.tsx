@@ -302,7 +302,7 @@ export default function IndexScreen() {
               </View>
             </View>
             <Image 
-              source={require('@/assets/images/logo-oficial.png')} 
+              source={require('../../assets/images/logo-oficial.png')} 
               style={styles.headerLogo} 
               contentFit="contain" 
             />
@@ -363,12 +363,12 @@ export default function IndexScreen() {
             <View style={styles.welcomeContainer}>
               <View style={styles.welcomeLogoContainer}>
                 <Image 
-                  source={require('@/assets/images/logo-glow.png')} 
+                  source={require('../../assets/images/logo-glow.png')} 
                   style={styles.welcomeLogoGlow} 
                 />
                 <View style={styles.welcomeLogoBg}>
                   <Image 
-                    source={require('@/assets/images/logo-oficial.png')} 
+                    source={require('../../assets/images/logo-oficial.png')} 
                     style={styles.welcomeLogo} 
                     contentFit="contain" 
                   />
