@@ -121,3 +121,8 @@ export async function acreditarInvitadosMasivo(ids: string[]): Promise<any> {
 export async function obtenerStatsReal(): Promise<any> {
   return await request('/stats');
 }
+
+export async function obtenerCeremoniaActiva(): Promise<any> {
+  return await request('/ceremonias/activa');
+}
+

@@ -342,30 +342,59 @@ export async function GET(
     }
 
     if (slug[0] === 'invitados' && slug[1] === 'buscar' && slug[2]) {
-      const codigo = slug[2];
+      const codigoRaw = slug[2];
+      const codigo = decodeURIComponent(codigoRaw);
       const isPersonal = await esPersonalValido(req, ROLES_OPERACION);
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
-      // 1. Intentar como ID de invitado individual
-      const invRes = await query(`
-        SELECT i.*, e.nombre as "egresadoNombre" 
-        FROM invitados i 
-        JOIN egresados e ON i.egresado_id = e.id 
-        JOIN ceremonias c ON e.ceremonia_id = c.id
-        WHERE i.id = $1 AND c.activa = 1
-      `, [codigo]);
+      // Verificar si es JSON (el QR de egresado contiene datos serializados)
+      let idBusqueda = codigo;
+      let tokenBusqueda = codigo;
 
-      if (invRes.rows.length > 0) {
-        return NextResponse.json({ tipo: 'individual', datos: invRes.rows[0] }, { headers });
+      if (codigo.trim().startsWith('{')) {
+        try {
+          const parsed = JSON.parse(codigo);
+          if (parsed.id) idBusqueda = parsed.id;
+          if (parsed.token) tokenBusqueda = parsed.token;
+        } catch (e) {
+          console.error("Error al parsear el código QR como JSON:", e);
+        }
       }
 
-      // 2. Intentar como Token de egresado
-      const egrRes = await query(`
-        SELECT e.* 
-        FROM egresados e 
-        JOIN ceremonias c ON e.ceremonia_id = c.id
-        WHERE UPPER(e.token) = UPPER($1) AND c.activa = 1
-      `, [codigo]);
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+      // 1. Intentar como ID de invitado individual (sólo si es un UUID válido para evitar error de casteo en PostgreSQL)
+      if (uuidRegex.test(idBusqueda)) {
+        const invRes = await query(`
+          SELECT i.*, e.nombre as "egresadoNombre" 
+          FROM invitados i 
+          JOIN egresados e ON i.egresado_id = e.id 
+          JOIN ceremonias c ON e.ceremonia_id = c.id
+          WHERE i.id = $1 AND c.activa = 1
+        `, [idBusqueda]);
+
+        if (invRes.rows.length > 0) {
+          return NextResponse.json({ tipo: 'individual', datos: invRes.rows[0] }, { headers });
+        }
+      }
+
+      // 2. Intentar como Token o ID de egresado
+      let egrRes;
+      if (uuidRegex.test(idBusqueda)) {
+        egrRes = await query(`
+          SELECT e.* 
+          FROM egresados e 
+          JOIN ceremonias c ON e.ceremonia_id = c.id
+          WHERE (UPPER(e.token) = UPPER($1) OR e.id = $2) AND c.activa = 1
+        `, [tokenBusqueda, idBusqueda]);
+      } else {
+        egrRes = await query(`
+          SELECT e.* 
+          FROM egresados e 
+          JOIN ceremonias c ON e.ceremonia_id = c.id
+          WHERE UPPER(e.token) = UPPER($1) AND c.activa = 1
+        `, [tokenBusqueda]);
+      }
 
       if (egrRes.rows.length > 0) {
         const egr = egrRes.rows[0];

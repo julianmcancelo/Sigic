@@ -26,7 +26,8 @@ import {
   buscarInvitadoOGrupo,
   acreditarInvitado,
   acreditarInvitadosMasivo,
-  obtenerStatsReal
+  obtenerStatsReal,
+  obtenerCeremoniaActiva
 } from '@/services/api';
 import { Colors, Spacing } from '@/constants/theme';
 
@@ -44,6 +45,10 @@ export default function IndexScreen() {
   const [user, setUser] = useState<any | null>(null);
   const [apiUrl, setApiUrlState] = useState('');
   
+  // Ceremony state
+  const [ceremonia, setCeremonia] = useState<any | null>(null);
+  const [loadingCeremonia, setLoadingCeremonia] = useState(false);
+
   // Stats
   const [stats, setStats] = useState<{ presentes: number; totalInvitados: number } | null>(null);
   const [loadingStats, setLoadingStats] = useState(false);
@@ -99,6 +104,22 @@ export default function IndexScreen() {
 
       const loggedUser = await getLoggedUser();
       setUser(loggedUser);
+
+      // Cargar la ceremonia activa si hay URL configurada
+      if (currentUrl) {
+        setLoadingCeremonia(true);
+        try {
+          const cerData = await obtenerCeremoniaActiva();
+          setCeremonia(cerData);
+        } catch (err) {
+          console.warn('Error fetching active ceremony:', err);
+          setCeremonia(null);
+        } finally {
+          setLoadingCeremonia(false);
+        }
+      } else {
+        setCeremonia(null);
+      }
 
       if (currentToken && loggedUser) {
         fetchStats();
@@ -289,6 +310,21 @@ export default function IndexScreen() {
 
           {token ? (
             <>
+              {/* Active Ceremony Card (Compact) */}
+              {ceremonia && (
+                <View style={[styles.ceremoniaCardCompact, { backgroundColor: colors.backgroundElement }]}>
+                  <View style={styles.ceremoniaCardCompactHeader}>
+                    <Ionicons name="school" size={16} color="#0ea5e9" />
+                    <Text style={[styles.ceremoniaCardCompactTitle, { color: colors.text }]} numberOfLines={1}>
+                      {ceremonia.nombre}
+                    </Text>
+                  </View>
+                  <Text style={[styles.ceremoniaCardCompactSub, { color: colors.textSecondary }]}>
+                    {new Date(ceremonia.fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })} • {new Date(ceremonia.fecha).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })} hs • {ceremonia.lugar || 'Sede Beltrán'}
+                  </Text>
+                </View>
+              )}
+
               {/* Stats Card */}
               <View style={[styles.card, { backgroundColor: colors.backgroundElement }]}>
                 <View style={styles.cardHeader}>
@@ -345,12 +381,49 @@ export default function IndexScreen() {
                   Control de Acceso & Acreditación
                 </Text>
                 
-                <View style={[styles.welcomeCard, { backgroundColor: colors.backgroundElement, borderColor: colors.backgroundSelected }]}>
-                  <Ionicons name="shield-checkmark" size={22} color="#0ea5e9" />
-                  <Text style={[styles.welcomeCardBody, { color: colors.text }]}>
-                    Iniciá sesión escaneando el QR de acceso o vinculando el servidor de la ceremonia.
-                  </Text>
-                </View>
+                {ceremonia ? (
+                  <View style={[styles.ceremoniaCard, { backgroundColor: colors.backgroundElement, borderColor: colors.backgroundSelected }]}>
+                    <View style={styles.ceremoniaHeader}>
+                      <Ionicons name="school" size={20} color="#0ea5e9" />
+                      <Text style={[styles.ceremoniaTitle, { color: colors.text }]} numberOfLines={1}>
+                        {ceremonia.nombre}
+                      </Text>
+                    </View>
+                    <View style={styles.ceremoniaDetails}>
+                      <View style={styles.ceremoniaDetailRow}>
+                        <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} />
+                        <Text style={[styles.ceremoniaDetailText, { color: colors.textSecondary }]}>
+                          {new Date(ceremonia.fecha).toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                        </Text>
+                      </View>
+                      <View style={styles.ceremoniaDetailRow}>
+                        <Ionicons name="time-outline" size={14} color={colors.textSecondary} />
+                        <Text style={[styles.ceremoniaDetailText, { color: colors.textSecondary }]}>
+                          {new Date(ceremonia.fecha).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })} hs
+                        </Text>
+                      </View>
+                      <View style={styles.ceremoniaDetailRow}>
+                        <Ionicons name="location-outline" size={14} color={colors.textSecondary} />
+                        <Text style={[styles.ceremoniaDetailText, { color: colors.textSecondary }]}>
+                          {ceremonia.lugar || 'Sede Beltrán'}
+                        </Text>
+                      </View>
+                      <View style={styles.ceremoniaDetailRow}>
+                        <Ionicons name="people-outline" size={14} color={colors.textSecondary} />
+                        <Text style={[styles.ceremoniaDetailText, { color: colors.textSecondary }]}>
+                          Invitados: máx. {ceremonia.max_invitados} por egresado
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                ) : (
+                  <View style={[styles.welcomeCard, { backgroundColor: colors.backgroundElement, borderColor: colors.backgroundSelected }]}>
+                    <Ionicons name="shield-checkmark" size={22} color="#0ea5e9" />
+                    <Text style={[styles.welcomeCardBody, { color: colors.text }]}>
+                      Iniciá sesión escaneando el QR de acceso o vinculando el servidor de la ceremonia.
+                    </Text>
+                  </View>
+                )}
               </View>
 
               <View style={styles.welcomeActions}>
@@ -1197,4 +1270,60 @@ const styles = StyleSheet.create({
     gap: Spacing.half,
     marginTop: Spacing.one,
   },
+  ceremoniaCard: {
+    width: '100%',
+    padding: Spacing.three,
+    borderRadius: 20,
+    marginTop: Spacing.two,
+    borderWidth: 1,
+    gap: Spacing.two,
+  },
+  ceremoniaHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.one,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0,0,0,0.05)',
+    paddingBottom: Spacing.one,
+  },
+  ceremoniaTitle: {
+    fontSize: 16,
+    fontWeight: '800',
+    flex: 1,
+  },
+  ceremoniaDetails: {
+    gap: Spacing.one,
+  },
+  ceremoniaDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  ceremoniaDetailText: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  ceremoniaCardCompact: {
+    padding: Spacing.three,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(0,0,0,0.05)',
+    marginBottom: Spacing.three,
+    gap: 4,
+  },
+  ceremoniaCardCompactHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  ceremoniaCardCompactTitle: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    flex: 1,
+  },
+  ceremoniaCardCompactSub: {
+    fontSize: 11,
+    marginLeft: 22,
+  },
 });
+
