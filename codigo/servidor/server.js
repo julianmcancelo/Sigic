@@ -5,6 +5,7 @@
 require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
+const helmet = require('helmet')
 
 // Importación de enrutadores modulares
 const egresadosRouter = require('./rutas/egresados')
@@ -30,28 +31,42 @@ const PUERTO = process.env.PORT || 3001
  * CONFIGURACIÓN DE MIDDLEWARES
  */
 
-// CORS: en producción definí CORS_ORIGINS en .env (lista separada por comas).
-// Sin esa variable se permite cualquier origen (modo desarrollo) y se avisa
-// por consola. Las peticiones sin Origin (apps nativas, curl) siempre pasan.
+const enProduccion = process.env.NODE_ENV === 'production'
+
+// 1. Redirección forzada a HTTPS en producción (detrás de proxies como Render, Heroku o Nginx)
+if (enProduccion) {
+  app.use((req, res, next) => {
+    if (req.headers['x-forwarded-proto'] !== 'https' && !req.secure) {
+      return res.redirect(`https://${req.headers.host}${req.url}`)
+    }
+    next()
+  })
+}
+
+// 2. Helmet para inyectar cabeceras de seguridad automáticamente (desactivando CSP temporalmente para no romper CSS inline de /)
+app.use(helmet({
+  contentSecurityPolicy: false,
+  crossOriginEmbedderPolicy: false,
+}))
+
+// Cabecera utilitaria personalizada
+app.use((req, res, next) => {
+  res.setHeader('Bypass-Tunnel-Reminder', 'true')
+  next()
+})
+
+// 3. CORS: en producción definí CORS_ORIGINS en .env (lista separada por comas).
+// Si no se define en producción, bloquea por defecto por seguridad.
 const origenesPermitidos = (process.env.CORS_ORIGINS || '')
   .split(',')
   .map((origen) => origen.trim())
   .filter(Boolean)
 
 app.use(cors({
-  origin: origenesPermitidos.length > 0 ? origenesPermitidos : true,
+  origin: origenesPermitidos.length > 0 ? origenesPermitidos : (enProduccion ? false : true),
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Bypass-Tunnel-Reminder'],
 }))
-
-// Cabeceras de seguridad básicas en todas las respuestas
-app.use((req, res, next) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff')
-  res.setHeader('X-Frame-Options', 'DENY')
-  res.setHeader('Referrer-Policy', 'no-referrer')
-  res.setHeader('Bypass-Tunnel-Reminder', 'true')
-  next()
-})
 
 // Límite de tamaño del cuerpo JSON para evitar abusos
 app.use(express.json({ limit: '1mb' }))
