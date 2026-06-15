@@ -29,6 +29,8 @@ import { ManualUsuarioWeb } from './paginas/ManualUsuarioWeb'
 import { PantallaBienvenidaPro } from './paginas/v2/PantallaBienvenidaPro'
 import { PanelReportes } from './paginas/v2/PanelReportes'
 import { GestionPorteria } from './paginas/v2/GestionPorteria'
+import { CentroControl } from './paginas/v2/CentroControl'
+
 
 // Componentes Globales
 import { ControlExpositor } from './componentes/ControlExpositor'
@@ -482,6 +484,14 @@ function App() {
     } else if (pantallaAdmin === 'gestion-porteria') {
       contenido = (
         <GestionPorteria
+          usuario={adminUser}
+          onVolver={() => setPantallaAdmin('bienvenida')}
+          onCerrarSesion={cerrarSesionAdmin}
+        />
+      )
+    } else if (pantallaAdmin === 'centro-control') {
+      contenido = (
+        <CentroControl
           usuario={adminUser}
           onVolver={() => setPantallaAdmin('bienvenida')}
           onCerrarSesion={cerrarSesionAdmin}

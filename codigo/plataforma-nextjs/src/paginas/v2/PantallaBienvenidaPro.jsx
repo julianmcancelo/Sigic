@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { 
   GraduationCap, Calendar, Users, FileSpreadsheet, Settings, 
   LogOut, Search, Bell, Eye, Edit3, CheckCircle2, AlertTriangle, 
-  XCircle, LayoutGrid, HelpCircle, Map, BarChart3, Award, UserCheck, TrendingUp, Shield
+  XCircle, LayoutGrid, HelpCircle, Map, BarChart3, Award, UserCheck, TrendingUp, Shield, Server
 } from 'lucide-react'
 import { BASE, cabeceras } from '../../servicios/api'
 import { obtenerDetalleClima } from '../../utilidades/clima'
@@ -18,6 +18,8 @@ import { PanelAjustes } from './PanelAjustes'
 import { PanelReportes } from './PanelReportes'
 import { ManualUsuarioWeb } from './ManualUsuarioWeb'
 import { GestionPorteria } from './GestionPorteria'
+import { CentroControl } from './CentroControl'
+
 
 // ─── Colores del sistema (Identical to Version 1) ─────────────────
 const DARK   = '#2A3448'
@@ -285,7 +287,7 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
 
         {/* Navigation Items */}
         <nav className="flex-1 p-4 space-y-1">
-          {renderMenuItem(LayoutGrid, 'Centro de Control', 'dashboard')}
+          {renderMenuItem(LayoutGrid, 'Panel Principal', 'dashboard')}
           {renderMenuItem(Calendar, 'Ceremonias', 'ceremonias')}
           {renderMenuItem(GraduationCap, 'Estudiantes', 'estudiantes')}
           {renderMenuItem(Award, 'Profesores', 'profesores')}
@@ -293,9 +295,11 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
           {renderMenuItem(Map, 'Butacas', 'butacas')}
           {renderMenuItem(BarChart3, 'Reportes', 'reportes')}
           {renderMenuItem(Shield, 'Seguridad', 'seguridad')}
+          {renderMenuItem(Server, 'Centro de Control', 'infraestructura')}
           {renderMenuItem(Settings, 'Configuración', 'configuracion')}
           {renderMenuItem(HelpCircle, 'Manual de Ayuda', 'manual')}
         </nav>
+
 
         {/* Logout */}
         <div className="p-4 border-t" style={{ borderTopColor: '#f1f5f9' }}>
@@ -753,6 +757,16 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
               onCerrarSesion={onCerrarSesion}
             />
           )}
+
+          {/* VISTA INFRAESTRUCTURA / CENTRO CONTROL */}
+          {vistaActiva === 'infraestructura' && (
+            <CentroControl 
+              usuario={usuario}
+              onVolver={() => setVistaActiva('dashboard')}
+              onCerrarSesion={onCerrarSesion}
+            />
+          )}
+
 
           {/* VISTA 9: MANUAL */}
           {vistaActiva === 'manual' && (

@@ -9,8 +9,9 @@ import {
   CloudSun, LogOut, Users, MapPin, QrCode, ScanLine,
   GraduationCap, UserCheck, Clock, TrendingUp, Activity,
   ChevronRight, Wifi, WifiOff, FileImage, Settings, LayoutGrid,
-  Calendar,
+  Calendar, Server,
 } from 'lucide-react'
+
 
 import { BASE, cabeceras } from '../servicios/api'
 import { HeaderGlobal } from '../componentes/HeaderGlobal'
@@ -479,7 +480,15 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
       pantalla: 'gestion-ceremonias',
       badge: 'Hábitats',
     },
+    {
+      icono: Server,
+      titulo: 'Centro de Control',
+      descripcion: 'Estado del servidor cloud, latencias, base de datos Neon y backups',
+      pantalla: 'centro-control',
+      badge: 'Nube',
+    },
   ]
+
 
   if (cargandoStats) {
     return (

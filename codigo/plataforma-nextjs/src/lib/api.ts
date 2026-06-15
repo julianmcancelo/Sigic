@@ -469,3 +469,21 @@ export async function actualizarAutorizacionCeremonia(ceremoniaId: string, usuar
   return json;
 }
 
+export async function exportarBaseDatos() {
+  const res = await fetch(`${BASE_CLASSIC}/setup/export`, { headers: cabeceras() });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo exportar la base de datos');
+  return json;
+}
+
+export async function resetearSistema() {
+  const res = await fetch(`${BASE_CLASSIC}/setup/reset`, {
+    method: 'POST',
+    headers: cabeceras()
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo resetear el sistema');
+  return json;
+}
+
+

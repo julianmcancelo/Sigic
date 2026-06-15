@@ -140,6 +140,32 @@ export async function GET(
     }
 
     // -------------------------------------------------------------
+    // SETUP EXPORT (BACKUP DATA)
+    // -------------------------------------------------------------
+    if (path === 'setup/export') {
+      const isPersonal = await esPersonalValido(req, ['SUPER_ADMIN', 'ADMIN']);
+      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+
+      const egresados = await query('SELECT * FROM egresados').catch(() => ({ rows: [] }));
+      const invitados = await query('SELECT * FROM invitados').catch(() => ({ rows: [] }));
+      const ceremonias = await query('SELECT * FROM ceremonias').catch(() => ({ rows: [] }));
+      const profesores = await query('SELECT * FROM profesores').catch(() => ({ rows: [] }));
+      const entregadores = await query('SELECT * FROM entregadores').catch(() => ({ rows: [] }));
+      const configuracion = await query('SELECT * FROM configuracion_sistema').catch(() => ({ rows: [] }));
+
+      return NextResponse.json({
+        exportadoEn: new Date().toISOString(),
+        egresados: egresados.rows,
+        invitados: invitados.rows,
+        ceremonias: ceremonias.rows,
+        profesores: profesores.rows,
+        entregadores: entregadores.rows,
+        configuracion_sistema: configuracion.rows
+      }, { headers });
+    }
+
+
+    // -------------------------------------------------------------
     // STATS
     // -------------------------------------------------------------
     if (path === 'stats') {
@@ -586,6 +612,52 @@ export async function POST(
         ceremonia: { id: ceremoniaId, nombre: nombreEvento, fecha: fechaEvento, lugar: lugarEvento },
       }, { headers });
     }
+
+    // -------------------------------------------------------------
+    // SETUP RESET (RESET SYSTEM DATA)
+    // -------------------------------------------------------------
+    if (path === 'setup/reset') {
+      const isPersonal = await esPersonalValido(req, ['SUPER_ADMIN']);
+      if (!isPersonal) {
+        return NextResponse.json(
+          { error: 'No autorizado. Solo un SUPER_ADMIN puede resetear el sistema.' },
+          { status: 403, headers }
+        );
+      }
+
+      // Limpiar tablas usando DELETE FROM para compatibilidad con PostgreSQL y SQLite
+      const tables = [
+        'ceremonias_usuarios_autorizados',
+        'otp_historial',
+        'invitados',
+        'egresados',
+        'profesores',
+        'entregadores',
+        'configuracion_anfiteatro',
+        'logs_auditoria',
+        'ceremonias',
+        'usuarios_sistema'
+      ];
+      for (const t of tables) {
+        await query(`DELETE FROM ${t}`).catch((e) => {
+          console.error(`Error al limpiar tabla ${t}:`, e);
+        });
+      }
+
+      // Reiniciar flag de setup_inicial_completado a '0'
+      await query(
+        `INSERT INTO configuracion_sistema (clave, valor, descripcion, actualizado_en)
+         VALUES ('setup_inicial_completado', '0', 'Indica si el asistente inicial ya fue completado', CURRENT_TIMESTAMP)
+         ON CONFLICT (clave)
+         DO UPDATE SET valor = '0', actualizado_en = CURRENT_TIMESTAMP`
+      );
+
+      return NextResponse.json(
+        { ok: true, mensaje: 'Sistema reseteado correctamente. Redirigiendo a la configuración inicial.' },
+        { headers }
+      );
+    }
+
 
     // -------------------------------------------------------------
     // CONFIG ANFITEATRO
