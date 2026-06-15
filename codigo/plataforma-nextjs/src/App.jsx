@@ -118,9 +118,12 @@ function App() {
 
     const manejarDesautorizado = () => {
       console.warn("Sesión expirada o desautorizada (HTTP 401). Cerrando sesión...")
-      cerrarSesionAdmin()
-      cerrarSesionGraduado()
+      const esAdmin = localStorage.getItem('sesion_admin') === 'true'
+      const esGraduado = localStorage.getItem('sesion_graduado') === 'true'
+      if (esAdmin) cerrarSesionAdmin()
+      if (esGraduado) cerrarSesionGraduado()
     }
+
 
     window.addEventListener('sigic-desautorizado', manejarDesautorizado)
     return () => {
