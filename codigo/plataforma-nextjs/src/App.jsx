@@ -9,6 +9,7 @@
  * 3. Si rechaza → Inhabilitado, se cierra sesión automáticamente
  */
 import { useState, useEffect } from 'react'
+import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, RefreshCw } from 'lucide-react'
 
 // Importación de Páginas
 import { PaginaInicioSesion } from './paginas/PaginaInicioSesion'
@@ -65,6 +66,11 @@ function App() {
     () => localStorage.getItem('version_admin') || 'clasica'
   )
 
+  const [dockPosicion, setDockPosicion] = useState(
+    () => (typeof window !== 'undefined' ? localStorage.getItem('sigic_dock_posicion') : 'abajo') || 'abajo'
+  )
+
+
   const [vistaLogin, setVistaLogin] = useState(() => {
     const p = window.location.pathname
     return (p === '/egresado' || p === '/graduado' || p === '/carga') ? 'graduado' : null
@@ -95,6 +101,40 @@ function App() {
     }
     inicializarApp()
   }, [])
+
+  // ─── 3.0.1 INTERCEPTOR DE 401 Y SESIÓN EXPIRADA ───
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !window.__fetch_interceptado) {
+      window.__fetch_interceptado = true
+      const originalFetch = window.fetch
+      window.fetch = async function (...args) {
+        const response = await originalFetch(...args)
+        if (response.status === 401) {
+          window.dispatchEvent(new CustomEvent('sigic-desautorizado'))
+        }
+        return response
+      }
+    }
+
+    const manejarDesautorizado = () => {
+      console.warn("Sesión expirada o desautorizada (HTTP 401). Cerrando sesión...")
+      cerrarSesionAdmin()
+      cerrarSesionGraduado()
+    }
+
+    window.addEventListener('sigic-desautorizado', manejarDesautorizado)
+    return () => {
+      window.removeEventListener('sigic-desautorizado', manejarDesautorizado)
+    }
+  }, [])
+
+  // ─── 3.0.2 CONTROL DE SESIÓN DE EGRESADOS POR CICLO DE VIDA ───
+  useEffect(() => {
+    if (graduadoActivo && graduadoUsuario && graduadoUsuario.estado !== 'PENDIENTE' && graduadoUsuario.estado !== 'ACEPTADO') {
+      cerrarSesionGraduado()
+    }
+  }, [graduadoActivo, graduadoUsuario])
+
 
   // ─── 3.1 VALIDACIÓN DE TOKEN ───
   useEffect(() => {
@@ -274,10 +314,11 @@ function App() {
     else if (graduadoUsuario.estado === 'ACEPTADO') {
       contenido = <PanelGraduado graduadoSesion={graduadoUsuario} onCerrarSesion={cerrarSesionGraduado} />
     }
-    // Subcase B.3: Estado RECHAZADO → Inhabilitado, cerrar sesión
+    // Subcase B.3: Estado RECHAZADO → Inhabilitado, cerrar sesión (manejado por useEffect)
     else {
-      cerrarSesionGraduado()
+      contenido = <div className="flex min-h-screen bg-[#F0F4F8]" />
     }
+
   }
 
   // CASO C: El usuario es Administrador logueado
@@ -407,6 +448,15 @@ function App() {
   return (
     <>
       {contenido}
+
+      {adminActivo && (
+        <AdminDock
+          pantallaActual={pantallaAdmin}
+          onNavegar={setPantallaAdmin}
+          posicion={dockPosicion}
+          setPosicion={setDockPosicion}
+        />
+      )}
       
       {/* Herramienta para presentaciones (Modo Demo) */}
       <ControlExpositor 
@@ -418,4 +468,90 @@ function App() {
   )
 }
 
+// ─── COMPONENTE NAV DOCKER ADMINISTRATIVO PERSISTENTE ───
+function AdminDock({ pantallaActual, onNavegar, posicion, setPosicion }) {
+  const items = [
+    { id: 'bienvenida', titulo: 'Inicio', icono: Home },
+    { id: 'control-ingreso', titulo: 'Escáner', icono: ScanLine },
+    { id: 'gestion-graduados', titulo: 'Graduados', icono: Users },
+    { id: 'gestion-profesores', titulo: 'Docentes', icono: GraduationCap },
+    { id: 'seleccion-asientos', titulo: 'Anfiteatro', icono: MapPin },
+    { id: 'panel-reportes', titulo: 'Reportes', icono: BarChart3 },
+    { id: 'ajustes', titulo: 'Ajustes', icono: Settings },
+    { id: 'gestion-ceremonias', titulo: 'Ceremonias', icono: Calendar },
+  ]
+
+  const alternarPosicion = () => {
+    const nueva = posicion === 'abajo' ? 'izquierda' : 'abajo'
+    setPosicion(nueva)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sigic_dock_posicion', nueva)
+    }
+  }
+
+  const claseContenedor = posicion === 'abajo'
+    ? 'fixed bottom-4 left-1/2 -translate-x-1/2 flex flex-row items-center gap-2 px-3 py-2 rounded-2xl border border-white/20 shadow-2xl z-50'
+    : 'fixed left-4 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2 px-2 py-3 rounded-2xl border border-white/20 shadow-2xl z-50'
+
+  return (
+    <div
+      className={`${claseContenedor} bg-white/70 backdrop-blur-lg transition-all duration-300`}
+      style={{
+        boxShadow: '0 20px 50px -12px rgba(13,27,46,0.15)',
+      }}
+    >
+      {/* Botón de alternar posición */}
+      <button
+        onClick={alternarPosicion}
+        className="group relative flex h-9 w-9 items-center justify-center rounded-xl bg-slate-50 hover:bg-sky-50 text-slate-400 hover:text-sky-500 border border-slate-100 hover:border-sky-100 transition-all cursor-pointer"
+      >
+        <RefreshCw size={13} className="transition-transform duration-300 group-hover:rotate-180" />
+        <span className={`absolute invisible group-hover:visible bg-slate-900/90 text-white text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-md shadow-md whitespace-nowrap z-55 border border-slate-700/50 ${
+          posicion === 'abajo' ? '-top-9' : 'left-11 top-1/2 -translate-y-1/2'
+        }`}>
+          Mover Dock
+        </span>
+      </button>
+
+      {/* Línea divisoria */}
+      <div className={`${posicion === 'abajo' ? 'h-6 w-[1px] bg-slate-200' : 'h-[1px] w-6 bg-slate-200'}`} />
+
+      {/* Items del Dock */}
+      {items.map((item) => {
+        const Icono = item.icono
+        const activo = pantallaActual === item.id
+
+        return (
+          <button
+            key={item.id}
+            onClick={() => onNavegar(item.id)}
+            className={`group relative flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300 cursor-pointer ${
+              activo
+                ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/35'
+                : 'bg-white hover:bg-sky-50 text-slate-650 hover:text-sky-500 border border-slate-100 hover:border-sky-200 hover:scale-115 hover:-translate-y-0.5'
+            }`}
+          >
+            <Icono size={18} />
+            
+            {/* Indicador de activo */}
+            {activo && (
+              <span className={`absolute h-1.5 w-1.5 rounded-full bg-white ${
+                posicion === 'abajo' ? 'bottom-1' : 'right-1'
+              }`} />
+            )}
+
+            {/* Tooltip */}
+            <span className={`absolute invisible group-hover:visible bg-slate-900/90 text-white text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-md shadow-md whitespace-nowrap z-55 border border-slate-700/50 ${
+              posicion === 'abajo' ? '-top-9' : 'left-11 top-1/2 -translate-y-1/2'
+            }`}>
+              {item.titulo}
+            </span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 export default App
+
