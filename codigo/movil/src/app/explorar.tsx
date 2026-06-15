@@ -20,8 +20,8 @@ import {
   getLoggedUser,
   loginWithCredentials,
   testConnection
-} from '@/services/api';
-import { Colors, Spacing } from '@/constants/theme';
+} from '@/servicios/api';
+import { Colors, Spacing } from '@/constantes/tema';
 
 export default function ExploreScreen() {
   const scheme = useColorScheme();
