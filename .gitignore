@@ -78,11 +78,11 @@ Thumbs.db
 !codigo/plataforma/public/*.jpg
 !codigo/plataforma/public/*.jpeg
 !codigo/plataforma/public/*.svg
-!codigo/movil-reactnative/assets/
-!codigo/movil-reactnative/assets/images/*.png
-!codigo/movil-reactnative/assets/images/*.jpg
-!codigo/movil-reactnative/assets/images/*.jpeg
-!codigo/movil-reactnative/assets/images/*.svg
+!codigo/movil/assets/
+!codigo/movil/assets/images/*.png
+!codigo/movil/assets/images/*.jpg
+!codigo/movil/assets/images/*.jpeg
+!codigo/movil/assets/images/*.svg
 
 
 # Limpieza Personalizada y Backups

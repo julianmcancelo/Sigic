@@ -29,7 +29,7 @@ SiGIC/
 │   │   │   └── paginas/        # Vistas de la aplicación (Bento Grid V2 y Clásica V1)
 │   │   └── package.json        # Dependencias de la plataforma web
 │   │
-│   └── movil-reactnative/       # Aplicación móvil para control de accesos (React Native + Expo)
+│   └── movil/                   # Aplicación móvil para control de accesos (React Native + Expo)
 │       ├── src/
 │       │   ├── app/            # Pantalla bienvenida, escáner QR y dashboard móvil
 │       │   └── components/     # Componentes compartidos del móvil
@@ -68,7 +68,7 @@ SiGIC/
 
 1. Ingresa a la carpeta del proyecto móvil:
    ```bash
-   cd codigo/movil-reactnative
+   cd codigo/movil
    ```
 2. Instala las dependencias:
    ```bash

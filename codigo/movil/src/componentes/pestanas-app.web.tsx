@@ -9,11 +9,11 @@ import {
 import { SymbolView } from 'expo-symbols';
 import { Pressable, useColorScheme, View, StyleSheet } from 'react-native';
 
-import { ExternalLink } from './external-link';
-import { ThemedText } from './themed-text';
-import { ThemedView } from './themed-view';
+import { EnlaceExterno } from './enlace-externo';
+import { TextoTematizado } from './texto-tematizado';
+import { VistaTematizada } from './vista-tematizada';
 
-import { Colors, MaxContentWidth, Spacing } from '@/constants/theme';
+import { Colors, MaxContentWidth, Spacing } from '@/constantes/tema';
 
 export default function AppTabs() {
   return (
@@ -22,10 +22,10 @@ export default function AppTabs() {
       <TabList asChild>
         <CustomTabList>
           <TabTrigger name="home" href="/" asChild>
-            <TabButton>Home</TabButton>
+            <TabButton>Inicio</TabButton>
           </TabTrigger>
-          <TabTrigger name="explore" href="/explore" asChild>
-            <TabButton>Explore</TabButton>
+          <TabTrigger name="explorar" href="/explorar" asChild>
+            <TabButton>Ajustes</TabButton>
           </TabTrigger>
         </CustomTabList>
       </TabList>
@@ -36,13 +36,13 @@ export default function AppTabs() {
 export function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps) {
   return (
     <Pressable {...props} style={({ pressed }) => pressed && styles.pressed}>
-      <ThemedView
+      <VistaTematizada
         type={isFocused ? 'backgroundSelected' : 'backgroundElement'}
         style={styles.tabButtonView}>
-        <ThemedText type="small" themeColor={isFocused ? 'text' : 'textSecondary'}>
+        <TextoTematizado type="small" themeColor={isFocused ? 'text' : 'textSecondary'}>
           {children}
-        </ThemedText>
-      </ThemedView>
+        </TextoTematizado>
+      </VistaTematizada>
     </Pressable>
   );
 }
@@ -53,24 +53,24 @@ export function CustomTabList(props: TabListProps) {
 
   return (
     <View {...props} style={styles.tabListContainer}>
-      <ThemedView type="backgroundElement" style={styles.innerContainer}>
-        <ThemedText type="smallBold" style={styles.brandText}>
-          Expo Starter
-        </ThemedText>
+      <VistaTematizada type="backgroundElement" style={styles.innerContainer}>
+        <TextoTematizado type="smallBold" style={styles.brandText}>
+          SiGIC
+        </TextoTematizado>
 
         {props.children}
 
-        <ExternalLink href="https://docs.expo.dev" asChild>
+        <EnlaceExterno href="https://docs.expo.dev" asChild>
           <Pressable style={styles.externalPressable}>
-            <ThemedText type="link">Docs</ThemedText>
+            <TextoTematizado type="link">Docs</TextoTematizado>
             <SymbolView
               tintColor={colors.text}
               name={{ ios: 'arrow.up.right.square', web: 'link' }}
               size={12}
             />
           </Pressable>
-        </ExternalLink>
-      </ThemedView>
+        </EnlaceExterno>
+      </VistaTematizada>
     </View>
   );
 }

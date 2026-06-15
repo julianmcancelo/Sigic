@@ -2,7 +2,7 @@ import { Tabs } from 'expo-router';
 import { useColorScheme } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { Colors } from '@/constants/theme';
+import { Colors } from '@/constantes/tema';
 
 export default function AppTabs() {
   const scheme = useColorScheme();
@@ -26,7 +26,7 @@ export default function AppTabs() {
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="explorar"
         options={{
           title: 'Ajustes',
           tabBarIcon: ({ color, focused }) => (

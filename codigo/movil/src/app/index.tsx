@@ -28,8 +28,8 @@ import {
   acreditarInvitadosMasivo,
   obtenerStatsReal,
   obtenerCeremoniaActiva
-} from '@/services/api';
-import { Colors, Spacing } from '@/constants/theme';
+} from '@/servicios/api';
+import { Colors, Spacing } from '@/constantes/tema';
 
 type ViewState = 'home' | 'scan' | 'result';
 

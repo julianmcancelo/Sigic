@@ -52,7 +52,7 @@ El sistema cubre todo el ciclo operativo de un acto de colación institucional:
 SiGIC/
 ├── codigo/
 │   ├── plataforma/              # Plataforma Web y API Serverless (Next.js + Neon PostgreSQL)
-│   └── movil-reactnative/       # Aplicación móvil de Acreditación (React Native + Expo)
+│   └── movil/                   # Aplicación móvil de Acreditación (React Native + Expo)
 ├── respaldo_legacy/             # Respaldo de código clásico V1 (Vite + Express) — Gitignored
 ├── scripts/                     # Herramientas administrativas locales de Windows (.NET 8)
 ├── MANUAL.md                    # Manual de usuario (Administración, Alumnos y Portería)
@@ -118,7 +118,7 @@ npm run dev
 
 ```bash
 # Ingresar al directorio
-cd codigo/movil-reactnative
+cd codigo/movil
 
 # Instalar dependencias
 npm install
@@ -128,7 +128,7 @@ npx expo start
 ```
 
 Escanea el código QR de Metro con la cámara (iOS) o Expo Go (Android) para ejecutar la app.
-Ver detalles completos en [`codigo/movil-reactnative/README.md`](codigo/movil-reactnative/README.md).
+Ver detalles completos en [`codigo/movil/README.md`](codigo/movil/README.md).
 
 ---
 
@@ -140,7 +140,7 @@ Ver detalles completos en [`codigo/movil-reactnative/README.md`](codigo/movil-re
 | [`LEEME.md`](LEEME.md) | Guía técnica de desarrollo, variables de entorno y ecosistema de seguridad |
 | [`CHANGELOG.md`](CHANGELOG.md) | Historial detallado de versiones y cambios |
 | [`codigo/plataforma/README.md`](codigo/plataforma/README.md) | Documentación específica de la plataforma web Next.js |
-| [`codigo/movil-reactnative/README.md`](codigo/movil-reactnative/README.md) | Documentación específica de la app móvil React Native |
+| [`codigo/movil/README.md`](codigo/movil/README.md) | Documentación específica de la app móvil React Native |
 
 ---
 

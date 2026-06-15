@@ -4,7 +4,7 @@ import { type ComponentProps } from 'react';
 
 type Props = Omit<ComponentProps<typeof Link>, 'href'> & { href: Href & string };
 
-export function ExternalLink({ href, ...rest }: Props) {
+export function EnlaceExterno({ href, ...rest }: Props) {
   return (
     <Link
       target="_blank"
@@ -12,9 +12,7 @@ export function ExternalLink({ href, ...rest }: Props) {
       href={href}
       onPress={async (event) => {
         if (process.env.EXPO_OS !== 'web') {
-          // Prevent the default behavior of linking to the default browser on native.
           event.preventDefault();
-          // Open the link in an in-app browser.
           await openBrowserAsync(href, {
             presentationStyle: WebBrowserPresentationStyle.AUTOMATIC,
           });
@@ -23,3 +21,6 @@ export function ExternalLink({ href, ...rest }: Props) {
     />
   );
 }
+
+// Alias de compatibilidad
+export { EnlaceExterno as ExternalLink };

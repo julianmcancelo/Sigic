@@ -38,7 +38,7 @@ La app se conecta directamente a la **API Serverless de la Plataforma Web** (Nex
 ## Estructura del Proyecto
 
 ```text
-movil-reactnative/
+movil/
 ├── app/
 │   ├── (tabs)/
 │   │   ├── index.tsx         # Pantalla principal del escáner QR
@@ -70,7 +70,7 @@ movil-reactnative/
 
 ```bash
 # 1. Ingresar al directorio
-cd codigo/movil-reactnative
+cd codigo/movil
 
 # 2. Instalar dependencias
 npm install

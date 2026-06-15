@@ -12,17 +12,10 @@ export function AnimatedSplashOverlay() {
 
   if (!visible) return null;
 
-  // Keyframe to display the logo and fade out the entire splash view
   const fadeOutKeyframe = new Keyframe({
-    0: {
-      opacity: 1,
-    },
-    75: {
-      opacity: 1,
-    },
-    100: {
-      opacity: 0,
-    },
+    0: { opacity: 1 },
+    75: { opacity: 1 },
+    100: { opacity: 0 },
   });
 
   return (
@@ -43,40 +36,19 @@ export function AnimatedSplashOverlay() {
 }
 
 const keyframe = new Keyframe({
-  0: {
-    transform: [{ scale: 0.2 }],
-    opacity: 0,
-  },
-  100: {
-    transform: [{ scale: 1 }],
-    opacity: 1,
-    easing: Easing.elastic(0.9),
-  },
+  0: { transform: [{ scale: 0.2 }], opacity: 0 },
+  100: { transform: [{ scale: 1 }], opacity: 1, easing: Easing.elastic(0.9) },
 });
 
 const logoKeyframe = new Keyframe({
-  0: {
-    transform: [{ scale: 1.3 }],
-    opacity: 0,
-  },
-  40: {
-    transform: [{ scale: 1.3 }],
-    opacity: 0,
-  },
-  100: {
-    opacity: 1,
-    transform: [{ scale: 1 }],
-    easing: Easing.elastic(0.9),
-  },
+  0: { transform: [{ scale: 1.3 }], opacity: 0 },
+  40: { transform: [{ scale: 1.3 }], opacity: 0 },
+  100: { opacity: 1, transform: [{ scale: 1 }], easing: Easing.elastic(0.9) },
 });
 
 const glowKeyframe = new Keyframe({
-  0: {
-    transform: [{ rotateZ: '0deg' }],
-  },
-  100: {
-    transform: [{ rotateZ: '7200deg' }],
-  },
+  0: { transform: [{ rotateZ: '0deg' }] },
+  100: { transform: [{ rotateZ: '7200deg' }] },
 });
 
 export function AnimatedIcon() {
@@ -95,32 +67,11 @@ export function AnimatedIcon() {
 }
 
 const styles = StyleSheet.create({
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  imageContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  glow: {
-    width: 200,
-    height: 200,
-    position: 'absolute',
-  },
-  iconContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 140,
-    height: 140,
-    zIndex: 100,
-  },
-  image: {
-    position: 'absolute',
-    width: 100,
-    height: 100,
-  },
+  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  imageContainer: { justifyContent: 'center', alignItems: 'center' },
+  glow: { width: 200, height: 200, position: 'absolute' },
+  iconContainer: { justifyContent: 'center', alignItems: 'center', width: 140, height: 140, zIndex: 100 },
+  image: { position: 'absolute', width: 100, height: 100 },
   background: {
     borderRadius: 70,
     backgroundColor: '#ffffff',
@@ -133,9 +84,5 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     elevation: 4,
   },
-  backgroundSolidColor: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: '#0b0f19',
-    zIndex: 1000,
-  },
+  backgroundSolidColor: { ...StyleSheet.absoluteFillObject, backgroundColor: '#0b0f19', zIndex: 1000 },
 });

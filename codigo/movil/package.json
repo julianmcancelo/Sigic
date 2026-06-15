@@ -1,5 +1,5 @@
 {
-  "name": "movil-reactnative",
+  "name": "movil",
   "main": "expo-router/entry",
   "version": "1.0.0",
   "dependencies": {
