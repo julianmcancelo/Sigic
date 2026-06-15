@@ -104,3 +104,7 @@ tools/sigic_control_config.json
 scripts/SiGIC_ControlCenter/bin/
 scripts/SiGIC_ControlCenter/obj/
 scripts/SiGIC_ControlCenter/.vs/
+
+# Respaldo de Código Legacy (Inactivo)
+respaldo_legacy/
+
