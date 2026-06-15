@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, AlertCircle } from 'lucide-react'
 
 // Campo reutilizable para mantener el mismo estilo en todos los inputs del login.
 export function CampoFormulario({
@@ -45,7 +45,10 @@ export function CampoFormulario({
       </div>
 
       {tieneError ? (
-        <span className="mt-1 block text-xs text-rose-600">{mensajeError}</span>
+        <div className="mt-2.5 flex items-start gap-2 rounded-xl bg-rose-50/60 border border-rose-100/70 p-3 text-rose-600 animate-in fade-in slide-in-from-top-1 duration-200">
+          <AlertCircle size={14} className="mt-0.5 shrink-0" />
+          <span className="text-[11px] font-bold leading-tight">{mensajeError}</span>
+        </div>
       ) : null}
     </label>
   )

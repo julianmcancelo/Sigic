@@ -43,6 +43,7 @@ function crearLimitador({ ventanaMs, maximo, mensaje, clave }) {
       res.setHeader('Retry-After', segundosRestantes)
       return res.status(429).json({
         error: mensaje || 'Demasiadas peticiones. Probá de nuevo en unos minutos.',
+        segundosRestantes,
       })
     }
 

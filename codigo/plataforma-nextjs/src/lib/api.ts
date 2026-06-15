@@ -35,7 +35,16 @@ export async function iniciarSesionAdmin(email: string, password: string) {
     body: JSON.stringify({ email, password })
   });
   const json = await res.json();
-  if (!res.ok) throw new Error(json.error || 'Credenciales inválidas');
+  if (!res.ok) {
+    if (res.status === 429) {
+      const segundos = json.segundosRestantes || 60;
+      const mins = Math.floor(segundos / 60);
+      const secs = segundos % 60;
+      const tiempoStr = mins > 0 ? `${mins} min y ${secs} seg` : `${secs} segundos`;
+      throw new Error(`Demasiados intentos. Por favor, esperá ${tiempoStr} para volver a intentar.`);
+    }
+    throw new Error(json.error || 'Credenciales inválidas');
+  }
   guardarTokenSesion(json.token);
   return json;
 }
@@ -145,7 +154,16 @@ export async function solicitarOTP(email: string) {
     body: JSON.stringify({ email })
   });
   const json = await res.json();
-  if (!res.ok) throw new Error(json.error || 'No se pudo generar el código de verificación');
+  if (!res.ok) {
+    if (res.status === 429) {
+      const segundos = json.segundosRestantes || 60;
+      const mins = Math.floor(segundos / 60);
+      const secs = segundos % 60;
+      const tiempoStr = mins > 0 ? `${mins} min y ${secs} seg` : `${secs} segundos`;
+      throw new Error(`Demasiadas solicitudes de código. Por favor, esperá ${tiempoStr} para volver a intentar.`);
+    }
+    throw new Error(json.error || 'No se pudo generar el código de verificación');
+  }
   return json;
 }
 

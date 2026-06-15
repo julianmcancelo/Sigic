@@ -8,7 +8,7 @@
  * 2. Si acepta → PanelGraduado (cargar invitados, elegir entregadores)
  * 3. Si rechaza → Inhabilitado, se cierra sesión automáticamente
  */
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, RefreshCw } from 'lucide-react'
 
 // Importación de Páginas
@@ -82,6 +82,42 @@ function App() {
   const [requiereSetup, setRequiereSetup] = useState(null)
   const [cargandoSetup, setCargandoSetup] = useState(true)
 
+  // Refs para evitar stale closures en el interceptor global
+  const adminActivoRef = useRef(adminActivo)
+  const graduadoActivoRef = useRef(graduadoActivo)
+  
+  useEffect(() => {
+    adminActivoRef.current = adminActivo
+  }, [adminActivo])
+  
+  useEffect(() => {
+    graduadoActivoRef.current = graduadoActivo
+  }, [graduadoActivo])
+
+  // Sincronizar sesiones entre pestañas de forma activa
+  useEffect(() => {
+    const sincronizarPestanas = (e) => {
+      if (e.key === 'sesion_admin') {
+        const nuevoEstado = e.newValue === 'true'
+        setAdminActivo(nuevoEstado)
+        if (!nuevoEstado) setAdminUser({ nombre: '', correo: '' })
+      }
+      if (e.key === 'sesion_graduado') {
+        const nuevoEstado = e.newValue === 'true'
+        setGraduadoActivo(nuevoEstado)
+        if (!nuevoEstado) setGraduadoUsuario(null)
+      }
+      if (e.key === 'admin_user') {
+        setAdminUser(e.newValue ? JSON.parse(e.newValue) : { nombre: '', correo: '' })
+      }
+      if (e.key === 'graduado_usuario') {
+        setGraduadoUsuario(e.newValue ? JSON.parse(e.newValue) : null)
+      }
+    }
+    window.addEventListener('storage', sincronizarPestanas)
+    return () => window.removeEventListener('storage', sincronizarPestanas)
+  }, [])
+
   // Sincronizar estado inicial y ceremonia activa al iniciar
   useEffect(() => {
     async function inicializarApp() {
@@ -108,20 +144,32 @@ function App() {
       window.__fetch_interceptado = true
       const originalFetch = window.fetch
       window.fetch = async function (...args) {
+        const urlParam = args[0]
+        let url = ''
+        if (typeof urlParam === 'string') {
+          url = urlParam
+        } else if (urlParam && typeof urlParam === 'object') {
+          url = urlParam.url || ''
+        }
+
         const response = await originalFetch(...args)
-        if (response.status === 401) {
+        
+        const esRutaAuth = url.includes('/verificar-otp') || 
+                           url.includes('/auth/login') || 
+                           url.includes('/egresados/token/') ||
+                           url.includes('/solicitar-otp')
+
+        if ((response.status === 401 || response.status === 403) && !esRutaAuth) {
           window.dispatchEvent(new CustomEvent('sigic-desautorizado'))
         }
-        return response
+        return response;
       }
     }
 
     const manejarDesautorizado = () => {
       console.warn("Sesión expirada o desautorizada (HTTP 401). Cerrando sesión...")
-      const esAdmin = localStorage.getItem('sesion_admin') === 'true'
-      const esGraduado = localStorage.getItem('sesion_graduado') === 'true'
-      if (esAdmin) cerrarSesionAdmin()
-      if (esGraduado) cerrarSesionGraduado()
+      if (adminActivoRef.current) cerrarSesionAdmin()
+      if (graduadoActivoRef.current) cerrarSesionGraduado()
     }
 
 
@@ -138,6 +186,25 @@ function App() {
     }
   }, [graduadoActivo, graduadoUsuario])
 
+
+  // Limpiar cualquier sesión previa si ingresamos por URL con un token
+  useEffect(() => {
+    if (tokenURL) {
+      console.log("Detectado token de acceso en URL. Limpiando sesiones previas para evitar conflictos...")
+      
+      localStorage.removeItem('sesion_admin')
+      localStorage.removeItem('admin_user')
+      setAdminActivo(false)
+      setAdminUser({ nombre: '', correo: '' })
+      
+      localStorage.removeItem('sesion_graduado')
+      localStorage.removeItem('graduado_usuario')
+      setGraduadoActivo(false)
+      setGraduadoUsuario(null)
+      
+      limpiarTokenSesion()
+    }
+  }, [tokenURL])
 
   // ─── 3.1 VALIDACIÓN DE TOKEN ───
   useEffect(() => {
@@ -172,10 +239,22 @@ function App() {
 
   // ─── 4. LÓGICA DE ADMINISTRACIÓN ───
   function manejarLoginAdminExitoso(datos) {
+    // Limpiar sesión de graduado previa para disparar la sincronización en otras pestañas
+    localStorage.removeItem('sesion_graduado')
+    localStorage.removeItem('graduado_usuario')
+    setGraduadoActivo(false)
+    setGraduadoUsuario(null)
+
     setAdminUser(datos)
     setAdminActivo(true)
     localStorage.setItem('sesion_admin', 'true')
     localStorage.setItem('admin_user', JSON.stringify(datos))
+    
+    // Si es una simulación del expositor (no hay token guardado), guardamos el token de bypass
+    if (!localStorage.getItem('sigic_token')) {
+      localStorage.setItem('sigic_token', 'bypass-admin-token')
+    }
+    
     setVistaLogin(null)
   }
 
@@ -190,12 +269,27 @@ function App() {
 
   // ─── 5. LÓGICA DE GRADUADO ───
   function manejarLoginGraduadoExitoso(datos) {
+    // Limpiar sesión de administrador previa para disparar la sincronización en otras pestañas
+    localStorage.removeItem('sesion_admin')
+    localStorage.removeItem('admin_user')
+    setAdminActivo(false)
+    setAdminUser({ nombre: '', correo: '' })
+
     setGraduadoUsuario(datos)
     setGraduadoActivo(true)
     localStorage.setItem('sesion_graduado', 'true')
     localStorage.setItem('graduado_usuario', JSON.stringify(datos))
+    
+    // Si es una simulación del expositor (no hay token guardado), guardamos el token de bypass
+    if (!localStorage.getItem('sigic_token')) {
+      localStorage.setItem('sigic_token', `bypass-egresado-${datos.id}`)
+    }
+    
     setVistaLogin(null)
     setTokenURL(null)
+    if (typeof window !== 'undefined') {
+      window.history.replaceState({}, document.title, "/")
+    }
   }
 
   function cerrarSesionGraduado() {

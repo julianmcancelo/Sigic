@@ -38,7 +38,10 @@ export async function POST(req: NextRequest) {
   const control = verificarLimite(ip);
   if (!control.permitido) {
     return NextResponse.json(
-      { error: 'Demasiados intentos de inicio de sesión. Esperá unos minutos y volvé a intentar.' },
+      { 
+        error: 'Demasiados intentos de inicio de sesión. Esperá unos minutos y volvé a intentar.',
+        segundosRestantes: control.segundosRestantes
+      },
       { 
         status: 429,
         headers: { 'Retry-After': String(control.segundosRestantes) }

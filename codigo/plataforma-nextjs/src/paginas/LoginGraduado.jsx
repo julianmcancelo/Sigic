@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react'
 import { solicitarOTP, verificarOTP } from '../servicios/api'
 import { LayoutAutenticacion } from '../layouts/LayoutAutenticacion'
 import { CampoFormulario } from '../componentes/CampoFormulario'
-import { ArrowRight, ArrowLeft, CheckCircle2, AlertCircle, ShieldCheck, X, Code2, Heart } from 'lucide-react'
+import { ArrowRight, ArrowLeft, CheckCircle2, AlertCircle, ShieldCheck, X, Code2, Heart, Clock } from 'lucide-react'
 
 export function LoginGraduado({ onLoginExitoso, onVolver, emailInicial = '' }) {
   const [email, setEmail] = useState(emailInicial)
@@ -17,6 +17,24 @@ export function LoginGraduado({ onLoginExitoso, onVolver, emailInicial = '' }) {
   const [error, setError] = useState('')
   const [mensajeExito, setMensajeExito] = useState('')
   const [verEquipo, setVerEquipo] = useState(false)
+  const [tiempoRestante, setTiempoRestante] = useState(600) // 10 minutos en segundos
+
+  // Temporizador de cuenta regresiva para el OTP
+  useEffect(() => {
+    if (paso !== 2 || tiempoRestante <= 0) return
+
+    const intervalo = setInterval(() => {
+      setTiempoRestante((prev) => prev - 1)
+    }, 1000)
+
+    return () => clearInterval(intervalo)
+  }, [paso, tiempoRestante])
+
+  const formatearTiempo = (segundos) => {
+    const mins = Math.floor(segundos / 60)
+    const secs = segundos % 60
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
+  }
 
   // Si venimos con mail pre-cargado (vía link), solicitamos el código automáticamente
   useEffect(() => {
@@ -33,6 +51,7 @@ export function LoginGraduado({ onLoginExitoso, onVolver, emailInicial = '' }) {
     try {
       await solicitarOTP(email)
       setPaso(2)
+      setTiempoRestante(600) // Reiniciar temporizador
       setMensajeExito(`Código enviado a ${email}`)
     } catch (err) {
       setError(err.message)
@@ -154,6 +173,7 @@ export function LoginGraduado({ onLoginExitoso, onVolver, emailInicial = '' }) {
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                   placeholder="000000"
                   className="w-full text-center tracking-[0.8em] rounded-xl border border-slate-100 bg-slate-50/50 py-5 text-2xl font-black text-[#2A3448] outline-none transition-all focus:border-[#0EA5E9] focus:bg-white placeholder:text-slate-200"
+                  disabled={tiempoRestante === 0}
                 />
                 {/* Barra de progreso */}
                 <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-24 h-1 bg-slate-100 rounded-full overflow-hidden">
@@ -165,35 +185,53 @@ export function LoginGraduado({ onLoginExitoso, onVolver, emailInicial = '' }) {
               </div>
             </div>
 
-            {mensajeExito && !error && (
-              <div className="flex items-start gap-2 rounded-lg bg-sky-50 p-3 text-sky-600 border border-sky-100 mt-6">
+            {/* Temporizador de validez del OTP */}
+            <div className="mt-7 flex items-center justify-center gap-1.5 text-slate-500 animate-in fade-in duration-300">
+              <Clock size={13} className={tiempoRestante < 60 ? "text-rose-500 animate-pulse" : "text-sky-500"} />
+              <span className={`text-[10px] font-black uppercase tracking-wider ${tiempoRestante < 60 ? "text-rose-500" : "text-slate-400"}`}>
+                El código expira en:
+              </span>
+              <span className={`text-xs font-mono font-black ${tiempoRestante < 60 ? "text-rose-500 animate-pulse" : "text-[#29ABE2]"}`}>
+                {formatearTiempo(tiempoRestante)}
+              </span>
+            </div>
+
+            {mensajeExito && !error && tiempoRestante > 0 && (
+              <div className="flex items-start gap-2 rounded-xl bg-sky-50/60 p-3 text-sky-600 border border-sky-100/70 mt-6 animate-in fade-in slide-in-from-top-1 duration-200">
                 <CheckCircle2 size={14} className="mt-0.5 flex-shrink-0" />
                 <p className="text-[11px] font-bold leading-tight">{mensajeExito}</p>
               </div>
             )}
 
-            {error && (
-              <div className="flex items-center gap-2 text-red-500 bg-red-50 p-3 rounded-lg border border-red-100">
-                <AlertCircle size={14} />
-                <p className="text-[11px] font-bold">{error}</p>
+            {tiempoRestante === 0 && (
+              <div className="flex items-start gap-2 rounded-xl bg-rose-50/60 p-3 text-rose-600 border border-rose-100/70 mt-6 animate-in fade-in slide-in-from-top-1 duration-200">
+                <AlertCircle size={14} className="mt-0.5 shrink-0" />
+                <p className="text-[11px] font-bold leading-tight">El código ha expirado. Solicitá uno nuevo para continuar.</p>
+              </div>
+            )}
+
+            {error && tiempoRestante > 0 && (
+              <div className="flex items-start gap-2 rounded-xl bg-rose-50/60 p-3 text-rose-600 border border-rose-100/70 animate-in fade-in slide-in-from-top-1 duration-200">
+                <AlertCircle size={14} className="mt-0.5 shrink-0" />
+                <p className="text-[11px] font-bold leading-tight">{error}</p>
               </div>
             )}
 
             <div className="space-y-4 pt-4">
               <button
                 type="submit"
-                disabled={cargando || otp.length !== 6}
+                disabled={cargando || otp.length !== 6 || tiempoRestante === 0}
                 className="w-full rounded-xl bg-[#0EA5E9] py-4 text-sm font-black text-white shadow-lg shadow-[#0EA5E9]/20 transition hover:bg-[#0288D1] active:scale-[0.98] disabled:opacity-30"
               >
-                {cargando ? 'Verificando...' : 'Ingresar al sistema'}
+                {cargando ? 'Verificando...' : (tiempoRestante === 0 ? 'Código Expirado' : 'Ingresar al sistema')}
               </button>
               
               <button 
                 type="button" 
-                onClick={() => setPaso(1)}
-                className="w-full text-[10px] font-bold text-slate-400 hover:text-slate-600 transition-colors uppercase tracking-[0.2em]"
+                onClick={() => { setPaso(1); setTiempoRestante(600); setError(''); setOtp(''); setMensajeExito(''); }}
+                className="w-full text-[10px] font-black text-slate-400 hover:text-sky-500 transition-colors uppercase tracking-[0.2em] flex items-center justify-center gap-1.5"
               >
-                Usar otro correo
+                Solicitar nuevo código / Usar otro correo
               </button>
             </div>
           </form>
