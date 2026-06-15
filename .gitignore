@@ -73,6 +73,17 @@ Thumbs.db
 !Assets/*.jpg
 !Assets/*.jpeg
 !Assets/*.svg
+!codigo/plataforma-nextjs/public/
+!codigo/plataforma-nextjs/public/*.png
+!codigo/plataforma-nextjs/public/*.jpg
+!codigo/plataforma-nextjs/public/*.jpeg
+!codigo/plataforma-nextjs/public/*.svg
+!codigo/movil-reactnative/assets/
+!codigo/movil-reactnative/assets/images/*.png
+!codigo/movil-reactnative/assets/images/*.jpg
+!codigo/movil-reactnative/assets/images/*.jpeg
+!codigo/movil-reactnative/assets/images/*.svg
+
 
 # Limpieza Personalizada y Backups
 _basura/
