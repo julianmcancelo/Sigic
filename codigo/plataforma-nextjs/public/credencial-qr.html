@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Credencial QR — SiGIC Colación 2026</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue:    #29ABE2;
+    --dark:    #2A3448;
+    --accent:  #1565C0;
+    --mid:     #1183BF;
+    --light:   #F8FAFC;
+    --pale:    #EEF6FC;
+    --border:  #B3E5FC;
+    --gray:    #546E7A;
+    --gray-lt: #90A4AE;
+  }
+
+  body {
+    background: #1a2030;
+    font-family: 'Sora', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 48px;
+    padding: 48px 24px;
+  }
+
+  h2 {
+    color: rgba(255,255,255,0.3);
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    font-weight: 500;
+    text-align: center;
+  }
+
+  /* ── CARDS ROW ── */
+  .cards-row {
+    display: flex;
+    gap: 32px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* ── CREDENCIAL ── */
+  .credencial {
+    width: 320px;
+    border-radius: 20px;
+    overflow: hidden;
+    background: var(--dark);
+    box-shadow:
+      0 0 0 1px rgba(41,171,226,0.18),
+      0 24px 64px rgba(0,0,0,0.55),
+      0 0 80px rgba(41,171,226,0.08);
+    position: relative;
+  }
+
+  /* fondo con ruido sutil */
+  .credencial::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(ellipse at 80% 0%, rgba(41,171,226,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse at 20% 100%, rgba(21,101,192,0.1) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── HEADER banda ── */
+  .cred-header {
+    position: relative;
+    z-index: 1;
+    background: linear-gradient(135deg, #1183BF 0%, #29ABE2 60%, #1565C0 100%);
+    padding: 16px 20px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    overflow: hidden;
+  }
+  .cred-header::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      -55deg,
+      transparent, transparent 10px,
+      rgba(255,255,255,0.04) 10px, rgba(255,255,255,0.04) 20px
+    );
+  }
+  .cred-header-left { position: relative; z-index: 1; }
+  .cred-inst {
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.75);
+    line-height: 1;
+  }
+  .cred-event {
+    font-size: 14px;
+    font-weight: 800;
+    color: #fff;
+    margin-top: 3px;
+    letter-spacing: 0.01em;
+    line-height: 1;
+  }
+  .cred-year {
+    font-size: 11px;
+    font-weight: 400;
+    color: rgba(255,255,255,0.65);
+    margin-top: 2px;
+  }
+  .cred-logo {
+    position: relative; z-index: 1;
+    background: rgba(255,255,255,0.15);
+    border-radius: 10px;
+    width: 38px; height: 38px;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255,255,255,0.2);
+  }
+
+  /* ── BODY ── */
+  .cred-body {
+    position: relative;
+    z-index: 1;
+    padding: 20px 20px 16px;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  /* QR box */
+  .cred-qr-wrap {
+    flex-shrink: 0;
+    background: #fff;
+    border-radius: 10px;
+    padding: 7px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  }
+
+  /* Info */
+  .cred-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .cred-tipo {
+    font-size: 7.5px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin-bottom: 6px;
+  }
+  .cred-nombre {
+    font-size: 17px;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+  }
+  .cred-apellido {
+    font-size: 17px;
+    font-weight: 300;
+    color: rgba(255,255,255,0.7);
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+  }
+
+  .cred-divider {
+    width: 100%;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(41,171,226,0.4), transparent);
+    margin: 10px 0;
+  }
+
+  .cred-field {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    margin-bottom: 7px;
+  }
+  .cred-field:last-child { margin-bottom: 0; }
+  .cred-field-label {
+    font-size: 7px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+  }
+  .cred-field-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 11.5px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.88);
+    letter-spacing: 0.04em;
+  }
+  .cred-field-value.highlight {
+    color: var(--blue);
+    font-size: 13px;
+  }
+
+  /* ── ASIENTO banda ── */
+  .cred-asiento {
+    position: relative; z-index: 1;
+    background: rgba(41,171,226,0.08);
+    border-top: 1px solid rgba(41,171,226,0.15);
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .cred-asiento-label {
+    font-size: 7.5px;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+  }
+  .cred-asiento-valor {
+    font-family: 'DM Mono', monospace;
+    font-size: 22px;
+    font-weight: 500;
+    color: #fff;
+    letter-spacing: 0.05em;
+    line-height: 1;
+  }
+  .cred-asiento-bandeja {
+    background: rgba(41,171,226,0.2);
+    border: 1px solid rgba(41,171,226,0.3);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--blue);
+    white-space: nowrap;
+  }
+
+  /* ── FOOTER banda ── */
+  .cred-footer {
+    position: relative; z-index: 1;
+    background: rgba(0,0,0,0.25);
+    padding: 8px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid rgba(255,255,255,0.05);
+  }
+  .cred-code {
+    font-family: 'DM Mono', monospace;
+    font-size: 8px;
+    color: rgba(255,255,255,0.2);
+    letter-spacing: 0.08em;
+  }
+  .cred-valido {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 8px;
+    font-weight: 600;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .dot-green {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #4ade80;
+    box-shadow: 0 0 6px #4ade80;
+    animation: blink 2s infinite;
+  }
+  @keyframes blink {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  /* ── VERSIONES ── */
+  .version-label {
+    font-size: 9px;
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    text-align: center;
+    margin-top: -36px;
+    margin-bottom: 8px;
+  }
+
+  /* Print */
+  @media print {
+    body { background: white; }
+    .credencial { box-shadow: 0 0 0 1px #ccc; }
+    @page { size: 85mm 140mm; margin: 0; }
+  }
+</style>
+</head>
+<body>
+
+<h2>Credencial de acceso — Colación 2026</h2>
+
+<div class="cards-row">
+
+  <!-- ── CREDENCIAL 1: Invitado ── -->
+  <div>
+    <div class="version-label">Invitado</div>
+    <div class="credencial">
+
+      <div class="cred-header">
+        <div class="cred-header-left">
+          <div class="cred-inst">Instituto Tecnológico Beltrán</div>
+          <div class="cred-event">Ceremonia de Colación</div>
+          <div class="cred-year">Analista de Sistemas · 2026</div>
+        </div>
+        <div class="cred-logo">
+          <!-- Ícono diploma -->
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="white" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M2 17l10 5 10-5" stroke="white" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M2 12l10 5 10-5" stroke="white" stroke-width="1.8" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="cred-body">
+
+        <!-- QR -->
+        <div class="cred-qr-wrap">
+          <svg width="88" height="88" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="72" height="72" fill="white"/>
+            <rect x="4" y="4" width="20" height="20" rx="2" fill="#2A3448"/>
+            <rect x="7" y="7" width="14" height="14" rx="1" fill="white"/>
+            <rect x="10" y="10" width="8" height="8" rx="1" fill="#2A3448"/>
+            <rect x="48" y="4" width="20" height="20" rx="2" fill="#2A3448"/>
+            <rect x="51" y="7" width="14" height="14" rx="1" fill="white"/>
+            <rect x="54" y="10" width="8" height="8" rx="1" fill="#2A3448"/>
+            <rect x="4" y="48" width="20" height="20" rx="2" fill="#2A3448"/>
+            <rect x="7" y="51" width="14" height="14" rx="1" fill="white"/>
+            <rect x="10" y="54" width="8" height="8" rx="1" fill="#2A3448"/>
+            <rect x="28" y="4" width="4" height="4" fill="#2A3448"/>
+            <rect x="34" y="4" width="4" height="4" fill="#2A3448"/>
+            <rect x="40" y="4" width="4" height="4" fill="#2A3448"/>
+            <rect x="28" y="10" width="4" height="4" fill="#2A3448"/>
+            <rect x="40" y="10" width="4" height="4" fill="#2A3448"/>
+            <rect x="34" y="16" width="4" height="4" fill="#2A3448"/>
+            <rect x="28" y="22" width="4" height="4" fill="#2A3448"/>
+            <rect x="34" y="22" width="4" height="4" fill="#2A3448"/>
+            <rect x="40" y="22" width="4" height="4" fill="#2A3448"/>
+            <rect x="4" y="28" width="4" height="4" fill="#2A3448"/>
+            <rect x="10" y="28" width="4" height="4" fill="#2A3448"/>
+            <rect x="22" y="28" width="4" height="4" fill="#2A3448"/>
+            <rect x="28" y="28" width="4" height="4" fill="#29ABE2"/>
+            <rect x="34" y="28" width="4" height="4" fill="#2A3448"/>
+            <rect x="40" y="28" width="4" height="4" fill="#2A3448"/>
+            <rect x="46" y="28" width="4" height="4" fill="#29ABE2"/>
+            <rect x="52" y="28" width="4" height="4" fill="#2A3448"/>
+            <rect x="64" y="28" width="4" height="4" fill="#2A3448"/>
+            <rect x="4" y="34" width="4" height="4" fill="#2A3448"/>
+            <rect x="16" y="34" width="4" height="4" fill="#2A3448"/>
+            <rect x="28" y="34" width="4" height="4" fill="#2A3448"/>
+            <rect x="40" y="34" width="4" height="4" fill="#29ABE2"/>
+            <rect x="52" y="34" width="4" height="4" fill="#2A3448"/>
+            <rect x="64" y="34" width="4" height="4" fill="#2A3448"/>
+            <rect x="4" y="40" width="4" height="4" fill="#2A3448"/>
+            <rect x="10" y="40" width="4" height="4" fill="#2A3448"/>
+            <rect x="22" y="40" width="4" height="4" fill="#2A3448"/>
+            <rect x="34" y="40" width="4" height="4" fill="#2A3448"/>
+            <rect x="46" y="40" width="4" height="4" fill="#29ABE2"/>
+            <rect x="58" y="40" width="4" height="4" fill="#2A3448"/>
+            <rect x="28" y="46" width="4" height="4" fill="#2A3448"/>
+            <rect x="34" y="46" width="4" height="4" fill="#29ABE2"/>
+            <rect x="40" y="46" width="4" height="4" fill="#2A3448"/>
+            <rect x="52" y="46" width="4" height="4" fill="#2A3448"/>
+            <rect x="64" y="46" width="4" height="4" fill="#2A3448"/>
+            <rect x="28" y="52" width="4" height="4" fill="#2A3448"/>
+            <rect x="40" y="52" width="4" height="4" fill="#2A3448"/>
+            <rect x="52" y="52" width="4" height="4" fill="#29ABE2"/>
+            <rect x="58" y="52" width="4" height="4" fill="#2A3448"/>
+            <rect x="28" y="58" width="4" height="4" fill="#29ABE2"/>
+            <rect x="34" y="58" width="4" height="4" fill="#2A3448"/>
+            <rect x="46" y="58" width="4" height="4" fill="#2A3448"/>
+            <rect x="58" y="58" width="4" height="4" fill="#2A3448"/>
+            <rect x="64" y="58" width="4" height="4" fill="#29ABE2"/>
+            <rect x="28" y="64" width="4" height="4" fill="#2A3448"/>
+            <rect x="40" y="64" width="4" height="4" fill="#29ABE2"/>
+            <rect x="52" y="64" width="4" height="4" fill="#2A3448"/>
+            <rect x="64" y="64" width="4" height="4" fill="#2A3448"/>
+          </svg>
+        </div>
+
+        <!-- Datos -->
+        <div class="cred-info">
+          <div class="cred-tipo">Invitado</div>
+          <div class="cred-nombre">María</div>
+          <div class="cred-apellido">García</div>
+
+          <div class="cred-divider"></div>
+
+          <div class="cred-field">
+            <div class="cred-field-label">DNI</div>
+            <div class="cred-field-value">35.678.901</div>
+          </div>
+          <div class="cred-field">
+            <div class="cred-field-label">Egresado</div>
+            <div class="cred-field-value">Juan Pérez</div>
+          </div>
+          <div class="cred-field">
+            <div class="cred-field-label">Código</div>
+            <div class="cred-field-value" style="font-size:9px;color:rgba(255,255,255,0.4)">SIGIC-2026-048-B12</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Asiento -->
+      <div class="cred-asiento">
+        <div>
+          <div class="cred-asiento-label">Asiento asignado</div>
+          <div class="cred-asiento-valor">B — 12</div>
+        </div>
+        <div class="cred-asiento-bandeja">Bandeja Inferior</div>
+      </div>
+
+      <!-- Footer -->
+      <div class="cred-footer">
+        <div class="cred-code">SIGIC-2026-048-B12</div>
+        <div class="cred-valido">
+          <div class="dot-green"></div>
+          Válido
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── CREDENCIAL 2: Egresado ── -->
+  <div>
+    <div class="version-label">Egresado</div>
+    <div class="credencial" style="background: linear-gradient(160deg, #1a2535 0%, #2A3448 100%);">
+
+      <div class="cred-header" style="background: linear-gradient(135deg, #1565C0 0%, #1183BF 50%, #0d47a1 100%);">
+        <div class="cred-header-left">
+          <div class="cred-inst">Instituto Tecnológico Beltrán</div>
+          <div class="cred-event">Ceremonia de Colación</div>
+          <div class="cred-year">Analista de Sistemas · 2026</div>
+        </div>
+        <div class="cred-logo">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M22 10v6M2 10l10-5 10 5-10 5z" stroke="white" stroke-width="1.8" stroke-linejoin="round"/>
+            <path d="M6 12v5c0 1.657 2.686 3 6 3s6-1.343 6-3v-5" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="cred-body">
+
+        <!-- QR (distinto patrón) -->
+        <div class="cred-qr-wrap">
+          <svg width="88" height="88" viewBox="0 0 72 72" fill="none">
+            <rect width="72" height="72" fill="white"/>
+            <rect x="4" y="4" width="20" height="20" rx="2" fill="#1565C0"/>
+            <rect x="7" y="7" width="14" height="14" rx="1" fill="white"/>
+            <rect x="10" y="10" width="8" height="8" rx="1" fill="#1565C0"/>
+            <rect x="48" y="4" width="20" height="20" rx="2" fill="#1565C0"/>
+            <rect x="51" y="7" width="14" height="14" rx="1" fill="white"/>
+            <rect x="54" y="10" width="8" height="8" rx="1" fill="#1565C0"/>
+            <rect x="4" y="48" width="20" height="20" rx="2" fill="#1565C0"/>
+            <rect x="7" y="51" width="14" height="14" rx="1" fill="white"/>
+            <rect x="10" y="54" width="8" height="8" rx="1" fill="#1565C0"/>
+            <rect x="28" y="4" width="4" height="4" fill="#1565C0"/>
+            <rect x="40" y="4" width="4" height="4" fill="#1565C0"/>
+            <rect x="34" y="10" width="4" height="4" fill="#1565C0"/>
+            <rect x="28" y="16" width="4" height="4" fill="#1565C0"/>
+            <rect x="40" y="16" width="4" height="4" fill="#1565C0"/>
+            <rect x="34" y="22" width="4" height="4" fill="#1565C0"/>
+            <rect x="4" y="28" width="4" height="4" fill="#1565C0"/>
+            <rect x="16" y="28" width="4" height="4" fill="#1565C0"/>
+            <rect x="28" y="28" width="4" height="4" fill="#1565C0"/>
+            <rect x="34" y="28" width="4" height="4" fill="#29ABE2"/>
+            <rect x="46" y="28" width="4" height="4" fill="#1565C0"/>
+            <rect x="58" y="28" width="4" height="4" fill="#1565C0"/>
+            <rect x="4" y="34" width="4" height="4" fill="#1565C0"/>
+            <rect x="22" y="34" width="4" height="4" fill="#29ABE2"/>
+            <rect x="34" y="34" width="4" height="4" fill="#1565C0"/>
+            <rect x="46" y="34" width="4" height="4" fill="#29ABE2"/>
+            <rect x="58" y="34" width="4" height="4" fill="#1565C0"/>
+            <rect x="64" y="34" width="4" height="4" fill="#1565C0"/>
+            <rect x="10" y="40" width="4" height="4" fill="#1565C0"/>
+            <rect x="28" y="40" width="4" height="4" fill="#29ABE2"/>
+            <rect x="40" y="40" width="4" height="4" fill="#1565C0"/>
+            <rect x="52" y="40" width="4" height="4" fill="#1565C0"/>
+            <rect x="64" y="40" width="4" height="4" fill="#29ABE2"/>
+            <rect x="28" y="46" width="4" height="4" fill="#1565C0"/>
+            <rect x="40" y="46" width="4" height="4" fill="#29ABE2"/>
+            <rect x="52" y="46" width="4" height="4" fill="#1565C0"/>
+            <rect x="64" y="46" width="4" height="4" fill="#1565C0"/>
+            <rect x="34" y="52" width="4" height="4" fill="#1565C0"/>
+            <rect x="46" y="52" width="4" height="4" fill="#29ABE2"/>
+            <rect x="58" y="52" width="4" height="4" fill="#1565C0"/>
+            <rect x="28" y="58" width="4" height="4" fill="#1565C0"/>
+            <rect x="40" y="58" width="4" height="4" fill="#1565C0"/>
+            <rect x="52" y="58" width="4" height="4" fill="#29ABE2"/>
+            <rect x="34" y="64" width="4" height="4" fill="#1565C0"/>
+            <rect x="46" y="64" width="4" height="4" fill="#1565C0"/>
+            <rect x="64" y="64" width="4" height="4" fill="#1565C0"/>
+          </svg>
+        </div>
+
+        <!-- Datos -->
+        <div class="cred-info">
+          <div class="cred-tipo" style="color:#7CBFE8;">Egresado</div>
+          <div class="cred-nombre">Juan</div>
+          <div class="cred-apellido">Pérez</div>
+
+          <div class="cred-divider" style="background: linear-gradient(90deg, rgba(21,101,192,0.6), transparent);"></div>
+
+          <div class="cred-field">
+            <div class="cred-field-label">DNI</div>
+            <div class="cred-field-value">28.456.789</div>
+          </div>
+          <div class="cred-field">
+            <div class="cred-field-label">División</div>
+            <div class="cred-field-value">3° B — 2026</div>
+          </div>
+          <div class="cred-field">
+            <div class="cred-field-label">Diploma</div>
+            <div class="cred-field-value" style="color:#4ade80;font-size:10px;">Entrega en escenario</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Asiento -->
+      <div class="cred-asiento" style="background:rgba(21,101,192,0.1); border-color:rgba(21,101,192,0.2);">
+        <div>
+          <div class="cred-asiento-label">Asiento asignado</div>
+          <div class="cred-asiento-valor">A — 05</div>
+        </div>
+        <div class="cred-asiento-bandeja" style="background:rgba(21,101,192,0.2);border-color:rgba(21,101,192,0.4);color:#7CBFE8;">Egresado</div>
+      </div>
+
+      <!-- Footer -->
+      <div class="cred-footer">
+        <div class="cred-code">SIGIC-EGR-2026-014</div>
+        <div class="cred-valido">
+          <div class="dot-green"></div>
+          Válido
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<p style="font-size:9px;color:rgba(255,255,255,0.15);letter-spacing:0.15em;text-transform:uppercase;text-align:center;">
+  SiGIC · Sistema de Gestión de Invitados para Colación · IT Beltrán 2026
+</p>
+
+</body>
+</html>
