@@ -619,7 +619,9 @@ function AdminDock({ pantallaActual, onNavegar, posicion, setPosicion, usuario }
 
   const items = [
     { id: 'bienvenida', titulo: 'Inicio', icono: Home },
-    ...(esSoporte ? [] : [
+    ...(esSoporte ? [
+      { id: 'gestion-porteria', titulo: 'Seguridad', icono: Shield }
+    ] : [
       { id: 'control-ingreso', titulo: 'Escáner', icono: ScanLine },
       { id: 'gestion-graduados', titulo: 'Graduados', icono: Users },
       { id: 'gestion-profesores', titulo: 'Docentes', icono: GraduationCap },

@@ -9,7 +9,7 @@ import {
   CloudSun, LogOut, Users, MapPin, QrCode, ScanLine,
   GraduationCap, UserCheck, Clock, TrendingUp, Activity,
   ChevronRight, Wifi, WifiOff, FileImage, Settings, LayoutGrid,
-  Calendar, Server,
+  Calendar, Server, Shield,
 } from 'lucide-react'
 
 
@@ -438,6 +438,8 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
   const textoTemp = climaInfo?.temperatura !== undefined && climaInfo.temperatura !== null ? `${Math.round(climaInfo.temperatura)}°C` : '--'
 
 
+  const esSoporte = usuario?.correo && usuario.correo.toLowerCase() === 'soporte@sigic.com.ar'
+
   // Accesos rápidos del panel
   const accesos = [
     {
@@ -465,6 +467,13 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
       descripcion: 'Visualización y asignación de ubicaciones en el plano',
       pantalla: 'seleccion-asientos',
       badge: 'Nuevo',
+    },
+    {
+      icono: Shield,
+      titulo: 'Personal de Seguridad',
+      descripcion: 'Gestión de cuentas de portería, roles de usuario y códigos QR',
+      pantalla: 'gestion-porteria',
+      badge: 'Cuentas',
     },
     {
       icono: Settings,
@@ -647,7 +656,12 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
                   {accesos
-                    .filter(a => a.pantalla !== 'centro-control' || (usuario?.correo && usuario.correo.toLowerCase() === 'soporte@sigic.com.ar'))
+                    .filter(a => {
+                      if (esSoporte) {
+                        return ['gestion-porteria', 'gestion-ceremonias', 'centro-control'].includes(a.pantalla)
+                      }
+                      return a.pantalla !== 'centro-control'
+                    })
                     .map(a => (
                       <AccesoGrande
                         key={a.titulo}

@@ -108,6 +108,7 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
   const dia = fechaActual.getDate()
   const mes = meses[fechaActual.getMonth()]
   const textoFecha = `${diaSemana}, ${dia} ${mes}`.toUpperCase()
+  const esSoporte = usuario?.correo && usuario.correo.toLowerCase() === 'soporte@sigic.com.ar'
 
   const [stats, setStats] = useState(null)
   const [graduados, setGraduados] = useState([])
@@ -302,15 +303,15 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
         {/* Navigation Items */}
         <nav className="flex-1 p-4 space-y-1">
           {renderMenuItem(LayoutGrid, 'Panel Principal', 'dashboard')}
-          {renderMenuItem(Calendar, 'Ceremonias', 'ceremonias')}
-          {renderMenuItem(GraduationCap, 'Estudiantes', 'estudiantes')}
-          {renderMenuItem(Award, 'Profesores', 'profesores')}
-          {renderMenuItem(Users, 'Acreditación', 'acreditacion')}
-          {renderMenuItem(Map, 'Butacas', 'butacas')}
-          {renderMenuItem(BarChart3, 'Reportes', 'reportes')}
+          {!esSoporte && renderMenuItem(GraduationCap, 'Estudiantes', 'estudiantes')}
+          {!esSoporte && renderMenuItem(Award, 'Profesores', 'profesores')}
+          {!esSoporte && renderMenuItem(Users, 'Acreditación', 'acreditacion')}
+          {!esSoporte && renderMenuItem(Map, 'Butacas', 'butacas')}
+          {!esSoporte && renderMenuItem(BarChart3, 'Reportes', 'reportes')}
           {renderMenuItem(Shield, 'Seguridad', 'seguridad')}
-          {renderMenuItem(Server, 'Centro de Control', 'infraestructura')}
-          {renderMenuItem(Settings, 'Configuración', 'configuracion')}
+          {renderMenuItem(Calendar, 'Ceremonias', 'ceremonias')}
+          {esSoporte && renderMenuItem(Server, 'Centro de Control', 'infraestructura')}
+          {!esSoporte && renderMenuItem(Settings, 'Configuración', 'configuracion')}
           {renderMenuItem(HelpCircle, 'Manual de Ayuda', 'manual')}
         </nav>
 
