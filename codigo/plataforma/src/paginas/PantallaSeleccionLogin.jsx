@@ -6,6 +6,7 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
   const [cargandoBackdoor, setCargandoBackdoor] = useState(false)
   const [faseTexto, setFaseTexto] = useState('Cargando portal...')
   const [revelado, setRevelado] = useState(false)
+  const [mostrarInfo, setMostrarInfo] = useState(false)
 
   function manejarClickLogo() {
     if (revelado || cargandoBackdoor) return
@@ -26,6 +27,14 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
       setClickCount(nuevoConteo)
     }
   }
+
+  const equipo = [
+    { nombre: 'Alan Alexis Alfonso',       rol: 'Desarrollo Frontend',       color: 'bg-sky-500' },
+    { nombre: 'Julián Cancelo',            rol: 'Arquitectura y Backend',    color: 'bg-indigo-500' },
+    { nombre: 'Sol Heilin Contreras V.',   rol: 'Diseño UX y Documentación', color: 'bg-pink-500' },
+    { nombre: 'Matías Frassia',            rol: 'Testing y Base de Datos',   color: 'bg-amber-500' },
+    { nombre: 'Luis Gabriel Santillán',    rol: 'Infraestructura y Deploy',  color: 'bg-emerald-500' },
+  ]
 
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#f4f6fa] select-none text-slate-800 font-sans">
@@ -175,13 +184,60 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
           </div>
         )}
 
-        {/* Footer */}
-        <div className="mt-10 text-center opacity-50">
+        {/* Footer con enlace discreto al proyecto final */}
+        <div className="mt-10 text-center space-y-1">
           <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400">
             Instituto Tecnológico Beltrán
           </p>
+          <button 
+            onClick={() => setMostrarInfo(true)}
+            className="block w-full text-[8px] font-bold uppercase tracking-[0.15em] text-slate-400/60 hover:text-cyan-600 transition-colors cursor-pointer"
+          >
+            Proyecto Final · PPT3 · Analista de Sistemas
+          </button>
         </div>
       </div>
+
+      {/* Modal de Información del Proyecto (Escondido) */}
+      {mostrarInfo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 p-4 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-xs rounded-[32px] border border-slate-100 bg-white/95 p-6 text-center shadow-2xl animate-fade-slide-up">
+            <h3 className="text-xs font-black uppercase tracking-[0.15em] text-slate-800">
+              Proyecto Final
+            </h3>
+            <p className="mt-0.5 text-[9px] font-bold uppercase tracking-widest text-cyan-600">
+              PPT3 · Analista de Sistemas
+            </p>
+            <div className="my-3 h-px bg-slate-100" />
+            
+            <p className="text-[11px] text-slate-500 font-medium leading-relaxed mb-4">
+              SiGIC es el Sistema de Gestión de Ceremonias desarrollado como proyecto integrador para la materia de Prácticas Profesionalizantes 3.
+            </p>
+
+            <div className="space-y-2 text-left mb-5">
+              <p className="text-[8px] font-black uppercase tracking-wider text-slate-400 text-center mb-1">
+                Equipo de Desarrollo
+              </p>
+              {equipo.map((m, i) => (
+                <div key={i} className="flex items-center gap-2 rounded-xl border border-slate-50 bg-slate-50/50 p-2">
+                  <div className={`h-2 w-2 rounded-full ${m.color}`} />
+                  <div className="flex-1">
+                    <p className="text-[10px] font-bold text-slate-800 leading-none">{m.nombre}</p>
+                    <p className="text-[8px] text-slate-400 font-medium mt-0.5 leading-none">{m.rol}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={() => setMostrarInfo(false)}
+              className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-bold rounded-xl transition-all cursor-pointer uppercase tracking-wider"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Estilos CSS Inline */}
       <style>{`
@@ -255,6 +311,15 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
 
         .animate-progress-bar {
           animation: progressBar 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        .animate-fade-in {
+          animation: fadeIn 0.3s ease-out forwards;
         }
       `}</style>
     </main>
