@@ -507,13 +507,30 @@ function App() {
         />
       )
     } else if (pantallaAdmin === 'centro-control') {
-      contenido = (
-        <CentroControl
-          usuario={adminUser}
-          onVolver={() => setPantallaAdmin('bienvenida')}
-          onCerrarSesion={cerrarSesionAdmin}
-        />
-      )
+      if (adminUser?.correo?.toLowerCase() === 'soporte@sigic.com.ar') {
+        contenido = (
+          <CentroControl
+            usuario={adminUser}
+            onVolver={() => setPantallaAdmin('bienvenida')}
+            onCerrarSesion={cerrarSesionAdmin}
+          />
+        )
+      } else {
+        contenido = (
+          <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC]">
+            <div className="text-center p-8 rounded-[32px] bg-white border border-slate-100 shadow-xl max-w-sm">
+              <h2 className="text-lg font-black text-red-500 mb-2">Acceso Denegado</h2>
+              <p className="text-xs text-slate-500 font-semibold mb-4 leading-relaxed">Esta sección está restringida exclusivamente para el personal de soporte técnico autorizado.</p>
+              <button 
+                onClick={() => setPantallaAdmin('bienvenida')}
+                className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-all cursor-pointer"
+              >
+                Volver al Inicio
+              </button>
+            </div>
+          </div>
+        )
+      }
     } else {
       contenido = versionAdmin === 'clasica' ? (
         <PantallaBienvenida

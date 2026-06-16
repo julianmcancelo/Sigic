@@ -143,8 +143,10 @@ export async function GET(
     // SETUP EXPORT (BACKUP DATA)
     // -------------------------------------------------------------
     if (path === 'setup/export') {
-      const isPersonal = await esPersonalValido(req, ['SUPER_ADMIN', 'ADMIN']);
-      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+      const auth = obtenerUsuarioAutenticado(req);
+      if (!auth.valido || auth.datos?.email?.toLowerCase() !== 'soporte@sigic.com.ar') {
+        return NextResponse.json({ error: 'No autorizado. Solo la cuenta de soporte puede exportar la base de datos.' }, { status: 403, headers });
+      }
 
       const egresados = await query('SELECT * FROM egresados').catch(() => ({ rows: [] }));
       const invitados = await query('SELECT * FROM invitados').catch(() => ({ rows: [] }));
@@ -617,10 +619,10 @@ export async function POST(
     // SETUP RESET (RESET SYSTEM DATA)
     // -------------------------------------------------------------
     if (path === 'setup/reset') {
-      const isPersonal = await esPersonalValido(req, ['SUPER_ADMIN']);
-      if (!isPersonal) {
+      const auth = obtenerUsuarioAutenticado(req);
+      if (!auth.valido || auth.datos?.email?.toLowerCase() !== 'soporte@sigic.com.ar') {
         return NextResponse.json(
-          { error: 'No autorizado. Solo un SUPER_ADMIN puede resetear el sistema.' },
+          { error: 'No autorizado. Solo la cuenta de soporte puede resetear el sistema.' },
           { status: 403, headers }
         );
       }
