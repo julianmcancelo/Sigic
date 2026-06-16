@@ -499,7 +499,8 @@ function PasoFlujo({ etiqueta, completado, activo }) {
         activo ? 'text-sky-600 font-black' : 
         'text-slate-400 font-semibold'
       }`}>
-        {etiqueta}
+        <span className="sm:hidden">{etiqueta.split(' ')[0]}</span>
+        <span className="hidden sm:inline">{etiqueta}</span>
       </span>
     </div>
   )

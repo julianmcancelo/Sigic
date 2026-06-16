@@ -53,7 +53,7 @@ function StatCard({ icono: Icono, etiqueta, valor, color = ACCENT, sufijo = '', 
 
   return (
     <div
-      className="relative overflow-hidden rounded-[24px] px-6 py-6 flex flex-col gap-1 transition-all hover:scale-[1.02] duration-300 bg-white border"
+      className="relative overflow-hidden rounded-[24px] p-4 sm:p-6 flex flex-col gap-1 transition-all hover:scale-[1.02] duration-300 bg-white border"
       style={{
         borderColor: 'rgba(16,185,129,0.1)',
         boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)',
@@ -71,7 +71,7 @@ function StatCard({ icono: Icono, etiqueta, valor, color = ACCENT, sufijo = '', 
 
       {/* Número */}
       <p
-        className="text-[2.6rem] font-black leading-none tabular-nums"
+        className="text-2xl sm:text-3xl md:text-[2.6rem] font-black leading-none tabular-nums"
         style={{ color, letterSpacing: '-0.02em' }}
       >
         {contado}{sufijo}
@@ -117,6 +117,7 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
   const [ceremonias, setCeremonias] = useState([])
   const [cambiando, setCambiando] = useState(false)
   const [pronosticoClima, setPronosticoClima] = useState(null)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
 
   useEffect(() => {
     cargarDatos()
@@ -213,7 +214,10 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
     const esActivo = vistaActiva === vistaTarget
     return (
       <button 
-        onClick={() => setVistaActiva(vistaTarget)}
+        onClick={() => {
+          setVistaActiva(vistaTarget)
+          setSidebarOpen(false)
+        }}
         className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-xs font-bold border text-left"
         style={esActivo ? {
           background: `${ACCENT}14`,
@@ -269,9 +273,19 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
         }}
       />
 
+      {/* Backdrop overlay for mobile sidebar */}
+      {sidebarOpen && (
+        <div 
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-30 lg:hidden"
+        />
+      )}
+
       {/* ================= SIDEBAR ================= */}
       <aside 
-        className="w-60 bg-white flex flex-col z-10 shrink-0 select-none shadow-[4px_0_24px_rgba(0,0,0,0.02)]"
+        className={`fixed lg:static inset-y-0 left-0 w-60 bg-white flex flex-col z-40 shrink-0 select-none shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-transform duration-300 transform ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        }`}
         style={{ borderRight: `1px solid rgba(41,171,226,0.12)` }}
       >
         {/* Logo */}
@@ -316,17 +330,30 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
       <div className="flex-1 flex flex-col min-w-0 z-10 overflow-y-auto">
         {/* Top Navbar */}
         <header 
-          className="h-16 bg-white/80 backdrop-blur-md px-8 flex items-center justify-between gap-4 border-b"
+          className="h-16 bg-white/80 backdrop-blur-md px-4 md:px-8 flex items-center justify-between gap-4 border-b"
           style={{ borderBottomColor: '#f1f5f9' }}
         >
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-sm" style={{ color: DARK }}>SiGIC</span>
-            <span className="opacity-20" style={{ color: DARK }}>|</span>
-            <span className="text-xs font-medium" style={{ color: '#78909c' }}>Panel de Control</span>
+          <div className="flex items-center gap-3">
+            {/* Hamburger Menu Button */}
+            <button 
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden p-2 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition active:scale-95"
+              title="Abrir menú"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+
+            <div className="hidden sm:flex items-center gap-2">
+              <span className="font-bold text-sm" style={{ color: DARK }}>SiGIC</span>
+              <span className="opacity-20" style={{ color: DARK }}>|</span>
+              <span className="text-xs font-medium" style={{ color: '#78909c' }}>Panel de Control</span>
+            </div>
           </div>
 
           {/* Search Bar */}
-          <div className="relative max-w-md w-64">
+          <div className="hidden sm:block relative max-w-md w-40 md:w-64">
             <Search size={14} className="absolute left-3.5 top-1/2 transform -translate-y-1/2" style={{ color: '#78909c' }} />
             <input 
               type="text" 
@@ -344,7 +371,7 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
           </div>
 
           {/* Right Section */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3.5">
             {/* Version Toggle */}
             <button
               onClick={onCambiarVersion}
@@ -357,7 +384,8 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
               onMouseLeave={e => e.currentTarget.style.background = '#f8fafc'}
               title="Cambiar al diseño clásico (Centrado)"
             >
-              <LayoutGrid size={12} style={{ color: ACCENT }} /> Versión 1 (Clásica)
+              <LayoutGrid size={12} style={{ color: ACCENT }} />
+              <span className="hidden sm:inline">Versión 1 (Clásica)</span>
             </button>
 
             {/* Notification */}
@@ -367,13 +395,13 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
             </button>
 
             {/* Profile */}
-            <div className="flex items-center gap-3.5 pl-3 border-l border-slate-200">
-              <div className="text-right select-none">
+            <div className="flex items-center gap-2.5 pl-3.5 border-l border-slate-200">
+              <div className="hidden md:block text-right select-none">
                 <span className="block text-[8px] font-bold uppercase tracking-wider text-slate-400">Operador</span>
                 <span className="block text-xs font-black leading-tight text-[#2A3448]">{usuario?.nombre || 'Julian Cancelo'}</span>
               </div>
               <div 
-                className="h-9 w-9 rounded-xl flex items-center justify-center font-black text-white text-sm border shadow-sm select-none"
+                className="h-9 w-9 rounded-xl flex items-center justify-center font-black text-white text-sm border shadow-sm select-none shrink-0"
                 style={{
                   background: `linear-gradient(135deg, ${ACCENT} 0%, #4f46e5 100%)`,
                   borderColor: 'rgba(255,255,255,0.1)'
@@ -385,7 +413,7 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
               {/* SALIR Button */}
               <button 
                 onClick={onCerrarSesion}
-                className="flex items-center gap-1 px-4 py-2 bg-[#0d1b2e] hover:bg-slate-800 text-white rounded-xl text-[9px] font-black uppercase tracking-wider transition-all active:scale-95 shadow-sm cursor-pointer ml-1"
+                className="hidden md:flex items-center gap-1 px-4 py-2 bg-[#0d1b2e] hover:bg-slate-800 text-white rounded-xl text-[9px] font-black uppercase tracking-wider transition-all active:scale-95 shadow-sm cursor-pointer ml-1"
               >
                 + Salir
               </button>
@@ -394,7 +422,7 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
         </header>
 
         {/* Content Area */}
-        <main className="p-8 space-y-6 pb-24">
+        <main className="p-4 sm:p-6 md:p-8 space-y-6 pb-24">
           
           {/* VISTA 1: DASHBOARD */}
           {vistaActiva === 'dashboard' && (

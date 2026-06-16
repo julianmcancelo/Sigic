@@ -38,9 +38,9 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
 
     const particles = []
     
-    // Área aproximada de la tarjeta central a desintegrar
-    const cardWidth = 384
-    const cardHeight = 350
+    // Área aproximada de la tarjeta central a desintegrar (dinámica)
+    const cardWidth = Math.min(384, window.innerWidth - 32)
+    const cardHeight = Math.min(350, window.innerHeight - 32)
     const startX = window.innerWidth / 2 - cardWidth / 2
     const startY = window.innerHeight / 2 - cardHeight / 2
 
@@ -68,10 +68,25 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
       })
     }
 
+    let shockwaveRadius = 10
+    const maxShockwaveRadius = Math.max(window.innerWidth, window.innerHeight) * 0.8
+
     let animFrameId
     const draw = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
       
+      // Dibujar onda de choque expansiva
+      if (shockwaveRadius < maxShockwaveRadius) {
+        ctx.save()
+        ctx.strokeStyle = `rgba(14, 165, 233, ${1 - (shockwaveRadius / maxShockwaveRadius)})`
+        ctx.lineWidth = 3
+        ctx.beginPath()
+        ctx.arc(window.innerWidth / 2, window.innerHeight / 2, shockwaveRadius, 0, Math.PI * 2)
+        ctx.stroke()
+        ctx.restore()
+        shockwaveRadius += 16
+      }
+
       let active = 0
       particles.forEach(p => {
         if (p.alpha <= 0) return
@@ -92,7 +107,7 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
         ctx.restore()
       })
 
-      if (active > 0) {
+      if (active > 0 || shockwaveRadius < maxShockwaveRadius) {
         animFrameId = requestAnimationFrame(draw)
       }
     }
@@ -136,7 +151,12 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
           {/* Logo de SIGIC interactivo */}
           <div 
             onClick={manejarClickLogo}
-            className="relative mb-6 flex h-36 w-36 items-center justify-center cursor-pointer active:scale-95 transition-transform duration-300"
+            className={`relative mb-6 flex h-36 w-36 items-center justify-center cursor-pointer active:scale-95 transition-transform duration-300 ${
+              clickCount === 1 ? 'animate-shake-1' :
+              clickCount === 2 ? 'animate-shake-2' :
+              clickCount === 3 ? 'animate-shake-3' :
+              clickCount === 4 ? 'animate-shake-4' : ''
+            }`}
             title="SiGIC"
           >
             {/* Anillos decorativos */}
@@ -356,6 +376,46 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
         .ease-elastic {
           transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+
+        /* Infinity Stones Shake & Glow Levels */
+        @keyframes shake-1 {
+          0%, 100% { transform: translate(0, 0) rotate(0deg); }
+          25% { transform: translate(0.5px, 0.5px) rotate(0.1deg); }
+          75% { transform: translate(-0.5px, -0.5px) rotate(-0.1deg); }
+        }
+        @keyframes shake-2 {
+          0%, 100% { transform: translate(0, 0) rotate(0deg); }
+          20% { transform: translate(1px, -1px) rotate(0.2deg); }
+          40% { transform: translate(-1px, 1.5px) rotate(-0.2deg); }
+          60% { transform: translate(1px, 1px) rotate(0.1deg); }
+          80% { transform: translate(-1.5px, -1px) rotate(-0.1deg); }
+        }
+        @keyframes shake-3 {
+          0%, 100% { transform: translate(0, 0) rotate(0deg); }
+          15% { transform: translate(2px, -2px) rotate(0.5deg); }
+          30% { transform: translate(-2px, 2px) rotate(-0.5deg); }
+          45% { transform: translate(2px, 2px) rotate(0.3deg); }
+          60% { transform: translate(-2px, -1.5px) rotate(-0.3deg); }
+          75% { transform: translate(1.5px, -2px) rotate(0.4deg); }
+          90% { transform: translate(-1.5px, 2px) rotate(-0.4deg); }
+        }
+        @keyframes shake-4 {
+          0%, 100% { transform: translate(0, 0) rotate(0deg); }
+          10% { transform: translate(3.5px, -3.5px) rotate(1.2deg); }
+          20% { transform: translate(-3.5px, 3.5px) rotate(-1.2deg); }
+          30% { transform: translate(3px, 3.5px) rotate(0.8deg); }
+          40% { transform: translate(-3.5px, -2.5px) rotate(-0.8deg); }
+          50% { transform: translate(2.5px, -3px) rotate(1.0deg); }
+          60% { transform: translate(-2.5px, 3.5px) rotate(-1.0deg); }
+          70% { transform: translate(3px, -2.5px) rotate(0.9deg); }
+          80% { transform: translate(-3.5px, 2.5px) rotate(-0.9deg); }
+          90% { transform: translate(2.5px, 3.5px) rotate(1.1deg); }
+        }
+
+        .animate-shake-1 { animation: shake-1 0.3s linear infinite; filter: drop-shadow(0 0 8px rgba(14, 165, 233, 0.4)); }
+        .animate-shake-2 { animation: shake-2 0.25s linear infinite; filter: drop-shadow(0 0 16px rgba(14, 165, 233, 0.65)); }
+        .animate-shake-3 { animation: shake-3 0.2s linear infinite; filter: drop-shadow(0 0 24px rgba(99, 102, 241, 0.85)); }
+        .animate-shake-4 { animation: shake-4 0.15s linear infinite; filter: drop-shadow(0 0 40px rgba(236, 72, 153, 0.95)); }
 
         /* Efecto de desintegración de Thanos */
         @keyframes thanosSnap {

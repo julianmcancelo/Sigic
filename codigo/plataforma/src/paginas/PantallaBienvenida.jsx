@@ -108,7 +108,7 @@ function BentoStatCard({ icono: Icono, etiqueta, valor, color = ACCENT, descripc
 
   return (
     <div
-      className="relative overflow-hidden rounded-[28px] p-6 flex items-center justify-between transition-all hover:scale-[1.02] duration-300 bg-white border border-slate-100 shadow-md shadow-slate-100/50"
+      className="relative overflow-hidden rounded-[28px] p-4 sm:p-6 flex items-center justify-between transition-all hover:scale-[1.02] duration-300 bg-white border border-slate-100 shadow-md shadow-slate-100/50"
     >
       {/* Contenido izquierdo */}
       <div className="flex-1 min-w-0 pr-2">
@@ -120,7 +120,7 @@ function BentoStatCard({ icono: Icono, etiqueta, valor, color = ACCENT, descripc
             {etiqueta}
           </p>
         </div>
-        <p className="text-[2.1rem] font-black leading-none tracking-tight text-slate-800 tabular-nums my-1">
+        <p className="text-2xl sm:text-3xl md:text-[2.1rem] font-black leading-none tracking-tight text-slate-800 tabular-nums my-1">
           {circularValue !== undefined ? `${contado}%` : contado}
         </p>
         <p className="text-[11px] font-semibold text-slate-400 truncate">

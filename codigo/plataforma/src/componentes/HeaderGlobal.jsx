@@ -33,28 +33,29 @@ export function HeaderGlobal({
           : 'bg-white border-b border-slate-100'
       }`}
     >
-      <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4">
+      <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 sm:px-6 py-3 sm:py-4">
         
         {/* BLOQUE IZQUIERDO: Navegación + Branding + Título Contextual */}
-        <div className="flex items-center gap-5">
+        <div className="flex items-center gap-3 sm:gap-5">
           {onVolver && (
             <button 
               onClick={onVolver}
-              className="group relative flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-50 border border-slate-100/80 text-slate-400 transition-all hover:bg-sky-500 hover:border-sky-500 hover:text-white hover:shadow-lg hover:shadow-sky-500/20 active:scale-90"
+              className="group relative flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-2xl bg-slate-50 border border-slate-100/80 text-slate-400 transition-all hover:bg-sky-500 hover:border-sky-500 hover:text-white hover:shadow-lg hover:shadow-sky-500/20 active:scale-90"
               title="Volver atrás"
             >
-              <ArrowLeft size={20} className="transition-transform group-hover:-translate-x-0.5" />
+              <ArrowLeft size={16} className="sm:hidden" />
+              <ArrowLeft size={20} className="hidden sm:block transition-transform group-hover:-translate-x-0.5" />
             </button>
           )}
           
           <div className="flex items-center">
             {/* Branding Logo Oficial */}
-            <div className="flex items-center gap-3 pr-5 border-r border-slate-200/60">
-              <img src="/logo-oficial.png" alt="SiGIC Oficial" className="h-14 w-auto object-contain drop-shadow-md" />
+            <div className="flex items-center gap-2 pr-3 sm:pr-5 border-r border-slate-200/60">
+              <img src="/logo-oficial.png" alt="SiGIC Oficial" className="h-10 sm:h-12 md:h-14 w-auto object-contain drop-shadow-md" />
             </div>
 
             {/* Título de la Página Actual */}
-            <div className="pl-5 hidden md:block">
+            <div className="pl-3 sm:pl-5 hidden sm:block">
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 leading-none mb-1">
                 {subtitulo}
               </p>

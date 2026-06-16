@@ -510,7 +510,7 @@ function PasoFlujo({ etiqueta, completado, activo, pendiente }) {
         'border-slate-200'
       }`}>
         {completado ? <div className="w-2.5 h-2.5 bg-sky-500 rounded-full" /> :
-         activo ? <div className="w-2 h-2 bg-sky-500 rounded-full animate-pulse" /> :
+         activo ? <div className="w-2.5 h-2.5 bg-sky-500 rounded-full animate-pulse" /> :
          null}
       </div>
       <span className={`text-[10px] uppercase tracking-wider text-center mt-3 ${
@@ -518,7 +518,8 @@ function PasoFlujo({ etiqueta, completado, activo, pendiente }) {
         activo ? 'text-sky-600 font-black' : 
         'text-slate-400 font-semibold'
       }`}>
-        {etiqueta}
+        <span className="sm:hidden">{etiqueta.split(' ')[0]}</span>
+        <span className="hidden sm:inline">{etiqueta}</span>
       </span>
     </div>
   )
