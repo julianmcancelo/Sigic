@@ -9,7 +9,7 @@
  * 3. Si rechaza → Inhabilitado, se cierra sesión automáticamente
  */
 import { useState, useEffect, useRef } from 'react'
-import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, RefreshCw, Shield } from 'lucide-react'
+import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, RefreshCw, Shield, Server } from 'lucide-react'
 
 // Importación de Páginas
 import { PaginaInicioSesion } from './paginas/PaginaInicioSesion'
@@ -64,7 +64,19 @@ function App() {
   )
 
   // ─── 3. ESTADO DE NAVEGACIÓN ───
-  const [pantallaAdmin, setPantallaAdmin] = useState('bienvenida')
+  const [pantallaAdmin, setPantallaAdmin] = useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const u = JSON.parse(localStorage.getItem('admin_user') || 'null');
+        if (u && u.correo && u.correo.toLowerCase() === 'soporte@sigic.com.ar') {
+          return 'centro-control';
+        }
+      } catch (e) {
+        // Ignorar
+      }
+    }
+    return 'bienvenida';
+  })
   const [versionAdmin, setVersionAdmin] = useState(
     () => localStorage.getItem('version_admin') || 'clasica'
   )
@@ -256,6 +268,11 @@ function App() {
     // Si es una simulación del expositor (no hay token guardado), guardamos el token de bypass
     if (!localStorage.getItem('sigic_token')) {
       localStorage.setItem('sigic_token', 'bypass-admin-token')
+    }
+    if (datos && datos.correo && datos.correo.toLowerCase() === 'soporte@sigic.com.ar') {
+      setPantallaAdmin('centro-control')
+    } else {
+      setPantallaAdmin('bienvenida')
     }
     
     setVistaLogin(null)
@@ -571,6 +588,7 @@ function App() {
           onNavegar={setPantallaAdmin}
           posicion={dockPosicion}
           setPosicion={setDockPosicion}
+          usuario={adminUser}
         />
       )}
       
@@ -585,17 +603,24 @@ function App() {
 }
 
 // ─── COMPONENTE NAV DOCKER ADMINISTRATIVO PERSISTENTE ───
-function AdminDock({ pantallaActual, onNavegar, posicion, setPosicion }) {
+function AdminDock({ pantallaActual, onNavegar, posicion, setPosicion, usuario }) {
+  const esSoporte = usuario?.correo && usuario.correo.toLowerCase() === 'soporte@sigic.com.ar'
+
   const items = [
     { id: 'bienvenida', titulo: 'Inicio', icono: Home },
-    { id: 'control-ingreso', titulo: 'Escáner', icono: ScanLine },
-    { id: 'gestion-graduados', titulo: 'Graduados', icono: Users },
-    { id: 'gestion-profesores', titulo: 'Docentes', icono: GraduationCap },
-    { id: 'seleccion-asientos', titulo: 'Anfiteatro', icono: MapPin },
-    { id: 'panel-reportes', titulo: 'Reportes', icono: BarChart3 },
-    { id: 'gestion-porteria', titulo: 'Seguridad', icono: Shield },
+    ...(esSoporte ? [] : [
+      { id: 'control-ingreso', titulo: 'Escáner', icono: ScanLine },
+      { id: 'gestion-graduados', titulo: 'Graduados', icono: Users },
+      { id: 'gestion-profesores', titulo: 'Docentes', icono: GraduationCap },
+      { id: 'seleccion-asientos', titulo: 'Anfiteatro', icono: MapPin },
+      { id: 'panel-reportes', titulo: 'Reportes', icono: BarChart3 },
+      { id: 'gestion-porteria', titulo: 'Seguridad', icono: Shield },
+    ]),
     { id: 'ajustes', titulo: 'Ajustes', icono: Settings },
     { id: 'gestion-ceremonias', titulo: 'Ceremonias', icono: Calendar },
+    ...(esSoporte ? [
+      { id: 'centro-control', titulo: 'Control', icono: Server }
+    ] : [])
   ]
 
   const alternarPosicion = () => {
