@@ -646,13 +646,15 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
                 </div>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
-                  {accesos.map(a => (
-                    <AccesoGrande
-                      key={a.titulo}
-                      {...a}
-                      onClick={onNavegar}
-                    />
-                  ))}
+                  {accesos
+                    .filter(a => a.pantalla !== 'centro-control' || (usuario?.correo && usuario.correo.toLowerCase() === 'soporte@sigic.com.ar'))
+                    .map(a => (
+                      <AccesoGrande
+                        key={a.titulo}
+                        {...a}
+                        onClick={onNavegar}
+                      />
+                    ))}
                 </div>
               </div>
 
