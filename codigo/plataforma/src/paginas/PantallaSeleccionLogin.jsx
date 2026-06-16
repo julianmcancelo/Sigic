@@ -6,7 +6,20 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
   const [snapActivo, setSnapActivo] = useState(false)
   const [revelado, setRevelado] = useState(false)
   const [mostrarInfo, setMostrarInfo] = useState(false)
+  const [fraseTooltip, setFraseTooltip] = useState('SiGIC')
   const canvasRef = useRef(null)
+
+  useEffect(() => {
+    const frases = [
+      'Perfectamente equilibrado, como todo debe estar...',
+      'I love you 3000',
+      '¿De verdad creíste que era solo un logo?',
+      'El fin está cerca...',
+      'Iniciativa Vengadores activa.'
+    ]
+    const seleccionada = frases[Math.floor(Math.random() * frases.length)]
+    setFraseTooltip(seleccionada)
+  }, [])
 
   function manejarClickLogo() {
     if (revelado || snapActivo) return
@@ -157,7 +170,7 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
               clickCount === 3 ? 'animate-shake-3' :
               clickCount === 4 ? 'animate-shake-4' : ''
             }`}
-            title="SiGIC"
+            title={fraseTooltip}
           >
             {/* Anillos decorativos */}
             <div className="absolute inset-0 rounded-full border border-cyan-500/10 animate-spin-slow pointer-events-none" />

@@ -50,3 +50,9 @@ body {
 .sigic-zoom-por-variables .sigic-grilla {
   animation-fill-mode: none !important;
 }
+
+/* Reactor Arc glow effect for spinners (Tony Stark style) */
+.animate-spin {
+  box-shadow: 0 0 15px rgba(14, 165, 233, 0.55), inset 0 0 10px rgba(14, 165, 233, 0.3);
+  filter: drop-shadow(0 0 8px rgba(14, 165, 233, 0.45));
+}

@@ -150,9 +150,11 @@ export function CentroControl({ usuario, onVolver, onCerrarSesion }) {
 
     setEjecutandoAccion('reset')
     registrarLog('Iniciando proceso de borrado de base de datos...', 'AUDIT')
+    registrarLog('Iniciando protocolo del chasquido cuántico...', 'AUDIT')
     try {
       await resetearSistema()
       registrarLog('Todas las tablas fueron limpiadas con éxito. Flag de Setup marcado como incompleto.', 'OK')
+      registrarLog('Perfectamente equilibrado... Reduciendo base de datos a átomos.', 'OK')
       registrarLog('Redirigiendo al asistente de configuración...', 'AUDIT')
       
       setTimeout(() => {
@@ -343,7 +345,9 @@ export function CentroControl({ usuario, onVolver, onCerrarSesion }) {
             <button
               onClick={handleResetearSistema}
               disabled={ejecutandoAccion !== null}
-              className="flex items-center gap-1.5 px-5 py-3 bg-rose-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-wider hover:bg-rose-700 transition active:scale-95 shadow-md shadow-rose-600/10 cursor-pointer"
+              className={`flex items-center gap-1.5 px-5 py-3 bg-rose-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-wider hover:bg-rose-700 transition active:scale-95 shadow-md shadow-rose-600/10 cursor-pointer ${
+                ejecutandoAccion === 'reset' ? 'animate-alert-vibe bg-red-700 shadow-xl shadow-red-700/50' : ''
+              }`}
             >
               {ejecutandoAccion === 'reset' ? <RefreshCw size={12} className="animate-spin" /> : <Trash2 size={12} />} Formatear & Resetear
             </button>
@@ -351,6 +355,19 @@ export function CentroControl({ usuario, onVolver, onCerrarSesion }) {
         </div>
 
       </div>
+
+      <style>{`
+        @keyframes alert-vibe {
+          0%, 100% { transform: scale(1) translate(0, 0) rotate(0deg); }
+          20% { transform: scale(1.02) translate(-2px, 1px) rotate(-0.5deg); }
+          40% { transform: scale(0.98) translate(1.5px, -2px) rotate(0.5deg); }
+          60% { transform: scale(1.01) translate(-1px, 2px) rotate(-0.2deg); }
+          80% { transform: scale(0.99) translate(2px, -1px) rotate(0.2deg); }
+        }
+        .animate-alert-vibe {
+          animation: alert-vibe 0.15s infinite linear;
+        }
+      `}</style>
 
     </div>
   )
