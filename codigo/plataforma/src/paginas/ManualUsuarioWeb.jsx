@@ -69,20 +69,20 @@ function DiagramaArquitectura() {
       <div className="flex flex-col gap-2.5 relative">
         {/* Fila 1: Clientes */}
         <div className="grid grid-cols-2 gap-2">
-          {/* Escritorio WPF */}
+          {/* Centro de Control Web */}
           <div className="bg-slate-900 border border-white/5 rounded p-1.5 flex flex-col items-center text-center">
-            <span className="font-black text-sky-400">Control Center WPF</span>
-            <span className="text-white/40 text-[6px] mt-0.5">Escritorio Windows (.exe)</span>
+            <span className="font-black text-sky-400">Centro de Control Web</span>
+            <span className="text-white/40 text-[6px] mt-0.5">Módulo de Infraestructura</span>
             <div className="h-1 bg-sky-500/30 w-px my-1" />
-            <span className="text-[6.5px] text-[#29ABE2]">Lanza Backend/Frontend local</span>
+            <span className="text-[6.5px] text-[#29ABE2]">Integrado en la App</span>
           </div>
 
           {/* Portal Web */}
           <div className="bg-slate-900 border border-white/5 rounded p-1.5 flex flex-col items-center text-center">
-            <span className="font-black text-emerald-400">Portal Web React</span>
-            <span className="text-white/40 text-[6px] mt-0.5">Admin & Graduados (Web)</span>
+            <span className="font-black text-emerald-400">Portal Web Next.js</span>
+            <span className="text-white/40 text-[6px] mt-0.5">Admin & Graduados</span>
             <div className="h-1 bg-emerald-500/30 w-px my-1" />
-            <span className="text-[6.5px] text-emerald-400">API REST HTTP Requests</span>
+            <span className="text-[6.5px] text-emerald-400">React Server Components</span>
           </div>
         </div>
 
@@ -94,10 +94,10 @@ function DiagramaArquitectura() {
 
         {/* Fila 2: Servidor Backend */}
         <div className="bg-[#29ABE2]/10 border border-[#29ABE2]/20 rounded-lg p-2 text-center flex flex-col items-center mx-3">
-          <span className="font-black text-white text-[9px] tracking-wide">Servidor API Express Backend</span>
-          <span className="text-white/40 text-[6px]">Puerto 3001 (Node.js)</span>
+          <span className="font-black text-white text-[9px] tracking-wide">Vercel Serverless Platform</span>
+          <span className="text-white/40 text-[6px]">Servidor de APIs en la Nube</span>
           <p className="text-[6.5px] text-white/60 mt-1 leading-normal">
-            Procesa tokens OTP, valida butacas y sincroniza la DB en caliente.
+            Procesa tokens OTP, valida butacas y sincroniza la DB de forma instantánea.
           </p>
         </div>
 
@@ -509,21 +509,21 @@ export function ManualUsuarioWeb({ onVolver }) {
                       En **Gestión de Graduados**, el administrador puede verificar el correo de la fila del graduado. Si persiste el inconveniente, copie su **Token de Acceso** único y provéale la dirección web manual:
                     </p>
                     <code className="block bg-black/45 p-2 rounded font-mono text-[#29ABE2] text-[10px] mt-2 select-all border border-white/5">
-                      http://localhost:5173/?token=PEGAR_EL_TOKEN_AQUI
+                      https://sigic-plataforma.vercel.app/?token=PEGAR_EL_TOKEN_AQUI
                     </code>
                   </div>
 
                   <div>
-                    <h4 className="text-white font-bold text-sm mb-1.5">El Centro de Control muestra "Sin conexión" en el Backend.</h4>
+                    <h4 className="text-white font-bold text-sm mb-1.5">¿Cómo ingreso al panel de login desde la pantalla de bienvenida?</h4>
                     <p className="text-white/70">
-                      Asegúrese de que el puerto **3001** no esté siendo utilizado por otro servicio. Verifique que la conexión a internet sea estable (necesaria para el backend al consultar PostgreSQL en Neon Cloud) y revise que las credenciales de base de datos del archivo <code className="bg-black/30 px-1 py-0.5 rounded font-mono text-[10px]">.env</code> en la carpeta del servidor no tengan errores de tipeo.
+                      La pantalla de bienvenida es una portada limpia. Para revelar el panel de autenticación, realice un gesto especial sobre el logotipo central (haciendo click 5 veces consecutivas).
                     </p>
                   </div>
 
                   <div>
                     <h4 className="text-white font-bold text-sm mb-1.5">¿Cómo se limpia la base de datos para una nueva colación?</h4>
                     <p className="text-white/70">
-                      Abra el **Centro de Control de Windows (C#)** y haga clic en **Forzar Setup Inicial**. Esta acción vaciará por completo las tablas relacionales de la base de datos ( SQLite y Neon Cloud ), dejando la infraestructura en limpio para registrar la ceremonia del próximo ciclo lectivo.
+                      El personal de soporte técnico (`soporte@sigic.com.ar`) puede acceder al módulo de **Centro de Control** integrado en la web y realizar la acción de **Formatear & Resetear** para limpiar la base de datos Neon Cloud en la nube.
                     </p>
                   </div>
 

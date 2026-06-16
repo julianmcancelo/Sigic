@@ -68,15 +68,15 @@ function DiagramaArquitectura() {
       <div className="flex flex-col gap-2 relative">
         <div className="grid grid-cols-2 gap-2">
           <div className="bg-slate-900 border border-slate-800 rounded p-1 flex flex-col items-center text-center">
-            <span className="font-black text-sky-400">Control Center WPF</span>
-            <span className="text-slate-500 text-[5.5px] mt-0.5">Escritorio Windows (.exe)</span>
-            <span className="text-[6px] text-sky-400 mt-1">Gestión local</span>
+            <span className="font-black text-sky-400">Centro de Control Web</span>
+            <span className="text-slate-500 text-[5.5px] mt-0.5">Módulo de Infraestructura</span>
+            <span className="text-[6px] text-sky-400 mt-1">Integrado en la App</span>
           </div>
 
           <div className="bg-slate-900 border border-slate-800 rounded p-1 flex flex-col items-center text-center">
-            <span className="font-black text-emerald-400">Portal Web React</span>
+            <span className="font-black text-emerald-400">Portal Web Next.js</span>
             <span className="text-slate-500 text-[5.5px] mt-0.5">Admin & Graduados</span>
-            <span className="text-[6px] text-emerald-400 mt-1">API REST HTTP</span>
+            <span className="text-[6px] text-emerald-400 mt-1">React Server Components</span>
           </div>
         </div>
 
@@ -86,8 +86,8 @@ function DiagramaArquitectura() {
         </div>
 
         <div className="bg-[#29ABE2]/10 border border-[#29ABE2]/20 rounded-md p-1.5 text-center flex flex-col items-center">
-          <span className="font-black text-white text-[8px] tracking-wide">Servidor API Express</span>
-          <span className="text-slate-500 text-[5.5px]">Puerto 3001 (Node.js)</span>
+          <span className="font-black text-white text-[8px] tracking-wide">Vercel Serverless Platform</span>
+          <span className="text-slate-500 text-[5.5px]">Servidor de APIs en la Nube</span>
         </div>
 
         <div className="flex justify-center items-center h-1 select-none">
@@ -96,7 +96,7 @@ function DiagramaArquitectura() {
 
         <div className="bg-slate-900 border border-slate-800 rounded-md p-1.5 text-center flex flex-col items-center">
           <span className="font-black text-purple-400 text-[8px]">Neon Cloud PostgreSQL</span>
-          <span className="text-slate-550 text-[5.5px]">Base de Datos en la Nube</span>
+          <span className="text-slate-555 text-[5.5px]">Base de Datos Cloud (SSL)</span>
         </div>
       </div>
     </div>
@@ -305,16 +305,16 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               <div className="lg:col-span-7 space-y-4 text-[11px] leading-relaxed">
                 <div>
-                  <h4 className="text-slate-800 font-bold text-[12px] mb-1">¿Qué hago si el correo rebota?</h4>
+                  <h4 className="text-slate-800 font-bold text-[12px] mb-1">¿Cómo ingreso al panel de login desde la portada?</h4>
                   <p className="text-slate-500">
-                    Desde el padrón del administrador, podés corregir el email del alumno y utilizar el botón de reenvío rápido de avión de papel.
+                    La pantalla de bienvenida es una portada limpia. Para revelar el panel de autenticación, realice un gesto especial sobre el logotipo central (haciendo click 5 veces consecutivas).
                   </p>
                 </div>
 
                 <div>
                   <h4 className="text-slate-800 font-bold text-[12px] mb-1">Restablecer la base de datos</h4>
                   <p className="text-slate-500">
-                    El Centro de Control nativo de Windows provee la función de Forzar Setup para vaciar las tablas de SQLite y Neon Cloud para una nueva colación.
+                    El personal de soporte técnico (`soporte@sigic.com.ar`) puede acceder al módulo de **Centro de Control** integrado en la web para vaciar las tablas de Neon Cloud y configurar una nueva ceremonia.
                   </p>
                 </div>
               </div>
