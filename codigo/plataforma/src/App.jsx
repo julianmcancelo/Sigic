@@ -651,8 +651,8 @@ function AdminDock({ pantallaActual, onNavegar, posicion, setPosicion, usuario }
   }
 
   const claseContenedor = posicion === 'abajo'
-    ? 'fixed bottom-4 left-1/2 -translate-x-1/2 flex flex-row items-center gap-2 px-3 py-2 rounded-2xl border border-white/20 shadow-2xl z-50'
-    : 'fixed left-4 top-1/2 -translate-y-1/2 flex flex-col items-center gap-2 px-2 py-3 rounded-2xl border border-white/20 shadow-2xl z-50'
+    ? 'fixed bottom-4 left-1/2 -translate-x-1/2 flex flex-row items-center gap-2 px-3 py-2 rounded-2xl border border-white/20 shadow-2xl z-50 max-w-[92vw] overflow-x-auto scrollbar-none'
+    : 'fixed bottom-4 left-1/2 -translate-x-1/2 md:bottom-auto md:left-4 md:top-1/2 md:-translate-y-1/2 flex flex-row md:flex-col items-center gap-2 px-3 py-2 md:px-2 md:py-3 rounded-2xl border border-white/20 shadow-2xl z-50 max-w-[92vw] md:max-w-none md:max-h-[90vh] overflow-x-auto md:overflow-x-visible md:overflow-y-auto scrollbar-none'
 
   return (
     <div
@@ -664,7 +664,7 @@ function AdminDock({ pantallaActual, onNavegar, posicion, setPosicion, usuario }
       {/* Botón de alternar posición */}
       <button
         onClick={alternarPosicion}
-        className="group relative flex h-9 w-9 items-center justify-center rounded-xl bg-slate-50 hover:bg-sky-50 text-slate-400 hover:text-sky-500 border border-slate-100 hover:border-sky-100 transition-all cursor-pointer"
+        className="hidden md:flex flex-shrink-0 group relative h-9 w-9 items-center justify-center rounded-xl bg-slate-50 hover:bg-sky-50 text-slate-400 hover:text-sky-500 border border-slate-100 hover:border-sky-100 transition-all cursor-pointer"
       >
         <RefreshCw size={13} className="transition-transform duration-300 group-hover:rotate-180" />
         <span className={`absolute invisible group-hover:visible bg-slate-900/90 text-white text-[9px] font-black uppercase tracking-wider px-2 py-1 rounded-md shadow-md whitespace-nowrap z-55 border border-slate-700/50 ${
@@ -675,7 +675,7 @@ function AdminDock({ pantallaActual, onNavegar, posicion, setPosicion, usuario }
       </button>
 
       {/* Línea divisoria */}
-      <div className={`${posicion === 'abajo' ? 'h-6 w-[1px] bg-slate-200' : 'h-[1px] w-6 bg-slate-200'}`} />
+      <div className={`hidden md:block ${posicion === 'abajo' ? 'h-6 w-[1px] bg-slate-200' : 'h-[1px] w-6 bg-slate-200'}`} />
 
       {/* Items del Dock */}
       {items.map((item) => {
@@ -686,7 +686,7 @@ function AdminDock({ pantallaActual, onNavegar, posicion, setPosicion, usuario }
           <button
             key={item.id}
             onClick={() => onNavegar(item.id)}
-            className={`group relative flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300 cursor-pointer ${
+            className={`flex-shrink-0 group relative flex h-10 w-10 items-center justify-center rounded-xl transition-all duration-300 cursor-pointer ${
               activo
                 ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/35'
                 : 'bg-white hover:bg-sky-50 text-slate-650 hover:text-sky-500 border border-slate-100 hover:border-sky-200 hover:scale-115 hover:-translate-y-0.5'

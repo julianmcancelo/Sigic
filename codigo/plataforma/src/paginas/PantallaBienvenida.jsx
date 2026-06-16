@@ -523,7 +523,7 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
       />
 
       {/* ══ CONTENIDO ════════════════════════════════════════════ */}
-      <main className="mx-auto max-w-7xl px-5 py-6 lg:px-8">
+      <main className="mx-auto max-w-7xl px-5 py-6 lg:px-8 pb-24">
         <div className="flex flex-col gap-6">
 
           {/* PRIMERA FILA BENTO: Saludo (3/4) + Clima y Reloj (1/4) */}

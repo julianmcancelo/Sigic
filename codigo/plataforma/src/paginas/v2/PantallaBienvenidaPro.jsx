@@ -394,7 +394,7 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
         </header>
 
         {/* Content Area */}
-        <main className="p-8 space-y-6">
+        <main className="p-8 space-y-6 pb-24">
           
           {/* VISTA 1: DASHBOARD */}
           {vistaActiva === 'dashboard' && (
