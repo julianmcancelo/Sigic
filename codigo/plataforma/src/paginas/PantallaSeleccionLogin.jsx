@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { Users, GraduationCap, BookOpen, ChevronRight, ShieldCheck } from 'lucide-react'
+import { Users, GraduationCap, BookOpen, ChevronRight } from 'lucide-react'
 
 export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresado, onSeleccionarManual }) {
   const [clickCount, setClickCount] = useState(0)
   const [cargandoBackdoor, setCargandoBackdoor] = useState(false)
-  const [faseTexto, setFaseTexto] = useState('INICIANDO BYPASS...')
+  const [faseTexto, setFaseTexto] = useState('Cargando portal...')
   const [revelado, setRevelado] = useState(false)
 
   function manejarClickLogo() {
@@ -13,9 +13,9 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
     if (nuevoConteo >= 5) {
       setCargandoBackdoor(true)
       
-      // Secuencia de estados de texto épicos
-      setTimeout(() => setFaseTexto('DESENCRIPTANDO CANALES...'), 600)
-      setTimeout(() => setFaseTexto('ACCESO CONCEDIDO (SUPER_ADMIN)'), 1300)
+      // Secuencia de estados de texto limpios y profesionales
+      setTimeout(() => setFaseTexto('Verificando credenciales...'), 600)
+      setTimeout(() => setFaseTexto('Cargando accesos...'), 1300)
       
       // Revelado de las opciones
       setTimeout(() => {
@@ -34,34 +34,29 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
 
       {/* Orbes de luz decorativos de fondo con muy baja opacidad */}
       <div className={`absolute top-1/3 left-1/4 h-[350px] w-[350px] rounded-full blur-[100px] transition-all duration-1000 ${
-        cargandoBackdoor ? 'bg-cyan-400/30 scale-125' : 'bg-cyan-400/10'
+        cargandoBackdoor ? 'bg-cyan-400/20 scale-110' : 'bg-cyan-400/10'
       } animate-pulse`} />
       <div className={`absolute bottom-1/3 right-1/4 h-[350px] w-[350px] rounded-full blur-[100px] transition-all duration-1000 ${
-        cargandoBackdoor ? 'bg-indigo-400/30 scale-125' : 'bg-indigo-400/10'
+        cargandoBackdoor ? 'bg-indigo-400/20 scale-110' : 'bg-indigo-400/10'
       } animate-pulse`} style={{ animationDelay: '2s' }} />
 
       {/* Grilla sutil en color oscuro de baja opacidad */}
       <div
-        className={`pointer-events-none absolute inset-0 transition-opacity duration-1000 ${cargandoBackdoor ? 'opacity-[0.06]' : 'opacity-[0.02]'}`}
+        className="pointer-events-none absolute inset-0 opacity-[0.02]"
         style={{
           backgroundImage: 'radial-gradient(circle, #000000 1px, transparent 1px)',
           backgroundSize: '30px 30px',
         }}
       />
 
-      {/* Efecto láser vertical en pantalla completa (activo durante cargandoBackdoor) */}
-      {cargandoBackdoor && (
-        <div className="absolute inset-x-0 h-2 bg-gradient-to-r from-transparent via-cyan-500/80 to-transparent shadow-[0_0_20px_#06b6d4] animate-laser-full pointer-events-none z-20" />
-      )}
-
       {/* Contenedor Principal (Tarjeta Glassmorphism Clara) */}
-      <div className={`relative z-10 flex flex-col items-center max-w-sm w-full px-8 py-10 text-center bg-white/70 border rounded-[32px] backdrop-blur-xl transition-all duration-500 ${
+      <div className={`relative z-10 flex flex-col items-center max-w-sm w-full px-8 py-10 text-center bg-white/70 border rounded-[32px] backdrop-blur-xl transition-all duration-550 ${
         cargandoBackdoor 
-          ? 'border-cyan-500/50 shadow-[0_25px_60px_rgba(6,182,212,0.15)] scale-[1.03]' 
+          ? 'border-cyan-500/30 shadow-[0_20px_50px_rgba(6,182,212,0.08)] scale-[1.02]' 
           : 'border-white/80 shadow-[0_20px_50px_rgba(15,23,42,0.05)]'
       }`}>
         
-        {/* Ondas expansivas de energía en el logo durante la carga de bypass */}
+        {/* Ondas expansivas de energía sutiles */}
         {cargandoBackdoor && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden rounded-[32px]">
             <div className="anillo-expand" style={{ animationDelay: '0s' }} />
@@ -74,16 +69,16 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
         <div 
           onClick={manejarClickLogo}
           className={`relative mb-6 flex h-36 w-36 items-center justify-center cursor-pointer active:scale-95 transition-all duration-500 ${
-            cargandoBackdoor ? 'scale-115 rotate-[720deg]' : ''
+            cargandoBackdoor ? 'scale-110 rotate-[360deg]' : ''
           }`}
           title="SiGIC"
         >
-          {/* Anillos decorativos claros */}
+          {/* Anillos decorativos */}
           <div className={`absolute inset-0 rounded-full border border-cyan-500/10 pointer-events-none transition-all ${
-            cargandoBackdoor ? 'animate-spin-fast border-cyan-500/40' : 'animate-spin-slow'
+            cargandoBackdoor ? 'animate-spin-fast border-cyan-500/30' : 'animate-spin-slow'
           }`} />
           <div className={`absolute inset-3 rounded-full border border-dashed border-indigo-500/10 pointer-events-none transition-all ${
-            cargandoBackdoor ? 'animate-spin-reverse-fast border-indigo-500/40' : 'animate-spin-reverse'
+            cargandoBackdoor ? 'animate-spin-reverse-fast border-indigo-500/30' : 'animate-spin-reverse'
           }`} />
           <div className="absolute inset-6 rounded-full bg-cyan-500/5 blur-xl pointer-events-none" />
           
@@ -92,7 +87,7 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
             alt="SiGIC"
             className={`h-20 w-auto object-contain relative z-10 transition-all duration-500 ${
               cargandoBackdoor 
-                ? 'filter drop-shadow-[0_0_20px_rgba(6,182,212,0.6)]' 
+                ? 'filter drop-shadow-[0_4px_12px_rgba(6,182,212,0.3)]' 
                 : 'logo-flotar filter drop-shadow-[0_8px_16px_rgba(14,165,233,0.1)]'
             }`}
           />
@@ -101,21 +96,21 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
         {/* Branding Principal / Consola de carga */}
         <div className="space-y-2.5 w-full min-h-[90px] flex flex-col justify-center">
           {cargandoBackdoor ? (
-            <div className="space-y-3 animate-pulse">
+            <div className="space-y-3">
               <div className="flex items-center justify-center gap-2 text-cyan-600">
-                <ShieldCheck size={18} className="animate-bounce" />
-                <span className="text-xs font-black uppercase tracking-[0.2em]">Bypass de Seguridad</span>
+                <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-cyan-500 border-t-transparent" />
+                <span className="text-[10px] font-black uppercase tracking-[0.2em]">Acceso Seguro</span>
               </div>
-              <p className="text-[14px] font-black text-slate-800 tracking-wide font-mono transition-all duration-300">
+              <p className="text-[13px] font-semibold text-slate-650 tracking-wide transition-all duration-300">
                 {faseTexto}
               </p>
-              <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+              <div className="w-40 mx-auto bg-slate-100 h-1 rounded-full overflow-hidden">
                 <div className="bg-gradient-to-r from-cyan-500 to-indigo-500 h-full w-full animate-progress-bar" />
               </div>
             </div>
           ) : (
             <>
-              <h1 className="text-3xl font-black tracking-[0.12em] text-[#1e293b] transition-all duration-500">
+              <h1 className="text-3xl font-black tracking-[0.12em] text-[#1e293b]">
                 SiGIC
               </h1>
               <div className="mx-auto h-[2px] w-12 bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent" />
@@ -208,7 +203,7 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
         }
 
         .animate-spin-fast {
-          animation: spin 0.8s linear infinite;
+          animation: spin 1.2s linear infinite;
         }
         
         .animate-spin-reverse {
@@ -216,7 +211,7 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
         }
 
         .animate-spin-reverse-fast {
-          animation: spin-reverse 1s linear infinite;
+          animation: spin-reverse 1.5s linear infinite;
         }
 
         @keyframes spin {
@@ -238,20 +233,9 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
           animation: fadeSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        @keyframes laserFull {
-          0% { top: -10px; opacity: 0; }
-          10% { opacity: 1; }
-          90% { opacity: 1; }
-          100% { top: 100%; opacity: 0; }
-        }
-
-        .animate-laser-full {
-          animation: laserFull 2s infinite ease-in-out;
-        }
-
         @keyframes pulseExpand {
-          0% { transform: scale(0.6); opacity: 0.8; }
-          100% { transform: scale(2.8); opacity: 0; }
+          0% { transform: scale(0.6); opacity: 0.6; }
+          100% { transform: scale(2.4); opacity: 0; }
         }
 
         .anillo-expand {
@@ -260,7 +244,8 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
           border-radius: 50%;
           width: 120px;
           height: 120px;
-          animation: pulseExpand 1.5s cubic-bezier(0.1, 0.8, 0.3, 1) infinite;
+          opacity: 0;
+          animation: pulseExpand 1.6s cubic-bezier(0.1, 0.8, 0.3, 1) infinite;
         }
 
         @keyframes progressBar {
