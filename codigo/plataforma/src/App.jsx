@@ -616,7 +616,9 @@ function AdminDock({ pantallaActual, onNavegar, posicion, setPosicion, usuario }
       { id: 'panel-reportes', titulo: 'Reportes', icono: BarChart3 },
       { id: 'gestion-porteria', titulo: 'Seguridad', icono: Shield },
     ]),
-    { id: 'ajustes', titulo: 'Ajustes', icono: Settings },
+    ...(esSoporte ? [] : [
+      { id: 'ajustes', titulo: 'Ajustes', icono: Settings },
+    ]),
     { id: 'gestion-ceremonias', titulo: 'Ceremonias', icono: Calendar },
     ...(esSoporte ? [
       { id: 'centro-control', titulo: 'Control', icono: Server }
