@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Users, GraduationCap, BookOpen, ChevronRight } from 'lucide-react'
+import { Users, GraduationCap, BookOpen, ChevronRight, Info } from 'lucide-react'
 
 export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresado, onSeleccionarManual }) {
   const [clickCount, setClickCount] = useState(0)
@@ -29,11 +29,11 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
   }
 
   const equipo = [
-    { nombre: 'Alan Alexis Alfonso',       rol: 'Desarrollo Frontend',       hex: '#0ea5e9' },
-    { nombre: 'Julián Cancelo',            rol: 'Arquitectura y Backend',    hex: '#6366f1' },
-    { nombre: 'Sol Heilin Contreras V.',   rol: 'Diseño UX y Documentación', hex: '#ec4899' },
-    { nombre: 'Matías Frassia',            rol: 'Testing y Base de Datos',   hex: '#f59e0b' },
-    { nombre: 'Luis Gabriel Santillán',    rol: 'Infraestructura y Deploy',  hex: '#10b981' },
+    { nombre: 'Alan Alexis Alfonso',     hex: '#0ea5e9' },
+    { nombre: 'Julián Cancelo',          hex: '#6366f1' },
+    { nombre: 'Sol Contreras V.',        hex: '#ec4899' },
+    { nombre: 'Matías Frassia',          hex: '#f59e0b' },
+    { nombre: 'Luis Gabriel Santillán',  hex: '#10b981' },
   ]
 
   return (
@@ -59,7 +59,7 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
       />
 
       {/* Contenedor Principal (Tarjeta Glassmorphism Clara) */}
-      <div className={`relative z-10 flex flex-col items-center max-w-sm w-full px-8 py-10 text-center bg-white/70 border rounded-[32px] backdrop-blur-xl transition-all duration-550 ${
+      <div className={`relative z-10 flex flex-col items-center max-w-sm w-full px-8 py-10 text-center bg-white/70 border rounded-[32px] backdrop-blur-xl transition-all duration-555 ${
         cargandoBackdoor 
           ? 'border-cyan-500/30 shadow-[0_20px_50px_rgba(6,182,212,0.08)] scale-[1.02]' 
           : 'border-white/80 shadow-[0_20px_50px_rgba(15,23,42,0.05)]'
@@ -201,17 +201,24 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
       {/* Modal de Información del Proyecto (Escondido) */}
       {mostrarInfo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 p-4 backdrop-blur-sm animate-fade-in">
-          <div className="w-full max-w-xs rounded-[32px] border border-slate-150 bg-white/95 p-6 text-center shadow-2xl animate-fade-slide-up">
-            <h3 className="text-xs font-black uppercase tracking-[0.15em] text-slate-850">
-              Proyecto Final
+          <div className="w-full max-w-xs rounded-[32px] border border-slate-150 bg-white/95 p-6 text-center shadow-2xl animate-fade-slide-up relative">
+            {/* Cabezal decorativo */}
+            <div className="flex justify-center mb-2">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-cyan-50 text-cyan-600 border border-cyan-100/50">
+                <Info size={10} /> Proyecto Académico
+              </span>
+            </div>
+
+            <h3 className="text-xs font-black uppercase tracking-[0.15em] text-slate-800">
+              Proyecto Integrador Final
             </h3>
-            <p className="mt-0.5 text-[9px] font-bold uppercase tracking-widest text-cyan-600">
+            <p className="mt-0.5 text-[9px] font-bold uppercase tracking-widest text-slate-500">
               PPT3 · Analista de Sistemas
             </p>
             <div className="my-3.5 h-[1px] bg-slate-100" />
             
-            <p className="text-[11px] text-slate-500 font-medium leading-relaxed mb-5">
-              SiGIC es el Sistema de Gestión de Ceremonias desarrollado como proyecto integrador para la materia de Prácticas Profesionalizantes 3.
+            <p className="text-[11px] text-slate-500 font-semibold leading-relaxed mb-5">
+              SiGIC es el Sistema de Gestión de Ceremonias desarrollado como proyecto integrador para la materia de Prácticas Profesionalizantes 3 en el Instituto Beltrán.
             </p>
 
             <p className="text-[8px] font-black uppercase tracking-wider text-slate-400 mb-3">
@@ -219,7 +226,7 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
             </p>
 
             {/* Grupo de Avatares Interactivos (Inspirado en Animate UI / Avatar Group) */}
-            <div className="flex justify-center -space-x-2.5 hover:-space-x-1 transition-all duration-300 py-3 mb-6">
+            <div className="flex justify-center -space-x-2.5 hover:-space-x-1.5 transition-all duration-300 py-3 mb-6">
               {equipo.map((m, i) => {
                 // Generar iniciales (ej: Alan Alexis Alfonso -> AA)
                 const partes = m.nombre.split(' ')
@@ -228,16 +235,18 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
                 return (
                   <div 
                     key={i} 
-                    className="group relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-white text-[11px] font-black text-white cursor-pointer shadow-md transition-all duration-300 hover:-translate-y-2.5 hover:scale-115 hover:z-30"
-                    style={{ backgroundColor: m.hex }}
+                    className="group relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-white text-[11px] font-black text-white cursor-pointer shadow-md transition-all duration-300 hover:-translate-y-2 hover:scale-115 hover:z-30 hover:shadow-lg"
+                    style={{ 
+                      backgroundColor: m.hex,
+                      boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)' 
+                    }}
                   >
                     {iniciales}
-                    {/* Tooltip flotante con efecto glassmorphism */}
-                    <div className="absolute bottom-12 left-1/2 -translate-x-1/2 scale-75 opacity-0 pointer-events-none group-hover:scale-100 group-hover:opacity-100 transition-all duration-200 bg-slate-950/95 backdrop-blur-md text-white px-3 py-2 rounded-2xl whitespace-nowrap shadow-2xl border border-white/10 text-center z-50">
-                      <p className="text-[10px] font-black leading-none">{m.nombre}</p>
-                      <p className="text-[8px] text-slate-400 font-semibold mt-1">{m.rol}</p>
+                    {/* Tooltip flotante con efecto elástico */}
+                    <div className="absolute bottom-12 left-1/2 -translate-x-1/2 scale-75 opacity-0 pointer-events-none group-hover:scale-100 group-hover:opacity-100 transition-all duration-250 ease-elastic bg-slate-900 text-white px-3 py-1.5 rounded-2xl whitespace-nowrap shadow-xl border border-white/10 text-center z-50">
+                      <p className="text-[10px] font-bold tracking-wide leading-none">{m.nombre}</p>
                       {/* Flecha indicadora */}
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 w-2 h-2 rotate-45 bg-slate-950 border-r border-b border-white/10" />
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 w-1.5 h-1.5 rotate-45 bg-slate-900 border-r border-b border-white/10" />
                     </div>
                   </div>
                 )
@@ -335,6 +344,10 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
 
         .animate-fade-in {
           animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        .ease-elastic {
+          transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
       `}</style>
     </main>
