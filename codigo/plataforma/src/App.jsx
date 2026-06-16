@@ -34,6 +34,7 @@ import { CentroControl } from './paginas/v2/CentroControl'
 
 // Componentes Globales
 import { ControlExpositor } from './componentes/ControlExpositor'
+import { PantallaCargaInicial } from './componentes/PantallaCargaInicial'
 
 // Servicios
 import { validarToken, obtenerCeremoniaActiva, obtenerEstadoSetup, responderInvitacion, limpiarTokenSesion } from './servicios/api'
@@ -347,14 +348,7 @@ function App() {
 
   // CASO 0: Cargando estado inicial
   if (cargandoSetup) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F0F4F8]">
-        <div className="text-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent mx-auto mb-4" />
-          <p className="text-xs font-bold uppercase tracking-widest text-indigo-500">Conectando al Servidor SiGIC...</p>
-        </div>
-      </div>
-    )
+    return <PantallaCargaInicial />
   }
 
   // CASO 0.1: Sistema Virgen (Requiere Asistente de Configuración)
