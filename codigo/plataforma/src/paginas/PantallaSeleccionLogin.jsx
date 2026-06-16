@@ -1,220 +1,174 @@
 import { useState } from 'react'
-import { Lock, Fingerprint, ChevronRight, Users, GraduationCap, BookOpen, ShieldAlert } from 'lucide-react'
+import { Users, GraduationCap, BookOpen, ChevronRight } from 'lucide-react'
 
 export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresado, onSeleccionarManual }) {
-  const [escaneando, setEscaneando] = useState(false)
+  const [clickCount, setClickCount] = useState(0)
   const [revelado, setRevelado] = useState(false)
 
-  function iniciarEscaneo() {
-    if (escaneando || revelado) return
-    setEscaneando(true)
-    // Simular escaneo biométrico y revelado
-    setTimeout(() => {
-      setEscaneando(false)
+  function manejarClickLogo() {
+    if (revelado) return
+    const nuevoConteo = clickCount + 1
+    if (nuevoConteo >= 5) {
       setRevelado(true)
-    }, 1800)
+    } else {
+      setClickCount(nuevoConteo)
+    }
   }
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#070b19] select-none">
-      {/* Fondo Animado con Gradiente y Orbes */}
-      <div className="absolute inset-0 bg-radial-gradient pointer-events-none" />
-      
-      {/* Orbes de luz de fondo */}
-      <div className="absolute top-1/4 left-1/4 h-96 w-96 rounded-full bg-cyan-500/10 blur-[120px] animate-pulse" />
-      <div className="absolute bottom-1/4 right-1/4 h-96 w-96 rounded-full bg-indigo-500/10 blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
+    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#070b19] select-none text-white font-sans">
+      {/* Fondo con gradiente profundo y orbes difusos */}
+      <div className="absolute inset-0 pointer-events-none" style={{
+        background: 'radial-gradient(circle at center, #0f1c3f 0%, #070b19 100%)'
+      }} />
 
-      {/* Grilla de puntos tecnológica */}
+      {/* Orbes de luz decorativos de fondo */}
+      <div className="absolute top-1/3 left-1/4 h-[350px] w-[350px] rounded-full bg-cyan-500/5 blur-[100px] animate-pulse" />
+      <div className="absolute bottom-1/3 right-1/4 h-[350px] w-[350px] rounded-full bg-indigo-500/5 blur-[100px] animate-pulse" style={{ animationDelay: '2s' }} />
+
+      {/* Grilla tecnológica sutil */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.03]"
+        className="pointer-events-none absolute inset-0 opacity-[0.02]"
         style={{
           backgroundImage: 'radial-gradient(circle, #ffffff 1px, transparent 1px)',
-          backgroundSize: '25px 25px',
+          backgroundSize: '30px 30px',
         }}
       />
 
-      {/* Tarjeta de Acceso Glassmorphism */}
-      <div className="relative w-full max-w-sm overflow-hidden rounded-[32px] border border-white/10 bg-slate-900/40 p-8 backdrop-blur-2xl shadow-[0_25px_70px_rgba(0,0,0,0.6)] text-center transition-all duration-500">
+      {/* Estrellas parpadeantes */}
+      <div className="absolute inset-0 pointer-events-none">
+        {[...Array(20)].map((_, i) => (
+          <div 
+            key={i}
+            className="absolute rounded-full bg-white"
+            style={{
+              width: `${1 + Math.random() * 1.5}px`,
+              height: `${1 + Math.random() * 1.5}px`,
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              opacity: 0.1,
+              animation: `parpadeo ${2 + Math.random() * 3}s ease-in-out infinite`,
+              animationDelay: `${Math.random() * 3}s`
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Contenedor Principal */}
+      <div className="relative z-10 flex flex-col items-center max-w-sm w-full px-6 text-center">
         
-        {/* Línea de escaneo láser (activa durante escaneando) */}
-        {escaneando && (
-          <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_15px_#22d3ee] animate-laser" />
-        )}
+        {/* Logo de SIGIC interactivo */}
+        <div 
+          onClick={manejarClickLogo}
+          className="relative mb-6 flex h-40 w-40 items-center justify-center cursor-pointer active:scale-95 transition-transform duration-300"
+          title="SiGIC"
+        >
+          {/* Anillos de energía decorativos */}
+          <div className="absolute inset-0 rounded-full border border-cyan-500/10 animate-spin-slow pointer-events-none" />
+          <div className="absolute inset-3 rounded-full border border-dashed border-indigo-500/10 animate-spin-reverse pointer-events-none" />
+          <div className="absolute inset-6 rounded-full bg-cyan-500/5 blur-xl pointer-events-none" />
+          
+          <img
+            src="/logo-oficial.png"
+            alt="SiGIC"
+            className="h-24 w-auto object-contain relative z-10 logo-flotar filter drop-shadow-[0_4px_20px_rgba(14,165,233,0.15)]"
+          />
+        </div>
 
-        {/* Sección del Logo y Branding */}
-        <div className="mb-8 flex flex-col items-center">
-          <div className="relative mb-5 flex h-32 w-32 items-center justify-center">
-            {/* Anillos de energía decorativos */}
-            <div className={`absolute inset-0 rounded-full border border-cyan-500/20 ${escaneando ? 'animate-spin-fast' : 'animate-spin-slow'}`} />
-            <div className={`absolute inset-2 rounded-full border border-dashed border-indigo-500/20 ${escaneando ? 'animate-spin-reverse-fast' : 'animate-spin-reverse-slow'}`} />
-            <div className="absolute inset-4 rounded-full bg-cyan-500/5 blur-md" />
-            
-            {/* Logo de SIGIC */}
-            <img
-              src="/logo-oficial.png"
-              alt="SiGIC"
-              className={`h-20 w-auto object-contain relative z-10 transition-all duration-300 ${
-                escaneando ? 'scale-110 filter drop-shadow-[0_0_12px_rgba(34,211,238,0.6)]' : 'logo-flotar'
-              }`}
-            />
-          </div>
-
-          <h1 className="text-3xl font-black tracking-[0.1em] text-white font-sans drop-shadow-[0_2px_10px_rgba(255,255,255,0.1)]">
+        {/* Branding Principal */}
+        <div className="space-y-3">
+          <h1 className="text-4xl font-black tracking-[0.15em] text-white">
             SiGIC
           </h1>
-          <div className="mt-2 h-[2px] w-12 bg-gradient-to-r from-transparent via-cyan-400 to-transparent" />
-          <p className="mt-3 text-[10px] font-black uppercase tracking-[0.2em] text-cyan-400/80">
-            {escaneando ? 'Verificando dispositivo...' : revelado ? 'Identidad validada' : 'Acceso seguro en la nube'}
+          <div className="mx-auto h-[2px] w-14 bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent" />
+          <p className="text-xs text-slate-400 font-medium max-w-xs leading-relaxed">
+            Sistema de Gestión de Ceremonias de Colación
           </p>
         </div>
 
-        {/* CONTENIDO INTERACTIVO */}
-        <div className="min-h-[180px] flex flex-col justify-center">
-          {!revelado ? (
-            /* Vista 1: Camuflada (Lockscreen / Biométrico) */
-            <div className="space-y-6 animate-fade-in">
-              <p className="text-xs text-slate-400 leading-relaxed font-medium">
-                Esta plataforma está restringida a personal autorizado. Por favor presione a continuación para iniciar el protocolo de acceso.
-              </p>
-
-              <button
-                onClick={iniciarEscaneo}
-                disabled={escaneando}
-                className="group relative w-full overflow-hidden rounded-2xl bg-gradient-to-r from-cyan-500 to-indigo-600 p-[1px] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/35 disabled:opacity-80"
-              >
-                <div className="relative flex items-center justify-center gap-3 rounded-2xl bg-[#090e1f] px-6 py-4 transition-colors group-hover:bg-transparent">
-                  {escaneando ? (
-                    <>
-                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-cyan-400 border-t-transparent" />
-                      <span className="text-xs font-black uppercase tracking-wider text-cyan-400">Escaneando...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Fingerprint className="h-5 w-5 text-cyan-400 group-hover:text-white transition-colors" />
-                      <span className="text-xs font-black uppercase tracking-wider text-white">Validar Credencial</span>
-                    </>
-                  )}
-                </div>
-              </button>
-
-              <div className="flex items-center justify-center gap-1.5 text-[9px] font-bold text-slate-500 uppercase">
-                <Lock size={10} />
-                <span>Encriptación de extremo a extremo</span>
+        {/* Opciones de Login (Ocultas por defecto, se revelan al hacer 5 clicks en el logo) */}
+        {revelado && (
+          <div className="mt-10 w-full space-y-3 animate-fade-slide-up bg-slate-950/40 border border-white/5 p-5 rounded-3xl backdrop-blur-xl shadow-2xl">
+            <p className="text-[10px] font-black uppercase tracking-widest text-cyan-400 mb-2">
+              Panel de Autenticación Habilitado
+            </p>
+            
+            {/* Opción Admin */}
+            <button
+              onClick={onSeleccionarAdmin}
+              className="group relative flex w-full items-center gap-3 rounded-2xl border border-white/5 bg-white/5 p-3.5 transition-all hover:bg-white/10 hover:border-cyan-500/30 active:scale-[0.98] cursor-pointer text-left"
+            >
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-400 transition-colors group-hover:bg-cyan-500 group-hover:text-white">
+                <Users size={18} />
               </div>
-            </div>
-          ) : (
-            /* Vista 2: Revelada (Botones de Acceso con Animación) */
-            <div className="space-y-3.5 animate-slide-up">
-              {/* Opción Admin */}
-              <button
-                onClick={onSeleccionarAdmin}
-                className="group relative flex w-full items-center gap-3 rounded-2xl border border-white/5 bg-white/5 p-3.5 transition-all hover:bg-white/10 hover:border-cyan-500/30 active:scale-[0.98] cursor-pointer"
-              >
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-400 transition-colors group-hover:bg-cyan-500 group-hover:text-white">
-                  <Users size={18} />
-                </div>
-                <div className="text-left">
-                  <p className="text-[12px] font-black text-white">Administrador</p>
-                  <p className="text-[10px] text-slate-400 font-medium">Organizadores y seguridad</p>
-                </div>
-                <ChevronRight size={14} className="absolute right-4 text-slate-500 transition-transform group-hover:translate-x-1 group-hover:text-cyan-400" />
-              </button>
+              <div>
+                <p className="text-[12px] font-black text-white">Administrador</p>
+                <p className="text-[10px] text-slate-400 font-medium">Organizadores y seguridad</p>
+              </div>
+              <ChevronRight size={14} className="absolute right-4 text-slate-500 transition-transform group-hover:translate-x-1 group-hover:text-cyan-400" />
+            </button>
 
-              {/* Opción Egresado */}
-              <button
-                onClick={onSeleccionarEgresado}
-                className="group relative flex w-full items-center gap-3 rounded-2xl border border-white/5 bg-white/5 p-3.5 transition-all hover:bg-white/10 hover:border-indigo-500/30 active:scale-[0.98] cursor-pointer"
-              >
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400 transition-colors group-hover:bg-indigo-500 group-hover:text-white">
-                  <GraduationCap size={18} />
-                </div>
-                <div className="text-left">
-                  <p className="text-[12px] font-black text-white">Graduado</p>
-                  <p className="text-[10px] text-slate-400 font-medium">Ingreso de invitados y datos</p>
-                </div>
-                <ChevronRight size={14} className="absolute right-4 text-slate-500 transition-transform group-hover:translate-x-1 group-hover:text-indigo-400" />
-              </button>
+            {/* Opción Egresado */}
+            <button
+              onClick={onSeleccionarEgresado}
+              className="group relative flex w-full items-center gap-3 rounded-2xl border border-white/5 bg-white/5 p-3.5 transition-all hover:bg-white/10 hover:border-indigo-500/30 active:scale-[0.98] cursor-pointer text-left"
+            >
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-400 transition-colors group-hover:bg-indigo-500 group-hover:text-white">
+                <GraduationCap size={18} />
+              </div>
+              <div>
+                <p className="text-[12px] font-black text-white">Graduado</p>
+                <p className="text-[10px] text-slate-400 font-medium">Ingreso de invitados y datos</p>
+              </div>
+              <ChevronRight size={14} className="absolute right-4 text-slate-500 transition-transform group-hover:translate-x-1 group-hover:text-indigo-400" />
+            </button>
 
-              {/* Opción Manual */}
-              <button
-                onClick={onSeleccionarManual}
-                className="group relative flex w-full items-center gap-3 rounded-2xl border border-white/5 bg-white/5 p-3.5 transition-all hover:bg-white/10 hover:border-slate-500/30 active:scale-[0.98] cursor-pointer"
-              >
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-500/10 text-slate-400 transition-colors group-hover:bg-slate-500 group-hover:text-white">
-                  <BookOpen size={18} />
-                </div>
-                <div className="text-left">
-                  <p className="text-[12px] font-black text-white">Manual de Usuario</p>
-                  <p className="text-[10px] text-slate-400 font-medium">Guías de uso del sistema</p>
-                </div>
-                <ChevronRight size={14} className="absolute right-4 text-slate-500 transition-transform group-hover:translate-x-1 group-hover:text-slate-350" />
-              </button>
-            </div>
-          )}
-        </div>
+            {/* Opción Manual */}
+            <button
+              onClick={onSeleccionarManual}
+              className="group relative flex w-full items-center gap-3 rounded-2xl border border-white/5 bg-white/5 p-3.5 transition-all hover:bg-white/10 hover:border-slate-500/30 active:scale-[0.98] cursor-pointer text-left"
+            >
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-500/10 text-slate-400 transition-colors group-hover:bg-slate-500 group-hover:text-white">
+                <BookOpen size={18} />
+              </div>
+              <div>
+                <p className="text-[12px] font-black text-white">Manual de Usuario</p>
+                <p className="text-[10px] text-slate-400 font-medium">Guías de uso del sistema</p>
+              </div>
+              <ChevronRight size={14} className="absolute right-4 text-slate-500 transition-transform group-hover:translate-x-1 group-hover:text-slate-350" />
+            </button>
+          </div>
+        )}
 
-        {/* Footer de la tarjeta */}
-        <div className="mt-8 border-t border-white/5 pt-4 text-center">
-          <p className="text-[8px] font-bold uppercase tracking-[0.2em] text-slate-600">
-            Instituto Tecnológico Beltrán · SiGIC
+        {/* Footer */}
+        <div className="mt-16 text-center opacity-40">
+          <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500">
+            Instituto Tecnológico Beltrán
           </p>
         </div>
       </div>
 
-      {/* Estilos CSS Inline para las animaciones y estética */}
+      {/* Estilos CSS Inline */}
       <style>{`
-        .bg-radial-gradient {
-          background: radial-gradient(circle at center, #0f1c3f 0%, #070b19 100%);
-        }
-        
         @keyframes float {
           0%, 100% {
             transform: translateY(0px) rotate(0deg);
           }
           50% {
-            transform: translateY(-8px) rotate(2deg);
+            transform: translateY(-8px) rotate(1.5deg);
           }
         }
         
         .logo-flotar {
-          animation: float 4s ease-in-out infinite;
-        }
-
-        @keyframes laser {
-          0% {
-            top: 0%;
-            opacity: 0;
-          }
-          10% {
-            opacity: 1;
-          }
-          90% {
-            opacity: 1;
-          }
-          100% {
-            top: 100%;
-            opacity: 0;
-          }
-        }
-        
-        .animate-laser {
-          animation: laser 1.8s linear infinite;
+          animation: float 5s ease-in-out infinite;
         }
 
         .animate-spin-slow {
-          animation: spin 20s linear infinite;
+          animation: spin 30s linear infinite;
         }
         
-        .animate-spin-fast {
-          animation: spin 3s linear infinite;
-        }
-
-        .animate-spin-reverse-slow {
-          animation: spin-reverse 25s linear infinite;
-        }
-
-        .animate-spin-reverse-fast {
-          animation: spin-reverse 4s linear infinite;
+        .animate-spin-reverse {
+          animation: spin-reverse 35s linear infinite;
         }
 
         @keyframes spin {
@@ -227,22 +181,24 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
           to { transform: rotate(0deg); }
         }
 
-        @keyframes fadeIn {
-          from { opacity: 0; transform: scale(0.96); }
-          to { opacity: 1; transform: scale(1); }
+        @keyframes parpadeo {
+          0%, 100% { opacity: 0.1; }
+          50% { opacity: 0.8; }
         }
 
-        .animate-fade-in {
-          animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        @keyframes fadeSlideUp {
+          from {
+            opacity: 0;
+            transform: translateY(15px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
         }
 
-        @keyframes slideUp {
-          from { opacity: 0; transform: translateY(12px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-
-        .animate-slide-up {
-          animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        .animate-fade-slide-up {
+          animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
       `}</style>
     </main>
