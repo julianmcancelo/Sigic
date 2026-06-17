@@ -305,9 +305,9 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               <div className="lg:col-span-7 space-y-4 text-[11px] leading-relaxed">
                 <div>
-                  <h4 className="text-slate-800 font-bold text-[12px] mb-1">¿Cómo ingreso al panel de login desde la portada?</h4>
+                  <h4 className="text-slate-800 font-bold text-[12px] mb-1">¿Cómo ingreso al panel de gestión desde la portada?</h4>
                   <p className="text-slate-500">
-                    La pantalla de bienvenida es una portada limpia. Para revelar el panel de autenticación, realice un gesto especial sobre el logotipo central (haciendo click 5 veces consecutivas).
+                    Haga clic directamente en el enlace "Acceso Personal" o "Gestión" en la barra de navegación superior del portal para abrir el formulario de inicio de sesión administrativo.
                   </p>
                 </div>
 

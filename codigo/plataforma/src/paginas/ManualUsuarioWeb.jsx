@@ -514,9 +514,9 @@ export function ManualUsuarioWeb({ onVolver }) {
                   </div>
 
                   <div>
-                    <h4 className="text-white font-bold text-sm mb-1.5">¿Cómo ingreso al panel de login desde la pantalla de bienvenida?</h4>
+                    <h4 className="text-white font-bold text-sm mb-1.5">¿Cómo ingreso al panel de gestión desde la pantalla de bienvenida?</h4>
                     <p className="text-white/70">
-                      La pantalla de bienvenida es una portada limpia. Para revelar el panel de autenticación, realice un gesto especial sobre el logotipo central (haciendo click 5 veces consecutivas).
+                      Haga clic directamente en el enlace "Acceso Personal" o "Gestión" en la barra de navegación superior de la portada para abrir el formulario de inicio de sesión de personal administrativo.
                     </p>
                   </div>
 

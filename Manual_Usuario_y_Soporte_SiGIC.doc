@@ -170,23 +170,19 @@
     <!-- SECCIÓN 1: INICIO DE SESIÓN -->
     <h1>1. Acceso a la Plataforma e Inicio de Sesión</h1>
     <p>
-        Para garantizar la simplicidad del portal destinado a los egresados, la pantalla de inicio de la plataforma web de SiGIC es limpia y no muestra botones de acceso administrativos directos. 
+        El sistema SiGIC cuenta con un portal unificado para el acceso de los diferentes operadores administrativos y los egresados de la colación activa.
     </p>
 
     <div class="info-box">
-        <div class="info-title">El Gesto Secreto de Acceso (Backdoor)</div>
+        <div class="info-title">Acceso al Panel de Gestión</div>
         <p class="alert-content">
-            Para ingresar a las pantallas de inicio de sesión administrativo:
-            <br>1. Diríjase a la portada de la web de SiGIC.
-            <br>2. Posicione el cursor (mouse) sobre el <strong>logotipo oficial</strong> de la parte central.
-            <br>3. Haga <strong>5 clics rápidos y seguidos</strong> sobre el logo.
-            <br>4. El sistema lo redirigirá inmediatamente a la pantalla de login del personal de gestión.
+            Para ingresar a las pantallas de inicio de sesión de personal administrativo, haga clic directamente en el botón <strong>"Acceso Personal"</strong> o <strong>"Gestión"</strong> ubicado en la esquina superior derecha del portal, o acceda mediante la dirección URL correspondiente asignada a la administración (ej. <code>https://sigic-web.vercel.app/admin</code>).
         </p>
     </div>
 
     <h3>Canales de Autenticación:</h3>
     <ul>
-        <li><strong>Personal Administrativo y de Soporte</strong>: Ingresa a través de la pantalla secreta escribiendo su correo electrónico institucional y contraseña asignada.</li>
+        <li><strong>Personal Administrativo y de Soporte</strong>: Ingresa a través del formulario de gestión escribiendo su correo electrónico institucional y contraseña asignada.</li>
         <li><strong>Graduados</strong>: Acceden sin contraseña desde el portal de alumnos. Escriben su DNI y reciben en su casilla de correo una clave temporal de un solo uso de 6 dígitos (Código OTP) que valida su sesión de forma segura.</li>
     </ul>
 
@@ -322,7 +318,7 @@
             <tr>
                 <td style="color: #d97706; font-weight: bold; background-color: #fffbeb;">NARANJA</td>
                 <td style="font-weight: bold;">Acceso Duplicado</td>
-                <td>QR legítimo pero que ya ingresó al salón anteriormente. La app emite una alerta y muestra la hora del primer ingreso. **Acción**: Revise el DNI del portador; podría tratarse de una copia fraudulenta de la credencial.</td>
+                <td>QR legítimo pero que ya ingresó al salón anteriormente. La app emite una alerta y muestra la hora del primer ingreso. **Acción**: Revise el DNI del portador; podría tratarse de una copia de la credencial.</td>
             </tr>
             <tr>
                 <td style="color: #dc2626; font-weight: bold; background-color: #fef2f2;">ROJO</td>
@@ -349,7 +345,7 @@
     </p>
     <ol>
         <li>Ingrese a la sección <strong>Reportes</strong> (o "Panel de Reportes" en el menú).</li>
-        <li>Visualizará las métricas generales de asistencia: porcentaje final de ocupación, total de presentes, total de ausencias y listado cronológico de ingresos.</li>
+        <li>Visualizará las métricas generales de asistencia: porcentaje final de ocupación, total de presentes, total de ausencias y listado de ingresos.</li>
         <li>Haga clic en el botón <strong>"Exportar Listado de Asistencia (Excel)"</strong> para descargar una planilla estructurada con los datos de todos los acreditados en puerta, incluyendo la hora exacta de su ingreso y número de butaca física utilizada.</li>
     </ol>
 

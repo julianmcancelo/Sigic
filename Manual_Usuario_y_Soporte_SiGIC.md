@@ -5,18 +5,14 @@
 
 ## 1. ACCESO A LA PLATAFORMA E INICIO DE SESIÓN
 
-Para garantizar la simplicidad del portal destinado a los egresados, la pantalla de inicio de la plataforma web de SiGIC es totalmente limpia y no muestra botones de acceso administrativos directos. 
+El sistema SiGIC cuenta con un portal unificado para el acceso de los diferentes operadores administrativos y los egresados de la colación activa.
 
 > [!TIP]
-> **El Gesto Secreto de Acceso (Backdoor)**
-> Para ingresar a las pantallas de inicio de sesión administrativo:
-> 1. Diríjase a la portada de la web de SiGIC.
-> 2. Posicione el cursor (mouse) sobre el **logotipo oficial** de la parte central.
-> 3. Haga **5 clics rápidos y seguidos** sobre el logo.
-> 4. El sistema lo redirigirá inmediatamente a la pantalla de login del personal de gestión.
+> **Acceso al Panel de Gestión**
+> Para ingresar a las pantallas de inicio de sesión de personal administrativo, haga clic directamente en el botón **"Acceso Personal"** o **"Gestión"** ubicado en la esquina superior derecha del portal web, o acceda mediante la dirección URL correspondiente asignada a la administración (ej. `https://sigic-web.vercel.app/admin`).
 
 ### Canales de Autenticación:
-*   **Personal Administrativo y de Soporte**: Ingresa a través de la pantalla secreta escribiendo su correo electrónico institucional y contraseña asignada.
+*   **Personal Administrativo y de Soporte**: Ingresa a través del formulario de gestión escribiendo su correo electrónico institucional y contraseña asignada.
 *   **Graduados**: Acceden sin contraseña desde el portal de alumnos. Escriben su DNI y reciben en su casilla de correo una clave temporal de un solo uso de 6 dígitos (Código OTP) que valida su sesión de forma segura.
 
 ---
