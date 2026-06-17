@@ -104,7 +104,7 @@ function DiagramaArquitectura() {
 // ==========================================
 // COMPONENTE PRINCIPAL DEL MANUAL WEB
 // ==========================================
-export function ManualUsuarioWeb({ onVolver }) {
+export function ManualUsuarioWeb({ onVolver, sinHeader }) {
   const [isOpen, setIsOpen] = useState(false)
   const [spread, setSpread] = useState(0) // 0 a 5 en Desktop
   const [mobilePage, setMobilePage] = useState(0) // 0 a 10 en Mobile
