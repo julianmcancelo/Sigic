@@ -1,0 +1,355 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Manual Oficial de Usuario - SiGIC</title>
+    <style>
+        body {
+            font-family: 'Calibri', 'Arial', sans-serif;
+            font-size: 11pt;
+            line-height: 1.5;
+            color: #2e3b4e;
+            margin: 1in;
+        }
+        h1 {
+            font-size: 24pt;
+            color: #0ea5e9;
+            margin-top: 24pt;
+            margin-bottom: 12pt;
+            font-weight: bold;
+            border-bottom: 2px solid #0ea5e9;
+            padding-bottom: 6px;
+        }
+        h2 {
+            font-size: 16pt;
+            color: #2a3448;
+            margin-top: 18pt;
+            margin-bottom: 8pt;
+            font-weight: bold;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 4px;
+        }
+        h3 {
+            font-size: 13pt;
+            color: #1e293b;
+            margin-top: 12pt;
+            margin-bottom: 6pt;
+            font-weight: bold;
+        }
+        p {
+            margin-top: 0;
+            margin-bottom: 10pt;
+            text-align: justify;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 12pt;
+            margin-bottom: 12pt;
+        }
+        th {
+            background-color: #2a3448;
+            color: #ffffff;
+            font-weight: bold;
+            text-align: left;
+            padding: 8px;
+            font-size: 10pt;
+            border: 1px solid #cbd5e1;
+        }
+        td {
+            padding: 8px;
+            font-size: 10pt;
+            border: 1px solid #cbd5e1;
+        }
+        tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+        .cover-page {
+            text-align: center;
+            padding-top: 2in;
+            page-break-after: always;
+        }
+        .cover-title {
+            font-size: 32pt;
+            color: #2a3448;
+            font-weight: bold;
+            margin-bottom: 10pt;
+        }
+        .cover-subtitle {
+            font-size: 16pt;
+            color: #0ea5e9;
+            margin-bottom: 40pt;
+        }
+        .cover-footer {
+            margin-top: 3in;
+            font-size: 10pt;
+            color: #64748b;
+            line-height: 1.8;
+        }
+        .alert-box {
+            background-color: #f0f9ff;
+            border-left: 4px solid #0ea5e9;
+            padding: 12px;
+            margin-top: 12pt;
+            margin-bottom: 12pt;
+            border-radius: 4px;
+        }
+        .alert-title {
+            font-weight: bold;
+            color: #0369a1;
+            margin-bottom: 4px;
+            font-size: 10pt;
+            text-transform: uppercase;
+        }
+        .alert-content {
+            font-size: 10pt;
+            margin: 0;
+        }
+        ul, ol {
+            margin-top: 0;
+            margin-bottom: 10pt;
+            padding-left: 20pt;
+        }
+        li {
+            margin-bottom: 4pt;
+        }
+        code {
+            font-family: 'Courier New', monospace;
+            background-color: #f1f5f9;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 10pt;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- PORTADA DEL DOCUMENTO -->
+    <div class="cover-page">
+        <div style="font-size: 14pt; color: #64748b; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 20pt;">
+            Documentación Técnica Oficial
+        </div>
+        <div class="cover-title">SiGIC</div>
+        <div class="cover-subtitle">Sistema de Gestión Institucional de Colaciones</div>
+        
+        <div style="width: 150px; height: 3px; background-color: #0ea5e9; margin: 0 auto 30pt auto;"></div>
+        
+        <div style="font-size: 14pt; font-weight: bold; color: #1e293b;">
+            MANUAL COMPLETO DE USUARIO Y OPERATORIA DE INFRAESTRUCTURA
+        </div>
+        <div style="font-size: 11pt; color: #64748b; margin-top: 10pt;">
+            Manual preparado para personal Administrativo, Directivos y Soporte Técnico
+        </div>
+        
+        <div class="cover-footer">
+            <strong>Instituto Tecnológico Beltrán (ITB)</strong><br>
+            Proyecto de Prácticas Profesionalizantes · Ciclo Lectivo 2026<br>
+            Plataforma Cloud Serverless & Base de Datos Neon PostgreSQL<br>
+            Documento listo para guardar/imprimir en formato Microsoft Word (.docx)
+        </div>
+    </div>
+
+    <!-- SECCIÓN 1: INTRODUCCIÓN -->
+    <h1>1. Introducción y Propósito del Sistema</h1>
+    <p>
+        El <strong>Sistema de Gestión Institucional de Colaciones (SiGIC)</strong> es una solución de software integral, moderna y segura diseñada específicamente para coordinar y agilizar los actos de entrega de diplomas académicos (colaciones). 
+    </p>
+    <p>
+        Organizar una colación tradicionalmente demanda una enorme cantidad de horas de trabajo administrativo: confección manual de listados de estudiantes, envío individual de invitaciones por correo, asignación física de butacas en anfiteatros o teatros, y control manual de ingresos en las puertas del evento. 
+    </p>
+    <p>
+        SiGIC automatiza todo este proceso en un ecosistema en tiempo real que abarca desde la carga masiva de graduados desde planillas de cálculo (Excel) y la reserva autogestionada de asientos por parte de los alumnos, hasta la validación física en tiempo real en los accesos del salón mediante códigos QR a través de una aplicación móvil exclusiva para el personal de portería.
+    </p>
+
+    <!-- SECCIÓN 2: ARQUITECTURA -->
+    <h1>2. Arquitectura del Ecosistema y Conectividad</h1>
+    <p>
+        La arquitectura de SiGIC se basa en un paradigma moderno de desarrollo conocido como <strong>Serverless Cloud</strong> (Arquitectura sin Servidor en la Nube), lo que elimina los costos y complejidades de mantener servidores físicos locales dentro de la institución.
+    </p>
+    
+    <h3>Componentes del Ecosistema:</h3>
+    <ul>
+        <li><strong>Frontend Web (React + Next.js + TailwindCSS)</strong>: Es el portal accesible por los egresados y administradores. Cuenta con dos versiones de diseño: una clásica y una profesional (basada en cuadrícula Bento). Se ejecuta y distribuye en la red global de entrega de contenidos (CDN) de Vercel.</li>
+        <li><strong>Backend de API (Vercel Serverless Functions)</strong>: Las acciones solicitadas desde la web o el celular (logins, validaciones de QR, cambios de asientos) son procesadas instantáneamente por funciones serverless en la nube, optimizando la velocidad y garantizando un tiempo de respuesta de milisegundos.</li>
+        <li><strong>Base de Datos (Neon Cloud PostgreSQL)</strong>: Almacenamiento seguro, transaccional y relacional en la nube. Neon escala de forma automática a cero cuando no se usa la plataforma, reduciendo costos innecesarios y garantizando alta disponibilidad con cifrado seguro SSL.</li>
+        <li><strong>Servidor SMTP de Correo</strong>: Motor de despacho automatizado para el envío de códigos de acceso (OTP) a graduados y envío masivo de credenciales en PDF adjuntas.</li>
+        <li><strong>Escáner Móvil (App React Native)</strong>: Aplicación ligera que el personal de seguridad física instala en sus celulares para realizar el check-in digital.</li>
+    </ul>
+
+    <!-- SECCIÓN 3: ROLES Y PERMISOS -->
+    <h1>3. Roles de Usuario y Matriz de Permisos</h1>
+    <p>
+        El sistema protege la integridad de los datos de las colaciones mediante una matriz de permisos estricta. Ningún usuario puede ejecutar acciones ajenas a su ámbito operativo:
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Rol de Usuario</th>
+                <th>Propósito Principal</th>
+                <th>Acciones Permitidas</th>
+                <th>Alcance de Seguridad</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Graduado / Egresado</strong></td>
+                <td>Autogestión de su asistencia</td>
+                <td>Cargar acompañantes, reservar sus butacas y descargar su credencial QR.</td>
+                <td>Restringido solo a su ficha personal mediante código OTP por correo.</td>
+            </tr>
+            <tr>
+                <td><strong>Portería / Seguridad</strong></td>
+                <td>Control físico en el ingreso</td>
+                <td>Escaneo y validación de códigos QR mediante aplicación móvil.</td>
+                <td>No tiene acceso al panel administrativo web. Solo lectura de la ceremonia asignada.</td>
+            </tr>
+            <tr>
+                <td><strong>Auditor / Lectura</strong></td>
+                <td>Supervisión y control</td>
+                <td>Visualizar paneles de métricas, estadísticas, listados y anfiteatros.</td>
+                <td>Acceso total de lectura. Modificaciones y configuraciones bloqueadas.</td>
+            </tr>
+            <tr>
+                <td><strong>Administrativo</strong></td>
+                <td>Operación de padrón</td>
+                <td>Importar estudiantes, enviar correos, modificar datos de graduados y distribuir butacas.</td>
+                <td>Acceso total a la gestión de datos diarios. Sin acceso a mantenimiento de infraestructura.</td>
+            </tr>
+            <tr>
+                <td><strong>Administrador / Super Admin</strong></td>
+                <td>Gestión y configuración</td>
+                <td>Crear ceremonias, modificar aforos, gestionar cuentas de seguridad y accesos.</td>
+                <td>Acceso total de edición a nivel del portal de la institución.</td>
+            </tr>
+            <tr>
+                <td><strong>Soporte Técnico</strong></td>
+                <td>Mantenimiento de infraestructura</td>
+                <td>Resetear la base de datos de fábrica, descargar copias de respaldo (Backup) y gestionar cuentas globales.</td>
+                <td>Acceso de superusuario exclusivo (cuenta <code>soporte@sigic.com.ar</code>).</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="alert-box">
+        <div class="alert-title">Importante: Cuenta de Soporte Técnico</div>
+        <p class="alert-content">
+            La cuenta con correo <code>soporte@sigic.com.ar</code> es el único rol autorizado en el sistema para realizar mantenimiento correctivo, vaciado de base de datos (chasquido cuántico/reset) y creación de usuarios administrativos o especiales de la plataforma en el módulo de Seguridad.
+        </p>
+    </div>
+
+    <!-- SECCIÓN 4: GUÍA DE OPERATORIA PASO A PASO -->
+    <h1>4. Guía de Operatoria Paso a Paso</h1>
+
+    <h2>4.1. Gesto Secreto de Seguridad (Backdoor)</h2>
+    <p>
+        Para evitar que los alumnos o personas ajenas a la institución intenten acceder al panel de inicio de sesión de administradores, la portada web de SiGIC se mantiene limpia. Para revelar las opciones de autenticación administrativa:
+    </p>
+    <ol>
+        <li>Ingrese al portal web de SiGIC.</li>
+        <li>Posicione el cursor sobre el <strong>logo oficial</strong> en el centro de la pantalla.</li>
+        <li>Haga <strong>5 clics consecutivos y rápidos</strong> sobre el logotipo de SiGIC.</li>
+        <li>La pantalla transicionará automáticamente al menú de selección de canal de inicio de sesión (Graduados / Administradores / Manual).</li>
+    </ol>
+
+    <h2>4.2. Asistente de Configuración Inicial (Instalación Limpia)</h2>
+    <p>
+        Cuando la base de datos se inicia por primera vez o ha sido formateada de fábrica por el equipo de soporte técnico, el sistema se bloquea en modo de instalación (Asistente de Setup):
+    </p>
+    <ol>
+        <li>Ingrese el <strong>Nombre de la Institución Académica</strong> (este nombre aparecerá en todas las credenciales y correos).</li>
+        <li>Defina la dirección de correo y la contraseña para la cuenta del primer <strong>Super-Administrador</strong> del sistema.</li>
+        <li>Presione el botón "Inicializar Sistema". La aplicación creará la base de datos física y redirigirá al formulario de acceso.</li>
+    </ol>
+
+    <h2>4.3. Configuración y Alta de una Ceremonia</h2>
+    <p>
+        SiGIC soporta la existencia de múltiples ceremonias de colación independientes en la misma base de datos. Para dar de alta y configurar una ceremonia:
+    </p>
+    <ol>
+        <li>Diríjase al módulo de <strong>Ceremonias</strong>.</li>
+        <li>Haga clic en "Crear Ceremonia". Complete el nombre (ej. *Colación de Grado 2026 - Turno Tarde*), fecha, hora, lugar del evento y el **Límite de Acompañantes por Egresado** (aforo permitido).</li>
+        <li>Marque la ceremonia como **Ceremonia Activa**. Recuerde que el portal web de autogestión de los graduados y la aplicación móvil de portería responderán exclusivamente a la ceremonia que se encuentre marcada como activa.</li>
+    </ol>
+
+    <h2>4.4. Carga del Padrón de Egresados e Invitaciones</h2>
+    <p>
+        La carga manual de graduados es ineficiente, por lo que el sistema está optimizado para importaciones en masa:
+    </p>
+    <ol>
+        <li>Vaya al módulo de <strong>Gestionar Graduados</strong>.</li>
+        <li>Presione "Cargar desde Excel". Descargue la planilla de muestra para respetar la estructura de columnas requerida (Nombre, DNI, Correo, Carrera).</li>
+        <li>Cargue sus datos en la planilla y arrastre el archivo terminado a la zona de importación web. El sistema validará los registros y los guardará en la nube.</li>
+        <li>Para despachar las invitaciones, presione "Enviar Invitaciones por Correo". El servidor enviará un correo personalizado a cada egresado con su token único de ingreso directo, omitiendo la necesidad de usar contraseñas.</li>
+    </ol>
+
+    <h2>4.5. Portal de Autogestión del Graduado</h2>
+    <p>
+        Cuando el egresado hace clic en el enlace de su correo o inicia sesión con su DNI y código OTP (clave de 6 dígitos enviada a su correo):
+    </p>
+    <ol>
+        <li><strong>Confirmación de Asistencia</strong>: El alumno confirma si asistirá o no a la ceremonia. Si responde de forma negativa, libera automáticamente su butaca y aforo para otros alumnos.</li>
+        <li><strong>Registro de Acompañantes</strong>: Carga el nombre, apellido y DNI de sus invitados permitidos. Adicionalmente, el graduado puede tildar una casilla si alguno de sus invitados posee **Movilidad Reducida**, lo cual alertará visualmente al personal de control en el plano de butacas y en el escáner móvil de acceso.</li>
+        <li><strong>Selección de Butacas</strong>: Se presenta un mapa gráfico e interactivo del auditorio. Las butacas se colorean en tiempo real: azul (butaca asignada al egresado), verde (butaca asignada a su acompañante), gris (butacas bloqueadas o de otras autoridades) y rojo (butacas ya ocupadas por otros alumnos).</li>
+        <li><strong>Descarga de Credencial</strong>: Tras guardar la selección, el alumno descarga un archivo PDF optimizado para impresión o almacenamiento móvil que contiene la fecha del evento, las butacas asignadas y los códigos QR únicos de acreditación.</li>
+    </ol>
+
+    <h2>4.6. Gestión de Cuentas de Seguridad (Módulo de Seguridad)</h2>
+    <p>
+        Para garantizar un acceso rápido y seguro al personal de portería el día del evento sin comprometer contraseñas:
+    </p>
+    <ol>
+        <li>Ingrese al panel con la cuenta de soporte o administrador y diríjase al módulo de <strong>Seguridad</strong>.</li>
+        <li>Haga clic en "Registrar Personal" y cree una cuenta con rol <code>PORTERIA</code>.</li>
+        <li>Localice la cuenta creada en la tabla y haga clic en <strong>"Mostrar Acceso QR"</strong>. Se abrirá una ventana emergente con dos códigos QR:
+            <ul>
+                <li><strong>QR Paso 1 (Configurar Servidor)</strong>: Escanee este código desde la app móvil para que el celular conozca la dirección URL correcta de la base de datos/API de la institución.</li>
+                <li><strong>QR Paso 2 (Iniciar Sesión QR)</strong>: Escanee este código desde la app móvil para loguearse de forma instantánea como ese operador de seguridad sin tener que escribir correos ni contraseñas.</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h2>4.7. Control de Accesos Móvil el Día del Acto</h2>
+    <p>
+        El personal de seguridad física utilizará la cámara de sus smartphones mediante la app móvil oficial de SiGIC:
+    </p>
+    <ul>
+        <li><strong>Ingreso Autorizado (Verde)</strong>: El código QR es legítimo y no ha sido utilizado. La app reproduce un sonido agudo y vibra suavemente, confirmando el acceso y mostrando el nombre de la persona y su número de butaca.</li>
+        <li><strong>Ingreso Duplicado (Naranja / Alerta)</strong>: El código QR es válido pero ya fue ingresado con anterioridad. El dispositivo móvil emite una vibración y sonido de alerta indicando la hora del primer ingreso registrado en la base de datos para prevenir fraudes de copias de credenciales.</li>
+        <li><strong>Ingreso Denegado (Rojo)</strong>: El código QR no pertenece a la ceremonia activa o es inválido. Se deniega el ingreso.</li>
+    </ul>
+
+    <h2>4.8. Centro de Control (Mantenimiento de Servidor)</h2>
+    <p>
+        Exclusivo para soporte técnico (<code>soporte@sigic.com.ar</code>):
+    </p>
+    <ul>
+        <li><strong>Monitoreo de Latencia</strong>: Ejecuta pings en tiempo real para verificar la comunicación y la latencia de respuesta de los microservicios en Vercel y el motor Neon PostgreSQL.</li>
+        <li><strong>Descarga de Copia de Seguridad (Backup)</strong>: Descarga un volcado completo de toda la base de datos institucional en formato JSON para almacenamiento frío o migración.</li>
+        <li><strong>Formatear & Resetear Sistema</strong>: Limpia físicamente todas las tablas del motor PostgreSQL cloud de forma instantánea. Se le solicitará escribir la confirmación "RESET" en mayúsculas para activar la destrucción segura de datos.</li>
+    </ul>
+
+    <!-- SECCIÓN 5: PREGUNTAS FRECUENTES -->
+    <h1>5. Preguntas Frecuentes y Resolución de Incidentes</h1>
+
+    <h3>Un graduado no recibió el correo de invitación. ¿Cómo se soluciona?</h3>
+    <p>
+        Esto puede deberse a bloqueos de spam o correos corporativos estrictos. El administrador puede saltarse este paso: ingrese a <strong>Gestionar Graduados</strong>, localice al alumno y presione el botón <strong>"Generar Código OTP / Enlace Directo"</strong>. Copie la URL generada y hágasela llegar al estudiante por cualquier otra vía (ej. WhatsApp). Al ingresar a ese enlace, el alumno accederá directamente a su panel de reserva de butacas de manera segura.
+    </p>
+
+    <h3>La aplicación móvil de portería indica "Error de Conexión a la API".</h3>
+    <p>
+        Verifique que el teléfono móvil cuente con acceso a Internet (datos móviles o Wi-Fi). Si la conexión de red es óptima, es probable que la URL del servidor haya cambiado o esté mal configurada. Ingrese en la web al módulo de <strong>Seguridad</strong>, pulse en <strong>"Mostrar Acceso QR"</strong> del usuario correspondiente y solicite al portero que vuelva a escanear el código QR del <strong>Paso 1</strong> para reconfigurar la dirección IP del servidor.
+    </p>
+
+    <h3>¿Qué sucede si un graduado pierde su credencial QR el día de la ceremonia?</h3>
+    <p>
+        El personal de portería administrativa puede ingresar a la consola de administración desde cualquier computadora, tablet o celular, buscar al graduado en el listado de la ceremonia y realizar la acreditación manual haciendo clic en el botón de check-in de su fila correspondiente.
+    </p>
+
+    <h3>¿Cómo se realiza el traspaso de datos para iniciar una ceremonia al año siguiente?</h3>
+    <p>
+        Para comenzar un ciclo lectivo limpio: ingrese al <strong>Centro de Control</strong> con la cuenta de soporte técnico, descargue un respaldo en archivo JSON de la colación concluida, y luego pulse sobre el botón **"Formatear & Resetear"**. La base de datos quedará en blanco, la plataforma ingresará en modo de instalación inicial y estará lista para configurar los datos del nuevo período académico.
+    </p>
+
+</body>
+</html>

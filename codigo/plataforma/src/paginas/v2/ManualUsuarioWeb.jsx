@@ -317,6 +317,13 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
                     El personal de soporte técnico (`soporte@sigic.com.ar`) puede acceder al módulo de **Centro de Control** integrado en la web para vaciar las tablas de Neon Cloud y configurar una nueva ceremonia.
                   </p>
                 </div>
+
+                <div>
+                  <h4 className="text-slate-800 font-bold text-[12px] mb-1">Gestión de Cuentas y Soporte</h4>
+                  <p className="text-slate-500">
+                    El personal de soporte técnico (`soporte@sigic.com.ar`) tiene acceso tanto al **Centro de Control** (mantenimiento y base de datos) como al módulo de **Seguridad**, lo que le permite crear y gestionar cuentas de usuario generales, personal de portería, auditores y administradores especiales de la plataforma.
+                  </p>
+                </div>
               </div>
 
               <div className="lg:col-span-5 space-y-2">

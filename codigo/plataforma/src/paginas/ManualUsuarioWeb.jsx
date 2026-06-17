@@ -527,6 +527,13 @@ export function ManualUsuarioWeb({ onVolver }) {
                     </p>
                   </div>
 
+                  <div>
+                    <h4 className="text-white font-bold text-sm mb-1.5">¿Qué permisos tiene la cuenta de Soporte Técnico?</h4>
+                    <p className="text-white/70">
+                      La cuenta de soporte técnico (`soporte@sigic.com.ar`) tiene acceso exclusivo tanto al **Centro de Control** (mantenimiento y base de datos) como al módulo de **Seguridad**, lo que le permite crear y gestionar cuentas de usuario generales, personal de portería, auditores y administradores especiales de la plataforma.
+                    </p>
+                  </div>
+
                 </div>
 
                 {/* Columna Derecha: Diagrama */}
