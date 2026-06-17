@@ -1,5 +1,6 @@
-# MANUAL DE USUARIO Y GUÍA DE USO COTIDIANO DE SiGIC
-*Sistema de Gestión Institucional de Colaciones*
+# GUÍA DE USO DIARIO: SiGIC
+*Manual de Usuario y Operatoria Cotidiana*
+*Padrón de Egresados, Envío de Invitaciones, Asignación de Asientos y Acreditación con QR el Día de la Ceremonia*
 
 ---
 
@@ -7,9 +8,9 @@
 
 El sistema SiGIC cuenta con un portal unificado para el acceso de los diferentes operadores administrativos y los egresados de la colación activa.
 
-> [!TIP]
-> **Acceso al Panel de Gestión**
-> Para ingresar a las pantallas de inicio de sesión de personal administrativo, haga clic directamente en el botón **"Acceso Personal"** o **"Gestión"** ubicado en la esquina superior derecha del portal web, o acceda mediante la dirección URL correspondiente asignada a la administración (ej. `https://sigic-web.vercel.app/admin`).
+> [!NOTE]
+> **ACCESO AL PANEL DE GESTIÓN**
+> Para ingresar a las pantallas de inicio de sesión de personal administrativo, haga clic directamente en el botón **"Acceso Personal"** o **"Gestión"** ubicado en la esquina superior derecha del portal, o acceda mediante la dirección URL correspondiente asignada a la administración (ej. [https://sigic.com.ar/admin](https://sigic.com.ar/admin) o la URL de tu servidor `/admin`).
 
 ### Canales de Autenticación:
 *   **Personal Administrativo y de Soporte**: Ingresa a través del formulario de gestión escribiendo su correo electrónico institucional y contraseña asignada.
@@ -48,7 +49,7 @@ Ingrese a la sección **Gestionar Graduados**, presione el botón **"Cargar desd
 Una vez subido el padrón, presione el botón **"Enviar Invitaciones por Correo"**. El servidor comenzará a enviar de forma automatizada un correo electrónico personalizado a cada estudiante con el enlace directo para elegir sus asientos.
 
 > [!IMPORTANT]
-> **¿Qué hacer si un alumno no recibe el correo de invitación?**
+> **¿QUÉ HACER SI UN ALUMNO NO RECIBE EL CORREO DE INVITACIÓN?**
 > Si un alumno reporta que no recibió el correo electrónico (por ejemplo, por problemas de spam o casillas llenas):
 > 1. Vaya a **Gestionar Graduados** y búscuelo por su nombre o DNI.
 > 2. Verá un botón azul de enlace rápido al final de su fila.
@@ -70,12 +71,12 @@ El plano del anfiteatro permite organizar la distribución de los egresados y su
 
 ### Asignación de Butacas para Autoridades y Protocolo:
 Antes de abrir las reservas a los egresados, el administrador debe bloquear los asientos de protocolo:
-1. Ingrese a **Plano Anfiteatro** (o "Butacas" en el menú).
-2. Haga clic sobre los asientos de las primeras filas correspondientes a las autoridades o docentes de la colación.
-3. Seleccione la opción **"Bloquear Asiento / Protocolo"**. Estas butacas cambiarán a gris oscuro y quedarán inhabilitadas para la reserva de los estudiantes.
+1.  Ingrese a **Plano Anfiteatro** (o "Butacas" en el menú).
+2.  Haga clic sobre los asientos de las primeras filas correspondientes a las autoridades o docentes de la colación.
+3.  Seleccione la opción **"Bloquear Asiento / Protocolo"**. Estas butacas cambiarán a gris oscuro y quedarán inhabilitadas para la reserva de los estudiantes.
 
-> [!NOTE]
-> **Alerta de Movilidad Reducida**
+> [!WARNING]
+> **ALERTA DE MOVILIDAD REDUCIDA**
 > Cuando un graduado registra que uno de sus acompañantes posee movilidad reducida, su butaca aparecerá en el mapa del anfiteatro con un **icono de silla de ruedas** y un borde diferenciado. Esto le permite a los coordinadores del salón saber con anticipación dónde ubicar rampas o asistir físicamente a los familiares al ingresar al anfiteatro.
 
 ---
@@ -86,10 +87,10 @@ El día del acto, el control en las puertas de ingreso del anfiteatro se realiza
 
 ### 5.1. Vinculación y Login de los Celulares de Portería
 Para que el personal de seguridad pueda utilizar la cámara de sus celulares para escanear, deben tener una cuenta autorizada:
-1. En el panel web, ingrese a **Seguridad** (Personal de Seguridad / Portería).
-2. Presione "Registrar Personal" para crear una cuenta con rol `PORTERIA`.
-3. En la fila de la cuenta del portero, haga clic en **"Mostrar Acceso QR"**.
-4. Pida al personal de seguridad que abra la aplicación de SiGIC en su teléfono celular:
+1.  En el panel web, ingrese a **Seguridad** (Personal de Seguridad / Portería).
+2.  Presione **"Registrar Personal"** para crear una cuenta con rol `PORTERIA`.
+3.  En la fila de la cuenta del portero, haga clic en **"Mostrar Acceso QR"**.
+4.  Pida al personal de seguridad que abra la aplicación de SiGIC en su teléfono celular:
     *   **Paso 1**: Escanear el primer código QR en pantalla para conectar la red del teléfono con la plataforma.
     *   **Paso 2**: Escanear el segundo código QR para iniciar sesión de forma automática y segura sin teclear datos.
 
@@ -104,15 +105,15 @@ El portero apuntará la cámara del teléfono hacia la credencial del graduado o
 
 ### 5.3. Acreditación de Emergencia (Mediante Código Alfanumérico)
 Si un egresado o invitado pierde su credencial física, se le apaga el teléfono celular o no puede abrir el archivo PDF en el ingreso:
-1.  **Acreditación con Celular**: El personal de seguridad en puerta puede digitar el **código alfanumérico único** del egresado directamente en la aplicación móvil de portería para registrar el check-in.
-2.  **Soporte Papel**: Si el portero no cuenta con conexión móvil o el dispositivo falla, puede buscar al egresado/invitado en el **listado impreso en soporte papel** de la ceremonia, verificar su código alfanumérico de 8 caracteres y marcarlo de forma manual en la planilla física.
-3.  Este código alfanumérico se encuentra detallado en el correo electrónico oficial de confirmación que recibe cada estudiante tras registrar sus asientos, sirviendo como respaldo alternativo de validación de identidad.
+*   **Acreditación con Celular**: El personal de seguridad en puerta puede digitar el **código alfanumérico único** del egresado directamente en la aplicación móvil de portería para registrar el check-in.
+*   **Soporte Papel**: Si el portero no cuenta con conexión móvil o el dispositivo falla, puede buscar al egresado/invitado en el **listado impreso en soporte papel** de la ceremonia, verificar su código alfanumérico de 8 caracteres y marcarlo de forma manual en la planilla física.
+*   Este código alfanumérico se encuentra detallado en el correo electrónico oficial de confirmación que recibe cada estudiante tras registrar sus asientos, sirviendo como respaldo alternativo de validación de identidad.
 
 ---
 
 ## 6. REPORTES Y DESCARGAS AL FINALIZAR LA CEREMONIA
 
 Una vez concluida la ceremonia, el sistema permite generar informes de asistencia para el archivo institucional de la secretaría académica:
-1. Ingrese a la sección **Reportes** (o "Panel de Reportes" en el menú).
-2. Visualizará las métricas generales de asistencia: porcentaje final de ocupación, total de presentes, total de ausencias y listado de ingresos.
-3. Haga clic en el botón **"Exportar Listado de Asistencia (Excel)"** para descargar una planilla estructurada con los datos de todos los acreditados en puerta, incluyendo la hora exacta de su ingreso y número de butaca física utilizada.
+1.  Ingrese a la sección **Reportes** (o "Panel de Reportes" en el menú).
+2.  Visualizará las métricas generales de asistencia: porcentaje final de ocupación, total de presentes, total de ausencias y listado de ingresos.
+3.  Haga clic en el botón **"Exportar Listado de Asistencia (Excel)"** para descargar una planilla estructurada con los datos de todos los acreditados en puerta, incluyendo la hora exacta de su ingreso y número de butaca física utilizada.

@@ -1,7 +1,7 @@
 <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Manual de Usuario y Guía de Uso Cotidiano - SiGIC</title>
+    <title>Guía de Uso Diario - SiGIC</title>
     <style>
         body {
             font-family: 'Calibri', 'Arial', sans-serif;
@@ -176,7 +176,7 @@
     <div class="info-box">
         <div class="info-title">Acceso al Panel de Gestión</div>
         <p class="alert-content">
-            Para ingresar a las pantallas de inicio de sesión de personal administrativo, haga clic directamente en el botón <strong>"Acceso Personal"</strong> o <strong>"Gestión"</strong> ubicado en la esquina superior derecha del portal, o acceda mediante la dirección URL correspondiente asignada a la administración (ej. <code>https://sigic-web.vercel.app/admin</code>).
+            Para ingresar a las pantallas de inicio de sesión de personal administrativo, haga clic directamente en el botón <strong>"Acceso Personal"</strong> o <strong>"Gestión"</strong> ubicado en la esquina superior derecha del portal, o acceda mediante la dirección URL correspondiente asignada a la administración (ej. <code>https://sigic.com.ar/admin</code>).
         </p>
     </div>
 
@@ -328,14 +328,14 @@
         </tbody>
     </table>
 
-    <h2>5.3. Acreditación de Emergencia (Sin Credencial)</h2>
+    <h2>5.3. Acreditación de Emergencia (Mediante Código Alfanumérico)</h2>
     <p>
-        Si un egresado o invitado pierde su credencial, se le apaga el celular o no puede abrir el PDF en la entrada:
+        Si un egresado o invitado pierde su credencial física, se le apaga el teléfono celular o no puede abrir el archivo PDF en el ingreso:
     </p>
     <ol>
-        <li>No lo demore en la puerta. Derívelo a la mesa de control administrativo.</li>
-        <li>El operador administrativo ingresará al listado de graduados en la computadora de control, buscará al alumno por su DNI o apellido y verificará si sus asientos están reservados.</li>
-        <li>El administrador puede hacer clic en el botón de **"Check-In Manual"** en la fila del estudiante para acreditar el ingreso directamente en la base de datos sin necesidad de escanear ningún QR.</li>
+        <li><strong>Acreditación con Celular</strong>: El personal de seguridad en puerta puede digitar el <strong>código alfanumérico único</strong> del egresado directamente en la aplicación móvil de portería para registrar el check-in.</li>
+        <li><strong>Soporte Papel</strong>: Si el portero no cuenta con conexión móvil o el dispositivo falla, puede buscar al egresado/invitado en el <strong>listado impreso en soporte papel</strong> de la ceremonia, verificar su código alfanumérico de 8 caracteres y marcarlo de forma manual en la planilla física.</li>
+        <li>Este código alfanumérico se encuentra detallado en el correo electrónico oficial de confirmación que recibe cada estudiante tras registrar sus asientos, sirviendo como respaldo alternativo de validación de identidad.</li>
     </ol>
 
     <!-- SECCIÓN 6: REPORTES -->
