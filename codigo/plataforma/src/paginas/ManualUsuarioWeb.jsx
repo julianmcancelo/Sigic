@@ -3,7 +3,7 @@ import {
   ArrowLeft, ArrowRight, BookOpen, Book, Users, GraduationCap, 
   ScanLine, HelpCircle, Calendar, Shield, Server, LayoutGrid, 
   CheckCircle2, AlertTriangle, XCircle, List, Heart, Map,
-  ZoomIn, ZoomOut, Maximize2, Minimize2
+  ZoomIn, ZoomOut, Maximize2, Minimize2, Accessibility, Smartphone, FileText
 } from 'lucide-react'
 
 // ==========================================
@@ -257,7 +257,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
           </p>
           <div className="bg-sky-50 border-l-4 border-[#0056b3] p-2 rounded-r-lg mt-2">
             <p className="m-0 text-[9.5px] text-sky-800 font-semibold leading-relaxed">
-              ⚠️ <strong>¡Acordate!</strong> La reserva de butacas de los chicos y los escaneos en las entradas van a afectar exclusivamente a la ceremonia que tenga la estrella de **ACTIVA** en tu panel de ceremonias. Sincroniza al instante contra Neon PostgreSQL.
+              <AlertTriangle size={14} className="text-[#0056b3] inline mr-1 align-middle shrink-0" /> <strong>¡Acordate!</strong> La reserva de butacas de los chicos y los escaneos en las entradas van a afectar exclusivamente a la ceremonia que tenga la estrella de **ACTIVA** en tu panel de ceremonias. Sincroniza al instante contra Neon PostgreSQL.
             </p>
           </div>
         </div>
@@ -325,7 +325,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
         <WireframeEgresado />
 
         <div className="bg-sky-50 border border-sky-100 rounded-lg p-2 flex gap-2 items-start">
-          <span className="text-sky-500 shrink-0 font-bold">♿</span>
+          <Accessibility size={16} className="text-sky-500 shrink-0 mt-0.5" />
           <div>
             <h5 className="font-black text-sky-800 text-[9.5px] uppercase m-0">Movilidad Reducida</h5>
             <p className="m-0 text-slate-500 text-[9px] leading-relaxed mt-0.5">
@@ -411,7 +411,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
 
         <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 space-y-1">
           <h4 className="font-black text-slate-755 uppercase text-[9.5px] tracking-wider m-0 flex items-center gap-1.5">
-            <span className="text-sky-500">📱</span> Acreditación con Celular
+            <Smartphone size={14} className="text-[#0056b3] shrink-0" /> Acreditación con Celular
           </h4>
           <p className="text-slate-500 m-0 text-[9.5px]">
             El portero puede escribir a mano el <strong>código alfanumérico único</strong> del invitado (código de 8 dígitos que figura en su correo) directamente en la app del celu de portería.
@@ -420,7 +420,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
 
         <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 space-y-1">
           <h4 className="font-black text-slate-755 uppercase text-[9.5px] tracking-wider m-0 flex items-center gap-1.5">
-            <span className="text-sky-500">📝</span> Soporte Papel (Plan de Contingencia)
+            <FileText size={14} className="text-[#0056b3] shrink-0" /> Soporte Papel (Plan de Contingencia)
           </h4>
           <p className="text-slate-505 m-0 text-[9.5px]">
             Si no hay nada de señal o red en la entrada, buscá a la persona en el <strong>listado impreso en soporte papel</strong> de tu mesa de control, corroborá su código alfanumérico y tildale el ingreso físico a mano.
@@ -603,78 +603,91 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
 
       {/* CONTENEDOR SCROLLABLE DEL LIBRO ABIERTO */}
       <div 
-        className="w-full overflow-auto p-4 flex justify-center items-start scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent"
+        className="w-full overflow-auto p-4 flex justify-start items-start scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent"
         style={{ 
           maxHeight: esPantallaCompleta ? '90vh' : '75vh',
           width: '100%'
         }}
       >
-        {/* CUERPO DEL LIBRO CON SCALE DINÁMICO */}
-        <div 
-          className={`bg-white border border-slate-200/50 rounded-[24px] shadow-2xl relative overflow-hidden transition-all duration-300 ${
-            estaAnimando ? 'opacity-80 scale-[0.99] blur-xs' : 'opacity-100 scale-100 blur-none'
-          }`}
+        {/* WRAPPER FÍSICO CON TAMAÑO ESCALADO REAL */}
+        <div
+          className="mx-auto transition-all duration-300 flex items-start justify-center"
           style={{
-            transform: `scale(${nivelZoom})`,
-            transformOrigin: 'top center',
-            width: '1050px',
-            minWidth: esMovil ? '100%' : '900px',
-            minHeight: '520px',
-            marginTop: nivelZoom > 1 ? `${(nivelZoom - 1) * 260}px` : '0px',
-            marginBottom: nivelZoom > 1 ? `${(nivelZoom - 1) * 260}px` : '0px',
-            boxShadow: '0 25px 60px -15px rgba(0,0,0,0.6)'
+            width: esMovil ? `${Math.round(nivelZoom * 100)}%` : `${1050 * nivelZoom}px`,
+            height: esMovil ? 'auto' : `${540 * nivelZoom}px`,
+            position: 'relative',
+            minWidth: esMovil ? '100%' : `${900 * nivelZoom}px`
           }}
         >
-          <div className="relative min-h-[520px] flex flex-col lg:flex-row">
-            
-            {/* Lomo y Sombra Central (Solo en Desktop) */}
-            {!esMovil && (
-              <>
-                <div className="absolute left-1/2 -translate-x-1/2 top-0 w-3.5 h-full bg-gradient-to-r from-slate-200 via-slate-350 to-slate-200 border-x border-slate-300/40 z-30 pointer-events-none" />
-                <div className="absolute left-1/2 -translate-x-1/2 top-0 w-16 h-full bg-gradient-to-r from-black/0 via-black/5 to-black/0 z-20 pointer-events-none" />
-                <div className="absolute left-[calc(50%-24px)] w-6 h-full bg-gradient-to-r from-black/0 to-black/4 z-20 pointer-events-none" />
-                <div className="absolute left-1/2 w-6 h-full bg-gradient-to-r from-black/4 to-black/0 z-20 pointer-events-none" />
-              </>
-            )}
+          {/* CUERPO DEL LIBRO CON SCALE DINÁMICO */}
+          <div 
+            className={`bg-white border border-slate-200/50 rounded-[24px] shadow-2xl relative overflow-hidden transition-all duration-300 ${
+              estaAnimando ? 'opacity-80 scale-[0.99] blur-xs' : 'opacity-100 scale-100 blur-none'
+            }`}
+            style={{
+              transform: `scale(${nivelZoom})`,
+              transformOrigin: 'top left',
+              width: esMovil ? `calc(100% / ${nivelZoom})` : '1050px',
+              minWidth: esMovil ? '100%' : '900px',
+              height: esMovil ? 'auto' : '540px',
+              minHeight: '540px',
+              position: esMovil ? 'relative' : 'absolute',
+              top: 0,
+              left: 0,
+              boxShadow: '0 25px 60px -15px rgba(0,0,0,0.6)'
+            }}
+          >
+            <div className="relative min-h-[540px] flex flex-col lg:flex-row">
+              
+              {/* Lomo y Sombra Central (Solo en Desktop) */}
+              {!esMovil && (
+                <>
+                  <div className="absolute left-1/2 -translate-x-1/2 top-0 w-3.5 h-full bg-gradient-to-r from-slate-200 via-slate-350 to-slate-200 border-x border-slate-300/40 z-30 pointer-events-none" />
+                  <div className="absolute left-1/2 -translate-x-1/2 top-0 w-16 h-full bg-gradient-to-r from-black/0 via-black/5 to-black/0 z-20 pointer-events-none" />
+                  <div className="absolute left-[calc(50%-24px)] w-6 h-full bg-gradient-to-r from-black/0 to-black/4 z-20 pointer-events-none" />
+                  <div className="absolute left-1/2 w-6 h-full bg-gradient-to-r from-black/4 to-black/0 z-20 pointer-events-none" />
+                </>
+              )}
 
-            {/* MÓVIL: MUESTRA UNA SOLA PÁGINA */}
-            {esMovil ? (
-              <div className="w-full bg-paper p-6 sm:p-8 flex flex-col justify-between min-h-[520px]">
-                <div className="flex-1">
-                  {listaPaginas[paginaMovil]}
-                </div>
-                <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-[9px] font-bold text-slate-400 font-mono select-none">
-                  <span>SiGIC Manual</span>
-                  <span>Pág. {paginaMovil} / 10</span>
-                </div>
-              </div>
-            ) : (
-              // DESKTOP: DOS PÁGINAS (IZQUIERDA Y DERECHA)
-              <>
-                {/* PÁGINA IZQUIERDA */}
-                <div className="w-1/2 bg-paper p-8 flex flex-col justify-between border-r border-slate-150 relative page-shadow-left">
+              {/* MÓVIL: MUESTRA UNA SOLA PÁGINA */}
+              {esMovil ? (
+                <div className="w-full bg-paper p-6 sm:p-8 flex flex-col justify-between min-h-[540px]">
                   <div className="flex-1">
-                    {listaPaginas[(pliegoActual - 1) * 2 + 1]}
+                    {listaPaginas[paginaMovil]}
                   </div>
-                  <div className="pt-4 border-t border-slate-100/60 flex items-center justify-between text-[9px] font-bold text-slate-400 font-mono select-none">
+                  <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-[9px] font-bold text-slate-400 font-mono select-none">
                     <span>SiGIC Manual</span>
-                    <span>Pág. {(pliegoActual - 1) * 2 + 1}</span>
+                    <span>Pág. {paginaMovil} / 10</span>
                   </div>
                 </div>
-
-                {/* PÁGINA DERECHA */}
-                <div className="w-1/2 bg-paper p-8 flex flex-col justify-between relative page-shadow-right">
-                  <div className="flex-1">
-                    {listaPaginas[(pliegoActual - 1) * 2 + 2]}
+              ) : (
+                // DESKTOP: DOS PÁGINAS (IZQUIERDA Y DERECHA)
+                <>
+                  {/* PÁGINA IZQUIERDA */}
+                  <div className="w-1/2 bg-paper p-8 flex flex-col justify-between border-r border-slate-150 relative page-shadow-left">
+                    <div className="flex-1">
+                      {listaPaginas[(pliegoActual - 1) * 2 + 1]}
+                    </div>
+                    <div className="pt-4 border-t border-slate-100/60 flex items-center justify-between text-[9px] font-bold text-slate-400 font-mono select-none">
+                      <span>SiGIC Manual</span>
+                      <span>Pág. {(pliegoActual - 1) * 2 + 1}</span>
+                    </div>
                   </div>
-                  <div className="pt-4 border-t border-slate-100/60 flex items-center justify-between text-[9px] font-bold text-slate-400 font-mono select-none">
-                    <span>Manual Oficial</span>
-                    <span>Pág. {(pliegoActual - 1) * 2 + 2}</span>
-                  </div>
-                </div>
-              </>
-            )}
 
+                  {/* PÁGINA DERECHA */}
+                  <div className="w-1/2 bg-paper p-8 flex flex-col justify-between relative page-shadow-right">
+                    <div className="flex-1">
+                      {listaPaginas[(pliegoActual - 1) * 2 + 2]}
+                    </div>
+                    <div className="pt-4 border-t border-slate-100/60 flex items-center justify-between text-[9px] font-bold text-slate-400 font-mono select-none">
+                      <span>Manual Oficial</span>
+                      <span>Pág. {(pliegoActual - 1) * 2 + 2}</span>
+                    </div>
+                  </div>
+                </>
+              )}
+
+            </div>
           </div>
         </div>
       </div>
