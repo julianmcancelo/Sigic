@@ -102,11 +102,11 @@ El portero apuntará la cámara del teléfono hacia la credencial del graduado o
 | **NARANJA** | **Acceso Duplicado** | QR legítimo pero que ya ingresó al salón anteriormente. La app emite una alerta y muestra la hora del primer ingreso. **Acción**: Revise el DNI del portador; podría tratarse de una copia de la credencial. |
 | **ROJO** | **Acceso Denegado** | QR inválido, corrupto o correspondiente a otra ceremonia. El teléfono vibra fuertemente y no permite el ingreso del portador al anfiteatro. |
 
-### 5.3. Acreditación de Emergencia (Sin Credencial)
-Si un egresado o invitado pierde su credencial, se le apaga el celular o no puede abrir el PDF en la entrada:
-1. No lo demore en la puerta. Derívelo a la mesa de control administrativo.
-2. El operador administrativo ingresará al listado de graduados en la computadora de control, buscará al alumno por su DNI o apellido y verificará si sus asientos están reservados.
-3. El administrador puede hacer clic en el botón de **"Check-In Manual"** en la fila del estudiante para acreditar el ingreso directamente en la base de datos sin necesidad de escanear ningún QR.
+### 5.3. Acreditación de Emergencia (Mediante Código Alfanumérico)
+Si un egresado o invitado pierde su credencial física, se le apaga el teléfono celular o no puede abrir el archivo PDF en el ingreso:
+1.  **Acreditación con Celular**: El personal de seguridad en puerta puede digitar el **código alfanumérico único** del egresado directamente en la aplicación móvil de portería para registrar el check-in.
+2.  **Soporte Papel**: Si el portero no cuenta con conexión móvil o el dispositivo falla, puede buscar al egresado/invitado en el **listado impreso en soporte papel** de la ceremonia, verificar su código alfanumérico de 8 caracteres y marcarlo de forma manual en la planilla física.
+3.  Este código alfanumérico se encuentra detallado en el correo electrónico oficial de confirmación que recibe cada estudiante tras registrar sus asientos, sirviendo como respaldo alternativo de validación de identidad.
 
 ---
 
