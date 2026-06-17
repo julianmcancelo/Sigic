@@ -114,7 +114,14 @@ Es el día de la ceremonia. Debe preparar los accesos y montar una mesa de sopor
 *   **Alerta de Movilidad Reducida:** Si se dispara este aviso en pantalla, el portero solicitará soporte a un asistente de sala para que guíe al invitado de manera prioritaria.
 *   **Pantalla Naranja (Duplicado):** Si el QR ya fue escaneado, se deniega el ingreso por sospecha de fraude y se deriva el caso a la mesa de soporte.
 
-### 5.3 Mesa de Ayuda / Soporte de Emergencia (En el ingreso)
+### 5.3 Acreditación de Emergencia (Código Alfanumérico)
+Si un egresado o invitado pierde su credencial física, se le apaga el teléfono celular o no puede abrir el archivo PDF en el ingreso:
+
+1.  **Acreditación con Celular:** El personal de seguridad en puerta puede digitar el **código alfanumérico único** del egresado directamente en la aplicación móvil de portería para registrar el check-in.
+2.  **Soporte Papel:** Si el portero no cuenta con conexión móvil o el dispositivo falla, puede buscar al egresado/invitado en el **listado impreso en soporte papel** de la ceremonia, verificar su código alfanumérico de 8 caracteres y marcarlo de forma manual en la planilla física.
+3.  Este código alfanumérico se encuentra detallado en el correo electrónico oficial de confirmación que recibe cada estudiante tras registrar sus asientos, sirviendo como respaldo alternativo de validación de identidad.
+
+### 5.4 Mesa de Ayuda / Soporte de Emergencia (En el ingreso)
 El operador del sistema debe estar ubicado en el hall con una computadora conectada a la web de administración para resolver tres incidentes típicos:
 
 1.  **"Olvidé / Perdí mi credencial QR"**

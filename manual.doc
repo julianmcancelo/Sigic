@@ -1,0 +1,353 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Guía de Uso Diario - SiGIC</title>
+    <style>
+        body {
+            font-family: 'Calibri', 'Arial', sans-serif;
+            font-size: 11pt;
+            line-height: 1.6;
+            color: #2b3a4a;
+            margin: 1in;
+        }
+        h1 {
+            font-size: 22pt;
+            color: #0c4a6e;
+            margin-top: 28pt;
+            margin-bottom: 12pt;
+            font-weight: bold;
+            border-bottom: 2px solid #0ea5e9;
+            padding-bottom: 5px;
+        }
+        h2 {
+            font-size: 15pt;
+            color: #1e293b;
+            margin-top: 20pt;
+            margin-bottom: 10pt;
+            font-weight: bold;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 3px;
+        }
+        h3 {
+            font-size: 12.5pt;
+            color: #0f172a;
+            margin-top: 14pt;
+            margin-bottom: 6pt;
+            font-weight: bold;
+        }
+        p {
+            margin-top: 0;
+            margin-bottom: 10pt;
+            text-align: justify;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 12pt;
+            margin-bottom: 12pt;
+        }
+        th {
+            background-color: #0c4a6e;
+            color: #ffffff;
+            font-weight: bold;
+            text-align: left;
+            padding: 8px;
+            font-size: 10pt;
+            border: 1px solid #cbd5e1;
+        }
+        td {
+            padding: 8px;
+            font-size: 10pt;
+            border: 1px solid #cbd5e1;
+        }
+        tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+        .cover-page {
+            text-align: center;
+            padding-top: 2.2in;
+            page-break-after: always;
+        }
+        .cover-title {
+            font-size: 34pt;
+            color: #0c4a6e;
+            font-weight: bold;
+            margin-bottom: 8pt;
+        }
+        .cover-subtitle {
+            font-size: 15pt;
+            color: #0ea5e9;
+            margin-bottom: 35pt;
+        }
+        .cover-footer {
+            margin-top: 2.8in;
+            font-size: 10pt;
+            color: #64748b;
+            line-height: 1.8;
+        }
+        .step-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            padding: 12px 16px;
+            margin-top: 10pt;
+            margin-bottom: 10pt;
+            border-radius: 8px;
+        }
+        .alert-box {
+            background-color: #fffbeb;
+            border-left: 4px solid #f59e0b;
+            padding: 12px;
+            margin-top: 10pt;
+            margin-bottom: 10pt;
+            border-radius: 4px;
+        }
+        .alert-title {
+            font-weight: bold;
+            color: #b45309;
+            margin-bottom: 4px;
+            font-size: 9.5pt;
+            text-transform: uppercase;
+        }
+        .alert-content {
+            font-size: 10pt;
+            margin: 0;
+        }
+        .info-box {
+            background-color: #f0f9ff;
+            border-left: 4px solid #0ea5e9;
+            padding: 12px;
+            margin-top: 10pt;
+            margin-bottom: 10pt;
+            border-radius: 4px;
+        }
+        .info-title {
+            font-weight: bold;
+            color: #0369a1;
+            margin-bottom: 4px;
+            font-size: 9.5pt;
+            text-transform: uppercase;
+        }
+        ul, ol {
+            margin-top: 0;
+            margin-bottom: 10pt;
+            padding-left: 20pt;
+        }
+        li {
+            margin-bottom: 4pt;
+        }
+        .highlight {
+            background-color: #f1f5f9;
+            padding: 1px 3px;
+            border-radius: 3px;
+            font-family: Consolas, monospace;
+            font-size: 9.5pt;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- PORTADA DEL DOCUMENTO -->
+    <div class="cover-page">
+        <div style="font-size: 13pt; color: #64748b; font-weight: bold; text-transform: uppercase; letter-spacing: 3px; margin-bottom: 15pt;">
+            Guía de Uso Diario
+        </div>
+        <div class="cover-title">SiGIC</div>
+        <div class="cover-subtitle">Manual de Usuario y Operatoria Cotidiana</div>
+        
+        <div style="width: 120px; height: 3px; background-color: #0ea5e9; margin: 0 auto 30pt auto;"></div>
+        
+        <div style="font-size: 13pt; font-weight: bold; color: #1e293b; max-width: 500px; margin: 0 auto; line-height: 1.4;">
+            Padrón de Egresados, Envío de Invitaciones, Asignación de Asientos y Acreditación con QR el Día de la Ceremonia
+        </div>
+        
+        <div class="cover-footer">
+            <strong>Instituto Tecnológico Beltrán (ITB)</strong><br>
+            Prácticas Profesionalizantes · Gestión de Colaciones Académicas<br>
+            Documento listo para guardar/imprimir en formato Microsoft Word (.docx)
+        </div>
+    </div>
+
+    <!-- SECCIÓN 1: INICIO DE SESIÓN -->
+    <h1>1. Acceso a la Plataforma e Inicio de Sesión</h1>
+    <p>
+        El sistema SiGIC cuenta con un portal unificado para el acceso de los diferentes operadores administrativos y los egresados de la colación activa.
+    </p>
+
+    <div class="info-box">
+        <div class="info-title">Acceso al Panel de Gestión</div>
+        <p class="alert-content">
+            Para ingresar a las pantallas de inicio de sesión de personal administrativo, haga clic directamente en el botón <strong>"Acceso Personal"</strong> o <strong>"Gestión"</strong> ubicado en la esquina superior derecha del portal, o acceda mediante la dirección URL correspondiente asignada a la administración (ej. <code>https://sigic.com.ar/admin</code>).
+        </p>
+    </div>
+
+    <h3>Canales de Autenticación:</h3>
+    <ul>
+        <li><strong>Personal Administrativo y de Soporte</strong>: Ingresa a través del formulario de gestión escribiendo su correo electrónico institucional y contraseña asignada.</li>
+        <li><strong>Graduados</strong>: Acceden sin contraseña desde el portal de alumnos. Escriben su DNI y reciben en su casilla de correo una clave temporal de un solo uso de 6 dígitos (Código OTP) que valida su sesión de forma segura.</li>
+    </ul>
+
+    <!-- SECCIÓN 2: OPERACIÓN DIARIA -->
+    <h1>2. Operación Diaria y Activación de la Ceremonia</h1>
+    <p>
+        El sistema SiGIC puede contener registros de múltiples ceremonias de colación (por ejemplo: diferentes años, turnos o carreras). Sin embargo, <strong>solo una ceremonia puede estar "Activa" a la vez</strong>.
+    </p>
+    <p>
+        Es fundamental que al iniciar la jornada de trabajo verifique y active la ceremonia correspondiente, ya que todas las reservas de butacas de los estudiantes y los escaneos del personal de portería se aplicarán automáticamente sobre el evento activo.
+    </p>
+
+    <div class="step-box">
+        <strong>Paso a Paso para Activar la Ceremonia del Día:</strong>
+        <ol>
+            <li>Ingrese al panel principal y haga clic en la opción <strong>Ceremonias</strong> (en el menú lateral o clásico).</li>
+            <li>Visualizará el listado de ceremonias creadas. Si la del día no existe, presione <strong>"Crear Ceremonia"</strong> y complete los datos de fecha, hora, lugar del evento y el **Límite de Acompañantes por Egresado** (aforo permitido).</li>
+            <li>En la fila de la ceremonia correspondiente, presione el botón de activar. Al hacerlo, se marcará con una estrella y la leyenda **"ACTIVA"**. A partir de este instante, el sistema queda sincronizado para ese evento.</li>
+        </ol>
+    </div>
+
+    <!-- SECCIÓN 3: GESTIÓN DE PADRÓN -->
+    <h1>3. Carga del Padrón de Egresados y Despacho de Invitaciones</h1>
+    <p>
+        Para que los graduados puedan elegir sus asientos, el personal administrativo debe cargar previamente el padrón de alumnos habilitados para la ceremonia activa.
+    </p>
+
+    <h3>Paso 1: Preparación del archivo Excel</h3>
+    <p>
+        Descargue la plantilla modelo del sistema. La planilla de cálculo debe contener exactamente cuatro columnas:
+    </p>
+    <ol>
+        <li><strong>Nombre</strong>: Nombre y apellido completo del egresado.</li>
+        <li><strong>DNI</strong>: Documento de identidad (sin puntos ni espacios).</li>
+        <li><strong>Correo</strong>: Dirección de e-mail donde el alumno recibirá el código de acceso y su credencial.</li>
+        <li><strong>Carrera</strong>: Nombre formal de la carrera que finalizó.</li>
+    </ol>
+
+    <h3>Paso 2: Importar el Padrón</h3>
+    <p>
+        Ingrese a la sección <strong>Gestionar Graduados</strong>, presione el botón <strong>"Cargar desde Excel"</strong> y arrastre el archivo a la zona de carga. El sistema verificará los datos y los guardará en la nube, mostrando un resumen de la cantidad de graduados ingresados exitosamente.
+    </p>
+
+    <h3>Paso 3: Envío Masivo de Invitaciones</h3>
+    <p>
+        Una vez subido el padrón, presione el botón <strong>"Enviar Invitaciones por Correo"</strong>. El servidor comenzará a enviar de forma automatizada un correo electrónico personalizado a cada estudiante con el enlace directo para elegir sus asientos.
+    </p>
+
+    <div class="alert-box">
+        <div class="alert-title">¿Qué hacer si un alumno no recibe el correo de invitación?</div>
+        <p class="alert-content">
+            Si un alumno reporta que no recibió el correo electrónico (por ejemplo, por problemas de spam o casillas llenas):
+            <br>1. Vaya a <strong>Gestionar Graduados</strong> y búscuelo por su nombre o DNI.
+            <br>2. Verá un botón azul de enlace rápido al final de su fila.
+            <br>3. Haga clic para **generar y copiar el enlace directo** (contiene el token de acceso).
+            <br>4. Envíeselo al alumno de manera privada (por WhatsApp o chat institucional). Al hacer clic en ese enlace, el graduado ingresará a su panel de reserva al instante sin requerir código OTP.
+        </p>
+    </div>
+
+    <!-- SECCIÓN 4: CONTROL DEL ANFITEATRO -->
+    <h1>4. Distribución de Asientos y Control del Anfiteatro</h1>
+    <p>
+        El plano del anfiteatro permite organizar la distribución de los egresados y sus familiares de forma visual e interactiva. Es recomendable revisar el mapa días antes de la ceremonia.
+    </p>
+
+    <h3>Código de Colores de las Butacas:</h3>
+    <ul>
+        <li><strong>Azul (Egresados)</strong>: Representa las butacas asignadas exclusivamente a los alumnos que reciben diploma.</li>
+        <li><strong>Verde (Acompañantes)</strong>: Representa los asientos seleccionados por los familiares/invitados de los alumnos.</li>
+        <li><strong>Rojo (Ocupado)</strong>: Butacas que ya han sido reservadas por otros graduados de la ceremonia.</li>
+        <li><strong>Gris Claro (Libre)</strong>: Asientos disponibles para ser seleccionados.</li>
+        <li><strong>Gris Oscuro (Reservado/Bloqueado)</strong>: Asientos reservados por la organización (por ejemplo, primeras filas destinadas a Directivos, Autoridades o Profesores).</li>
+    </ul>
+
+    <h3>Asignación de Butacas para Autoridades y Protocolo:</h3>
+    <p>
+        Antes de abrir las reservas a los egresados, el administrador debe bloquear los asientos de protocolo:
+    </p>
+    <ol>
+        <li>Ingrese a <strong>Plano Anfiteatro</strong> (o "Butacas" en el menú).</li>
+        <li>Haga clic sobre los asientos de las primeras filas correspondientes a las autoridades o docentes de la colación.</li>
+        <li>Seleccione la opción <strong>"Bloquear Asiento / Protocolo"</strong>. Estas butacas cambiarán a gris oscuro y quedarán inhabilitadas para la reserva de los estudiantes.</li>
+    </ol>
+
+    <div class="info-box">
+        <div class="info-title">Alerta de Movilidad Reducida</div>
+        <p class="alert-content">
+            Cuando un graduado registra que uno de sus acompañantes posee movilidad reducida, su butaca aparecerá en el mapa del anfiteatro con un **icono de silla de ruedas** y un borde diferenciado. Esto le permite a los coordinadores del salón saber con anticipación dónde ubicar rampas o asistir físicamente a los familiares al ingresar al anfiteatro.
+        </p>
+    </div>
+
+    <!-- SECCIÓN 5: DÍA DEL EVENTO -->
+    <h1>5. Operatoria de Acreditación el Día de la Ceremonia (Portería)</h1>
+    <p>
+        El día del acto, el control en las puertas de ingreso del anfiteatro se realiza mediante la aplicación móvil de SiGIC o mediante el panel de control administrativo.
+    </p>
+
+    <h2>5.1. Vinculación y Login de los Celulares de Portería</h2>
+    <p>
+        Para que el personal de seguridad pueda utilizar la cámara de sus celulares para escanear, deben tener una cuenta autorizada:
+    </p>
+    <ol>
+        <li>En el panel web, ingrese a <strong>Seguridad</strong> (Personal de Seguridad / Portería).</li>
+        <li>Presione "Registrar Personal" para crear una cuenta con rol <code>PORTERIA</code>.</li>
+        <li>En la fila de la cuenta del portero, haga clic en <strong>"Mostrar Acceso QR"</strong>.</li>
+        <li>Pida al personal de seguridad que abra la aplicación de SiGIC en su teléfono celular:
+            <ul>
+                <li><strong>Paso 1</strong>: Escanear el primer código QR en pantalla para conectar la red del teléfono con la plataforma.</li>
+                <li><strong>Paso 2</strong>: Escanear el segundo código QR para iniciar sesión de forma automática y segura sin teclear datos.</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h2>5.2. Protocolo de Escaneo de Códigos QR</h2>
+    <p>
+        El portero apuntará la cámara del teléfono hacia la credencial del graduado o acompañante (ya sea impresa en papel o mostrada en la pantalla de su celular). La aplicación emitirá una respuesta sonora, táctil y visual según el estado del ingreso:
+    </p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Pantalla del Celular</th>
+                <th>Estado de Ingreso</th>
+                <th>Significado y Acción Requerida</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="color: #059669; font-weight: bold; background-color: #ecfdf5;">VERDE</td>
+                <td style="font-weight: bold;">Acceso Autorizado</td>
+                <td>QR legítimo y válido. El teléfono emite un pitido agudo y vibra. Muestra el nombre y el número de butaca asignada para indicarle al invitado hacia dónde dirigirse.</td>
+            </tr>
+            <tr>
+                <td style="color: #d97706; font-weight: bold; background-color: #fffbeb;">NARANJA</td>
+                <td style="font-weight: bold;">Acceso Duplicado</td>
+                <td>QR legítimo pero que ya ingresó al salón anteriormente. La app emite una alerta y muestra la hora del primer ingreso. **Acción**: Revise el DNI del portador; podría tratarse de una copia de la credencial.</td>
+            </tr>
+            <tr>
+                <td style="color: #dc2626; font-weight: bold; background-color: #fef2f2;">ROJO</td>
+                <td style="font-weight: bold;">Acceso Denegado</td>
+                <td>QR inválido, corrupto o correspondiente a otra ceremonia. El teléfono vibra fuertemente y no permite el ingreso del portador al anfiteatro.</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>5.3. Acreditación de Emergencia (Mediante Código Alfanumérico)</h2>
+    <p>
+        Si un egresado o invitado pierde su credencial física, se le apaga el teléfono celular o no puede abrir el archivo PDF en el ingreso:
+    </p>
+    <ol>
+        <li><strong>Acreditación con Celular</strong>: El personal de seguridad en puerta puede digitar el <strong>código alfanumérico único</strong> del egresado directamente en la aplicación móvil de portería para registrar el check-in.</li>
+        <li><strong>Soporte Papel</strong>: Si el portero no cuenta con conexión móvil o el dispositivo falla, puede buscar al egresado/invitado en el <strong>listado impreso en soporte papel</strong> de la ceremonia, verificar su código alfanumérico de 8 caracteres y marcarlo de forma manual en la planilla física.</li>
+        <li>Este código alfanumérico se encuentra detallado en el correo electrónico oficial de confirmación que recibe cada estudiante tras registrar sus asientos, sirviendo como respaldo alternativo de validación de identidad.</li>
+    </ol>
+
+    <!-- SECCIÓN 6: REPORTES -->
+    <h1>6. Reportes y Descargas al Finalizar la Ceremonia</h1>
+    <p>
+        Una vez concluida la ceremonia, el sistema permite generar informes de asistencia para el archivo institucional de la secretaría académica:
+    </p>
+    <ol>
+        <li>Ingrese a la sección <strong>Reportes</strong> (o "Panel de Reportes" en el menú).</li>
+        <li>Visualizará las métricas generales de asistencia: porcentaje final de ocupación, total de presentes, total de ausencias y listado de ingresos.</li>
+        <li>Haga clic en el botón <strong>"Exportar Listado de Asistencia (Excel)"</strong> para descargar una planilla estructurada con los datos de todos los acreditados en puerta, incluyendo la hora exacta de su ingreso y número de butaca física utilizada.</li>
+    </ol>
+
+</body>
+</html>
