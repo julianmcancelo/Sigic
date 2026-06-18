@@ -912,7 +912,16 @@ export async function POST(
         return NextResponse.json({ error: 'Nombre, legajo y DNI son obligatorios' }, { status: 400, headers });
       }
 
-      const token = firmar({ tipo: 'egresado', id: legajo }, 10 * 365 * 24 * 60 * 60).substring(0, 8).toUpperCase(); // simpler legacy fallback token
+      // Pre-verificación: no permitir duplicados por legajo + carrera + año de inscripción
+      const existente = await query(
+        `SELECT id FROM egresados WHERE UPPER(COALESCE(legajo,'')) = UPPER(COALESCE($1,'')) AND UPPER(COALESCE(carrera,'')) = UPPER(COALESCE($2,'')) AND COALESCE(anio_inscripcion, 0) = COALESCE($3, 0)`,
+        [legajo?.trim(), carrera?.trim() || null, anio_inscripcion ? parseInt(anio_inscripcion) : 0]
+      );
+      if (existente.rows.length > 0) {
+        return NextResponse.json({ error: 'Ya existe un graduado con el mismo legajo, carrera y año de inscripción' }, { status: 409, headers });
+      }
+
+      const token = crypto.randomBytes(4).toString('hex').toUpperCase(); // 8-char código seguro
 
       const result = await query(
         `INSERT INTO egresados (nombre, legajo, dni, correo, token, ceremonia_id, carrera, anio_inscripcion, promedio) 
@@ -944,16 +953,19 @@ export async function POST(
       const client = await pool.connect();
       try {
         await client.query('BEGIN');
-        const resultados = [];
+        const exitosos: any[] = [];
+        const conflictos: any[] = [];
         
         for (const e of egresados) {
-          const token = crypto.randomBytes(4).toString('hex').toUpperCase(); // 8-char secure code
+          const token = crypto.randomBytes(4).toString('hex').toUpperCase(); // 8-char código seguro
           const result = await client.query(
             `INSERT INTO egresados (nombre, legajo, dni, correo, token, ceremonia_id, carrera, anio_inscripcion, promedio) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+             ON CONFLICT ON CONSTRAINT egresados_legajo_carrera_anio_key DO NOTHING
+             RETURNING *`,
             [
               e.nombre.trim(), 
-              e.legajo.trim(), 
+              e.legajo?.trim() || '', 
               String(e.dni).replace(/\s/g, ''), 
               e.correo ? e.correo.trim().toLowerCase() : null, 
               token, 
@@ -963,11 +975,16 @@ export async function POST(
               e.promedio ? parseFloat(e.promedio) : null
             ]
           );
-          resultados.push(result.rows[0]);
+          if (result.rows.length > 0) {
+            exitosos.push(result.rows[0]);
+          } else {
+            // El registro fue ignorado por conflicto de legajo + carrera + año
+            conflictos.push({ egresado: e.nombre, dni: e.dni, legajo: e.legajo, motivo: 'Duplicado (legajo + carrera + año)' });
+          }
         }
         
         await client.query('COMMIT');
-        return NextResponse.json({ ok: true, importados: resultados.length }, { headers });
+        return NextResponse.json({ ok: true, importados: exitosos.length, exitosos, conflictos, errores: 0 }, { headers });
       } catch (error: any) {
         await client.query('ROLLBACK');
         console.error('Error importación masiva:', error);

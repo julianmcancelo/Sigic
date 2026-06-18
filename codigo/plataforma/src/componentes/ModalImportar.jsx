@@ -29,8 +29,10 @@ export function ModalImportar({ onCerrar, onCompletado }) {
           dni: row.dni || row.DNI || row.documento || row.Documento || '',
           legajo: row.legajo || row.Legajo || row.LEGAJO || '',
           correo: row.correo || row.Correo || row.email || row.Email || '',
-          promedio: row.promedio || row.Promedio || row.PROMEDIO || ''
-        })).filter(r => r.nombre && r.dni)
+          promedio: row.promedio || row.Promedio || row.PROMEDIO || '',
+          carrera: row.carrera || row.Carrera || row.CARRERA || '',
+          anio_inscripcion: row.anio_inscripcion || row['Año de Inscripción'] || row['año'] || row['Año'] || row.AÑO || row.anio || row.Anio || ''
+        })).filter(r => r.nombre && (r.dni || r.legajo))
 
         setPrevisualizacion(mapeado)
       } catch (err) {
@@ -105,6 +107,8 @@ export function ModalImportar({ onCerrar, onCompletado }) {
                           <th className="p-4">Nombre</th>
                           <th className="p-4">DNI</th>
                           <th className="p-4">Legajo</th>
+                          <th className="p-4">Carrera</th>
+                          <th className="p-4">Año</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-50">
@@ -113,6 +117,8 @@ export function ModalImportar({ onCerrar, onCompletado }) {
                             <td className="p-4 font-bold">{r.nombre}</td>
                             <td className="p-4">{r.dni}</td>
                             <td className="p-4">{r.legajo}</td>
+                            <td className="p-4">{r.carrera}</td>
+                            <td className="p-4">{r.anio_inscripcion}</td>
                           </tr>
                         ))}
                       </tbody>

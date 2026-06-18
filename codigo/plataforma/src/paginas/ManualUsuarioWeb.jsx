@@ -269,18 +269,18 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
     (
       <div className="space-y-2.5 text-[11px] text-slate-600 leading-relaxed">
         <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
-          <GraduationCap size={16} className="text-[#0056b3]" /> 2. Carga de Graduados
+          <GraduationCap size={16} className="text-[#0056b3]" /> 2. Panel Administrativo
         </h3>
         <p className="text-slate-500 m-0">
-          Para que los egresados puedan elegir sus butacas, tenés que subir el padrón en <strong>Gestionar Graduados</strong>. Tocá en <strong>Cargar desde Excel</strong>, arrastrá la planilla y confirmá:
+          Desde el dashboard administrativo tenés acceso centralizado a las métricas de la colación, padrón de graduados y configuración general del anfiteatro.
         </p>
 
         <WireframeAdmin />
 
-        <div className="bg-slate-50 p-2 rounded-lg border border-slate-105 space-y-0.5">
-          <span className="text-[8.5px] font-black uppercase tracking-widest text-slate-400 block">Formato Obligatorio del Excel</span>
+        <div className="bg-slate-50 p-2 rounded-lg border border-slate-105 space-y-0.5 mt-2">
+          <span className="text-[8.5px] font-black uppercase tracking-widest text-slate-400 block">Carga de Padrón por Excel</span>
           <p className="text-slate-500 text-[9px] m-0">
-            Armá la planilla <code>.xlsx</code> con estas columnas: <strong>nombre</strong> (Pérez, Juan), <strong>dni</strong> (plano, sin puntos), <strong>correo</strong> (email para mandarle la invitación) y <strong>carrera</strong>.
+            Para la importación masiva armá tu planilla <code>.xlsx</code> con: <strong>nombre</strong>, <strong>dni</strong> (sin puntos), <strong>correo</strong>, <strong>legajo</strong>, <strong>carrera</strong> y <strong>año</strong>. El sistema valida automáticamente las combinaciones únicas.
           </p>
         </div>
       </div>
@@ -320,17 +320,26 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
     (
       <div className="space-y-2 text-[11px] text-slate-600 leading-relaxed">
         <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
-          <LayoutGrid size={16} className="text-[#0056b3]" /> 4. Anfiteatro & Aforo
+          <LayoutGrid size={16} className="text-[#0056b3]" /> 4. Anfiteatro y Aforo
         </h3>
 
         <WireframeEgresado />
 
-        <div className="bg-sky-50 border border-sky-100 rounded-lg p-2 flex gap-2 items-start">
+        <div className="space-y-1.5 pt-1">
+          <p className="text-slate-500 m-0">
+            Mediante el mapa interactivo, cada egresado va a poder seleccionar las butacas exactas para sus invitados dentro del <strong>anfiteatro</strong>. El sistema controla automáticamente el <strong>aforo máximo</strong> permitido.
+          </p>
+          <p className="text-slate-500 m-0">
+            El mapa en vivo refleja el estado real del recinto: butacas ocupadas, libres y pasillos.
+          </p>
+        </div>
+
+        <div className="bg-sky-50 border border-sky-100 rounded-lg p-2 flex gap-2 items-start mt-2">
           <Accessibility size={16} className="text-sky-500 shrink-0 mt-0.5" />
           <div>
             <h5 className="font-black text-sky-800 text-[9.5px] uppercase m-0">Movilidad Reducida</h5>
             <p className="m-0 text-slate-500 text-[9px] leading-relaxed mt-0.5">
-              Si el egresado declara acompañantes con movilidad reducida, su butaca se va a pintar en el plano con el símbolo de silla de ruedas. Sirve un montón para prever rampas y ubicar a su gente.
+              Si el egresado declara acompañantes con movilidad reducida, la butaca elegida se marca con un ícono especial. Sirve un montón para prever rampas.
             </p>
           </div>
         </div>
@@ -493,7 +502,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
   const renderPortadaCerrada = () => (
     <div className="font-sans flex flex-col items-center justify-center py-6 animate-fade-in">
       {/* Contenedor 3D del Libro */}
-      <div className="relative group w-[320px] h-[460px] select-none cursor-pointer perspective-1200" onClick={abrirLibro}>
+      <div className="relative group w-[460px] h-[660px] select-none cursor-pointer perspective-1200" onClick={abrirLibro}>
         {/* Tapa del Libro con Portada Real */}
         <div 
           className="w-full h-full rounded-r-3xl shadow-[15px_15px_35px_rgba(15,23,42,0.12)] border-y border-r border-slate-200 bg-white overflow-hidden relative transition-all duration-500 transform origin-left-center rotate-y-hover"
@@ -525,8 +534,8 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
         </div>
 
         {/* Hojas interiores visibles por el lateral */}
-        <div className="absolute top-1 right-[-4px] w-[5px] h-[452px] bg-slate-100 rounded-r shadow-inner z-[-1] transition-transform duration-500 group-hover:translate-x-[2px]" />
-        <div className="absolute top-2 right-[-8px] w-[5px] h-[444px] bg-slate-200 rounded-r shadow-inner z-[-2] transition-transform duration-500 group-hover:translate-x-[4px]" />
+        <div className="absolute top-1 right-[-4px] w-[5px] h-[652px] bg-slate-100 rounded-r shadow-inner z-[-1] transition-transform duration-500 group-hover:translate-x-[2px]" />
+        <div className="absolute top-2 right-[-8px] w-[5px] h-[644px] bg-slate-200 rounded-r shadow-inner z-[-2] transition-transform duration-500 group-hover:translate-x-[4px]" />
       </div>
 
       {/* Botón salir alternativo debajo del libro */}
