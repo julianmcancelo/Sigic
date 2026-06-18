@@ -12,6 +12,8 @@ import {
 // CREDENCIAL IMPRIMIBLE DE ACCESO AL MANUAL
 // ==========================================
 function CredencialManual({ urlManual, onCerrar }) {
+  const [cantidad, setCantidad] = useState(1)
+
   useEffect(() => {
     const cerrarConEscape = (evento) => {
       if (evento.key === 'Escape') onCerrar()
@@ -22,7 +24,7 @@ function CredencialManual({ urlManual, onCerrar }) {
 
   const abrirSalida = (nombreDocumento) => {
     const tituloAnterior = document.title
-    document.title = nombreDocumento
+    document.title = `${nombreDocumento}_${cantidad}_${cantidad === 1 ? 'copia' : 'copias'}`
     document.body.classList.add('imprimiendo-credencial-manual')
     const restaurarTitulo = () => {
       document.title = tituloAnterior
@@ -44,7 +46,7 @@ function CredencialManual({ urlManual, onCerrar }) {
         if (evento.target === evento.currentTarget) onCerrar()
       }}
     >
-      <div className="w-full max-w-md rounded-3xl border border-white/15 bg-white p-4 shadow-2xl sm:p-6">
+      <div className="max-h-[calc(100vh-2rem)] w-full max-w-md overflow-y-auto rounded-3xl border border-white/15 bg-white p-4 shadow-2xl sm:p-6">
         <div className="mb-4 flex items-start justify-between gap-4">
           <div>
             <h2 id="titulo-credencial-manual" className="text-base font-black text-slate-900">
@@ -62,7 +64,9 @@ function CredencialManual({ urlManual, onCerrar }) {
           </button>
         </div>
 
-        <div className="credencial-hoja-corte relative">
+        <div className={`credenciales-impresion cantidad-${cantidad}`}>
+        {Array.from({ length: cantidad }, (_, indice) => (
+        <div className="credencial-hoja-corte relative" key={indice}>
           <div className="linea-corte hidden" aria-hidden="true" />
           <div className="credencial-manual-imprimible relative overflow-hidden rounded-[30px] border-[3px] border-white bg-[#fdfefe] text-[#06194d] shadow-[0_0_0_1px_#b9d6ff,0_24px_60px_rgba(0,62,150,0.22)]">
           {/* Geometrías inspiradas en la portada del manual */}
@@ -117,8 +121,36 @@ function CredencialManual({ urlManual, onCerrar }) {
           </div>
           </div>
         </div>
+        ))}
+        </div>
 
-        <div className="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+        <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/60 p-3.5">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#0b3980]">Cantidad de credenciales</p>
+              <p className="mt-0.5 text-[10px] text-slate-500">Hasta 4 por hoja A4, sin reducir el tamaño.</p>
+            </div>
+            <div className="flex items-center gap-1 rounded-xl border border-blue-100 bg-white p-1 shadow-sm" role="group" aria-label="Cantidad de credenciales">
+              {[1, 2, 3, 4].map((opcion) => (
+                <button
+                  type="button"
+                  key={opcion}
+                  onClick={() => setCantidad(opcion)}
+                  aria-pressed={cantidad === opcion}
+                  className={`h-8 w-8 rounded-lg text-xs font-black transition ${
+                    cantidad === opcion
+                      ? 'bg-[#0056b3] text-white shadow-sm'
+                      : 'text-slate-500 hover:bg-blue-50 hover:text-[#0056b3]'
+                  }`}
+                >
+                  {opcion}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-3 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
           <button
             type="button"
             onClick={() => abrirSalida('Credencial_Manual_SiGIC')}
@@ -140,13 +172,18 @@ function CredencialManual({ urlManual, onCerrar }) {
       </div>
 
       <style>{`
+        @media screen {
+          .credenciales-impresion .credencial-hoja-corte:not(:first-child) {
+            display: none;
+          }
+        }
         @media print {
           html,
           body {
-            width: 95mm !important;
-            height: 150mm !important;
-            min-width: 95mm !important;
-            min-height: 150mm !important;
+            width: ${cantidad === 1 ? '95mm' : '210mm'} !important;
+            height: ${cantidad === 1 ? '150mm' : '297mm'} !important;
+            min-width: ${cantidad === 1 ? '95mm' : '210mm'} !important;
+            min-height: ${cantidad === 1 ? '150mm' : '297mm'} !important;
             margin: 0 !important;
             padding: 0 !important;
             overflow: hidden !important;
@@ -158,16 +195,33 @@ function CredencialManual({ urlManual, onCerrar }) {
             overflow: visible !important;
           }
           body * { visibility: hidden !important; }
+          .credenciales-impresion,
+          .credenciales-impresion *,
           .credencial-hoja-corte,
           .credencial-hoja-corte *,
           .credencial-manual-imprimible,
           .credencial-manual-imprimible * { visibility: visible !important; }
-          .credencial-hoja-corte {
+          .credenciales-impresion {
             position: fixed !important;
             inset: 0 !important;
-            width: 95mm !important;
-            height: 150mm !important;
-            min-height: 150mm !important;
+            width: ${cantidad === 1 ? '95mm' : '210mm'} !important;
+            height: ${cantidad === 1 ? '150mm' : '297mm'} !important;
+            display: ${cantidad === 1 ? 'block' : 'grid'} !important;
+            grid-template-columns: ${cantidad === 1 ? 'none' : 'repeat(2, 89mm)'} !important;
+            grid-template-rows: ${cantidad === 1 ? 'none' : 'repeat(2, 144mm)'} !important;
+            gap: ${cantidad === 1 ? '0' : '3mm 4mm'} !important;
+            padding: ${cantidad === 1 ? '0' : '3mm 14mm'} !important;
+            box-sizing: border-box !important;
+            overflow: hidden !important;
+            background: white !important;
+          }
+          .credencial-hoja-corte {
+            position: relative !important;
+            inset: auto !important;
+            display: block !important;
+            width: ${cantidad === 1 ? '95mm' : '89mm'} !important;
+            height: ${cantidad === 1 ? '150mm' : '144mm'} !important;
+            min-height: 0 !important;
             box-sizing: border-box !important;
             overflow: hidden !important;
             background: white !important;
@@ -176,7 +230,7 @@ function CredencialManual({ urlManual, onCerrar }) {
           }
           .credencial-manual-imprimible {
             position: absolute !important;
-            inset: 5mm auto auto 5mm !important;
+            inset: ${cantidad === 1 ? '5mm auto auto 5mm' : '2mm auto auto 2mm'} !important;
             width: 85mm !important;
             height: 140mm !important;
             min-height: 0 !important;
@@ -192,7 +246,7 @@ function CredencialManual({ urlManual, onCerrar }) {
           .linea-corte {
             display: block !important;
             position: absolute !important;
-            inset: 4.25mm !important;
+            inset: ${cantidad === 1 ? '4.25mm' : '1.25mm'} !important;
             border: 0.25mm dashed #64748b !important;
             border-radius: 7.5mm !important;
             z-index: 20 !important;
@@ -212,7 +266,7 @@ function CredencialManual({ urlManual, onCerrar }) {
             letter-spacing: 0.8pt !important;
             white-space: nowrap !important;
           }
-          @page { size: 95mm 150mm; margin: 0; }
+          @page { size: ${cantidad === 1 ? '95mm 150mm' : 'A4 portrait'}; margin: 0; }
         }
       `}</style>
     </div>
@@ -842,7 +896,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
           <div>
             <span className="text-[8.5px] font-black uppercase tracking-widest text-slate-400 block mb-1">Login OTP del Egresado</span>
             <ScreenPortalOTP />
-            <p className="text-[8.5px] text-slate-400 mt-1 leading-snug">El egresado ingresa su correo institucional para recibir el código de 6 dígitos.</p>
+            <p className="text-[8.5px] text-slate-400 mt-1 leading-snug">El graduado ingresa su correo electrónico o DNI para recibir el código de 6 dígitos en el correo registrado.</p>
           </div>
           <div>
             <span className="text-[8.5px] font-black uppercase tracking-widest text-slate-400 block mb-1">Rechazo de Asistencia</span>

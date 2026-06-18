@@ -1,6 +1,6 @@
 /**
  * LoginGraduado - Pantalla de inicio de sesión para graduados (Passwordless OTP).
- * El graduado ingresa su correo y recibe un código de 6 dígitos para acceder.
+ * El graduado ingresa su correo o DNI y recibe un código de 6 dígitos para acceder.
  * Versión actualizada con terminología "Graduado" en lugar de "Egresado".
  */
 import { useState, useEffect } from 'react'
@@ -10,7 +10,7 @@ import { CampoFormulario } from '../componentes/CampoFormulario'
 import { ArrowRight, ArrowLeft, CheckCircle2, AlertCircle, ShieldCheck, X, Code2, Heart, Clock } from 'lucide-react'
 
 export function LoginGraduado({ onLoginExitoso, onVolver, emailInicial = '' }) {
-  const [email, setEmail] = useState(emailInicial)
+  const [identificador, setIdentificador] = useState(emailInicial)
   const [otp, setOtp] = useState('')
   const [paso, setPaso] = useState(1) // 1: Email, 2: Código
   const [cargando, setCargando] = useState(false)
@@ -45,14 +45,14 @@ export function LoginGraduado({ onLoginExitoso, onVolver, emailInicial = '' }) {
 
   async function manejarSolicitudOTP(e) {
     if (e) e.preventDefault()
-    if (!email.trim()) return
+    if (!identificador.trim()) return
     setCargando(true)
     setError('')
     try {
-      await solicitarOTP(email)
+      const respuesta = await solicitarOTP(identificador)
       setPaso(2)
       setTiempoRestante(600) // Reiniciar temporizador
-      setMensajeExito(`Código enviado a ${email}`)
+      setMensajeExito(`Código enviado a ${respuesta.destino || 'tu correo registrado'}`)
     } catch (err) {
       setError(err.message)
     } finally {
@@ -66,7 +66,7 @@ export function LoginGraduado({ onLoginExitoso, onVolver, emailInicial = '' }) {
     setCargando(true)
     setError('')
     try {
-      const data = await verificarOTP(email, otp)
+      const data = await verificarOTP(identificador, otp)
       onLoginExitoso(data.usuario)
     } catch (err) {
       setError(err.message)
@@ -108,7 +108,7 @@ export function LoginGraduado({ onLoginExitoso, onVolver, emailInicial = '' }) {
           {paso === 1 
             ? (emailInicial 
                 ? `Solicitá un código para acceder a tu panel vinculado a ${emailInicial}.`
-                : 'Ingresá tu correo institucional para recibir el código de acceso a tu panel.')
+                : 'Ingresá tu correo electrónico o DNI para recibir el código de acceso a tu panel.')
             : 'Copiá los 6 dígitos que te enviamos por correo electrónico.'}
         </p>
 
@@ -133,7 +133,7 @@ export function LoginGraduado({ onLoginExitoso, onVolver, emailInicial = '' }) {
               
               <button
                 type="button"
-                onClick={() => { setEmail(''); setError(''); }}
+                onClick={() => { setIdentificador(''); setError(''); }}
                 className="w-full py-4 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 bg-slate-50 hover:bg-slate-100 rounded-xl border border-slate-200/50 transition-all active:scale-[0.98]"
               >
                 Volver a intentar
@@ -142,17 +142,17 @@ export function LoginGraduado({ onLoginExitoso, onVolver, emailInicial = '' }) {
           ) : (
             <form onSubmit={manejarSolicitudOTP} className="space-y-5">
               <CampoFormulario
-                etiqueta="Correo Institucional"
-                tipo="email"
-                valor={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="tu.correo@instituto.edu.ar"
+                etiqueta="Correo electrónico o DNI"
+                tipo="text"
+                valor={identificador}
+                onChange={(e) => setIdentificador(e.target.value)}
+                placeholder="correo@instituto.edu.ar o 35230532"
                 mensajeError={error}
               />
 
               <button
                 type="submit"
-                disabled={cargando || !email}
+                disabled={cargando || !identificador.trim()}
                 className="group flex w-full items-center justify-center gap-2 rounded-xl bg-[#0EA5E9] py-4 text-sm font-black text-white shadow-lg shadow-[#0EA5E9]/20 transition hover:bg-[#0288D1] active:scale-[0.98] disabled:opacity-50"
               >
                 {cargando ? 'Enviando...' : 'Obtener Código'}
@@ -231,7 +231,7 @@ export function LoginGraduado({ onLoginExitoso, onVolver, emailInicial = '' }) {
                 onClick={() => { setPaso(1); setTiempoRestante(600); setError(''); setOtp(''); setMensajeExito(''); }}
                 className="w-full text-[10px] font-black text-slate-400 hover:text-sky-500 transition-colors uppercase tracking-[0.2em] flex items-center justify-center gap-1.5"
               >
-                Solicitar nuevo código / Usar otro correo
+                Solicitar nuevo código / Cambiar correo o DNI
               </button>
             </div>
           </form>

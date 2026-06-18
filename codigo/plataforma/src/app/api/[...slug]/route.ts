@@ -11,6 +11,19 @@ const RONDAS_BCRYPT = 12;
 const LARGO_MINIMO_PASSWORD = 8;
 const ROLES_VALIDOS = ['SUPER_ADMIN', 'ADMINISTRATIVO', 'ADMIN', 'PORTERIA', 'AUDITOR'];
 
+function prepararIdentificadorGraduado(valor: unknown) {
+  const identificador = String(valor || '').trim();
+  const esCorreo = identificador.includes('@');
+  const normalizado = esCorreo ? identificador.toLowerCase() : identificador.replace(/\D/g, '');
+  return { identificador, esCorreo, normalizado };
+}
+
+function ocultarCorreo(correo: string) {
+  const [usuario = '', dominio = ''] = correo.split('@');
+  const visible = usuario.slice(0, Math.min(2, usuario.length));
+  return `${visible}${'*'.repeat(Math.max(3, usuario.length - visible.length))}@${dominio}`;
+}
+
 // CORS configuration utility
 function corsHeaders(req: NextRequest) {
   const origin = req.headers.get('origin') || '*';
@@ -1013,8 +1026,10 @@ export async function POST(
     }
 
     if (path === 'egresados/solicitar-otp') {
-      const { email } = body;
-      if (!email) return NextResponse.json({ error: 'El email es obligatorio' }, { status: 400, headers });
+      const { identificador, esCorreo, normalizado } = prepararIdentificadorGraduado(body.identificador || body.email);
+      if (!identificador || !normalizado) {
+        return NextResponse.json({ error: 'Ingresá tu correo electrónico o DNI' }, { status: 400, headers });
+      }
 
       const ip = req.ip || req.headers.get('x-forwarded-for') || '127.0.0.1';
       const limitControl = verificarRateLimit(`otp-req-${ip}`, 5, 10 * 60 * 1000);
@@ -1022,15 +1037,19 @@ export async function POST(
         return NextResponse.json({ error: `Demasiadas solicitudes. Esperá ${limitControl.segundosRestantes} segundos.` }, { status: 429, headers });
       }
 
+      const condicionAcceso = esCorreo
+        ? 'LOWER(e.correo) = $1'
+        : "REGEXP_REPLACE(COALESCE(e.dni, ''), '[^0-9]', '', 'g') = $1";
       const result = await query(`
         SELECT e.* 
         FROM egresados e
         JOIN ceremonias c ON e.ceremonia_id = c.id
-        WHERE LOWER(e.correo) = LOWER($1) AND c.activa = 1
-      `, [email]);
+        WHERE ${condicionAcceso} AND c.activa = 1
+      `, [normalizado]);
       
       const graduado = result.rows[0];
-      if (!graduado) return NextResponse.json({ error: 'Correo no registrado en esta ceremonia' }, { status: 404, headers });
+      if (!graduado) return NextResponse.json({ error: 'Correo o DNI no registrado en esta ceremonia' }, { status: 404, headers });
+      if (!graduado.correo) return NextResponse.json({ error: 'Tu registro no tiene un correo asociado. Contactá a la institución.' }, { status: 400, headers });
       
       if (graduado.estado === 'RECHAZADO') {
         return NextResponse.json({ error: 'Confirmaste tu inasistencia a esta ceremonia.' }, { status: 403, headers });
@@ -1048,12 +1067,17 @@ export async function POST(
       const hostBase = process.env.FRONTEND_URL || req.headers.get('origin') || 'http://localhost:3000';
       const htmlOTP = generarPlantillaOTP(otp, hostBase);
       await enviarCorreo(graduado.correo, 'Tu código de acceso - SiGIC', htmlOTP);
-      return NextResponse.json({ ok: true, mensaje: 'Código enviado correctamente' }, { headers });
+      return NextResponse.json({
+        ok: true,
+        mensaje: 'Código enviado correctamente',
+        destino: ocultarCorreo(graduado.correo)
+      }, { headers });
     }
 
     if (path === 'egresados/verificar-otp') {
-      const { email, otp: otpStr } = body;
-      if (!email || !otpStr) return NextResponse.json({ error: 'Email y código OTP requeridos' }, { status: 400, headers });
+      const { identificador, esCorreo, normalizado } = prepararIdentificadorGraduado(body.identificador || body.email);
+      const { otp: otpStr } = body;
+      if (!identificador || !normalizado || !otpStr) return NextResponse.json({ error: 'Correo o DNI y código OTP requeridos' }, { status: 400, headers });
 
       const ip = req.ip || req.headers.get('x-forwarded-for') || '127.0.0.1';
       const limitControl = verificarRateLimit(`otp-ver-${ip}`, 10, 10 * 60 * 1000);
@@ -1061,12 +1085,15 @@ export async function POST(
         return NextResponse.json({ error: `Demasiados intentos. Esperá ${limitControl.segundosRestantes} segundos.` }, { status: 429, headers });
       }
 
+      const condicionAcceso = esCorreo
+        ? 'LOWER(e.correo) = $1'
+        : "REGEXP_REPLACE(COALESCE(e.dni, ''), '[^0-9]', '', 'g') = $1";
       const result = await query(`
         SELECT e.* 
         FROM egresados e
         JOIN ceremonias c ON e.ceremonia_id = c.id
-        WHERE LOWER(e.correo) = LOWER($1) AND c.activa = 1
-      `, [email]);
+        WHERE ${condicionAcceso} AND c.activa = 1
+      `, [normalizado]);
       
       const graduado = result.rows[0];
       if (!graduado) return NextResponse.json({ error: 'Graduado no registrado' }, { status: 404, headers });

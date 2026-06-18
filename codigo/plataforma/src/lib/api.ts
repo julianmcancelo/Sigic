@@ -147,11 +147,11 @@ export async function actualizarEntregadorLegacy(id: string | number, nombre: st
   return json;
 }
 
-export async function solicitarOTP(email: string) {
+export async function solicitarOTP(identificador: string) {
   const res = await fetch(`${BASE_CLASSIC}/egresados/solicitar-otp`, {
     method: 'POST',
     headers: cabeceras(),
-    body: JSON.stringify({ email })
+    body: JSON.stringify({ identificador })
   });
   const json = await res.json();
   if (!res.ok) {
@@ -167,11 +167,11 @@ export async function solicitarOTP(email: string) {
   return json;
 }
 
-export async function verificarOTP(email: string, otp: string) {
+export async function verificarOTP(identificador: string, otp: string) {
   const res = await fetch(`${BASE_CLASSIC}/egresados/verificar-otp`, {
     method: 'POST',
     headers: cabeceras(),
-    body: JSON.stringify({ email, otp })
+    body: JSON.stringify({ identificador, otp })
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'El código ingresado es incorrecto o ya expiró');
@@ -485,5 +485,4 @@ export async function resetearSistema() {
   if (!res.ok) throw new Error(json.error || 'No se pudo resetear el sistema');
   return json;
 }
-
 
