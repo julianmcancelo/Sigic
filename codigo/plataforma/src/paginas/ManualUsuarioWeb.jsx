@@ -113,6 +113,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
   const [estaAnimando, setEstaAnimando] = useState(false)
   const [nivelZoom, setNivelZoom] = useState(1.0) // Zoom: 1.0 (100%), 1.2 (120%), 1.4 (140%)
   const [esPantallaCompleta, setEsPantallaCompleta] = useState(false)
+  const [rutaPortada, setRutaPortada] = useState('/manual/manual_portada.png')
 
   // Detectar tamaño de pantalla para la vista de hojas
   useEffect(() => {
@@ -495,7 +496,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
       <div className="relative group w-[320px] h-[460px] select-none cursor-pointer perspective-1200" onClick={abrirLibro}>
         {/* Tapa del Libro con Portada Real */}
         <div 
-          className="w-full h-full rounded-r-3xl shadow-[20px_20px_45px_rgba(15,23,42,0.4)] border-y border-r border-slate-200 bg-white overflow-hidden relative transition-all duration-500 transform origin-left-center rotate-y-hover"
+          className="w-full h-full rounded-r-3xl shadow-[15px_15px_35px_rgba(15,23,42,0.12)] border-y border-r border-slate-200 bg-white overflow-hidden relative transition-all duration-500 transform origin-left-center rotate-y-hover"
           style={{
             borderLeft: '9px solid #0056b3'
           }}
@@ -505,7 +506,12 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
           
           {/* Imagen de Portada Real */}
           <img 
-            src="/manual/manual_portada.png" 
+            src={rutaPortada}
+            onError={() => {
+              if (rutaPortada === '/manual/manual_portada.png') {
+                setRutaPortada('/manual_portada.png')
+              }
+            }}
             alt="Guía de Uso Diario - SiGIC" 
             className="w-full h-full object-cover relative z-10 select-none pointer-events-none"
           />
@@ -526,7 +532,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
       {/* Botón salir alternativo debajo del libro */}
       <button 
         onClick={onVolver}
-        className="mt-8 px-5 py-2.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-white/80 hover:text-white text-[10px] font-black uppercase tracking-widest transition active:scale-95 shadow-md cursor-pointer flex items-center gap-1.5"
+        className="mt-8 px-5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-800 text-[10px] font-black uppercase tracking-widest transition active:scale-95 shadow-sm cursor-pointer flex items-center gap-1.5"
       >
         <ArrowLeft size={13} /> Volver al Portal
       </button>
@@ -535,123 +541,100 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
 
   // Renderiza el libro abierto con controles de zoom y navegación
   const renderLibroAbierto = () => (
-    <div className="w-full max-w-7xl flex flex-col items-center animate-fade-in select-none">
+    <div className="w-full min-h-[calc(100vh-73px)] flex flex-col items-center justify-start select-none relative bg-paper animate-fade-in">
       
-      {/* Controles de Cabecera del Libro (Navegación secundaria, Zoom y Pantalla Completa) */}
-      <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-3 mb-4 px-2 select-none">
-        
-        {/* Lado izquierdo: Botón cerrar e indicador de página */}
-        <div className="flex items-center gap-4">
+      {/* FLOATING CONTROLS PANEL (OVERLAID ON THE BACKGROUND, NO VERTICAL LAYOUT IMPACT) */}
+      <div className="absolute top-4 left-4 right-4 z-40 flex items-center justify-between pointer-events-none">
+        {/* Left side: Back to Cover and page indicator */}
+        <div className="flex items-center gap-2 pointer-events-auto bg-white/85 backdrop-blur-md border border-slate-200/80 rounded-2xl p-1.5 shadow-md">
           <button 
             onClick={cerrarLibro}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-white/80 hover:text-white text-[10px] font-black uppercase tracking-wider transition active:scale-95 shadow-sm cursor-pointer"
+            className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100/50 hover:bg-[#29ABE2] hover:text-white text-slate-700 text-[9px] font-black uppercase tracking-wider transition active:scale-95 cursor-pointer border border-slate-200/40"
           >
-            <Book size={13} /> Cerrar Libro (Portada)
+            <Book size={12} /> Tapa
           </button>
-          <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-mono">
-            {esMovil ? `Página ${paginaMovil} / 10` : `Hojas ${pliegoActual * 2 - 1}-${pliegoActual * 2} / 10`}
-          </span>
         </div>
 
-        {/* Lado derecho: Zoom y Pantalla Completa */}
-        <div className="flex items-center gap-2">
-          {/* Zoom Out */}
+        {/* Right side: Zoom and Fullscreen */}
+        <div className="flex items-center gap-1.5 pointer-events-auto bg-white/85 backdrop-blur-md border border-slate-200/80 rounded-2xl p-1.5 shadow-md">
           <button
             onClick={disminuirZoom}
             disabled={nivelZoom <= 1.0}
-            className="p-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-white disabled:opacity-35 cursor-pointer"
+            className="p-1.5 rounded-lg bg-slate-100/50 hover:bg-slate-200/70 text-slate-700 disabled:opacity-35 cursor-pointer border border-slate-200/40"
             title="Reducir Zoom"
           >
-            <ZoomOut size={14} />
+            <ZoomOut size={12} />
           </button>
-          <span className="text-[10px] font-bold text-slate-300 font-mono w-10 text-center select-none">
+          <span className="text-[9px] font-bold text-slate-700 font-mono w-8 text-center select-none">
             {Math.round(nivelZoom * 100)}%
           </span>
-          {/* Zoom In */}
           <button
             onClick={aumentarZoom}
             disabled={nivelZoom >= 1.4}
-            className="p-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-white disabled:opacity-35 cursor-pointer"
+            className="p-1.5 rounded-lg bg-slate-100/50 hover:bg-slate-200/70 text-slate-700 disabled:opacity-35 cursor-pointer border border-slate-200/40"
             title="Aumentar Zoom"
           >
-            <ZoomIn size={14} />
+            <ZoomIn size={12} />
           </button>
           
-          {/* Separador */}
-          <span className="h-5 w-px bg-white/15 mx-1" />
+          <span className="h-4 w-px bg-slate-200 mx-0.5" />
 
-          {/* Pantalla Completa */}
           <button
             onClick={alternarPantallaCompleta}
-            className="flex items-center gap-1 px-3 py-2 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-white text-[10px] font-black uppercase tracking-widest cursor-pointer transition active:scale-95"
-            title={esPantallaCompleta ? "Salir de Pantalla Completa" : "Pantalla Completa"}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100/50 hover:bg-[#29ABE2] hover:text-white text-slate-700 text-[9px] font-black uppercase tracking-widest cursor-pointer transition active:scale-95 border border-slate-200/40"
           >
-            {esPantallaCompleta ? (
-              <>
-                <Minimize2 size={13} className="text-[#29ABE2]" />
-                <span className="hidden md:inline">Salir Fullscreen</span>
-              </>
-            ) : (
-              <>
-                <Maximize2 size={13} />
-                <span className="hidden md:inline">Pantalla Completa</span>
-              </>
-            )}
+            {esPantallaCompleta ? <Minimize2 size={12} className="text-[#29ABE2]" /> : <Maximize2 size={12} />}
+            <span className="hidden sm:inline">{esPantallaCompleta ? "Salir" : "Pantalla"}</span>
           </button>
         </div>
       </div>
 
       {/* CONTENEDOR SCROLLABLE DEL LIBRO ABIERTO */}
       <div 
-        className="w-full overflow-auto p-4 flex justify-start items-start scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-transparent"
+        className="w-full overflow-auto pt-16 pb-16 px-4 flex justify-start items-start scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent"
         style={{ 
-          maxHeight: esPantallaCompleta ? '90vh' : '75vh',
+          maxHeight: esPantallaCompleta ? '95vh' : 'calc(100vh - 73px)',
           width: '100%'
         }}
       >
         {/* WRAPPER FÍSICO CON TAMAÑO ESCALADO REAL */}
         <div
-          className="mx-auto transition-all duration-300 flex items-start justify-center"
+          className="w-full transition-all duration-300 flex items-start justify-center"
           style={{
-            width: esMovil ? `${Math.round(nivelZoom * 100)}%` : `${1050 * nivelZoom}px`,
-            height: esMovil ? 'auto' : `${540 * nivelZoom}px`,
+            width: `${100 * nivelZoom}%`,
+            height: esMovil ? 'auto' : `calc((100vh - 100px) * ${nivelZoom})`,
             position: 'relative',
-            minWidth: esMovil ? '100%' : `${900 * nivelZoom}px`
           }}
         >
           {/* CUERPO DEL LIBRO CON SCALE DINÁMICO */}
           <div 
-            className={`bg-white border border-slate-200/50 rounded-[24px] shadow-2xl relative overflow-hidden transition-all duration-300 ${
+            className={`w-full bg-[#fdfdfb] relative overflow-hidden transition-all duration-300 ${
               estaAnimando ? 'opacity-80 scale-[0.99] blur-xs' : 'opacity-100 scale-100 blur-none'
             }`}
             style={{
               transform: `scale(${nivelZoom})`,
               transformOrigin: 'top left',
-              width: esMovil ? `calc(100% / ${nivelZoom})` : '1050px',
-              minWidth: esMovil ? '100%' : '900px',
-              height: esMovil ? 'auto' : '540px',
-              minHeight: '540px',
+              width: `calc(100% / ${nivelZoom})`,
+              height: esMovil ? 'auto' : '100%',
+              minHeight: esMovil ? 'auto' : 'calc(100vh - 100px)',
               position: esMovil ? 'relative' : 'absolute',
               top: 0,
               left: 0,
-              boxShadow: '0 25px 60px -15px rgba(0,0,0,0.6)'
             }}
           >
-            <div className="relative min-h-[540px] flex flex-col lg:flex-row">
+            <div className="relative min-h-[calc(100vh-100px)] flex flex-col lg:flex-row">
               
               {/* Lomo y Sombra Central (Solo en Desktop) */}
               {!esMovil && (
                 <>
-                  <div className="absolute left-1/2 -translate-x-1/2 top-0 w-3.5 h-full bg-gradient-to-r from-slate-200 via-slate-350 to-slate-200 border-x border-slate-300/40 z-30 pointer-events-none" />
+                  <div className="absolute left-1/2 -translate-x-1/2 top-0 w-3.5 h-full bg-gradient-to-r from-slate-200 via-slate-300 to-slate-200 border-x border-slate-200/40 z-30 pointer-events-none" />
                   <div className="absolute left-1/2 -translate-x-1/2 top-0 w-16 h-full bg-gradient-to-r from-black/0 via-black/5 to-black/0 z-20 pointer-events-none" />
-                  <div className="absolute left-[calc(50%-24px)] w-6 h-full bg-gradient-to-r from-black/0 to-black/4 z-20 pointer-events-none" />
-                  <div className="absolute left-1/2 w-6 h-full bg-gradient-to-r from-black/4 to-black/0 z-20 pointer-events-none" />
                 </>
               )}
 
               {/* MÓVIL: MUESTRA UNA SOLA PÁGINA */}
               {esMovil ? (
-                <div className="w-full bg-paper p-6 sm:p-8 flex flex-col justify-between min-h-[540px]">
+                <div className="w-full bg-paper p-6 sm:p-8 flex flex-col justify-between min-h-[calc(100vh-100px)]">
                   <div className="flex-1">
                     {listaPaginas[paginaMovil]}
                   </div>
@@ -663,7 +646,6 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
               ) : (
                 // DESKTOP: DOS PÁGINAS (IZQUIERDA Y DERECHA)
                 <>
-                  {/* PÁGINA IZQUIERDA */}
                   <div className="w-1/2 bg-paper p-8 flex flex-col justify-between border-r border-slate-150 relative page-shadow-left">
                     <div className="flex-1">
                       {listaPaginas[(pliegoActual - 1) * 2 + 1]}
@@ -674,7 +656,6 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
                     </div>
                   </div>
 
-                  {/* PÁGINA DERECHA */}
                   <div className="w-1/2 bg-paper p-8 flex flex-col justify-between relative page-shadow-right">
                     <div className="flex-1">
                       {listaPaginas[(pliegoActual - 1) * 2 + 2]}
@@ -686,36 +667,35 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
                   </div>
                 </>
               )}
-
             </div>
           </div>
         </div>
       </div>
 
-      {/* BOTONES FLOTANTES DE NAVEGACIÓN */}
-      <div className="flex items-center gap-6 mt-4 select-none">
+      {/* FLOATING PAGE NAVIGATION PILL */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-4 bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-2xl p-1.5 shadow-lg select-none pointer-events-auto">
         <button 
           onClick={paginaAnterior}
-          className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-900 hover:bg-[#29ABE2] border border-white/10 text-white transition active:scale-95 shadow-lg shadow-black/30 cursor-pointer disabled:opacity-30"
+          disabled={esMovil ? paginaMovil === 1 : pliegoActual === 1}
+          className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100/50 hover:bg-[#29ABE2] hover:text-white border border-slate-200/40 text-slate-700 transition active:scale-95 disabled:opacity-30 disabled:hover:bg-slate-100/50 disabled:hover:text-slate-700 cursor-pointer"
           title="Página Anterior"
         >
-          <ArrowLeft size={16} />
+          <ArrowLeft size={14} />
         </button>
 
-        <span className="text-xs font-bold text-slate-400 tracking-wide font-mono">
+        <span className="text-[10px] font-bold text-slate-600 font-mono tracking-wide min-w-[50px] text-center">
           {esMovil ? `${paginaMovil} / 10` : `${pliegoActual} / 5`}
         </span>
 
         <button 
           onClick={paginaSiguiente}
           disabled={esMovil ? paginaMovil === 10 : pliegoActual === 5}
-          className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-900 hover:bg-[#29ABE2] border border-white/10 text-white transition active:scale-95 shadow-lg shadow-black/30 cursor-pointer disabled:opacity-30"
+          className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100/50 hover:bg-[#29ABE2] hover:text-white border border-slate-200/40 text-slate-700 transition active:scale-95 disabled:opacity-30 disabled:hover:bg-slate-100/50 disabled:hover:text-slate-700 cursor-pointer"
           title="Página Siguiente"
         >
-          <ArrowRight size={16} />
+          <ArrowRight size={14} />
         </button>
       </div>
-
     </div>
   )
 
@@ -756,9 +736,9 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
 
   return (
     <main
-      className="relative min-h-screen overflow-x-hidden text-white flex flex-col"
+      className="relative min-h-screen overflow-x-hidden text-slate-700 flex flex-col animate-fade-in"
       style={{
-        background: 'linear-gradient(135deg, #0d1b2e 0%, #1a2d45 45%, #2A3448 100%)',
+        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%)',
         fontFamily: 'Inter, system-ui, sans-serif'
       }}
     >
@@ -768,56 +748,37 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
       <div className="orbe orbe-3"></div>
 
       {/* Línea superior decorativa */}
-      <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[#0EA5E9] to-transparent opacity-70 z-20" />
-
-      {/* Estrellas parpadeantes */}
-      <div className="absolute inset-0 pointer-events-none z-0">
-        {[...Array(25)].map((_, i) => (
-          <div 
-            key={i}
-            className="absolute rounded-full bg-white"
-            style={{
-              width: `${1 + Math.random() * 2}px`,
-              height: `${1 + Math.random() * 2}px`,
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              opacity: 0,
-              animation: `parpadeo ${2 + Math.random() * 3}s ease-in-out infinite`,
-              animationDelay: `${Math.random() * 5}s`
-            }}
-          />
-        ))}
-      </div>
+      <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[#0EA5E9] to-transparent opacity-50 z-20" />
 
       {/* Rejilla decorativa */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.05]"
+        className="pointer-events-none absolute inset-0 opacity-[0.03]"
         style={{
-          backgroundImage: 'radial-gradient(circle, #ffffff 1px, transparent 1px)',
+          backgroundImage: 'radial-gradient(circle, #000000 1px, transparent 1px)',
           backgroundSize: '30px 30px',
         }}
       />
 
       {/* Cabecera superior */}
-      <header className="relative z-10 border-b border-white/5 bg-slate-900/60 backdrop-blur-md px-6 py-4 flex items-center justify-between select-none">
+      <header className="relative z-10 border-b border-slate-200/80 bg-white/75 backdrop-blur-md px-6 py-4 flex items-center justify-between select-none">
         <div className="flex items-center gap-3">
           <button
             onClick={onVolver}
-            className="flex items-center justify-center h-10 w-10 rounded-full border border-white/10 bg-white/5 text-white/70 transition hover:bg-[#29ABE2] hover:text-white hover:border-[#29ABE2] hover:scale-105 active:scale-95 cursor-pointer"
+            className="flex items-center justify-center h-10 w-10 rounded-full border border-slate-200 bg-slate-50 text-slate-600 transition hover:bg-[#29ABE2] hover:text-white hover:border-[#29ABE2] hover:scale-105 active:scale-95 cursor-pointer"
             title="Volver al Portal"
           >
             <ArrowLeft size={18} />
           </button>
           <div>
-            <h1 className="text-lg font-black tracking-tight text-white flex items-center gap-2">
-              SiGIC <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-[#29ABE2]/20 text-[#29ABE2] border border-[#29ABE2]/30">Manual Oficial</span>
+            <h1 className="text-lg font-black tracking-tight text-slate-800 flex items-center gap-2">
+              SiGIC <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-[#29ABE2]/10 text-[#0056b3] border border-[#29ABE2]/25">Manual Oficial</span>
             </h1>
-            <p className="text-[10px] text-white/50 font-medium uppercase tracking-wider">Libro Digital e Interactivo</p>
+            <p className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">Libro Digital e Interactivo</p>
           </div>
         </div>
-        <div className="hidden sm:flex items-center gap-4 text-xs text-white/60">
+        <div className="hidden sm:flex items-center gap-4 text-xs text-slate-500">
           <span>v2.1.0</span>
-          <span className="h-4 w-px bg-white/10" />
+          <span className="h-4 w-px bg-slate-200" style={{ backgroundColor: '#e2e8f0' }} />
           <span>Instituto Tecnológico Beltrán</span>
         </div>
       </header>
@@ -838,19 +799,19 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
         }
         .orbe-1 {
           width: 500px; height: 500px;
-          background: rgba(14, 165, 233, 0.12);
+          background: rgba(14, 165, 233, 0.06);
           top: -150px; left: -100px;
           animation: orbitar1 15s ease-in-out infinite;
         }
         .orbe-2 {
           width: 350px; height: 350px;
-          background: rgba(99, 102, 241, 0.08);
+          background: rgba(99, 102, 241, 0.05);
           bottom: -80px; right: -50px;
           animation: orbitar2 18s ease-in-out infinite;
         }
         .orbe-3 {
           width: 250px; height: 250px;
-          background: rgba(236, 72, 153, 0.05);
+          background: rgba(236, 72, 153, 0.03);
           top: 40%; left: 50%;
           animation: orbitar3 12s ease-in-out infinite;
         }
@@ -865,10 +826,6 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
         @keyframes orbitar3 {
           0%, 100% { transform: translate(0, 0); }
           50% { transform: translate(-30px, 40px); }
-        }
-        @keyframes parpadeo {
-          0%, 100% { opacity: 0; }
-          50% { opacity: 0.7; }
         }
         .animate-fade-in {
           animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
