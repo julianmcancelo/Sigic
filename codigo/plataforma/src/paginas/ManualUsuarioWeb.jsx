@@ -139,18 +139,58 @@ function ScreenPortalOTP() {
     <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
       <img 
         src={src} 
-        onError={() => {
-          if (src === '/manual/portal_otp.png') {
-            setSrc('/portal_otp.png')
-          }
-        }}
-        alt="Portal OTP del Graduado" 
-        className="w-full object-cover object-center hover:scale-[1.02] transition-transform duration-500"
-        style={{ maxHeight: '450px' }}
+        onError={() => { if (src === '/manual/portal_otp.png') setSrc('/portal_otp.png') }}
+        className="w-full object-cover object-top transition-transform duration-[2s] group-hover:scale-105"
+        alt="Portal OTP"
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2 z-20 pointer-events-none">
-        <span className="text-[8px] font-bold text-white">📸 Portal de acceso OTP del graduado</span>
-      </div>
+    </div>
+  )
+}
+
+// ==========================================
+// IMAGEN: PANTALLA DE ACEPTACIÓN
+// ==========================================
+function ScreenPantallaAceptacion() {
+  const [src, setSrc] = useState('/manual/pantalla_aceptacion.png')
+  return (
+    <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
+      <img src={src} onError={() => { if (src === '/manual/pantalla_aceptacion.png') setSrc('/pantalla_aceptacion.png') }} className="w-full object-cover object-top transition-transform duration-[2s] group-hover:scale-105" alt="Aceptación" />
+    </div>
+  )
+}
+
+// ==========================================
+// IMAGEN: ACOMPAÑANTES
+// ==========================================
+function ScreenPanelAcompanantes() {
+  const [src, setSrc] = useState('/manual/panel_graduado_acompanantes.png')
+  return (
+    <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
+      <img src={src} onError={() => { if (src === '/manual/panel_graduado_acompanantes.png') setSrc('/panel_graduado_acompanantes.png') }} className="w-full object-cover object-top transition-transform duration-[2s] group-hover:scale-105" alt="Acompañantes" />
+    </div>
+  )
+}
+
+// ==========================================
+// IMAGEN: ENTREGADORES
+// ==========================================
+function ScreenPanelEntregadores() {
+  const [src, setSrc] = useState('/manual/panel_graduado_entregadores.png')
+  return (
+    <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
+      <img src={src} onError={() => { if (src === '/manual/panel_graduado_entregadores.png') setSrc('/panel_graduado_entregadores.png') }} className="w-full object-cover object-top transition-transform duration-[2s] group-hover:scale-105" alt="Entregadores" />
+    </div>
+  )
+}
+
+// ==========================================
+// IMAGEN: CREDENCIAL DIGITAL
+// ==========================================
+function ScreenCredencialDigital() {
+  const [src, setSrc] = useState('/manual/credencial_digital.png')
+  return (
+    <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
+      <img src={src} onError={() => { if (src === '/manual/credencial_digital.png') setSrc('/credencial_digital.png') }} className="w-full object-cover object-top transition-transform duration-[2s] group-hover:scale-105" alt="Credencial Digital" />
     </div>
   )
 }
@@ -513,11 +553,46 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
       </div>
     ),
 
-    // Página 5: Plano del Anfiteatro & Movilidad
+    // NUEVA Página 5: Portal de Autogestión del Egresado
+    (
+      <div className="space-y-2.5 text-[11px] text-slate-600 leading-relaxed">
+        <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
+          <GraduationCap size={16} className="text-[#0056b3]" /> 4. Portal de Autogestión
+        </h3>
+
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <span className="text-[8.5px] font-black uppercase tracking-widest text-slate-400 block mb-1">Aceptación Inicial</span>
+            <ScreenPantallaAceptacion />
+            <p className="text-[8.5px] text-slate-400 mt-1 leading-snug">El egresado debe confirmar su participación obligatoriamente para continuar.</p>
+          </div>
+          <div>
+            <span className="text-[8.5px] font-black uppercase tracking-widest text-slate-400 block mb-1">Gestión de Acompañantes</span>
+            <ScreenPanelAcompanantes />
+            <p className="text-[8.5px] text-slate-400 mt-1 leading-snug">Puede agregar familiares respetando el aforo máximo asignado por la institución.</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 mt-2">
+          <div>
+            <span className="text-[8.5px] font-black uppercase tracking-widest text-slate-400 block mb-1">Entregadores de Título</span>
+            <ScreenPanelEntregadores />
+            <p className="text-[8.5px] text-slate-400 mt-1 leading-snug">El egresado selecciona quién le hará entrega del diploma en el escenario.</p>
+          </div>
+          <div>
+            <span className="text-[8.5px] font-black uppercase tracking-widest text-slate-400 block mb-1">Credencial Digital</span>
+            <ScreenCredencialDigital />
+            <p className="text-[8.5px] text-slate-400 mt-1 leading-snug">Al finalizar, obtiene un código QR como pase grupal para el día del evento.</p>
+          </div>
+        </div>
+      </div>
+    ),
+
+    // Página 6: Plano del Anfiteatro & Movilidad
     (
       <div className="space-y-2 text-[11px] text-slate-600 leading-relaxed">
         <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
-          <LayoutGrid size={16} className="text-[#0056b3]" /> 4. Anfiteatro y Aforo
+          <LayoutGrid size={16} className="text-[#0056b3]" /> 5. Anfiteatro y Aforo
         </h3>
 
         <WireframeEgresado />
@@ -553,7 +628,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
       </div>
     ),
 
-    // Página 6: Cuentas de Portería
+    // Página 7: Cuentas de Portería
     (
       <div className="space-y-3 text-[11px] text-slate-600 leading-relaxed">
         <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
@@ -587,7 +662,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
       </div>
     ),
 
-    // Página 7: Protocolo de Escaneo QR
+    // Página 8: Protocolo de Escaneo QR
     (
       <div className="space-y-2 text-[11px] text-slate-600 leading-relaxed">
         <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
