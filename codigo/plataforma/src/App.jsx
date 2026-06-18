@@ -89,6 +89,7 @@ function App() {
 
   const [vistaLogin, setVistaLogin] = useState(() => {
     const p = window.location.pathname
+    if (p === '/manual') return 'manual'
     return (p === '/egresado' || p === '/graduado' || p === '/carga') ? 'graduado' : null
   })
 
@@ -103,6 +104,13 @@ function App() {
       return localStorage.getItem('modo_mantenimiento') === 'true'
     }
     return false
+  })
+
+  const [accesoOculto, setAccesoOculto] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('acceso_oculto_egresado') !== 'false'
+    }
+    return true
   })
 
   function toggleMantenimiento() {
@@ -163,10 +171,17 @@ function App() {
 
           try {
             const ajustesDb = await obtenerAjustes()
-            if (ajustesDb && ajustesDb.modo_mantenimiento) {
-              const modoMant = ajustesDb.modo_mantenimiento.valor === 'true'
-              setEnMantenimiento(modoMant)
-              localStorage.setItem('modo_mantenimiento', modoMant.toString())
+            if (ajustesDb) {
+              if (ajustesDb.modo_mantenimiento) {
+                const modoMant = ajustesDb.modo_mantenimiento.valor === 'true'
+                setEnMantenimiento(modoMant)
+                localStorage.setItem('modo_mantenimiento', modoMant.toString())
+              }
+              if (ajustesDb.acceso_oculto_egresado) {
+                const oculto = ajustesDb.acceso_oculto_egresado.valor !== 'false'
+                setAccesoOculto(oculto)
+                localStorage.setItem('acceso_oculto_egresado', oculto.toString())
+              }
             }
           } catch (errAjustes) {
             console.warn("Error leyendo ajustes", errAjustes)
@@ -618,6 +633,7 @@ function App() {
     contenido = (
       <PantallaSeleccionLogin 
         enMantenimiento={enMantenimiento}
+        accesoOculto={accesoOculto}
         onSeleccionarAdmin={() => setVistaLogin('admin')}
         onSeleccionarEgresado={() => setVistaLogin('graduado')}
         onSeleccionarManual={() => setVistaLogin('manual')}
@@ -749,4 +765,3 @@ function AdminDock({ pantallaActual, onNavegar, posicion, setPosicion, usuario }
 }
 
 export default App
-

@@ -1,26 +1,28 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
-import { 
-  X, 
-  Printer, 
-  Download, 
-  MapPin, 
-  Users, 
-  Calendar, 
-  CheckCircle2,
-  Armchair,
-  GraduationCap,
-  Ticket
+import {
+  X, Printer, Download, MapPin, Calendar, CheckCircle2,
+  Armchair, Ticket, ShieldCheck
 } from 'lucide-react'
 
 export function ModalCredencial({ egresado, onCerrar }) {
+  const [falloLogo, setFalloLogo] = useState(false)
+
+  useEffect(() => {
+    const cerrarConEscape = (evento) => {
+      if (evento.key === 'Escape') onCerrar()
+    }
+    document.addEventListener('keydown', cerrarConEscape)
+    return () => document.removeEventListener('keydown', cerrarConEscape)
+  }, [onCerrar])
+
   if (!egresado) return null
 
-  const handlePrint = () => {
-    window.print()
-  }
+  const invitados = egresado.invitados || []
+  const asientosInvitados = invitados.filter(invitado => invitado.asiento_id)
+  const fechaEvento = egresado.ceremonia_fecha || egresado.fecha_evento || 'Fecha a confirmar'
+  const sedeEvento = egresado.ceremonia_sede || egresado.sede || 'Sede Beltrán · Anfiteatro'
 
-  // Generar datos para el QR
   const qrData = JSON.stringify({
     id: egresado.id,
     token: egresado.token,
@@ -28,172 +30,226 @@ export function ModalCredencial({ egresado, onCerrar }) {
     asientos: egresado.asientos || []
   })
 
+  const imprimir = () => {
+    const tituloAnterior = document.title
+    document.title = `Credencial_${String(egresado.nombre || 'Graduado').replace(/\s+/g, '_')}`
+    document.body.classList.add('imprimiendo-credencial-graduado')
+    const restaurar = () => {
+      document.title = tituloAnterior
+      document.body.classList.remove('imprimiendo-credencial-graduado')
+      window.removeEventListener('afterprint', restaurar)
+    }
+    window.addEventListener('afterprint', restaurar)
+    window.print()
+    setTimeout(restaurar, 1500)
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-sm animate-in fade-in duration-300">
-      <div className="bg-white w-full max-w-2xl rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
-        
-        {/* HEADER MODAL */}
-        <div className="bg-[#0d1b2e] p-8 text-white flex justify-between items-center relative overflow-hidden">
-          {/* Decoración Fondo */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
-          
-          <div className="relative z-10">
-            <div className="flex items-center gap-3 mb-1">
-              <CheckCircle2 className="text-emerald-400" size={24} />
-              <h2 className="text-2xl font-black uppercase tracking-tight">¡Registro Exitoso!</h2>
+    <div
+      className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/80 p-3 backdrop-blur-md sm:p-6"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="titulo-credencial-graduado"
+      onMouseDown={(evento) => { if (evento.target === evento.currentTarget) onCerrar() }}
+    >
+      <div className="flex max-h-[96vh] w-full max-w-3xl flex-col overflow-hidden rounded-[28px] border border-white/20 bg-white shadow-2xl">
+        <header className="flex items-center justify-between border-b border-blue-100 bg-gradient-to-r from-blue-50 via-white to-sky-50 px-5 py-4 sm:px-7">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+              <CheckCircle2 size={22} />
             </div>
-            <p className="text-sky-300/80 text-sm font-bold tracking-widest uppercase">Tu credencial digital está lista</p>
+            <div>
+              <p className="text-[9px] font-black uppercase tracking-[0.24em] text-emerald-600">Registro completado</p>
+              <h2 id="titulo-credencial-graduado" className="text-lg font-black text-[#06194d]">Tu credencial está lista</h2>
+            </div>
           </div>
-          <button 
-            onClick={onCerrar} 
-            className="relative z-10 p-2 hover:bg-white/10 rounded-full transition-colors text-slate-400 hover:text-white"
-          >
-            <X size={24} />
+          <button type="button" onClick={onCerrar} className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 transition hover:border-sky-300 hover:bg-sky-50 hover:text-[#0056b3]" aria-label="Cerrar credencial">
+            <X size={19} />
           </button>
-        </div>
+        </header>
 
-        {/* CUERPO - AREA IMPRIMIBLE */}
-        <div className="flex-1 overflow-y-auto p-6 md:p-10 bg-slate-50 print:p-0 print:bg-white">
-          
-          {/* TARJETA / CREDENCIAL */}
-          <div id="credencial-imprimible" className="relative bg-white rounded-[32px] shadow-2xl border border-slate-200 overflow-hidden print:shadow-none print:border-slate-300 mx-auto max-w-md md:max-w-none">
-            
-            {/* Patrón de fondo sutil */}
-            <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', size: '20px 20px' }}></div>
-            
-            <div className="p-8 md:p-10 flex flex-col md:flex-row gap-8 relative z-10">
-              
-              {/* LADO IZQUIERDO: INFORMACIÓN */}
-              <div className="flex-1 space-y-8">
-                
-                {/* Logo e Identidad */}
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 bg-[#0d1b2e] rounded-xl flex items-center justify-center shadow-lg">
-                      <GraduationCap className="text-sky-400" size={24} />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-black text-slate-800 leading-none">SIGIC 2026</h3>
-                      <p className="text-[9px] font-black text-sky-600 uppercase tracking-widest mt-1">Ceremonia de Colación</p>
-                    </div>
-                  </div>
-                  
-                  <div className="text-right">
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Código de Acceso</p>
-                    <p className="text-xl font-mono font-black text-slate-800 tracking-tighter">{egresado.token}</p>
-                  </div>
-                </div>
+        <div className="flex-1 overflow-y-auto bg-slate-100/80 p-4 sm:p-7">
+          <div className="hoja-credencial-graduado relative mx-auto max-w-[680px]">
+            <div className="linea-corte-graduado hidden" aria-hidden="true" />
 
-                {/* Datos Personales */}
-                <div>
-                  <h1 className="text-3xl md:text-4xl font-black text-slate-900 leading-tight mb-2 uppercase tracking-tight">
-                    {egresado.nombre}
-                  </h1>
-                  <div className="flex flex-wrap gap-6">
-                    <div>
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Legajo</p>
-                      <p className="font-black text-slate-700">{egresado.legajo}</p>
-                    </div>
-                    <div>
-                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Documento</p>
-                      <p className="font-black text-slate-700">{egresado.dni}</p>
-                    </div>
-                  </div>
-                </div>
+            <article id="credencial-imprimible" className="credencial-graduado relative overflow-hidden rounded-[26px] border-[3px] border-white bg-white text-[#06194d] shadow-[0_0_0_1px_#b9d6ff,0_22px_55px_rgba(0,62,150,0.18)]">
+              <div className="pointer-events-none absolute -right-20 -top-24 h-64 w-64 rotate-12 bg-gradient-to-br from-[#0069ff] via-[#087fbd] to-[#003b9c]" />
+              <div className="pointer-events-none absolute -right-24 top-8 h-48 w-48 rotate-[32deg] bg-[#b9dcff]/80" />
+              <div className="pointer-events-none absolute bottom-0 left-0 h-2 w-full bg-gradient-to-r from-[#0069ff] via-[#29ABE2] to-[#003b9c]" />
+              <div className="pointer-events-none absolute left-0 top-0 h-full w-2 bg-[#0069ff]" />
 
-                {/* Ubicaciones / Asientos */}
-                <div className="pt-6 border-t border-slate-100">
-                   <div className="flex items-center gap-2 mb-4">
-                      <Armchair size={16} className="text-sky-500" />
-                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Ubicaciones Asignadas</p>
-                   </div>
-                   <div className="flex flex-wrap gap-2">
-                      {/* Egresado */}
-                      <div className="bg-indigo-600 text-white px-3 py-1.5 rounded-lg flex items-center gap-2 shadow-sm shadow-indigo-200">
-                        <span className="text-[8px] font-black uppercase opacity-70">Tú:</span>
-                        <span className="text-xs font-black">{egresado.asiento_id || 'S/A'}</span>
+              <div className="contenido-credencial relative grid gap-5 p-5 sm:grid-cols-[1fr_190px] sm:gap-7 sm:p-7">
+                <section className="min-w-0">
+                  <div className="flex items-center justify-between gap-3 border-b border-blue-100 pb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl border border-blue-100 bg-white p-1.5 shadow-sm">
+                        {falloLogo ? (
+                          <span className="text-lg font-black tracking-tight text-[#0056b3]">SG</span>
+                        ) : (
+                          <img src="/logo.png?v=20260618" alt="Logo oficial de SiGIC" className="h-full w-full object-contain" onError={() => setFalloLogo(true)} />
+                        )}
                       </div>
-                      
-                      {/* Entregador */}
-                      {egresado.entregador_asiento_id && (
-                        <div className="bg-slate-800 text-white px-3 py-1.5 rounded-lg flex items-center gap-2">
-                           <span className="text-[8px] font-black uppercase opacity-70">Entreg:</span>
-                           <span className="text-xs font-black">{egresado.entregador_asiento_id}</span>
-                        </div>
-                      )}
-
-                      {/* Invitados */}
-                      {egresado.invitados?.map(inv => inv.asiento_id && (
-                        <div key={inv.id} className="bg-sky-100 text-sky-700 px-3 py-1.5 rounded-lg flex items-center gap-2 border border-sky-200">
-                           <span className="text-[8px] font-black uppercase opacity-50">Inv:</span>
-                           <span className="text-xs font-black">{inv.asiento_id}</span>
-                        </div>
-                      ))}
-                   </div>
-                </div>
-
-              </div>
-
-              {/* LADO DERECHO: QR */}
-              <div className="flex flex-col items-center justify-center p-6 bg-slate-50 rounded-[28px] border border-slate-100 md:w-48 shadow-inner">
-                <div className="bg-white p-4 rounded-2xl shadow-xl border border-white mb-4">
-                  <QRCodeSVG 
-                    value={qrData} 
-                    size={120} 
-                    level="H"
-                    includeMargin={false}
-                  />
-                </div>
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-1 text-slate-400 mb-1">
-                    <Ticket size={12} />
-                    <span className="text-[9px] font-black uppercase tracking-widest">Pase Grupal</span>
+                      <div>
+                        <p className="text-xl font-black tracking-[0.12em] text-[#06194d]">SiGIC</p>
+                        <p className="text-[8px] font-black uppercase tracking-[0.18em] text-[#087fbd]">Ceremonia de colación</p>
+                      </div>
+                    </div>
+                    <div className="hidden rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[8px] font-black uppercase tracking-wider text-emerald-700 sm:flex sm:items-center sm:gap-1.5">
+                      <ShieldCheck size={12} /> Credencial válida
+                    </div>
                   </div>
-                  <p className="text-[10px] font-bold text-slate-500 leading-tight">Válido para todo el grupo familiar</p>
-                </div>
+
+                  <div className="py-5">
+                    <p className="text-[8px] font-black uppercase tracking-[0.22em] text-slate-400">Graduado/a</p>
+                    <h1 className="mt-1 break-words text-2xl font-black uppercase leading-[1.05] tracking-tight text-[#071a3d] sm:text-[30px]">
+                      {egresado.nombre}
+                    </h1>
+                    <div className="mt-4 flex flex-wrap gap-x-7 gap-y-3">
+                      <div>
+                        <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">Legajo</p>
+                        <p className="text-xs font-black text-slate-700">{egresado.legajo || '—'}</p>
+                      </div>
+                      <div>
+                        <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">Documento</p>
+                        <p className="text-xs font-black text-slate-700">{egresado.dni || '—'}</p>
+                      </div>
+                      <div>
+                        <p className="text-[8px] font-black uppercase tracking-widest text-slate-400">Código</p>
+                        <p className="font-mono text-xs font-black text-[#0056b3]">{egresado.token || egresado.id}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-blue-100 bg-blue-50/70 p-3.5">
+                    <div className="mb-2.5 flex items-center gap-2">
+                      <Armchair size={15} className="text-[#087fbd]" />
+                      <p className="text-[8px] font-black uppercase tracking-[0.18em] text-[#0b3980]">Ubicaciones asignadas</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <span className="rounded-lg bg-[#0056b3] px-3 py-1.5 text-[9px] font-black text-white">GRADUADO · {egresado.asiento_id || 'S/A'}</span>
+                      {egresado.entregador_asiento_id && <span className="rounded-lg bg-[#06194d] px-3 py-1.5 text-[9px] font-black text-white">ENTREGADOR · {egresado.entregador_asiento_id}</span>}
+                      {asientosInvitados.map(invitado => (
+                        <span key={invitado.id} className="rounded-lg border border-sky-200 bg-white px-3 py-1.5 text-[9px] font-black text-[#087fbd]">INVITADO · {invitado.asiento_id}</span>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+
+                <aside className="relative z-10 flex flex-col items-center justify-center rounded-[24px] border border-white/60 bg-white/95 p-4 shadow-xl backdrop-blur-sm">
+                  <p className="mb-3 text-[8px] font-black uppercase tracking-[0.2em] text-[#0056b3]">Pase grupal</p>
+                  <div className="rounded-[18px] border border-blue-100 bg-white p-2.5 shadow-md">
+                    <QRCodeSVG value={qrData} size={145} level="H" marginSize={1} fgColor="#06194d" bgColor="#ffffff" title="Código QR de la credencial" />
+                  </div>
+                  <div className="mt-3 flex items-center gap-1.5 text-emerald-600">
+                    <Ticket size={12} />
+                    <span className="text-[8px] font-black uppercase tracking-widest">Listo para ingresar</span>
+                  </div>
+                  <p className="mt-1 text-center text-[8px] leading-relaxed text-slate-500">Presentá este QR en portería. Es válido para el grupo asociado.</p>
+                </aside>
               </div>
 
-            </div>
-
-            {/* Footer de la credencial */}
-            <div className="bg-slate-50/80 p-4 border-t border-slate-100 flex items-center justify-center gap-8">
-               <div className="flex items-center gap-2">
-                  <Calendar size={14} className="text-slate-400" />
-                  <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Diciembre 2026</span>
-               </div>
-               <div className="flex items-center gap-2">
-                  <MapPin size={14} className="text-slate-400" />
-                  <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Sede Beltrán - Anfiteatro</span>
-               </div>
-            </div>
-
+              <footer className="relative flex flex-wrap items-center justify-center gap-x-8 gap-y-2 border-t border-blue-100 bg-slate-50/90 px-5 py-3 text-[8px] font-black uppercase tracking-wider text-slate-500">
+                <span className="flex items-center gap-1.5"><Calendar size={12} className="text-[#087fbd]" /> {fechaEvento}</span>
+                <span className="flex items-center gap-1.5"><MapPin size={12} className="text-[#087fbd]" /> {sedeEvento}</span>
+              </footer>
+            </article>
           </div>
 
-          <div className="mt-8 text-center max-w-sm mx-auto">
-            <p className="text-slate-400 text-xs font-medium leading-relaxed">
-              Esta credencial es obligatoria para ingresar al teatro. Podés llevarla en tu celular o imprimirla.
-            </p>
-          </div>
-
+          <p className="mx-auto mt-5 max-w-lg text-center text-[11px] leading-relaxed text-slate-500">
+            Guardá esta credencial en tu teléfono o imprimila. El QR debe verse completo y sin pliegues para que portería pueda leerlo.
+          </p>
         </div>
 
-        {/* ACCIONES FOOTER */}
-        <div className="p-8 border-t border-slate-100 bg-white flex flex-col sm:flex-row gap-4">
-          <button 
-            onClick={handlePrint}
-            className="flex-1 bg-[#0d1b2e] text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-black transition-all shadow-xl active:scale-95"
-          >
-            <Printer size={18} /> Imprimir Credencial
+        <footer className="grid grid-cols-1 gap-2.5 border-t border-slate-100 bg-white p-4 sm:grid-cols-3 sm:p-5">
+          <button type="button" onClick={imprimir} className="flex items-center justify-center gap-2 rounded-xl bg-[#0056b3] px-4 py-3 text-[10px] font-black uppercase tracking-wider text-white transition hover:bg-[#087fbd] active:scale-[0.98]">
+            <Download size={16} /> Exportar PDF
           </button>
-          <button 
-            onClick={onCerrar}
-            className="flex-1 bg-white text-slate-600 border-2 border-slate-100 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-50 transition-all"
-          >
-            Cerrar
+          <button type="button" onClick={imprimir} className="flex items-center justify-center gap-2 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-[10px] font-black uppercase tracking-wider text-[#0056b3] transition hover:bg-blue-100 active:scale-[0.98]">
+            <Printer size={16} /> Imprimir
           </button>
-        </div>
-
+          <button type="button" onClick={onCerrar} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-black uppercase tracking-wider text-slate-600 transition hover:bg-slate-50 active:scale-[0.98]">Cerrar</button>
+        </footer>
       </div>
+
+      <style>{`
+        @media print {
+          html,
+          body {
+            width: 150mm !important;
+            height: 95mm !important;
+            min-width: 150mm !important;
+            min-height: 95mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+            background: white !important;
+          }
+          body.imprimiendo-credencial-graduado > * {
+            height: 0 !important;
+            min-height: 0 !important;
+            overflow: visible !important;
+          }
+          body * { visibility: hidden !important; }
+          .hoja-credencial-graduado,
+          .hoja-credencial-graduado *,
+          .credencial-graduado,
+          .credencial-graduado * { visibility: visible !important; }
+          .hoja-credencial-graduado {
+            position: fixed !important;
+            inset: 0 !important;
+            width: 150mm !important;
+            height: 95mm !important;
+            min-height: 95mm !important;
+            max-width: none !important;
+            box-sizing: border-box !important;
+            overflow: hidden !important;
+            background: white !important;
+          }
+          .credencial-graduado {
+            position: absolute !important;
+            inset: 5mm auto auto 5mm !important;
+            width: 140mm !important;
+            height: 85mm !important;
+            min-height: 0 !important;
+            box-sizing: border-box !important;
+            border-radius: 6mm !important;
+            box-shadow: 0 0 0 .3mm #b9d6ff !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            overflow: hidden !important;
+          }
+          .contenido-credencial {
+            display: grid !important;
+            grid-template-columns: minmax(0, 1fr) 45mm !important;
+            gap: 4mm !important;
+            padding: 5mm !important;
+          }
+          .linea-corte-graduado {
+            display: block !important;
+            position: absolute !important;
+            inset: 4.25mm !important;
+            border: .25mm dashed #64748b !important;
+            border-radius: 6.5mm !important;
+            z-index: 30 !important;
+            pointer-events: none !important;
+            box-sizing: border-box !important;
+          }
+          .linea-corte-graduado::before {
+            content: 'LÍNEA DE CORTE' !important;
+            position: absolute !important;
+            top: -3.2mm !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            padding: 0 1.5mm !important;
+            background: white !important;
+            color: #64748b !important;
+            font: 700 6pt/1 sans-serif !important;
+            letter-spacing: .8pt !important;
+            white-space: nowrap !important;
+          }
+          @page { size: 150mm 95mm; margin: 0; }
+        }
+      `}</style>
     </div>
   )
 }

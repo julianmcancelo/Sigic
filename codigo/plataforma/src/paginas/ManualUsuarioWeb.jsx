@@ -1,28 +1,355 @@
 import { useState, useEffect } from 'react'
+import { QRCodeSVG } from 'qrcode.react'
 import { 
   ArrowLeft, ArrowRight, BookOpen, Book, Users, GraduationCap, 
   ScanLine, HelpCircle, Calendar, Shield, Server, LayoutGrid, 
   CheckCircle2, AlertTriangle, XCircle, List, Heart, Map,
-  ZoomIn, ZoomOut, Maximize2, Minimize2, Accessibility, Smartphone, FileText
+  ZoomIn, ZoomOut, Maximize2, Minimize2, Accessibility, Smartphone, FileText,
+  Badge, Download, Printer, X
 } from 'lucide-react'
+
+// ==========================================
+// CREDENCIAL IMPRIMIBLE DE ACCESO AL MANUAL
+// ==========================================
+function CredencialManual({ urlManual, onCerrar }) {
+  useEffect(() => {
+    const cerrarConEscape = (evento) => {
+      if (evento.key === 'Escape') onCerrar()
+    }
+    document.addEventListener('keydown', cerrarConEscape)
+    return () => document.removeEventListener('keydown', cerrarConEscape)
+  }, [onCerrar])
+
+  const abrirSalida = (nombreDocumento) => {
+    const tituloAnterior = document.title
+    document.title = nombreDocumento
+    document.body.classList.add('imprimiendo-credencial-manual')
+    const restaurarTitulo = () => {
+      document.title = tituloAnterior
+      document.body.classList.remove('imprimiendo-credencial-manual')
+      window.removeEventListener('afterprint', restaurarTitulo)
+    }
+    window.addEventListener('afterprint', restaurarTitulo)
+    window.print()
+    setTimeout(restaurarTitulo, 1500)
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="titulo-credencial-manual"
+      onMouseDown={(evento) => {
+        if (evento.target === evento.currentTarget) onCerrar()
+      }}
+    >
+      <div className="w-full max-w-md rounded-3xl border border-white/15 bg-white p-4 shadow-2xl sm:p-6">
+        <div className="mb-4 flex items-start justify-between gap-4">
+          <div>
+            <h2 id="titulo-credencial-manual" className="text-base font-black text-slate-900">
+              Credencial del Manual
+            </h2>
+            <p className="mt-1 text-xs text-slate-500">Imprimila o guardala como PDF para compartir el acceso.</p>
+          </div>
+          <button
+            type="button"
+            onClick={onCerrar}
+            className="rounded-full p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+            aria-label="Cerrar credencial"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="credencial-hoja-corte relative">
+          <div className="linea-corte hidden" aria-hidden="true" />
+          <div className="credencial-manual-imprimible relative overflow-hidden rounded-[30px] border-[3px] border-white bg-[#fdfefe] text-[#06194d] shadow-[0_0_0_1px_#b9d6ff,0_24px_60px_rgba(0,62,150,0.22)]">
+          {/* Geometrías inspiradas en la portada del manual */}
+          <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rotate-12 bg-gradient-to-br from-[#0069ff] to-[#003b9c] opacity-95" />
+          <div className="pointer-events-none absolute -right-20 top-1 h-44 w-44 rotate-[28deg] bg-[#a9d4ff]/80" />
+          <div className="pointer-events-none absolute bottom-0 left-0 h-1.5 w-full bg-gradient-to-r from-[#0069ff] via-[#29ABE2] to-[#003b9c]" />
+          <div className="pointer-events-none absolute left-0 top-0 h-full w-1.5 bg-[#0069ff]" />
+
+          <div className="relative px-7 pb-4 pt-6">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-blue-100 bg-white p-1.5 shadow-sm">
+                  <LogoSigic className="h-full w-full" />
+                </div>
+                <div>
+                  <h3 className="text-[28px] font-black leading-none tracking-[0.12em] text-[#06194d]">SiGIC</h3>
+                  <p className="mt-1 text-[8px] font-black uppercase tracking-[0.17em] text-[#087fbd]">Guía de uso diario</p>
+                </div>
+              </div>
+              <div className="relative z-10 mt-1 rounded-xl border border-white/40 bg-white/20 p-2 text-white backdrop-blur-sm">
+                <BookOpen size={20} />
+              </div>
+            </div>
+            <div className="mt-4 h-px w-[78%] bg-gradient-to-r from-[#0069ff] via-blue-200 to-transparent" />
+          </div>
+
+          <div className="relative flex flex-col items-center px-8 pb-6 pt-2 text-center">
+            <div className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1">
+              <p className="text-[8px] font-black uppercase tracking-[0.25em] text-[#0069ff]">Acceso oficial</p>
+            </div>
+            <h4 className="mt-3 text-[21px] font-black tracking-tight text-[#06194d]">Manual de Usuario</h4>
+            <p className="mt-1 max-w-[250px] text-[10px] leading-relaxed text-slate-500">Escaneá el código QR para consultar el manual digital de SiGIC.</p>
+
+            <div className="mt-5 rounded-[24px] border border-blue-200 bg-white p-2.5 shadow-[0_12px_30px_rgba(0,86,179,0.14)] outline outline-[5px] outline-blue-50">
+              <QRCodeSVG
+                value={urlManual}
+                size={166}
+                level="H"
+                marginSize={1}
+                fgColor="#0f172a"
+                bgColor="#ffffff"
+                title="Código QR de acceso al Manual SiGIC"
+              />
+            </div>
+
+            <p className="mt-5 max-w-full break-all rounded-lg bg-slate-50 px-3 py-1.5 font-mono text-[8px] text-slate-500">{urlManual}</p>
+          </div>
+
+          <div className="relative mx-6 flex items-center justify-between border-t border-blue-100 px-1 py-4 text-[7.5px] font-black uppercase tracking-[0.16em] text-[#0b3980]">
+            <span>Instituto Tecnológico Beltrán</span>
+            <span className="text-[#087fbd]">Manual oficial</span>
+          </div>
+          </div>
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => abrirSalida('Credencial_Manual_SiGIC')}
+            className="flex items-center justify-center gap-2 rounded-2xl bg-[#0056b3] px-4 py-3 text-xs font-black uppercase tracking-wider text-white shadow-md transition hover:bg-[#087fbd] active:scale-[0.98]"
+          >
+            <Download size={16} /> Exportar PDF
+          </button>
+          <button
+            type="button"
+            onClick={() => abrirSalida('Credencial_Manual_SiGIC')}
+            className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs font-black uppercase tracking-wider text-slate-700 transition hover:border-[#29ABE2]/50 hover:bg-sky-50 hover:text-[#0056b3] active:scale-[0.98]"
+          >
+            <Printer size={16} /> Imprimir
+          </button>
+        </div>
+        <p className="mt-3 text-center text-[10px] leading-relaxed text-slate-400">
+          Para exportar, elegí <strong className="text-slate-500">Guardar como PDF</strong> en la ventana que se abre.
+        </p>
+      </div>
+
+      <style>{`
+        @media print {
+          html,
+          body {
+            width: 95mm !important;
+            height: 150mm !important;
+            min-width: 95mm !important;
+            min-height: 150mm !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+            background: white !important;
+          }
+          body.imprimiendo-credencial-manual > * {
+            height: 0 !important;
+            min-height: 0 !important;
+            overflow: visible !important;
+          }
+          body * { visibility: hidden !important; }
+          .credencial-hoja-corte,
+          .credencial-hoja-corte *,
+          .credencial-manual-imprimible,
+          .credencial-manual-imprimible * { visibility: visible !important; }
+          .credencial-hoja-corte {
+            position: fixed !important;
+            inset: 0 !important;
+            width: 95mm !important;
+            height: 150mm !important;
+            min-height: 150mm !important;
+            box-sizing: border-box !important;
+            overflow: hidden !important;
+            background: white !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .credencial-manual-imprimible {
+            position: absolute !important;
+            inset: 5mm auto auto 5mm !important;
+            width: 85mm !important;
+            height: 140mm !important;
+            min-height: 0 !important;
+            box-sizing: border-box !important;
+            border: 0.7mm solid white !important;
+            border-radius: 7mm !important;
+            box-shadow: 0 0 0 0.3mm #b9d6ff !important;
+            transform: none !important;
+            overflow: hidden !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .linea-corte {
+            display: block !important;
+            position: absolute !important;
+            inset: 4.25mm !important;
+            border: 0.25mm dashed #64748b !important;
+            border-radius: 7.5mm !important;
+            z-index: 20 !important;
+            pointer-events: none !important;
+            box-sizing: border-box !important;
+          }
+          .linea-corte::before {
+            content: 'LÍNEA DE CORTE' !important;
+            position: absolute !important;
+            top: -3.2mm !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            padding: 0 1.5mm !important;
+            background: white !important;
+            color: #64748b !important;
+            font: 700 6pt/1 sans-serif !important;
+            letter-spacing: 0.8pt !important;
+            white-space: nowrap !important;
+          }
+          @page { size: 95mm 150mm; margin: 0; }
+        }
+      `}</style>
+    </div>
+  )
+}
+
+// Logo y capturas con respaldo visual: nunca dejan el ícono nativo de imagen rota.
+function LogoSigic({ className = '' }) {
+  const [fallo, setFallo] = useState(false)
+
+  if (fallo) {
+    return (
+      <div className={`flex items-center justify-center rounded-xl bg-gradient-to-br from-[#0069ff] to-[#06194d] font-black text-white ${className}`}>
+        <span className="text-lg tracking-tighter">SG</span>
+      </div>
+    )
+  }
+
+  return (
+    <img
+      src="/logo.png?v=20260618"
+      alt="Logo oficial de SiGIC"
+      className={`object-contain ${className}`}
+      onError={() => setFallo(true)}
+    />
+  )
+}
+
+function ImagenManual({ fuentes, alt, className = '', etiqueta = 'Captura del sistema', descripcion = '' }) {
+  const listaFuentes = Array.isArray(fuentes) ? fuentes : [fuentes]
+  const [indiceFuente, setIndiceFuente] = useState(0)
+
+  if (indiceFuente >= listaFuentes.length) {
+    return (
+      <div className={`flex min-h-40 w-full flex-col items-center justify-center gap-3 bg-gradient-to-br from-slate-50 to-blue-50 p-6 text-center ${className}`} role="img" aria-label={alt}>
+        <LogoSigic className="h-14 w-14" />
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#0056b3]">SiGIC</p>
+          <p className="mt-1 text-xs font-bold text-slate-600">{etiqueta}</p>
+          <p className="mt-1 text-[9px] text-slate-400">Imagen no disponible en este dispositivo</p>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <button
+      type="button"
+      className="group/imagen relative block w-full cursor-zoom-in overflow-hidden text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#29ABE2] focus-visible:ring-offset-2"
+      onClick={() => window.dispatchEvent(new CustomEvent('ampliar-imagen-manual', {
+        detail: { src: listaFuentes[indiceFuente], alt, titulo: etiqueta, descripcion }
+      }))}
+      aria-label={`Ampliar imagen: ${etiqueta}`}
+    >
+      <img
+        src={listaFuentes[indiceFuente]}
+        alt={alt}
+        className={className}
+        onError={() => setIndiceFuente(actual => actual + 1)}
+      />
+      <span className="absolute bottom-2 right-2 flex items-center gap-1 rounded-full border border-white/40 bg-slate-950/75 px-2.5 py-1 text-[8px] font-black uppercase tracking-wider text-white opacity-90 shadow-lg backdrop-blur-md transition group-hover/imagen:scale-105 group-hover/imagen:bg-[#0056b3]">
+        <ZoomIn size={11} /> Ampliar
+      </span>
+    </button>
+  )
+}
+
+function ModalImagenManual({ imagen, onCerrar }) {
+  const [zoom, setZoom] = useState(1)
+
+  useEffect(() => {
+    setZoom(1)
+    const manejarTecla = (evento) => {
+      if (evento.key === 'Escape') onCerrar()
+    }
+    document.addEventListener('keydown', manejarTecla)
+    return () => document.removeEventListener('keydown', manejarTecla)
+  }, [imagen, onCerrar])
+
+  return (
+    <div
+      className="fixed inset-0 z-[120] flex flex-col bg-slate-950/95 p-3 backdrop-blur-md sm:p-6"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="titulo-imagen-manual"
+      onMouseDown={(evento) => { if (evento.target === evento.currentTarget) onCerrar() }}
+    >
+      <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 pb-3 text-white">
+        <div className="min-w-0">
+          <p className="text-[9px] font-black uppercase tracking-[0.22em] text-[#29ABE2]">Captura real de SiGIC</p>
+          <h2 id="titulo-imagen-manual" className="truncate text-base font-black sm:text-lg">{imagen.titulo}</h2>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          <button type="button" onClick={() => setZoom(actual => Math.max(1, actual - 0.25))} disabled={zoom <= 1} className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/10 transition hover:bg-white/20 disabled:opacity-30" aria-label="Reducir imagen">
+            <ZoomOut size={17} />
+          </button>
+          <span className="w-12 text-center font-mono text-[10px] font-bold text-white/70">{Math.round(zoom * 100)}%</span>
+          <button type="button" onClick={() => setZoom(actual => Math.min(2.5, actual + 0.25))} disabled={zoom >= 2.5} className="flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/10 transition hover:bg-white/20 disabled:opacity-30" aria-label="Ampliar imagen">
+            <ZoomIn size={17} />
+          </button>
+          <button type="button" onClick={onCerrar} className="ml-1 flex h-10 w-10 items-center justify-center rounded-full bg-white text-slate-900 transition hover:bg-[#29ABE2] hover:text-white" aria-label="Cerrar imagen ampliada">
+            <X size={19} />
+          </button>
+        </div>
+      </div>
+
+      <div className="mx-auto flex min-h-0 w-full max-w-7xl flex-1 overflow-auto rounded-2xl border border-white/10 bg-slate-900/70 shadow-2xl">
+        <div className="m-auto flex min-h-full min-w-full items-center justify-center p-3 sm:p-6">
+          <img
+            src={imagen.src}
+            alt={imagen.alt}
+            className="max-h-[76vh] max-w-full rounded-xl bg-white object-contain shadow-2xl transition-transform duration-200"
+            style={{ transform: `scale(${zoom})` }}
+          />
+        </div>
+      </div>
+
+      <div className="mx-auto mt-3 w-full max-w-7xl rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-[11px] leading-relaxed text-white/75 backdrop-blur-md sm:px-5">
+        <strong className="mr-1 text-white">¿Qué muestra?</strong>
+        {imagen.descripcion || imagen.alt}
+      </div>
+    </div>
+  )
+}
 
 // ==========================================
 // IMAGEN: PANEL ADMINISTRATIVO REAL
 // ==========================================
 function ScreenPanelAdmin() {
-  const [src, setSrc] = useState('/manual/panel_admin.png')
   return (
     <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
-      <img 
-        src={src} 
-        onError={() => {
-          if (src === '/manual/panel_admin.png') {
-            setSrc('/panel_admin.png')
-          }
-        }}
-        alt="Panel de Administración SiGIC" 
+      <ImagenManual
+        fuentes={['/manual/panel_admin.png?v=20260618', '/panel_admin.png?v=20260618']}
+        alt="Panel de Administración SiGIC"
+        etiqueta="Panel de Administración"
+        descripcion="Vista general del evento activo, indicadores de graduados, invitados, ingresos y ocupación, junto con los accesos a los módulos operativos."
         className="w-full object-cover object-top hover:scale-[1.02] transition-transform duration-500"
-        style={{ maxHeight: '450px' }}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2 z-20 pointer-events-none">
         <span className="text-[8px] font-bold text-white">📸 Captura real: Panel de Administración SiGIC</span>
@@ -35,19 +362,14 @@ function ScreenPanelAdmin() {
 // IMAGEN: GESTIÓN DE GRADUADOS REAL
 // ==========================================
 function ScreenGestionGraduados() {
-  const [src, setSrc] = useState('/manual/gestion_graduados.png')
   return (
-    <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-md relative group select-none">
-      <img 
-        src={src} 
-        onError={() => {
-          if (src === '/manual/gestion_graduados.png') {
-            setSrc('/gestion_graduados.png')
-          }
-        }}
+    <div className="w-full aspect-[16/8.8] overflow-hidden rounded-xl border border-slate-200 shadow-md relative group select-none bg-slate-50">
+      <ImagenManual
+        fuentes={['/manual/gestion_graduados.png?v=20260618', '/gestion_graduados.png?v=20260618']}
         alt="Gestión de Graduados SiGIC" 
-        className="w-full object-cover object-top hover:scale-[1.02] transition-transform duration-500"
-        style={{ maxHeight: '450px' }}
+        etiqueta="Gestión de Graduados"
+        descripcion="Listado operativo de graduados con búsqueda, filtros por estado, importación desde Excel y seguimiento del circuito de invitación, aceptación, acompañantes y entregadores."
+        className="w-[200%] max-w-none object-cover object-left-top hover:scale-[1.01] transition-transform duration-500"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2 z-20 pointer-events-none">
         <span className="text-[8.5px] font-bold text-white">📸 Pipeline de estados en Gestión</span>
@@ -60,19 +382,14 @@ function ScreenGestionGraduados() {
 // IMAGEN: GESTIÓN DE CEREMONIAS REAL
 // ==========================================
 function ScreenGestionCeremonias() {
-  const [src, setSrc] = useState('/manual/gestion_ceremonias.png')
   return (
     <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-md relative group select-none">
-      <img 
-        src={src} 
-        onError={() => {
-          if (src === '/manual/gestion_ceremonias.png') {
-            setSrc('/gestion_ceremonias.png')
-          }
-        }}
-        alt="Gestión de Ceremonias SiGIC" 
+      <ImagenManual
+        fuentes={['/manual/gestion_ceremonias.png?v=20260618', '/gestion_ceremonias.png?v=20260618']}
+        alt="Gestión de Ceremonias SiGIC"
+        etiqueta="Gestión de Ceremonias"
+        descripcion="Selector de hábitats o ceremonias. Permite activar el entorno de trabajo correcto, consultar fecha, sede y cupo de invitados, o crear una nueva ceremonia."
         className="w-full object-cover object-center hover:scale-[1.02] transition-transform duration-500"
-        style={{ maxHeight: '450px' }}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2 z-20 pointer-events-none">
         <span className="text-[8.5px] font-bold text-white">📸 Consola Multi-Hábitat de Ceremonias</span>
@@ -85,19 +402,14 @@ function ScreenGestionCeremonias() {
 // IMAGEN: DISEÑO DEL ANFITEATRO REAL
 // ==========================================
 function ScreenDisenoAnfiteatro() {
-  const [src, setSrc] = useState('/manual/diseno_anfiteatro.png')
   return (
     <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-md relative group select-none">
-      <img 
-        src={src} 
-        onError={() => {
-          if (src === '/manual/diseno_anfiteatro.png') {
-            setSrc('/diseno_anfiteatro.png')
-          }
-        }}
-        alt="Diseño del Anfiteatro SiGIC" 
+      <ImagenManual
+        fuentes={['/manual/diseno_anfiteatro.png?v=20260618', '/diseno_anfiteatro.png?v=20260618']}
+        alt="Configuración real del anfiteatro SiGIC"
+        etiqueta="Diseño del Anfiteatro"
+        descripcion="Modelador de Platea y Pullman. Desde aquí se definen filas, asientos por fila, capacidad y rol de cada ubicación antes de guardar el plano."
         className="w-full object-cover object-center hover:scale-[1.02] transition-transform duration-500"
-        style={{ maxHeight: '450px' }}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2 z-20 pointer-events-none">
         <span className="text-[8.5px] font-bold text-white">📸 Modelador del Anfiteatro y Butacas</span>
@@ -110,17 +422,13 @@ function ScreenDisenoAnfiteatro() {
 // IMAGEN: EMAIL DE INVITACION REAL
 // ==========================================
 function ScreenEmailInvitacion() {
-  const [src, setSrc] = useState('/manual/email_invitacion.png')
   return (
     <div className="w-full max-w-[200px] mx-auto overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
-      <img 
-        src={src} 
-        onError={() => {
-          if (src === '/manual/email_invitacion.png') {
-            setSrc('/email_invitacion.png')
-          }
-        }}
-        alt="Correo de Invitación" 
+      <ImagenManual
+        fuentes={['/manual/email_invitacion.png?v=20260618', '/email_invitacion.png?v=20260618']}
+        alt="Correo de invitación enviado por SiGIC"
+        etiqueta="Correo de Invitación"
+        descripcion="Mensaje que recibe el graduado con la información de la ceremonia y el enlace personal para aceptar o rechazar su participación."
         className="w-full object-cover object-top hover:scale-[1.01] transition-transform duration-500"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2 z-20 pointer-events-none">
@@ -134,14 +442,14 @@ function ScreenEmailInvitacion() {
 // IMAGEN: PORTAL OTP DEL EGRESADO
 // ==========================================
 function ScreenPortalOTP() {
-  const [src, setSrc] = useState('/manual/portal_otp.png')
   return (
     <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
-      <img 
-        src={src} 
-        onError={() => { if (src === '/manual/portal_otp.png') setSrc('/portal_otp.png') }}
+      <ImagenManual
+        fuentes={['/manual/portal_otp.png?v=20260618', '/portal_otp.png?v=20260618']}
+        etiqueta="Acceso del Graduado"
+        descripcion="Pantalla de acceso mediante correo institucional y código temporal. Protege la autogestión sin exigir una contraseña permanente."
         className="w-full object-cover object-top transition-transform duration-[2s] group-hover:scale-105"
-        alt="Portal OTP"
+        alt="Portal de acceso OTP del graduado"
       />
     </div>
   )
@@ -151,10 +459,9 @@ function ScreenPortalOTP() {
 // IMAGEN: PANTALLA DE ACEPTACIÓN
 // ==========================================
 function ScreenPantallaAceptacion() {
-  const [src, setSrc] = useState('/manual/pantalla_aceptacion.png')
   return (
     <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
-      <img src={src} onError={() => { if (src === '/manual/pantalla_aceptacion.png') setSrc('/pantalla_aceptacion.png') }} className="w-full object-cover object-top transition-transform duration-[2s] group-hover:scale-105" alt="Aceptación" />
+      <ImagenManual fuentes="/manual/pantalla_aceptacion.png?v=20260618" className="w-full object-cover object-top transition-transform duration-[2s] group-hover:scale-105" alt="Aceptación de participación" etiqueta="Aceptación de participación" descripcion="Confirmación inicial en la que el graduado revisa evento, fecha y sede antes de aceptar o rechazar su asistencia." />
     </div>
   )
 }
@@ -163,10 +470,9 @@ function ScreenPantallaAceptacion() {
 // IMAGEN: ACOMPAÑANTES
 // ==========================================
 function ScreenPanelAcompanantes() {
-  const [src, setSrc] = useState('/manual/panel_graduado_acompanantes.png')
   return (
     <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
-      <img src={src} onError={() => { if (src === '/manual/panel_graduado_acompanantes.png') setSrc('/panel_graduado_acompanantes.png') }} className="w-full object-cover object-top transition-transform duration-[2s] group-hover:scale-105" alt="Acompañantes" />
+      <ImagenManual fuentes="/manual/panel_graduado_acompanantes.png?v=20260618" className="w-full object-cover object-top transition-transform duration-[2s] group-hover:scale-105" alt="Panel real de acompañantes" etiqueta="Panel de acompañantes" descripcion="Sección donde el graduado registra, consulta y administra a sus familiares invitados respetando el cupo disponible." />
     </div>
   )
 }
@@ -175,10 +481,9 @@ function ScreenPanelAcompanantes() {
 // IMAGEN: ENTREGADORES
 // ==========================================
 function ScreenPanelEntregadores() {
-  const [src, setSrc] = useState('/manual/panel_graduado_entregadores.png')
   return (
     <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
-      <img src={src} onError={() => { if (src === '/manual/panel_graduado_entregadores.png') setSrc('/panel_graduado_entregadores.png') }} className="w-full object-cover object-top transition-transform duration-[2s] group-hover:scale-105" alt="Entregadores" />
+      <ImagenManual fuentes="/manual/panel_graduado_entregadores.png?v=20260618" className="w-full object-cover object-top transition-transform duration-[2s] group-hover:scale-105" alt="Panel real de entregadores" etiqueta="Selección de entregadores" descripcion="Pantalla para elegir hasta tres personas autorizadas a participar en la entrega del título durante la ceremonia." />
     </div>
   )
 }
@@ -187,10 +492,9 @@ function ScreenPanelEntregadores() {
 // IMAGEN: CREDENCIAL DIGITAL
 // ==========================================
 function ScreenCredencialDigital() {
-  const [src, setSrc] = useState('/manual/credencial_digital.png')
   return (
     <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
-      <img src={src} onError={() => { if (src === '/manual/credencial_digital.png') setSrc('/credencial_digital.png') }} className="w-full object-cover object-top transition-transform duration-[2s] group-hover:scale-105" alt="Credencial Digital" />
+      <ImagenManual fuentes="/manual/credencial_digital.png?v=20260618" className="w-full object-cover object-top transition-transform duration-[2s] group-hover:scale-105" alt="Credencial digital real de SiGIC" etiqueta="Credencial digital" descripcion="Pase grupal con QR generado al finalizar la inscripción. Identifica al graduado, su ubicación y las personas asociadas para el control de ingreso." />
     </div>
   )
 }
@@ -199,19 +503,14 @@ function ScreenCredencialDigital() {
 // IMAGEN: PANTALLA INASISTENCIA
 // ==========================================
 function ScreenInasistencia() {
-  const [src, setSrc] = useState('/manual/portal_inasistencia.png')
   return (
     <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
-      <img 
-        src={src} 
-        onError={() => {
-          if (src === '/manual/portal_inasistencia.png') {
-            setSrc('/portal_inasistencia.png')
-          }
-        }}
-        alt="Pantalla Inasistencia" 
+      <ImagenManual
+        fuentes={['/manual/portal_inasistencia.png?v=20260618', '/portal_inasistencia.png?v=20260618']}
+        alt="Confirmación de inasistencia"
+        etiqueta="Confirmación de Inasistencia"
+        descripcion="Resultado mostrado cuando el graduado rechaza la invitación. La decisión queda registrada para actualizar aforo y planificación."
         className="w-full object-cover object-center hover:scale-[1.02] transition-transform duration-500"
-        style={{ maxHeight: '450px' }}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2 z-20 pointer-events-none">
         <span className="text-[8px] font-bold text-white">📸 Confirmación de inasistencia</span>
@@ -224,17 +523,13 @@ function ScreenInasistencia() {
 // WIREFRAME: PORTERIA SCANNER MOVIL
 // ==========================================
 function WireframePorteria() {
-  const [src, setSrc] = useState('/manual/porteria_wireframe.png')
   return (
     <div className="w-[85px] mx-auto overflow-hidden rounded-[14px] border-2 border-slate-700 shadow-md bg-slate-50 relative select-none">
-      <img 
-        src={src} 
-        onError={() => {
-          if (src === '/manual/porteria_wireframe.png') {
-            setSrc('/porteria_wireframe.png')
-          }
-        }}
-        alt="Escáner QR Móvil" 
+      <ImagenManual
+        fuentes={['/manual/porteria_wireframe.png?v=20260618', '/porteria_wireframe.png?v=20260618']}
+        alt="Escáner QR móvil de portería"
+        etiqueta="Control de Ingreso QR"
+        descripcion="Vista móvil utilizada por portería para leer la credencial, validar al grupo y confirmar su ingreso junto con la ubicación asignada."
         className="w-full h-auto object-cover hover:scale-[1.02] transition-transform duration-300"
       />
     </div>
@@ -245,21 +540,16 @@ function WireframePorteria() {
 // WIREFRAME: MAPA DE ASIENTOS
 // ==========================================
 function WireframeEgresado() {
-  const [src, setSrc] = useState('/manual/egresado_wireframe.png')
   return (
     <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-md relative group select-none">
-      <img 
-        src={src} 
-        onError={() => {
-          if (src === '/manual/egresado_wireframe.png') {
-            setSrc('/egresado_wireframe.png')
-          }
-        }}
-        alt="Mapa de Butacas Anfiteatro" 
-        className="w-full max-h-[120px] object-cover hover:scale-[1.02] transition-transform duration-300"
+      <ImagenManual
+        fuentes="/manual/panel_graduado_acompanantes.png?v=20260618"
+        alt="Portal real del graduado para administrar acompañantes"
+        etiqueta="Portal del graduado"
+        className="w-full max-h-[150px] object-cover object-top hover:scale-[1.02] transition-transform duration-300"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2 z-20 pointer-events-none">
-        <span className="text-[8px] font-bold text-white">📸 Mapa interactivo del anfiteatro ITB</span>
+        <span className="text-[8px] font-bold text-white">📸 Portal real de autogestión del graduado</span>
       </div>
     </div>
   )
@@ -313,9 +603,13 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
   const [paginaMovil, setPaginaMovil] = useState(0) // 0 a 10 en Celular (Mobile)
   const [esMovil, setEsMovil] = useState(false)
   const [estaAnimando, setEstaAnimando] = useState(false)
+  const [direccionPaso, setDireccionPaso] = useState('adelante')
   const [nivelZoom, setNivelZoom] = useState(1.0) // Zoom: 1.0 (100%), 1.2 (120%), 1.4 (140%)
   const [esPantallaCompleta, setEsPantallaCompleta] = useState(false)
   const [rutaPortada, setRutaPortada] = useState('/manual/manual_portada.png')
+  const [mostrarCredencial, setMostrarCredencial] = useState(false)
+  const [urlManual, setUrlManual] = useState('/manual')
+  const [imagenAmpliada, setImagenAmpliada] = useState(null)
 
   // Detectar tamaño de pantalla para la vista de hojas
   useEffect(() => {
@@ -325,6 +619,17 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
     chequearTamano()
     window.addEventListener('resize', chequearTamano)
     return () => window.removeEventListener('resize', chequearTamano)
+  }, [])
+
+  // La credencial siempre apunta a una URL absoluta para que funcione fuera de este dispositivo.
+  useEffect(() => {
+    setUrlManual(`${window.location.origin}/manual`)
+  }, [])
+
+  useEffect(() => {
+    const ampliarImagen = (evento) => setImagenAmpliada(evento.detail)
+    window.addEventListener('ampliar-imagen-manual', ampliarImagen)
+    return () => window.removeEventListener('ampliar-imagen-manual', ampliarImagen)
   }, [])
 
   // Escuchar cambios de pantalla completa del navegador para sincronizar el botón
@@ -339,16 +644,18 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
   // Pasar pliegos o páginas con efectos
   const cambiarPliego = (nuevoPliego) => {
     if (estaAnimando) return
+    setDireccionPaso(nuevoPliego > pliegoActual ? 'adelante' : 'atras')
     setEstaAnimando(true)
     setPliegoActual(nuevoPliego)
-    setTimeout(() => setEstaAnimando(false), 400)
+    setTimeout(() => setEstaAnimando(false), 620)
   }
 
   const cambiarPaginaMovil = (nuevaPagina) => {
     if (estaAnimando) return
+    setDireccionPaso(nuevaPagina > paginaMovil ? 'adelante' : 'atras')
     setEstaAnimando(true)
     setPaginaMovil(nuevaPagina)
-    setTimeout(() => setEstaAnimando(false), 400)
+    setTimeout(() => setEstaAnimando(false), 620)
   }
 
   const abrirLibro = () => {
@@ -595,33 +902,33 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
           <LayoutGrid size={16} className="text-[#0056b3]" /> 5. Anfiteatro y Aforo
         </h3>
 
-        <WireframeEgresado />
+        <ScreenDisenoAnfiteatro />
 
         <p className="text-slate-500 m-0 text-[9.5px] leading-relaxed">
-          El <strong>mapa interactivo del anfiteatro</strong> permite a cada egresado elegir las butacas exactas para sus acompañantes de manera autónoma. Está construido sobre la planta real del ITB Beltrán.
+          Desde <strong>Diseño del Anfiteatro</strong>, el administrador construye la distribución que luego utilizarán los graduados. Puede alternar entre <strong>Platea</strong> y <strong>Pullman</strong>, definir filas, asientos por fila y verificar la capacidad total antes de publicar el plano.
         </p>
 
         <div className="grid grid-cols-2 gap-1.5">
           <div className="bg-slate-50 border border-slate-100 rounded-lg p-2 space-y-0.5">
-            <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 block">Control de Aforo</span>
+            <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 block">1. Estructura y aforo</span>
             <p className="text-[9px] text-slate-500 m-0 leading-snug">
-              El sistema cierra automáticamente la selección cuando se alcanza el límite de butacas configurado. Nadie puede exceder el aforo máximo establecido por la institución.
+              Ajustá la cantidad de filas y butacas. El indicador de capacidad se recalcula automáticamente y evita asignaciones por encima del límite configurado.
             </p>
           </div>
           <div className="bg-slate-50 border border-slate-100 rounded-lg p-2 space-y-0.5">
-            <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 block">Estado en tiempo real</span>
+            <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 block">2. Rol de cada butaca</span>
             <p className="text-[9px] text-slate-500 m-0 leading-snug">
-              Butacas <span className="text-emerald-600 font-bold">verdes</span> = libres. <span className="text-rose-500 font-bold">Rojas</span> = ocupadas. El mapa se actualiza en tiempo real para todos los usuarios.
+              Seleccioná una butaca y marcala como <strong>graduado, autoridad, accesible, reservada, pasillo</strong> o disponible. La leyenda inferior permite comprobar la distribución.
             </p>
           </div>
         </div>
 
         <div className="bg-sky-50 border border-sky-100 rounded-lg p-2 flex gap-2 items-start">
-          <Accessibility size={16} className="text-sky-500 shrink-0 mt-0.5" />
+          <CheckCircle2 size={16} className="text-sky-500 shrink-0 mt-0.5" />
           <div>
-            <h5 className="font-black text-sky-800 text-[9.5px] uppercase m-0">Movilidad Reducida</h5>
+            <h5 className="font-black text-sky-800 text-[9.5px] uppercase m-0">3. Guardar antes de continuar</h5>
             <p className="m-0 text-slate-500 text-[9px] leading-relaxed mt-0.5">
-              El egresado puede declarar si algún acompañante tiene movilidad reducida. Esas butacas quedan señalizadas con un ícono especial en el mapa del admin, facilitando la coordinación de rampas y asistencia el día del evento.
+              Presioná <strong>Guardar</strong> después de cada modificación. La selección de asientos de los graduados utilizará exactamente esta estructura y sus restricciones de accesibilidad.
             </p>
           </div>
         </div>
@@ -812,9 +1119,13 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
 
   // Renderiza la portada del libro cerrado
   const renderPortadaCerrada = () => (
-    <div className="font-sans flex flex-col items-center justify-center py-6 animate-fade-in">
+    <div className="font-sans flex w-full flex-col items-center justify-center px-2 py-4 animate-fade-in sm:py-6">
       {/* Contenedor 3D del Libro */}
-      <div className="relative group w-[460px] h-[660px] select-none cursor-pointer perspective-1200" onClick={abrirLibro}>
+      <div
+        className="relative group aspect-[46/66] max-w-[460px] select-none cursor-pointer perspective-1200"
+        style={{ width: 'min(86vw, 50dvh, 460px)' }}
+        onClick={abrirLibro}
+      >
         {/* Tapa del Libro con Portada Real */}
         <div 
           className="w-full h-full rounded-r-3xl shadow-[15px_15px_35px_rgba(15,23,42,0.12)] border-y border-r border-slate-200 bg-white overflow-hidden relative transition-all duration-500 transform origin-left-center rotate-y-hover"
@@ -846,26 +1157,34 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
         </div>
 
         {/* Hojas interiores visibles por el lateral */}
-        <div className="absolute top-1 right-[-4px] w-[5px] h-[652px] bg-slate-100 rounded-r shadow-inner z-[-1] transition-transform duration-500 group-hover:translate-x-[2px]" />
-        <div className="absolute top-2 right-[-8px] w-[5px] h-[644px] bg-slate-200 rounded-r shadow-inner z-[-2] transition-transform duration-500 group-hover:translate-x-[4px]" />
+        <div className="absolute bottom-1 right-[-4px] top-1 w-[5px] bg-slate-100 rounded-r shadow-inner z-[-1] transition-transform duration-500 group-hover:translate-x-[2px]" />
+        <div className="absolute bottom-2 right-[-8px] top-2 w-[5px] bg-slate-200 rounded-r shadow-inner z-[-2] transition-transform duration-500 group-hover:translate-x-[4px]" />
       </div>
 
-      {/* Botón salir alternativo debajo del libro */}
-      <button 
-        onClick={onVolver}
-        className="mt-8 px-5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-800 text-[10px] font-black uppercase tracking-widest transition active:scale-95 shadow-sm cursor-pointer flex items-center gap-1.5"
-      >
-        <ArrowLeft size={13} /> Volver al Portal
-      </button>
+      <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5 sm:mt-8 sm:gap-3">
+        <button
+          type="button"
+          onClick={() => setMostrarCredencial(true)}
+          className="flex items-center gap-1.5 rounded-xl bg-[#0056b3] px-5 py-2.5 text-[10px] font-black uppercase tracking-widest text-white shadow-md transition hover:bg-[#087fbd] active:scale-95"
+        >
+          <Badge size={14} /> Generar credencial QR
+        </button>
+        <button
+          onClick={onVolver}
+          className="px-5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 hover:text-slate-800 text-[10px] font-black uppercase tracking-widest transition active:scale-95 shadow-sm cursor-pointer flex items-center gap-1.5"
+        >
+          <ArrowLeft size={13} /> Volver al Portal
+        </button>
+      </div>
     </div>
   )
 
   // Renderiza el libro abierto con controles de zoom y navegación
   const renderLibroAbierto = () => (
-    <div className="w-full min-h-[calc(100vh-73px)] flex flex-col items-center justify-start select-none relative bg-paper animate-fade-in">
+    <div className="relative flex min-h-[calc(100dvh-64px)] w-full flex-col items-center justify-start bg-paper animate-fade-in select-none sm:min-h-[calc(100dvh-73px)]">
       
       {/* FLOATING CONTROLS PANEL (OVERLAID ON THE BACKGROUND, NO VERTICAL LAYOUT IMPACT) */}
-      <div className="absolute top-4 left-4 right-4 z-40 flex items-center justify-between pointer-events-none">
+      <div className="pointer-events-none absolute left-2 right-2 top-2 z-40 flex items-center justify-between gap-2 sm:left-4 sm:right-4 sm:top-4">
         {/* Left side: Back to Cover and page indicator */}
         <div className="flex items-center gap-2 pointer-events-auto bg-white/85 backdrop-blur-md border border-slate-200/80 rounded-2xl p-1.5 shadow-md">
           <button 
@@ -877,7 +1196,18 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
         </div>
 
         {/* Right side: Zoom and Fullscreen */}
-        <div className="flex items-center gap-1.5 pointer-events-auto bg-white/85 backdrop-blur-md border border-slate-200/80 rounded-2xl p-1.5 shadow-md">
+        <div className="pointer-events-auto flex min-w-0 items-center gap-1 overflow-x-auto rounded-2xl border border-slate-200/80 bg-white/90 p-1 shadow-md backdrop-blur-md sm:gap-1.5 sm:p-1.5">
+          <button
+            type="button"
+            onClick={() => setMostrarCredencial(true)}
+            className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-[#0056b3] hover:bg-[#087fbd] text-white text-[9px] font-black uppercase tracking-wider cursor-pointer transition active:scale-95"
+            title="Generar credencial con QR"
+          >
+            <Badge size={12} /> <span className="hidden sm:inline">Credencial QR</span>
+          </button>
+
+          <span className="h-4 w-px bg-slate-200 mx-0.5" />
+
           <button
             onClick={disminuirZoom}
             disabled={nivelZoom <= 1.0}
@@ -912,9 +1242,9 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
 
       {/* CONTENEDOR SCROLLABLE DEL LIBRO ABIERTO */}
       <div 
-        className="w-full overflow-auto pt-16 pb-16 px-4 flex justify-start items-start scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent"
+        className="flex w-full items-start justify-start overflow-auto px-1.5 pb-16 pt-14 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-300 sm:px-4 sm:pt-16"
         style={{ 
-          maxHeight: esPantallaCompleta ? '95vh' : 'calc(100vh - 73px)',
+          maxHeight: esPantallaCompleta ? '95dvh' : 'calc(100dvh - 64px)',
           width: '100%'
         }}
       >
@@ -923,27 +1253,27 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
           className="w-full transition-all duration-300 flex items-start justify-center"
           style={{
             width: `${100 * nivelZoom}%`,
-            height: esMovil ? 'auto' : `calc((100vh - 100px) * ${nivelZoom})`,
+            height: esMovil ? 'auto' : `calc((100dvh - 100px) * ${nivelZoom})`,
             position: 'relative',
           }}
         >
           {/* CUERPO DEL LIBRO CON SCALE DINÁMICO */}
-          <div 
-            className={`w-full bg-[#fdfdfb] relative overflow-hidden transition-all duration-300 ${
-              estaAnimando ? 'opacity-80 scale-[0.99] blur-xs' : 'opacity-100 scale-100 blur-none'
-            }`}
+          <div
+            className="w-full bg-[#fdfdfb] relative overflow-hidden transition-shadow duration-300"
             style={{
               transform: `scale(${nivelZoom})`,
               transformOrigin: 'top left',
               width: `calc(100% / ${nivelZoom})`,
               height: esMovil ? 'auto' : '100%',
-              minHeight: esMovil ? 'auto' : 'calc(100vh - 100px)',
+              minHeight: esMovil ? 'auto' : 'calc(100dvh - 100px)',
               position: esMovil ? 'relative' : 'absolute',
               top: 0,
               left: 0,
             }}
           >
-            <div className="relative min-h-[calc(100vh-100px)] flex flex-col lg:flex-row">
+            <div className={`relative min-h-[calc(100dvh-88px)] flex flex-col lg:flex-row preserve-3d sm:min-h-[calc(100dvh-100px)] ${
+              estaAnimando ? (direccionPaso === 'adelante' ? 'animar-hoja-adelante' : 'animar-hoja-atras') : ''
+            }`}>
               
               {/* Lomo y Sombra Central (Solo en Desktop) */}
               {!esMovil && (
@@ -955,8 +1285,8 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
 
               {/* MÓVIL: MUESTRA UNA SOLA PÁGINA */}
               {esMovil ? (
-                <div className="w-full bg-paper p-6 sm:p-8 flex flex-col justify-between min-h-[calc(100vh-100px)]">
-                  <div className="flex-1">
+                <div className="flex min-h-[calc(100dvh-88px)] w-full flex-col justify-between bg-paper p-4 sm:min-h-[calc(100dvh-100px)] sm:p-8">
+                  <div className="contenido-pagina-manual flex-1">
                     {listaPaginas[paginaMovil]}
                   </div>
                   <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-[9px] font-bold text-slate-400 font-mono select-none">
@@ -968,7 +1298,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
                 // DESKTOP: DOS PÁGINAS (IZQUIERDA Y DERECHA)
                 <>
                   <div className="w-1/2 bg-paper p-8 flex flex-col justify-between border-r border-slate-150 relative page-shadow-left">
-                    <div className="flex-1">
+                    <div className="contenido-pagina-manual flex-1">
                       {listaPaginas[(pliegoActual - 1) * 2 + 1]}
                     </div>
                     <div className="pt-4 border-t border-slate-100/60 flex items-center justify-between text-[9px] font-bold text-slate-400 font-mono select-none">
@@ -978,7 +1308,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
                   </div>
 
                   <div className="w-1/2 bg-paper p-8 flex flex-col justify-between relative page-shadow-right">
-                    <div className="flex-1">
+                    <div className="contenido-pagina-manual flex-1">
                       {listaPaginas[(pliegoActual - 1) * 2 + 2]}
                     </div>
                     <div className="pt-4 border-t border-slate-100/60 flex items-center justify-between text-[9px] font-bold text-slate-400 font-mono select-none">
@@ -993,30 +1323,75 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
         </div>
       </div>
 
-      {/* FLOATING PAGE NAVIGATION PILL */}
-      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-4 bg-white/90 backdrop-blur-md border border-slate-200/80 rounded-2xl p-1.5 shadow-lg select-none pointer-events-auto">
-        <button 
+      {/* Navegación lateral: ubicada como los controles físicos de un libro */}
+      <button
+        onClick={paginaAnterior}
+        disabled={esMovil ? paginaMovil === 1 : pliegoActual === 1}
+        className="absolute left-3 top-1/2 z-40 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-blue-100 bg-white/95 text-[#0056b3] shadow-[0_8px_24px_rgba(0,48,120,0.18)] backdrop-blur-md transition hover:-translate-x-1 hover:scale-110 hover:bg-[#0056b3] hover:text-white active:scale-95 disabled:pointer-events-none disabled:opacity-20 lg:flex"
+        title="Página anterior"
+        aria-label="Página anterior"
+      >
+        <ArrowLeft size={20} strokeWidth={2.5} />
+      </button>
+
+      <button
+        onClick={paginaSiguiente}
+        disabled={esMovil ? paginaMovil === 10 : pliegoActual === 5}
+        className="absolute right-3 top-1/2 z-40 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-blue-100 bg-white/95 text-[#0056b3] shadow-[0_8px_24px_rgba(0,48,120,0.18)] backdrop-blur-md transition hover:translate-x-1 hover:scale-110 hover:bg-[#0056b3] hover:text-white active:scale-95 disabled:pointer-events-none disabled:opacity-20 lg:flex"
+        title="Página siguiente"
+        aria-label="Página siguiente"
+      >
+        <ArrowRight size={20} strokeWidth={2.5} />
+      </button>
+
+      {/* En móvil las flechas permanecen juntas y al alcance del pulgar */}
+      <div className="absolute bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-3 rounded-2xl border border-blue-100/80 bg-white/95 p-1.5 shadow-[0_10px_30px_rgba(0,48,120,0.16)] backdrop-blur-md lg:hidden">
+        <button
           onClick={paginaAnterior}
           disabled={esMovil ? paginaMovil === 1 : pliegoActual === 1}
-          className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100/50 hover:bg-[#29ABE2] hover:text-white border border-slate-200/40 text-slate-700 transition active:scale-95 disabled:opacity-30 disabled:hover:bg-slate-100/50 disabled:hover:text-slate-700 cursor-pointer"
-          title="Página Anterior"
+          className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-[#0056b3] transition hover:bg-[#0056b3] hover:text-white active:scale-95 disabled:opacity-25"
+          aria-label="Página anterior"
         >
-          <ArrowLeft size={14} />
+          <ArrowLeft size={16} />
         </button>
-
-        <span className="text-[10px] font-bold text-slate-600 font-mono tracking-wide min-w-[50px] text-center">
+        <span className="min-w-[58px] text-center font-mono text-[10px] font-black tracking-wide text-slate-600">
           {esMovil ? `${paginaMovil} / 10` : `${pliegoActual} / 5`}
         </span>
-
-        <button 
+        <button
           onClick={paginaSiguiente}
           disabled={esMovil ? paginaMovil === 10 : pliegoActual === 5}
-          className="flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100/50 hover:bg-[#29ABE2] hover:text-white border border-slate-200/40 text-slate-700 transition active:scale-95 disabled:opacity-30 disabled:hover:bg-slate-100/50 disabled:hover:text-slate-700 cursor-pointer"
-          title="Página Siguiente"
+          className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-[#0056b3] transition hover:bg-[#0056b3] hover:text-white active:scale-95 disabled:opacity-25"
+          aria-label="Página siguiente"
         >
-          <ArrowRight size={14} />
+          <ArrowRight size={16} />
         </button>
       </div>
+
+      <div className="absolute bottom-4 left-1/2 z-30 hidden -translate-x-1/2 rounded-full border border-slate-200/70 bg-white/90 px-4 py-2 font-mono text-[9px] font-black tracking-[0.16em] text-slate-500 shadow-sm backdrop-blur-md lg:block">
+        PLIEGO {pliegoActual} DE 5
+      </div>
+
+      <style>{`
+        @media (max-width: 640px) {
+          .contenido-pagina-manual .grid-cols-2,
+          .contenido-pagina-manual .grid-cols-12 {
+            grid-template-columns: minmax(0, 1fr) !important;
+          }
+          .contenido-pagina-manual .col-span-4,
+          .contenido-pagina-manual .col-span-5,
+          .contenido-pagina-manual .col-span-7,
+          .contenido-pagina-manual .col-span-8 {
+            grid-column: 1 / -1 !important;
+          }
+          .contenido-pagina-manual {
+            font-size: 11px;
+            line-height: 1.55;
+          }
+          .contenido-pagina-manual img {
+            max-height: none;
+          }
+        }
+      `}</style>
     </div>
   )
 
@@ -1025,6 +1400,8 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
     return (
       <div className="w-full flex flex-col items-center justify-center p-4">
         {!estaAbierto ? renderPortadaCerrada() : renderLibroAbierto()}
+        {mostrarCredencial && <CredencialManual urlManual={urlManual} onCerrar={() => setMostrarCredencial(false)} />}
+        {imagenAmpliada && <ModalImagenManual imagen={imagenAmpliada} onCerrar={() => setImagenAmpliada(null)} />}
         <style>{`
           .perspective-1200 {
             perspective: 1200px;
@@ -1049,6 +1426,22 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
             background-color: #fdfdfb;
             background-image: radial-gradient(rgba(0,0,0,0.015) 1px, transparent 0);
             background-size: 8px 8px;
+          }
+          .preserve-3d { transform-style: preserve-3d; perspective: 1800px; }
+          .animar-hoja-adelante { animation: pasarHojaAdelante 620ms cubic-bezier(.22,.72,.18,1) both; transform-origin: right center; }
+          .animar-hoja-atras { animation: pasarHojaAtras 620ms cubic-bezier(.22,.72,.18,1) both; transform-origin: left center; }
+          @keyframes pasarHojaAdelante {
+            0% { opacity: .35; transform: perspective(1800px) rotateY(-10deg) translateX(14px) scale(.985); filter: brightness(.9); box-shadow: 28px 0 42px rgba(15,23,42,.16); }
+            55% { opacity: .9; transform: perspective(1800px) rotateY(2deg) translateX(-2px) scale(.998); }
+            100% { opacity: 1; transform: perspective(1800px) rotateY(0) translateX(0) scale(1); filter: brightness(1); box-shadow: none; }
+          }
+          @keyframes pasarHojaAtras {
+            0% { opacity: .35; transform: perspective(1800px) rotateY(10deg) translateX(-14px) scale(.985); filter: brightness(.9); box-shadow: -28px 0 42px rgba(15,23,42,.16); }
+            55% { opacity: .9; transform: perspective(1800px) rotateY(-2deg) translateX(2px) scale(.998); }
+            100% { opacity: 1; transform: perspective(1800px) rotateY(0) translateX(0) scale(1); filter: brightness(1); box-shadow: none; }
+          }
+          @media (prefers-reduced-motion: reduce) {
+            .animar-hoja-adelante, .animar-hoja-atras { animation: none; }
           }
         `}</style>
       </div>
@@ -1081,33 +1474,47 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
       />
 
       {/* Cabecera superior */}
-      <header className="relative z-10 border-b border-slate-200/80 bg-white/75 backdrop-blur-md px-6 py-4 flex items-center justify-between select-none">
-        <div className="flex items-center gap-3">
+      <header className="relative z-10 flex items-center justify-between gap-2 border-b border-slate-200/80 bg-white/75 px-3 py-3 backdrop-blur-md select-none sm:px-6 sm:py-4">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <button
             onClick={onVolver}
-            className="flex items-center justify-center h-10 w-10 rounded-full border border-slate-200 bg-slate-50 text-slate-600 transition hover:bg-[#29ABE2] hover:text-white hover:border-[#29ABE2] hover:scale-105 active:scale-95 cursor-pointer"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-slate-200 bg-slate-50 text-slate-600 transition hover:border-[#29ABE2] hover:bg-[#29ABE2] hover:text-white hover:scale-105 active:scale-95 cursor-pointer sm:h-10 sm:w-10"
             title="Volver al Portal"
           >
             <ArrowLeft size={18} />
           </button>
           <div>
-            <h1 className="text-lg font-black tracking-tight text-slate-800 flex items-center gap-2">
-              SiGIC <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-[#29ABE2]/10 text-[#0056b3] border border-[#29ABE2]/25">Manual Oficial</span>
+            <h1 className="flex items-center gap-2 text-base font-black tracking-tight text-slate-800 sm:text-lg">
+              SiGIC <span className="hidden rounded-md border border-[#29ABE2]/25 bg-[#29ABE2]/10 px-2 py-0.5 text-xs font-bold text-[#0056b3] sm:inline">Manual Oficial</span>
             </h1>
-            <p className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">Libro Digital e Interactivo</p>
+            <p className="hidden text-[10px] font-medium uppercase tracking-wider text-slate-500 sm:block">Libro Digital e Interactivo</p>
           </div>
         </div>
-        <div className="hidden sm:flex items-center gap-4 text-xs text-slate-500">
-          <span>v2.1.0</span>
-          <span className="h-4 w-px bg-slate-200" style={{ backgroundColor: '#e2e8f0' }} />
-          <span>Instituto Tecnológico Beltrán</span>
+        <div className="flex items-center gap-2 sm:gap-4">
+          <button
+            type="button"
+            onClick={() => setMostrarCredencial(true)}
+            className="flex items-center gap-2 rounded-xl bg-[#0056b3] px-3 py-2.5 text-[9px] font-black uppercase tracking-wider text-white shadow-md transition hover:bg-[#087fbd] hover:shadow-lg active:scale-95 sm:px-4 sm:text-[10px]"
+            title="Generar credencial de acceso al manual"
+          >
+            <Badge size={15} />
+            <span className="hidden sm:inline">Generar credencial</span>
+          </button>
+          <div className="hidden items-center gap-4 text-xs text-slate-500 lg:flex">
+            <span>v2.1.0</span>
+            <span className="h-4 w-px bg-slate-200" style={{ backgroundColor: '#e2e8f0' }} />
+            <span>Instituto Tecnológico Beltrán</span>
+          </div>
         </div>
       </header>
 
       {/* Área del Libro */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center p-4 md:p-6 lg:p-8">
+      <div className="relative z-10 flex flex-1 flex-col items-center justify-center p-0 sm:p-4 md:p-6 lg:p-8">
         {!estaAbierto ? renderPortadaCerrada() : renderLibroAbierto()}
       </div>
+
+      {mostrarCredencial && <CredencialManual urlManual={urlManual} onCerrar={() => setMostrarCredencial(false)} />}
+      {imagenAmpliada && <ModalImagenManual imagen={imagenAmpliada} onCerrar={() => setImagenAmpliada(null)} />}
 
       {/* Estilos */}
       <style>{`
@@ -1180,6 +1587,22 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
           background-color: #fdfdfb;
           background-image: radial-gradient(rgba(0,0,0,0.015) 1px, transparent 0);
           background-size: 8px 8px;
+        }
+        .preserve-3d { transform-style: preserve-3d; perspective: 1800px; }
+        .animar-hoja-adelante { animation: pasarHojaAdelante 620ms cubic-bezier(.22,.72,.18,1) both; transform-origin: right center; }
+        .animar-hoja-atras { animation: pasarHojaAtras 620ms cubic-bezier(.22,.72,.18,1) both; transform-origin: left center; }
+        @keyframes pasarHojaAdelante {
+          0% { opacity: .35; transform: perspective(1800px) rotateY(-10deg) translateX(14px) scale(.985); filter: brightness(.9); box-shadow: 28px 0 42px rgba(15,23,42,.16); }
+          55% { opacity: .9; transform: perspective(1800px) rotateY(2deg) translateX(-2px) scale(.998); }
+          100% { opacity: 1; transform: perspective(1800px) rotateY(0) translateX(0) scale(1); filter: brightness(1); box-shadow: none; }
+        }
+        @keyframes pasarHojaAtras {
+          0% { opacity: .35; transform: perspective(1800px) rotateY(10deg) translateX(-14px) scale(.985); filter: brightness(.9); box-shadow: -28px 0 42px rgba(15,23,42,.16); }
+          55% { opacity: .9; transform: perspective(1800px) rotateY(-2deg) translateX(2px) scale(.998); }
+          100% { opacity: 1; transform: perspective(1800px) rotateY(0) translateX(0) scale(1); filter: brightness(1); box-shadow: none; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .animar-hoja-adelante, .animar-hoja-atras { animation: none; }
         }
       `}</style>
     </main>
