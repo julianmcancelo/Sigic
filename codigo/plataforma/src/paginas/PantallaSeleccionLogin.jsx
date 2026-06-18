@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
-import { Users, GraduationCap, BookOpen, ChevronRight, Info } from 'lucide-react'
+import { Settings, Users, GraduationCap, BookOpen, ChevronRight, Info } from 'lucide-react'
 
-export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresado, onSeleccionarManual }) {
+export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresado, onSeleccionarManual, enMantenimiento }) {
   const [clickCount, setClickCount] = useState(0)
   const [snapActivo, setSnapActivo] = useState(false)
   const [revelado, setRevelado] = useState(false)
@@ -155,8 +155,30 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
         />
       )}
 
+      {/* Modo Mantenimiento */}
+      {enMantenimiento && (
+        <div className="relative z-10 flex flex-col items-center max-w-sm w-full px-8 py-12 text-center bg-white/80 border border-white/80 rounded-[32px] backdrop-blur-xl shadow-[0_20px_50px_rgba(15,23,42,0.05)] animate-fade-in">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-100 text-amber-500 mb-6 shadow-inner">
+            <Settings size={32} className="animate-[spin_4s_linear_infinite]" />
+          </div>
+          
+          <h1 className="text-xl font-black text-slate-800 tracking-tight mb-2">
+            Modo Mantenimiento
+          </h1>
+          <p className="text-xs text-slate-500 font-medium leading-relaxed px-4">
+            Estamos realizando ajustes técnicos y mejoras en el servidor. El acceso a SiGIC se encuentra temporalmente suspendido.
+          </p>
+
+          <div className="mt-8 w-full border-t border-slate-200/60 pt-6">
+            <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">
+              Instituto Tecnológico Beltrán
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Contenedor Principal (Tarjeta Glassmorphism Clara) */}
-      {!revelado && (
+      {!revelado && !enMantenimiento && (
         <div className={`relative z-10 flex flex-col items-center max-w-sm w-full px-8 py-10 text-center bg-white/70 border border-white/80 rounded-[32px] backdrop-blur-xl shadow-[0_20px_50px_rgba(15,23,42,0.05)] transition-all ${
           snapActivo ? 'animate-thanos pointer-events-none' : ''
         }`}>

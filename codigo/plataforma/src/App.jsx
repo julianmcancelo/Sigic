@@ -37,7 +37,7 @@ import { ControlExpositor } from './componentes/ControlExpositor'
 import { PantallaCargaInicial } from './componentes/PantallaCargaInicial'
 
 // Servicios
-import { validarToken, obtenerCeremoniaActiva, obtenerEstadoSetup, responderInvitacion, limpiarTokenSesion } from './servicios/api'
+import { validarToken, obtenerCeremoniaActiva, obtenerEstadoSetup, responderInvitacion, limpiarTokenSesion, obtenerAjustes, actualizarAjuste } from './servicios/api'
 
 function App() {
   // ─── 0. DETECCIÓN DE CONTEXTO (URL) ───
@@ -98,6 +98,22 @@ function App() {
   const [requiereSetup, setRequiereSetup] = useState(null)
   const [cargandoSetup, setCargandoSetup] = useState(true)
 
+  const [enMantenimiento, setEnMantenimiento] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('modo_mantenimiento') === 'true'
+    }
+    return false
+  })
+
+  function toggleMantenimiento() {
+    const nuevo = !enMantenimiento
+    setEnMantenimiento(nuevo)
+    localStorage.setItem('modo_mantenimiento', nuevo.toString())
+    actualizarAjuste('modo_mantenimiento', nuevo.toString()).catch(err => {
+      console.warn("Error guardando modo mantenimiento", err)
+    })
+  }
+
   // Refs para evitar stale closures en el interceptor global
   const adminActivoRef = useRef(adminActivo)
   const graduadoActivoRef = useRef(graduadoActivo)
@@ -144,6 +160,17 @@ function App() {
         if (!estado.requiereConfiguracionInicial) {
           const c = await obtenerCeremoniaActiva()
           setCeremoniaActiva(c)
+
+          try {
+            const ajustesDb = await obtenerAjustes()
+            if (ajustesDb && ajustesDb.modo_mantenimiento) {
+              const modoMant = ajustesDb.modo_mantenimiento.valor === 'true'
+              setEnMantenimiento(modoMant)
+              localStorage.setItem('modo_mantenimiento', modoMant.toString())
+            }
+          } catch (errAjustes) {
+            console.warn("Error leyendo ajustes", errAjustes)
+          }
         }
       } catch (e) {
         console.warn("No se pudo contactar al servidor para el estado inicial:", e.message)
@@ -175,7 +202,10 @@ function App() {
                            url.includes('/egresados/token/') ||
                            url.includes('/solicitar-otp')
 
-        if ((response.status === 401 || response.status === 403) && !esRutaAuth) {
+        const token = localStorage.getItem('sigic_token') || ''
+        const esBypass = token.startsWith('bypass-')
+
+        if ((response.status === 401 || response.status === 403) && !esRutaAuth && !esBypass) {
           window.dispatchEvent(new CustomEvent('sigic-desautorizado'))
         }
         return response;
@@ -582,6 +612,7 @@ function App() {
   else {
     contenido = (
       <PantallaSeleccionLogin 
+        enMantenimiento={enMantenimiento}
         onSeleccionarAdmin={() => setVistaLogin('admin')}
         onSeleccionarEgresado={() => setVistaLogin('graduado')}
         onSeleccionarManual={() => setVistaLogin('manual')}
@@ -605,6 +636,8 @@ function App() {
       
       {/* Herramienta para presentaciones (Modo Demo) */}
       <ControlExpositor 
+        enMantenimiento={enMantenimiento}
+        onToggleMantenimiento={toggleMantenimiento}
         onSimularAdmin={manejarLoginAdminExitoso}
         onSimularEgresado={manejarLoginGraduadoExitoso}
         onLimpiar={limpiarTodo}

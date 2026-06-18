@@ -29,6 +29,20 @@ Es fundamental que al iniciar la jornada de trabajo verifique y active la ceremo
 2. Visualizará el listado de ceremonias creadas. Si la del día no existe, presione **"Crear Ceremonia"** y complete los datos de fecha, hora, lugar del evento y el **Límite de Acompañantes por Egresado** (aforo permitido).
 3. En la fila de la ceremonia correspondiente, presione el botón de activar. Al hacerlo, se marcará con una estrella y la leyenda **"ACTIVA"**. A partir de este instante, el sistema queda sincronizado para ese evento.
 
+### Panel de Administración de SiGIC:
+![Panel de Administración de SiGIC](codigo/plataforma/public/manual/panel_admin.png)
+
+#### Componentes Clave de la Pantalla de Control:
+*   **Hábitat Activo (Cabecera Principal):** En esta tarjeta superior se muestra el nombre de la ceremonia activa actual (ej. *PRUEBA*), junto con la fecha y sede asignada. Solo las ceremonias marcadas como "Activas" reciben las reservas de asientos y lecturas de portería.
+*   **Widget Bento de Métricas en Vivo:**
+    *   **Graduados:** Cantidad total de padrones cargados en la colación.
+    *   **Invitados Totales:** Número total de acompañantes registrados.
+    *   **Ingresados:** Cantidad de personas acreditadas en puerta el día de la ceremonia.
+    *   **Ocupación:** Porcentaje de asistencia en vivo contra el aforo general del anfiteatro.
+*   **Widget de Fecha y Clima:** Indica la hora local sincronizada con el estado del tiempo actual en la sede, ofreciendo un monitoreo ambiental básico el día del evento.
+*   **Consola de Control Central:** Accesos rápidos a todos los submódulos: *Control de Ingreso (Escáner)*, *Gestionar Graduados*, *Gestionar Profesores*, *Plano del Anfiteatro*, *Personal de Seguridad* y *Ajustes del Sistema*.
+*   **Agenda Lateral:** Calendario rápido con las próximas ceremonias programadas en la institución.
+
 ---
 
 ## 3. CARGA DEL PADRÓN DE EGRESADOS Y DESPACHO DE INVITACIONES
@@ -45,8 +59,14 @@ Descargue la plantilla modelo del sistema. La planilla de cálculo debe contener
 ### Paso 2: Importar el Padrón
 Ingrese a la sección **Gestionar Graduados**, presione el botón **"Cargar desde Excel"** y arrastre el archivo a la zona de carga. El sistema verificará los datos y los guardará en la nube, mostrando un resumen de la cantidad de graduados ingresados exitosamente.
 
+### Panel de Gestión de Graduados y Pipeline:
+![Gestión de Graduados](codigo/plataforma/public/manual/gestion_graduados.png)
+
 ### Paso 3: Envío Masivo de Invitaciones
 Una vez subido el padrón, presione el botón **"Enviar Invitaciones por Correo"**. El servidor comenzará a enviar de forma automatizada un correo electrónico personalizado a cada estudiante con el enlace directo para elegir sus asientos.
+
+### Correo Electrónico de Invitación:
+![Correo Electrónico de Invitación](codigo/plataforma/public/manual/email_invitacion.png)
 
 > [!IMPORTANT]
 > **¿QUÉ HACER SI UN ALUMNO NO RECIBE EL CORREO DE INVITACIÓN?**
@@ -79,6 +99,12 @@ Antes de abrir las reservas a los egresados, el administrador debe bloquear los 
 > **ALERTA DE MOVILIDAD REDUCIDA**
 > Cuando un graduado registra que uno de sus acompañantes posee movilidad reducida, su butaca aparecerá en el mapa del anfiteatro con un **icono de silla de ruedas** y un borde diferenciado. Esto le permite a los coordinadores del salón saber con anticipación dónde ubicar rampas o asistir físicamente a los familiares al ingresar al anfiteatro.
 
+### Portal de Autogestión y Acceso OTP:
+![Portal OTP del Graduado](codigo/plataforma/public/manual/portal_otp.png)
+
+### Mapa de Butacas del Anfiteatro (Autogestión):
+![Mapa de Butacas del Anfiteatro](codigo/plataforma/public/manual/egresado_wireframe.png)
+
 ---
 
 ## 5. OPERATORIA DE ACREDITACIÓN EL DÍA DE LA CEREMONIA (PORTERÍA)
@@ -94,6 +120,9 @@ Para que el personal de seguridad pueda utilizar la cámara de sus celulares par
     *   **Paso 1**: Escanear el primer código QR en pantalla para conectar la red del teléfono con la plataforma.
     *   **Paso 2**: Escanear el segundo código QR para iniciar sesión de forma automática y segura sin teclear datos.
 
+### Dispositivo Móvil de Acreditación (Portería):
+![Aplicación de Portería Móvil](codigo/plataforma/public/manual/porteria_wireframe.png)
+
 ### 5.2. Protocolo de Escaneo de Códigos QR
 El portero apuntará la cámara del teléfono hacia la credencial del graduado o acompañante (ya sea impresa en papel o mostrada en la pantalla de su celular). La aplicación emitirá una respuesta sonora, táctil y visual según el estado del ingreso:
 
@@ -102,6 +131,9 @@ El portero apuntará la cámara del teléfono hacia la credencial del graduado o
 | **VERDE** | **Acceso Autorizado** | QR legítimo y válido. El teléfono emite un pitido agudo y vibra. Muestra el nombre y el número de butaca asignada para indicarle al invitado hacia dónde dirigirse. |
 | **NARANJA** | **Acceso Duplicado** | QR legítimo pero que ya ingresó al salón anteriormente. La app emite una alerta y muestra la hora del primer ingreso. **Acción**: Revise el DNI del portador; podría tratarse de una copia de la credencial. |
 | **ROJO** | **Acceso Denegado** | QR inválido, corrupto o correspondiente a otra ceremonia. El teléfono vibra fuertemente y no permite el ingreso del portador al anfiteatro. |
+
+### Pantalla de Confirmación de Inasistencia:
+![Confirmación de Inasistencia](codigo/plataforma/public/manual/portal_inasistencia.png)
 
 ### 5.3. Acreditación de Emergencia (Mediante Código Alfanumérico)
 Si un egresado o invitado pierde su credencial física, se le apaga el teléfono celular o no puede abrir el archivo PDF en el ingreso:

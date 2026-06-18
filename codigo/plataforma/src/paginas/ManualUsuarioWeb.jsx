@@ -10,13 +10,19 @@ import {
 // IMAGEN: PANEL ADMINISTRATIVO REAL
 // ==========================================
 function ScreenPanelAdmin() {
+  const [src, setSrc] = useState('/manual/panel_admin.png')
   return (
     <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
       <img 
-        src="/manual/panel_admin.png" 
+        src={src} 
+        onError={() => {
+          if (src === '/manual/panel_admin.png') {
+            setSrc('/panel_admin.png')
+          }
+        }}
         alt="Panel de Administración SiGIC" 
         className="w-full object-cover object-top hover:scale-[1.02] transition-transform duration-500"
-        style={{ maxHeight: '130px' }}
+        style={{ maxHeight: '450px' }}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2 z-20 pointer-events-none">
         <span className="text-[8px] font-bold text-white">📸 Captura real: Panel de Administración SiGIC</span>
@@ -26,13 +32,94 @@ function ScreenPanelAdmin() {
 }
 
 // ==========================================
+// IMAGEN: GESTIÓN DE GRADUADOS REAL
+// ==========================================
+function ScreenGestionGraduados() {
+  const [src, setSrc] = useState('/manual/gestion_graduados.png')
+  return (
+    <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-md relative group select-none">
+      <img 
+        src={src} 
+        onError={() => {
+          if (src === '/manual/gestion_graduados.png') {
+            setSrc('/gestion_graduados.png')
+          }
+        }}
+        alt="Gestión de Graduados SiGIC" 
+        className="w-full object-cover object-top hover:scale-[1.02] transition-transform duration-500"
+        style={{ maxHeight: '450px' }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2 z-20 pointer-events-none">
+        <span className="text-[8.5px] font-bold text-white">📸 Pipeline de estados en Gestión</span>
+      </div>
+    </div>
+  )
+}
+
+// ==========================================
+// IMAGEN: GESTIÓN DE CEREMONIAS REAL
+// ==========================================
+function ScreenGestionCeremonias() {
+  const [src, setSrc] = useState('/manual/gestion_ceremonias.png')
+  return (
+    <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-md relative group select-none">
+      <img 
+        src={src} 
+        onError={() => {
+          if (src === '/manual/gestion_ceremonias.png') {
+            setSrc('/gestion_ceremonias.png')
+          }
+        }}
+        alt="Gestión de Ceremonias SiGIC" 
+        className="w-full object-cover object-center hover:scale-[1.02] transition-transform duration-500"
+        style={{ maxHeight: '450px' }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2 z-20 pointer-events-none">
+        <span className="text-[8.5px] font-bold text-white">📸 Consola Multi-Hábitat de Ceremonias</span>
+      </div>
+    </div>
+  )
+}
+
+// ==========================================
+// IMAGEN: DISEÑO DEL ANFITEATRO REAL
+// ==========================================
+function ScreenDisenoAnfiteatro() {
+  const [src, setSrc] = useState('/manual/diseno_anfiteatro.png')
+  return (
+    <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-md relative group select-none">
+      <img 
+        src={src} 
+        onError={() => {
+          if (src === '/manual/diseno_anfiteatro.png') {
+            setSrc('/diseno_anfiteatro.png')
+          }
+        }}
+        alt="Diseño del Anfiteatro SiGIC" 
+        className="w-full object-cover object-center hover:scale-[1.02] transition-transform duration-500"
+        style={{ maxHeight: '450px' }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2 z-20 pointer-events-none">
+        <span className="text-[8.5px] font-bold text-white">📸 Modelador del Anfiteatro y Butacas</span>
+      </div>
+    </div>
+  )
+}
+
+// ==========================================
 // IMAGEN: EMAIL DE INVITACION REAL
 // ==========================================
 function ScreenEmailInvitacion() {
+  const [src, setSrc] = useState('/manual/email_invitacion.png')
   return (
     <div className="w-full max-w-[200px] mx-auto overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
       <img 
-        src="/manual/email_invitacion.png" 
+        src={src} 
+        onError={() => {
+          if (src === '/manual/email_invitacion.png') {
+            setSrc('/email_invitacion.png')
+          }
+        }}
         alt="Correo de Invitación" 
         className="w-full object-cover object-top hover:scale-[1.01] transition-transform duration-500"
       />
@@ -47,13 +134,19 @@ function ScreenEmailInvitacion() {
 // IMAGEN: PORTAL OTP DEL EGRESADO
 // ==========================================
 function ScreenPortalOTP() {
+  const [src, setSrc] = useState('/manual/portal_otp.png')
   return (
     <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
       <img 
-        src="/manual/portal_otp.png" 
+        src={src} 
+        onError={() => {
+          if (src === '/manual/portal_otp.png') {
+            setSrc('/portal_otp.png')
+          }
+        }}
         alt="Portal OTP del Graduado" 
         className="w-full object-cover object-center hover:scale-[1.02] transition-transform duration-500"
-        style={{ maxHeight: '120px' }}
+        style={{ maxHeight: '450px' }}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2 z-20 pointer-events-none">
         <span className="text-[8px] font-bold text-white">📸 Portal de acceso OTP del graduado</span>
@@ -66,13 +159,19 @@ function ScreenPortalOTP() {
 // IMAGEN: PANTALLA INASISTENCIA
 // ==========================================
 function ScreenInasistencia() {
+  const [src, setSrc] = useState('/manual/portal_inasistencia.png')
   return (
     <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
       <img 
-        src="/manual/portal_inasistencia.png" 
+        src={src} 
+        onError={() => {
+          if (src === '/manual/portal_inasistencia.png') {
+            setSrc('/portal_inasistencia.png')
+          }
+        }}
         alt="Pantalla Inasistencia" 
         className="w-full object-cover object-center hover:scale-[1.02] transition-transform duration-500"
-        style={{ maxHeight: '110px' }}
+        style={{ maxHeight: '450px' }}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2 z-20 pointer-events-none">
         <span className="text-[8px] font-bold text-white">📸 Confirmación de inasistencia</span>
@@ -85,10 +184,16 @@ function ScreenInasistencia() {
 // WIREFRAME: PORTERIA SCANNER MOVIL
 // ==========================================
 function WireframePorteria() {
+  const [src, setSrc] = useState('/manual/porteria_wireframe.png')
   return (
-    <div className="w-[85px] mx-auto overflow-hidden rounded-[14px] border-2 border-slate-700 shadow-md bg-slate-55 relative select-none">
+    <div className="w-[85px] mx-auto overflow-hidden rounded-[14px] border-2 border-slate-700 shadow-md bg-slate-50 relative select-none">
       <img 
-        src="/manual/porteria_wireframe.png" 
+        src={src} 
+        onError={() => {
+          if (src === '/manual/porteria_wireframe.png') {
+            setSrc('/porteria_wireframe.png')
+          }
+        }}
         alt="Escáner QR Móvil" 
         className="w-full h-auto object-cover hover:scale-[1.02] transition-transform duration-300"
       />
@@ -100,10 +205,16 @@ function WireframePorteria() {
 // WIREFRAME: MAPA DE ASIENTOS
 // ==========================================
 function WireframeEgresado() {
+  const [src, setSrc] = useState('/manual/egresado_wireframe.png')
   return (
     <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-md relative group select-none">
       <img 
-        src="/manual/egresado_wireframe.png" 
+        src={src} 
+        onError={() => {
+          if (src === '/manual/egresado_wireframe.png') {
+            setSrc('/egresado_wireframe.png')
+          }
+        }}
         alt="Mapa de Butacas Anfiteatro" 
         className="w-full max-h-[120px] object-cover hover:scale-[1.02] transition-transform duration-300"
       />
@@ -340,11 +451,18 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
           </div>
         </div>
 
-        <div className="bg-slate-50 p-2 rounded-lg border border-slate-100 space-y-1">
-          <span className="text-[8.5px] font-black uppercase tracking-widest text-slate-400 block">Importación de Padrón con Excel</span>
-          <p className="text-slate-500 text-[9px] m-0 leading-relaxed">
-            Desde la sección <strong>Gestionar Graduados</strong>, pulsá <strong>"Importar Nómina"</strong> y subí tu archivo <code>.xlsx</code>. La planilla debe incluir las columnas: <strong>nombre</strong>, <strong>dni</strong> (sin puntos ni guiones), <strong>correo</strong>, <strong>legajo</strong>, <strong>carrera</strong> y <strong>año</strong>. El sistema detecta y omite duplicados (mismo legajo + carrera + año).
-          </p>
+        <div className="bg-slate-50 p-2 rounded-lg border border-slate-100 space-y-1.5">
+          <span className="text-[8.5px] font-black uppercase tracking-widest text-slate-400 block">Gestión de Graduados e Importación</span>
+          <div className="grid grid-cols-12 gap-2 items-center">
+            <div className="col-span-7">
+              <p className="text-slate-500 text-[9px] m-0 leading-relaxed">
+                Desde <strong>Gestionar Graduados</strong>, podés dar de alta a mano o pulsar <strong>"Importar CSV/XLSX"</strong>. El sistema detecta automáticamente duplicados (mismo legajo + carrera + año) y provee un <strong>pipeline de estados</strong> (Invitación, Aceptación, Invitados y Entregadores) visible en tiempo real.
+              </p>
+            </div>
+            <div className="col-span-5">
+              <ScreenGestionGraduados />
+            </div>
+          </div>
         </div>
       </div>
     ),

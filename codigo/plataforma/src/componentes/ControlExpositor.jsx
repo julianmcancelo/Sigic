@@ -5,7 +5,7 @@ import { Settings, User, Shield, RefreshCcw, X } from 'lucide-react'
  * Componente exclusivo para demostraciones (Demo Mode).
  * Permite al expositor cambiar entre roles de forma dinámica y rápida.
  */
-export function ControlExpositor({ onSimularAdmin, onSimularEgresado, onLimpiar }) {
+export function ControlExpositor({ onSimularAdmin, onSimularEgresado, onLimpiar, enMantenimiento, onToggleMantenimiento }) {
   const [abierto, setAbierto] = useState(false)
 
   const mockAdmin = { 
@@ -42,35 +42,91 @@ export function ControlExpositor({ onSimularAdmin, onSimularEgresado, onLimpiar 
           <div className="p-2 space-y-1">
             <button
               onClick={() => { onSimularAdmin(mockAdmin); setAbierto(false); }}
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-blue-50 group"
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors hover:bg-blue-50 group"
             >
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
                 <Shield size={16} />
               </div>
               <div>
-                <p className="text-[12px] font-bold text-slate-700">Perfil Administrador</p>
-                <p className="text-[10px] text-slate-400">Ver panel de gestión</p>
+                <p className="text-[12px] font-bold text-slate-700">Administrador</p>
+                <p className="text-[10px] text-slate-400">Panel de gestión</p>
               </div>
             </button>
 
             <button
-              onClick={() => { onSimularEgresado(mockEgresado); setAbierto(false); }}
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-emerald-50 group"
+              onClick={() => { 
+                onSimularAdmin({ nombre: 'Soporte SiGIC', correo: 'soporte@sigic.com.ar' }); 
+                setAbierto(false); 
+              }}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors hover:bg-purple-50 group"
+            >
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-100 text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-colors">
+                <Settings size={16} />
+              </div>
+              <div>
+                <p className="text-[12px] font-bold text-slate-700">Soporte Técnico</p>
+                <p className="text-[10px] text-slate-400">Mantenimiento total</p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => { 
+                onSimularEgresado({ ...mockEgresado, estado: 'PENDIENTE' }); 
+                setAbierto(false); 
+              }}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors hover:bg-emerald-50 group"
             >
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
                 <User size={16} />
               </div>
               <div>
-                <p className="text-[12px] font-bold text-slate-700">Perfil Egresado</p>
-                <p className="text-[10px] text-slate-400">Simular carga de invitados</p>
+                <p className="text-[12px] font-bold text-slate-700">Egresado (Invitado)</p>
+                <p className="text-[10px] text-slate-400">Aceptar invitación</p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => { 
+                onSimularEgresado({ ...mockEgresado, estado: 'ACEPTADO' }); 
+                setAbierto(false); 
+              }}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors hover:bg-teal-50 group"
+            >
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-teal-100 text-teal-600 group-hover:bg-teal-600 group-hover:text-white transition-colors">
+                <User size={16} />
+              </div>
+              <div>
+                <p className="text-[12px] font-bold text-slate-700">Egresado (Activo)</p>
+                <p className="text-[10px] text-slate-400">Seleccionar butacas</p>
               </div>
             </button>
 
             <div className="my-2 border-t border-slate-100" />
 
             <button
+              onClick={() => { onToggleMantenimiento(); setAbierto(false); }}
+              className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors group ${
+                enMantenimiento ? 'hover:bg-amber-50' : 'hover:bg-orange-50'
+              }`}
+            >
+              <div className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
+                enMantenimiento 
+                  ? 'bg-amber-100 text-amber-600 group-hover:bg-amber-600 group-hover:text-white' 
+                  : 'bg-orange-100 text-orange-600 group-hover:bg-orange-600 group-hover:text-white'
+              }`}>
+                <Settings size={16} />
+              </div>
+              <div>
+                <p className="text-[12px] font-bold text-slate-700">
+                  {enMantenimiento ? 'Desactivar Mantenimiento' : 'Activar Mantenimiento'}
+                </p>
+                <p className="text-[10px] text-slate-400">Pausar accesos al sistema</p>
+              </div>
+            </button>
+
+            <button
               onClick={() => { onLimpiar(); setAbierto(false); }}
-              className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors hover:bg-red-50 group"
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors hover:bg-red-50 group"
             >
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-100 text-red-600 group-hover:bg-red-600 group-hover:text-white transition-colors">
                 <RefreshCcw size={16} />
