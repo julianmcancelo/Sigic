@@ -47,6 +47,54 @@ export interface ResultadoVerificacion {
 export function verificar(token: string | null): ResultadoVerificacion {
   if (!token) return { valido: false, motivo: 'TOKEN_AUSENTE' };
 
+  // Soporte de bypass para el modo demo del Expositor
+  if (token.startsWith('bypass-')) {
+    const ahora = Math.floor(Date.now() / 1000);
+    const unDia = 24 * 60 * 60;
+    if (token === 'bypass-admin-token') {
+      return {
+        valido: true,
+        datos: {
+          tipo: 'personal',
+          id: 'bypass-admin-id',
+          rol: 'ADMIN',
+          nombre: 'Administración - Instituto Beltrán',
+          correo: 'admin.sigic@beltran.edu.ar',
+          iat: ahora,
+          exp: ahora + unDia
+        }
+      };
+    }
+    if (token === 'bypass-support-token') {
+      return {
+        valido: true,
+        datos: {
+          tipo: 'personal',
+          id: 'bypass-support-id',
+          rol: 'SUPER_ADMIN',
+          nombre: 'Soporte SiGIC',
+          correo: 'soporte@sigic.com.ar',
+          iat: ahora,
+          exp: ahora + unDia
+        }
+      };
+    }
+    if (token.startsWith('bypass-egresado-')) {
+      const egresadoId = token.replace('bypass-egresado-', '');
+      return {
+        valido: true,
+        datos: {
+          tipo: 'egresado',
+          id: egresadoId,
+          nombre: 'Cancelo Julian Manuel',
+          correo: '35230531@itbeltran.com.ar',
+          iat: ahora,
+          exp: ahora + unDia
+        }
+      };
+    }
+  }
+
   const partes = token.split('.');
   if (partes.length !== 3) return { valido: false, motivo: 'FORMATO_INVALIDO' };
 

@@ -296,9 +296,13 @@ function App() {
     localStorage.setItem('sesion_admin', 'true')
     localStorage.setItem('admin_user', JSON.stringify(datos))
     
-    // Si es una simulación del expositor (no hay token guardado), guardamos el token de bypass
-    if (!localStorage.getItem('sigic_token')) {
-      localStorage.setItem('sigic_token', 'bypass-admin-token')
+    // Si es una simulación del expositor (no hay token real guardado), guardamos el token de bypass correspondiente
+    const tokenActual = localStorage.getItem('sigic_token')
+    if (!tokenActual || tokenActual.startsWith('bypass-')) {
+      const tokenBypass = (datos && datos.correo && datos.correo.toLowerCase() === 'soporte@sigic.com.ar')
+        ? 'bypass-support-token'
+        : 'bypass-admin-token'
+      localStorage.setItem('sigic_token', tokenBypass)
     }
     if (datos && datos.correo && datos.correo.toLowerCase() === 'soporte@sigic.com.ar') {
       setPantallaAdmin('centro-control')
@@ -331,8 +335,9 @@ function App() {
     localStorage.setItem('sesion_graduado', 'true')
     localStorage.setItem('graduado_usuario', JSON.stringify(datos))
     
-    // Si es una simulación del expositor (no hay token guardado), guardamos el token de bypass
-    if (!localStorage.getItem('sigic_token')) {
+    // Si es una simulación del expositor (no hay token real guardado), guardamos el token de bypass correspondiente
+    const tokenActual = localStorage.getItem('sigic_token')
+    if (!tokenActual || tokenActual.startsWith('bypass-')) {
       localStorage.setItem('sigic_token', `bypass-egresado-${datos.id}`)
     }
     
