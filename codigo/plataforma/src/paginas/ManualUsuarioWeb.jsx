@@ -7,43 +7,82 @@ import {
 } from 'lucide-react'
 
 // ==========================================
-// WIREFRAME 1: ADMINISTRADOR (REAL MOCKUP IMAGE)
+// IMAGEN: PANEL ADMINISTRATIVO REAL
 // ==========================================
-function WireframeAdmin() {
+function ScreenPanelAdmin() {
   return (
-    <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-md bg-slate-55 relative group select-none">
+    <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
       <img 
-        src="/manual/admin_wireframe.png" 
-        alt="Dashboard de Administración" 
-        className="w-full max-h-[120px] object-cover hover:scale-[1.02] transition-transform duration-300 relative z-10 mx-auto"
+        src="/manual/panel_admin.png" 
+        alt="Panel de Administración SiGIC" 
+        className="w-full object-cover object-top hover:scale-[1.02] transition-transform duration-500"
+        style={{ maxHeight: '130px' }}
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2 z-20 pointer-events-none">
-        <span className="text-[8px] font-bold text-white">Vista Real: Panel de Administración Web</span>
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2 z-20 pointer-events-none">
+        <span className="text-[8px] font-bold text-white">📸 Captura real: Panel de Administración SiGIC</span>
       </div>
     </div>
   )
 }
 
 // ==========================================
-// WIREFRAME 2: SELECCION DE ASIENTOS (REAL MOCKUP IMAGE)
+// IMAGEN: EMAIL DE INVITACION REAL
 // ==========================================
-function WireframeEgresado() {
+function ScreenEmailInvitacion() {
   return (
-    <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-md bg-slate-55 relative group select-none">
+    <div className="w-full max-w-[200px] mx-auto overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
       <img 
-        src="/manual/egresado_wireframe.png" 
-        alt="Portal del Graduado" 
-        className="w-full max-h-[120px] object-cover hover:scale-[1.02] transition-transform duration-300 relative z-10 mx-auto"
+        src="/manual/email_invitacion.png" 
+        alt="Correo de Invitación" 
+        className="w-full object-cover object-top hover:scale-[1.01] transition-transform duration-500"
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2 z-20 pointer-events-none">
-        <span className="text-[8px] font-bold text-white">Vista Real: Mapa de Selección de Butacas</span>
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2 z-20 pointer-events-none">
+        <span className="text-[8px] font-bold text-white">📸 Correo real que recibe el egresado</span>
       </div>
     </div>
   )
 }
 
 // ==========================================
-// WIREFRAME 3: PORTERIA SCANNER MOVIL (REAL MOCKUP IMAGE)
+// IMAGEN: PORTAL OTP DEL EGRESADO
+// ==========================================
+function ScreenPortalOTP() {
+  return (
+    <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
+      <img 
+        src="/manual/portal_otp.png" 
+        alt="Portal OTP del Graduado" 
+        className="w-full object-cover object-center hover:scale-[1.02] transition-transform duration-500"
+        style={{ maxHeight: '120px' }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2 z-20 pointer-events-none">
+        <span className="text-[8px] font-bold text-white">📸 Portal de acceso OTP del graduado</span>
+      </div>
+    </div>
+  )
+}
+
+// ==========================================
+// IMAGEN: PANTALLA INASISTENCIA
+// ==========================================
+function ScreenInasistencia() {
+  return (
+    <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
+      <img 
+        src="/manual/portal_inasistencia.png" 
+        alt="Pantalla Inasistencia" 
+        className="w-full object-cover object-center hover:scale-[1.02] transition-transform duration-500"
+        style={{ maxHeight: '110px' }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2 z-20 pointer-events-none">
+        <span className="text-[8px] font-bold text-white">📸 Confirmación de inasistencia</span>
+      </div>
+    </div>
+  )
+}
+
+// ==========================================
+// WIREFRAME: PORTERIA SCANNER MOVIL
 // ==========================================
 function WireframePorteria() {
   return (
@@ -58,7 +97,25 @@ function WireframePorteria() {
 }
 
 // ==========================================
-// WIREFRAME 4: DIAGRAMA DE RED Y CONECTIVIDAD
+// WIREFRAME: MAPA DE ASIENTOS
+// ==========================================
+function WireframeEgresado() {
+  return (
+    <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-md relative group select-none">
+      <img 
+        src="/manual/egresado_wireframe.png" 
+        alt="Mapa de Butacas Anfiteatro" 
+        className="w-full max-h-[120px] object-cover hover:scale-[1.02] transition-transform duration-300"
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2 z-20 pointer-events-none">
+        <span className="text-[8px] font-bold text-white">📸 Mapa interactivo del anfiteatro ITB</span>
+      </div>
+    </div>
+  )
+}
+
+// ==========================================
+// DIAGRAMA DE ARQUITECTURA
 // ==========================================
 function DiagramaArquitectura() {
   return (
@@ -66,33 +123,27 @@ function DiagramaArquitectura() {
       <div className="text-center border-b border-white/5 pb-1">
         <span className="font-bold text-white uppercase tracking-wider text-[7px]">Ecosistema de Conectividad</span>
       </div>
-
       <div className="flex flex-col gap-1.5 relative">
         <div className="grid grid-cols-2 gap-2">
           <div className="bg-slate-950 border border-white/5 rounded p-1 flex flex-col items-center text-center">
             <span className="font-black text-sky-400">Centro de Control Web</span>
             <span className="text-white/40 text-[5.5px] mt-0.5">Gestión de Infraestructura</span>
           </div>
-
           <div className="bg-slate-950 border border-white/5 rounded p-1 flex flex-col items-center text-center">
             <span className="font-black text-emerald-400">Portal Web Next.js</span>
             <span className="text-white/40 text-[5.5px] mt-0.5">Admin & Graduados</span>
           </div>
         </div>
-
         <div className="flex justify-around items-center h-1.5 select-none">
           <div className="w-0.5 h-full bg-sky-500/30" />
           <div className="w-0.5 h-full bg-emerald-500/30" />
         </div>
-
         <div className="bg-sky-500/10 border border-sky-500/25 rounded-md p-1.5 text-center flex flex-col items-center mx-2">
           <span className="font-black text-white text-[8px] tracking-wide">Vercel Serverless Platform</span>
         </div>
-
         <div className="flex justify-center items-center h-1.5 select-none">
           <div className="w-0.5 h-full bg-sky-500/30" />
         </div>
-
         <div className="bg-slate-950 border border-white/5 rounded-md p-1.5 text-center flex flex-col items-center mx-6">
           <span className="font-black text-purple-400">Neon Cloud PostgreSQL</span>
           <span className="text-white/40 text-[5.5px]">Base de Datos en la Nube</span>
@@ -265,58 +316,86 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
       </div>
     ),
 
-    // Página 3: Carga de Graduados (Excel) + Wireframe
+    // Página 3: Panel Administrativo con captura real
     (
       <div className="space-y-2.5 text-[11px] text-slate-600 leading-relaxed">
         <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
           <GraduationCap size={16} className="text-[#0056b3]" /> 2. Panel Administrativo
         </h3>
-        <p className="text-slate-500 m-0">
-          Desde el dashboard administrativo tenés acceso centralizado a las métricas de la colación, padrón de graduados y configuración general del anfiteatro.
+
+        <ScreenPanelAdmin />
+
+        <p className="text-slate-500 m-0 text-[9.5px] leading-relaxed">
+          El panel de administración es el corazón del sistema. Desde aquí se gestiona <strong>todo el ciclo de vida</strong> de la colación: el hábitat activo (ceremonia actual), métricas en vivo, acceso a cada módulo del sistema y configuración general.
         </p>
 
-        <WireframeAdmin />
+        <div className="grid grid-cols-2 gap-1.5">
+          <div className="bg-sky-50 border border-sky-100 rounded-lg p-2">
+            <span className="text-[8px] font-black uppercase tracking-widest text-sky-600 block mb-0.5">Métricas en tiempo real</span>
+            <p className="text-[9px] text-slate-500 m-0 leading-snug">Graduados, invitados totales, ingresados y porcentaje de ocupación del anfiteatro. Todo actualizado al instante.</p>
+          </div>
+          <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-2">
+            <span className="text-[8px] font-black uppercase tracking-widest text-emerald-600 block mb-0.5">Consola de Control</span>
+            <p className="text-[9px] text-slate-500 m-0 leading-snug">Acceso rápido a Ingreso (QR), Graduados, Profesores, Plano, Seguridad y Ajustes del sistema.</p>
+          </div>
+        </div>
 
-        <div className="bg-slate-50 p-2 rounded-lg border border-slate-105 space-y-0.5 mt-2">
-          <span className="text-[8.5px] font-black uppercase tracking-widest text-slate-400 block">Carga de Padrón por Excel</span>
-          <p className="text-slate-500 text-[9px] m-0">
-            Para la importación masiva armá tu planilla <code>.xlsx</code> con: <strong>nombre</strong>, <strong>dni</strong> (sin puntos), <strong>correo</strong>, <strong>legajo</strong>, <strong>carrera</strong> y <strong>año</strong>. El sistema valida automáticamente las combinaciones únicas.
+        <div className="bg-slate-50 p-2 rounded-lg border border-slate-100 space-y-1">
+          <span className="text-[8.5px] font-black uppercase tracking-widest text-slate-400 block">Importación de Padrón con Excel</span>
+          <p className="text-slate-500 text-[9px] m-0 leading-relaxed">
+            Desde la sección <strong>Gestionar Graduados</strong>, pulsá <strong>"Importar Nómina"</strong> y subí tu archivo <code>.xlsx</code>. La planilla debe incluir las columnas: <strong>nombre</strong>, <strong>dni</strong> (sin puntos ni guiones), <strong>correo</strong>, <strong>legajo</strong>, <strong>carrera</strong> y <strong>año</strong>. El sistema detecta y omite duplicados (mismo legajo + carrera + año).
           </p>
         </div>
       </div>
     ),
 
-    // Página 4: Invitaciones y Autogestión
+    // Página 4: Correo de Invitación y Autogestión del Egresado
     (
-      <div className="space-y-3 text-[11px] text-slate-600 leading-relaxed">
+      <div className="space-y-2.5 text-[11px] text-slate-600 leading-relaxed">
         <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
-          <Users size={16} className="text-[#0056b3]" /> 3. Envío y Autogestión
+          <Users size={16} className="text-[#0056b3]" /> 3. Invitación y Acceso del Egresado
         </h3>
-        
-        <div>
-          <h4 className="font-black text-slate-755 uppercase text-[9.5px] tracking-wider mb-1">Despacho de Correos</h4>
-          <p className="text-slate-500 m-0">
-            Apretá en <strong>"Enviar Invitaciones por Correo"</strong> para mandarles a todos los egresados el mail automático con su token individual encriptado.
-          </p>
+
+        <div className="grid grid-cols-12 gap-2 items-start">
+          <div className="col-span-7 space-y-1.5">
+            <h4 className="font-black text-slate-700 uppercase text-[9px] tracking-wider m-0">El correo que recibe cada egresado</h4>
+            <p className="text-slate-500 m-0 text-[9px] leading-relaxed">
+              Al enviar las invitaciones desde el panel, cada egresado recibe automáticamente un email personalizado con su nombre, instrucciones claras y un botón de <strong>"Confirmar Asistencia"</strong> con su token único.
+            </p>
+            <div className="bg-sky-50 border-l-4 border-[#0056b3] p-1.5 rounded-r-lg">
+              <p className="m-0 text-[8.5px] text-sky-800 leading-snug">
+                <strong>El token</strong> está integrado en el enlace del botón y es intransferible. Identifica al egresado de forma única en el sistema.
+              </p>
+            </div>
+          </div>
+          <div className="col-span-5">
+            <ScreenEmailInvitacion />
+          </div>
         </div>
 
-        <div>
-          <h4 className="font-black text-slate-755 uppercase text-[9.5px] tracking-wider mb-1">Acceso OTP Egresado (Super Seguro)</h4>
-          <p className="text-slate-500 m-0">
-            El egresado pone su DNI en el portal público y el servidor le manda un código OTP temporal de 6 dígitos al mail. Lo escribe en pantalla y ¡listo! Entra al toque sin recordar contraseñas.
-          </p>
+        <div className="grid grid-cols-2 gap-2">
+          <div>
+            <span className="text-[8.5px] font-black uppercase tracking-widest text-slate-400 block mb-1">Login OTP del Egresado</span>
+            <ScreenPortalOTP />
+            <p className="text-[8.5px] text-slate-400 mt-1 leading-snug">El egresado ingresa su correo institucional para recibir el código de 6 dígitos.</p>
+          </div>
+          <div>
+            <span className="text-[8.5px] font-black uppercase tracking-widest text-slate-400 block mb-1">Rechazo de Asistencia</span>
+            <ScreenInasistencia />
+            <p className="text-[8.5px] text-slate-400 mt-1 leading-snug">Si el egresado rechazó, el sistema queda anotado como "Inasistencia Confirmada" sin ocupar butacas.</p>
+          </div>
         </div>
 
-        <div className="bg-amber-50 border-l-4 border-amber-500 p-2 rounded-r-lg mt-1">
-          <h5 className="font-black text-amber-800 text-[9px] uppercase m-0">¿No le llega el mail con el código?</h5>
-          <p className="m-0 text-[9px] text-amber-700 leading-snug mt-0.5">
-            Buscá al graduado en el listado de administración, clickeá el botón azul de su fila para copiar su enlace de acceso directo y mandáselo por WhatsApp. Con eso entra directo saltando el OTP.
+        <div className="bg-amber-50 border-l-4 border-amber-500 p-2 rounded-r-lg">
+          <h5 className="font-black text-amber-800 text-[9px] uppercase m-0">¿No le llega el mail?</h5>
+          <p className="m-0 text-[8.5px] text-amber-700 leading-snug mt-0.5">
+            Buscá al graduado en el listado → copiá su enlace de acceso directo (botón azul de la fila) → mandáselo por WhatsApp. Entrará sin necesidad del OTP.
           </p>
         </div>
       </div>
     ),
 
-    // Página 5: Plano del Anfiteatro & Movilidad + Wireframe
+    // Página 5: Plano del Anfiteatro & Movilidad
     (
       <div className="space-y-2 text-[11px] text-slate-600 leading-relaxed">
         <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
@@ -325,48 +404,67 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
 
         <WireframeEgresado />
 
-        <div className="space-y-1.5 pt-1">
-          <p className="text-slate-500 m-0">
-            Mediante el mapa interactivo, cada egresado va a poder seleccionar las butacas exactas para sus invitados dentro del <strong>anfiteatro</strong>. El sistema controla automáticamente el <strong>aforo máximo</strong> permitido.
-          </p>
-          <p className="text-slate-500 m-0">
-            El mapa en vivo refleja el estado real del recinto: butacas ocupadas, libres y pasillos.
-          </p>
+        <p className="text-slate-500 m-0 text-[9.5px] leading-relaxed">
+          El <strong>mapa interactivo del anfiteatro</strong> permite a cada egresado elegir las butacas exactas para sus acompañantes de manera autónoma. Está construido sobre la planta real del ITB Beltrán.
+        </p>
+
+        <div className="grid grid-cols-2 gap-1.5">
+          <div className="bg-slate-50 border border-slate-100 rounded-lg p-2 space-y-0.5">
+            <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 block">Control de Aforo</span>
+            <p className="text-[9px] text-slate-500 m-0 leading-snug">
+              El sistema cierra automáticamente la selección cuando se alcanza el límite de butacas configurado. Nadie puede exceder el aforo máximo establecido por la institución.
+            </p>
+          </div>
+          <div className="bg-slate-50 border border-slate-100 rounded-lg p-2 space-y-0.5">
+            <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 block">Estado en tiempo real</span>
+            <p className="text-[9px] text-slate-500 m-0 leading-snug">
+              Butacas <span className="text-emerald-600 font-bold">verdes</span> = libres. <span className="text-rose-500 font-bold">Rojas</span> = ocupadas. El mapa se actualiza en tiempo real para todos los usuarios.
+            </p>
+          </div>
         </div>
 
-        <div className="bg-sky-50 border border-sky-100 rounded-lg p-2 flex gap-2 items-start mt-2">
+        <div className="bg-sky-50 border border-sky-100 rounded-lg p-2 flex gap-2 items-start">
           <Accessibility size={16} className="text-sky-500 shrink-0 mt-0.5" />
           <div>
             <h5 className="font-black text-sky-800 text-[9.5px] uppercase m-0">Movilidad Reducida</h5>
             <p className="m-0 text-slate-500 text-[9px] leading-relaxed mt-0.5">
-              Si el egresado declara acompañantes con movilidad reducida, la butaca elegida se marca con un ícono especial. Sirve un montón para prever rampas.
+              El egresado puede declarar si algún acompañante tiene movilidad reducida. Esas butacas quedan señalizadas con un ícono especial en el mapa del admin, facilitando la coordinación de rampas y asistencia el día del evento.
             </p>
           </div>
         </div>
       </div>
     ),
 
-    // Página 6: Cuentas de Portería (Códigos QR) + Wireframe
+    // Página 6: Cuentas de Portería
     (
       <div className="space-y-3 text-[11px] text-slate-600 leading-relaxed">
         <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
           <Shield size={16} className="text-[#0056b3]" /> 5. Cuentas de Portería
         </h3>
-        
+
         <div className="grid grid-cols-12 gap-3 items-center">
           <div className="col-span-7 space-y-2">
-            <p className="text-slate-505 m-0">
-              Para habilitar a la gente de seguridad el día de la colación, armales una cuenta rápido:
+            <p className="text-slate-500 m-0 text-[9.5px] leading-relaxed">
+              Antes de la ceremonia, cada operador de portería necesita tener su cuenta registrada con rol <code className="bg-slate-100 px-1 py-0.5 rounded">PORTERIA</code>. El proceso de configuración es instantáneo:
             </p>
-            <ol className="list-decimal pl-4 text-slate-505 space-y-1 text-[9.5px]">
-              <li>Andá a <strong>Seguridad</strong> y registralos con el rol <code>PORTERIA</code>.</li>
-              <li>Apretá en <strong>"Mostrar Acceso QR"</strong> de su fila.</li>
-              <li>El portero escanea ese QR con el celu: esto configura la API de tu server y le inicia sesión al instante sin poner claves.</li>
+            <ol className="list-decimal pl-4 text-slate-500 space-y-1.5 text-[9.5px]">
+              <li>Andá al módulo <strong>Personal de Seguridad</strong> en la consola de control.</li>
+              <li>Registrá al portero con nombre y correo. El sistema genera su acceso automáticamente.</li>
+              <li>Pulsá <strong>"Mostrar Acceso QR"</strong> en la fila del operador.</li>
+              <li>El portero escanea el QR con su celular: se configura la conexión con la API del servidor y queda logueado al instante, sin necesidad de ingresar usuario ni contraseña.</li>
             </ol>
           </div>
-          <div className="col-span-5 flex justify-center">
+          <div className="col-span-5 flex flex-col items-center gap-1">
             <WireframePorteria />
+            <span className="text-[7.5px] text-slate-400 text-center">App de portería móvil</span>
           </div>
+        </div>
+
+        <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-2 flex gap-1.5 items-start">
+          <CheckCircle2 size={14} className="text-emerald-500 shrink-0 mt-0.5" />
+          <p className="text-[9px] text-emerald-800 m-0 leading-snug">
+            <strong>Tip operativo:</strong> Podés tener varios porteros activos al mismo tiempo, cada uno con su propio celular y sesión. El sistema registra quién validó cada ingreso.
+          </p>
         </div>
       </div>
     ),
@@ -375,82 +473,103 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
     (
       <div className="space-y-2 text-[11px] text-slate-600 leading-relaxed">
         <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
-          <ScanLine size={16} className="text-[#0056b3]" /> 6. Acreditación QR
+          <ScanLine size={16} className="text-[#0056b3]" /> 6. Acreditación por QR
         </h3>
-        <p className="text-slate-500 m-0">
-          El portero escanea las credenciales en la entrada usando la app. La pantalla va a cambiar según tres estados:
+        <p className="text-slate-500 m-0 text-[9.5px] leading-relaxed">
+          El día de la colación, el portero usa la cámara de su celular para escanear el código QR que presenta cada invitado (impreso o desde la pantalla del celular). La respuesta del sistema es inmediata:
         </p>
 
         <div className="space-y-1.5">
           <div className="border border-emerald-100 bg-emerald-50/50 p-2 rounded-xl flex items-start gap-2">
             <CheckCircle2 className="text-emerald-500 shrink-0 mt-0.5" size={13} />
             <div>
-              <h5 className="font-bold text-emerald-700 text-[9px] uppercase">VERDE: Autorizado</h5>
-              <p className="text-slate-500 text-[9px] m-0 leading-snug">El QR es válido y de la ceremonia activa. Vibra, suena y te dice la butaca asignada.</p>
+              <h5 className="font-bold text-emerald-700 text-[9px] uppercase">VERDE: Autorizado ✓</h5>
+              <p className="text-slate-500 text-[9px] m-0 leading-snug">QR válido y de la ceremonia activa. El celular vibra y muestra la butaca asignada al invitado. Puede ingresar.</p>
             </div>
           </div>
 
           <div className="border border-amber-100 bg-amber-50/50 p-2 rounded-xl flex items-start gap-2">
             <AlertTriangle className="text-amber-500 shrink-0 mt-0.5" size={13} />
             <div>
-              <h5 className="font-bold text-amber-700 text-[9px] uppercase">NARANJA: Duplicado</h5>
-              <p className="text-slate-500 text-[9px] m-0 leading-snug">El código es válido pero la persona **ya ingresó**. Sirve para evitar fraudes en la puerta.</p>
+              <h5 className="font-bold text-amber-700 text-[9px] uppercase">NARANJA: Duplicado ⚠</h5>
+              <p className="text-slate-500 text-[9px] m-0 leading-snug">El código es válido pero este invitado ya ingresó previamente. Alerta de posible fraude o transferencia de credencial.</p>
             </div>
           </div>
 
           <div className="border border-rose-100 bg-rose-50/50 p-2 rounded-xl flex items-start gap-2">
             <XCircle className="text-rose-500 shrink-0 mt-0.5" size={13} />
             <div>
-              <h5 className="font-bold text-rose-700 text-[9px] uppercase">ROJO: Denegado</h5>
-              <p className="text-slate-500 text-[9px] m-0 leading-snug">Token inválido, egresado inasistente o de otra ceremonia. Se le deniega el ingreso físico.</p>
+              <h5 className="font-bold text-rose-700 text-[9px] uppercase">ROJO: Denegado ✗</h5>
+              <p className="text-slate-500 text-[9px] m-0 leading-snug">Token inválido, egresado que confirmó inasistencia, o credencial de otra ceremonia. No autorizar el ingreso.</p>
             </div>
           </div>
         </div>
       </div>
     ),
 
-    // Página 8: Acreditación de Emergencia (Alfanumérico / Manual)
+    // Página 8: Acreditación de Emergencia
     (
       <div className="space-y-3 text-[11px] text-slate-600 leading-relaxed">
         <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
-          <HelpCircle size={16} className="text-[#0056b3]" /> 7. Acreditaciones Manuales
+          <HelpCircle size={16} className="text-[#0056b3]" /> 7. Acreditaciones de Emergencia
         </h3>
-        <p className="text-slate-500 m-0">
-          Si el egresado o invitado perdió la credencial impresa, se quedó sin batería o le anda mal la cámara al escáner, tenés dos métodos de respaldo rápido:
+        <p className="text-slate-500 m-0 text-[9.5px] leading-relaxed">
+          Ante imprevistos (credencial olvidada, celular sin batería, cámara con problemas), el sistema ofrece dos métodos de respaldo:
         </p>
 
-        <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 space-y-1">
-          <h4 className="font-black text-slate-755 uppercase text-[9.5px] tracking-wider m-0 flex items-center gap-1.5">
-            <Smartphone size={14} className="text-[#0056b3] shrink-0" /> Acreditación con Celular
+        <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 space-y-1.5">
+          <h4 className="font-black text-slate-700 uppercase text-[9.5px] tracking-wider m-0 flex items-center gap-1.5">
+            <Smartphone size={14} className="text-[#0056b3] shrink-0" /> Código Alfanumérico Manual
           </h4>
-          <p className="text-slate-500 m-0 text-[9.5px]">
-            El portero puede escribir a mano el <strong>código alfanumérico único</strong> del invitado (código de 8 dígitos que figura en su correo) directamente en la app del celu de portería.
+          <p className="text-slate-500 m-0 text-[9.5px] leading-relaxed">
+            Cada invitado tiene un <strong>código de 8 caracteres</strong> impreso en su correo de invitación. El portero puede tipear ese código directamente en la app sin necesidad de escanear. El sistema lo valida igual que un QR.
           </p>
         </div>
 
-        <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 space-y-1">
-          <h4 className="font-black text-slate-755 uppercase text-[9.5px] tracking-wider m-0 flex items-center gap-1.5">
-            <FileText size={14} className="text-[#0056b3] shrink-0" /> Soporte Papel (Plan de Contingencia)
+        <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 space-y-1.5">
+          <h4 className="font-black text-slate-700 uppercase text-[9.5px] tracking-wider m-0 flex items-center gap-1.5">
+            <FileText size={14} className="text-[#0056b3] shrink-0" /> Listado en Papel (Plan de Contingencia)
           </h4>
-          <p className="text-slate-505 m-0 text-[9.5px]">
-            Si no hay nada de señal o red en la entrada, buscá a la persona en el <strong>listado impreso en soporte papel</strong> de tu mesa de control, corroborá su código alfanumérico y tildale el ingreso físico a mano.
+          <p className="text-slate-500 m-0 text-[9.5px] leading-relaxed">
+            Antes de la ceremonia, exportá el listado completo de invitados desde el panel (formato PDF/Excel) e imprimilo. Si hay corte total de señal o red, el portero puede verificar a las personas contra la lista impresa y tildarlas manualmente.
+          </p>
+        </div>
+
+        <div className="bg-amber-50 border-l-4 border-amber-400 p-2 rounded-r-lg">
+          <p className="text-[8.5px] text-amber-800 m-0 leading-snug">
+            <strong>Recomendación:</strong> Siempre tener 2-3 copias del listado impreso el día de la colación como respaldo operativo.
           </p>
         </div>
       </div>
     ),
 
-    // Página 9: Soporte Técnico + Diagrama
+    // Página 9: Soporte Técnico y Arquitectura
     (
       <div className="space-y-2 text-[11px] text-slate-600 leading-relaxed">
         <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
           <Server size={16} className="text-[#0056b3]" /> 8. Soporte Técnico
         </h3>
-        
+
         <DiagramaArquitectura />
 
-        <div className="bg-slate-50 p-2 rounded-lg border border-slate-100">
-          <p className="text-slate-550 text-[9px] m-0 leading-tight">
-            La cuenta master <code>soporte@sigic.com.ar</code> tiene acceso al **Centro de Control** integrado en la web. Permite bajarte volcados (Backups) en JSON y ejecutar el **Restablecer Base de Datos** para vaciar por completo Neon Cloud para el próximo año.
+        <div className="grid grid-cols-2 gap-1.5 pt-1">
+          <div className="bg-slate-50 border border-slate-100 rounded-lg p-2">
+            <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 block mb-1">Backups y Exportación</span>
+            <p className="text-[9px] text-slate-500 m-0 leading-snug">
+              La cuenta <code className="bg-white px-0.5 border border-slate-200 rounded text-[8px]">soporte@sigic.com.ar</code> puede descargar volcados completos de la base de datos en JSON desde el Centro de Control.
+            </p>
+          </div>
+          <div className="bg-slate-50 border border-slate-100 rounded-lg p-2">
+            <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 block mb-1">Reseteo anual</span>
+            <p className="text-[9px] text-slate-500 m-0 leading-snug">
+              Al terminar el ciclo lectivo, ejecutá <strong>"Restablecer Base de Datos"</strong> para limpiar Neon Cloud y dejar el sistema listo para el nuevo año sin datos del ciclo anterior.
+            </p>
+          </div>
+        </div>
+
+        <div className="bg-rose-50 border border-rose-100 rounded-lg p-2">
+          <p className="text-[9px] text-rose-700 m-0 leading-snug font-semibold">
+            ⚠️ El reseteo elimina TODOS los datos permanentemente. Siempre realizá un backup antes de ejecutarlo.
           </p>
         </div>
       </div>
