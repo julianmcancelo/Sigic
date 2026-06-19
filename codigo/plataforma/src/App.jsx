@@ -91,6 +91,7 @@ function App() {
   const [vistaLogin, setVistaLogin] = useState(() => {
     const p = window.location.pathname
     if (p === '/manual') return 'manual'
+    if (p === '/admin') return 'admin'
     if (p === '/egresado' || p === '/graduado' || p === '/carga') return 'graduado'
     if (p === '/' && localStorage.getItem('mostrar_presentacion_inicial') === 'false') return 'admin'
     return null
@@ -441,6 +442,11 @@ function App() {
   // ─── 6. RENDERIZADO DINÁMICO (Orquestador de Vistas) ───
   // ──────────────────────────────────────────────────────────────
   let contenido = null
+
+  // CASO EXPLICITO: Acceso directo y libre al Manual de Usuario
+  if (typeof window !== 'undefined' && window.location.pathname === '/manual') {
+    return <ManualUsuarioWeb onVolver={() => window.location.href = '/'} />
+  }
 
   // CASO 0: Cargando estado inicial
   if (cargandoSetup) {
