@@ -989,48 +989,94 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
       </div>
     ),
 
-    // Página 7: Cuentas de Portería
+    // Página 7: Configuración de Portería
     (
       <div className="space-y-3 text-[11px] text-slate-600 leading-relaxed">
         <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
-          <Shield size={16} className="text-[#0056b3]" /> 5. Cuentas de Portería
+          <Shield size={16} className="text-[#0056b3]" /> 5. Configuración de Portería
         </h3>
 
         <div className="grid grid-cols-12 gap-3 items-center">
           <div className="col-span-7 space-y-2">
             <p className="text-slate-500 m-0 text-[9.5px] leading-relaxed">
-              Antes de la ceremonia, cada operador de portería necesita tener su cuenta registrada con rol <code className="bg-slate-100 px-1 py-0.5 rounded">PORTERIA</code>. El proceso de configuración es instantáneo:
+              El personal de portería utiliza la aplicación móvil <strong>SiGIC Accesos</strong> para controlar y validar los ingresos el día de la ceremonia.
             </p>
-            <ol className="list-decimal pl-4 text-slate-500 space-y-1.5 text-[9.5px]">
-              <li>Andá al módulo <strong>Personal de Seguridad</strong> en la consola de control.</li>
-              <li>Registrá al portero con nombre y correo. El sistema genera su acceso automáticamente.</li>
-              <li>Pulsá <strong>"Mostrar Acceso QR"</strong> en la fila del operador.</li>
-              <li>El portero escanea el QR con su celular: se configura la conexión con la API del servidor y queda logueado al instante, sin necesidad de ingresar usuario ni contraseña.</li>
+            <ol className="list-decimal pl-4 text-slate-500 space-y-1.5 text-[9px]">
+              <li><strong>Servidor Institucional:</strong> Ingresá la URL del servidor entregada por la institución (ej: <code className="bg-slate-100 px-1 py-0.2 rounded">https://sigic.com.ar/api</code>).</li>
+              <li><strong>Probar y Guardar:</strong> Tocá el botón para comprobar el acceso y conectar con la base de datos central.</li>
+              <li><strong>Vinculación Rápida:</strong> También podés configurar el servidor escaneando un código QR de configuración que comience con <code className="bg-slate-100 px-1 py-0.2 rounded">sigic-config:[URL]</code>.</li>
             </ol>
           </div>
           <div className="col-span-5 flex flex-col items-center gap-1">
-            <WireframePorteria />
-            <span className="text-[7.5px] text-slate-400 text-center">App de portería móvil</span>
+            <ScreenMovilConfiguracion />
+            <span className="text-[7px] text-slate-400 text-center font-bold">Pantalla de Configuración</span>
           </div>
-        </div>
-
-        <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-2 flex gap-1.5 items-start">
-          <CheckCircle2 size={14} className="text-emerald-500 shrink-0 mt-0.5" />
-          <p className="text-[9px] text-emerald-800 m-0 leading-snug">
-            <strong>Tip operativo:</strong> Podés tener varios porteros activos al mismo tiempo, cada uno con su propio celular y sesión. El sistema registra quién validó cada ingreso.
-          </p>
         </div>
       </div>
     ),
 
-    // Página 8: Protocolo de Escaneo QR
+    // Página 8: Dashboard de la App Móvil
+    (
+      <div className="space-y-3 text-[11px] text-slate-600 leading-relaxed">
+        <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
+          <Smartphone size={16} className="text-[#0056b3]" /> 6. Dashboard de Portería
+        </h3>
+
+        <div className="grid grid-cols-12 gap-3 items-center">
+          <div className="col-span-7 space-y-2">
+            <p className="text-slate-500 m-0 text-[9.5px] leading-relaxed">
+              Una vez vinculado el dispositivo, el operador accede al panel de control de ingresos de la colación:
+            </p>
+            <ul className="list-disc pl-4 text-slate-500 space-y-1.5 text-[9px]">
+              <li><strong>Sesión Activa:</strong> Muestra el nombre del operador autenticado y el servidor conectado.</li>
+              <li><strong>Tus Ceremonias:</strong> Listado de colaciones asignadas y habilitadas para el operador.</li>
+              <li><strong>Acreditados en Sala:</strong> Contador de invitados en tiempo real que ya cruzaron la portería.</li>
+              <li><strong>Abrir Escáner QR:</strong> Botón principal para iniciar la cámara y leer credenciales.</li>
+            </ul>
+          </div>
+          <div className="col-span-5 flex flex-col items-center gap-1">
+            <ScreenMovilInicio />
+            <span className="text-[7px] text-slate-400 text-center font-bold">Panel Principal de Control</span>
+          </div>
+        </div>
+      </div>
+    ),
+
+    // Página 9: Validación y Acreditación de Invitados
+    (
+      <div className="space-y-3 text-[11px] text-slate-600 leading-relaxed">
+        <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
+          <CheckCircle2 size={16} className="text-[#0056b3]" /> 7. Validación de Credencial
+        </h3>
+
+        <div className="grid grid-cols-12 gap-3 items-center">
+          <div className="col-span-7 space-y-2">
+            <p className="text-slate-500 m-0 text-[9.5px] leading-relaxed">
+              Al escanear un QR válido, la aplicación muestra los detalles del graduado y su grupo de acompañantes:
+            </p>
+            <ul className="list-disc pl-4 text-slate-500 space-y-1.5 text-[9px]">
+              <li><strong>Ficha de Graduado:</strong> Nombre del egresado, legajo, carrera y asiento asignado.</li>
+              <li><strong>Acompañantes en Grupo:</strong> Listado con nombre, DNI y relación.</li>
+              <li><strong>Ingreso selectivo:</strong> Botón <strong>"Ingresar"</strong> al lado de cada persona para registrar asistencias individuales.</li>
+              <li><strong>Acreditación Masiva:</strong> Botón <strong>"Acreditar Todos los Pendientes"</strong> para acelerar el ingreso grupal.</li>
+            </ul>
+          </div>
+          <div className="col-span-5 flex flex-col items-center gap-1">
+            <ScreenMovilAcreditacion />
+            <span className="text-[7px] text-slate-400 text-center font-bold">Pantalla de Validación</span>
+          </div>
+        </div>
+      </div>
+    ),
+
+    // Página 10: Protocolo de Escaneo QR
     (
       <div className="space-y-2 text-[11px] text-slate-600 leading-relaxed">
         <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
-          <ScanLine size={16} className="text-[#0056b3]" /> 6. Acreditación por QR
+          <ScanLine size={16} className="text-[#0056b3]" /> 8. Protocolo de Escaneo QR
         </h3>
         <p className="text-slate-500 m-0 text-[9.5px] leading-relaxed">
-          El día de la colación, el portero usa la cámara de su celular para escanear el código QR que presenta cada invitado (impreso o desde la pantalla del celular). La respuesta del sistema es inmediata:
+          El día de la colación, el portero usa la cámara de su celular para escanear el código QR que presenta cada invitado. La respuesta visual es inmediata:
         </p>
 
         <div className="space-y-1.5">
@@ -1061,11 +1107,11 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
       </div>
     ),
 
-    // Página 8: Acreditación de Emergencia
+    // Página 11: Acreditación de Emergencia
     (
       <div className="space-y-3 text-[11px] text-slate-600 leading-relaxed">
         <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
-          <HelpCircle size={16} className="text-[#0056b3]" /> 7. Acreditaciones de Emergencia
+          <HelpCircle size={16} className="text-[#0056b3]" /> 9. Acreditaciones de Emergencia
         </h3>
         <p className="text-slate-500 m-0 text-[9.5px] leading-relaxed">
           Ante imprevistos (credencial olvidada, celular sin batería, cámara con problemas), el sistema ofrece dos métodos de respaldo:
@@ -1097,11 +1143,11 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
       </div>
     ),
 
-    // Página 9: Soporte Técnico y Arquitectura
+    // Página 12: Soporte Técnico y Arquitectura
     (
       <div className="space-y-2 text-[11px] text-slate-600 leading-relaxed">
         <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
-          <Server size={16} className="text-[#0056b3]" /> 8. Soporte Técnico
+          <Server size={16} className="text-[#0056b3]" /> 10. Soporte Técnico
         </h3>
 
         <DiagramaArquitectura />
@@ -1129,7 +1175,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
       </div>
     ),
 
-    // Página 10: Contraportada
+    // Página 13: Contraportada
     (
       <div className="flex flex-col items-center justify-center text-center h-full space-y-4 select-none py-6">
         <div className="h-12 w-12 rounded-2xl flex items-center justify-center overflow-hidden border border-slate-100 shadow-sm bg-slate-50">
@@ -1147,15 +1193,23 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
           <span>Hecho con</span> <Heart size={11} className="fill-sky-500 text-sky-500 animate-pulse" /> <span>por alumnos de PP</span>
         </div>
       </div>
+    ),
+
+    // Página 14: Contratapa
+    (
+      <div className="flex flex-col items-center justify-center text-center h-full space-y-2 select-none py-6 bg-slate-900 text-white rounded-r-2xl -mr-6 -my-6 p-6">
+        <span className="text-[10px] font-black uppercase tracking-widest text-[#29ABE2]">SiGIC Acceso Seguro</span>
+        <p className="text-[8px] text-slate-400">© 2026 Instituto Tecnológico Beltrán. Todos los derechos reservados.</p>
+      </div>
     )
   ]
 
   // Controles de paso de página
   const paginaSiguiente = () => {
     if (esMovil) {
-      if (paginaMovil < 10) cambiarPaginaMovil(paginaMovil + 1)
+      if (paginaMovil < 14) cambiarPaginaMovil(paginaMovil + 1)
     } else {
-      if (pliegoActual < 5) cambiarPliego(pliegoActual + 1)
+      if (pliegoActual < 7) cambiarPliego(pliegoActual + 1)
     }
   }
 
@@ -1390,7 +1444,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
 
       <button
         onClick={paginaSiguiente}
-        disabled={esMovil ? paginaMovil === 10 : pliegoActual === 5}
+        disabled={esMovil ? paginaMovil === 14 : pliegoActual === 7}
         className="absolute right-3 top-1/2 z-40 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-blue-100 bg-white/95 text-[#0056b3] shadow-[0_8px_24px_rgba(0,48,120,0.18)] backdrop-blur-md transition hover:translate-x-1 hover:scale-110 hover:bg-[#0056b3] hover:text-white active:scale-95 disabled:pointer-events-none disabled:opacity-20 lg:flex"
         title="Página siguiente"
         aria-label="Página siguiente"
@@ -1409,11 +1463,11 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
           <ArrowLeft size={16} />
         </button>
         <span className="min-w-[58px] text-center font-mono text-[10px] font-black tracking-wide text-slate-600">
-          {esMovil ? `${paginaMovil} / 10` : `${pliegoActual} / 5`}
+          {esMovil ? `${paginaMovil} / 14` : `${pliegoActual} / 7`}
         </span>
         <button
           onClick={paginaSiguiente}
-          disabled={esMovil ? paginaMovil === 10 : pliegoActual === 5}
+          disabled={esMovil ? paginaMovil === 14 : pliegoActual === 7}
           className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-[#0056b3] transition hover:bg-[#0056b3] hover:text-white active:scale-95 disabled:opacity-25"
           aria-label="Página siguiente"
         >
@@ -1422,7 +1476,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
       </div>
 
       <div className="absolute bottom-4 left-1/2 z-30 hidden -translate-x-1/2 rounded-full border border-slate-200/70 bg-white/90 px-4 py-2 font-mono text-[9px] font-black tracking-[0.16em] text-slate-500 shadow-sm backdrop-blur-md lg:block">
-        PLIEGO {pliegoActual} DE 5
+        PLIEGO {pliegoActual} DE 7
       </div>
 
       <style>{`
