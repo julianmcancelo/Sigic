@@ -17,23 +17,22 @@ export async function GET(req: NextRequest) {
 
   try {
     // Verificar si el usuario sigue activo en la base de datos
-    const userCheck = await query('SELECT activo, rol FROM usuarios_sistema WHERE id = $1', [usuario.id]);
-    if (userCheck.rows.length === 0 || userCheck.rows[0].activo !== 1) {
+    const userCheck = await query('SELECT nombre, email, activo, rol FROM usuarios_sistema WHERE id = $1', [usuario.id]);
+    const usuarioActual = userCheck.rows[0];
+    const activo = usuarioActual && [true, 1, '1', 't', 'true'].includes(usuarioActual.activo);
+    if (!usuarioActual || !activo) {
       return NextResponse.json({ error: 'Usuario inactivo o no encontrado.' }, { status: 403 });
     }
 
-    // Verificar si el rol es PORTERIA y está autorizado para la ceremonia activa
-    if (userCheck.rows[0].rol === 'PORTERIA') {
-      const activeCer = await query('SELECT id FROM ceremonias WHERE activa = 1 LIMIT 1');
-      if (activeCer.rows.length === 0) {
-        return NextResponse.json({ error: 'No hay ninguna ceremonia activa.' }, { status: 403 });
-      }
+    // La sesión puede mantenerse mientras el usuario conserve al menos una
+    // ceremonia asignada. Cada acreditación comprueba además la ceremonia activa.
+    if (usuarioActual.rol === 'PORTERIA') {
       const authCheck = await query(
-        'SELECT 1 FROM ceremonias_usuarios_autorizados WHERE ceremonia_id = $1 AND usuario_id = $2',
-        [activeCer.rows[0].id, usuario.id]
+        'SELECT 1 FROM ceremonias_usuarios_autorizados WHERE usuario_id = $1 LIMIT 1',
+        [usuario.id]
       );
       if (authCheck.rows.length === 0) {
-        return NextResponse.json({ error: 'No estás autorizado para la ceremonia activa.' }, { status: 403 });
+        return NextResponse.json({ error: 'Tu cuenta no tiene ceremonias asignadas.' }, { status: 403 });
       }
     }
 
@@ -41,8 +40,9 @@ export async function GET(req: NextRequest) {
       ok: true,
       usuario: {
         id: usuario.id,
-        nombre: usuario.nombre,
-        rol: usuario.rol,
+        nombre: usuarioActual.nombre || usuario.nombre,
+        email: usuarioActual.email,
+        rol: usuarioActual.rol,
         expira: usuario.exp
       }
     });

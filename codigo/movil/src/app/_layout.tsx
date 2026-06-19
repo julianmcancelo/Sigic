@@ -1,15 +1,22 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useColorScheme } from 'react-native';
-
 import { AnimatedSplashOverlay } from '@/componentes/icono-animado';
 import AppTabs from '@/componentes/pestanas-app';
+import { TemaAppProvider, useTemaApp } from '@/contextos/tema-app';
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+function ContenidoAplicacion() {
+  const { esquema } = useTemaApp();
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={esquema === 'dark' ? DarkTheme : DefaultTheme}>
       <AnimatedSplashOverlay />
       <AppTabs />
     </ThemeProvider>
+  );
+}
+
+export default function TabLayout() {
+  return (
+    <TemaAppProvider>
+      <ContenidoAplicacion />
+    </TemaAppProvider>
   );
 }

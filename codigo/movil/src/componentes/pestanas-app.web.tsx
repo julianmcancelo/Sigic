@@ -6,14 +6,13 @@ import {
   TabTriggerSlotProps,
   TabListProps,
 } from 'expo-router/ui';
-import { SymbolView } from 'expo-symbols';
-import { Pressable, useColorScheme, View, StyleSheet } from 'react-native';
+import { Pressable, View, StyleSheet } from 'react-native';
 
-import { EnlaceExterno } from './enlace-externo';
 import { TextoTematizado } from './texto-tematizado';
 import { VistaTematizada } from './vista-tematizada';
 
 import { Colors, MaxContentWidth, Spacing } from '@/constantes/tema';
+import { useTemaApp } from '@/contextos/tema-app';
 
 export default function AppTabs() {
   return (
@@ -48,8 +47,8 @@ export function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps
 }
 
 export function CustomTabList(props: TabListProps) {
-  const scheme = useColorScheme();
-  const colors = Colors[scheme === 'unspecified' ? 'light' : scheme];
+  const { esquema } = useTemaApp();
+  const colors = Colors[esquema];
 
   return (
     <View {...props} style={styles.tabListContainer}>
@@ -60,16 +59,7 @@ export function CustomTabList(props: TabListProps) {
 
         {props.children}
 
-        <EnlaceExterno href="https://docs.expo.dev" asChild>
-          <Pressable style={styles.externalPressable}>
-            <TextoTematizado type="link">Docs</TextoTematizado>
-            <SymbolView
-              tintColor={colors.text}
-              name={{ ios: 'arrow.up.right.square', web: 'link' }}
-              size={12}
-            />
-          </Pressable>
-        </EnlaceExterno>
+        <TextoTematizado type="small" style={{ color: colors.textSecondary }}>Entry</TextoTematizado>
       </VistaTematizada>
     </View>
   );
@@ -104,12 +94,5 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.one,
     paddingHorizontal: Spacing.three,
     borderRadius: Spacing.three,
-  },
-  externalPressable: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: Spacing.one,
-    marginLeft: Spacing.three,
   },
 });

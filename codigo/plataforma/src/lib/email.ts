@@ -54,14 +54,18 @@ export async function enviarCorreo(destinatario: string, asunto: string, cuerpoH
   }
 
   try {
+    const opcionesTransporte = transportador.options as unknown as {
+      auth?: { user?: string };
+      host?: string;
+    };
     const info = await transportador.sendMail({
-      from: `"${process.env.EMAIL_FROM_NAME || 'SiGIC'}" <${transportador.options.auth?.user}>`,
+      from: `"${process.env.EMAIL_FROM_NAME || 'SiGIC'}" <${opcionesTransporte.auth?.user}>`,
       to: destinatario,
       subject: asunto,
       html: cuerpoHTML,
     });
     console.log(`✓ Correo enviado a [${destinatario}]`);
-    if (transportador.options.host?.includes('ethereal.email')) {
+    if (opcionesTransporte.host?.includes('ethereal.email')) {
       console.log(`📖 Previsualización del correo: ${nodemailer.getTestMessageUrl(info)}`);
     }
     return { ok: true, id: info.messageId };

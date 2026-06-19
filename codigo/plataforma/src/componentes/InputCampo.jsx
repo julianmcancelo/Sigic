@@ -4,7 +4,7 @@ import React from 'react'
  * Campo de texto estilizado con etiqueta e icono opcional
  * Rediseñado para una estética premium con transiciones suaves y estados definidos.
  */
-export function InputCampo({ label, valor, onChange, placeholder, icon: Icon, type = "text" }) {
+export function InputCampo({ label, valor, onChange, onBlur, placeholder, icon: Icon, type = "text", inputMode, maxLength }) {
   return (
     <div className="flex flex-col gap-1.5 w-full group">
       <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1 transition-colors group-focus-within:text-sky-600">
@@ -22,6 +22,9 @@ export function InputCampo({ label, valor, onChange, placeholder, icon: Icon, ty
           type={type}
           value={valor}
           onChange={(e) => onChange(e.target.value)}
+          onBlur={onBlur}
+          inputMode={inputMode}
+          maxLength={maxLength}
           placeholder={placeholder}
           className={`
             w-full bg-white border-2 border-slate-100 rounded-2xl py-3.5 text-sm font-semibold text-slate-700

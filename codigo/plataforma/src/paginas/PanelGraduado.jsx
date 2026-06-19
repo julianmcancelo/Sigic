@@ -8,7 +8,7 @@ import { useState, useEffect } from 'react'
 import { 
   Users, UserPlus, LogOut, Trash2, Edit3, QrCode, 
   AlertCircle, Plus, CheckCircle, X, GraduationCap, 
-  UserCheck, Armchair
+  UserCheck, Armchair, History
 } from 'lucide-react'
 import { 
   obtenerInvitadosDeEgresado, eliminarInvitado, actualizarInvitado, 
@@ -16,6 +16,7 @@ import {
   asignarEntregador, eliminarEntregador, obtenerAjustes
 } from '../servicios/api'
 import { ModalCredencial } from '../componentes/ModalCredencial'
+import { ListaHistorialGraduado } from './HistorialGraduado'
 
 export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
   const [graduado, setGraduado] = useState(graduadoSesion)
@@ -194,6 +195,9 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
           <button onClick={() => setPestana('credencial')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${pestana === 'credencial' ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/20' : 'text-slate-400 hover:bg-white/5'}`}>
             <QrCode size={18} /> <span className="text-sm font-bold">Credencial</span>
           </button>
+          <button onClick={() => setPestana('historial')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${pestana === 'historial' ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/20' : 'text-slate-400 hover:bg-white/5'}`}>
+            <History size={18} /> <span className="text-sm font-bold">Mis ceremonias</span>
+          </button>
         </nav>
 
         <div className="p-4 border-t border-white/10">
@@ -246,6 +250,17 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
           }`}>
             {mensaje.texto}
           </div>
+        )}
+
+        {pestana === 'historial' && (
+          <section className="space-y-5">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-sky-500">Historial personal</p>
+              <h2 className="mt-1 text-2xl font-black text-slate-800">Mis carreras y ceremonias</h2>
+              <p className="mt-1 text-sm text-slate-500">Cada participación conserva su fecha, carrera y decisión de asistencia.</p>
+            </div>
+            <ListaHistorialGraduado historial={graduadoSesion.historial || [graduadoSesion]} actualId={graduadoSesion.id} />
+          </section>
         )}
 
         {/* ═══════ PESTAÑA: ACOMPAÑANTES ═══════ */}

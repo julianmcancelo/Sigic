@@ -77,6 +77,18 @@ export async function crearGraduado(datos: any) {
   return json;
 }
 
+export async function buscarGraduadoPorDNI(dni: string) {
+  const dniLimpio = String(dni || '').replace(/\D/g, '');
+  if (dniLimpio.length < 7) return { coincidencias: [] };
+
+  const res = await fetch(`${BASE_CLASSIC}/egresados/coincidencias-dni/${dniLimpio}`, {
+    headers: cabeceras()
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo comprobar el DNI');
+  return json;
+}
+
 export async function validarToken(token: string) {
   const res = await fetch(`${BASE_CLASSIC}/egresados/token/${token}`, { headers: cabeceras() });
   const json = await res.json();
@@ -147,11 +159,11 @@ export async function actualizarEntregadorLegacy(id: string | number, nombre: st
   return json;
 }
 
-export async function solicitarOTP(identificador: string) {
+export async function solicitarOTP(identificador: string, inscripcionId: string | number | null = null) {
   const res = await fetch(`${BASE_CLASSIC}/egresados/solicitar-otp`, {
     method: 'POST',
     headers: cabeceras(),
-    body: JSON.stringify({ identificador })
+    body: JSON.stringify({ identificador, inscripcionId })
   });
   const json = await res.json();
   if (!res.ok) {
@@ -160,18 +172,20 @@ export async function solicitarOTP(identificador: string) {
       const mins = Math.floor(segundos / 60);
       const secs = segundos % 60;
       const tiempoStr = mins > 0 ? `${mins} min y ${secs} seg` : `${secs} segundos`;
-      throw new Error(`Demasiadas solicitudes de código. Por favor, esperá ${tiempoStr} para volver a intentar.`);
+      const errorEspera = new Error(`Demasiadas solicitudes de código. Por favor, esperá ${tiempoStr} para volver a intentar.`) as Error & { segundosRestantes?: number };
+      errorEspera.segundosRestantes = segundos;
+      throw errorEspera;
     }
     throw new Error(json.error || 'No se pudo generar el código de verificación');
   }
   return json;
 }
 
-export async function verificarOTP(identificador: string, otp: string) {
+export async function verificarOTP(identificador: string, otp: string, inscripcionId: string | number | null = null) {
   const res = await fetch(`${BASE_CLASSIC}/egresados/verificar-otp`, {
     method: 'POST',
     headers: cabeceras(),
-    body: JSON.stringify({ identificador, otp })
+    body: JSON.stringify({ identificador, otp, inscripcionId })
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'El código ingresado es incorrecto o ya expiró');
@@ -257,6 +271,13 @@ export async function obtenerAjustes() {
   const res = await fetch(`${BASE_CLASSIC}/configuracion`, { headers: cabeceras() });
   if (!res.ok) throw new Error('No se pudo cargar la configuración del sistema');
   return res.json();
+}
+
+export async function obtenerDispositivosMoviles() {
+  const res = await fetch(`${BASE_CLASSIC}/dispositivos`, { headers: cabeceras() });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudieron cargar los dispositivos móviles');
+  return json;
 }
 
 export async function actualizarAjuste(clave: string, valor: string | number | boolean) {
@@ -485,4 +506,3 @@ export async function resetearSistema() {
   if (!res.ok) throw new Error(json.error || 'No se pudo resetear el sistema');
   return json;
 }
-

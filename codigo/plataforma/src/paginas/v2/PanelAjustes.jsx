@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { 
   Settings, Save, RefreshCw, Building2, Users, MapPin, 
-  Globe, Shield, ChevronRight, LogOut, LayoutGrid
+  Globe, Shield, ChevronRight, LogOut, LayoutGrid, Monitor, SlidersHorizontal,
+  Fingerprint, CheckCircle2
 } from 'lucide-react'
 import { obtenerAjustes, actualizarAjuste } from '../../servicios/api'
 
@@ -13,6 +14,7 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
   const [cargando, setCargando]       = useState(true)
   const [guardando, setGuardando]     = useState(null)
   const [mensaje, setMensaje]         = useState(null)
+  const [seccionActiva, setSeccionActiva] = useState('plataforma')
 
   useEffect(() => { cargar() }, [])
 
@@ -42,6 +44,68 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
       setGuardando(null)
     }
   }
+
+  async function handleInterruptor(clave) {
+    const anterior = ajustes[clave] !== 'false'
+    const nuevo = !anterior
+    setAjustes(prev => ({ ...prev, [clave]: String(nuevo) }))
+    setGuardando(clave)
+    try {
+      await actualizarAjuste(clave, nuevo)
+      localStorage.setItem(clave, String(nuevo))
+      if (clave === 'mostrar_presentacion_inicial') {
+        window.dispatchEvent(new CustomEvent('sigic-presentacion-cambiada', { detail: { mostrar: nuevo } }))
+      }
+      setMensaje({ tipo: 'exito', texto: 'Preferencia general actualizada correctamente' })
+      setTimeout(() => setMensaje(null), 3000)
+    } catch (err) {
+      setAjustes(prev => ({ ...prev, [clave]: String(anterior) }))
+      setMensaje({ tipo: 'error', texto: 'No se pudo guardar el cambio' })
+    } finally {
+      setGuardando(null)
+    }
+  }
+
+  const renderInterruptor = (clave, label, icono, descripcion) => {
+    const activo = ajustes[clave] !== 'false'
+    const estaGuardando = guardando === clave
+    return (
+      <div className="group bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:border-sky-100 hover:shadow-md transition-all">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+          <div className="flex gap-4">
+            <div className={`p-3 rounded-xl shrink-0 h-fit transition-colors ${activo ? 'bg-sky-50 text-sky-500' : 'bg-slate-50 text-slate-400'}`}>
+              {icono}
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="text-[10px] font-black text-slate-700 uppercase tracking-widest">{label}</h3>
+                <span className={`rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-wider ${activo ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'}`}>
+                  {activo ? 'Activado' : 'Desactivado'}
+                </span>
+              </div>
+              <p className="text-xs font-semibold text-slate-500 leading-relaxed max-w-lg">{descripcion}</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={activo}
+            disabled={estaGuardando}
+            onClick={() => handleInterruptor(clave)}
+            className={`relative h-9 w-16 shrink-0 rounded-full p-1 transition-all disabled:opacity-60 ${activo ? 'bg-sky-500 shadow-md shadow-sky-500/20' : 'bg-slate-200'}`}
+          >
+            <span className={`block h-7 w-7 rounded-full bg-white shadow-sm transition-transform ${activo ? 'translate-x-7' : 'translate-x-0'}`} />
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  const secciones = [
+    { id: 'plataforma', nombre: 'Plataforma', detalle: 'Acceso y comportamiento general', icono: SlidersHorizontal },
+    { id: 'identidad', nombre: 'Identidad', detalle: 'Institución y presentación', icono: Building2 },
+    { id: 'ceremonia', nombre: 'Ceremonia', detalle: 'Reglas del evento activo', icono: LayoutGrid },
+  ]
 
   const renderFila = (clave, label, icono, descripcion) => {
     const valor = ajustes[clave]
@@ -85,16 +149,42 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
 
   return (
     <div className="font-sans">
-      {/* HEADER INTEGRADO PRO */}
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
-        <div>
-          <h2 className="text-lg font-black tracking-tight" style={{ color: DARK }}>Configuración del Sistema</h2>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Ajustes & Parámetros Operativos del Hábitat</p>
+      <div className="relative overflow-hidden rounded-[28px] bg-slate-900 p-6 sm:p-8 mb-6 text-white">
+        <div className="absolute -right-16 -top-16 h-52 w-52 rounded-full bg-sky-500/20 blur-3xl" />
+        <div className="relative flex flex-col sm:flex-row sm:items-end justify-between gap-5">
+          <div>
+            <span className="inline-flex items-center gap-2 rounded-full border border-sky-400/20 bg-sky-400/10 px-3 py-1 text-[8px] font-black uppercase tracking-[0.2em] text-sky-300 mb-3">
+              <Settings size={11} /> Administración central
+            </span>
+            <h2 className="text-2xl font-black tracking-tight">Ajustes del sistema</h2>
+            <p className="text-xs font-semibold text-slate-400 mt-1">Configuraciones generales y parámetros propios de cada ceremonia.</p>
+          </div>
+          <div className="flex items-center gap-2 text-[9px] font-black uppercase tracking-wider text-emerald-300">
+            <CheckCircle2 size={14} /> Configuración sincronizada
+          </div>
         </div>
       </div>
 
-      {/* HÁBITAT SELECCIONADO */}
-      <div className="mb-6 bg-slate-900 rounded-2xl p-6 text-white shadow-sm flex flex-col md:flex-row justify-between items-center gap-4 relative overflow-hidden">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-6">
+        {secciones.map(({ id, nombre, detalle, icono: Icono }) => {
+          const activa = seccionActiva === id
+          return (
+            <button
+              key={id}
+              onClick={() => setSeccionActiva(id)}
+              className={`flex items-center gap-3 rounded-2xl border p-4 text-left transition-all ${activa ? 'border-sky-200 bg-sky-50 shadow-sm' : 'border-slate-100 bg-white hover:border-slate-200'}`}
+            >
+              <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${activa ? 'bg-sky-500 text-white shadow-md shadow-sky-500/20' : 'bg-slate-50 text-slate-400'}`}><Icono size={17} /></span>
+              <span>
+                <span className={`block text-xs font-black ${activa ? 'text-sky-700' : 'text-slate-700'}`}>{nombre}</span>
+                <span className="block text-[9px] font-semibold text-slate-400 mt-0.5">{detalle}</span>
+              </span>
+            </button>
+          )
+        })}
+      </div>
+
+      {seccionActiva === 'ceremonia' && <div className="mb-6 bg-slate-900 rounded-2xl p-6 text-white shadow-sm flex flex-col md:flex-row justify-between items-center gap-4 relative overflow-hidden">
         <div className="absolute right-[-20px] top-[-20px] w-24 h-24 bg-sky-500/10 rounded-full blur-2xl pointer-events-none" />
         <div className="relative z-10 space-y-1">
           <span className="text-[8px] font-black uppercase tracking-widest text-sky-400 block">Ceremonia Seleccionada</span>
@@ -107,7 +197,7 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
         >
           Administrar Ceremonias <ChevronRight size={13} />
         </button>
-      </div>
+      </div>}
 
       {mensaje && (
         <div className={`mb-6 p-4 rounded-xl border text-xs font-bold ${
@@ -132,42 +222,65 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
         </div>
       ) : (
         <div className="space-y-6">
-          {/* SECCIÓN 1: IDENTIDAD */}
-          <section className="space-y-3">
+          {seccionActiva === 'plataforma' && <section className="space-y-3">
             <div className="flex items-center gap-2 ml-1">
               <div className="w-1 h-3 bg-sky-500 rounded-full" />
-              <h2 className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Identidad y Marca</h2>
+              <h2 className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Comportamiento general</h2>
             </div>
             <div className="grid gap-3.5">
-              {renderFila('nombre_institucion', 'Institución', <Building2 size={18} />, 'Nombre oficial de la institución que organiza el evento.')}
-              {renderFila('nombre_evento', 'Evento', <Globe size={18} />, 'Título descriptivo de la ceremonia de colación.')}
+              {renderInterruptor('mostrar_presentacion_inicial', 'Pantalla de bienvenida', <Monitor size={18} />, 'Al desactivarla, la plataforma omite la portada institucional y abre directamente el acceso administrativo desde la próxima recarga.')}
+              {renderInterruptor('modo_mantenimiento', 'Modo mantenimiento', <Shield size={18} />, 'Bloquea temporalmente el acceso público mientras el equipo administrativo realiza tareas internas.')}
+              {renderInterruptor('acceso_oculto_egresado', 'Acceso reservado para graduados', <Fingerprint size={18} />, 'Oculta el acceso directo de graduados y conserva el ingreso reservado desde el logotipo.')}
             </div>
-          </section>
+          </section>}
 
-          {/* SECCIÓN 2: OPERACIÓN */}
-          <section className="space-y-3">
-            <div className="flex items-center gap-2 ml-1">
-              <div className="w-1 h-3 bg-amber-500 rounded-full" />
-              <h2 className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Reglas del Hábitat</h2>
-            </div>
-            <div className="grid gap-3.5">
-              {renderFila('max_invitados', 'Cupo de Invitados', <Users size={18} />, 'Cantidad de acompañantes permitidos por cada egresado.')}
-              {renderFila('modo_mantenimiento', 'Mantenimiento', <Shield size={18} />, 'Activa "true" para bloquear el acceso público al sistema.')}
-              {renderFila('acceso_oculto_egresado', 'Acceso Oculto Egresados', <Shield size={18} />, 'Activa "true" para requerir 5 clicks en el logo para entrar al portal.')}
-            </div>
-          </section>
-
-          {/* SECCIÓN 3: IDENTIFICACIÓN */}
-          <section className="space-y-3">
+          {seccionActiva === 'identidad' && <section className="space-y-3">
             <div className="flex items-center gap-2 ml-1">
               <div className="w-1 h-3 bg-indigo-500 rounded-full" />
-              <h2 className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Identificación de Graduados</h2>
+              <h2 className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Identidad institucional</h2>
             </div>
             <div className="grid gap-3.5">
+              {renderFila('nombre_institucion', 'Nombre de la institución', <Building2 size={18} />, 'Nombre oficial que se utiliza en la plataforma y en las comunicaciones institucionales.')}
+            </div>
+          </section>}
+
+          {seccionActiva === 'ceremonia' && <section className="space-y-3">
+            <div className="flex items-center gap-2 ml-1">
+              <div className="w-1 h-3 bg-amber-500 rounded-full" />
+              <h2 className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Reglas de la ceremonia seleccionada</h2>
+            </div>
+            <div className="grid gap-3.5">
+              {renderFila('nombre_evento', 'Nombre de la ceremonia', <Globe size={18} />, 'Título con el que se identifica el evento activo.')}
+              {renderFila('max_invitados', 'Cupo de invitados', <Users size={18} />, 'Cantidad máxima de acompañantes permitidos por graduado.')}
               {renderFila('formato_identificador', 'Formato de Identificador', <Settings size={18} />, 'Patrón para generar el identificador. Usá {CARRERA}, {LEGAJO} y {AÑO} (ej: {CARRERA}-{LEGAJO}-{AÑO}).')}
               {renderFila('campos_identificador', 'Campos Activos', <Users size={18} />, 'Campos obligatorios al registrar graduado (carrera, legajo, anio_inscripcion separados por comas).')}
+              <div className="relative overflow-hidden rounded-2xl border border-sky-100 bg-gradient-to-r from-sky-50 to-indigo-50 p-5">
+                <div className="absolute -right-8 -top-8 h-28 w-28 rounded-full bg-sky-400/10 blur-2xl" />
+                <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+                  <div className="flex gap-4">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-slate-900 text-white shadow-lg shadow-slate-900/10">
+                      <Shield size={19} />
+                    </div>
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="text-xs font-black text-slate-800">Personal autorizado</h3>
+                        <span className="rounded-full bg-white px-2 py-1 text-[8px] font-black uppercase tracking-wider text-sky-600 shadow-sm">Por ceremonia</span>
+                      </div>
+                      <p className="mt-1.5 max-w-lg text-[10px] font-semibold leading-relaxed text-slate-500">
+                        Elegí qué integrantes de seguridad pueden operar en {ceremoniaActiva?.nombre || 'esta ceremonia'}, activar sus cuentas y generar el acceso para la aplicación móvil.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => onNavegar('seguridad')}
+                    className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-[9px] font-black uppercase tracking-wider text-white shadow-md transition hover:bg-sky-500 active:scale-95"
+                  >
+                    Gestionar equipo <ChevronRight size={13} />
+                  </button>
+                </div>
+              </div>
             </div>
-          </section>
+          </section>}
 
           {/* ACCIONES RÁPIDAS */}
           <section className="pt-6 border-t border-slate-100">

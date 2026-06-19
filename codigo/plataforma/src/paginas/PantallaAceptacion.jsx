@@ -4,11 +4,14 @@
  * Diseño premium con glassmorphism y círculos decorativos desenfocados.
  */
 import { useState } from 'react'
-import { CheckCircle, XCircle, AlertTriangle, GraduationCap, MapPin, Calendar } from 'lucide-react'
+import { CheckCircle, XCircle, AlertTriangle, GraduationCap, MapPin, Calendar, BookOpen, History, X } from 'lucide-react'
+import { ListaHistorialGraduado } from './HistorialGraduado'
 
 export function PantallaAceptacion({ graduado, onAceptar, onRechazar }) {
   const [cargando, setCargando] = useState(false)
   const [mostrarModalRechazo, setMostrarModalRechazo] = useState(false)
+  const [mostrarHistorial, setMostrarHistorial] = useState(false)
+  const participacionesAnteriores = (graduado.historial || []).filter((registro) => String(registro.id) !== String(graduado.id))
 
   async function manejarAceptar() {
     setCargando(true)
@@ -73,6 +76,17 @@ export function PantallaAceptacion({ graduado, onAceptar, onRechazar }) {
               <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4">Detalles de la Ceremonia</p>
               
               <div className="space-y-4">
+                {graduado.carrera && (
+                  <div className="flex items-center gap-3">
+                    <div className="h-9 w-9 rounded-xl bg-violet-500/10 border border-violet-500/10 flex items-center justify-center text-violet-600 flex-shrink-0">
+                      <BookOpen size={16} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Carrera</p>
+                      <p className="text-sm font-extrabold text-slate-700">{graduado.carrera}</p>
+                    </div>
+                  </div>
+                )}
                 <div className="flex items-center gap-3">
                   <div className="h-9 w-9 rounded-xl bg-sky-500/10 border border-sky-500/10 flex items-center justify-center text-sky-600 flex-shrink-0">
                     <GraduationCap size={16} />
@@ -110,6 +124,23 @@ export function PantallaAceptacion({ graduado, onAceptar, onRechazar }) {
               </div>
             </div>
 
+            {participacionesAnteriores.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setMostrarHistorial(true)}
+                className="mb-8 flex w-full items-center justify-between rounded-2xl border border-sky-100 bg-sky-50/60 px-5 py-4 text-left transition hover:border-sky-200 hover:bg-sky-50"
+              >
+                <span className="flex items-center gap-3">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-sky-600 shadow-sm"><History size={17} /></span>
+                  <span>
+                    <span className="block text-[10px] font-black uppercase tracking-wider text-sky-700">Participaciones anteriores</span>
+                    <span className="mt-0.5 block text-[10px] text-slate-500">Consultá tus otras carreras y ceremonias.</span>
+                  </span>
+                </span>
+                <span className="rounded-full bg-sky-500 px-2.5 py-1 text-[9px] font-black text-white">{participacionesAnteriores.length}</span>
+              </button>
+            )}
+
             {/* Separador */}
             <div className="h-px bg-slate-100 mb-8" />
 
@@ -137,7 +168,7 @@ export function PantallaAceptacion({ graduado, onAceptar, onRechazar }) {
 
               {/* Texto de advertencia */}
               <p className="text-[9px] text-slate-400/80 font-bold uppercase tracking-wider mt-3 flex items-center justify-center gap-1.5">
-                <AlertTriangle size={12} className="text-amber-500" /> La decisión de rechazo es irreversible
+                <AlertTriangle size={12} className="text-amber-500" /> Esta decisión aplica sólo a esta carrera y ceremonia
               </p>
             </div>
           </div>
@@ -171,7 +202,7 @@ export function PantallaAceptacion({ graduado, onAceptar, onRechazar }) {
 
               <h2 className="text-xl font-black text-slate-800 mb-2">¿Estás seguro?</h2>
               <p className="text-sm text-slate-500 leading-relaxed mb-8">
-                Al rechazar esta invitación, confirmarás tu inasistencia y no participarás de la ceremonia.
+                Al rechazar, confirmarás tu inasistencia únicamente para <strong>{graduado.carrera || 'esta carrera'}</strong> en esta ceremonia. Otras graduaciones o ceremonias no se verán afectadas.
               </p>
 
               <div className="flex gap-3">
@@ -191,6 +222,24 @@ export function PantallaAceptacion({ graduado, onAceptar, onRechazar }) {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {mostrarHistorial && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm" onClick={() => setMostrarHistorial(false)}>
+          <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-[30px] bg-slate-50 p-5 shadow-2xl sm:p-7" onClick={(evento) => evento.stopPropagation()}>
+            <div className="mb-6 flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-sky-600">Historial personal</p>
+                <h2 className="mt-1 text-2xl font-black text-slate-800">Ceremonias anteriores</h2>
+                <p className="mt-1 text-sm text-slate-500">Estas participaciones son informativas y no afectan tu decisión actual para {graduado.carrera || 'esta carrera'}.</p>
+              </div>
+              <button type="button" onClick={() => setMostrarHistorial(false)} className="rounded-xl bg-white p-2.5 text-slate-400 shadow-sm hover:text-slate-700" aria-label="Cerrar historial">
+                <X size={18} />
+              </button>
+            </div>
+            <ListaHistorialGraduado historial={participacionesAnteriores} actualId={graduado.id} />
           </div>
         </div>
       )}

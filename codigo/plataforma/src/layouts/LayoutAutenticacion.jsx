@@ -3,7 +3,7 @@ import { GraduationCap } from 'lucide-react'
 export function LayoutAutenticacion({ children }) {
   return (
     <main
-      className="relative min-h-screen overflow-hidden"
+      className="relative min-h-screen overflow-x-hidden overflow-y-auto"
       style={{
         background: 'linear-gradient(135deg, #0d1b2e 0%, #1a2d45 45%, #2A3448 100%)',
       }}
@@ -84,7 +84,7 @@ export function LayoutAutenticacion({ children }) {
 
         {/* Panel derecho — formulario */}
         <div className="flex flex-1 items-center justify-center px-4 py-10 lg:py-0">
-          <div className="w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-[0_30px_80px_rgba(0,0,0,0.5)]">
+          <div className="max-h-[calc(100vh-2rem)] w-full max-w-sm overflow-y-auto rounded-2xl bg-white shadow-[0_30px_80px_rgba(0,0,0,0.5)]">
             {children}
           </div>
         </div>

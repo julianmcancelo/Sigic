@@ -1,10 +1,9 @@
 import { Colors } from '@/constantes/tema';
-import { useColorScheme } from '@/hooks/usar-esquema-color';
+import { useTemaApp } from '@/contextos/tema-app';
 
 export function useTheme() {
-  const scheme = useColorScheme();
-  const tema = scheme === 'unspecified' ? 'light' : scheme;
-  return Colors[tema];
+  const { esquema } = useTemaApp();
+  return Colors[esquema];
 }
 
 // Alias de compatibilidad

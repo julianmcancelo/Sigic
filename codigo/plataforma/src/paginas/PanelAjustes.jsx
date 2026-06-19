@@ -3,7 +3,7 @@ import {
   Settings, ArrowLeft, LogOut, Save, RefreshCw,
   Users, Calendar, MapPin, 
   Building2, AlertTriangle, CheckCircle2,
-  LayoutGrid, ChevronRight, Globe, Shield, X
+  LayoutGrid, ChevronRight, Globe, Shield, Monitor
 } from 'lucide-react'
 import { obtenerAjustes, actualizarAjuste } from '../servicios/api'
 import { HeaderGlobal } from '../componentes/HeaderGlobal'
@@ -41,6 +41,70 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
     } finally {
       setGuardando(null)
     }
+  }
+
+  async function handleInterruptor(clave) {
+    const anterior = ajustes[clave] !== 'false'
+    const nuevo = !anterior
+    setAjustes(prev => ({ ...prev, [clave]: String(nuevo) }))
+    setGuardando(clave)
+
+    try {
+      await actualizarAjuste(clave, nuevo)
+      localStorage.setItem(clave, String(nuevo))
+      window.dispatchEvent(new CustomEvent('sigic-presentacion-cambiada', { detail: { mostrar: nuevo } }))
+      setMensaje({
+        tipo: 'exito',
+        texto: nuevo
+          ? 'La presentación inicial quedó activada'
+          : 'La presentación inicial quedó desactivada desde el próximo acceso'
+      })
+      setTimeout(() => setMensaje(null), 3500)
+    } catch (err) {
+      setAjustes(prev => ({ ...prev, [clave]: String(anterior) }))
+      setMensaje({ tipo: 'error', texto: 'No se pudo guardar el cambio' })
+    } finally {
+      setGuardando(null)
+    }
+  }
+
+  const renderInterruptor = (clave, label, icono, descripcion) => {
+    const activo = ajustes[clave] !== 'false'
+    const estaGuardando = guardando === clave
+
+    return (
+      <div className="group bg-white rounded-[32px] p-8 border-2 border-transparent hover:border-sky-100 hover:shadow-xl transition-all duration-300">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+          <div className="flex gap-5">
+            <div className="p-4 bg-slate-50 text-slate-400 group-hover:bg-sky-50 group-hover:text-sky-500 rounded-2xl transition-colors shrink-0 h-fit">
+              {icono}
+            </div>
+            <div>
+              <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">{label}</h3>
+              <p className="text-sm font-bold text-slate-700 leading-snug max-w-lg">{descripcion}</p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            role="switch"
+            aria-checked={activo}
+            disabled={estaGuardando}
+            onClick={() => handleInterruptor(clave)}
+            className={`relative flex h-14 w-40 shrink-0 items-center rounded-2xl p-1.5 transition-all duration-300 disabled:opacity-60 ${
+              activo
+                ? 'justify-end bg-sky-500 shadow-lg shadow-sky-500/20'
+                : 'justify-start bg-slate-200'
+            }`}
+          >
+            <span className={`absolute text-[9px] font-black uppercase tracking-widest ${activo ? 'left-4 text-white' : 'right-4 text-slate-500'}`}>
+              {estaGuardando ? 'Guardando' : activo ? 'Activada' : 'Desactivada'}
+            </span>
+            <span className="relative z-10 h-11 w-11 rounded-xl bg-white shadow-md" />
+          </button>
+        </div>
+      </div>
+    )
   }
 
   const renderFila = (clave, label, icono, descripcion) => {
@@ -136,6 +200,12 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
                 <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.3em]">Reglas del Hábitat</h2>
               </div>
               <div className="grid gap-6">
+                {renderInterruptor(
+                  'mostrar_presentacion_inicial',
+                  'Pantalla de bienvenida',
+                  <Monitor size={22} />,
+                  'Al activarla se muestra la portada institucional. Al desactivarla, la plataforma abre directamente el acceso administrativo.'
+                )}
                 {renderFila('max_invitados', 'Cupo de Invitados', <Users size={22} />, 'Cantidad de acompañantes permitidos por cada egresado.')}
                 {renderFila('modo_mantenimiento', 'Mantenimiento', <Shield size={22} />, 'Activa "true" para bloquear el acceso público al sistema.')}
                 {renderFila('acceso_oculto_egresado', 'Acceso Oculto Egresados', <Shield size={22} />, 'Activa "true" para requerir 5 clicks en el logo para entrar al portal.')}

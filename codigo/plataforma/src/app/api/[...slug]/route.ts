@@ -94,14 +94,70 @@ async function esPersonalValido(req: NextRequest, rolesPermitidos = ROLES_LECTUR
 async function inicializarTablasAdicionales() {
   try {
     await query(`
+      INSERT INTO configuracion_sistema (clave, valor, descripcion, actualizado_en)
+      VALUES (
+        'mostrar_presentacion_inicial',
+        'true',
+        'Muestra la presentación institucional durante la carga inicial',
+        CURRENT_TIMESTAMP
+      )
+      ON CONFLICT (clave) DO NOTHING
+    `);
+    await query(`
       CREATE TABLE IF NOT EXISTS ceremonias_usuarios_autorizados (
         ceremonia_id VARCHAR(50) NOT NULL,
         usuario_id VARCHAR(50) NOT NULL,
         PRIMARY KEY (ceremonia_id, usuario_id)
       )
     `);
+    await query(`
+      CREATE TABLE IF NOT EXISTS dispositivos_moviles (
+        dispositivo_id VARCHAR(100) PRIMARY KEY,
+        usuario_id VARCHAR(100) NOT NULL,
+        marca VARCHAR(100),
+        fabricante VARCHAR(120),
+        modelo VARCHAR(160),
+        nombre_dispositivo VARCHAR(160),
+        sistema VARCHAR(80),
+        version_sistema VARCHAR(80),
+        tipo_dispositivo VARCHAR(40),
+        version_app VARCHAR(40),
+        es_dispositivo_real SMALLINT DEFAULT 1,
+        ip_ultimo_acceso VARCHAR(120),
+        agente_usuario VARCHAR(300),
+        primera_conexion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        ultimo_acceso TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        sesion_activa SMALLINT DEFAULT 1
+      )
+    `);
+    await query('CREATE INDEX IF NOT EXISTS dispositivos_moviles_usuario_idx ON dispositivos_moviles (usuario_id)');
+    await query(`
+      CREATE UNIQUE INDEX IF NOT EXISTS egresados_inscripcion_ceremonia_key
+      ON egresados (
+        ceremonia_id,
+        UPPER(COALESCE(legajo, '')),
+        UPPER(COALESCE(carrera, '')),
+        COALESCE(anio_inscripcion, 0)
+      )
+    `);
+    await query('ALTER TABLE otp_historial ALTER COLUMN otp_hash TYPE VARCHAR(64)');
+    await query('ALTER TABLE otp_historial ALTER COLUMN resultado TYPE VARCHAR(32)');
+    await query('ALTER TABLE egresados DROP CONSTRAINT IF EXISTS egresados_legajo_carrera_anio_key');
   } catch (e) {
     console.error('Error al inicializar tabla ceremonias_usuarios_autorizados:', e);
+  }
+}
+
+async function registrarAuditoriaOTP(egresadoId: string | number, otpHash: string, ip: string, resultado: string) {
+  try {
+    await query(
+      `INSERT INTO otp_historial (egresado_id, otp_hash, ip_origen, resultado)
+       VALUES ($1, $2, $3, $4)`,
+      [egresadoId, otpHash, ip, resultado]
+    );
+  } catch (error) {
+    // La auditoría nunca debe impedir que el graduado reciba o valide su código.
+    console.error('No se pudo registrar la auditoría OTP:', error);
   }
 }
 
@@ -324,6 +380,34 @@ export async function GET(
     // -------------------------------------------------------------
     // CEREMONIAS
     // -------------------------------------------------------------
+    if (path === 'ceremonias/autorizadas') {
+      const auth = obtenerUsuarioAutenticado(req, ROLES_OPERACION);
+      if (!auth.valido) {
+        return NextResponse.json(
+          { error: auth.error || 'Sesión requerida' },
+          { status: auth.statusCode || 401, headers }
+        );
+      }
+
+      const usuario = auth.datos!;
+      const esGestion = usuario.rol && ROLES_GESTION.includes(usuario.rol);
+      const result = esGestion
+        ? await query(`
+            SELECT c.*, TRUE AS autorizado
+            FROM ceremonias c
+            ORDER BY c.activa DESC, c.fecha DESC
+          `)
+        : await query(`
+            SELECT c.*, TRUE AS autorizado
+            FROM ceremonias c
+            INNER JOIN ceremonias_usuarios_autorizados cua ON cua.ceremonia_id = c.id
+            WHERE cua.usuario_id = $1
+            ORDER BY c.activa DESC, c.fecha DESC
+          `, [usuario.id]);
+
+      return NextResponse.json(result.rows, { headers });
+    }
+
     if (path === 'ceremonias') {
       const result = await query('SELECT * FROM ceremonias ORDER BY fecha DESC');
       return NextResponse.json(result.rows, { headers });
@@ -384,6 +468,37 @@ export async function GET(
          FROM usuarios_sistema
          ORDER BY creado_en DESC`
       );
+      return NextResponse.json(result.rows, { headers });
+    }
+
+    if (path === 'dispositivos') {
+      const isPersonal = await esPersonalValido(req, ROLES_GESTION);
+      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+
+      const result = await query(`
+        SELECT
+          d.dispositivo_id AS "dispositivoId",
+          d.usuario_id AS "usuarioId",
+          u.nombre AS "usuarioNombre",
+          u.email AS "usuarioEmail",
+          d.marca,
+          d.fabricante,
+          d.modelo,
+          d.nombre_dispositivo AS "nombreDispositivo",
+          d.sistema,
+          d.version_sistema AS "versionSistema",
+          d.tipo_dispositivo AS "tipoDispositivo",
+          d.version_app AS "versionApp",
+          d.es_dispositivo_real AS "esDispositivoReal",
+          d.ip_ultimo_acceso AS "ipUltimoAcceso",
+          d.primera_conexion AS "primeraConexion",
+          d.ultimo_acceso AS "ultimoAcceso",
+          d.sesion_activa AS "sesionActiva",
+          (d.sesion_activa = 1 AND d.ultimo_acceso >= CURRENT_TIMESTAMP - INTERVAL '5 minutes') AS "enLinea"
+        FROM dispositivos_moviles d
+        LEFT JOIN usuarios_sistema u ON u.id::text = d.usuario_id::text
+        ORDER BY d.ultimo_acceso DESC
+      `);
       return NextResponse.json(result.rows, { headers });
     }
 
@@ -503,6 +618,33 @@ export async function GET(
     // -------------------------------------------------------------
     // EGRESADOS
     // -------------------------------------------------------------
+    if (slug[0] === 'egresados' && slug[1] === 'coincidencias-dni' && slug[2]) {
+      const isPersonal = await esPersonalValido(req, ROLES_LECTURA);
+      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+
+      const dniLimpio = String(slug[2]).replace(/\D/g, '');
+      if (dniLimpio.length < 7) {
+        return NextResponse.json({ error: 'Ingresá un DNI válido' }, { status: 400, headers });
+      }
+
+      const coincidencias = await query(`
+        SELECT e.id, e.nombre, e.dni, e.correo, e.legajo, e.carrera,
+               e.anio_inscripcion, e.promedio, e.estado,
+               c.id AS ceremonia_id, c.nombre AS ceremonia_nombre,
+               c.fecha AS ceremonia_fecha, c.lugar AS ceremonia_lugar,
+               c.activa AS ceremonia_activa
+        FROM egresados e
+        LEFT JOIN ceremonias c ON c.id = e.ceremonia_id
+        WHERE REGEXP_REPLACE(COALESCE(e.dni, ''), '[^0-9]', '', 'g') = $1
+        ORDER BY c.fecha DESC NULLS LAST, e.id DESC
+      `, [dniLimpio]);
+
+      return NextResponse.json({
+        existe: coincidencias.rows.length > 0,
+        coincidencias: coincidencias.rows
+      }, { headers });
+    }
+
     if (path === 'egresados') {
       const isPersonal = await esPersonalValido(req, ROLES_LECTURA);
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
@@ -521,7 +663,7 @@ export async function GET(
     if (slug[0] === 'egresados' && slug[1] === 'token' && slug[2]) {
       const token = slug[2];
       const result = await query(`
-        SELECT e.* 
+        SELECT e.*, c.nombre AS ceremonia_nombre, c.fecha AS ceremonia_fecha, c.lugar AS ceremonia_lugar, c.activa AS ceremonia_activa
         FROM egresados e
         JOIN ceremonias c ON e.ceremonia_id = c.id
         WHERE UPPER(e.token) = UPPER($1) AND c.activa = 1
@@ -572,6 +714,66 @@ export async function POST(
   }
 
   try {
+    if (path === 'dispositivos/registrar') {
+      const auth = obtenerUsuarioAutenticado(req, ROLES_LECTURA);
+      if (!auth.valido || auth.datos?.tipo !== 'personal') {
+        return NextResponse.json({ error: auth.error || 'No autorizado' }, { status: auth.statusCode || 403, headers });
+      }
+
+      const limpiar = (valor: unknown, maximo: number) => valor == null ? null : String(valor).trim().slice(0, maximo);
+      const dispositivoId = limpiar(body.dispositivoId, 100);
+      if (!dispositivoId) {
+        return NextResponse.json({ error: 'El identificador del dispositivo es obligatorio' }, { status: 400, headers });
+      }
+      const ip = limpiar(req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip'), 120);
+      const agente = limpiar(req.headers.get('user-agent'), 300);
+
+      await query(`
+        INSERT INTO dispositivos_moviles (
+          dispositivo_id, usuario_id, marca, fabricante, modelo, nombre_dispositivo,
+          sistema, version_sistema, tipo_dispositivo, version_app, es_dispositivo_real,
+          ip_ultimo_acceso, agente_usuario, primera_conexion, ultimo_acceso, sesion_activa
+        ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,1)
+        ON CONFLICT (dispositivo_id) DO UPDATE SET
+          usuario_id = EXCLUDED.usuario_id,
+          marca = EXCLUDED.marca,
+          fabricante = EXCLUDED.fabricante,
+          modelo = EXCLUDED.modelo,
+          nombre_dispositivo = EXCLUDED.nombre_dispositivo,
+          sistema = EXCLUDED.sistema,
+          version_sistema = EXCLUDED.version_sistema,
+          tipo_dispositivo = EXCLUDED.tipo_dispositivo,
+          version_app = EXCLUDED.version_app,
+          es_dispositivo_real = EXCLUDED.es_dispositivo_real,
+          ip_ultimo_acceso = EXCLUDED.ip_ultimo_acceso,
+          agente_usuario = EXCLUDED.agente_usuario,
+          ultimo_acceso = CURRENT_TIMESTAMP,
+          sesion_activa = 1
+      `, [
+        dispositivoId, String(auth.datos.id), limpiar(body.marca, 100), limpiar(body.fabricante, 120),
+        limpiar(body.modelo, 160), limpiar(body.nombreDispositivo, 160), limpiar(body.sistema, 80),
+        limpiar(body.versionSistema, 80), limpiar(body.tipoDispositivo, 40), limpiar(body.versionApp, 40),
+        body.esDispositivoReal === false ? 0 : 1, ip, agente
+      ]);
+
+      return NextResponse.json({ ok: true, dispositivoId, registrado: true }, { headers });
+    }
+
+    if (path === 'dispositivos/desvincular') {
+      const auth = obtenerUsuarioAutenticado(req, ROLES_LECTURA);
+      if (!auth.valido || auth.datos?.tipo !== 'personal') {
+        return NextResponse.json({ error: auth.error || 'No autorizado' }, { status: auth.statusCode || 403, headers });
+      }
+      const dispositivoId = String(body.dispositivoId || '').trim().slice(0, 100);
+      await query(
+        `UPDATE dispositivos_moviles
+         SET sesion_activa = 0, ultimo_acceso = CURRENT_TIMESTAMP
+         WHERE dispositivo_id = $1 AND usuario_id = $2`,
+        [dispositivoId, String(auth.datos.id)]
+      );
+      return NextResponse.json({ ok: true }, { headers });
+    }
+
     // -------------------------------------------------------------
     // SETUP INITIALIZE
     // -------------------------------------------------------------
@@ -920,18 +1122,51 @@ export async function POST(
       const isPersonal = await esPersonalValido(req, ROLES_GESTION);
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
-      const { nombre, legajo, dni, correo, carrera, anio_inscripcion, promedio, ceremonia_id } = body;
-      if (!nombre || !legajo || !dni) {
-        return NextResponse.json({ error: 'Nombre, legajo y DNI son obligatorios' }, { status: 400, headers });
+      const { nombre, legajo, dni, correo, carrera, anio_inscripcion, promedio, ceremonia_id, identidad_confirmada } = body;
+      if (!nombre || !dni) {
+        return NextResponse.json({ error: 'Nombre y DNI son obligatorios' }, { status: 400, headers });
       }
 
-      // Pre-verificación: no permitir duplicados por legajo + carrera + año de inscripción
+      let ceremoniaIdFinal = ceremonia_id;
+      if (!ceremoniaIdFinal) {
+        const ceremoniaActiva = await query(
+          'SELECT id FROM ceremonias WHERE activa = 1 ORDER BY fecha DESC, id DESC LIMIT 1'
+        );
+        ceremoniaIdFinal = ceremoniaActiva.rows[0]?.id;
+      }
+      if (!ceremoniaIdFinal) {
+        return NextResponse.json({
+          error: 'No hay una ceremonia activa. Activá una ceremonia antes de registrar graduados.'
+        }, { status: 409, headers });
+      }
+
+      const dniLimpio = String(dni).replace(/\D/g, '');
+      const identidadPrevia = await query(
+        `SELECT id, nombre, correo, carrera FROM egresados
+         WHERE REGEXP_REPLACE(COALESCE(dni, ''), '[^0-9]', '', 'g') = $1
+         ORDER BY id DESC LIMIT 1`,
+        [dniLimpio]
+      );
+      if (identidadPrevia.rows.length > 0 && identidad_confirmada !== true) {
+        return NextResponse.json({
+          error: 'Este DNI ya pertenece a una persona registrada. Confirmá su identidad antes de crear una nueva inscripción.',
+          codigo: 'REQUIERE_CONFIRMACION_IDENTIDAD',
+          persona: identidadPrevia.rows[0]
+        }, { status: 409, headers });
+      }
+
+      // Una misma persona puede tener nuevas graduaciones. El duplicado sólo existe
+      // dentro de la misma ceremonia, carrera y cohorte.
       const existente = await query(
-        `SELECT id FROM egresados WHERE UPPER(COALESCE(legajo,'')) = UPPER(COALESCE($1,'')) AND UPPER(COALESCE(carrera,'')) = UPPER(COALESCE($2,'')) AND COALESCE(anio_inscripcion, 0) = COALESCE($3, 0)`,
-        [legajo?.trim(), carrera?.trim() || null, anio_inscripcion ? parseInt(anio_inscripcion) : 0]
+        `SELECT id FROM egresados
+         WHERE ceremonia_id = $1
+           AND UPPER(COALESCE(legajo,'')) = UPPER(COALESCE($2,''))
+           AND UPPER(COALESCE(carrera,'')) = UPPER(COALESCE($3,''))
+           AND COALESCE(anio_inscripcion, 0) = COALESCE($4, 0)`,
+        [ceremoniaIdFinal, legajo?.trim() || '', carrera?.trim() || null, anio_inscripcion ? parseInt(anio_inscripcion) : 0]
       );
       if (existente.rows.length > 0) {
-        return NextResponse.json({ error: 'Ya existe un graduado con el mismo legajo, carrera y año de inscripción' }, { status: 409, headers });
+        return NextResponse.json({ error: 'Esta inscripción ya existe para la misma ceremonia, carrera y año' }, { status: 409, headers });
       }
 
       const token = crypto.randomBytes(4).toString('hex').toUpperCase(); // 8-char código seguro
@@ -941,11 +1176,11 @@ export async function POST(
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
         [
           nombre.trim(), 
-          legajo.trim(), 
-          dni.replace(/\s/g, ''), 
+          legajo?.trim() || '',
+          dniLimpio,
           correo ? correo.trim().toLowerCase() : null, 
           token, 
-          ceremonia_id,
+          ceremoniaIdFinal,
           carrera ? carrera.trim() : null, 
           anio_inscripcion ? parseInt(anio_inscripcion) : null, 
           promedio ? parseFloat(promedio) : null
@@ -974,7 +1209,7 @@ export async function POST(
           const result = await client.query(
             `INSERT INTO egresados (nombre, legajo, dni, correo, token, ceremonia_id, carrera, anio_inscripcion, promedio) 
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-             ON CONFLICT ON CONSTRAINT egresados_legajo_carrera_anio_key DO NOTHING
+             ON CONFLICT DO NOTHING
              RETURNING *`,
             [
               e.nombre.trim(), 
@@ -991,8 +1226,7 @@ export async function POST(
           if (result.rows.length > 0) {
             exitosos.push(result.rows[0]);
           } else {
-            // El registro fue ignorado por conflicto de legajo + carrera + año
-            conflictos.push({ egresado: e.nombre, dni: e.dni, legajo: e.legajo, motivo: 'Duplicado (legajo + carrera + año)' });
+            conflictos.push({ egresado: e.nombre, dni: e.dni, legajo: e.legajo, motivo: 'Inscripción duplicada en la misma ceremonia y carrera' });
           }
         }
         
@@ -1027,42 +1261,67 @@ export async function POST(
 
     if (path === 'egresados/solicitar-otp') {
       const { identificador, esCorreo, normalizado } = prepararIdentificadorGraduado(body.identificador || body.email);
+      const inscripcionId = body.inscripcionId;
       if (!identificador || !normalizado) {
         return NextResponse.json({ error: 'Ingresá tu correo electrónico o DNI' }, { status: 400, headers });
       }
 
-      const ip = req.ip || req.headers.get('x-forwarded-for') || '127.0.0.1';
-      const limitControl = verificarRateLimit(`otp-req-${ip}`, 5, 10 * 60 * 1000);
-      if (!limitControl.permitido) {
-        return NextResponse.json({ error: `Demasiadas solicitudes. Esperá ${limitControl.segundosRestantes} segundos.` }, { status: 429, headers });
+      const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '127.0.0.1';
+      const limiteAlumno = verificarRateLimit(`otp-req-id-${normalizado}`, 5, 10 * 60 * 1000);
+      const limiteRed = verificarRateLimit(`otp-req-ip-${ip}`, 30, 10 * 60 * 1000);
+      if (!limiteAlumno.permitido || !limiteRed.permitido) {
+        const segundosRestantes = Math.max(limiteAlumno.segundosRestantes, limiteRed.segundosRestantes);
+        return NextResponse.json({
+          error: `Demasiadas solicitudes. Esperá ${segundosRestantes} segundos.`,
+          segundosRestantes
+        }, { status: 429, headers });
       }
 
       const condicionAcceso = esCorreo
         ? 'LOWER(e.correo) = $1'
         : "REGEXP_REPLACE(COALESCE(e.dni, ''), '[^0-9]', '', 'g') = $1";
       const result = await query(`
-        SELECT e.* 
+        SELECT e.*, c.nombre AS ceremonia_nombre, c.fecha AS ceremonia_fecha,
+               c.lugar AS ceremonia_lugar, c.activa AS ceremonia_activa
         FROM egresados e
         JOIN ceremonias c ON e.ceremonia_id = c.id
-        WHERE ${condicionAcceso} AND c.activa = 1
+        WHERE ${condicionAcceso}
+        ORDER BY c.activa DESC, c.fecha DESC, e.id DESC
       `, [normalizado]);
       
-      const graduado = result.rows[0];
+      if (!inscripcionId && result.rows.length > 1) {
+        return NextResponse.json({
+          ok: true,
+          requiereSeleccion: true,
+          inscripciones: result.rows.map((registro: any) => ({
+            id: registro.id,
+            carrera: registro.carrera || 'Carrera sin especificar',
+            estado: registro.estado,
+            ceremonia: registro.ceremonia_nombre,
+            fecha: registro.ceremonia_fecha,
+            lugar: registro.ceremonia_lugar,
+            activa: Boolean(registro.ceremonia_activa)
+          }))
+        }, { headers });
+      }
+
+      const graduado = inscripcionId
+        ? result.rows.find((registro: any) => String(registro.id) === String(inscripcionId))
+        : result.rows[0];
       if (!graduado) return NextResponse.json({ error: 'Correo o DNI no registrado en esta ceremonia' }, { status: 404, headers });
       if (!graduado.correo) return NextResponse.json({ error: 'Tu registro no tiene un correo asociado. Contactá a la institución.' }, { status: 400, headers });
       
-      if (graduado.estado === 'RECHAZADO') {
-        return NextResponse.json({ error: 'Confirmaste tu inasistencia a esta ceremonia.' }, { status: 403, headers });
-      }
+      const { codigo: otp, hash: otpHash } = GestorOTP.generar({ longitud: 6, minutosExpiracion: 10 });
 
-      const { codigo: otp, hash: otpHash, expiracion: expiration } = GestorOTP.generar({ longitud: 6, minutosExpiracion: 10 });
-
-      await query('UPDATE egresados SET otp = $1, otp_expira = $2 WHERE id = $3', [otp, expiration, graduado.id]);
+      // El vencimiento se calcula en la base de datos para evitar diferencias de zona horaria
+      // entre el servidor, PostgreSQL y el navegador del graduado.
       await query(
-        `INSERT INTO otp_historial (egresado_id, otp_hash, ip_origen, resultado)
-         VALUES ($1, $2, $3, 'ENVIADO')`,
-        [graduado.id, otpHash, ip]
+        `UPDATE egresados
+         SET otp = $1, otp_expira = CURRENT_TIMESTAMP + INTERVAL '10 minutes'
+         WHERE id = $2`,
+        [otp, graduado.id]
       );
+      await registrarAuditoriaOTP(graduado.id, otpHash, ip, 'ENVIADO');
 
       const hostBase = process.env.FRONTEND_URL || req.headers.get('origin') || 'http://localhost:3000';
       const htmlOTP = generarPlantillaOTP(otp, hostBase);
@@ -1070,42 +1329,52 @@ export async function POST(
       return NextResponse.json({
         ok: true,
         mensaje: 'Código enviado correctamente',
-        destino: ocultarCorreo(graduado.correo)
+        destino: ocultarCorreo(graduado.correo),
+        inscripcionId: graduado.id,
+        expiraEnSegundos: 600
       }, { headers });
     }
 
     if (path === 'egresados/verificar-otp') {
       const { identificador, esCorreo, normalizado } = prepararIdentificadorGraduado(body.identificador || body.email);
-      const { otp: otpStr } = body;
+      const { otp: otpStr, inscripcionId } = body;
       if (!identificador || !normalizado || !otpStr) return NextResponse.json({ error: 'Correo o DNI y código OTP requeridos' }, { status: 400, headers });
 
-      const ip = req.ip || req.headers.get('x-forwarded-for') || '127.0.0.1';
-      const limitControl = verificarRateLimit(`otp-ver-${ip}`, 10, 10 * 60 * 1000);
-      if (!limitControl.permitido) {
-        return NextResponse.json({ error: `Demasiados intentos. Esperá ${limitControl.segundosRestantes} segundos.` }, { status: 429, headers });
+      const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '127.0.0.1';
+      const limiteAlumno = verificarRateLimit(`otp-ver-id-${normalizado}`, 10, 10 * 60 * 1000);
+      const limiteRed = verificarRateLimit(`otp-ver-ip-${ip}`, 60, 10 * 60 * 1000);
+      if (!limiteAlumno.permitido || !limiteRed.permitido) {
+        const segundosRestantes = Math.max(limiteAlumno.segundosRestantes, limiteRed.segundosRestantes);
+        return NextResponse.json({
+          error: `Demasiados intentos. Esperá ${segundosRestantes} segundos.`,
+          segundosRestantes
+        }, { status: 429, headers });
       }
 
       const condicionAcceso = esCorreo
         ? 'LOWER(e.correo) = $1'
         : "REGEXP_REPLACE(COALESCE(e.dni, ''), '[^0-9]', '', 'g') = $1";
       const result = await query(`
-        SELECT e.* 
+        SELECT e.*, c.nombre AS ceremonia_nombre, c.fecha AS ceremonia_fecha,
+               c.lugar AS ceremonia_lugar, c.activa AS ceremonia_activa,
+               COALESCE(EXTRACT(EPOCH FROM (e.otp_expira - CURRENT_TIMESTAMP)), -1) AS otp_segundos_restantes
         FROM egresados e
         JOIN ceremonias c ON e.ceremonia_id = c.id
-        WHERE ${condicionAcceso} AND c.activa = 1
+        WHERE ${condicionAcceso}
+        ORDER BY c.activa DESC, c.fecha DESC, e.id DESC
       `, [normalizado]);
       
-      const graduado = result.rows[0];
+      const graduado = inscripcionId
+        ? result.rows.find((registro: any) => String(registro.id) === String(inscripcionId))
+        : result.rows[0];
       if (!graduado) return NextResponse.json({ error: 'Graduado no registrado' }, { status: 404, headers });
 
       const otpHash = GestorOTP.hashear(otpStr);
-      const estadoOTP = GestorOTP.verificar(otpStr, graduado.otp, graduado.otp_expira);
+      const segundosRestantesOTP = Number(graduado.otp_segundos_restantes);
+      const otpVigente = Number.isFinite(segundosRestantesOTP) && segundosRestantesOTP > 0;
+      const estadoOTP = GestorOTP.verificar(otpStr, graduado.otp, otpVigente);
 
-      await query(
-        `INSERT INTO otp_historial (egresado_id, otp_hash, ip_origen, resultado)
-         VALUES ($1, $2, $3, $4)`,
-        [graduado.id, otpHash, ip, estadoOTP]
-      );
+      await registrarAuditoriaOTP(graduado.id, otpHash, ip, estadoOTP);
 
       if (estadoOTP === 'EXPIRADO') return NextResponse.json({ error: 'El código OTP ha expirado' }, { status: 400, headers });
       if (estadoOTP === 'CODIGO_INVALIDO') return NextResponse.json({ error: 'Código incorrecto' }, { status: 400, headers });
@@ -1114,7 +1383,25 @@ export async function POST(
       await query('UPDATE egresados SET otp = NULL, otp_expira = NULL WHERE id = $1', [graduado.id]);
 
       const tokenSesion = firmar({ tipo: 'egresado', id: graduado.id, nombre: graduado.nombre }, 4 * 60 * 60);
-      return NextResponse.json({ ok: true, token_sesion: tokenSesion, egresado: graduado }, { headers });
+      const dniHistorial = String(graduado.dni || '').replace(/\D/g, '');
+      const historial = await query(`
+        SELECT e.id, e.nombre, e.legajo, e.dni, e.correo, e.carrera, e.anio_inscripcion,
+               e.promedio, e.estado, e.ceremonia_id, c.nombre AS ceremonia_nombre,
+               c.fecha AS ceremonia_fecha, c.lugar AS ceremonia_lugar, c.activa AS ceremonia_activa
+        FROM egresados e
+        JOIN ceremonias c ON e.ceremonia_id = c.id
+        WHERE ${dniHistorial
+          ? "REGEXP_REPLACE(COALESCE(e.dni, ''), '[^0-9]', '', 'g') = $1"
+          : 'LOWER(e.correo) = LOWER($1)'}
+        ORDER BY c.fecha DESC, e.carrera ASC
+      `, [dniHistorial || graduado.correo]);
+
+      return NextResponse.json({
+        ok: true,
+        token_sesion: tokenSesion,
+        egresado: graduado,
+        historial: historial.rows
+      }, { headers });
     }
 
     // Fallback: 404 para POST
@@ -1388,10 +1675,11 @@ export async function PUT(
       if (!esAutorizado) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
       const { respuesta, acompañantes, asientoId } = body;
-      const respuestaUpper = String(respuesta).toUpperCase();
+      const respuestaRecibida = String(respuesta).toUpperCase();
+      const respuestaUpper = respuestaRecibida === 'CONFIRMADO' ? 'ACEPTADO' : respuestaRecibida;
 
-      if (!['CONFIRMADO', 'RECHAZADO'].includes(respuestaUpper)) {
-        return NextResponse.json({ error: 'Respuesta inválida. Debe ser CONFIRMADO o RECHAZADO' }, { status: 400, headers });
+      if (!['ACEPTADO', 'RECHAZADO'].includes(respuestaUpper)) {
+        return NextResponse.json({ error: 'Respuesta inválida. Debe ser ACEPTADO o RECHAZADO' }, { status: 400, headers });
       }
 
       const client = await pool.connect();
@@ -1408,7 +1696,7 @@ export async function PUT(
         } else {
           // Si confirma
           await client.query(
-            "UPDATE egresados SET estado = 'CONFIRMADO', asiento_id = $1 WHERE id = $2",
+            "UPDATE egresados SET estado = 'ACEPTADO', asiento_id = $1 WHERE id = $2",
             [asientoId || null, id]
           );
 

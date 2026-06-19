@@ -124,11 +124,23 @@ export function ControlIngreso({ onVolver, onCerrarSesion }) {
                </div>
 
                {/* Pantalla */}
-               <div className="flex-1 bg-white flex flex-col pt-6 overflow-hidden">
+               <div className="relative flex-1 bg-white flex flex-col pt-6 overflow-hidden">
+                  <div className="pointer-events-none absolute -right-16 top-0 h-36 w-36 rotate-12 bg-gradient-to-br from-[#0069ff] via-[#29ABE2] to-[#003b9c] opacity-95" />
+                  <div className="pointer-events-none absolute -right-20 top-16 h-28 w-32 rotate-[32deg] bg-[#b9dcff]/70" />
+                  <div className="pointer-events-none absolute bottom-0 left-0 z-20 h-1.5 w-full bg-gradient-to-r from-[#0069ff] via-[#29ABE2] to-[#003b9c]" />
+                  <div className="pointer-events-none absolute left-0 top-0 z-20 h-full w-1.5 bg-[#0069ff]" />
                   
                   {/* Mockup Header */}
-                  <div className="px-5 py-2 flex items-center justify-between border-b border-slate-100 bg-slate-50/50">
-                     <span className="text-[9.5px] font-black uppercase text-sky-600 tracking-wider">SiGIC Entry</span>
+                  <div className="relative z-10 mx-1 flex items-center justify-between border-b border-blue-100 bg-gradient-to-r from-blue-50/95 via-white/95 to-transparent px-4 py-2.5">
+                     <div className="flex items-center gap-2">
+                       <div className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-lg border border-blue-100 bg-white p-0.5 shadow-sm">
+                         <img src="/logo.png?v=20260618" alt="Logo SiGIC" className="h-full w-full object-contain" />
+                       </div>
+                       <div>
+                         <span className="block text-[9.5px] font-black uppercase tracking-wider text-[#06194d]">SiGIC Accesos</span>
+                         <span className="block text-[6px] font-black uppercase tracking-[0.16em] text-[#087fbd]">Acceso institucional</span>
+                       </div>
+                     </div>
                      <div className="flex items-center gap-1.5">
                        <span className="text-[8px] font-bold text-slate-400">09:41</span>
                        <Wifi size={12} className="text-sky-500" />
@@ -136,17 +148,17 @@ export function ControlIngreso({ onVolver, onCerrarSesion }) {
                   </div>
 
                   {/* Mockup Content */}
-                  <div className="flex-1 p-5 flex flex-col justify-between min-h-0 bg-slate-50/20">
+                  <div className="relative z-10 flex min-h-0 flex-1 flex-col justify-between bg-gradient-to-b from-white/70 via-[#f7fbff]/95 to-[#eef7ff] p-5">
                      
                      {/* ESTADO: HOME */}
                      {vistaMockup === 'home' && (
                         <div className="flex-1 flex flex-col justify-between animate-in fade-in duration-200">
-                           <div className="space-y-1">
+                           <div className="rounded-2xl border border-blue-100 bg-white/90 p-3 shadow-sm backdrop-blur-sm">
                               <div className="flex items-center gap-2">
                                 <h3 className="text-lg font-black text-slate-900">Hola, Staff</h3>
                                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
                               </div>
-                              <p className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider">Módulo de Control</p>
+                              <p className="text-[9.5px] font-bold text-[#087fbd] uppercase tracking-wider">Módulo de Control</p>
                            </div>
 
                            <div className="py-2.5 px-3 rounded-2xl bg-emerald-50 border border-emerald-100 flex items-center gap-2.5">
@@ -159,15 +171,17 @@ export function ControlIngreso({ onVolver, onCerrarSesion }) {
                            
                            <button 
                              onClick={() => desencadenarEscaneo('success')}
-                             className="flex-1 my-3 rounded-3xl bg-white border border-dashed border-slate-200 shadow-sm flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-slate-50 hover:border-sky-300 transition duration-200 group"
+                             className="group relative my-3 flex flex-1 cursor-pointer flex-col items-center justify-center gap-3 overflow-hidden rounded-3xl border-2 border-blue-100 bg-white/95 shadow-[0_12px_30px_rgba(0,86,179,0.10)] transition duration-200 hover:border-sky-300 hover:bg-blue-50/40"
                            >
-                              <div className="h-12 w-12 rounded-full bg-sky-5 group-hover:bg-sky-100 flex items-center justify-center text-sky-500 transition duration-200">
+                              <div className="absolute -right-8 -top-10 h-24 w-24 rotate-12 bg-gradient-to-br from-[#0069ff]/15 to-[#29ABE2]/5" />
+                              <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-blue-100 bg-blue-50 text-[#0056b3] shadow-sm transition duration-200 group-hover:scale-105 group-hover:bg-sky-100">
                                  <Camera size={22} />
                               </div>
-                              <span className="text-[8.5px] font-black text-slate-400 group-hover:text-sky-500 uppercase tracking-widest transition duration-200">Tocar para Escanear</span>
+                              <span className="text-[8.5px] font-black uppercase tracking-widest text-[#0b3980] transition duration-200 group-hover:text-sky-600">Tocar para Escanear</span>
+                              <span className="text-[7px] font-semibold text-slate-400">Credencial de graduado o invitado</span>
                            </button>
 
-                           <div className="p-3.5 rounded-2xl bg-sky-500 text-white text-center shadow-sm relative overflow-hidden">
+                           <div className="relative overflow-hidden rounded-2xl border border-white/40 bg-gradient-to-r from-[#06194d] via-[#0056b3] to-[#087fbd] p-3.5 text-center text-white shadow-lg shadow-blue-900/15">
                               <div className="absolute right-0 top-0 opacity-10 translate-x-2 -translate-y-2">
                                 <Users size={56} />
                               </div>

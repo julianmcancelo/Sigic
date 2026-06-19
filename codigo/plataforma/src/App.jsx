@@ -16,6 +16,7 @@ import { PaginaInicioSesion } from './paginas/PaginaInicioSesion'
 import { PantallaBienvenida } from './paginas/PantallaBienvenida'
 import { GestionGraduados } from './paginas/GestionGraduados'
 import { PanelGraduado } from './paginas/PanelGraduado'
+import { HistorialGraduado } from './paginas/HistorialGraduado'
 import { ControlIngreso } from './paginas/ControlIngreso'
 import { LoginGraduado } from './paginas/LoginGraduado'
 import { PantallaSeleccionLogin } from './paginas/PantallaSeleccionLogin'
@@ -90,7 +91,9 @@ function App() {
   const [vistaLogin, setVistaLogin] = useState(() => {
     const p = window.location.pathname
     if (p === '/manual') return 'manual'
-    return (p === '/egresado' || p === '/graduado' || p === '/carga') ? 'graduado' : null
+    if (p === '/egresado' || p === '/graduado' || p === '/carga') return 'graduado'
+    if (p === '/' && localStorage.getItem('mostrar_presentacion_inicial') === 'false') return 'admin'
+    return null
   })
 
   const [ceremoniaActiva, setCeremoniaActiva] = useState(null)
@@ -98,6 +101,13 @@ function App() {
   // ─── 3.0 ESTADO DE CONFIGURACIÓN INICIAL (SETUP) ───
   const [requiereSetup, setRequiereSetup] = useState(null)
   const [cargandoSetup, setCargandoSetup] = useState(true)
+
+  const [mostrarPresentacionInicial, setMostrarPresentacionInicial] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('mostrar_presentacion_inicial') !== 'false'
+    }
+    return true
+  })
 
   const [enMantenimiento, setEnMantenimiento] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -153,9 +163,24 @@ function App() {
       if (e.key === 'graduado_usuario') {
         setGraduadoUsuario(e.newValue ? JSON.parse(e.newValue) : null)
       }
+      if (e.key === 'mostrar_presentacion_inicial') {
+        const mostrar = e.newValue !== 'false'
+        setMostrarPresentacionInicial(mostrar)
+        if (!mostrar) setVistaLogin('admin')
+      }
     }
     window.addEventListener('storage', sincronizarPestanas)
     return () => window.removeEventListener('storage', sincronizarPestanas)
+  }, [])
+
+  useEffect(() => {
+    const aplicarPresentacion = (evento) => {
+      const mostrar = evento.detail?.mostrar !== false
+      setMostrarPresentacionInicial(mostrar)
+      if (!mostrar) setVistaLogin('admin')
+    }
+    window.addEventListener('sigic-presentacion-cambiada', aplicarPresentacion)
+    return () => window.removeEventListener('sigic-presentacion-cambiada', aplicarPresentacion)
   }, [])
 
   // Sincronizar estado inicial y ceremonia activa al iniciar
@@ -181,6 +206,19 @@ function App() {
                 const oculto = ajustesDb.acceso_oculto_egresado.valor !== 'false'
                 setAccesoOculto(oculto)
                 localStorage.setItem('acceso_oculto_egresado', oculto.toString())
+              }
+              if (ajustesDb.mostrar_presentacion_inicial) {
+                const preferenciaLocalAnterior = localStorage.getItem('mostrar_presentacion_inicial')
+                const mostrar = ajustesDb.mostrar_presentacion_inicial.valor !== 'false'
+                setMostrarPresentacionInicial(mostrar)
+                localStorage.setItem('mostrar_presentacion_inicial', mostrar.toString())
+                if (window.location.pathname === '/' && !tokenURL) {
+                  if (!mostrar) {
+                    setVistaLogin('admin')
+                  } else if (preferenciaLocalAnterior === 'false') {
+                    setVistaLogin(null)
+                  }
+                }
               }
             }
           } catch (errAjustes) {
@@ -240,9 +278,9 @@ function App() {
     }
   }, [])
 
-  // ─── 3.0.2 CONTROL DE SESIÓN DE EGRESADOS POR CICLO DE VIDA ───
+  // Las inscripciones rechazadas o finalizadas conservan acceso de consulta.
   useEffect(() => {
-    if (graduadoActivo && graduadoUsuario && graduadoUsuario.estado !== 'PENDIENTE' && graduadoUsuario.estado !== 'ACEPTADO') {
+    if (graduadoActivo && graduadoUsuario && !['PENDIENTE', 'ACEPTADO', 'RECHAZADO'].includes(graduadoUsuario.estado)) {
       cerrarSesionGraduado()
     }
   }, [graduadoActivo, graduadoUsuario])
@@ -376,14 +414,22 @@ function App() {
   // ─── 5.1 FLUJO DE ACEPTACIÓN/RECHAZO ───
   async function manejarAceptarInvitacion() {
     await responderInvitacion(graduadoUsuario.id, 'ACEPTADO')
-    const actualizado = { ...graduadoUsuario, estado: 'ACEPTADO' }
+    const historial = (graduadoUsuario.historial || []).map((registro) =>
+      String(registro.id) === String(graduadoUsuario.id) ? { ...registro, estado: 'ACEPTADO' } : registro
+    )
+    const actualizado = { ...graduadoUsuario, estado: 'ACEPTADO', historial }
     setGraduadoUsuario(actualizado)
     localStorage.setItem('graduado_usuario', JSON.stringify(actualizado))
   }
 
   async function manejarRechazarInvitacion() {
     await responderInvitacion(graduadoUsuario.id, 'RECHAZADO')
-    cerrarSesionGraduado()
+    const historial = (graduadoUsuario.historial || []).map((registro) =>
+      String(registro.id) === String(graduadoUsuario.id) ? { ...registro, estado: 'RECHAZADO' } : registro
+    )
+    const actualizado = { ...graduadoUsuario, estado: 'RECHAZADO', historial }
+    setGraduadoUsuario(actualizado)
+    localStorage.setItem('graduado_usuario', JSON.stringify(actualizado))
   }
 
   function limpiarTodo() {
@@ -398,7 +444,14 @@ function App() {
 
   // CASO 0: Cargando estado inicial
   if (cargandoSetup) {
-    return <PantallaCargaInicial />
+    if (mostrarPresentacionInicial) return <PantallaCargaInicial />
+
+    return (
+      <PaginaInicioSesion
+        onInicioSesionExitoso={manejarLoginAdminExitoso}
+        onVolver={() => setVistaLogin(null)}
+      />
+    )
   }
 
   // CASO 0.1: Sistema Virgen (Requiere Asistente de Configuración)
@@ -461,8 +514,9 @@ function App() {
 
   // CASO B: Hay una sesión de Graduado activa
   else if (graduadoActivo && graduadoUsuario) {
+    const ceremoniaSeleccionadaActiva = graduadoUsuario.ceremonia_activa === true || graduadoUsuario.ceremonia_activa === 1
     // Subcase B.1: Estado PENDIENTE → Pantalla de Aceptación
-    if (graduadoUsuario.estado === 'PENDIENTE') {
+    if (graduadoUsuario.estado === 'PENDIENTE' && ceremoniaSeleccionadaActiva) {
       contenido = (
         <PantallaAceptacion
           graduado={graduadoUsuario}
@@ -472,12 +526,21 @@ function App() {
       )
     }
     // Subcase B.2: Estado ACEPTADO → Panel completo del graduado
-    else if (graduadoUsuario.estado === 'ACEPTADO') {
+    else if (graduadoUsuario.estado === 'ACEPTADO' && ceremoniaSeleccionadaActiva) {
       contenido = <PanelGraduado graduadoSesion={graduadoUsuario} onCerrarSesion={cerrarSesionGraduado} />
     }
-    // Subcase B.3: Estado RECHAZADO → Inhabilitado, cerrar sesión (manejado por useEffect)
+    // Rechazadas y ceremonias anteriores: consulta histórica protegida.
     else {
-      contenido = <div className="flex min-h-screen bg-[#F0F4F8]" />
+      contenido = (
+        <HistorialGraduado
+          graduado={graduadoUsuario}
+          onCerrarSesion={cerrarSesionGraduado}
+          onCambiarCeremonia={() => {
+            cerrarSesionGraduado()
+            setVistaLogin('graduado')
+          }}
+        />
+      )
     }
 
   }
@@ -628,7 +691,16 @@ function App() {
     )
   }
 
-  // CASO E: Selección Inicial
+  // CASO E.1: acceso administrativo directo, sin portada de bienvenida
+  else if (!mostrarPresentacionInicial) {
+    contenido = (
+      <PaginaInicioSesion
+        onInicioSesionExitoso={manejarLoginAdminExitoso}
+      />
+    )
+  }
+
+  // CASO E.2: Selección Inicial
   else {
     contenido = (
       <PantallaSeleccionLogin 

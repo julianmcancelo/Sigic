@@ -27,14 +27,23 @@ export type EstadoOTP = 'EXPIRADO' | 'CODIGO_INVALIDO' | 'VALIDO';
 export function verificar(
   otpStr: string | number,
   savedOtp: string | number,
-  expiracion: Date | string
+  expiracion: Date | string | boolean
 ): EstadoOTP {
-  const ahora = new Date();
-  const expFecha = new Date(expiracion);
-  if (ahora > expFecha) {
+  const estaVigente = typeof expiracion === 'boolean'
+    ? expiracion
+    : new Date() <= new Date(expiracion);
+  if (!estaVigente) {
     return 'EXPIRADO';
   }
-  if (String(otpStr).trim() !== String(savedOtp).trim()) {
+
+  const ingresado = String(otpStr).trim();
+  const guardado = String(savedOtp || '').trim();
+  const esHash = /^[a-f0-9]{64}$/i.test(guardado);
+  const coincide = esHash
+    ? crypto.timingSafeEqual(Buffer.from(hashear(ingresado), 'hex'), Buffer.from(guardado, 'hex'))
+    : ingresado === guardado; // Compatibilidad con códigos emitidos antes de este cambio.
+
+  if (!coincide) {
     return 'CODIGO_INVALIDO';
   }
   return 'VALIDO';

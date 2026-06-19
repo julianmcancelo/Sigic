@@ -5,10 +5,10 @@ import {
   View,
   TouchableOpacity,
   ActivityIndicator,
-  useColorScheme,
   Animated,
   Easing,
   FlatList,
+  ScrollView,
   Alert
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
@@ -21,32 +21,44 @@ import {
   getApiUrl,
   getToken,
   getLoggedUser,
+  clearSession,
+  cerrarSesionDispositivo,
   loginWithToken,
+  validarSesionActual,
   setApiUrl,
+  esDireccionLocal,
+  normalizarApiUrl,
   buscarInvitadoOGrupo,
   acreditarInvitado,
   acreditarInvitadosMasivo,
   obtenerStatsReal,
-  obtenerCeremoniaActiva
+  obtenerCeremoniaActiva,
+  obtenerCeremoniasAutorizadas,
+  registrarActividadDispositivo
 } from '@/servicios/api';
 import { Colors, Spacing } from '@/constantes/tema';
+import { useTemaApp } from '@/contextos/tema-app';
 
 type ViewState = 'home' | 'scan' | 'result';
+type SessionState = 'checking' | 'authenticated' | 'guest' | 'offline' | 'expired';
 
 export default function IndexScreen() {
-  const scheme = useColorScheme();
+  const { esquema } = useTemaApp();
   const insets = useSafeAreaInsets();
   const isFocused = useIsFocused();
-  const colors = Colors[scheme === 'dark' ? 'dark' : 'light'];
+  const colors = Colors[esquema];
 
   const [permission, requestPermission] = useCameraPermissions();
   const [viewState, setViewState] = useState<ViewState>('home');
   const [token, setTokenState] = useState<string | null>(null);
   const [user, setUser] = useState<any | null>(null);
   const [apiUrl, setApiUrlState] = useState('');
+  const [sessionState, setSessionState] = useState<SessionState>('checking');
+  const [sessionMessage, setSessionMessage] = useState('Comprobando credenciales…');
   
   // Ceremony state
   const [ceremonia, setCeremonia] = useState<any | null>(null);
+  const [ceremoniasAutorizadas, setCeremoniasAutorizadas] = useState<any[]>([]);
   const [loadingCeremonia, setLoadingCeremonia] = useState(false);
 
   // Stats
@@ -68,6 +80,16 @@ export default function IndexScreen() {
       loadSession();
     }
   }, [isFocused]);
+
+  useEffect(() => {
+    if (!isFocused || !token) return;
+    const pulso = setInterval(() => {
+      registrarActividadDispositivo().catch(() => {
+        // El estado visual de conexión se gestiona en la siguiente validación completa.
+      });
+    }, 2 * 60 * 1000);
+    return () => clearInterval(pulso);
+  }, [isFocused, token]);
 
   // Start laser animation when scan opens
   useEffect(() => {
@@ -95,38 +117,100 @@ export default function IndexScreen() {
   }, [viewState]);
 
   const loadSession = async () => {
+    setSessionState('checking');
+    setSessionMessage('Comprobando credenciales…');
     try {
       const currentUrl = await getApiUrl();
       setApiUrlState(currentUrl);
 
       const currentToken = await getToken();
-      setTokenState(currentToken);
-
       const loggedUser = await getLoggedUser();
-      setUser(loggedUser);
+      let sessionValidated = false;
 
-      // Cargar la ceremonia activa si hay URL configurada
-      if (currentUrl) {
+      if (currentToken) {
+        try {
+          const session = await validarSesionActual();
+          setTokenState(currentToken);
+          setUser(session.usuario || loggedUser);
+          setSessionState('authenticated');
+          setSessionMessage('Sesión verificada y protegida');
+          sessionValidated = true;
+        } catch (error: any) {
+          if (error?.codigo === 'SIN_CONEXION') {
+            setTokenState(currentToken);
+            setUser(loggedUser);
+            setSessionState('offline');
+            setSessionMessage('Sin conexión · sesión pendiente de validar');
+          } else {
+            await clearSession();
+            setTokenState(null);
+            setUser(null);
+            setSessionState('expired');
+            setSessionMessage('La sesión venció · iniciá sesión nuevamente');
+          }
+        }
+      } else {
+        setTokenState(null);
+        setUser(null);
+        setSessionState('guest');
+        setSessionMessage('Sin sesión de portería');
+      }
+
+      // Los datos institucionales sólo se cargan después de validar la sesión.
+      if (currentUrl && sessionValidated) {
         setLoadingCeremonia(true);
         try {
-          const cerData = await obtenerCeremoniaActiva();
+          const [cerData, autorizadas] = await Promise.all([
+            obtenerCeremoniaActiva().catch(() => null),
+            obtenerCeremoniasAutorizadas()
+          ]);
           setCeremonia(cerData);
+          setCeremoniasAutorizadas(autorizadas || []);
         } catch (err) {
-          console.warn('Error fetching active ceremony:', err);
+          console.warn('Error fetching authorized ceremonies:', err);
           setCeremonia(null);
+          setCeremoniasAutorizadas([]);
         } finally {
           setLoadingCeremonia(false);
         }
       } else {
         setCeremonia(null);
+        setCeremoniasAutorizadas([]);
       }
 
-      if (currentToken && loggedUser) {
-        fetchStats();
+      if (sessionValidated) {
+        await fetchStats();
       }
     } catch (e) {
       console.error('Error loading session:', e);
+      setSessionState('offline');
+      setSessionMessage('No fue posible verificar la aplicación');
     }
+  };
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Cerrar sesión',
+      '¿Querés desvincular este dispositivo de la cuenta de portería?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Cerrar sesión',
+          style: 'destructive',
+          onPress: async () => {
+            await cerrarSesionDispositivo();
+            setTokenState(null);
+            setUser(null);
+            setStats(null);
+            setCeremonia(null);
+            setCeremoniasAutorizadas([]);
+            setSessionState('guest');
+            setSessionMessage('Sesión cerrada correctamente');
+            setViewState('home');
+          },
+        },
+      ]
+    );
   };
 
   const fetchStats = async () => {
@@ -150,16 +234,19 @@ export default function IndexScreen() {
 
     // 1. Check if it's a configuration QR
     if (data.startsWith('sigic-config:')) {
-      const targetUrl = data.slice('sigic-config:'.length).trim();
+      const targetUrl = normalizarApiUrl(data.slice('sigic-config:'.length).trim());
       setLoadingScan(true);
       try {
+        if (esDireccionLocal(targetUrl)) {
+          throw new Error('El QR contiene localhost. Generá otro QR usando la IP de la computadora.');
+        }
         await setApiUrl(targetUrl);
         setApiUrlState(targetUrl);
         Alert.alert('Configuración exitosa', `API configurada a:\n${targetUrl}`);
         setViewState('home');
         loadSession();
-      } catch (e) {
-        Alert.alert('Error', 'No se pudo configurar la API.');
+      } catch (e: any) {
+        Alert.alert('No se pudo configurar', e.message || 'Revisá la dirección del servidor.');
       } finally {
         setLoadingScan(false);
         setScanned(false);
@@ -183,7 +270,7 @@ export default function IndexScreen() {
         await loginWithToken(tokenToUse);
         Alert.alert('Acceso Exitoso', 'Sesión de seguridad iniciada.');
         setViewState('home');
-        loadSession();
+        await loadSession();
       } catch (e: any) {
         Alert.alert('Error de Inicio', e.message || 'El código QR de acceso no es válido.');
       } finally {
@@ -286,18 +373,47 @@ export default function IndexScreen() {
     outputRange: [0, 220], // sliding range within the viewfinder box
   });
 
+  const sesionActiva = sessionState === 'authenticated' && Boolean(token);
+  const sessionColor = sessionState === 'authenticated'
+    ? '#10b981'
+    : sessionState === 'checking'
+      ? '#0ea5e9'
+      : sessionState === 'offline'
+        ? '#f59e0b'
+        : '#ef4444';
+
+  if (sessionState === 'checking') {
+    return (
+      <View style={[styles.sessionCheckScreen, { paddingTop: insets.top + Spacing.four }]}>
+        <View style={styles.sessionCheckDecorationOne} />
+        <View style={styles.sessionCheckDecorationTwo} />
+        <View style={styles.sessionCheckLogoCard}>
+          <Image source={require('../../assets/images/logo-oficial.png')} style={styles.sessionCheckLogo} contentFit="contain" />
+        </View>
+        <Text style={styles.sessionCheckBrand}>SiGIC Accesos</Text>
+        <Text style={styles.sessionCheckEyebrow}>Acceso institucional</Text>
+        <ActivityIndicator size="small" color="#0ea5e9" style={{ marginTop: 28 }} />
+        <Text style={styles.sessionCheckText}>Verificando sesión y servidor…</Text>
+      </View>
+    );
+  }
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* ---------------- STATE: HOME ---------------- */}
       {viewState === 'home' && (
-        <View style={[styles.inner, { paddingTop: insets.top + Spacing.three }]}>
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={[styles.inner, { paddingTop: insets.top + Spacing.three }]}
+          showsVerticalScrollIndicator={false}
+        >
           <View style={styles.header}>
             <View style={styles.headerText}>
-              <Text style={[styles.title, { color: colors.text }]}>Hola, Staff</Text>
+              <Text style={[styles.title, { color: colors.text }]}>{sesionActiva ? `Hola, ${user?.nombre?.split(' ')[0] || 'Staff'}` : 'Acceso de portería'}</Text>
               <View style={styles.statusRow}>
-                <View style={[styles.dot, { backgroundColor: token ? '#10b981' : '#ef4444' }]} />
+                <View style={[styles.dot, { backgroundColor: sessionColor }]} />
                 <Text style={[styles.statusLabel, { color: colors.textSecondary }]}>
-                  {token ? `Servidor: ${apiUrl}` : 'Sin iniciar sesión de seguridad'}
+                  {sessionMessage}
                 </Text>
               </View>
             </View>
@@ -308,8 +424,65 @@ export default function IndexScreen() {
             />
           </View>
 
-          {token ? (
+          {sesionActiva ? (
             <>
+              <View style={styles.identityCard}>
+                <View style={styles.identityIcon}>
+                  <Ionicons name="shield-checkmark" size={20} color="#047857" />
+                </View>
+                <View style={styles.identityText}>
+                  <Text style={styles.identityLabel}>SESIÓN ACTIVA</Text>
+                  <Text style={styles.identityName} numberOfLines={1}>{user?.nombre || user?.email || 'Personal de portería'}</Text>
+                  <Text style={styles.identityMeta}>{user?.rol || 'PORTERÍA'} · {apiUrl.replace(/^https?:\/\//, '')}</Text>
+                </View>
+                <TouchableOpacity style={styles.identityAction} onPress={loadSession} accessibilityLabel="Volver a comprobar sesión">
+                  <Ionicons name="refresh" size={17} color="#0056b3" />
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.identityAction, styles.identityLogout]} onPress={handleLogout} accessibilityLabel="Cerrar sesión">
+                  <Ionicons name="log-out-outline" size={17} color="#dc2626" />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.authorizedSection}>
+                <View style={styles.authorizedHeader}>
+                  <View>
+                    <Text style={styles.authorizedEyebrow}>ESPACIOS HABILITADOS</Text>
+                    <Text style={[styles.authorizedTitle, { color: colors.text }]}>Tus ceremonias</Text>
+                  </View>
+                  <View style={styles.authorizedCount}>
+                    <Text style={styles.authorizedCountText}>{ceremoniasAutorizadas.length}</Text>
+                  </View>
+                </View>
+                {loadingCeremonia ? (
+                  <ActivityIndicator size="small" color="#0056b3" style={{ marginVertical: 18 }} />
+                ) : ceremoniasAutorizadas.length > 0 ? (
+                  ceremoniasAutorizadas.map((item) => {
+                    const activa = [true, 1, '1', 't', 'true'].includes(item.activa);
+                    return (
+                    <View key={item.id} style={[styles.authorizedCard, activa ? styles.authorizedCardActive : null]}>
+                      <View style={[styles.authorizedIcon, activa ? styles.authorizedIconActive : null]}>
+                        <Ionicons name="school-outline" size={18} color={activa ? '#ffffff' : '#0056b3'} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <View style={styles.authorizedNameRow}>
+                          <Text style={styles.authorizedName} numberOfLines={1}>{item.nombre}</Text>
+                          <Text style={styles.enabledBadge}>HABILITADA</Text>
+                          {activa ? <Text style={styles.activeBadge}>ACTIVA</Text> : null}
+                        </View>
+                        <Text style={styles.authorizedMeta} numberOfLines={1}>
+                          {item.fecha ? new Date(item.fecha).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Fecha a confirmar'} · {item.lugar || 'Sede a confirmar'}
+                        </Text>
+                      </View>
+                      <Ionicons name="checkmark-circle" size={18} color="#10b981" />
+                    </View>
+                    );
+                  })
+                ) : (
+                  <View style={styles.emptyAuthorized}>
+                    <Ionicons name="calendar-outline" size={22} color="#94a3b8" />
+                    <Text style={styles.emptyAuthorizedText}>Tu cuenta todavía no tiene ceremonias asignadas.</Text>
+                  </View>
+                )}
+              </View>
               {/* Active Ceremony Card (Compact) */}
               {ceremonia && (
                 <View style={[styles.ceremoniaCardCompact, { backgroundColor: colors.backgroundElement }]}>
@@ -376,54 +549,31 @@ export default function IndexScreen() {
               </View>
               
               <View style={styles.welcomeInfo}>
-                <Text style={[styles.welcomeTitle, { color: colors.text }]}>SiGIC Entry</Text>
+                <Text style={[styles.welcomeTitle, { color: colors.text }]}>SiGIC Accesos</Text>
                 <Text style={[styles.welcomeSubtitle, { color: colors.textSecondary }]}>
                   Control de Acceso & Acreditación
                 </Text>
-                
-                {ceremonia ? (
-                  <View style={[styles.ceremoniaCard, { backgroundColor: colors.backgroundElement, borderColor: colors.backgroundSelected }]}>
-                    <View style={styles.ceremoniaHeader}>
-                      <Ionicons name="school" size={20} color="#0ea5e9" />
-                      <Text style={[styles.ceremoniaTitle, { color: colors.text }]} numberOfLines={1}>
-                        {ceremonia.nombre}
-                      </Text>
-                    </View>
-                    <View style={styles.ceremoniaDetails}>
-                      <View style={styles.ceremoniaDetailRow}>
-                        <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} />
-                        <Text style={[styles.ceremoniaDetailText, { color: colors.textSecondary }]}>
-                          {new Date(ceremonia.fecha).toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-                        </Text>
-                      </View>
-                      <View style={styles.ceremoniaDetailRow}>
-                        <Ionicons name="time-outline" size={14} color={colors.textSecondary} />
-                        <Text style={[styles.ceremoniaDetailText, { color: colors.textSecondary }]}>
-                          {new Date(ceremonia.fecha).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })} hs
-                        </Text>
-                      </View>
-                      <View style={styles.ceremoniaDetailRow}>
-                        <Ionicons name="location-outline" size={14} color={colors.textSecondary} />
-                        <Text style={[styles.ceremoniaDetailText, { color: colors.textSecondary }]}>
-                          {ceremonia.lugar || 'Sede Beltrán'}
-                        </Text>
-                      </View>
-                      <View style={styles.ceremoniaDetailRow}>
-                        <Ionicons name="people-outline" size={14} color={colors.textSecondary} />
-                        <Text style={[styles.ceremoniaDetailText, { color: colors.textSecondary }]}>
-                          Invitados: máx. {ceremonia.max_invitados} por egresado
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-                ) : (
-                  <View style={[styles.welcomeCard, { backgroundColor: colors.backgroundElement, borderColor: colors.backgroundSelected }]}>
-                    <Ionicons name="shield-checkmark" size={22} color="#0ea5e9" />
-                    <Text style={[styles.welcomeCardBody, { color: colors.text }]}>
-                      Iniciá sesión escaneando el QR de acceso o vinculando el servidor de la ceremonia.
+                <View style={[styles.sessionNotice, sessionState === 'offline' ? styles.sessionNoticeWarning : styles.sessionNoticeDanger]}>
+                  <Ionicons name={sessionState === 'offline' ? 'cloud-offline-outline' : 'lock-closed-outline'} size={18} color={sessionState === 'offline' ? '#b45309' : '#b91c1c'} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.sessionNoticeTitle, { color: sessionState === 'offline' ? '#92400e' : '#991b1b' }]}>
+                      {sessionState === 'offline' ? 'Servidor sin conexión' : sessionState === 'expired' ? 'Sesión vencida' : 'Acceso no iniciado'}
                     </Text>
+                    <Text style={[styles.sessionNoticeBody, { color: sessionState === 'offline' ? '#b45309' : '#b91c1c' }]}>{sessionMessage}</Text>
                   </View>
-                )}
+                  {sessionState === 'offline' && (
+                    <TouchableOpacity onPress={loadSession} style={styles.noticeRetry}>
+                      <Ionicons name="refresh" size={16} color="#92400e" />
+                    </TouchableOpacity>
+                  )}
+                </View>
+
+                <View style={[styles.welcomeCard, { backgroundColor: colors.backgroundElement, borderColor: '#dbeafe' }]}>
+                  <Ionicons name="shield-checkmark" size={22} color="#0056b3" />
+                  <Text style={[styles.welcomeCardBody, { color: colors.text }]}>
+                    Iniciá sesión para consultar tus ceremonias autorizadas y comenzar a acreditar accesos.
+                  </Text>
+                </View>
               </View>
 
               <View style={styles.welcomeActions}>
@@ -434,17 +584,17 @@ export default function IndexScreen() {
 
                 <TouchableOpacity 
                   style={[styles.welcomeButtonSecondary, { borderColor: colors.backgroundSelected }]} 
-                  onPress={() => router.push('/explore')}
+                  onPress={() => router.push('/explorar')}
                 >
                   <Ionicons name="settings" size={16} color={colors.textSecondary} />
                   <Text style={[styles.welcomeButtonSecondaryText, { color: colors.textSecondary }]}>
-                    Configurar Manualmente
+                    Configurar servidor e iniciar sesión
                   </Text>
                 </TouchableOpacity>
               </View>
             </View>
           )}
-        </View>
+        </ScrollView>
       )}
 
       {/* ---------------- STATE: SCANNING ---------------- */}
@@ -456,9 +606,9 @@ export default function IndexScreen() {
             barcodeScannerSettings={{
               barcodeTypes: ['qr'],
             }}
-          >
-            {/* Viewfinder overlay */}
-            <View style={styles.overlayContainer}>
+          />
+            {/* La interfaz se dibuja como hermana absoluta: CameraView no admite hijos. */}
+            <View style={[styles.overlayContainer, StyleSheet.absoluteFillObject]} pointerEvents="box-none">
               <View style={styles.topOverlay}>
                 <TouchableOpacity 
                   style={[styles.closeButton, { top: insets.top + Spacing.two }]} 
@@ -466,9 +616,17 @@ export default function IndexScreen() {
                 >
                   <Ionicons name="close" size={24} color="#ffffff" />
                 </TouchableOpacity>
-                <Text style={styles.overlayTitle}>
-                  {!token ? 'Escanear QR de Configuración / Acceso' : 'Acreditar Invitados & Egresados'}
-                </Text>
+                <View style={styles.scannerBrand}>
+                  <View style={styles.scannerLogoCard}>
+                    <Image source={require('../../assets/images/logo-oficial.png')} style={styles.scannerLogo} contentFit="contain" />
+                  </View>
+                  <View>
+                    <Text style={styles.scannerEyebrow}>SiGIC ACCESOS</Text>
+                    <Text style={styles.overlayTitle}>
+                      {!sesionActiva ? 'Vincular dispositivo' : 'Acreditar credencial'}
+                    </Text>
+                  </View>
+                </View>
               </View>
 
               <View style={styles.middleRow}>
@@ -492,13 +650,24 @@ export default function IndexScreen() {
                 </Text>
               </View>
             </View>
-          </CameraView>
         </View>
       )}
 
       {/* ---------------- STATE: RESULT ---------------- */}
       {viewState === 'result' && (
         <View style={[styles.inner, { paddingTop: insets.top + Spacing.three }]}>
+          <View style={styles.resultBrandHeader}>
+            <View style={styles.resultBrandLogoCard}>
+              <Image source={require('../../assets/images/logo-oficial.png')} style={styles.resultBrandLogo} contentFit="contain" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.resultBrandEyebrow}>SiGIC ACCESOS</Text>
+              <Text style={styles.resultBrandTitle}>Validación de credencial</Text>
+            </View>
+            <TouchableOpacity style={styles.resultHomeButton} onPress={() => setViewState('home')}>
+              <Ionicons name="home-outline" size={19} color="#0056b3" />
+            </TouchableOpacity>
+          </View>
           {loadingScan ? (
             <View style={styles.centerContainer}>
               <ActivityIndicator size="large" color="#0ea5e9" />
@@ -723,6 +892,73 @@ export default function IndexScreen() {
 }
 
 const styles = StyleSheet.create({
+  sessionCheckScreen: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+    backgroundColor: '#f4f9ff',
+  },
+  sessionCheckDecorationOne: {
+    position: 'absolute',
+    width: 260,
+    height: 260,
+    borderRadius: 50,
+    right: -130,
+    top: -100,
+    backgroundColor: '#0069ff',
+    transform: [{ rotate: '18deg' }],
+  },
+  sessionCheckDecorationTwo: {
+    position: 'absolute',
+    width: 220,
+    height: 220,
+    borderRadius: 46,
+    left: -140,
+    bottom: -100,
+    backgroundColor: '#b9dcff',
+    transform: [{ rotate: '32deg' }],
+  },
+  sessionCheckLogoCard: {
+    width: 112,
+    height: 112,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    shadowColor: '#0056b3',
+    shadowOffset: { width: 0, height: 14 },
+    shadowOpacity: 0.16,
+    shadowRadius: 24,
+    elevation: 7,
+  },
+  sessionCheckLogo: {
+    width: 78,
+    height: 78,
+  },
+  sessionCheckBrand: {
+    marginTop: 24,
+    color: '#06194d',
+    fontSize: 28,
+    fontWeight: '900',
+    letterSpacing: -0.8,
+  },
+  sessionCheckEyebrow: {
+    marginTop: 4,
+    color: '#087fbd',
+    fontSize: 9,
+    fontWeight: '900',
+    letterSpacing: 2.2,
+    textTransform: 'uppercase',
+  },
+  sessionCheckText: {
+    marginTop: 10,
+    color: '#64748b',
+    fontSize: 12,
+    fontWeight: '700',
+  },
   container: {
     flex: 1,
   },
@@ -744,10 +980,10 @@ const styles = StyleSheet.create({
   headerLogo: {
     width: 44,
     height: 44,
-    borderRadius: 10,
+    borderRadius: 14,
     backgroundColor: '#ffffff',
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.06)',
+    borderColor: '#bfdbfe',
     padding: 2,
   },
   infoLogo: {
@@ -775,9 +1011,228 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
   },
+  identityCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: 12,
+    marginBottom: Spacing.three,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#a7f3d0',
+    backgroundColor: '#ecfdf5',
+    shadowColor: '#047857',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.07,
+    shadowRadius: 10,
+    elevation: 2,
+  },
+  identityIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#d1fae5',
+  },
+  identityText: {
+    flex: 1,
+    minWidth: 0,
+  },
+  identityLabel: {
+    color: '#059669',
+    fontSize: 8,
+    fontWeight: '900',
+    letterSpacing: 1.2,
+  },
+  identityName: {
+    marginTop: 2,
+    color: '#064e3b',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  identityMeta: {
+    marginTop: 2,
+    color: '#047857',
+    fontSize: 9,
+    fontWeight: '600',
+  },
+  identityAction: {
+    width: 34,
+    height: 34,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+    backgroundColor: '#ffffff',
+  },
+  identityLogout: {
+    borderColor: '#fecaca',
+    backgroundColor: '#fff7f7',
+  },
+  authorizedSection: {
+    marginBottom: Spacing.three,
+    padding: Spacing.three,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: '#dbeafe',
+    backgroundColor: '#ffffff',
+    shadowColor: '#0056b3',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.06,
+    shadowRadius: 14,
+    elevation: 2,
+  },
+  authorizedHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  authorizedEyebrow: {
+    color: '#087fbd',
+    fontSize: 8,
+    fontWeight: '900',
+    letterSpacing: 1.4,
+  },
+  authorizedTitle: {
+    marginTop: 2,
+    fontSize: 17,
+    fontWeight: '900',
+  },
+  authorizedCount: {
+    minWidth: 32,
+    height: 32,
+    paddingHorizontal: 8,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#eff6ff',
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
+  },
+  authorizedCountText: {
+    color: '#0056b3',
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  authorizedCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 8,
+    padding: 11,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    backgroundColor: '#f8fafc',
+  },
+  authorizedCardActive: {
+    borderColor: '#93c5fd',
+    backgroundColor: '#eff6ff',
+  },
+  authorizedIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#dbeafe',
+  },
+  authorizedIconActive: {
+    backgroundColor: '#0056b3',
+  },
+  authorizedNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+  },
+  authorizedName: {
+    flexShrink: 1,
+    color: '#0f172a',
+    fontSize: 12,
+    fontWeight: '900',
+  },
+  activeBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    overflow: 'hidden',
+    color: '#047857',
+    backgroundColor: '#d1fae5',
+    fontSize: 7,
+    fontWeight: '900',
+  },
+  enabledBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    overflow: 'hidden',
+    color: '#0056b3',
+    backgroundColor: '#dbeafe',
+    fontSize: 7,
+    fontWeight: '900',
+  },
+  authorizedMeta: {
+    marginTop: 3,
+    color: '#64748b',
+    fontSize: 9.5,
+    fontWeight: '600',
+  },
+  emptyAuthorized: {
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 18,
+    borderRadius: 16,
+    backgroundColor: '#f8fafc',
+  },
+  emptyAuthorizedText: {
+    color: '#64748b',
+    fontSize: 11,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  sessionNotice: {
+    width: '100%',
+    marginTop: Spacing.two,
+    padding: 13,
+    borderRadius: 17,
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  sessionNoticeWarning: {
+    borderColor: '#fde68a',
+    backgroundColor: '#fffbeb',
+  },
+  sessionNoticeDanger: {
+    borderColor: '#fecaca',
+    backgroundColor: '#fff7f7',
+  },
+  sessionNoticeTitle: {
+    fontSize: 11,
+    fontWeight: '900',
+  },
+  sessionNoticeBody: {
+    marginTop: 2,
+    fontSize: 9.5,
+    fontWeight: '600',
+  },
+  noticeRetry: {
+    width: 34,
+    height: 34,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fef3c7',
+  },
   card: {
     padding: Spacing.three,
-    borderRadius: 20,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: '#dbeafe',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -811,13 +1266,15 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   scanButton: {
-    backgroundColor: '#0ea5e9',
+    backgroundColor: '#0056b3',
     borderRadius: 24,
     paddingVertical: Spacing.five,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    shadowColor: '#0ea5e9',
+    borderWidth: 1,
+    borderColor: '#60a5fa',
+    shadowColor: '#0056b3',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 12,
@@ -866,7 +1323,7 @@ const styles = StyleSheet.create({
   welcomeLogoBg: {
     width: 130,
     height: 130,
-    borderRadius: 65,
+    borderRadius: 32,
     backgroundColor: '#ffffff',
     alignItems: 'center',
     justifyContent: 'center',
@@ -875,6 +1332,8 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowRadius: 16,
     elevation: 3,
+    borderWidth: 1,
+    borderColor: '#bfdbfe',
   },
   welcomeLogo: {
     width: 90,
@@ -918,7 +1377,7 @@ const styles = StyleSheet.create({
     marginTop: Spacing.two,
   },
   welcomeButtonPrimary: {
-    backgroundColor: '#0ea5e9',
+    backgroundColor: '#0056b3',
     height: 50,
     borderRadius: 14,
     flexDirection: 'row',
@@ -926,7 +1385,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 10,
     width: '100%',
-    shadowColor: '#0ea5e9',
+    shadowColor: '#0056b3',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 10,
@@ -1001,8 +1460,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   topOverlay: {
-    height: 120,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    height: 132,
+    backgroundColor: 'rgba(6,25,77,0.88)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1012,15 +1471,42 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: 'rgba(255,255,255,0.16)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.32)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   overlayTitle: {
     color: '#ffffff',
-    fontSize: 14,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontSize: 13,
+    fontWeight: '900',
+  },
+  scannerBrand: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  scannerLogoCard: {
+    width: 42,
+    height: 42,
+    borderRadius: 13,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#ffffff',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.7)',
+  },
+  scannerLogo: {
+    width: 32,
+    height: 32,
+  },
+  scannerEyebrow: {
+    marginBottom: 2,
+    color: '#7DD3FC',
+    fontSize: 7.5,
+    fontWeight: '900',
+    letterSpacing: 1.4,
   },
   middleRow: {
     flexDirection: 'row',
@@ -1028,7 +1514,7 @@ const styles = StyleSheet.create({
   },
   sideOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(6,25,77,0.66)',
   },
   viewfinder: {
     width: 240,
@@ -1041,8 +1527,8 @@ const styles = StyleSheet.create({
     left: '5%',
     right: '5%',
     height: 2,
-    backgroundColor: '#0ea5e9',
-    shadowColor: '#0ea5e9',
+    backgroundColor: '#38BDF8',
+    shadowColor: '#38BDF8',
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 6,
@@ -1052,7 +1538,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 20,
     height: 20,
-    borderColor: '#0ea5e9',
+    borderColor: '#60A5FA',
   },
   topLeft: {
     top: 0,
@@ -1080,7 +1566,7 @@ const styles = StyleSheet.create({
   },
   bottomOverlay: {
     height: 120,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(6,25,77,0.88)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -1104,12 +1590,66 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
   },
+  resultBrandHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 11,
+    marginBottom: Spacing.three,
+    padding: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    backgroundColor: '#EFF6FF',
+  },
+  resultBrandLogoCard: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    backgroundColor: '#FFFFFF',
+  },
+  resultBrandLogo: {
+    width: 34,
+    height: 34,
+  },
+  resultBrandEyebrow: {
+    color: '#087FBD',
+    fontSize: 7.5,
+    fontWeight: '900',
+    letterSpacing: 1.3,
+  },
+  resultBrandTitle: {
+    marginTop: 2,
+    color: '#06194D',
+    fontSize: 14,
+    fontWeight: '900',
+  },
+  resultHomeButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#BFDBFE',
+    backgroundColor: '#FFFFFF',
+  },
   resultCard: {
     alignItems: 'center',
     gap: Spacing.two,
     padding: Spacing.four,
     borderRadius: 24,
-    backgroundColor: 'rgba(0,0,0,0.02)',
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#0056B3',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    elevation: 3,
   },
   resultIconWrapper: {
     width: 80,
@@ -1128,6 +1668,12 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '900',
   },
+  resultBody: {
+    fontSize: 13,
+    lineHeight: 20,
+    textAlign: 'center',
+    fontWeight: '600',
+  },
   resultBadge: {
     fontSize: 10,
     fontWeight: 'bold',
@@ -1139,7 +1685,9 @@ const styles = StyleSheet.create({
   detailsContainer: {
     width: '100%',
     padding: Spacing.three,
-    borderRadius: 16,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
     gap: 6,
     marginVertical: Spacing.one,
   },
@@ -1307,7 +1855,7 @@ const styles = StyleSheet.create({
     padding: Spacing.three,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)',
+    borderColor: '#dbeafe',
     marginBottom: Spacing.three,
     gap: 4,
   },
@@ -1326,4 +1874,3 @@ const styles = StyleSheet.create({
     marginLeft: 22,
   },
 });
-

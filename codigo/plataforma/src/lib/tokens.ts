@@ -20,6 +20,8 @@ export interface DatosToken {
   id: string | number;
   rol?: string;
   nombre?: string;
+  correo?: string;
+  email?: string;
   iat?: number;
   exp?: number;
 }

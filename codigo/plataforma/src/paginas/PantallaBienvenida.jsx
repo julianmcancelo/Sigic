@@ -260,7 +260,7 @@ function TarjetaCronograma({ proximas, backendOnline }) {
 }
 
 // ─── Botón de acceso rápido grande ─────────────────────────────
-function AccesoGrande({ icono: Icono, titulo, descripcion, pantalla, badge, onClick }) {
+function AccesoGrande({ icono: Icono, titulo, descripcion, pantalla, badge, destacado, onClick }) {
   const disponible = !!pantalla
   return (
     <button
@@ -268,7 +268,9 @@ function AccesoGrande({ icono: Icono, titulo, descripcion, pantalla, badge, onCl
       onClick={() => disponible && onClick(pantalla)}
       className={`group relative overflow-hidden rounded-[24px] border p-5 text-left transition-all duration-300 ${
         disponible
-          ? 'bg-white border-slate-100 hover:border-sky-300 hover:shadow-lg hover:shadow-sky-100/60 hover:-translate-y-0.5 cursor-pointer'
+          ? destacado
+            ? 'bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 text-white hover:border-sky-400 hover:shadow-xl hover:shadow-sky-900/20 hover:-translate-y-0.5 cursor-pointer'
+            : 'bg-white border-slate-100 hover:border-sky-300 hover:shadow-lg hover:shadow-sky-100/60 hover:-translate-y-0.5 cursor-pointer'
           : 'bg-slate-50/50 border-slate-100 opacity-55 cursor-default'
       }`}
     >
@@ -284,7 +286,9 @@ function AccesoGrande({ icono: Icono, titulo, descripcion, pantalla, badge, onCl
       <div
         className={`mb-3.5 flex h-11 w-11 items-center justify-center rounded-xl transition-all duration-350 ${
           disponible
-            ? 'bg-sky-50 text-sky-500 border border-sky-100 group-hover:bg-sky-500 group-hover:text-white group-hover:scale-110'
+            ? destacado
+              ? 'bg-white/10 text-sky-300 border border-white/10 group-hover:bg-sky-500 group-hover:text-white group-hover:scale-110'
+              : 'bg-sky-50 text-sky-500 border border-sky-100 group-hover:bg-sky-500 group-hover:text-white group-hover:scale-110'
             : 'bg-slate-100 text-slate-400 border border-slate-200'
         }`}
       >
@@ -293,12 +297,12 @@ function AccesoGrande({ icono: Icono, titulo, descripcion, pantalla, badge, onCl
 
       {/* Título + badge */}
       <div className="flex items-center gap-2 mb-1">
-        <p className={`text-[13px] font-black ${disponible ? 'text-slate-800' : 'text-slate-400'}`}>
+        <p className={`text-[13px] font-black ${disponible ? destacado ? 'text-white' : 'text-slate-800' : 'text-slate-400'}`}>
           {titulo}
         </p>
         {badge && (
           <span
-            className="rounded-full px-2 py-0.5 text-[8.5px] font-black uppercase tracking-wider bg-sky-50 border border-sky-100 text-sky-600"
+            className={`rounded-full px-2 py-0.5 text-[8.5px] font-black uppercase tracking-wider ${destacado ? 'bg-sky-400/15 border border-sky-300/20 text-sky-300' : 'bg-sky-50 border border-sky-100 text-sky-600'}`}
           >
             {badge}
           </span>
@@ -306,7 +310,7 @@ function AccesoGrande({ icono: Icono, titulo, descripcion, pantalla, badge, onCl
       </div>
 
       {/* Descripción */}
-      <p className={`text-[11px] font-semibold leading-normal ${disponible ? 'text-slate-400' : 'text-slate-300'}`}>
+      <p className={`text-[11px] font-semibold leading-normal ${disponible ? destacado ? 'text-slate-300' : 'text-slate-400' : 'text-slate-300'}`}>
         {descripcion}
       </p>
 
@@ -314,7 +318,7 @@ function AccesoGrande({ icono: Icono, titulo, descripcion, pantalla, badge, onCl
       {disponible && (
         <ChevronRight
           size={14}
-          className="absolute bottom-4 right-4 text-sky-400/40 transition-all duration-300 group-hover:translate-x-1 group-hover:text-sky-500"
+          className={`absolute bottom-4 right-4 transition-all duration-300 group-hover:translate-x-1 ${destacado ? 'text-sky-300/70 group-hover:text-sky-300' : 'text-sky-400/40 group-hover:text-sky-500'}`}
         />
       )}
     </button>
@@ -447,13 +451,16 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
       titulo: 'Control de Ingreso',
       descripcion: 'Módulo de portería: escaneo de QRs y check-in de invitados',
       pantalla: 'control-ingreso',
-      badge: 'Escáner',
+      badge: 'Abrir escáner',
+      destacado: true,
     },
     {
       icono: Users,
       titulo: 'Gestionar Graduados',
       descripcion: 'Alta de graduados, flujo de trabajo y listado general',
       pantalla: 'gestion-graduados',
+      badge: 'Uso frecuente',
+      destacado: true,
     },
     {
       icono: GraduationCap,
@@ -471,14 +478,14 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
     {
       icono: Shield,
       titulo: 'Personal de Seguridad',
-      descripcion: 'Gestión de cuentas de portería, roles de usuario y códigos QR',
+      descripcion: 'Crear cuentas y autorizar quién trabaja en cada ceremonia',
       pantalla: 'gestion-porteria',
       badge: 'Cuentas',
     },
     {
       icono: Settings,
       titulo: 'Ajustes del Sistema',
-      descripcion: 'Límites de invitados, datos del evento y control del portal',
+      descripcion: 'Preferencias generales, identidad y reglas de la ceremonia',
       pantalla: 'ajustes',
       badge: 'Admin',
     },
@@ -526,7 +533,7 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
     <div className="min-h-screen" style={{ background: BG }}>
 
       <HeaderGlobal 
-        titulo="Panel de Administración"
+        titulo="Inicio administrativo"
         usuario={usuario}
         onCerrarSesion={onCerrarSesion}
       />
@@ -538,7 +545,7 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
           {/* PRIMERA FILA BENTO: Saludo (3/4) + Clima y Reloj (1/4) */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             
-            {/* Saludo y Hábitat Activo */}
+            {/* Bienvenida y ceremonia activa */}
             <section
               className="lg:col-span-3 bg-white border border-slate-100 shadow-md shadow-slate-100/50 rounded-[32px] overflow-hidden"
             >
@@ -546,16 +553,11 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
                 <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500/[0.02] rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none"></div>
                 
                 <div className="flex-1 min-w-0">
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50/50 border border-sky-100/60 text-sky-600 mb-3.5">
-                    <Activity size={12} className="animate-pulse" />
-                    <span className="text-[9px] font-black uppercase tracking-[0.15em]">Hábitat Activo</span>
-                  </div>
-                  
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-sky-500 mb-2">Todo listo para comenzar</p>
                   <h1 className="text-3xl md:text-4xl font-black text-slate-800 tracking-tight leading-tight">
-                    <span className="bg-gradient-to-r from-sky-500 via-sky-600 to-indigo-700 bg-clip-text text-transparent">
-                      {ceremoniaActiva?.nombre || config.nombre_evento || 'Iniciando hábitat...'}
-                    </span>
+                    Hola, {usuario?.nombre?.split(' ')?.[0] || 'Administrador'}
                   </h1>
+                  <p className="mt-2 text-sm font-semibold text-slate-400">Estás trabajando en <strong className="text-slate-700">{ceremoniaActiva?.nombre || config.nombre_evento || 'la ceremonia principal'}</strong>.</p>
 
                   <div className="mt-4 flex flex-wrap gap-2 text-[11px] font-bold text-slate-500">
                     <span className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-full">
@@ -569,15 +571,23 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
                   </div>
                 </div>
 
-                <div className="flex flex-col items-start md:items-end justify-center gap-3">
+                <div className="flex flex-col items-stretch md:items-end justify-center gap-3">
                   <div className="flex items-center gap-2.5 rounded-2xl bg-emerald-50 border border-emerald-100 px-4.5 py-2">
                     <span className="relative flex h-2 w-2">
                       <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
                       <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
                     </span>
                     <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700">
-                      Operador Activo
+                      Sesión protegida
                     </span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-2 w-full">
+                    <button onClick={() => onNavegar('control-ingreso')} className="flex items-center justify-center gap-2 rounded-xl bg-sky-500 px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-white shadow-md shadow-sky-500/20 transition hover:bg-sky-600 active:scale-95">
+                      <ScanLine size={14} /> Controlar ingresos
+                    </button>
+                    <button onClick={() => onNavegar('gestion-graduados')} className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-slate-600 transition hover:border-sky-200 hover:text-sky-600 active:scale-95">
+                      <Users size={14} /> Ver graduados
+                    </button>
                   </div>
                 </div>
               </div>
@@ -611,7 +621,7 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
                   etiqueta="Graduados"
                   valor={stats?.totalEgresados ?? 0}
                   color="#3b82f6"
-                  descripcion="Padrones en hábitat"
+                  descripcion="Registrados en esta ceremonia"
                 />
                 <BentoStatCard
                   icono={Users}
@@ -651,7 +661,10 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
                   <div className="flex h-[24px] w-[24px] items-center justify-center rounded-lg bg-sky-50 text-sky-500 border border-sky-100">
                     <LayoutGrid size={13} />
                   </div>
-                  <span className="text-[12px] font-black uppercase tracking-wider text-slate-655">Consola de Control</span>
+                  <div>
+                    <span className="block text-[12px] font-black text-slate-700">¿Qué necesitás hacer?</span>
+                    <span className="block text-[9px] font-semibold text-slate-400 mt-0.5">Elegí una opción para continuar</span>
+                  </div>
                 </div>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
@@ -674,10 +687,10 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
 
               {/* Pie de accesos */}
               <div className="px-6 py-4 border-t border-slate-50 bg-slate-50/10 flex items-center justify-between text-[11px] text-slate-400 font-semibold">
-                <span>SiGIC V1 - Plataforma de Gestión Institucional de Colaciones</span>
+                <span>SiGIC · Administración de ceremonias</span>
                 <span className="flex items-center gap-1.5">
                   <span className="h-1.5 w-1.5 rounded-full bg-sky-500 animate-pulse" />
-                  Terminal Activa
+                  Sistema disponible
                 </span>
               </div>
             </div>

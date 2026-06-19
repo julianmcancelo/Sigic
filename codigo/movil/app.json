@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "movil",
-    "slug": "movil",
+    "name": "SiGIC Accesos",
+    "slug": "sigic-accesos",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "movilreactnative",
+    "scheme": "sigicaccesos",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon"
