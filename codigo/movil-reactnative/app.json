@@ -1,6 +1,7 @@
 {
   "expo": {
     "name": "movil-reactnative",
+    "owner": "jotacancelo",
     "slug": "movil-reactnative",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -17,7 +18,11 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "output": "static",
@@ -44,6 +49,18 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "fb51a596-ff6d-4fc1-87dd-0741dd4d1f73"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/fb51a596-ff6d-4fc1-87dd-0741dd4d1f73"
     }
   }
 }
