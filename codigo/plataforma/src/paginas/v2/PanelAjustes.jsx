@@ -231,6 +231,7 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
               {renderInterruptor('mostrar_presentacion_inicial', 'Pantalla de bienvenida', <Monitor size={18} />, 'Al desactivarla, la plataforma omite la portada institucional y abre directamente el acceso administrativo desde la próxima recarga.')}
               {renderInterruptor('modo_mantenimiento', 'Modo mantenimiento', <Shield size={18} />, 'Bloquea temporalmente el acceso público mientras el equipo administrativo realiza tareas internas.')}
               {renderInterruptor('acceso_oculto_egresado', 'Acceso reservado para graduados', <Fingerprint size={18} />, 'Oculta el acceso directo de graduados y conserva el ingreso reservado desde el logotipo.')}
+              {renderInterruptor('acceso_directo_admin', 'Ruta directa administrativo', <Shield size={18} />, 'Permite el acceso directo a la administración mediante la ruta /admin sin pasar por el Easter Egg.')}
             </div>
           </section>}
 

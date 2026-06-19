@@ -209,6 +209,7 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
                 {renderFila('max_invitados', 'Cupo de Invitados', <Users size={22} />, 'Cantidad de acompañantes permitidos por cada egresado.')}
                 {renderFila('modo_mantenimiento', 'Mantenimiento', <Shield size={22} />, 'Activa "true" para bloquear el acceso público al sistema.')}
                 {renderFila('acceso_oculto_egresado', 'Acceso Oculto Egresados', <Shield size={22} />, 'Activa "true" para requerir 5 clicks en el logo para entrar al portal.')}
+                {renderFila('acceso_directo_admin', 'Ruta Directa Admin', <Shield size={22} />, 'Activa "true" para permitir el acceso directo mediante la ruta /admin.')}
               </div>
             </section>
 

@@ -91,7 +91,12 @@ function App() {
   const [vistaLogin, setVistaLogin] = useState(() => {
     const p = window.location.pathname
     if (p === '/manual') return 'manual'
-    if (p === '/admin') return 'admin'
+    if (p === '/admin') {
+      if (typeof window !== 'undefined' && localStorage.getItem('acceso_directo_admin') === 'false') {
+        return null
+      }
+      return 'admin'
+    }
     if (p === '/egresado' || p === '/graduado' || p === '/carga') return 'graduado'
     if (p === '/' && localStorage.getItem('mostrar_presentacion_inicial') === 'false') return 'admin'
     return null
@@ -120,6 +125,13 @@ function App() {
   const [accesoOculto, setAccesoOculto] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('acceso_oculto_egresado') !== 'false'
+    }
+    return true
+  })
+
+  const [accesoDirectoAdmin, setAccesoDirectoAdmin] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('acceso_directo_admin') !== 'false'
     }
     return true
   })
@@ -207,6 +219,14 @@ function App() {
                 const oculto = ajustesDb.acceso_oculto_egresado.valor !== 'false'
                 setAccesoOculto(oculto)
                 localStorage.setItem('acceso_oculto_egresado', oculto.toString())
+              }
+              if (ajustesDb.acceso_directo_admin) {
+                const directo = ajustesDb.acceso_directo_admin.valor !== 'false'
+                setAccesoDirectoAdmin(directo)
+                localStorage.setItem('acceso_directo_admin', directo.toString())
+                if (!directo && window.location.pathname === '/admin') {
+                  window.location.href = '/'
+                }
               }
               if (ajustesDb.mostrar_presentacion_inicial) {
                 const preferenciaLocalAnterior = localStorage.getItem('mostrar_presentacion_inicial')

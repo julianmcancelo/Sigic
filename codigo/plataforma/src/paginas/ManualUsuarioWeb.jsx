@@ -554,6 +554,57 @@ function ScreenCredencialDigital() {
 }
 
 // ==========================================
+// IMAGEN: CONFIGURACIÓN MÓVIL
+// ==========================================
+function ScreenMovilConfiguracion() {
+  return (
+    <div className="w-[120px] mx-auto overflow-hidden rounded-2xl border border-slate-200 shadow-md relative group select-none">
+      <ImagenManual
+        fuentes="/manual/app_movil_configuracion.png"
+        className="w-full object-cover object-top transition-transform duration-[2s] group-hover:scale-105"
+        alt="Configuración segura de la app"
+        etiqueta="Configuración"
+        descripcion="Pantalla de configuración técnica del dispositivo..."
+      />
+    </div>
+  )
+}
+
+// ==========================================
+// IMAGEN: INICIO DE APP MÓVIL
+// ==========================================
+function ScreenMovilInicio() {
+  return (
+    <div className="w-[120px] mx-auto overflow-hidden rounded-2xl border border-slate-200 shadow-md relative group select-none">
+      <ImagenManual
+        fuentes="/manual/app_movil_inicio.png"
+        className="w-full object-cover object-top transition-transform duration-[2s] group-hover:scale-105"
+        alt="Inicio de la app"
+        etiqueta="Dashboard"
+        descripcion="Dashboard principal de acreditación..."
+      />
+    </div>
+  )
+}
+
+// ==========================================
+// IMAGEN: ACREDITACIÓN MÓVIL
+// ==========================================
+function ScreenMovilAcreditacion() {
+  return (
+    <div className="w-[120px] mx-auto overflow-hidden rounded-2xl border border-slate-200 shadow-md relative group select-none">
+      <ImagenManual
+        fuentes="/manual/app_movil_acreditacion.png"
+        className="w-full object-cover object-top transition-transform duration-[2s] group-hover:scale-105"
+        alt="Validación de credenciales"
+        etiqueta="Acreditación"
+        descripcion="Vista de validación del grupo..."
+      />
+    </div>
+  )
+}
+
+// ==========================================
 // IMAGEN: PANTALLA INASISTENCIA
 // ==========================================
 function ScreenInasistencia() {
