@@ -766,31 +766,32 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
 
     // Página 1: Índice
     (
-      <div className="space-y-3">
-        <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
+      <div className="space-y-2">
+        <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-1.5 uppercase tracking-wide">
           <List size={16} className="text-[#0056b3]" /> Índice General
         </h3>
-        <p className="text-[10px] text-slate-500 italic">
+        <p className="text-[9.5px] text-slate-500 italic">
           Hacé clic en cualquier sección para saltar directamente a la página:
         </p>
-        <div className="grid grid-cols-1 gap-1.5 pt-1">
+        <div className="grid grid-cols-1 gap-1 pt-1">
           {[
             { t: '1. Acceso y Canales de Inicio', p: 2 },
             { t: '2. Operación Diaria y Ceremonia Activa', p: 2 },
             { t: '3. Carga de Padrón desde Excel', p: 3 },
             { t: '4. Despacho Masivo de Invitaciones', p: 4 },
-            { t: '5. Autogestión del Egresado (OTP)', p: 4 },
-            { t: '6. Asignación de Butacas y Aforo', p: 5 },
-            { t: '7. Alertas de Movilidad Reducida', p: 5 },
-            { t: '8. Configuración de Cuentas de Portería', p: 6 },
-            { t: '9. Protocolo de Acreditación QR', p: 7 },
-            { t: '10. Acreditación de Emergencia (Manual)', p: 8 },
-            { t: '11. Centro de Control y Backups', p: 9 },
+            { t: '5. Autogestión del Egresado (OTP)', p: 5 },
+            { t: '6. Asignación de Butacas y Aforo', p: 6 },
+            { t: '7. Configuración de Cuentas de Portería', p: 7 },
+            { t: '8. Dashboard de la App Móvil', p: 8 },
+            { t: '9. Acreditación de Invitados (Validación)', p: 9 },
+            { t: '10. Protocolo de Acreditación QR', p: 10 },
+            { t: '11. Acreditación de Emergencia (Manual)', p: 11 },
+            { t: '12. Centro de Control y Backups', p: 12 },
           ].map((item, idx) => (
             <button 
               key={idx}
               onClick={() => irAPagina(item.p)}
-              className="w-full text-left flex justify-between items-center text-[10px] font-bold text-slate-600 hover:text-[#0056b3] p-1.5 rounded-lg hover:bg-slate-50 transition active:scale-98 border border-transparent hover:border-slate-100 cursor-pointer"
+              className="w-full text-left flex justify-between items-center text-[9.5px] font-bold text-slate-600 hover:text-[#0056b3] p-1 rounded-lg hover:bg-slate-50 transition active:scale-98 border border-transparent hover:border-slate-100 cursor-pointer"
             >
               <span>{item.t}</span>
               <span className="font-mono text-[#0056b3]">Pág. {item.p}</span>
