@@ -1235,11 +1235,11 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
         </div>
         <div>
           <h4 className="font-black text-slate-800 text-base">SiGIC V2</h4>
-          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Ecosistema Cloud Serverless</p>
+          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Proyecto Final - Colaciones</p>
         </div>
         <div className="h-[1.5px] w-20 bg-gradient-to-r from-transparent via-sky-500/30 to-transparent" />
         <p className="text-[9px] text-slate-400 leading-normal max-w-[200px] font-bold uppercase tracking-wider">
-          Desarrollado para la gestión académica institucional del ITB.
+          Desarrollado para la gestión de actos de graduación del ITB.
         </p>
         <div className="flex items-center gap-1.5 text-[9.5px] text-sky-500 font-bold">
           <span>Hecho con</span> <Heart size={11} className="fill-sky-500 text-sky-500 animate-pulse" /> <span>por alumnos de PP</span>
