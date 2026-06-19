@@ -1,13 +1,19 @@
 import { useState, useEffect, useRef } from 'react'
 import { Settings, Users, GraduationCap, BookOpen, ChevronRight, Info } from 'lucide-react'
 
-export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresado, onSeleccionarManual, enMantenimiento }) {
+export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresado, onSeleccionarManual, enMantenimiento, accesoOculto }) {
   const [clickCount, setClickCount] = useState(0)
   const [snapActivo, setSnapActivo] = useState(false)
   const [revelado, setRevelado] = useState(false)
   const [mostrarInfo, setMostrarInfo] = useState(false)
   const [fraseTooltip, setFraseTooltip] = useState('SiGIC')
   const canvasRef = useRef(null)
+
+  useEffect(() => {
+    if (accesoOculto === false) {
+      setRevelado(true)
+    }
+  }, [accesoOculto])
 
   useEffect(() => {
     const frases = [

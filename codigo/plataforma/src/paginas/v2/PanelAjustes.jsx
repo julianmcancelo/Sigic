@@ -153,6 +153,7 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
             <div className="grid gap-3.5">
               {renderFila('max_invitados', 'Cupo de Invitados', <Users size={18} />, 'Cantidad de acompañantes permitidos por cada egresado.')}
               {renderFila('modo_mantenimiento', 'Mantenimiento', <Shield size={18} />, 'Activa "true" para bloquear el acceso público al sistema.')}
+              {renderFila('acceso_oculto_egresado', 'Acceso Oculto Egresados', <Shield size={18} />, 'Activa "true" para requerir 5 clicks en el logo para entrar al portal.')}
             </div>
           </section>
 

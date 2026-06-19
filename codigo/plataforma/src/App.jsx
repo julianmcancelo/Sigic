@@ -334,7 +334,7 @@ function App() {
     localStorage.removeItem('sesion_admin')
     localStorage.removeItem('admin_user')
     limpiarTokenSesion()
-    setPantallaAdmin('bienvenida')
+    window.location.href = '/'
   }
 
   // ─── 5. LÓGICA DE GRADUADO ───
