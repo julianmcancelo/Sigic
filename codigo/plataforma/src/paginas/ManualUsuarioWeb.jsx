@@ -1208,7 +1208,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
           <div className="bg-slate-50 border border-slate-100 rounded-lg p-2">
             <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 block mb-1">Backups y Exportación</span>
             <p className="text-[9px] text-slate-500 m-0 leading-snug">
-              La cuenta <code className="bg-white px-0.5 border border-slate-200 rounded text-[8px]">soporte@sigic.com.ar</code> puede descargar volcados completos de la base de datos en JSON desde el Centro de Control.
+              La cuenta <code className="bg-white px-0.5 border border-slate-200 rounded text-[8px]">soporte@ibeltran.com.ar</code> puede descargar volcados completos de la base de datos en JSON desde el Centro de Control.
             </p>
           </div>
           <div className="bg-slate-50 border border-slate-100 rounded-lg p-2">

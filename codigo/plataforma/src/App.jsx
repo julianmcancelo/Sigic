@@ -9,7 +9,7 @@
  * 3. Si rechaza → Inhabilitado, se cierra sesión automáticamente
  */
 import { useState, useEffect, useRef } from 'react'
-import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, RefreshCw, Shield, Server } from 'lucide-react'
+import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, RefreshCw, Shield, Server, Search, Power, Bell, Wifi, Volume2, ChevronUp, LayoutGrid, X, Minus, Maximize2, Sun, Moon, MousePointer2 } from 'lucide-react'
 
 // Importación de Páginas
 import { PaginaInicioSesion } from './paginas/PaginaInicioSesion'
@@ -40,6 +40,12 @@ import { PantallaCargaInicial } from './componentes/PantallaCargaInicial'
 // Servicios
 import { validarToken, obtenerCeremoniaActiva, obtenerEstadoSetup, responderInvitacion, limpiarTokenSesion, obtenerAjustes, actualizarAjuste } from './servicios/api'
 
+function normalizarCorreoInstitucional(correo) {
+  return typeof correo === 'string'
+    ? correo.replace(/@beltran\.edu\.ar$/i, '@ibeltran.com.ar')
+    : correo
+}
+
 function App() {
   // ─── 0. DETECCIÓN DE CONTEXTO (URL) ───
   const [tokenURL, setTokenURL] = useState(
@@ -54,7 +60,15 @@ function App() {
     () => localStorage.getItem('sesion_admin') === 'true',
   )
   const [adminUser, setAdminUser] = useState(
-    () => JSON.parse(localStorage.getItem('admin_user') || 'null') ?? { nombre: '', correo: '' },
+    () => {
+      const usuario = JSON.parse(localStorage.getItem('admin_user') || 'null')
+      if (usuario?.correo) {
+        const actualizado = { ...usuario, correo: normalizarCorreoInstitucional(usuario.correo) }
+        localStorage.setItem('admin_user', JSON.stringify(actualizado))
+        return actualizado
+      }
+      return usuario ?? { nombre: '', correo: '' }
+    },
   )
 
   // ─── 2. SESIÓN DE GRADUADO (OTP) ───
@@ -70,7 +84,7 @@ function App() {
     if (typeof window !== 'undefined') {
       try {
         const u = JSON.parse(localStorage.getItem('admin_user') || 'null');
-        if (u && u.correo && u.correo.toLowerCase() === 'soporte@sigic.com.ar') {
+        if (u && u.correo && u.correo.toLowerCase() === 'soporte@ibeltran.com.ar') {
           return 'centro-control';
         }
       } catch (e) {
@@ -365,20 +379,21 @@ function App() {
     setGraduadoActivo(false)
     setGraduadoUsuario(null)
 
-    setAdminUser(datos)
+    const datosNormalizados = { ...datos, correo: normalizarCorreoInstitucional(datos?.correo) }
+    setAdminUser(datosNormalizados)
     setAdminActivo(true)
     localStorage.setItem('sesion_admin', 'true')
-    localStorage.setItem('admin_user', JSON.stringify(datos))
+    localStorage.setItem('admin_user', JSON.stringify(datosNormalizados))
     
     // Si es una simulación del expositor (no hay token real guardado), guardamos el token de bypass correspondiente
     const tokenActual = localStorage.getItem('sigic_token')
     if (!tokenActual || tokenActual.startsWith('bypass-')) {
-      const tokenBypass = (datos && datos.correo && datos.correo.toLowerCase() === 'soporte@sigic.com.ar')
+    const tokenBypass = (datosNormalizados && datosNormalizados.correo && datosNormalizados.correo.toLowerCase() === 'soporte@ibeltran.com.ar')
         ? 'bypass-support-token'
         : 'bypass-admin-token'
       localStorage.setItem('sigic_token', tokenBypass)
     }
-    if (datos && datos.correo && datos.correo.toLowerCase() === 'soporte@sigic.com.ar') {
+    if (datosNormalizados && datosNormalizados.correo && datosNormalizados.correo.toLowerCase() === 'soporte@ibeltran.com.ar') {
       setPantallaAdmin('centro-control')
     } else {
       setPantallaAdmin('bienvenida')
@@ -470,14 +485,18 @@ function App() {
 
   // CASO 0: Cargando estado inicial
   if (cargandoSetup) {
-    if (mostrarPresentacionInicial) return <PantallaCargaInicial />
-
+    return <PantallaCargaInicial />
+    /*
     return (
-      <PaginaInicioSesion
-        onInicioSesionExitoso={manejarLoginAdminExitoso}
-        onVolver={() => setVistaLogin(null)}
+      <PantallaSeleccionLogin
+        enMantenimiento={enMantenimiento}
+        accesoOculto={accesoOculto}
+        onSeleccionarAdmin={() => setVistaLogin('admin')}
+        onSeleccionarEgresado={() => setVistaLogin('graduado')}
+        onSeleccionarManual={() => setVistaLogin('manual')}
       />
     )
+    */
   }
 
   // CASO 0.1: Sistema Virgen (Requiere Asistente de Configuración)
@@ -507,8 +526,8 @@ function App() {
             {errorToken && errorToken.includes('inasistencia') && (
               <div className="mt-5 pt-4 border-t border-slate-100/80">
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Contacto de Soporte</p>
-                <a href="mailto:soporte@beltran.edu.ar" className="text-xs font-black text-[#0EA5E9] hover:underline">
-                  soporte@beltran.edu.ar
+                <a href="mailto:soporte@ibeltran.com.ar" className="text-xs font-black text-[#0EA5E9] hover:underline">
+                  soporte@ibeltran.com.ar
                 </a>
               </div>
             )}
@@ -640,7 +659,7 @@ function App() {
         />
       )
     } else if (pantallaAdmin === 'centro-control') {
-      if (adminUser?.correo?.toLowerCase() === 'soporte@sigic.com.ar') {
+      if (adminUser?.correo?.toLowerCase() === 'soporte@ibeltran.com.ar') {
         contenido = (
           <CentroControl
             usuario={adminUser}
@@ -718,7 +737,7 @@ function App() {
   }
 
   // CASO E.1: acceso administrativo directo, sin portada de bienvenida
-  else if (!mostrarPresentacionInicial) {
+  else if (false && !mostrarPresentacionInicial) {
     contenido = (
       <PaginaInicioSesion
         onInicioSesionExitoso={manejarLoginAdminExitoso}
@@ -739,19 +758,20 @@ function App() {
     )
   }
 
+  const contenidoDeEscritorio = adminActivo ? (
+    <EscritorioSIGIC
+      pantallaActual={pantallaAdmin}
+      onNavegar={setPantallaAdmin}
+      usuario={adminUser}
+      onCerrarSesion={cerrarSesionAdmin}
+    >
+      {contenido}
+    </EscritorioSIGIC>
+  ) : contenido
+
   return (
     <>
-      {contenido}
-
-      {adminActivo && (
-        <AdminDock
-          pantallaActual={pantallaAdmin}
-          onNavegar={setPantallaAdmin}
-          posicion={dockPosicion}
-          setPosicion={setDockPosicion}
-          usuario={adminUser}
-        />
-      )}
+      {contenidoDeEscritorio}
       
       {/* Herramienta para presentaciones (Modo Demo) */}
       <ControlExpositor 
@@ -765,9 +785,127 @@ function App() {
   )
 }
 
+function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerrarSesion }) {
+  const [inicioAbierto, setInicioAbierto] = useState(false)
+  const [hora, setHora] = useState(new Date())
+  const [tema, setTema] = useState(() => localStorage.getItem('sigic_tema') || 'oscuro')
+  const [menuContextual, setMenuContextual] = useState(null)
+  const [mostrarEquipo, setMostrarEquipo] = useState(false)
+  const [ventanasAbiertas, setVentanasAbiertas] = useState([])
+  const [ventanasMinimizadas, setVentanasMinimizadas] = useState([])
+  const [ventanaMaximizada, setVentanaMaximizada] = useState(false)
+  const [posicionVentana, setPosicionVentana] = useState({ x: 0, y: 0 })
+  const arrastreRef = useRef(null)
+  const accesos = [
+    { id: 'bienvenida', titulo: 'Inicio', icono: Home, color: 'bg-cyan-500' },
+    { id: 'gestion-graduados', titulo: 'Graduados', icono: Users, color: 'bg-emerald-500' },
+    { id: 'control-ingreso', titulo: 'Escáner', icono: ScanLine, color: 'bg-amber-500' },
+    { id: 'panel-reportes', titulo: 'Reportes', icono: BarChart3, color: 'bg-rose-500' },
+    { id: 'gestion-porteria', titulo: 'Seguridad', icono: Shield, color: 'bg-violet-500' },
+  ]
+  const aplicaciones = accesos.concat([
+    { id: 'gestion-profesores', titulo: 'Docentes', icono: GraduationCap, color: 'bg-indigo-500' },
+    { id: 'seleccion-asientos', titulo: 'Anfiteatro', icono: MapPin, color: 'bg-orange-500' },
+    { id: 'ajustes', titulo: 'Ajustes', icono: Settings, color: 'bg-slate-500' },
+    { id: 'gestion-ceremonias', titulo: 'Ceremonias', icono: Calendar, color: 'bg-blue-500' },
+  ])
+
+  useEffect(() => {
+    const intervalo = setInterval(() => setHora(new Date()), 1000)
+    return () => clearInterval(intervalo)
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem('sigic_tema', tema)
+  }, [tema])
+
+  useEffect(() => {
+    const mover = evento => {
+      if (!arrastreRef.current || ventanaMaximizada) return
+      const { inicioX, inicioY, posicionInicial } = arrastreRef.current
+      setPosicionVentana({ x: posicionInicial.x + evento.clientX - inicioX, y: posicionInicial.y + evento.clientY - inicioY })
+    }
+    const terminar = () => { arrastreRef.current = null }
+    window.addEventListener('pointermove', mover)
+    window.addEventListener('pointerup', terminar)
+    return () => { window.removeEventListener('pointermove', mover); window.removeEventListener('pointerup', terminar) }
+  }, [ventanaMaximizada])
+
+  const abrirVentana = (id) => {
+    if (!ventanasAbiertas.includes(id)) setVentanasAbiertas(ventanas => [...ventanas, id])
+    setVentanasMinimizadas(ventanas => ventanas.filter(item => item !== id))
+    onNavegar(id)
+    setPosicionVentana({ x: 0, y: 0 })
+    setVentanaMaximizada(false)
+    setInicioAbierto(false)
+  }
+
+  const iniciarArrastre = evento => {
+    if (evento.button !== 0 || ventanaMaximizada) return
+    arrastreRef.current = { inicioX: evento.clientX, inicioY: evento.clientY, posicionInicial: posicionVentana }
+  }
+
+  const cerrarVentana = (id) => {
+    const restantes = ventanasAbiertas.filter(item => item !== id)
+    setVentanasAbiertas(restantes)
+    setVentanasMinimizadas(ventanas => ventanas.filter(item => item !== id))
+    setVentanaMaximizada(false)
+    if (id === pantallaActual) onNavegar(restantes.at(-1) || 'bienvenida')
+  }
+
+  const alternarMinimizada = (id) => {
+    const estaMinimizada = ventanasMinimizadas.includes(id)
+    setVentanasMinimizadas(ventanas => estaMinimizada ? ventanas.filter(item => item !== id) : [...ventanas, id])
+    if (estaMinimizada) {
+      onNavegar(id)
+      return
+    }
+    const siguiente = ventanasAbiertas.find(item => item !== id && !ventanasMinimizadas.includes(item))
+    if (siguiente) onNavegar(siguiente)
+  }
+
+  const tituloVentana = aplicaciones.find(item => item.id === pantallaActual)?.titulo || 'Escritorio SIGIC'
+  const tipoVentana = ['control-ingreso', 'panel-reportes'].includes(pantallaActual) ? 'sigic-window-browser' : ['gestion-graduados', 'gestion-profesores', 'gestion-ceremonias'].includes(pantallaActual) ? 'sigic-window-explorer' : pantallaActual === 'gestion-porteria' ? 'sigic-window-secure' : 'sigic-window-default'
+  const direccionVentana = pantallaActual === 'control-ingreso' ? 'sigic://acreditaciones/ingresos' : pantallaActual === 'panel-reportes' ? 'sigic://informes/ceremonia-activa' : pantallaActual === 'gestion-porteria' ? 'sigic://seguridad/centro-de-control' : `sigic://aplicaciones/${pantallaActual}`
+  const cambiarTema = () => setTema(actual => actual === 'oscuro' ? 'claro' : 'oscuro')
+  const abrirMenuContextual = (evento) => {
+    evento.preventDefault()
+    setInicioAbierto(false)
+    setMenuContextual({ x: Math.min(evento.clientX, window.innerWidth - 230), y: Math.min(evento.clientY, window.innerHeight - 245) })
+  }
+
+  return (
+    <main className={`sigic-os-shell sigic-theme-${tema}`} onContextMenu={abrirMenuContextual} onClick={() => menuContextual && setMenuContextual(null)}>
+      <div className="sigic-os-grid" />
+      <div className="sigic-watermark" aria-hidden="true"><img src="/logo-oficial.png" alt="" /><span>SIGIC</span><small>Sistema Integral de Gestión Institucional</small></div>
+      <header className="sigic-os-topbar">
+        <div className="flex items-center gap-3">
+          <img src="/logo-oficial.png" alt="Logo de SIGIC" className="sigic-real-logo" />
+          <div><p className="sigic-brand">SIGIC</p><p className="sigic-subbrand">Sistema Integral de Gestión Institucional</p></div>
+        </div>
+        <div className="hidden items-center gap-5 text-white/60 md:flex"><span className="text-[10px] uppercase tracking-[.24em]">Sesión segura</span><div className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_12px_#34d399]" /></div>
+      </header>
+      <section className="sigic-os-workspace">
+        <div className="sigic-os-shortcuts">
+          {accesos.map(({ id, titulo, icono: Icono, color }) => <button key={id} onClick={() => abrirVentana(id)} className="sigic-desktop-icon"><span className={`${color} sigic-desktop-icon-art`}><Icono size={22} /></span><span>{titulo}</span></button>)}
+        </div>
+        <div style={!ventanaMaximizada ? { transform: `translate(${posicionVentana.x}px, ${posicionVentana.y}px)` } : undefined} className={`sigic-window ${tipoVentana} ${pantallaActual === 'bienvenida' ? 'sigic-window-welcome' : ''} ${ventanaMaximizada ? 'sigic-window-maximized' : ''} ${ventanasMinimizadas.includes(pantallaActual) ? 'sigic-window-hidden' : ''}`}>
+          <div className="sigic-window-bar" onPointerDown={iniciarArrastre} onDoubleClick={() => setVentanaMaximizada(value => !value)}><div className="sigic-window-heading"><div className="sigic-window-app-icon"><span className="sigic-window-app-dot" /></div><span className="sigic-window-title">{tituloVentana}</span><span className="sigic-window-caption">{tipoVentana === 'sigic-window-browser' ? 'Pestaña activa' : tipoVentana === 'sigic-window-explorer' ? 'Explorador SIGIC' : 'Ventana independiente'}</span></div>{tipoVentana === 'sigic-window-browser' && <div className="sigic-address-bar"><span>🔒</span>{direccionVentana}</div>}<div className="sigic-window-controls"><button type="button" onPointerDown={evento => evento.stopPropagation()} onClick={evento => { evento.stopPropagation(); alternarMinimizada(pantallaActual) }} aria-label="Minimizar ventana" title="Minimizar"><Minus size={14} /></button><button type="button" onPointerDown={evento => evento.stopPropagation()} onClick={evento => { evento.stopPropagation(); setVentanaMaximizada(value => !value) }} aria-label="Maximizar ventana" title={ventanaMaximizada ? 'Restaurar' : 'Maximizar'}><Maximize2 size={13} /></button><button type="button" onPointerDown={evento => evento.stopPropagation()} onClick={evento => { evento.stopPropagation(); cerrarVentana(pantallaActual) }} aria-label="Cerrar ventana" title="Cerrar"><X size={14} /></button></div></div><div className="sigic-window-body">{children}</div>
+        </div>
+        {ventanasAbiertas.filter(id => id !== pantallaActual && !ventanasMinimizadas.includes(id)).map(id => <button key={id} onClick={() => abrirVentana(id)} className="sigic-background-window"><span className="sigic-window-app-dot" />{aplicaciones.find(item => item.id === id)?.titulo || id}<span>Activar ventana</span></button>)}
+        <aside className="sigic-session-card"><div className="sigic-session-avatar">{(usuario?.nombre || 'A').slice(0, 1).toUpperCase()}</div><div><strong>{usuario?.nombre || 'Administrador'}</strong><span>{normalizarCorreoInstitucional(usuario?.correo) || 'Sesión administrativa'}</span></div><span className="sigic-session-state">En línea</span></aside>
+      </section>
+      {inicioAbierto && <div className="sigic-start-menu"><div className="sigic-start-header"><div className="sigic-user-avatar">{(usuario?.nombre || 'A').slice(0, 1).toUpperCase()}</div><div><p className="text-sm font-bold text-white">{usuario?.nombre || 'Administrador'}</p><p className="text-[10px] text-white/45">Administrador de SIGIC</p></div><button onClick={onCerrarSesion} className="ml-auto rounded-lg p-2 text-white/45 hover:bg-white/10 hover:text-white" aria-label="Cerrar sesión"><Power size={16} /></button></div><div className="sigic-start-search"><Search size={15} /><input placeholder="Buscar en SIGIC" /></div><p className="sigic-start-label">Aplicaciones disponibles</p><div className="grid grid-cols-3 gap-2">{aplicaciones.map(({ id, titulo, icono: Icono, color }) => <button key={id} onClick={() => abrirVentana(id)} className="sigic-start-app"><span className={`${color} sigic-start-app-icon`}><Icono size={16} /></span><span>{titulo}</span></button>)}</div></div>}
+      <footer className="sigic-taskbar"><button onClick={() => setInicioAbierto(value => !value)} className={`sigic-start-button ${inicioAbierto ? 'is-active' : ''}`} aria-label="Abrir menú principal"><img src="/logo-oficial.png" alt="" className="sigic-task-logo" /><span>Menú principal</span></button><div className="sigic-task-divider" /><button onClick={() => abrirVentana('bienvenida')} className="sigic-task-app"><img src="/logo-oficial.png" alt="" className="sigic-task-logo" /><span>Escritorio SIGIC</span></button><div className="sigic-open-tasks">{ventanasAbiertas.map(id => <button key={id} onClick={() => alternarMinimizada(id)} className={`sigic-open-task ${id === pantallaActual && !ventanasMinimizadas.includes(id) ? 'is-current' : ''}`}><span className="sigic-task-dot" />{aplicaciones.find(item => item.id === id)?.titulo || 'SIGIC'}</button>)}</div><div className="ml-auto flex items-center gap-3 text-white/65"><button onClick={cambiarTema} className="sigic-theme-button" aria-label={`Cambiar a modo ${tema === 'oscuro' ? 'claro' : 'oscuro'}`}>{tema === 'oscuro' ? <Sun size={15} /> : <Moon size={15} />}</button><Bell size={15} /><Wifi size={15} /><Volume2 size={15} /><div className="sigic-clock"><strong>{hora.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}</strong><span>{hora.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span></div><ChevronUp size={15} /></div></footer>
+      {menuContextual && <div className="sigic-context-menu" style={{ left: menuContextual.x, top: menuContextual.y }} onClick={evento => evento.stopPropagation()}><p className="sigic-context-title"><MousePointer2 size={13} /> Acciones del escritorio</p><button onClick={() => abrirVentana('bienvenida')}><LayoutGrid size={14} /> Abrir escritorio SIGIC</button><button onClick={cambiarTema}>{tema === 'oscuro' ? <Sun size={14} /> : <Moon size={14} />} Cambiar a modo {tema === 'oscuro' ? 'claro' : 'oscuro'}</button><button onClick={() => setInicioAbierto(true)}><Search size={14} /> Buscar una aplicación</button><button onClick={() => setMostrarEquipo(true)}><Users size={14} /> Conocer al equipo</button><div className="sigic-context-separator" /><button onClick={() => window.location.reload()}><RefreshCw size={14} /> Actualizar escritorio</button></div>}
+      {mostrarEquipo && <div className="sigic-team-overlay" onClick={() => setMostrarEquipo(false)}><section className="sigic-team-card" onClick={evento => evento.stopPropagation()}><button className="sigic-team-close" onClick={() => setMostrarEquipo(false)} aria-label="Cerrar"><X size={16} /></button><img src="/logo-oficial.png" alt="Logo de SIGIC" className="sigic-team-logo" /><p className="sigic-team-kicker">Easter egg de SIGIC</p><h2>El equipo detrás del sistema</h2><p className="sigic-team-copy">Desarrollado en el marco de las Prácticas Profesionalizantes del Instituto Tecnológico Beltrán.</p><div className="sigic-team-grid">{['Cancelo Julian', 'Alfonso Alan Alexis', 'Contreras V. Sol', 'Frassia Matias', 'Santillan Luis G.'].map((nombre, indice) => <div key={nombre} className="sigic-team-person"><span>{String(indice + 1).padStart(2, '0')}</span><strong>{nombre}</strong></div>)}</div><a className="sigic-team-contact" href="mailto:soporte@ibeltran.com.ar">soporte@ibeltran.com.ar</a><small>Proyecto SIGIC · 2026</small></section></div>}
+    </main>
+  )
+}
+
 // ─── COMPONENTE NAV DOCKER ADMINISTRATIVO PERSISTENTE ───
 function AdminDock({ pantallaActual, onNavegar, posicion, setPosicion, usuario }) {
-  const esSoporte = usuario?.correo && usuario.correo.toLowerCase() === 'soporte@sigic.com.ar'
+  const esSoporte = usuario?.correo && usuario.correo.toLowerCase() === 'soporte@ibeltran.com.ar'
 
   const items = [
     { id: 'bienvenida', titulo: 'Inicio', icono: Home },

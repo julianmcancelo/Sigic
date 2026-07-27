@@ -293,14 +293,19 @@ export async function actualizarAjuste(clave: string, valor: string | number | b
 
 export async function obtenerCeremonias() {
   const res = await fetch(`${BASE_CLASSIC}/ceremonias`, { headers: cabeceras() });
-  if (!res.ok) throw new Error('No se pudieron cargar las ceremonias');
+  // El escritorio puede abrirse aunque la base esté temporalmente fuera de línea.
+  // El módulo mostrará estado vacío y permitirá reintentar sin romper la sesión.
+  if (!res.ok) {
+    if (res.status === 404 || res.status === 500 || res.status === 503) return [];
+    throw new Error('No se pudieron cargar las ceremonias');
+  }
   return res.json();
 }
 
 export async function obtenerCeremoniaActiva() {
   const res = await fetch(`${BASE_CLASSIC}/ceremonias/activa`, { headers: cabeceras() });
   if (!res.ok) {
-    if (res.status === 404) return null;
+    if (res.status === 404 || res.status === 500 || res.status === 503) return null;
     throw new Error('Error al obtener la ceremonia activa');
   }
   return res.json();

@@ -108,7 +108,7 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
   const dia = fechaActual.getDate()
   const mes = meses[fechaActual.getMonth()]
   const textoFecha = `${diaSemana}, ${dia} ${mes}`.toUpperCase()
-  const esSoporte = usuario?.correo && usuario.correo.toLowerCase() === 'soporte@sigic.com.ar'
+  const esSoporte = usuario?.correo && usuario.correo.toLowerCase() === 'soporte@ibeltran.com.ar'
 
   const [stats, setStats] = useState(null)
   const [graduados, setGraduados] = useState([])

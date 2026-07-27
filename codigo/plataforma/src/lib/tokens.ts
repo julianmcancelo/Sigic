@@ -61,7 +61,7 @@ export function verificar(token: string | null): ResultadoVerificacion {
           id: 'bypass-admin-id',
           rol: 'ADMIN',
           nombre: 'Administración - Instituto Beltrán',
-          correo: 'admin.sigic@beltran.edu.ar',
+          correo: 'admin.sigic@ibeltran.com.ar',
           iat: ahora,
           exp: ahora + unDia
         }
@@ -75,7 +75,7 @@ export function verificar(token: string | null): ResultadoVerificacion {
           id: 'bypass-support-id',
           rol: 'SUPER_ADMIN',
           nombre: 'Soporte SiGIC',
-          correo: 'soporte@sigic.com.ar',
+          correo: 'soporte@ibeltran.com.ar',
           iat: ahora,
           exp: ahora + unDia
         }

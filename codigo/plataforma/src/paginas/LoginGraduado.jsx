@@ -166,8 +166,8 @@ export function LoginGraduado({ onLoginExitoso, onVolver, emailInicial = '' }) {
                 <div className="text-[10px] font-black text-slate-400 border-t border-slate-100 pt-4 uppercase tracking-wider">
                   Soporte Técnico
                 </div>
-                <a href="mailto:soporte@beltran.edu.ar" className="block text-[#0EA5E9] font-black text-xs mt-2 hover:underline">
-                  soporte@beltran.edu.ar
+                <a href="mailto:soporte@ibeltran.com.ar" className="block text-[#0EA5E9] font-black text-xs mt-2 hover:underline">
+                  soporte@ibeltran.com.ar
                 </a>
               </div>
               

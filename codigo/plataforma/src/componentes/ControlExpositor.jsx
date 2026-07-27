@@ -10,7 +10,7 @@ export function ControlExpositor({ onSimularAdmin, onSimularEgresado, onLimpiar,
 
   const mockAdmin = { 
     nombre: 'Administración - Instituto Beltrán', 
-    correo: 'admin.sigic@beltran.edu.ar' 
+    correo: 'admin.sigic@ibeltran.com.ar' 
   }
 
   const mockEgresado = { 
@@ -55,7 +55,7 @@ export function ControlExpositor({ onSimularAdmin, onSimularEgresado, onLimpiar,
 
             <button
               onClick={() => { 
-                onSimularAdmin({ nombre: 'Soporte SiGIC', correo: 'soporte@sigic.com.ar' }); 
+                onSimularAdmin({ nombre: 'Soporte SiGIC', correo: 'soporte@ibeltran.com.ar' }); 
                 setAbierto(false); 
               }}
               className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors hover:bg-purple-50 group"

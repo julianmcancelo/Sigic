@@ -213,7 +213,7 @@ export async function GET(
     // -------------------------------------------------------------
     if (path === 'setup/export') {
       const auth = obtenerUsuarioAutenticado(req);
-      if (!auth.valido || auth.datos?.email?.toLowerCase() !== 'soporte@sigic.com.ar') {
+      if (!auth.valido || auth.datos?.email?.toLowerCase() !== 'soporte@ibeltran.com.ar') {
         return NextResponse.json({ error: 'No autorizado. Solo la cuenta de soporte puede exportar la base de datos.' }, { status: 403, headers });
       }
 
@@ -835,7 +835,7 @@ export async function POST(
     // -------------------------------------------------------------
     if (path === 'setup/reset') {
       const auth = obtenerUsuarioAutenticado(req);
-      if (!auth.valido || auth.datos?.email?.toLowerCase() !== 'soporte@sigic.com.ar') {
+      if (!auth.valido || auth.datos?.email?.toLowerCase() !== 'soporte@ibeltran.com.ar') {
         return NextResponse.json(
           { error: 'No autorizado. Solo la cuenta de soporte puede resetear el sistema.' },
           { status: 403, headers }

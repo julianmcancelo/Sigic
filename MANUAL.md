@@ -210,7 +210,7 @@ El Sistema de Gestión Integral de Credenciales y Ceremonias (SiGIC) representa 
 ## 12. SOPORTE TÉCNICO E INSTITUCIONAL
 Ante cualquier duda técnica o falla operativa de la infraestructura local o en la nube, comuníquese con el equipo técnico del Instituto Tecnológico Beltrán:
 
-*   **Bandeja de Correo Oficial:** `soporte.sigic@beltran.edu.ar`
+*   **Bandeja de Correo Oficial:** `soporte@ibeltran.com.ar`
 *   **Mesa de Ayuda de Sistemas:** Lunes a Viernes de 09:00 a 21:00 hs.
 *   **Soporte de Guardia (Día del Acto):** Mesa de ayuda técnica física en el hall principal del evento.
 

@@ -43,6 +43,27 @@ function useContador(destino, duracion = 800) {
   return valor
 }
 
+function BienvenidaInstitucional({ usuario, onNavegar, onCerrarSesion }) {
+  const accesos = [
+    { id: 'gestion-ceremonias', icono: Calendar, titulo: 'Ceremonias', texto: 'Organizá fechas, sedes y el evento activo.' },
+    { id: 'gestion-graduados', icono: GraduationCap, titulo: 'Graduados', texto: 'Administrá las personas que participan.' },
+    { id: 'control-ingreso', icono: ScanLine, titulo: 'Ingresos', texto: 'Acreditá invitados de forma rápida y segura.' },
+    { id: 'panel-reportes', icono: TrendingUp, titulo: 'Reportes', texto: 'Consultá el estado general del evento.' },
+  ]
+  return (
+    <div className="min-h-full bg-[#f5f8fa] text-slate-800">
+      <div className="border-b border-slate-200 bg-white px-6 py-4 sm:px-8"><div className="flex items-center justify-between"><div className="flex items-center gap-3"><img src="/logo-oficial.png" alt="Logo de SIGIC" className="h-10 w-10 rounded-xl object-cover" /><div><p className="text-[10px] font-black uppercase tracking-[.22em] text-sky-600">Espacio de trabajo</p><h1 className="text-lg font-black text-slate-800">Bienvenido a SIGIC</h1></div></div><button onClick={onCerrarSesion} className="rounded-lg px-3 py-2 text-[10px] font-bold text-slate-400 hover:bg-slate-100 hover:text-slate-700">Cerrar sesión</button></div></div>
+      <main className="mx-auto max-w-5xl px-6 py-8 sm:px-10">
+        <section className="relative overflow-hidden rounded-[30px] bg-gradient-to-br from-[#0d1b2e] via-[#17415f] to-[#0c273c] p-7 text-white shadow-xl shadow-slate-900/10 sm:p-10"><div className="absolute -right-24 -top-24 h-72 w-72 rounded-full bg-cyan-400/15 blur-3xl" /><div className="relative max-w-3xl"><p className="text-[10px] font-black uppercase tracking-[.25em] text-cyan-300">Sistema Integral de Gestión Institucional</p><h2 className="mt-3 text-3xl font-black tracking-tight sm:text-5xl">Todo lo importante de una ceremonia, en un solo lugar.</h2><p className="mt-5 max-w-2xl text-sm leading-7 text-white/70">SIGIC fue pensado para acompañar a las instituciones antes, durante y después de cada ceremonia de colación. Centraliza la información, ordena las tareas y ayuda a que cada persona encuentre lo que necesita en el momento correcto.</p><div className="mt-7 flex flex-wrap gap-2 text-[10px] font-bold"><span className="rounded-full border border-cyan-200/20 bg-cyan-200/10 px-3 py-2 text-cyan-100">Información ordenada</span><span className="rounded-full border border-cyan-200/20 bg-cyan-200/10 px-3 py-2 text-cyan-100">Accesos seguros</span><span className="rounded-full border border-cyan-200/20 bg-cyan-200/10 px-3 py-2 text-cyan-100">Trabajo colaborativo</span></div></div></section>
+        <section className="mt-8 grid gap-4 sm:grid-cols-3"><div className="rounded-2xl border border-slate-200 bg-white p-5"><span className="text-2xl font-black text-sky-500">01</span><h3 className="mt-3 font-black text-slate-800">Prepará</h3><p className="mt-2 text-xs leading-5 text-slate-500">Cargá la ceremonia, su fecha, sede, graduados e invitados.</p></div><div className="rounded-2xl border border-slate-200 bg-white p-5"><span className="text-2xl font-black text-emerald-500">02</span><h3 className="mt-3 font-black text-slate-800">Coordiná</h3><p className="mt-2 text-xs leading-5 text-slate-500">Organizá butacas, equipos, accesos y responsabilidades.</p></div><div className="rounded-2xl border border-slate-200 bg-white p-5"><span className="text-2xl font-black text-amber-500">03</span><h3 className="mt-3 font-black text-slate-800">Acompañá</h3><p className="mt-2 text-xs leading-5 text-slate-500">Controlá el ingreso y seguí el desarrollo del evento en vivo.</p></div></section>
+        <div className="mt-9 flex items-center justify-between"><div><p className="text-[10px] font-black uppercase tracking-[.2em] text-sky-600">Comenzá por acá</p><h3 className="mt-1 text-xl font-black text-slate-800">Herramientas de SIGIC</h3></div><span className="text-[10px] font-semibold text-slate-400">Sesión de {usuario?.nombre?.split(' ')?.[0] || 'administración'}</span></div>
+        <section className="mt-4 grid gap-3 sm:grid-cols-2">{accesos.map(({ id, icono: Icono, titulo, texto }) => <button key={id} onClick={() => onNavegar(id)} className="group flex items-start gap-4 rounded-2xl border border-slate-200 bg-white p-5 text-left transition hover:-translate-y-0.5 hover:border-sky-300 hover:shadow-lg hover:shadow-sky-100"><span className="rounded-xl bg-sky-50 p-3 text-sky-600 group-hover:bg-sky-500 group-hover:text-white"><Icono size={20} /></span><span><strong className="block text-sm font-black text-slate-800">{titulo}</strong><small className="mt-1 block text-xs leading-5 text-slate-500">{texto}</small></span><ChevronRight size={16} className="ml-auto mt-1 text-slate-300 group-hover:text-sky-500" /></button>)}</section>
+        <p className="mt-9 text-center text-[10px] font-semibold text-slate-400">Desarrollado para el Instituto Tecnológico Beltrán · SIGIC 2026</p>
+      </main>
+    </div>
+  )
+}
+
 // ─── Skeleton de carga para las stat cards ─────────────────────
 function SkeletonStat() {
   return (
@@ -328,6 +349,15 @@ function AccesoGrande({ icono: Icono, titulo, descripcion, pantalla, badge, dest
 // ════════════════════════════════════════════════════════════════
 // PANTALLA PRINCIPAL
 // ════════════════════════════════════════════════════════════════
+function BienvenidaBasica({ usuario, onCerrarSesion }) {
+  return (
+    <div className="min-h-full bg-[#f5f8fa] text-slate-800">
+      <header className="border-b border-slate-200 bg-white px-6 py-4"><div className="flex items-center justify-between"><div className="flex items-center gap-3"><img src="/logo-oficial.png" alt="Logo SIGIC" className="h-9 w-9 rounded-xl object-cover" /><div><p className="text-[9px] font-black uppercase tracking-[.2em] text-sky-600">Sistema Integral de Gestión Institucional</p><h1 className="text-lg font-black">Bienvenido a SIGIC</h1></div></div><span className="text-[10px] text-slate-400">{usuario?.nombre || 'Equipo de trabajo'}</span></div></header>
+      <main className="mx-auto max-w-4xl px-6 py-8 sm:px-10"><section className="rounded-[28px] bg-gradient-to-br from-[#0d1b2e] to-[#1b5471] p-8 text-white shadow-xl"><p className="text-[10px] font-black uppercase tracking-[.22em] text-cyan-300">Un lugar para trabajar mejor</p><h2 className="mt-3 max-w-2xl text-3xl font-black leading-tight sm:text-4xl">Organizar una ceremonia puede ser más simple.</h2><p className="mt-4 max-w-2xl text-sm leading-6 text-white/70">SIGIC reúne en un mismo espacio la información y las tareas que el equipo necesita para preparar, acompañar y cerrar cada ceremonia.</p></section><section className="mt-6 grid gap-3 sm:grid-cols-3"><article className="rounded-2xl border border-slate-200 bg-white p-5"><span className="text-2xl font-black text-sky-500">01</span><h3 className="mt-3 font-black">Preparar</h3><p className="mt-2 text-xs leading-5 text-slate-500">Cargar la ceremonia y dejar todo listo.</p></article><article className="rounded-2xl border border-slate-200 bg-white p-5"><span className="text-2xl font-black text-emerald-500">02</span><h3 className="mt-3 font-black">Acompañar</h3><p className="mt-2 text-xs leading-5 text-slate-500">Trabajar en equipo durante el evento.</p></article><article className="rounded-2xl border border-slate-200 bg-white p-5"><span className="text-2xl font-black text-amber-500">03</span><h3 className="mt-3 font-black">Resolver</h3><p className="mt-2 text-xs leading-5 text-slate-500">Tener la información a mano cuando hace falta.</p></article></section><p className="mt-8 text-center text-[10px] text-slate-400">Las herramientas están disponibles en los iconos del escritorio.</p><div className="mt-3 text-center"><button onClick={onCerrarSesion} className="text-[10px] font-bold text-slate-400 hover:text-sky-600">Cerrar sesión</button></div></main>
+    </div>
+  )
+}
+
 export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambiarVersion }) {
   const [fechaActual, setFechaActual]       = useState(() => new Date())
   const [temperatura, setTemperatura]       = useState(null)
@@ -442,7 +472,9 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
   const textoTemp = climaInfo?.temperatura !== undefined && climaInfo.temperatura !== null ? `${Math.round(climaInfo.temperatura)}°C` : '--'
 
 
-  const esSoporte = usuario?.correo && usuario.correo.toLowerCase() === 'soporte@sigic.com.ar'
+  const esSoporte = usuario?.correo && usuario.correo.toLowerCase() === 'soporte@ibeltran.com.ar'
+
+  return <BienvenidaBasica usuario={usuario} onCerrarSesion={onCerrarSesion} />
 
   // Accesos rápidos del panel
   const accesos = [
@@ -541,6 +573,25 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
       {/* ══ CONTENIDO ════════════════════════════════════════════ */}
       <main className="mx-auto max-w-7xl px-5 py-6 lg:px-8 pb-24">
         <div className="flex flex-col gap-6">
+
+          <section className="relative overflow-hidden rounded-[32px] border border-slate-200 bg-gradient-to-br from-[#0d1b2e] via-[#173654] to-[#0b2437] px-7 py-7 text-white shadow-xl shadow-slate-900/10">
+            <div className="absolute -right-16 -top-24 h-64 w-64 rounded-full bg-cyan-400/15 blur-3xl" />
+            <div className="relative flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+              <div className="flex items-start gap-4">
+                <img src="/logo-oficial.png" alt="Logo de SIGIC" className="h-14 w-14 rounded-2xl object-cover shadow-lg shadow-cyan-900/30" />
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-300">Bienvenido al espacio de trabajo</p>
+                  <h2 className="mt-1 text-2xl font-black tracking-tight md:text-3xl">Esto es SIGIC</h2>
+                  <p className="mt-2 max-w-2xl text-xs font-medium leading-relaxed text-white/65">El Sistema Integral de Gestión Institucional que organiza ceremonias de colación, graduados, invitados, acreditaciones, ubicaciones y accesos desde un único lugar.</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-center text-[9px] font-bold text-white/70">
+                <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-3"><span className="block text-lg font-black text-cyan-300">01</span>Planificar</div>
+                <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-3"><span className="block text-lg font-black text-cyan-300">02</span>Organizar</div>
+                <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-3"><span className="block text-lg font-black text-cyan-300">03</span>Controlar</div>
+              </div>
+            </div>
+          </section>
 
           {/* PRIMERA FILA BENTO: Saludo (3/4) + Clima y Reloj (1/4) */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
