@@ -1458,16 +1458,13 @@ export async function PUT(
       }
 
       const result = await query(
-        `UPDATE configuracion_sistema
-         SET valor = $1, actualizado_en = CURRENT_TIMESTAMP
-         WHERE clave = $2
+        `INSERT INTO configuracion_sistema (clave, valor, actualizado_en)
+         VALUES ($1, $2, CURRENT_TIMESTAMP)
+         ON CONFLICT (clave)
+         DO UPDATE SET valor = EXCLUDED.valor, actualizado_en = CURRENT_TIMESTAMP
          RETURNING *`,
-        [String(valor), clave]
+        [clave, String(valor)]
       );
-
-      if (result.rowCount === 0) {
-        return NextResponse.json({ error: `La clave "${clave}" no existe` }, { status: 404, headers });
-      }
 
       return NextResponse.json({ ok: true, ajuste: result.rows[0] }, { headers });
     }

@@ -31,9 +31,9 @@ button { cursor: pointer; }
 @keyframes sigic-menu-in { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
 
 /* Administrador de ventanas: cada módulo conserva su acceso en la barra de tareas. */
-.sigic-window { position: relative; z-index: 2; transition: all .2s ease; }
+.sigic-window { position: relative; z-index: 2; transform-origin: top center; transition: transform .18s ease, opacity .18s ease, box-shadow .18s ease, filter .18s ease; }
 .sigic-window-maximized { position: absolute; inset: 14px 28px 18px; height: auto; z-index: 3; }
-.sigic-window-hidden { display: none; }
+.sigic-window-closing { opacity: 0; transform: scale(.985) translateY(10px); pointer-events: none; filter: saturate(.8); }
 .sigic-window-caption { color: rgba(255,255,255,.3); font-size: 9px; margin-left: 8px; }
 .sigic-background-window { position: relative; z-index: 1; display: flex; align-items: center; gap: 10px; width: min(400px, 70vw); margin: 15px auto; padding: 13px 16px; border: 1px solid rgba(161, 229, 238, .17); border-radius: 9px; background: rgba(16, 42, 59, .78); color: rgba(255,255,255,.75); text-align: left; font-size: 11px; }
 .sigic-background-window span:last-child { margin-left: auto; color: rgba(255,255,255,.35); font-size: 9px; }
@@ -42,7 +42,10 @@ button { cursor: pointer; }
 .sigic-open-tasks { display: flex; gap: 5px; max-width: 42vw; overflow-x: auto; }
 .sigic-open-task { display: flex; align-items: center; gap: 6px; max-width: 130px; height: 31px; padding: 0 9px; overflow: hidden; border-radius: 6px; color: rgba(255,255,255,.55); font-size: 10px; white-space: nowrap; text-overflow: ellipsis; }
 .sigic-open-task:hover, .sigic-open-task.is-current { background: rgba(89, 217, 223, .14); color: white; }
-.sigic-task-dot { width: 5px; height: 5px; flex: 0 0 auto; border-radius: 50%; background: #59d9df; }
+.sigic-open-task.is-minimized { color: rgba(255,255,255,.38); }
+.sigic-open-task.is-minimized svg { opacity: .45; }
+.sigic-open-task svg, .sigic-task-app svg { flex: 0 0 auto; }
+.sigic-start-button { justify-content: center; width: 34px; padding: 0; }
 @media (max-width: 700px) { .sigic-os-topbar { padding: 0 16px; }.sigic-os-workspace { padding: 14px 12px; }.sigic-os-shortcuts { gap: 7px; overflow: auto; }.sigic-desktop-icon { min-width: 53px; font-size: 9px; }.sigic-desktop-icon-art { width: 36px; height: 36px; }.sigic-task-app span { display: none; }.sigic-start-menu { left: 10px; right: 10px; width: auto; }.sigic-taskbar { padding: 0 9px; gap: 5px; }.sigic-taskbar > .ml-auto { gap: 6px; }.sigic-taskbar > .ml-auto > svg { display: none; }.sigic-subbrand { display: none; } }
 @media (max-width: 700px) { .sigic-window-caption { display: none; }.sigic-open-tasks { max-width: 30vw; }.sigic-open-task { max-width: 30px; }.sigic-window-maximized { inset: 5px 12px 12px; } }
 
@@ -69,7 +72,7 @@ button { cursor: pointer; }
 .sigic-desktop-icon span:last-child { font-size: 11px; line-height: 1.15; }
 .sigic-window { height: calc(100% - 22px); margin-left: 96px; margin-top: 0; border-radius: 7px; box-shadow: 0 20px 50px rgba(0,0,0,.48); }
 .sigic-window-bar { height: 34px; background: rgba(15,23,42,.96); }
-.sigic-window-controls { display: flex; align-items: center; gap: 2px; }.sigic-window-controls button { display: grid; place-items: center; width: 28px; height: 24px; border-radius: 4px; color: rgba(255,255,255,.58); }.sigic-window-controls button:hover { background: rgba(255,255,255,.12); color: white; }.sigic-window-controls button:last-child:hover { background: #d94b5c; color: white; }
+.sigic-window-controls { display: flex; align-items: center; gap: 2px; }.sigic-window-controls button { display: grid; place-items: center; width: 28px; height: 24px; border-radius: 4px; color: rgba(255,255,255,.58); transition: transform .14s ease, background-color .14s ease, color .14s ease; }.sigic-window-controls button:hover { background: rgba(255,255,255,.12); color: white; transform: translateY(-1px); }.sigic-window-controls button:last-child:hover { background: #d94b5c; color: white; }
 .sigic-window-bar { cursor: grab; user-select: none; }.sigic-window-bar:active { cursor: grabbing; }.sigic-window-body { overscroll-behavior: contain; }
 .sigic-window-heading { display: flex; align-items: center; gap: 8px; min-width: 190px; }.sigic-window-app-icon { display: grid; place-items: center; width: 17px; height: 17px; border-radius: 5px; background: rgba(89,217,223,.15); }.sigic-window-browser .sigic-window-bar { flex-wrap: wrap; height: 62px; padding-top: 5px; background: #172337; }.sigic-window-browser .sigic-window-heading { height: 24px; }.sigic-window-browser .sigic-window-caption { display: none; }.sigic-window-browser .sigic-window-controls { margin-left: auto; }.sigic-address-bar { order: 3; width: calc(100% - 10px); height: 24px; display: flex; align-items: center; gap: 7px; padding: 0 9px; border: 1px solid rgba(255,255,255,.1); border-radius: 6px; background: rgba(255,255,255,.08); color: rgba(255,255,255,.55); font-family: monospace; font-size: 9px; }.sigic-window-browser .sigic-window-body { height: calc(100% - 62px); }.sigic-window-explorer .sigic-window-bar { background: linear-gradient(90deg, #163b58, #102a3b); }.sigic-window-explorer .sigic-window-app-icon { background: rgba(95,186,255,.25); }.sigic-window-secure .sigic-window-bar { background: linear-gradient(90deg, #17283a, #243c51); }.sigic-window-secure .sigic-window-app-icon { background: rgba(74,222,128,.2); }.sigic-window-secure .sigic-window-app-dot { background: #65e2a1; box-shadow: 0 0 8px #65e2a1; }
 .sigic-window-body { background: #f8fafc; }
@@ -87,6 +90,7 @@ button { cursor: pointer; }
 .sigic-theme-claro .sigic-desktop-icon:hover { background: rgba(25,80,100,.12); }
 .sigic-theme-claro .sigic-taskbar { background: rgba(239,247,250,.92); border-color: rgba(25,80,100,.16); }
 .sigic-theme-claro .sigic-start-button, .sigic-theme-claro .sigic-task-app, .sigic-theme-claro .sigic-open-task { color: #173044; }
+.sigic-theme-claro .sigic-open-task.is-minimized { color: rgba(23,48,68,.45); }
 @media (max-width: 700px) { .sigic-os-shortcuts { width: 64px; }.sigic-desktop-icon { width: 62px; min-width: 62px; }.sigic-desktop-icon-art { width: 34px; height: 34px; }.sigic-window { margin-left: 68px; }.sigic-session-card { display: none; } }
 
 /* Estilo para asientos ocupados */

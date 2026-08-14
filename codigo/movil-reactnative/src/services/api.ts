@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const DEFAULT_BASE_URL = 'http://localhost:3001/api';
+const DEFAULT_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://sigic-one.vercel.app/api';
 
 export async function getApiUrl(): Promise<string> {
   const url = await AsyncStorage.getItem('sigic_api_url');

@@ -9,6 +9,15 @@ import { obtenerAjustes, actualizarAjuste } from '../../servicios/api'
 const ACCENT = '#0EA5E9'
 const DARK   = '#2A3448'
 
+// modo_mantenimiento debe ser seguro por defecto: si nunca se configuró, el sistema no está bloqueado.
+const INTERRUPTORES_ACTIVOS_POR_DEFECTO = { modo_mantenimiento: false }
+
+function interruptorActivo(ajustes, clave) {
+  const valor = ajustes[clave]
+  if (valor === undefined) return INTERRUPTORES_ACTIVOS_POR_DEFECTO[clave] ?? true
+  return valor !== 'false'
+}
+
 export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, ceremoniaActiva, sinHeader }) {
   const [ajustes, setAjustes]         = useState({})
   const [cargando, setCargando]       = useState(true)
@@ -46,7 +55,7 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
   }
 
   async function handleInterruptor(clave) {
-    const anterior = ajustes[clave] !== 'false'
+    const anterior = interruptorActivo(ajustes, clave)
     const nuevo = !anterior
     setAjustes(prev => ({ ...prev, [clave]: String(nuevo) }))
     setGuardando(clave)
@@ -67,7 +76,7 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
   }
 
   const renderInterruptor = (clave, label, icono, descripcion) => {
-    const activo = ajustes[clave] !== 'false'
+    const activo = interruptorActivo(ajustes, clave)
     const estaGuardando = guardando === clave
     return (
       <div className="group bg-white rounded-2xl p-5 border border-slate-100 shadow-sm hover:border-sky-100 hover:shadow-md transition-all">

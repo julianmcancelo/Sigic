@@ -14,23 +14,23 @@ import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Cale
 // Importación de Páginas
 import { PaginaInicioSesion } from './paginas/PaginaInicioSesion'
 import { PantallaBienvenida } from './paginas/PantallaBienvenida'
-import { GestionGraduados } from './paginas/GestionGraduados'
 import { PanelGraduado } from './paginas/PanelGraduado'
 import { HistorialGraduado } from './paginas/HistorialGraduado'
-import { ControlIngreso } from './paginas/ControlIngreso'
 import { LoginGraduado } from './paginas/LoginGraduado'
 import { PantallaSeleccionLogin } from './paginas/PantallaSeleccionLogin'
-import { PanelAjustes } from './paginas/PanelAjustes'
-import { GestionCeremonias } from './paginas/GestionCeremonias'
-import { EditorAnfiteatro } from './paginas/EditorAnfiteatro'
 import { AsistenteSetup } from './paginas/AsistenteSetup'
 import { PantallaAceptacion } from './paginas/PantallaAceptacion'
-import { GestionProfesores } from './paginas/GestionProfesores'
 import { ManualUsuarioWeb } from './paginas/ManualUsuarioWeb'
 import { PantallaBienvenidaPro } from './paginas/v2/PantallaBienvenidaPro'
 import { PanelReportes } from './paginas/v2/PanelReportes'
 import { GestionPorteria } from './paginas/v2/GestionPorteria'
 import { CentroControl } from './paginas/v2/CentroControl'
+import { GestionGraduados } from './paginas/v2/GestionGraduados'
+import { ControlIngreso } from './paginas/v2/ControlIngreso'
+import { PanelAjustes } from './paginas/v2/PanelAjustes'
+import { GestionCeremonias } from './paginas/v2/GestionCeremonias'
+import { EditorAnfiteatro } from './paginas/v2/EditorAnfiteatro'
+import { GestionProfesores } from './paginas/v2/GestionProfesores'
 
 
 // Componentes Globales
@@ -793,22 +793,27 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
   const [mostrarEquipo, setMostrarEquipo] = useState(false)
   const [ventanasAbiertas, setVentanasAbiertas] = useState([])
   const [ventanasMinimizadas, setVentanasMinimizadas] = useState([])
+  const [ventanasCerrandose, setVentanasCerrandose] = useState([])
   const [ventanaMaximizada, setVentanaMaximizada] = useState(false)
   const [posicionVentana, setPosicionVentana] = useState({ x: 0, y: 0 })
   const arrastreRef = useRef(null)
-  const accesos = [
-    { id: 'bienvenida', titulo: 'Inicio', icono: Home, color: 'bg-cyan-500' },
-    { id: 'gestion-graduados', titulo: 'Graduados', icono: Users, color: 'bg-emerald-500' },
-    { id: 'control-ingreso', titulo: 'Escáner', icono: ScanLine, color: 'bg-amber-500' },
-    { id: 'panel-reportes', titulo: 'Reportes', icono: BarChart3, color: 'bg-rose-500' },
-    { id: 'gestion-porteria', titulo: 'Seguridad', icono: Shield, color: 'bg-violet-500' },
+  const inicioRef = useRef(null)
+  const inicioBotonRef = useRef(null)
+  const buscadorInicioRef = useRef(null)
+  const pantallaAnteriorRef = useRef(pantallaActual)
+  const esSuperAdmin = usuario?.rol === 'SUPER_ADMIN'
+  const aplicaciones = [
+    { id: 'bienvenida', titulo: 'Inicio', icono: Home, color: 'bg-cyan-500', escritorio: true },
+    { id: 'gestion-graduados', titulo: 'Graduados', icono: Users, color: 'bg-emerald-500', escritorio: true },
+    { id: 'control-ingreso', titulo: 'Escáner', icono: ScanLine, color: 'bg-amber-500', escritorio: true },
+    { id: 'panel-reportes', titulo: 'Reportes', icono: BarChart3, color: 'bg-rose-500', escritorio: true },
+    { id: 'gestion-porteria', titulo: 'Seguridad', icono: Shield, color: 'bg-violet-500', escritorio: true },
+    { id: 'gestion-ceremonias', titulo: 'Ceremonias', icono: Calendar, color: 'bg-blue-500', escritorio: esSuperAdmin },
+    { id: 'ajustes', titulo: 'Ajustes', icono: Settings, color: 'bg-slate-500', escritorio: esSuperAdmin },
+    { id: 'gestion-profesores', titulo: 'Docentes', icono: GraduationCap, color: 'bg-indigo-500', escritorio: false },
+    { id: 'seleccion-asientos', titulo: 'Anfiteatro', icono: MapPin, color: 'bg-orange-500', escritorio: false },
   ]
-  const aplicaciones = accesos.concat([
-    { id: 'gestion-profesores', titulo: 'Docentes', icono: GraduationCap, color: 'bg-indigo-500' },
-    { id: 'seleccion-asientos', titulo: 'Anfiteatro', icono: MapPin, color: 'bg-orange-500' },
-    { id: 'ajustes', titulo: 'Ajustes', icono: Settings, color: 'bg-slate-500' },
-    { id: 'gestion-ceremonias', titulo: 'Ceremonias', icono: Calendar, color: 'bg-blue-500' },
-  ])
+  const accesos = aplicaciones.filter(app => app.escritorio)
 
   useEffect(() => {
     const intervalo = setInterval(() => setHora(new Date()), 1000)
@@ -818,6 +823,19 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
   useEffect(() => {
     localStorage.setItem('sigic_tema', tema)
   }, [tema])
+
+  useEffect(() => {
+    const anterior = pantallaAnteriorRef.current
+    pantallaAnteriorRef.current = pantallaActual
+    if (!pantallaActual || pantallaActual === anterior) return
+    setVentanasAbiertas(ventanas => ventanas.includes(pantallaActual) ? ventanas : [...ventanas, pantallaActual])
+    setVentanasCerrandose(ventanas => ventanas.filter(item => item !== pantallaActual))
+  }, [pantallaActual])
+
+  useEffect(() => {
+    if (!inicioAbierto) return
+    buscadorInicioRef.current?.focus()
+  }, [inicioAbierto])
 
   useEffect(() => {
     const mover = evento => {
@@ -831,13 +849,50 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
     return () => { window.removeEventListener('pointermove', mover); window.removeEventListener('pointerup', terminar) }
   }, [ventanaMaximizada])
 
+  useEffect(() => {
+    const manejarClickGlobal = evento => {
+      if (!inicioAbierto) return
+      if (inicioRef.current?.contains(evento.target)) return
+      if (inicioBotonRef.current?.contains(evento.target)) return
+      setInicioAbierto(false)
+    }
+
+    const manejarEscape = evento => {
+      if (evento.key !== 'Escape') return
+      if (menuContextual) {
+        setMenuContextual(null)
+        return
+      }
+      if (mostrarEquipo) {
+        setMostrarEquipo(false)
+        return
+      }
+      if (inicioAbierto) {
+        setInicioAbierto(false)
+        return
+      }
+      if (pantallaActual && ventanasAbiertas.includes(pantallaActual) && !ventanasMinimizadas.includes(pantallaActual)) {
+        alternarMinimizada(pantallaActual)
+      }
+    }
+
+    document.addEventListener('pointerdown', manejarClickGlobal)
+    window.addEventListener('keydown', manejarEscape)
+    return () => {
+      document.removeEventListener('pointerdown', manejarClickGlobal)
+      window.removeEventListener('keydown', manejarEscape)
+    }
+  }, [inicioAbierto, menuContextual, mostrarEquipo, pantallaActual, ventanasAbiertas, ventanasMinimizadas])
+
   const abrirVentana = (id) => {
-    if (!ventanasAbiertas.includes(id)) setVentanasAbiertas(ventanas => [...ventanas, id])
+    setVentanasAbiertas(ventanas => ventanas.includes(id) ? ventanas : [...ventanas, id])
+    setVentanasCerrandose(ventanas => ventanas.filter(item => item !== id))
     setVentanasMinimizadas(ventanas => ventanas.filter(item => item !== id))
     onNavegar(id)
     setPosicionVentana({ x: 0, y: 0 })
     setVentanaMaximizada(false)
     setInicioAbierto(false)
+    setMenuContextual(null)
   }
 
   const iniciarArrastre = evento => {
@@ -846,22 +901,42 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
   }
 
   const cerrarVentana = (id) => {
+    if (!ventanasAbiertas.includes(id) || ventanasCerrandose.includes(id)) return
     const restantes = ventanasAbiertas.filter(item => item !== id)
-    setVentanasAbiertas(restantes)
+    setVentanasCerrandose(ventanas => [...ventanas, id])
     setVentanasMinimizadas(ventanas => ventanas.filter(item => item !== id))
     setVentanaMaximizada(false)
-    if (id === pantallaActual) onNavegar(restantes.at(-1) || 'bienvenida')
+    window.setTimeout(() => {
+      setVentanasAbiertas(ventanas => ventanas.filter(item => item !== id))
+      setVentanasCerrandose(ventanas => ventanas.filter(item => item !== id))
+      if (id === pantallaActual) {
+        const siguiente = restantes.at(-1)
+        if (siguiente) {
+          onNavegar(siguiente)
+        }
+      }
+    }, 180)
   }
 
   const alternarMinimizada = (id) => {
     const estaMinimizada = ventanasMinimizadas.includes(id)
-    setVentanasMinimizadas(ventanas => estaMinimizada ? ventanas.filter(item => item !== id) : [...ventanas, id])
     if (estaMinimizada) {
-      onNavegar(id)
+      setVentanasMinimizadas(ventanas => ventanas.filter(item => item !== id))
+      abrirVentana(id)
       return
     }
-    const siguiente = ventanasAbiertas.find(item => item !== id && !ventanasMinimizadas.includes(item))
+    setVentanasMinimizadas(ventanas => [...ventanas, id])
+    const siguiente = [...ventanasAbiertas].reverse().find(item => item !== id && !ventanasMinimizadas.includes(item))
     if (siguiente) onNavegar(siguiente)
+  }
+
+  const manejarClickTarea = (id) => {
+    const estaActiva = id === pantallaActual && !ventanasMinimizadas.includes(id)
+    if (estaActiva) {
+      alternarMinimizada(id)
+      return
+    }
+    abrirVentana(id)
   }
 
   const tituloVentana = aplicaciones.find(item => item.id === pantallaActual)?.titulo || 'Escritorio SIGIC'
@@ -889,14 +964,14 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
         <div className="sigic-os-shortcuts">
           {accesos.map(({ id, titulo, icono: Icono, color }) => <button key={id} onClick={() => abrirVentana(id)} className="sigic-desktop-icon"><span className={`${color} sigic-desktop-icon-art`}><Icono size={22} /></span><span>{titulo}</span></button>)}
         </div>
-        <div style={!ventanaMaximizada ? { transform: `translate(${posicionVentana.x}px, ${posicionVentana.y}px)` } : undefined} className={`sigic-window ${tipoVentana} ${pantallaActual === 'bienvenida' ? 'sigic-window-welcome' : ''} ${ventanaMaximizada ? 'sigic-window-maximized' : ''} ${ventanasMinimizadas.includes(pantallaActual) ? 'sigic-window-hidden' : ''}`}>
+        {ventanasAbiertas.includes(pantallaActual) && !ventanasMinimizadas.includes(pantallaActual) ? <div style={!ventanaMaximizada ? { transform: `translate(${posicionVentana.x}px, ${posicionVentana.y}px)` } : undefined} className={`sigic-window ${tipoVentana} ${pantallaActual === 'bienvenida' ? 'sigic-window-welcome' : ''} ${ventanaMaximizada ? 'sigic-window-maximized' : ''} ${ventanasCerrandose.includes(pantallaActual) ? 'sigic-window-closing' : ''}`}>
           <div className="sigic-window-bar" onPointerDown={iniciarArrastre} onDoubleClick={() => setVentanaMaximizada(value => !value)}><div className="sigic-window-heading"><div className="sigic-window-app-icon"><span className="sigic-window-app-dot" /></div><span className="sigic-window-title">{tituloVentana}</span><span className="sigic-window-caption">{tipoVentana === 'sigic-window-browser' ? 'Pestaña activa' : tipoVentana === 'sigic-window-explorer' ? 'Explorador SIGIC' : 'Ventana independiente'}</span></div>{tipoVentana === 'sigic-window-browser' && <div className="sigic-address-bar"><span>🔒</span>{direccionVentana}</div>}<div className="sigic-window-controls"><button type="button" onPointerDown={evento => evento.stopPropagation()} onClick={evento => { evento.stopPropagation(); alternarMinimizada(pantallaActual) }} aria-label="Minimizar ventana" title="Minimizar"><Minus size={14} /></button><button type="button" onPointerDown={evento => evento.stopPropagation()} onClick={evento => { evento.stopPropagation(); setVentanaMaximizada(value => !value) }} aria-label="Maximizar ventana" title={ventanaMaximizada ? 'Restaurar' : 'Maximizar'}><Maximize2 size={13} /></button><button type="button" onPointerDown={evento => evento.stopPropagation()} onClick={evento => { evento.stopPropagation(); cerrarVentana(pantallaActual) }} aria-label="Cerrar ventana" title="Cerrar"><X size={14} /></button></div></div><div className="sigic-window-body">{children}</div>
-        </div>
+        </div> : <div className="sigic-empty-desktop"><strong>Escritorio despejado</strong><span>Abrí una app desde los accesos o desde el menú principal.</span></div>}
         {ventanasAbiertas.filter(id => id !== pantallaActual && !ventanasMinimizadas.includes(id)).map(id => <button key={id} onClick={() => abrirVentana(id)} className="sigic-background-window"><span className="sigic-window-app-dot" />{aplicaciones.find(item => item.id === id)?.titulo || id}<span>Activar ventana</span></button>)}
         <aside className="sigic-session-card"><div className="sigic-session-avatar">{(usuario?.nombre || 'A').slice(0, 1).toUpperCase()}</div><div><strong>{usuario?.nombre || 'Administrador'}</strong><span>{normalizarCorreoInstitucional(usuario?.correo) || 'Sesión administrativa'}</span></div><span className="sigic-session-state">En línea</span></aside>
       </section>
-      {inicioAbierto && <div className="sigic-start-menu"><div className="sigic-start-header"><div className="sigic-user-avatar">{(usuario?.nombre || 'A').slice(0, 1).toUpperCase()}</div><div><p className="text-sm font-bold text-white">{usuario?.nombre || 'Administrador'}</p><p className="text-[10px] text-white/45">Administrador de SIGIC</p></div><button onClick={onCerrarSesion} className="ml-auto rounded-lg p-2 text-white/45 hover:bg-white/10 hover:text-white" aria-label="Cerrar sesión"><Power size={16} /></button></div><div className="sigic-start-search"><Search size={15} /><input placeholder="Buscar en SIGIC" /></div><p className="sigic-start-label">Aplicaciones disponibles</p><div className="grid grid-cols-3 gap-2">{aplicaciones.map(({ id, titulo, icono: Icono, color }) => <button key={id} onClick={() => abrirVentana(id)} className="sigic-start-app"><span className={`${color} sigic-start-app-icon`}><Icono size={16} /></span><span>{titulo}</span></button>)}</div></div>}
-      <footer className="sigic-taskbar"><button onClick={() => setInicioAbierto(value => !value)} className={`sigic-start-button ${inicioAbierto ? 'is-active' : ''}`} aria-label="Abrir menú principal"><img src="/logo-oficial.png" alt="" className="sigic-task-logo" /><span>Menú principal</span></button><div className="sigic-task-divider" /><button onClick={() => abrirVentana('bienvenida')} className="sigic-task-app"><img src="/logo-oficial.png" alt="" className="sigic-task-logo" /><span>Escritorio SIGIC</span></button><div className="sigic-open-tasks">{ventanasAbiertas.map(id => <button key={id} onClick={() => alternarMinimizada(id)} className={`sigic-open-task ${id === pantallaActual && !ventanasMinimizadas.includes(id) ? 'is-current' : ''}`}><span className="sigic-task-dot" />{aplicaciones.find(item => item.id === id)?.titulo || 'SIGIC'}</button>)}</div><div className="ml-auto flex items-center gap-3 text-white/65"><button onClick={cambiarTema} className="sigic-theme-button" aria-label={`Cambiar a modo ${tema === 'oscuro' ? 'claro' : 'oscuro'}`}>{tema === 'oscuro' ? <Sun size={15} /> : <Moon size={15} />}</button><Bell size={15} /><Wifi size={15} /><Volume2 size={15} /><div className="sigic-clock"><strong>{hora.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}</strong><span>{hora.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span></div><ChevronUp size={15} /></div></footer>
+      {inicioAbierto && <div ref={inicioRef} className="sigic-start-menu" role="dialog" aria-modal="false" aria-label="Menú principal de SIGIC"><div className="sigic-start-header"><div className="sigic-user-avatar">{(usuario?.nombre || 'A').slice(0, 1).toUpperCase()}</div><div><p className="text-sm font-bold text-white">{usuario?.nombre || 'Administrador'}</p><p className="text-[10px] text-white/45">Administrador de SIGIC</p></div><button onClick={onCerrarSesion} className="ml-auto rounded-lg p-2 text-white/45 hover:bg-white/10 hover:text-white" aria-label="Cerrar sesión"><Power size={16} /></button></div><div className="sigic-start-search"><Search size={15} /><input ref={buscadorInicioRef} placeholder="Buscar en SIGIC" /></div><p className="sigic-start-label">Aplicaciones disponibles</p><div className="grid grid-cols-3 gap-2">{aplicaciones.map(({ id, titulo, icono: Icono, color }) => <button key={id} onClick={() => abrirVentana(id)} className="sigic-start-app"><span className={`${color} sigic-start-app-icon`}><Icono size={16} /></span><span>{titulo}</span></button>)}</div></div>}
+      <footer className="sigic-taskbar"><button ref={inicioBotonRef} onClick={() => setInicioAbierto(value => !value)} className={`sigic-start-button ${inicioAbierto ? 'is-active' : ''}`} aria-label="Abrir menú principal" aria-expanded={inicioAbierto} title="Menú principal"><img src="/logo-oficial.png" alt="" className="sigic-task-logo" /></button><div className="sigic-task-divider" /><button onClick={() => abrirVentana('bienvenida')} className="sigic-task-app" title="Escritorio SIGIC"><Home size={15} /><span>Escritorio SIGIC</span></button><div className="sigic-open-tasks">{ventanasAbiertas.map(id => { const app = aplicaciones.find(item => item.id === id); const IconoTarea = app?.icono || LayoutGrid; return <button key={id} onClick={() => manejarClickTarea(id)} className={`sigic-open-task ${id === pantallaActual && !ventanasMinimizadas.includes(id) ? 'is-current' : ''} ${ventanasMinimizadas.includes(id) ? 'is-minimized' : ''}`} title={`${app?.titulo || 'SIGIC'}${ventanasMinimizadas.includes(id) ? ' (minimizada)' : ''}`}><IconoTarea size={13} />{app?.titulo || 'SIGIC'}</button> })}</div><div className="ml-auto flex items-center gap-3 text-white/65"><button onClick={cambiarTema} className="sigic-theme-button" aria-label={`Cambiar a modo ${tema === 'oscuro' ? 'claro' : 'oscuro'}`}>{tema === 'oscuro' ? <Sun size={15} /> : <Moon size={15} />}</button><Bell size={15} /><Wifi size={15} /><Volume2 size={15} /><div className="sigic-clock"><strong>{hora.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}</strong><span>{hora.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span></div><ChevronUp size={15} /></div></footer>
       {menuContextual && <div className="sigic-context-menu" style={{ left: menuContextual.x, top: menuContextual.y }} onClick={evento => evento.stopPropagation()}><p className="sigic-context-title"><MousePointer2 size={13} /> Acciones del escritorio</p><button onClick={() => abrirVentana('bienvenida')}><LayoutGrid size={14} /> Abrir escritorio SIGIC</button><button onClick={cambiarTema}>{tema === 'oscuro' ? <Sun size={14} /> : <Moon size={14} />} Cambiar a modo {tema === 'oscuro' ? 'claro' : 'oscuro'}</button><button onClick={() => setInicioAbierto(true)}><Search size={14} /> Buscar una aplicación</button><button onClick={() => setMostrarEquipo(true)}><Users size={14} /> Conocer al equipo</button><div className="sigic-context-separator" /><button onClick={() => window.location.reload()}><RefreshCw size={14} /> Actualizar escritorio</button></div>}
       {mostrarEquipo && <div className="sigic-team-overlay" onClick={() => setMostrarEquipo(false)}><section className="sigic-team-card" onClick={evento => evento.stopPropagation()}><button className="sigic-team-close" onClick={() => setMostrarEquipo(false)} aria-label="Cerrar"><X size={16} /></button><img src="/logo-oficial.png" alt="Logo de SIGIC" className="sigic-team-logo" /><p className="sigic-team-kicker">Easter egg de SIGIC</p><h2>El equipo detrás del sistema</h2><p className="sigic-team-copy">Desarrollado en el marco de las Prácticas Profesionalizantes del Instituto Tecnológico Beltrán.</p><div className="sigic-team-grid">{['Cancelo Julian', 'Alfonso Alan Alexis', 'Contreras V. Sol', 'Frassia Matias', 'Santillan Luis G.'].map((nombre, indice) => <div key={nombre} className="sigic-team-person"><span>{String(indice + 1).padStart(2, '0')}</span><strong>{nombre}</strong></div>)}</div><a className="sigic-team-contact" href="mailto:soporte@ibeltran.com.ar">soporte@ibeltran.com.ar</a><small>Proyecto SIGIC · 2026</small></section></div>}
     </main>
