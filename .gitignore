@@ -88,6 +88,11 @@ Thumbs.db
 !codigo/movil-reactnative/assets/images/*.jpg
 !codigo/movil-reactnative/assets/images/*.jpeg
 !codigo/movil-reactnative/assets/images/*.svg
+!codigo/movil_flutter/assets/
+!codigo/movil_flutter/assets/imagenes/*.png
+!codigo/movil_flutter/assets/imagenes/*.jpg
+!codigo/movil_flutter/assets/imagenes/*.jpeg
+!codigo/movil_flutter/assets/imagenes/*.svg
 
 
 # Limpieza Personalizada y Backups

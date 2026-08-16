@@ -1,40 +1,35 @@
 import { Image } from 'expo-image';
-import { useState } from 'react';
-import { Dimensions, StyleSheet, View } from 'react-native';
-import Animated, { Easing, Keyframe } from 'react-native-reanimated';
-import { scheduleOnRN } from 'react-native-worklets';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, Easing, StyleSheet, View } from 'react-native';
 
-const INITIAL_SCALE_FACTOR = Dimensions.get('screen').height / 90;
-const DURATION = 800;
+const DURATION = 700;
+const OVERLAY_DURATION = 2200;
 
 export function AnimatedSplashOverlay() {
   const [visible, setVisible] = useState(true);
+  const opacity = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      Animated.timing(opacity, {
+        toValue: 0,
+        duration: 350,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }).start(({ finished }) => {
+        if (finished) {
+          setVisible(false);
+        }
+      });
+    }, OVERLAY_DURATION);
+
+    return () => clearTimeout(timeout);
+  }, [opacity]);
 
   if (!visible) return null;
 
-  // Keyframe to display the logo and fade out the entire splash view
-  const fadeOutKeyframe = new Keyframe({
-    0: {
-      opacity: 1,
-    },
-    75: {
-      opacity: 1,
-    },
-    100: {
-      opacity: 0,
-    },
-  });
-
   return (
-    <Animated.View
-      entering={fadeOutKeyframe.duration(2600).withCallback((finished) => {
-        'worklet';
-        if (finished) {
-          scheduleOnRN(setVisible, false);
-        }
-      })}
-      style={styles.backgroundSolidColor}
-    >
+    <Animated.View style={[styles.backgroundSolidColor, { opacity }]}>
       <View style={styles.centerContainer}>
         <AnimatedIcon />
       </View>
@@ -42,52 +37,69 @@ export function AnimatedSplashOverlay() {
   );
 }
 
-const keyframe = new Keyframe({
-  0: {
-    transform: [{ scale: 0.2 }],
-    opacity: 0,
-  },
-  100: {
-    transform: [{ scale: 1 }],
-    opacity: 1,
-    easing: Easing.elastic(0.9),
-  },
-});
-
-const logoKeyframe = new Keyframe({
-  0: {
-    transform: [{ scale: 1.3 }],
-    opacity: 0,
-  },
-  40: {
-    transform: [{ scale: 1.3 }],
-    opacity: 0,
-  },
-  100: {
-    opacity: 1,
-    transform: [{ scale: 1 }],
-    easing: Easing.elastic(0.9),
-  },
-});
-
-const glowKeyframe = new Keyframe({
-  0: {
-    transform: [{ rotateZ: '0deg' }],
-  },
-  100: {
-    transform: [{ rotateZ: '7200deg' }],
-  },
-});
-
 export function AnimatedIcon() {
+  const scale = useRef(new Animated.Value(0.84)).current;
+  const iconOpacity = useRef(new Animated.Value(0)).current;
+  const glowRotation = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.timing(glowRotation, {
+        toValue: 1,
+        duration: 18000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    );
+
+    Animated.parallel([
+      Animated.timing(iconOpacity, {
+        toValue: 1,
+        duration: DURATION,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }),
+      Animated.spring(scale, {
+        toValue: 1,
+        friction: 7,
+        tension: 70,
+        useNativeDriver: true,
+      }),
+      loop,
+    ]).start();
+
+    return () => loop.stop();
+  }, [glowRotation, iconOpacity, scale]);
+
+  const spin = glowRotation.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
   return (
     <View style={styles.iconContainer}>
-      <Animated.View entering={glowKeyframe.duration(60 * 1000 * 4)} style={styles.glow}>
+      <Animated.View style={[styles.glow, { transform: [{ rotate: spin }] }]}>
         <Image style={styles.glow} source={require('../../assets/images/logo-glow.png')} />
       </Animated.View>
 
-      <Animated.View entering={keyframe.duration(DURATION)} style={styles.background} />
-      <Animated.View style={styles.imageContainer} entering={logoKeyframe.duration(DURATION)}>
+      <Animated.View
+        style={[
+          styles.background,
+          {
+            opacity: iconOpacity,
+            transform: [{ scale }],
+          },
+        ]}
+      />
+      <Animated.View
+        style={[
+          styles.imageContainer,
+          {
+            opacity: iconOpacity,
+            transform: [{ scale }],
+          },
+        ]}
+      >
         <Image style={styles.image} source={require('../../assets/images/logo-oficial.png')} contentFit="contain" />
       </Animated.View>
     </View>
@@ -134,7 +146,11 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   backgroundSolidColor: {
-    ...StyleSheet.absoluteFillObject,
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
     backgroundColor: '#0b0f19',
     zIndex: 1000,
   },

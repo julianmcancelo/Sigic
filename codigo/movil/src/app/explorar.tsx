@@ -26,7 +26,7 @@ import {
 } from '@/servicios/api';
 import { Colors, Spacing } from '@/constantes/tema';
 import { ModoTema, useTemaApp } from '@/contextos/tema-app';
-import { useIsFocused } from '@react-navigation/native';
+import { useIsFocused } from 'expo-router';
 
 export default function ExploreScreen() {
   const { modo, esquema, cambiarModo } = useTemaApp();

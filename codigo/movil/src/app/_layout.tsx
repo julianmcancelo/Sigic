@@ -1,4 +1,4 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
 import { AnimatedSplashOverlay } from '@/componentes/icono-animado';
 import AppTabs from '@/componentes/pestanas-app';
 import { TemaAppProvider, useTemaApp } from '@/contextos/tema-app';

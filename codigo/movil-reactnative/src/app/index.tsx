@@ -15,8 +15,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useIsFocused } from '@react-navigation/native';
-import { router } from 'expo-router';
+import { router, useIsFocused } from 'expo-router';
 import {
   getApiUrl,
   getToken,
@@ -451,7 +450,7 @@ export default function IndexScreen() {
       {viewState === 'scan' && (
         <View style={styles.cameraContainer}>
           <CameraView
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
             barcodeScannerSettings={{
               barcodeTypes: ['qr'],
@@ -1127,6 +1126,12 @@ const styles = StyleSheet.create({
   resultTitle: {
     fontSize: 22,
     fontWeight: '900',
+  },
+  resultBody: {
+    fontSize: 13,
+    lineHeight: 20,
+    textAlign: 'center',
+    fontWeight: '600',
   },
   resultBadge: {
     fontSize: 10,

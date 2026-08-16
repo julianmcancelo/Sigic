@@ -15,8 +15,7 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useIsFocused } from '@react-navigation/native';
-import { router } from 'expo-router';
+import { router, useIsFocused } from 'expo-router';
 import {
   getApiUrl,
   getToken,
