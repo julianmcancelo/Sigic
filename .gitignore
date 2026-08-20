@@ -78,6 +78,11 @@ Thumbs.db
 !codigo/plataforma/public/*.jpg
 !codigo/plataforma/public/*.jpeg
 !codigo/plataforma/public/*.svg
+!codigo/plataforma/public/404/
+!codigo/plataforma/public/404/*.png
+!codigo/plataforma/public/404/*.jpg
+!codigo/plataforma/public/404/*.jpeg
+!codigo/plataforma/public/404/*.svg
 !codigo/movil/assets/
 !codigo/movil/assets/images/*.png
 !codigo/movil/assets/images/*.jpg
