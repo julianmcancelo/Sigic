@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react'
 import { 
   Settings, Save, RefreshCw, Building2, Users, MapPin, 
   Globe, Shield, ChevronRight, LogOut, LayoutGrid, Monitor, SlidersHorizontal,
-  Fingerprint, CheckCircle2
+  Fingerprint, CheckCircle2, Mail, Send, CircleCheck, CircleAlert
 } from 'lucide-react'
-import { obtenerAjustes, actualizarAjuste } from '../../servicios/api'
+import { obtenerAjustes, actualizarAjuste, enviarCorreoPrueba } from '../../servicios/api'
 
 const ACCENT = '#0EA5E9'
 const DARK   = '#2A3448'
@@ -24,6 +24,9 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
   const [guardando, setGuardando]     = useState(null)
   const [mensaje, setMensaje]         = useState(null)
   const [seccionActiva, setSeccionActiva] = useState('plataforma')
+  const [correoPrueba, setCorreoPrueba] = useState(usuario?.email || '')
+  const [enviandoPrueba, setEnviandoPrueba] = useState(false)
+  const [resultadoCorreo, setResultadoCorreo] = useState(null)
 
   useEffect(() => { cargar() }, [])
 
@@ -75,6 +78,20 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
     }
   }
 
+  async function probarCorreo(evento) {
+    evento.preventDefault()
+    setEnviandoPrueba(true)
+    setResultadoCorreo(null)
+    try {
+      const resultado = await enviarCorreoPrueba(correoPrueba)
+      setResultadoCorreo({ tipo: 'exito', texto: resultado.mensaje, id: resultado.id })
+    } catch (error) {
+      setResultadoCorreo({ tipo: 'error', texto: error.message || 'No se pudo realizar el envío.' })
+    } finally {
+      setEnviandoPrueba(false)
+    }
+  }
+
   const renderInterruptor = (clave, label, icono, descripcion) => {
     const activo = interruptorActivo(ajustes, clave)
     const estaGuardando = guardando === clave
@@ -114,6 +131,7 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
     { id: 'plataforma', nombre: 'Plataforma', detalle: 'Acceso y comportamiento general', icono: SlidersHorizontal },
     { id: 'identidad', nombre: 'Identidad', detalle: 'Institución y presentación', icono: Building2 },
     { id: 'ceremonia', nombre: 'Ceremonia', detalle: 'Reglas del evento activo', icono: LayoutGrid },
+    { id: 'correo', nombre: 'Correo', detalle: 'Comprobar envíos de la demo', icono: Mail },
   ]
 
   const renderFila = (clave, label, icono, descripcion) => {
@@ -290,6 +308,49 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
                 </div>
               </div>
             </div>
+          </section>}
+
+          {seccionActiva === 'correo' && <section className="space-y-4">
+            <div className="flex items-center gap-2 ml-1">
+              <div className="w-1 h-3 bg-emerald-500 rounded-full" />
+              <h2 className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Diagnóstico de correo</h2>
+            </div>
+            <form onSubmit={probarCorreo} className="rounded-2xl border border-slate-100 bg-white p-5 sm:p-6 shadow-sm">
+              <div className="flex flex-col lg:flex-row lg:items-end gap-4">
+                <div className="flex-1">
+                  <label htmlFor="correo-prueba" className="mb-2 block text-[9px] font-black uppercase tracking-widest text-slate-500">Destinatario de prueba</label>
+                  <input
+                    id="correo-prueba"
+                    type="email"
+                    required
+                    value={correoPrueba}
+                    onChange={e => setCorreoPrueba(e.target.value)}
+                    placeholder="nombre@correo.com"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-800 outline-none transition focus:border-sky-500 focus:bg-white"
+                  />
+                  <p className="mt-2 text-[10px] font-semibold text-slate-400">La prueba realiza un envío real desde no-responder@sigic.com.ar.</p>
+                </div>
+                <button
+                  type="submit"
+                  disabled={enviandoPrueba || !correoPrueba.trim()}
+                  className="flex min-h-11 items-center justify-center gap-2 rounded-xl bg-slate-900 px-6 py-3 text-[10px] font-black uppercase tracking-wider text-white transition hover:bg-sky-500 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {enviandoPrueba ? <RefreshCw size={15} className="animate-spin" /> : <Send size={15} />}
+                  {enviandoPrueba ? 'Enviando...' : 'Enviar prueba'}
+                </button>
+              </div>
+
+              {resultadoCorreo && (
+                <div className={`mt-5 flex items-start gap-3 rounded-xl border p-4 ${resultadoCorreo.tipo === 'exito' ? 'border-emerald-100 bg-emerald-50 text-emerald-700' : 'border-red-100 bg-red-50 text-red-700'}`}>
+                  {resultadoCorreo.tipo === 'exito' ? <CircleCheck size={18} className="mt-0.5 shrink-0" /> : <CircleAlert size={18} className="mt-0.5 shrink-0" />}
+                  <div>
+                    <p className="text-xs font-black">{resultadoCorreo.tipo === 'exito' ? 'Envío aceptado' : 'Falló la prueba'}</p>
+                    <p className="mt-1 text-[10px] font-semibold">{resultadoCorreo.texto}</p>
+                    {resultadoCorreo.id && <p className="mt-1 text-[9px] font-mono opacity-70">ID: {resultadoCorreo.id}</p>}
+                  </div>
+                </div>
+              )}
+            </form>
           </section>}
 
           {/* ACCIONES RÁPIDAS */}
