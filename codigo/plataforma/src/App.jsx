@@ -351,6 +351,10 @@ function App() {
       try {
         const datos = await validarToken(tokenURL)
         setDatosToken(datos)
+        // El token personal incluido en la invitación ya fue validado por el
+        // servidor y genera una sesión segura. Abrimos directamente la decisión
+        // de asistencia, sin pedir un segundo inicio de sesión por OTP.
+        manejarLoginGraduadoExitoso(datos.egresado)
       } catch (err) {
         console.error("Token inválido:", err.message)
         setErrorToken(err.message || 'Este link de invitación ya no es válido o está mal escrito.')
@@ -544,17 +548,7 @@ function App() {
         </div>
       )
     } else if (datosToken) {
-      if (graduadoActivo && graduadoUsuario?.id !== datosToken.id) {
-          localStorage.removeItem('sesion_graduado')
-          localStorage.removeItem('graduado_usuario')
-      }
-      contenido = (
-        <LoginGraduado 
-          emailInicial={datosToken.correo} 
-          onLoginExitoso={manejarLoginGraduadoExitoso}
-          onVolver={() => setTokenURL(null)}
-        />
-      )
+      contenido = <div className="flex min-h-screen bg-[#F0F4F8]" />
     } else {
       contenido = <div className="flex min-h-screen bg-[#F0F4F8]" />
     }

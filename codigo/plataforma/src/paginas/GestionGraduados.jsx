@@ -99,7 +99,7 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
   }
 
   function manejarLink(grad) {
-    const url = `${window.location.origin}${window.location.pathname}?token=${grad.token}`
+    const url = `${window.location.origin}/?token=${grad.token}`
     setLinkQR({ egresado: grad, link: url })
   }
 

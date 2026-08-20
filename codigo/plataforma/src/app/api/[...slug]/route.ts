@@ -1254,7 +1254,9 @@ export async function POST(
       if (!graduado) return NextResponse.json({ error: 'Graduado no encontrado' }, { status: 404, headers });
       if (!graduado.correo) return NextResponse.json({ error: 'El graduado no tiene un correo configurado' }, { status: 400, headers });
 
-      const hostBase = process.env.FRONTEND_URL || req.headers.get('origin') || 'http://localhost:3000';
+      // La invitación debe volver al mismo entorno que la generó. Esto evita
+      // que una variable global de producción mande la demo a otro login.
+      const hostBase = new URL(req.url).origin;
       const linkAcceso = `${hostBase}/?token=${graduado.token}`;
       const plantilla = generarPlantillaInvitacion(graduado.nombre, linkAcceso, hostBase);
       
