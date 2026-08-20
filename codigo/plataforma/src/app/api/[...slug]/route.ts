@@ -6,6 +6,7 @@ import * as GestorOTP from '@/lib/otp';
 import { enviarCorreo, generarPlantillaInvitacion, generarPlantillaOTP } from '@/lib/email';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import { inicializarBaseDatos } from '@/lib/schema';
 
 const RONDAS_BCRYPT = 12;
 const LARGO_MINIMO_PASSWORD = 8;
@@ -175,6 +176,7 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string[] }> }
 ) {
+  await inicializarBaseDatos();
   await inicializarTablasAdicionales();
   const { slug } = await params;
   const headers = corsHeaders(req);
@@ -701,6 +703,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string[] }> }
 ) {
+  await inicializarBaseDatos();
   await inicializarTablasAdicionales();
   const { slug } = await params;
   const headers = corsHeaders(req);
@@ -1418,6 +1421,7 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string[] }> }
 ) {
+  await inicializarBaseDatos();
   await inicializarTablasAdicionales();
   const { slug } = await params;
   const headers = corsHeaders(req);
@@ -1738,6 +1742,7 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string[] }> }
 ) {
+  await inicializarBaseDatos();
   await inicializarTablasAdicionales();
   const { slug } = await params;
   const headers = corsHeaders(req);

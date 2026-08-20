@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { firmar } from '@/lib/tokens';
 import bcrypt from 'bcryptjs';
+import { inicializarBaseDatos } from '@/lib/schema';
 
 // Limitador de intentos en memoria para evitar fuerza bruta
 const registros = new Map<string, { contador: number; reinicio: number }>();
@@ -31,6 +32,7 @@ function verificarLimite(ip: string): { permitido: boolean; segundosRestantes: n
  * Autentica un usuario del sistema (SUPER_ADMIN, ADMIN, ADMINISTRATIVO, PORTERIA, AUDITOR)
  */
 export async function POST(req: NextRequest) {
+  await inicializarBaseDatos();
   // Obtener IP del cliente de forma segura en Next.js
   const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '127.0.0.1';
 
