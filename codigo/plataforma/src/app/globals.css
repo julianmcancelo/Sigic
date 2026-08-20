@@ -94,6 +94,35 @@ button { cursor: pointer; }
 @media (max-width: 700px) { .sigic-os-shortcuts { width: 64px; }.sigic-desktop-icon { width: 62px; min-width: 62px; }.sigic-desktop-icon-art { width: 34px; height: 34px; }.sigic-window { margin-left: 68px; }.sigic-session-card { display: none; } }
 
 /* Estilo para asientos ocupados */
+/* Demo: carga y escritorio con lenguaje visual Windows/Explorer. */
+.sigic-boot-screen { min-height: 100vh; display: grid; place-items: center; background: #0067b8; color: white; font-family: "Segoe UI", Arial, sans-serif; }
+.sigic-boot-screen:before,.sigic-boot-glow,.sigic-boot-brand,.sigic-boot-subtitle,.sigic-boot-progress { display: none; }
+.sigic-boot-center { display: flex; width: auto; flex-direction: column; align-items: center; }
+.sigic-boot-screen .sigic-boot-logo { width: 58px; height: 58px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,.2); }
+.sigic-windows-loader { width: 26px; height: 26px; margin-top: 34px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: sigic-boot-spin .8s linear infinite; }
+.sigic-boot-screen .sigic-boot-status { display: block; width: auto; margin-top: 14px; color: rgba(255,255,255,.82); font-size: 12px; }
+.sigic-boot-screen .sigic-boot-footer { position: fixed; right: 0; bottom: 24px; left: 0; display: block; color: rgba(255,255,255,.65); font-size: 10px; text-align: center; letter-spacing: .06em; }
+.sigic-window-snapped { position: absolute; top: 6px; bottom: 6px; width: calc(50% - 10px); height: auto; margin: 0; transform: none !important; }
+.sigic-window-snapped-izquierda { left: 6px; }
+.sigic-window-snapped-derecha { right: 6px; }
+.sigic-explorer-toolbar { height: 38px; display: flex; align-items: center; gap: 4px; padding: 5px 8px; border-bottom: 1px solid #d8dee7; background: #f7f9fc; color: #475569; }
+.sigic-explorer-toolbar > button { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 5px; }
+.sigic-explorer-toolbar > button:hover { background: #e6edf5; color: #0f172a; }
+.sigic-explorer-address { height: 27px; flex: 1; display: flex; align-items: center; gap: 8px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 5px; background: white; font-size: 10px; }
+.sigic-explorer-address span:first-child { color: #0878c9; font-weight: 700; }
+.sigic-window-body { height: calc(100% - 72px); }
+.sigic-start-menu { left: 12px; bottom: 56px; width: min(390px,calc(100vw - 24px)); padding: 10px; border-radius: 10px; background: rgba(20,28,40,.97); }
+.sigic-start-search { margin: 0 0 10px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.07); }
+.sigic-start-section-title { display: flex; justify-content: space-between; padding: 7px 8px; color: white; font-size: 11px; font-weight: 700; }
+.sigic-start-section-title small { color: rgba(255,255,255,.4); font-size: 9px; font-weight: 500; }
+.sigic-start-apps { max-height: 320px; display: grid; grid-template-columns: 1fr 1fr; gap: 3px; overflow-y: auto; }
+.sigic-start-app { min-height: 48px; flex-direction: row; gap: 10px; padding: 7px 9px; text-align: left; font-size: 10px; }
+.sigic-start-app > span:nth-child(2) { flex: 1; }
+.sigic-start-app > svg { opacity: .35; }
+.sigic-start-header { margin-top: 10px; padding: 10px 8px 2px; border-top: 1px solid rgba(255,255,255,.1); border-bottom: 0; }
+.sigic-start-empty { padding: 35px 10px; color: rgba(255,255,255,.45); font-size: 11px; text-align: center; }
+@media (max-width:700px) { .sigic-window-snapped { inset: 4px; width: auto; } .sigic-start-apps { grid-template-columns: 1fr; } }
+
 .demo-watermark { position: fixed; inset: -20vh -20vw; z-index: 9990; display: grid; grid-template-columns: repeat(3,minmax(260px,1fr)); align-content: space-around; justify-items: center; gap: 12vh 5vw; pointer-events: none; overflow: hidden; transform: rotate(-24deg); opacity: .035; color: #0f172a; font-size: clamp(18px,2vw,30px); font-weight: 900; letter-spacing: .14em; white-space: nowrap; user-select: none; }
 .demo-environment-badge { position: fixed; top: 10px; left: 50%; z-index: 9998; transform: translateX(-50%); pointer-events: none; border: 1px solid rgba(14,165,233,.45); border-radius: 999px; background: rgba(15,23,42,.9); padding: 6px 12px; box-shadow: 0 6px 22px rgba(15,23,42,.2); color: #a5f3fc; font-size: 9px; font-weight: 900; letter-spacing: .16em; backdrop-filter: blur(10px); }
 @media (max-width:640px) { .demo-watermark { grid-template-columns: repeat(2,minmax(220px,1fr)); opacity: .03; } .demo-environment-badge { top: 6px; font-size: 8px; } }
