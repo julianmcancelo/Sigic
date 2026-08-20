@@ -13,11 +13,15 @@ class ServicioApi {
   ServicioApi(this._almacenamiento);
 
   static const String urlBasePorDefecto = 'https://sigic-one.vercel.app/api';
+  static const String urlBaseDemo = 'https://demo.sigic.com.ar/api';
 
   final ServicioAlmacenamiento _almacenamiento;
 
   bool esDireccionLocal(String url) {
-    return RegExp(r':\/\/(localhost|127\.0\.0\.1)(:|\/|$)', caseSensitive: false).hasMatch(_normalizarApiUrl(url));
+    return RegExp(
+      r':\/\/(localhost|127\.0\.0\.1)(:|\/|$)',
+      caseSensitive: false,
+    ).hasMatch(_normalizarApiUrl(url));
   }
 
   Future<String> obtenerApiUrl() async {
@@ -26,6 +30,23 @@ class ServicioApi {
 
   Future<void> guardarApiUrl(String url) async {
     await _almacenamiento.guardarApiUrl(_normalizarApiUrl(url));
+  }
+
+  Future<void> usarEntornoDemo() => guardarApiUrl(urlBaseDemo);
+
+  Future<void> usarEntornoProduccion() => guardarApiUrl(urlBasePorDefecto);
+
+  bool esEntornoDemo(String url) => _normalizarApiUrl(url) == urlBaseDemo;
+
+  bool esEntornoProduccion(String url) =>
+      _normalizarApiUrl(url) == urlBasePorDefecto;
+
+  Future<UsuarioSesion> iniciarSesionDemo() async {
+    await usarEntornoDemo();
+    return iniciarSesionConCredenciales(
+      email: 'admin@demo.com',
+      contrasena: 'Demo1234',
+    );
   }
 
   Future<bool> probarConexion(String url) async {
@@ -75,12 +96,20 @@ class ServicioApi {
   Future<UsuarioSesion> obtenerSesionActual() async {
     final datos = await _request('/auth/sesion');
     final usuario = UsuarioSesion.desdeMapa(
-      (datos['usuario'] as Map?)?.cast<String, dynamic>() ?? <String, dynamic>{},
+      (datos['usuario'] as Map?)?.cast<String, dynamic>() ??
+          <String, dynamic>{},
     );
-    const rolesPermitidos = {'SUPER_ADMIN', 'ADMIN', 'ADMINISTRATIVO', 'PORTERIA'};
+    const rolesPermitidos = {
+      'SUPER_ADMIN',
+      'ADMIN',
+      'ADMINISTRATIVO',
+      'PORTERIA',
+    };
     if (!rolesPermitidos.contains(usuario.rol.toUpperCase())) {
       await cerrarSesion();
-      throw Exception('Esta cuenta no tiene permisos para utilizar SiGIC Accesos.');
+      throw Exception(
+        'Esta cuenta no tiene permisos para utilizar SiGIC Accesos.',
+      );
     }
     await _almacenamiento.guardarUsuario(usuario);
     return usuario;
@@ -102,9 +131,11 @@ class ServicioApi {
     final token = await _almacenamiento.obtenerToken();
     if (token != null && token.isNotEmpty) {
       try {
-        await _request('/dispositivos/desvincular', metodo: 'POST', cuerpo: {
-          'dispositivoId': 'flutter-sigic',
-        });
+        await _request(
+          '/dispositivos/desvincular',
+          metodo: 'POST',
+          cuerpo: {'dispositivoId': 'flutter-sigic'},
+        );
       } catch (_) {
         // El cierre local debe continuar aunque el servidor no responda.
       }
@@ -128,7 +159,11 @@ class ServicioApi {
     }
     final lista = datos;
     return lista
-        .map((item) => CeremoniaAutorizada.desdeMapa((item as Map).cast<String, dynamic>()))
+        .map(
+          (item) => CeremoniaAutorizada.desdeMapa(
+            (item as Map).cast<String, dynamic>(),
+          ),
+        )
         .toList();
   }
 
@@ -147,7 +182,11 @@ class ServicioApi {
   }
 
   Future<void> acreditarInvitadosMasivo(List<String> ids) async {
-    await _request('/invitados/presente-masivo', metodo: 'PUT', cuerpo: {'ids': ids});
+    await _request(
+      '/invitados/presente-masivo',
+      metodo: 'PUT',
+      cuerpo: {'ids': ids},
+    );
   }
 
   Future<dynamic> _request(
@@ -166,10 +205,18 @@ class ServicioApi {
     late final http.Response respuesta;
     switch (metodo) {
       case 'POST':
-        respuesta = await http.post(uri, headers: encabezados, body: jsonEncode(cuerpo ?? {}));
+        respuesta = await http.post(
+          uri,
+          headers: encabezados,
+          body: jsonEncode(cuerpo ?? {}),
+        );
         break;
       case 'PUT':
-        respuesta = await http.put(uri, headers: encabezados, body: jsonEncode(cuerpo ?? {}));
+        respuesta = await http.put(
+          uri,
+          headers: encabezados,
+          body: jsonEncode(cuerpo ?? {}),
+        );
         break;
       default:
         respuesta = await http.get(uri, headers: encabezados);
@@ -180,7 +227,9 @@ class ServicioApi {
       if (respuesta.statusCode == 401) {
         await cerrarSesion();
       }
-      throw Exception((json['error'] ?? 'Error en la peticion al servidor').toString());
+      throw Exception(
+        (json['error'] ?? 'Error en la peticion al servidor').toString(),
+      );
     }
     return json;
   }
