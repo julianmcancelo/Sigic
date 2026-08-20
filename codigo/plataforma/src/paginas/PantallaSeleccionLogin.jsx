@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Settings, Users, GraduationCap, BookOpen, ChevronRight, Info } from 'lucide-react'
 
-export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresado, onSeleccionarManual, enMantenimiento, accesoOculto }) {
+export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresado, onSeleccionarManual, enMantenimiento, accesoOculto, modoDemo = false }) {
   const [clickCount, setClickCount] = useState(0)
   const [snapActivo, setSnapActivo] = useState(false)
   const [revelado, setRevelado] = useState(false)
@@ -143,6 +143,34 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
     { nombre: 'Matías Frassia',          hex: '#f59e0b' },
     { nombre: 'Luis Gabriel Santillán',  hex: '#10b981' },
   ]
+
+  if (modoDemo) {
+    return (
+      <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-slate-950 via-[#0b3554] to-cyan-950 px-4 py-16 text-white">
+        <div className="absolute inset-0 pointer-events-none opacity-30 [background-image:radial-gradient(circle_at_20%_20%,rgba(34,211,238,.35),transparent_34%),radial-gradient(circle_at_80%_80%,rgba(16,185,129,.25),transparent_30%)]" />
+        <section className="relative z-10 w-full max-w-3xl text-center" aria-labelledby="demo-title">
+          <img src="/logo-oficial.png" alt="SiGIC" className="mx-auto h-20 w-auto rounded-2xl shadow-2xl" />
+          <p className="mt-7 text-xs font-black uppercase tracking-[0.25em] text-cyan-300">Demostración interactiva</p>
+          <h1 id="demo-title" className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">¿Cómo querés ingresar?</h1>
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-slate-300">Elegí un perfil para recorrer SiGIC. No necesitás usuario ni contraseña y todos los datos son ficticios.</p>
+
+          <div className="mt-10 grid gap-4 sm:grid-cols-2">
+            <button onClick={onSeleccionarAdmin} className="group flex min-h-40 flex-col items-start justify-between rounded-3xl border border-white/15 bg-white/10 p-6 text-left shadow-xl backdrop-blur transition hover:-translate-y-1 hover:border-cyan-300 hover:bg-cyan-400/15 focus-visible:outline focus-visible:outline-4 focus-visible:outline-cyan-300">
+              <span className="grid h-12 w-12 place-items-center rounded-2xl bg-cyan-300 text-slate-950"><Users size={24} aria-hidden="true" /></span>
+              <span><strong className="block text-xl">Administrador</strong><small className="mt-1 block text-sm text-slate-300">Gestionar graduados, ceremonias, ingresos y reportes</small></span>
+              <span className="flex items-center gap-1 text-xs font-black uppercase tracking-wider text-cyan-300">Ingresar <ChevronRight size={15} aria-hidden="true" /></span>
+            </button>
+
+            <button onClick={onSeleccionarEgresado} className="group flex min-h-40 flex-col items-start justify-between rounded-3xl border border-white/15 bg-white/10 p-6 text-left shadow-xl backdrop-blur transition hover:-translate-y-1 hover:border-emerald-300 hover:bg-emerald-400/15 focus-visible:outline focus-visible:outline-4 focus-visible:outline-emerald-300">
+              <span className="grid h-12 w-12 place-items-center rounded-2xl bg-emerald-300 text-slate-950"><GraduationCap size={24} aria-hidden="true" /></span>
+              <span><strong className="block text-xl">Egresado</strong><small className="mt-1 block text-sm text-slate-300">Consultar invitación, acompañantes, credencial y ubicación</small></span>
+              <span className="flex items-center gap-1 text-xs font-black uppercase tracking-wider text-emerald-300">Ingresar <ChevronRight size={15} aria-hidden="true" /></span>
+            </button>
+          </div>
+        </section>
+      </main>
+    )
+  }
 
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#f4f6fa] select-none text-slate-800 font-sans">

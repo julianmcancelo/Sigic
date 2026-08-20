@@ -34,7 +34,7 @@ import { GestionProfesores } from './paginas/v2/GestionProfesores'
 
 
 // Componentes Globales
-import { ControlExpositor, MarcaAguaDemo } from './componentes/ControlExpositor'
+import { ADMIN_DEMO, ControlExpositor, EGRESADA_DEMO, MarcaAguaDemo } from './componentes/ControlExpositor'
 import { PantallaCargaInicial } from './componentes/PantallaCargaInicial'
 
 // Servicios
@@ -491,10 +491,11 @@ function App() {
     /*
     return (
       <PantallaSeleccionLogin
+        modoDemo={MODO_DEMO}
         enMantenimiento={enMantenimiento}
         accesoOculto={accesoOculto}
-        onSeleccionarAdmin={() => setVistaLogin('admin')}
-        onSeleccionarEgresado={() => setVistaLogin('graduado')}
+        onSeleccionarAdmin={() => MODO_DEMO ? manejarLoginAdminExitoso(ADMIN_DEMO) : setVistaLogin('admin')}
+        onSeleccionarEgresado={() => MODO_DEMO ? manejarLoginGraduadoExitoso(EGRESADA_DEMO) : setVistaLogin('graduado')}
         onSeleccionarManual={() => setVistaLogin('manual')}
       />
     )
@@ -751,10 +752,11 @@ function App() {
   else {
     contenido = (
       <PantallaSeleccionLogin 
+        modoDemo={MODO_DEMO}
         enMantenimiento={enMantenimiento}
         accesoOculto={accesoOculto}
-        onSeleccionarAdmin={() => setVistaLogin('admin')}
-        onSeleccionarEgresado={() => setVistaLogin('graduado')}
+        onSeleccionarAdmin={() => MODO_DEMO ? manejarLoginAdminExitoso(ADMIN_DEMO) : setVistaLogin('admin')}
+        onSeleccionarEgresado={() => MODO_DEMO ? manejarLoginGraduadoExitoso(EGRESADA_DEMO) : setVistaLogin('graduado')}
         onSeleccionarManual={() => setVistaLogin('manual')}
       />
     )
