@@ -1,8 +1,13 @@
 import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
 let transportador: nodemailer.Transporter | null = null;
 
 async function inicializarTransportador() {
+  if (process.env.RESEND_API_KEY) {
+    console.log('📧 Resend configurado como proveedor principal.');
+    return;
+  }
   if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
     transportador = nodemailer.createTransport({
       host: process.env.EMAIL_HOST || 'smtp.gmail.com',
@@ -14,7 +19,7 @@ async function inicializarTransportador() {
       },
     });
     console.log('📧 Nodemailer configurado con SMTP del entorno.');
-  } else {
+  } else if (process.env.NODE_ENV !== 'production') {
     try {
       // Intentamos crear una cuenta SMTP de prueba temporal con Ethereal
       const cuentaPrueba = await nodemailer.createTestAccount();
@@ -39,12 +44,35 @@ async function inicializarTransportador() {
 inicializarTransportador();
 
 export async function enviarCorreo(destinatario: string, asunto: string, cuerpoHTML: string) {
+  const remitente = process.env.EMAIL_FROM || 'SiGIC <no-responder@notificaciones.sigic.com.ar>';
+
+  if (process.env.RESEND_API_KEY) {
+    const resend = new Resend(process.env.RESEND_API_KEY);
+    const { data, error } = await resend.emails.send({
+      from: remitente,
+      to: [destinatario],
+      subject: asunto,
+      html: cuerpoHTML,
+    });
+
+    if (error) {
+      console.error('❌ Resend rechazó el correo:', error.message);
+      throw new Error(`No se pudo enviar el correo: ${error.message}`);
+    }
+
+    console.log(`✓ Correo enviado por Resend a [${destinatario}]`);
+    return { ok: true, proveedor: 'resend', id: data?.id };
+  }
+
   if (!transportador) {
     // Si no está inicializado, esperar 1 segundo por si está cargando Ethereal
     await new Promise(resolve => setTimeout(resolve, 1000));
   }
   
   if (!transportador) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('El servicio de correo no está configurado.');
+    }
     console.log('\n=========================================');
     console.log('📧 SIMULACIÓN DE ENVÍO DE CORREO (Modo Local - Sin Transporte)');
     console.log(`➜ Destinatario: ${destinatario}`);
@@ -59,7 +87,7 @@ export async function enviarCorreo(destinatario: string, asunto: string, cuerpoH
       host?: string;
     };
     const info = await transportador.sendMail({
-      from: `"${process.env.EMAIL_FROM_NAME || 'SiGIC'}" <${opcionesTransporte.auth?.user}>`,
+      from: process.env.EMAIL_FROM || `"${process.env.EMAIL_FROM_NAME || 'SiGIC'}" <${opcionesTransporte.auth?.user}>`,
       to: destinatario,
       subject: asunto,
       html: cuerpoHTML,
@@ -85,6 +113,9 @@ export async function enviarCorreo(destinatario: string, asunto: string, cuerpoH
     }
     console.log('=========================================\n');
     
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('No se pudo entregar el correo mediante SMTP.');
+    }
     return { ok: true, simulado: true, id: 'simulado-' + Date.now() };
   }
 }
