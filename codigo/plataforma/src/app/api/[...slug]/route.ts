@@ -1326,17 +1326,17 @@ export async function POST(
          WHERE id = $2`,
         [otp, graduado.id]
       );
-      await registrarAuditoriaOTP(graduado.id, otpHash, ip, 'ENVIADO');
-
-      const hostBase = process.env.FRONTEND_URL || req.headers.get('origin') || 'http://localhost:3000';
+      const hostBase = new URL(req.url).origin;
       const htmlOTP = generarPlantillaOTP(otp, hostBase);
-      await enviarCorreo(graduado.correo, 'Tu código de acceso - SiGIC', htmlOTP);
+      const envio = await enviarCorreo(graduado.correo, 'Tu código de acceso - SiGIC', htmlOTP);
+      await registrarAuditoriaOTP(graduado.id, otpHash, ip, 'ENVIADO');
       return NextResponse.json({
         ok: true,
         mensaje: 'Código enviado correctamente',
         destino: ocultarCorreo(graduado.correo),
         inscripcionId: graduado.id,
-        expiraEnSegundos: 600
+        expiraEnSegundos: 600,
+        proveedor: envio.proveedor || 'smtp'
       }, { headers });
     }
 
