@@ -94,6 +94,11 @@ button { cursor: pointer; }
 @media (max-width: 700px) { .sigic-os-shortcuts { width: 64px; }.sigic-desktop-icon { width: 62px; min-width: 62px; }.sigic-desktop-icon-art { width: 34px; height: 34px; }.sigic-window { margin-left: 68px; }.sigic-session-card { display: none; } }
 
 /* Estilo para asientos ocupados */
+.demo-watermark { position: fixed; inset: -20vh -20vw; z-index: 9990; display: grid; grid-template-columns: repeat(3,minmax(260px,1fr)); align-content: space-around; justify-items: center; gap: 12vh 5vw; pointer-events: none; overflow: hidden; transform: rotate(-24deg); opacity: .035; color: #0f172a; font-size: clamp(18px,2vw,30px); font-weight: 900; letter-spacing: .14em; white-space: nowrap; user-select: none; }
+.demo-environment-badge { position: fixed; top: 10px; left: 50%; z-index: 9998; transform: translateX(-50%); pointer-events: none; border: 1px solid rgba(14,165,233,.45); border-radius: 999px; background: rgba(15,23,42,.9); padding: 6px 12px; box-shadow: 0 6px 22px rgba(15,23,42,.2); color: #a5f3fc; font-size: 9px; font-weight: 900; letter-spacing: .16em; backdrop-filter: blur(10px); }
+@media (max-width:640px) { .demo-watermark { grid-template-columns: repeat(2,minmax(220px,1fr)); opacity: .03; } .demo-environment-badge { top: 6px; font-size: 8px; } }
+@media print { .demo-watermark,.demo-environment-badge { display: none !important; } }
+
 .asiento-ocupado {
   background-color: #ef4444 !important;
   opacity: 0.6;

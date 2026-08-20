@@ -34,7 +34,7 @@ import { GestionProfesores } from './paginas/v2/GestionProfesores'
 
 
 // Componentes Globales
-import { ControlExpositor } from './componentes/ControlExpositor'
+import { ControlExpositor, MarcaAguaDemo } from './componentes/ControlExpositor'
 import { PantallaCargaInicial } from './componentes/PantallaCargaInicial'
 
 // Servicios
@@ -774,12 +774,11 @@ function App() {
   return (
     <>
       {contenidoDeEscritorio}
+      {MODO_DEMO && <MarcaAguaDemo />}
       
       {/* Herramienta para presentaciones, disponible solo en el entorno demo. */}
       {MODO_DEMO && (
         <ControlExpositor
-          enMantenimiento={enMantenimiento}
-          onToggleMantenimiento={toggleMantenimiento}
           onSimularAdmin={manejarLoginAdminExitoso}
           onSimularEgresado={manejarLoginGraduadoExitoso}
           onLimpiar={limpiarTodo}
