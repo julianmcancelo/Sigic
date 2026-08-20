@@ -40,6 +40,8 @@ import { PantallaCargaInicial } from './componentes/PantallaCargaInicial'
 // Servicios
 import { validarToken, obtenerCeremoniaActiva, obtenerEstadoSetup, responderInvitacion, limpiarTokenSesion, obtenerAjustes, actualizarAjuste } from './servicios/api'
 
+const MODO_DEMO = process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
+
 function normalizarCorreoInstitucional(correo) {
   return typeof correo === 'string'
     ? correo.replace(/@beltran\.edu\.ar$/i, '@ibeltran.com.ar')
@@ -773,14 +775,16 @@ function App() {
     <>
       {contenidoDeEscritorio}
       
-      {/* Herramienta para presentaciones (Modo Demo) */}
-      <ControlExpositor 
-        enMantenimiento={enMantenimiento}
-        onToggleMantenimiento={toggleMantenimiento}
-        onSimularAdmin={manejarLoginAdminExitoso}
-        onSimularEgresado={manejarLoginGraduadoExitoso}
-        onLimpiar={limpiarTodo}
-      />
+      {/* Herramienta para presentaciones, disponible solo en el entorno demo. */}
+      {MODO_DEMO && (
+        <ControlExpositor
+          enMantenimiento={enMantenimiento}
+          onToggleMantenimiento={toggleMantenimiento}
+          onSimularAdmin={manejarLoginAdminExitoso}
+          onSimularEgresado={manejarLoginGraduadoExitoso}
+          onLimpiar={limpiarTodo}
+        />
+      )}
     </>
   )
 }
