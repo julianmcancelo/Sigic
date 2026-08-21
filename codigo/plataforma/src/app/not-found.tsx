@@ -87,9 +87,8 @@ export default function PaginaNoEncontrada() {
       </button>
 
       <p className="homer-credito">
-        Diseño original de la Homer&apos;s Web Page:{' '}
-        <a href="https://github.com/franciscominen/homers-web-page" target="_blank" rel="noreferrer">
-          github.com/franciscominen
+        <a href="https://sigic.com.ar" target="_blank" rel="noreferrer">
+          sigic.com.ar
         </a>
       </p>
     </main>
