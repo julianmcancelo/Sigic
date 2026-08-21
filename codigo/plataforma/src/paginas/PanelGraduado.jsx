@@ -1,6 +1,6 @@
 /**
  * PanelGraduado - Panel principal que ve el graduado al iniciar sesión.
- * Contiene 3 pestañas: Acompañantes, Entregadores y Credencial.
+ * Contiene 3 pestañas: Acompañantes, Padrinos y Credencial.
  * Los asientos son asignados por el admin (solo lectura para el graduado).
  * Reemplaza a RegistroInvitados.jsx con terminología y flujo actualizado.
  */
@@ -97,11 +97,12 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
     setProcesando(true)
     try {
       if (editandoId) {
-        await actualizarInvitado(editandoId, datosForm)
+        const actualizado = await actualizarInvitado(editandoId, datosForm)
+        setInvitados(prev => prev.map(i => i.id === editandoId ? actualizado : i))
       } else {
-        await cargarInvitados(null, [datosForm], graduadoSesion.id)
+        const [creado] = await cargarInvitados(null, [datosForm], graduadoSesion.id)
+        setInvitados(prev => [...prev, creado])
       }
-      await cargarDatos()
       setMensaje({ tipo: 'exito', texto: editandoId ? 'Actualizado correctamente' : 'Invitado añadido con éxito' })
       setTimeout(limpiarForm, 1000)
     } catch (err) {
@@ -133,10 +134,10 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
       if (tipo === 'PROFESOR') datos.profesor_id = referencia.id
       if (tipo === 'FAMILIAR') datos.invitado_id = referencia.id
 
-      await asignarEntregador(datos)
-      await cargarDatos()
+      const creado = await asignarEntregador(datos)
+      setEntregadores(prev => [...prev, creado])
       setMostrarSelectorEntregador(false)
-      setMensaje({ tipo: 'exito', texto: `${referencia.nombre} agregado como entregador` })
+      setMensaje({ tipo: 'exito', texto: `${referencia.nombre} agregado como padrino` })
       setTimeout(() => setMensaje({ tipo: '', texto: '' }), 2000)
     } catch (err) {
       setMensaje({ tipo: 'error', texto: err.message })
@@ -146,10 +147,10 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
   }
 
   async function manejarEliminarEntregador(id) {
-    if (!confirm('¿Quitar este entregador de la lista?')) return
+    if (!confirm('¿Quitar este padrino de la lista?')) return
     try {
       await eliminarEntregador(id)
-      await cargarDatos()
+      setEntregadores(prev => prev.filter(e => e.id !== id))
     } catch (err) { alert(err.message) }
   }
 
@@ -190,7 +191,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
             <Users size={18} /> <span className="text-sm font-bold">Acompañantes</span>
           </button>
           <button onClick={() => setPestana('entregadores')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${pestana === 'entregadores' ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/20' : 'text-slate-400 hover:bg-white/5'}`}>
-            <GraduationCap size={18} /> <span className="text-sm font-bold">Entregadores</span>
+            <GraduationCap size={18} /> <span className="text-sm font-bold">Padrinos</span>
           </button>
           <button onClick={() => setPestana('credencial')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${pestana === 'credencial' ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/20' : 'text-slate-400 hover:bg-white/5'}`}>
             <QrCode size={18} /> <span className="text-sm font-bold">Credencial</span>
@@ -361,8 +362,8 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
         {pestana === 'entregadores' && (
           <div className="space-y-8">
             <div>
-              <h2 className="text-2xl font-black text-slate-800 tracking-tight mb-2">Seleccioná quién te entrega el título</h2>
-              <p className="text-sm text-slate-500 font-medium">Podés elegir hasta 3 personas entre profesores de la institución y tus familiares invitados.</p>
+              <h2 className="text-2xl font-black text-slate-800 tracking-tight mb-2">Seleccioná tus Padrinos</h2>
+              <p className="text-sm text-slate-500 font-medium">Elegí hasta 3 personas que te entreguen el título, entre profesores de la institución y tus familiares invitados.</p>
             </div>
 
             {/* Slots de entregadores */}
@@ -374,7 +375,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
                   <div key={orden} className={`bg-white rounded-3xl border-2 p-6 transition-all ${
                     entregadorActual ? 'border-indigo-200 shadow-lg' : 'border-dashed border-slate-200'
                   }`}>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500 mb-4">{orden}° Entregador</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500 mb-4">{orden}° Padrino</p>
 
                     {entregadorActual ? (
                       <div>
@@ -405,7 +406,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
                         className="w-full flex flex-col items-center justify-center py-8 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-2xl transition-all disabled:opacity-30"
                       >
                         <Plus size={32} className="mb-2" />
-                        <span className="text-xs font-bold">Agregar entregador</span>
+                        <span className="text-xs font-bold">Agregar padrino</span>
                       </button>
                     )}
                   </div>
@@ -417,7 +418,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
             {mostrarSelectorEntregador && (
               <div className="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden">
                 <div className="bg-slate-900 px-6 py-4 flex items-center justify-between">
-                  <p className="text-xs font-black uppercase tracking-[0.2em] text-sky-400">Elegí un entregador</p>
+                  <p className="text-xs font-black uppercase tracking-[0.2em] text-sky-400">Elegí un padrino</p>
                   <button onClick={() => setMostrarSelectorEntregador(false)} className="text-slate-400 hover:text-white transition-colors"><X size={18} /></button>
                 </div>
 
