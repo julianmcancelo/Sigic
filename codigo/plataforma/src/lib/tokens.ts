@@ -3,7 +3,7 @@ import crypto from 'crypto';
 let SECRETO = process.env.JWT_SECRET;
 if (!SECRETO || SECRETO.length < 32) {
   SECRETO = crypto.randomBytes(48).toString('hex');
-  console.warn('⚠ JWT_SECRET no está definido (o es muy corto) en .env.local.');
+  console.warn('JWT_SECRET no está definido (o es muy corto) en .env.local.');
   console.warn('  Se generó un secreto temporal para el inicio de sesión.');
 }
 
