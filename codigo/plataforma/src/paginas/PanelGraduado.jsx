@@ -390,8 +390,9 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
                           </div>
                           <div>
                             <p className="font-bold text-slate-800">{entregadorActual.nombre}</p>
-                            <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                              {entregadorActual.tipo === 'PROFESOR' ? '🎓 Profesor' : '👨‍👩‍👦 Familiar'}
+                            <p className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                              {entregadorActual.tipo === 'PROFESOR' ? <GraduationCap size={12} /> : <Users size={12} />}
+                              {entregadorActual.tipo === 'PROFESOR' ? 'Profesor' : 'Familiar'}
                             </p>
                           </div>
                         </div>
@@ -427,7 +428,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
 
                 <div className="p-6">
                   {/* Sección Profesores */}
-                  <p className="text-[10px] font-black uppercase tracking-widest text-indigo-500 mb-3">🎓 Profesores de la institución</p>
+                  <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-indigo-500 mb-3"><GraduationCap size={13} /> Profesores de la institución</p>
                   {profesores.length === 0 ? (
                     <p className="text-xs text-slate-400 mb-6">No hay profesores cargados en el sistema.</p>
                   ) : (
@@ -450,7 +451,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
                               <p className="text-sm font-bold text-slate-700">{prof.nombre}</p>
                               {prof.materia && <p className="text-[10px] text-slate-400">{prof.materia}</p>}
                             </div>
-                            {yaAsignado && <span className="ml-auto text-[9px] font-bold text-emerald-500">✓ Asignado</span>}
+                            {yaAsignado && <span className="ml-auto flex items-center gap-1 text-[9px] font-bold text-emerald-500"><CheckCircle size={11} /> Asignado</span>}
                           </button>
                         )
                       })}
@@ -458,7 +459,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
                   )}
 
                   {/* Sección Familiares */}
-                  <p className="text-[10px] font-black uppercase tracking-widest text-sky-500 mb-3">👨‍👩‍👦 Mis invitados</p>
+                  <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-sky-500 mb-3"><Users size={13} /> Mis invitados</p>
                   {invitados.length === 0 ? (
                     <p className="text-xs text-slate-400">Primero cargá invitados en la pestaña "Acompañantes".</p>
                   ) : (
@@ -481,7 +482,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
                               <p className="text-sm font-bold text-slate-700">{inv.nombre}</p>
                               <p className="text-[10px] text-slate-400">{inv.relacion}</p>
                             </div>
-                            {yaAsignado && <span className="ml-auto text-[9px] font-bold text-emerald-500">✓ Asignado</span>}
+                            {yaAsignado && <span className="ml-auto flex items-center gap-1 text-[9px] font-bold text-emerald-500"><CheckCircle size={11} /> Asignado</span>}
                           </button>
                         )
                       })}
