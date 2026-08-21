@@ -125,11 +125,14 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
   async function manejarAgregarEntregador(tipo, referencia) {
     setProcesando(true)
     try {
+      // Usar el primer slot (1-3) que esté realmente libre: si se borró un padrino
+      // del medio, "cantidad + 1" puede chocar con un orden que ya existe.
+      const ordenLibre = [1, 2, 3].find(o => !entregadores.some(e => e.orden === o)) || (entregadores.length + 1)
       const datos = {
         egresado_id: graduadoSesion.id,
         tipo: tipo,
         nombre: referencia.nombre,
-        orden: entregadores.length + 1
+        orden: ordenLibre
       }
       if (tipo === 'PROFESOR') datos.profesor_id = referencia.id
       if (tipo === 'FAMILIAR') datos.invitado_id = referencia.id
