@@ -834,6 +834,13 @@ export async function POST(
     // SETUP RESET (RESET SYSTEM DATA)
     // -------------------------------------------------------------
     if (path === 'setup/reset') {
+      if (process.env.DEMO_MODE === 'true') {
+        return NextResponse.json(
+          { error: 'Reseteo deshabilitado en el entorno de demostración.' },
+          { status: 403, headers }
+        );
+      }
+
       const auth = obtenerUsuarioAutenticado(req);
       if (!auth.valido || auth.datos?.email?.toLowerCase() !== 'soporte@ibeltran.com.ar') {
         return NextResponse.json(

@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { 
-  Settings, Shield, RefreshCw, Database, AlertTriangle, 
+import {
+  Settings, Shield, RefreshCw, Database, AlertTriangle,
   Server, CheckCircle2, Download, Trash2, Terminal, ArrowLeft, Mail, Play
 } from 'lucide-react'
+import { VERSION_LABEL } from '../../lib/version'
 import { 
   obtenerEstadoSetup, 
   exportarBaseDatos, 
@@ -180,6 +181,7 @@ export function CentroControl({ usuario, onVolver, onCerrarSesion }) {
           <div>
             <h2 className="text-lg font-black tracking-tight" style={{ color: DARK }}>Centro de Control de Infraestructura</h2>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Servidor Serverless Vercel & Neon PostgreSQL Cloud</p>
+            <p className="text-[9px] font-bold text-slate-300 uppercase tracking-widest mt-1 font-mono">{VERSION_LABEL}</p>
           </div>
         </div>
         

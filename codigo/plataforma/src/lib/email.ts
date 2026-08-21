@@ -13,7 +13,7 @@ async function inicializarTransportador() {
         pass: process.env.EMAIL_PASS,
       },
     });
-    console.log('📧 Nodemailer configurado con SMTP del entorno.');
+    console.log('Nodemailer configurado con SMTP del entorno.');
   } else {
     try {
       // Intentamos crear una cuenta SMTP de prueba temporal con Ethereal
@@ -27,10 +27,10 @@ async function inicializarTransportador() {
           pass: cuentaPrueba.pass,
         },
       });
-      console.log('📧 Nodemailer configurado con SMTP de prueba dinámico (Ethereal).');
+      console.log('Nodemailer configurado con SMTP de prueba dinámico (Ethereal).');
       console.log(`   Usuario: ${cuentaPrueba.user}`);
     } catch (e) {
-      console.error('❌ Error al inicializar cuenta SMTP de prueba (Ethereal):', e);
+      console.error('Error al inicializar cuenta SMTP de prueba (Ethereal):', e);
     }
   }
 }
@@ -46,9 +46,9 @@ export async function enviarCorreo(destinatario: string, asunto: string, cuerpoH
   
   if (!transportador) {
     console.log('\n=========================================');
-    console.log('📧 SIMULACIÓN DE ENVÍO DE CORREO (Modo Local - Sin Transporte)');
-    console.log(`➜ Destinatario: ${destinatario}`);
-    console.log(`➜ Asunto: ${asunto}`);
+    console.log('SIMULACIÓN DE ENVÍO DE CORREO (Modo Local - Sin Transporte)');
+    console.log(`Destinatario: ${destinatario}`);
+    console.log(`Asunto: ${asunto}`);
     console.log('=========================================\n');
     return { ok: true, id: 'mock-id-local' };
   }
@@ -64,24 +64,24 @@ export async function enviarCorreo(destinatario: string, asunto: string, cuerpoH
       subject: asunto,
       html: cuerpoHTML,
     });
-    console.log(`✓ Correo enviado a [${destinatario}]`);
+    console.log(`Correo enviado a [${destinatario}]`);
     if (opcionesTransporte.host?.includes('ethereal.email')) {
-      console.log(`📖 Previsualización del correo: ${nodemailer.getTestMessageUrl(info)}`);
+      console.log(`Previsualización del correo: ${nodemailer.getTestMessageUrl(info)}`);
     }
     return { ok: true, id: info.messageId };
   } catch (error: any) {
-    console.error('❌ Error en envío SMTP por red:', error.message);
+    console.error('Error en envío SMTP por red:', error.message);
     console.log('\n=========================================');
-    console.log('⚠️ AVISO: ENVÍO SMTP BLOQUEADO EN TU RED LOCAL (TIMEOUT/REFUSED)');
+    console.log('AVISO: ENVÍO SMTP BLOQUEADO EN TU RED LOCAL (TIMEOUT/REFUSED)');
     console.log('Tu ISP o proveedor de red tiene bloqueados los puertos SMTP.');
     console.log('Se activó la SIMULACIÓN AUTOMÁTICA para desarrollo.');
-    console.log(`➜ Destinatario: ${destinatario}`);
-    console.log(`➜ Asunto: ${asunto}`);
+    console.log(`Destinatario: ${destinatario}`);
+    console.log(`Asunto: ${asunto}`);
     
     // Buscar código de 6 dígitos (OTP) en el HTML para mostrarlo visiblemente en consola
     const matchOtp = cuerpoHTML.match(/>\s*([A-Z0-9]{6})\s*</) || cuerpoHTML.match(/([A-Z0-9]{6})/);
     if (matchOtp) {
-      console.log(`🔑 CÓDIGO OTP DE ACCESO: ${matchOtp[1]}`);
+      console.log(`CÓDIGO OTP DE ACCESO: ${matchOtp[1]}`);
     }
     console.log('=========================================\n');
     
