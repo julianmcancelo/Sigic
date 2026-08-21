@@ -71,6 +71,10 @@ button { cursor: pointer; }
 .sigic-desktop-icon-art { width: 40px; height: 40px; background: transparent !important; box-shadow: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,.65)); }
 .sigic-desktop-icon span:last-child { font-size: 11px; line-height: 1.15; }
 .sigic-window { height: calc(100% - 22px); margin-left: 96px; margin-top: 0; border-radius: 7px; box-shadow: 0 20px 50px rgba(0,0,0,.48); }
+/* Ventanas mas chicas por defecto (no maximizada/pegada/bienvenida) para que se puedan mover y reacomodar libremente, como en un escritorio real. En mobile se mantienen a pantalla completa por usabilidad. */
+@media (min-width: 700px) {
+  .sigic-window:not(.sigic-window-maximized):not(.sigic-window-snapped):not(.sigic-window-welcome) { width: min(880px, calc(100% - 160px)); height: min(600px, calc(100% - 60px)); }
+}
 .sigic-window-bar { height: 34px; background: rgba(15,23,42,.96); }
 .sigic-window-controls { display: flex; align-items: center; gap: 2px; }.sigic-window-controls button { display: grid; place-items: center; width: 28px; height: 24px; border-radius: 4px; color: rgba(255,255,255,.58); transition: transform .14s ease, background-color .14s ease, color .14s ease; }.sigic-window-controls button:hover { background: rgba(255,255,255,.12); color: white; transform: translateY(-1px); }.sigic-window-controls button:last-child:hover { background: #d94b5c; color: white; }
 .sigic-window-bar { cursor: grab; user-select: none; }.sigic-window-bar:active { cursor: grabbing; }.sigic-window-body { overscroll-behavior: contain; }
