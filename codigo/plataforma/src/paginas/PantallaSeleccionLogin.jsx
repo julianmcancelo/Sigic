@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Settings, Users, GraduationCap, BookOpen, ChevronRight, Info } from 'lucide-react'
+import { VERSION_LABEL } from '../lib/version'
 
 export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresado, onSeleccionarManual, enMantenimiento, accesoOculto, modoDemo = false }) {
   const [clickCount, setClickCount] = useState(0)
@@ -256,12 +257,13 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
             <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400">
               Instituto Tecnológico Beltrán
             </p>
-            <button 
+            <button
               onClick={() => setMostrarInfo(true)}
               className="block w-full text-[8px] font-bold uppercase tracking-[0.15em] text-slate-400/60 hover:text-cyan-600 transition-colors cursor-pointer animate-pulse"
             >
               Proyecto Final · PPT3 · Analista de Sistemas
             </button>
+            <p className="text-[8px] font-bold uppercase tracking-[0.15em] text-slate-300 font-mono">{VERSION_LABEL}</p>
           </div>
         </div>
       )}
