@@ -30,10 +30,16 @@ export default function PaginaNoEncontrada() {
       <audio ref={audioRef} src="/404/backsound.mp3" loop />
 
       <div className="homer-cortina homer-cortina-izq">
-        <img src="/404/izq.png" alt="" />
+        <span className="homer-cortina-titulo" aria-hidden="true">
+          <span className="linea-1">Error 404</span>
+          <span className="linea-2">Página no encontrada</span>
+        </span>
       </div>
       <div className="homer-cortina homer-cortina-der">
-        <img src="/404/der.png" alt="" />
+        <span className="homer-cortina-titulo" aria-hidden="true">
+          <span className="linea-1">Error 404</span>
+          <span className="linea-2">Página no encontrada</span>
+        </span>
       </div>
 
       <h1 className="homer-title">Homer&apos;s 404 Page</h1>
