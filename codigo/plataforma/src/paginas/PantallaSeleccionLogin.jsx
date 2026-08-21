@@ -168,6 +168,8 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
               <span className="flex items-center gap-1 text-xs font-black uppercase tracking-wider text-emerald-300">Ingresar <ChevronRight size={15} aria-hidden="true" /></span>
             </button>
           </div>
+
+          <p className="mt-10 text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500 font-mono">{VERSION_LABEL}</p>
         </section>
       </main>
     )
