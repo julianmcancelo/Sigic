@@ -194,9 +194,13 @@ button { cursor: pointer; }
 
 .homer-parent-mobile { display: none; }
 
-.homer-cortina { position: fixed; width: 50vw; height: 100vh; top: 0; z-index: 5; background: linear-gradient(to right,#b62a17 0%,#b62a17 6%,#6d0019 10%,#b62a17 14%,#b62a17 20%,#6d0019 24%,#b62a17 28%,#b62a17 34%,#6d0019 38%,#b62a17 42%,#b62a17 48%,#6d0019 52%,#b62a17 56%,#b62a17 62%,#6d0019 66%,#b62a17 70%,#b62a17 76%,#6d0019 80%,#b62a17 84%,#b62a17 90%,#6d0019 94%,#b62a17 98%); display: flex; align-items: center; }
+.homer-cortina { position: fixed; width: 50vw; height: 100vh; top: 0; z-index: 5; overflow: hidden; background: linear-gradient(to right,#b62a17 0%,#b62a17 6%,#6d0019 10%,#b62a17 14%,#b62a17 20%,#6d0019 24%,#b62a17 28%,#b62a17 34%,#6d0019 38%,#b62a17 42%,#b62a17 48%,#6d0019 52%,#b62a17 56%,#b62a17 62%,#6d0019 66%,#b62a17 70%,#b62a17 76%,#6d0019 80%,#b62a17 84%,#b62a17 90%,#6d0019 94%,#b62a17 98%); display: flex; align-items: center; }
 .homer-cortina-izq { left: 0; justify-content: right; animation: homer-move-izq 3s 1.5s forwards; }
 .homer-cortina-der { left: 50%; justify-content: left; animation: homer-move-der 3s 1.5s forwards; }
+
+.homer-cortina-titulo { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 94vw; max-width: 820px; text-align: center; color: #050505; line-height: 1.05; pointer-events: none; z-index: 1; }
+.homer-cortina-titulo .linea-1 { display: block; font-size: clamp(36px, 8vw, 84px); -webkit-text-stroke: 4px #fff; }
+.homer-cortina-titulo .linea-2 { display: block; margin-top: 8px; font-size: clamp(20px, 4.4vw, 46px); -webkit-text-stroke: 3px #fff; }
 
 .homer-actions { position: relative; z-index: 2; display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 12px 0 20px; font-family: "Segoe UI", Arial, sans-serif; }
 .homer-actions a { border: 3px solid #202b3a; border-radius: 12px; background: #ffd521; padding: 11px 18px; box-shadow: 3px 4px 0 #202b3a; color: #202b3a; font-size: 12px; font-weight: 900; text-decoration: none; transition: .15s; }
