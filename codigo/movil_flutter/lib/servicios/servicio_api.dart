@@ -177,16 +177,18 @@ class ServicioApi {
     return ResultadoEscaneo.desdeMapa(datos);
   }
 
-  Future<void> acreditarInvitado(String id) async {
-    await _request('/invitados/$id/presente', metodo: 'PUT');
+  Future<Map<String, dynamic>> acreditarInvitado(String id) async {
+    final respuesta = await _request('/invitados/$id/presente', metodo: 'PUT');
+    return (respuesta as Map).cast<String, dynamic>();
   }
 
-  Future<void> acreditarInvitadosMasivo(List<String> ids) async {
-    await _request(
+  Future<Map<String, dynamic>> acreditarInvitadosMasivo(List<String> ids) async {
+    final respuesta = await _request(
       '/invitados/presente-masivo',
       metodo: 'PUT',
       cuerpo: {'ids': ids},
     );
+    return (respuesta as Map).cast<String, dynamic>();
   }
 
   Future<dynamic> _request(

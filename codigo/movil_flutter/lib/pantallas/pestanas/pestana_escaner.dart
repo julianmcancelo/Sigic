@@ -195,7 +195,7 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
       _cargandoEscaneo = true;
     });
     try {
-      await widget.servicioApi.acreditarInvitado(id);
+      final respuesta = await widget.servicioApi.acreditarInvitado(id);
       await _cargarPantalla();
       if (!mounted) {
         return;
@@ -203,7 +203,11 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
       setState(() {
         _resultado = _resultado?.marcarInvitadoPresente(id);
       });
-      await _mostrarMensaje('Ingreso registrado', 'La acreditacion se realizo con exito.');
+      final yaAcreditado = respuesta['yaAcreditado'] == true;
+      await _mostrarMensaje(
+        yaAcreditado ? 'Invitado ya acreditado' : 'Ingreso registrado',
+        (respuesta['mensaje'] ?? 'La acreditacion se realizo con exito.').toString(),
+      );
     } catch (error) {
       await _mostrarMensaje('Error', error.toString().replaceFirst('Exception: ', ''));
     } finally {
@@ -229,7 +233,7 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
       _cargandoEscaneo = true;
     });
     try {
-      await widget.servicioApi.acreditarInvitadosMasivo(ids);
+      final respuesta = await widget.servicioApi.acreditarInvitadosMasivo(ids);
       await _cargarPantalla();
       if (!mounted) {
         return;
@@ -241,7 +245,13 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
       setState(() {
         _resultado = actualizado;
       });
-      await _mostrarMensaje('Ingreso masivo', 'Se acreditaron ${ids.length} invitados.');
+      final acreditados = int.tryParse('${respuesta['cantidad_ingresos']}') ?? ids.length;
+      final omitidos = int.tryParse('${respuesta['cantidad_omitidos']}') ?? 0;
+      final detalleOmitidos = omitidos > 0 ? ' $omitidos ya estaban acreditados.' : '';
+      await _mostrarMensaje(
+        'Ingreso masivo',
+        '$acreditados acreditados.$detalleOmitidos',
+      );
     } catch (error) {
       await _mostrarMensaje('Error', error.toString().replaceFirst('Exception: ', ''));
     } finally {

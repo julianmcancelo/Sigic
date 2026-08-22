@@ -259,7 +259,7 @@ export async function GET(
       const invitadosStats = await query(`
         SELECT 
           COUNT(*) as total,
-          SUM(CASE WHEN i.presente = 1 THEN 1 ELSE 0 END) as presentes
+          COUNT(*) FILTER (WHERE i.presente IS TRUE) as presentes
         FROM invitados i
         JOIN egresados e ON i.egresado_id = e.id
         WHERE e.ceremonia_id = $1
@@ -275,7 +275,7 @@ export async function GET(
         SELECT i.*, e.nombre as "egresadoNombre"
         FROM invitados i
         JOIN egresados e ON i.egresado_id = e.id
-        WHERE i.presente = 1 AND e.ceremonia_id = $1
+        WHERE i.presente IS TRUE AND e.ceremonia_id = $1
         ORDER BY i.fecha_presente DESC
         LIMIT 5
       `;
@@ -1609,8 +1609,19 @@ export async function PUT(
         "UPDATE invitados SET presente = TRUE, fecha_presente = CURRENT_TIMESTAMP WHERE id = $1 AND presente = FALSE RETURNING *",
         [id]
       );
-      if (result.rowCount === 0) return NextResponse.json({ error: 'Invitado no encontrado o ya ingresó' }, { status: 400, headers });
-      return NextResponse.json({ ok: true, mensaje: 'Ingreso confirmado' }, { headers });
+      if (result.rowCount === 0) {
+        const existente = await query('SELECT presente, fecha_presente FROM invitados WHERE id = $1', [id]);
+        if (existente.rows[0]?.presente === true) {
+          return NextResponse.json({
+            ok: true,
+            yaAcreditado: true,
+            mensaje: 'El invitado ya estaba acreditado.',
+            fecha_presente: existente.rows[0].fecha_presente,
+          }, { headers });
+        }
+        return NextResponse.json({ error: 'Invitado no encontrado' }, { status: 404, headers });
+      }
+      return NextResponse.json({ ok: true, yaAcreditado: false, mensaje: 'Ingreso confirmado', invitado: result.rows[0] }, { headers });
     }
 
     if (path === 'invitados/presente-masivo') {
@@ -1625,7 +1636,14 @@ export async function PUT(
         `UPDATE invitados SET presente = TRUE, fecha_presente = CURRENT_TIMESTAMP WHERE id IN (${placeholders}) AND presente = FALSE`,
         ids
       );
-      return NextResponse.json({ ok: true, cantidad_ingresos: result.rowCount }, { headers });
+      return NextResponse.json({
+        ok: true,
+        cantidad_ingresos: result.rowCount,
+        cantidad_omitidos: ids.length - (result.rowCount || 0),
+        mensaje: result.rowCount === 1
+          ? 'Se acreditó 1 invitado.'
+          : `Se acreditaron ${result.rowCount || 0} invitados.`,
+      }, { headers });
     }
 
     if (slug[0] === 'invitados' && slug[1] && !slug[2]) {

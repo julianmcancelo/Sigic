@@ -89,7 +89,7 @@ async function ejecutarInicializacion() {
         relacion TEXT,
         asiento_id VARCHAR(30),
         discapacidad INTEGER DEFAULT 0,
-        presente INTEGER DEFAULT 0,
+        presente BOOLEAN DEFAULT FALSE,
         fecha_presente TIMESTAMP,
         creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         UNIQUE (dni, egresado_id)
@@ -164,6 +164,25 @@ async function ejecutarInicializacion() {
         ON egresados (ceremonia_id, UPPER(COALESCE(legajo, '')), UPPER(COALESCE(carrera, '')), COALESCE(anio_inscripcion, 0));
     `);
 
+    // Instalaciones históricas guardaban la asistencia como 0/1. Flutter y
+    // PostgreSQL trabajan mejor con un booleano real; la migración conserva
+    // todos los valores existentes y es idempotente.
+    await client.query(`
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns
+          WHERE table_schema = 'public' AND table_name = 'invitados'
+            AND column_name = 'presente' AND data_type <> 'boolean'
+        ) THEN
+          ALTER TABLE invitados ALTER COLUMN presente DROP DEFAULT;
+          ALTER TABLE invitados ALTER COLUMN presente TYPE BOOLEAN
+            USING (COALESCE(presente::text, '0') IN ('1', 'true', 't'));
+          ALTER TABLE invitados ALTER COLUMN presente SET DEFAULT FALSE;
+        END IF;
+      END $$;
+    `);
+
     await client.query(`
       INSERT INTO configuracion_sistema (clave, valor, descripcion) VALUES
         ('max_invitados_por_egresado','4','Máximo de acompañantes por egresado'),
@@ -217,10 +236,10 @@ async function sembrarDemo(client: Awaited<ReturnType<typeof pool.connect>>) {
   );
   await client.query(
     `INSERT INTO invitados (id,egresado_id,nombre,dni,telefono,correo,relacion,asiento_id,presente,fecha_presente) VALUES
-      ('55555555-5555-4555-8555-555555555551','44444444-4444-4444-8444-444444444441','Carlos Pérez','25111222','11 5555-1001','carlos.demo@sigic.com.ar','Padre','baja-B-1',1,CURRENT_TIMESTAMP - INTERVAL '12 minutes'),
-      ('55555555-5555-4555-8555-555555555552','44444444-4444-4444-8444-444444444441','Ana Gómez','27222333','11 5555-1002','ana.demo@sigic.com.ar','Madre','baja-B-2',0,NULL),
-      ('55555555-5555-4555-8555-555555555553','44444444-4444-4444-8444-444444444442','Lucía Rodríguez','28333444','11 5555-1003','lucia.demo@sigic.com.ar','Hermana','baja-B-3',1,CURRENT_TIMESTAMP - INTERVAL '5 minutes'),
-      ('55555555-5555-4555-8555-555555555554','44444444-4444-4444-8444-444444444444','Valentina López','29444555','11 5555-1004','valentina.demo@sigic.com.ar','Madre','baja-B-4',0,NULL)
+      ('55555555-5555-4555-8555-555555555551','44444444-4444-4444-8444-444444444441','Carlos Pérez','25111222','11 5555-1001','carlos.demo@sigic.com.ar','Padre','baja-B-1',TRUE,CURRENT_TIMESTAMP - INTERVAL '12 minutes'),
+      ('55555555-5555-4555-8555-555555555552','44444444-4444-4444-8444-444444444441','Ana Gómez','27222333','11 5555-1002','ana.demo@sigic.com.ar','Madre','baja-B-2',FALSE,NULL),
+      ('55555555-5555-4555-8555-555555555553','44444444-4444-4444-8444-444444444442','Lucía Rodríguez','28333444','11 5555-1003','lucia.demo@sigic.com.ar','Hermana','baja-B-3',TRUE,CURRENT_TIMESTAMP - INTERVAL '5 minutes'),
+      ('55555555-5555-4555-8555-555555555554','44444444-4444-4444-8444-444444444444','Valentina López','29444555','11 5555-1004','valentina.demo@sigic.com.ar','Madre','baja-B-4',FALSE,NULL)
      ON CONFLICT (id) DO NOTHING`
   );
   await client.query(
