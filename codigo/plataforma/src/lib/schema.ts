@@ -65,6 +65,7 @@ async function ejecutarInicializacion() {
         entregador_nombre TEXT,
         entregador_asiento_id VARCHAR(30),
         telefono TEXT,
+        invitacion_enviada BOOLEAN DEFAULT FALSE,
         estado VARCHAR(20) DEFAULT 'PENDIENTE' CHECK (estado IN ('PENDIENTE','ACEPTADO','RECHAZADO')),
         promedio NUMERIC(5,2),
         creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -163,6 +164,8 @@ async function ejecutarInicializacion() {
       CREATE UNIQUE INDEX IF NOT EXISTS egresados_inscripcion_ceremonia_key
         ON egresados (ceremonia_id, UPPER(COALESCE(legajo, '')), UPPER(COALESCE(carrera, '')), COALESCE(anio_inscripcion, 0));
     `);
+
+    await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS invitacion_enviada BOOLEAN DEFAULT FALSE');
 
     // Instalaciones históricas guardaban la asistencia como 0/1. Flutter y
     // PostgreSQL trabajan mejor con un booleano real; la migración conserva

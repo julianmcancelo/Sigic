@@ -399,7 +399,7 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
 
                         {/* Paso 4: Entregadores */}
                         <PasoFlujo
-                          etiqueta={`Entregadores (${grad.cantidad_entregadores || 0}/3)`}
+                        etiqueta={`Padrinos (${grad.cantidad_entregadores || 0}/${grad.max_entregadores || 3})`}
                           completado={(grad.cantidad_entregadores || 0) > 0}
                           activo={grad.estado === 'ACEPTADO' && (grad.cantidad_entregadores || 0) === 0}
                         />

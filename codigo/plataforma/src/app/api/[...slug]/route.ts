@@ -652,7 +652,9 @@ export async function GET(
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
       const queryStr = `
-        SELECT e.*, c.nombre as "ceremoniaNombre"
+        SELECT e.*, c.nombre as "ceremoniaNombre", c.max_entregadores,
+          (SELECT COUNT(*)::int FROM invitados i WHERE i.egresado_id = e.id) AS cantidad_invitados,
+          (SELECT COUNT(*)::int FROM entregadores p WHERE p.egresado_id = e.id) AS cantidad_entregadores
         FROM egresados e
         LEFT JOIN ceremonias c ON e.ceremonia_id = c.id
         WHERE c.activa = 1
@@ -1261,6 +1263,7 @@ export async function POST(
       const plantilla = generarPlantillaInvitacion(graduado.nombre, linkAcceso, hostBase);
       
       await enviarCorreo(graduado.correo, 'Invitación a Ceremonia de Colación - SiGIC', plantilla);
+      await query('UPDATE egresados SET invitacion_enviada = TRUE WHERE id = $1', [graduadoId]);
       return NextResponse.json({ ok: true, mensaje: 'Invitación enviada correctamente' }, { headers });
     }
 
