@@ -570,7 +570,7 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
                   Row(
                     children: [
                       const Icon(
-                        Icons.school_outlined,
+                        Icons.school,
                         color: TemaSigic.azulPrincipal,
                         size: 19,
                       ),
@@ -608,7 +608,7 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
               ),
               child: const Row(
                 children: [
-                  Icon(Icons.event_busy_outlined, color: Color(0xFFB7791F)),
+                  Icon(Icons.school, color: Color(0xFFB7791F)),
                   SizedBox(width: 10),
                   Expanded(
                     child: Text(
@@ -627,7 +627,7 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
                   child: _tarjetaIndicador(
                     'ACREDITADOS',
                     '${_estadisticas!.presentes}',
-                    Icons.how_to_reg_outlined,
+                    Icons.school,
                     TemaSigic.exito,
                   ),
                 ),
@@ -636,7 +636,7 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
                   child: _tarjetaIndicador(
                     'PENDIENTES',
                     '${_estadisticas!.totalInvitados - _estadisticas!.presentes}',
-                    Icons.groups_outlined,
+                    Icons.qr_code_scanner,
                     TemaSigic.azulPrincipal,
                   ),
                 ),
