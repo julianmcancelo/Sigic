@@ -9,7 +9,7 @@
  * 3. Si rechaza → Inhabilitado, se cierra sesión automáticamente
  */
 import { useState, useEffect, useRef } from 'react'
-import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, RefreshCw, Shield, Server, Search, Power, Bell, Wifi, Volume2, ChevronRight, ChevronUp, LayoutGrid, X, Minus, Maximize2, Sun, Moon, MousePointer2, Lock } from 'lucide-react'
+import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, RefreshCw, Shield, Server, Search, Power, Bell, Wifi, Volume2, ChevronRight, ChevronUp, LayoutGrid, X, Minus, Maximize2, Sun, Moon, MousePointer2, Lock, ClipboardCheck } from 'lucide-react'
 
 // Importación de Páginas
 import { PaginaInicioSesion } from './paginas/PaginaInicioSesion'
@@ -31,6 +31,7 @@ import { PanelAjustes } from './paginas/v2/PanelAjustes'
 import { GestionCeremonias } from './paginas/v2/GestionCeremonias'
 import { EditorAnfiteatro } from './paginas/v2/EditorAnfiteatro'
 import { GestionProfesores } from './paginas/v2/GestionProfesores'
+import { CentroOperacionesDemo } from './paginas/v2/CentroOperacionesDemo'
 
 
 // Componentes Globales
@@ -589,7 +590,9 @@ function App() {
 
   // CASO C: El usuario es Administrador logueado
   else if (adminActivo) {
-    if (pantallaAdmin === 'gestion-graduados') {
+    if (pantallaAdmin === 'operaciones-demo' && MODO_DEMO) {
+      contenido = <CentroOperacionesDemo onNavegar={setPantallaAdmin} />
+    } else if (pantallaAdmin === 'gestion-graduados') {
       contenido = (
         <GestionGraduados
           usuario={adminUser}
@@ -805,6 +808,7 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
   const esSuperAdmin = usuario?.rol === 'SUPER_ADMIN'
   const aplicaciones = [
     { id: 'bienvenida', titulo: 'Inicio', icono: Home, color: 'bg-cyan-500', escritorio: true },
+    ...(MODO_DEMO ? [{ id: 'operaciones-demo', titulo: 'Operaciones', icono: ClipboardCheck, color: 'bg-sky-500', escritorio: true }] : []),
     { id: 'gestion-graduados', titulo: 'Graduados', icono: Users, color: 'bg-emerald-500', escritorio: true },
     { id: 'control-ingreso', titulo: 'Escáner', icono: ScanLine, color: 'bg-amber-500', escritorio: true },
     { id: 'panel-reportes', titulo: 'Reportes', icono: BarChart3, color: 'bg-rose-500', escritorio: true },
