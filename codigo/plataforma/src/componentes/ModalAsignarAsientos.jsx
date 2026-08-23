@@ -218,13 +218,13 @@ export function ModalAsignarAsientos({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-3 sm:p-5 animate-in fade-in duration-300">
-      <div className="w-full max-w-6xl h-[min(92vh,760px)] bg-white rounded-[24px] sm:rounded-[32px] shadow-2xl overflow-hidden grid grid-rows-[auto_minmax(0,1fr)_auto]">
+      <div className="w-full max-w-6xl h-[min(88dvh,680px)] bg-white rounded-[24px] sm:rounded-[28px] shadow-2xl overflow-hidden grid grid-rows-[auto_minmax(0,1fr)_auto]">
         
         {/* HEADER */}
-        <div className="shrink-0 px-5 py-4 sm:px-7 sm:py-5 bg-gradient-to-r from-slate-950 via-slate-900 to-[#102a43] text-white flex items-center justify-between gap-4">
+        <div className="shrink-0 px-5 py-3.5 sm:px-7 sm:py-4 bg-gradient-to-r from-slate-950 via-slate-900 to-[#102a43] text-white flex items-center justify-between gap-4">
           <div>
-            <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.22em] text-sky-300 mb-1">Mesa de asignación</p>
-            <h2 className="text-xl sm:text-2xl font-black flex items-center gap-2.5">
+            <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.22em] text-sky-300 mb-0.5">Mesa de asignación</p>
+            <h2 className="text-lg sm:text-xl font-black flex items-center gap-2.5">
               <Armchair className="text-sky-400 shrink-0" />
               Butacas del grupo
             </h2>
@@ -241,7 +241,7 @@ export function ModalAsignarAsientos({
         <div className="min-h-0 flex flex-col md:flex-row overflow-hidden">
           
           {/* SIDEBAR IZQUIERDO: INTEGRANTES */}
-          <aside className="w-full md:w-[19rem] md:shrink-0 bg-slate-50 border-b md:border-b-0 md:border-r border-slate-200 px-4 py-3 sm:p-5 overflow-y-auto space-y-3">
+          <aside className="w-full md:w-[18rem] md:shrink-0 bg-slate-50 border-b md:border-b-0 md:border-r border-slate-200 px-4 py-3 sm:p-4 overflow-y-auto space-y-3">
             <div>
               <div className="flex items-center justify-between">
                 <h3 className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Integrantes del grupo</h3>
@@ -298,12 +298,12 @@ export function ModalAsignarAsientos({
 
           {/* ÁREA CENTRAL: MAPA DE ASIENTOS */}
           <div className="flex-1 min-h-0 bg-[radial-gradient(circle_at_top,_#f0f9ff,_#ffffff_55%)] p-3 sm:p-4 overflow-hidden flex flex-col items-center">
-            <div className="w-full max-w-3xl shrink-0 flex items-start gap-3 rounded-2xl border border-sky-100 bg-white/85 px-3.5 py-2.5 mb-2 shadow-sm">
+            <div className="w-full max-w-3xl shrink-0 flex items-center gap-2 rounded-xl border border-sky-100 bg-white/85 px-3 py-2 mb-2 shadow-sm">
               <LockKeyhole size={16} className="text-sky-600 mt-0.5 shrink-0" />
-              <p className="text-[11px] leading-relaxed text-slate-500"><strong className="text-slate-700">Asignación administrada.</strong> Las butacas ocupadas, de autoridades y reservadas permanecen bloqueadas. Las butacas de graduado solo se habilitan al seleccionar al graduado.</p>
+              <p className="text-[10px] leading-relaxed text-slate-500"><strong className="text-slate-700">Asignación administrada.</strong> Los lugares reservados, de autoridad u ocupados permanecen bloqueados.</p>
             </div>
             {estructura ? (
-              <div className="w-full min-h-0 flex-1 overflow-hidden">
+              <div className="w-full min-h-0 flex-1 overflow-auto pr-1 [scrollbar-width:thin] [&_.sigic-mapa]:p-4 [&_.sigic-mapa]:rounded-2xl [&_.sigic-escenario]:mb-4 [&_.sigic-escenario__sombra]:h-2 [&_.sigic-stats__pill]:px-2 [&_.sigic-stats__pill]:py-1">
                 <SeleccionAsientos
                   ceremoniaId={ceremoniaId}
                   estructura={estructura}
@@ -312,6 +312,9 @@ export function ModalAsignarAsientos({
                   setSeleccionados={() => {}} // Manejado internamente por el click
                   onAsientoClick={manejarAsientoClick}
                   maxSeleccion={personasGrupo.length}
+                  zoom={0.7}
+                  setZoom={() => {}}
+                  compacto
                 />
               </div>
             ) : (
@@ -324,7 +327,7 @@ export function ModalAsignarAsientos({
         </div>
 
         {/* FOOTER */}
-        <div className="shrink-0 px-4 py-3 sm:px-6 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-4">
+        <div className="shrink-0 px-4 py-2.5 sm:px-6 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-4">
           <div className="min-w-0">
             <p className="text-xs font-bold text-slate-600">
               Asientos asignados: <span className="font-black text-slate-900">{asientosGrupoActual.length} / {personasGrupo.length}</span>
