@@ -3,5 +3,5 @@
   "identifier": "default",
   "description": "Permisos de la aplicación de escritorio SiGIC.",
   "windows": ["main", "modulo-*"],
-  "permissions": ["core:default"]
+  "permissions": ["core:default", "updater:default"]
 }

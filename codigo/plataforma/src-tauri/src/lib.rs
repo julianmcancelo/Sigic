@@ -23,6 +23,7 @@ fn abrir_modulo(app: tauri::AppHandle, ruta: String, titulo: String) -> Result<(
 
 pub fn run() {
   tauri::Builder::default()
+    .plugin(tauri_plugin_updater::Builder::new().build())
     .invoke_handler(tauri::generate_handler![abrir_modulo])
     .setup(|app| {
       let url = url::Url::parse(SIGIC_DEMO_URL)?;
