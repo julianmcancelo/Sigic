@@ -1726,7 +1726,6 @@ export async function PUT(
           const ocupados = await client.query(
             `SELECT asiento_id FROM egresados WHERE ceremonia_id = $1 AND id <> $2 AND asiento_id = ANY($3)
              UNION
-             UNION
              SELECT i.asiento_id FROM invitados i JOIN egresados e ON e.id = i.egresado_id
              WHERE e.ceremonia_id = $1 AND e.id <> $2 AND i.asiento_id = ANY($3)`,
             [ceremoniaId, id, asignaciones]
