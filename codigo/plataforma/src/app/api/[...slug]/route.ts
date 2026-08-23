@@ -247,17 +247,25 @@ export async function GET(
       const auth = obtenerUsuarioAutenticado(req, ROLES_LECTURA);
       if (!auth.valido) return NextResponse.json({ error: auth.error }, { status: auth.statusCode, headers });
 
-      const ceremoniaRes = await query('SELECT id FROM ceremonias WHERE activa = 1 LIMIT 1');
+      const ceremoniaRes = await query('SELECT id, nombre, fecha, lugar, activa FROM ceremonias WHERE activa = 1 LIMIT 1');
       if (ceremoniaRes.rowCount === 0) {
         return NextResponse.json({
-          totalEgresados: 0, totalInvitados: 0, presentes: 0, ausentes: 0,
+          ceremonia: null, totalEgresados: 0, egresadosConfirmados: 0, egresadosPendientes: 0,
+          totalInvitados: 0, presentes: 0, ausentes: 0, gruposConIngreso: 0,
           porcentajeAsistencia: 0, ultimosIngresos: [],
           mensaje: 'No hay una ceremonia activa configurada'
         }, { headers });
       }
-      const ceremoniaId = ceremoniaRes.rows[0].id;
+      const ceremonia = ceremoniaRes.rows[0];
+      const ceremoniaId = ceremonia.id;
 
-      const egresadosCount = await query('SELECT COUNT(*) as total FROM egresados WHERE ceremonia_id = $1', [ceremoniaId]);
+      const egresadosCount = await query(`
+        SELECT
+          COUNT(*) as total,
+          COUNT(*) FILTER (WHERE estado = 'ACEPTADO') as confirmados,
+          COUNT(*) FILTER (WHERE estado IS NULL OR estado <> 'ACEPTADO') as pendientes
+        FROM egresados WHERE ceremonia_id = $1
+      `, [ceremoniaId]);
       const invitadosStats = await query(`
         SELECT 
           COUNT(*) as total,
@@ -268,10 +276,26 @@ export async function GET(
       `, [ceremoniaId]);
 
       const totalEgresados = parseInt(egresadosCount.rows[0].total || '0');
+      const egresadosConfirmados = parseInt(egresadosCount.rows[0].confirmados || '0');
+      const egresadosPendientes = parseInt(egresadosCount.rows[0].pendientes || '0');
       const totalInvitados = parseInt(invitadosStats.rows[0].total || '0');
       const presentes = parseInt(invitadosStats.rows[0].presentes || '0');
       const ausentes = totalInvitados - presentes;
       const porcentajeAsistencia = totalInvitados > 0 ? Math.round((presentes / totalInvitados) * 100) : 0;
+      const gruposRes = await query(`
+        SELECT COUNT(DISTINCT e.id) as total
+        FROM egresados e
+        JOIN invitados i ON i.egresado_id = e.id
+        WHERE e.ceremonia_id = $1 AND i.presente IS TRUE
+      `, [ceremoniaId]);
+      const gruposConIngreso = parseInt(gruposRes.rows[0].total || '0');
+      const proximaCeremoniaRes = await query(`
+        SELECT id, nombre, fecha, lugar
+        FROM ceremonias
+        WHERE id <> $1 AND fecha >= CURRENT_DATE
+        ORDER BY fecha ASC
+        LIMIT 1
+      `, [ceremoniaId]);
 
       const ingresosQuery = `
         SELECT i.*, e.nombre as "egresadoNombre"
@@ -297,12 +321,17 @@ export async function GET(
 
       return NextResponse.json({
         ceremoniaId,
+        ceremonia: { id: ceremonia.id, nombre: ceremonia.nombre, fecha: ceremonia.fecha, lugar: ceremonia.lugar },
         totalEgresados,
+        egresadosConfirmados,
+        egresadosPendientes,
         totalInvitados,
         presentes,
         ausentes,
+        gruposConIngreso,
         porcentajeAsistencia,
         ultimosIngresos,
+        proximaCeremonia: proximaCeremoniaRes.rows[0] || null,
         timestamp: new Date().toISOString(),
       }, { headers });
     }

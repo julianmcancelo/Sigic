@@ -9,7 +9,7 @@
  * 3. Si rechaza → Inhabilitado, se cierra sesión automáticamente
  */
 import { useState, useEffect, useRef } from 'react'
-import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, RefreshCw, Shield, Server, Search, Power, Bell, Wifi, Volume2, ChevronRight, ChevronUp, LayoutGrid, X, Minus, Maximize2, Sun, Moon, MousePointer2, Lock, ClipboardCheck } from 'lucide-react'
+import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, RefreshCw, Shield, Server, Search, Power, Bell, Wifi, Volume2, ChevronRight, ChevronUp, LayoutGrid, X, Minus, Maximize2, Sun, Moon, MousePointer2, Lock, ClipboardCheck, Activity } from 'lucide-react'
 
 // Importación de Páginas
 import { PaginaInicioSesion } from './paginas/PaginaInicioSesion'
@@ -32,6 +32,7 @@ import { GestionCeremonias } from './paginas/v2/GestionCeremonias'
 import { EditorAnfiteatro } from './paginas/v2/EditorAnfiteatro'
 import { GestionProfesores } from './paginas/v2/GestionProfesores'
 import { CentroOperacionesDemo } from './paginas/v2/CentroOperacionesDemo'
+import { EstadoCeremonia } from './paginas/v2/EstadoCeremonia'
 
 
 // Componentes Globales
@@ -592,6 +593,8 @@ function App() {
   else if (adminActivo) {
     if (pantallaAdmin === 'operaciones-demo' && MODO_DEMO) {
       contenido = <CentroOperacionesDemo onNavegar={setPantallaAdmin} />
+    } else if (pantallaAdmin === 'estado-ceremonia') {
+      contenido = <EstadoCeremonia onVolver={() => setPantallaAdmin('bienvenida')} onNavegar={setPantallaAdmin} />
     } else if (pantallaAdmin === 'gestion-graduados') {
       contenido = (
         <GestionGraduados
@@ -809,6 +812,7 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
   const aplicaciones = [
     { id: 'bienvenida', titulo: 'Inicio', icono: Home, color: 'bg-cyan-500', escritorio: true },
     ...(MODO_DEMO ? [{ id: 'operaciones-demo', titulo: 'Operaciones', icono: ClipboardCheck, color: 'bg-sky-500', escritorio: true }] : []),
+    { id: 'estado-ceremonia', titulo: 'Ceremonia en vivo', icono: Activity, color: 'bg-cyan-500', escritorio: true },
     { id: 'gestion-graduados', titulo: 'Graduados', icono: Users, color: 'bg-emerald-500', escritorio: true },
     { id: 'control-ingreso', titulo: 'Escáner', icono: ScanLine, color: 'bg-amber-500', escritorio: true },
     { id: 'panel-reportes', titulo: 'Reportes', icono: BarChart3, color: 'bg-rose-500', escritorio: true },
@@ -966,8 +970,8 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
 
   const tituloVentana = aplicaciones.find(item => item.id === pantallaActual)?.titulo || 'Escritorio SIGIC'
   const aplicacionesFiltradas = aplicaciones.filter(app => app.titulo.toLowerCase().includes(busquedaInicio.trim().toLowerCase()))
-  const tipoVentana = ['control-ingreso', 'panel-reportes'].includes(pantallaActual) ? 'sigic-window-browser' : ['gestion-graduados', 'gestion-profesores', 'gestion-ceremonias'].includes(pantallaActual) ? 'sigic-window-explorer' : pantallaActual === 'gestion-porteria' ? 'sigic-window-secure' : 'sigic-window-default'
-  const direccionVentana = pantallaActual === 'control-ingreso' ? 'sigic://acreditaciones/ingresos' : pantallaActual === 'panel-reportes' ? 'sigic://informes/ceremonia-activa' : pantallaActual === 'gestion-porteria' ? 'sigic://seguridad/centro-de-control' : `sigic://aplicaciones/${pantallaActual}`
+  const tipoVentana = ['control-ingreso', 'panel-reportes', 'estado-ceremonia'].includes(pantallaActual) ? 'sigic-window-browser' : ['gestion-graduados', 'gestion-profesores', 'gestion-ceremonias'].includes(pantallaActual) ? 'sigic-window-explorer' : pantallaActual === 'gestion-porteria' ? 'sigic-window-secure' : 'sigic-window-default'
+  const direccionVentana = pantallaActual === 'control-ingreso' ? 'sigic://acreditaciones/ingresos' : pantallaActual === 'panel-reportes' ? 'sigic://informes/ceremonia-activa' : pantallaActual === 'estado-ceremonia' ? 'sigic://ceremonia/estado-en-vivo' : pantallaActual === 'gestion-porteria' ? 'sigic://seguridad/centro-de-control' : `sigic://aplicaciones/${pantallaActual}`
   const cambiarTema = () => setTema(actual => actual === 'oscuro' ? 'claro' : 'oscuro')
   const abrirMenuContextual = (evento) => {
     evento.preventDefault()
@@ -1010,6 +1014,7 @@ function AdminDock({ pantallaActual, onNavegar, posicion, setPosicion, usuario }
 
   const items = [
     { id: 'bienvenida', titulo: 'Inicio', icono: Home },
+    { id: 'estado-ceremonia', titulo: 'En vivo', icono: Activity },
     ...(esSoporte ? [
       { id: 'gestion-porteria', titulo: 'Seguridad', icono: Shield }
     ] : [
