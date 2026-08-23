@@ -18,10 +18,6 @@ class UsuarioSesion {
   }
 
   Map<String, dynamic> aMapa() {
-    return {
-      'nombre': nombre,
-      'email': email,
-      'rol': rol,
-    };
+    return {'nombre': nombre, 'email': email, 'rol': rol};
   }
 }

@@ -25,5 +25,9 @@ class CeremoniaAutorizada {
 }
 
 bool _aBool(dynamic valor) {
-  return valor == true || valor == 1 || valor == '1' || valor == 'true' || valor == 't';
+  return valor == true ||
+      valor == 1 ||
+      valor == '1' ||
+      valor == 'true' ||
+      valor == 't';
 }

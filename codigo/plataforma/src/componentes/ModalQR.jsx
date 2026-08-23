@@ -43,16 +43,16 @@ export function ModalQR({ invitado, onCerrar }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 backdrop-blur-sm"
       style={{ background: 'rgba(0,0,0,0.6)' }}
       onClick={onCerrar}
     >
       <div
-        className="w-full max-w-sm overflow-hidden rounded-[18px] border"
+        className="w-full max-w-sm overflow-hidden rounded-[20px] border bg-white"
         style={{ borderColor: `${ACCENT}33`, boxShadow: '0 16px 48px rgba(0,0,0,0.4)' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center justify-between px-5 py-4" style={{ background: DARK }}>
+        <div className="flex items-center justify-between px-5 py-3.5" style={{ background: DARK }}>
           <div>
             <p className="text-[9px] font-bold uppercase tracking-[0.2em]" style={{ color: ACCENT }}>
               Código QR · Invitado
@@ -67,9 +67,9 @@ export function ModalQR({ invitado, onCerrar }) {
           </button>
         </div>
         
-        <div className="flex flex-col items-center bg-white px-6 py-6 gap-4">
-          <div ref={refSVG} className="rounded-[12px] border p-4" style={{ borderColor: `${ACCENT}22` }}>
-            <QRCodeSVG value={invitado.id} size={180} bgColor="#ffffff" fgColor={DARK} level="M" />
+        <div className="flex flex-col items-center bg-white px-5 py-5 gap-3">
+          <div ref={refSVG} className="rounded-xl border p-3" style={{ borderColor: `${ACCENT}22` }}>
+            <QRCodeSVG value={invitado.id} size={150} bgColor="#ffffff" fgColor={DARK} level="M" />
           </div>
           
           <div className="w-full space-y-1.5">
@@ -101,7 +101,7 @@ export function ModalQR({ invitado, onCerrar }) {
           
           <button
             onClick={descargarQR}
-            className="flex w-full items-center justify-center gap-2 rounded-[10px] py-2.5 text-[13px] font-bold text-white transition"
+            className="flex w-full items-center justify-center gap-2 rounded-lg py-2.5 text-[11px] font-black uppercase tracking-wider text-white transition"
             style={{ background: `linear-gradient(135deg, ${ACCENT}, #1a87c0)`, boxShadow: '0 4px 14px rgba(41,171,226,0.3)' }}
           >
             <Download size={14} /> Descargar QR como PNG

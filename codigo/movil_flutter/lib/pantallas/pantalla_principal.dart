@@ -61,11 +61,9 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
     ];
 
     return Scaffold(
-      body: IndexedStack(
-        index: _indiceActual,
-        children: pantallas,
-      ),
+      body: IndexedStack(index: _indiceActual, children: pantallas),
       bottomNavigationBar: NavigationBar(
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         selectedIndex: _indiceActual,
         onDestinationSelected: (indice) {
           setState(() {

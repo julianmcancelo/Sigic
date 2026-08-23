@@ -42,7 +42,8 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
   bool _mostrandoCamara = false;
   bool _escaneoBloqueado = false;
   ResultadoEscaneo? _resultado;
-  final TextEditingController _controladorCodigoManual = TextEditingController();
+  final TextEditingController _controladorCodigoManual =
+      TextEditingController();
 
   final MobileScannerController _controladorCamara = MobileScannerController(
     facing: CameraFacing.back,
@@ -96,7 +97,8 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
           estadoSesion = EstadoSesion.autenticado;
           mensajeSesion = 'Sesion verificada y protegida';
           ceremonia = await widget.servicioApi.obtenerCeremoniaActiva();
-          ceremoniasAutorizadas = await widget.servicioApi.obtenerCeremoniasAutorizadas();
+          ceremoniasAutorizadas = await widget.servicioApi
+              .obtenerCeremoniasAutorizadas();
           estadisticas = await widget.servicioApi.obtenerEstadisticas();
         } catch (error) {
           if (usuario != null) {
@@ -152,10 +154,15 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
       if (codigo.startsWith('sigic-config:')) {
         final url = codigo.substring('sigic-config:'.length).trim();
         if (widget.servicioApi.esDireccionLocal(url)) {
-          throw Exception('El QR contiene localhost. Genera otro QR usando la IP de la computadora.');
+          throw Exception(
+            'El QR contiene localhost. Genera otro QR usando la IP de la computadora.',
+          );
         }
         await widget.servicioApi.guardarApiUrl(url);
-        await _mostrarMensaje('Configuracion', 'Servidor configurado correctamente.');
+        await _mostrarMensaje(
+          'Configuracion',
+          'Servidor configurado correctamente.',
+        );
         await _cargarPantalla();
         _cerrarCamara();
         return;
@@ -164,7 +171,10 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
       if (codigo.startsWith('sigic-login:')) {
         final token = codigo.substring('sigic-login:'.length).trim();
         await widget.servicioApi.iniciarSesionConToken(token);
-        await _mostrarMensaje('Acceso confirmado', 'La sesion se inicio correctamente.');
+        await _mostrarMensaje(
+          'Acceso confirmado',
+          'La sesion se inicio correctamente.',
+        );
         await _cargarPantalla();
         _cerrarCamara();
         return;
@@ -179,7 +189,10 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
         _mostrandoCamara = false;
       });
     } catch (error) {
-      await _mostrarMensaje('Error', error.toString().replaceFirst('Exception: ', ''));
+      await _mostrarMensaje(
+        'Error',
+        error.toString().replaceFirst('Exception: ', ''),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -206,10 +219,14 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
       final yaAcreditado = respuesta['yaAcreditado'] == true;
       await _mostrarMensaje(
         yaAcreditado ? 'Invitado ya acreditado' : 'Ingreso registrado',
-        (respuesta['mensaje'] ?? 'La acreditacion se realizo con exito.').toString(),
+        (respuesta['mensaje'] ?? 'La acreditacion se realizo con exito.')
+            .toString(),
       );
     } catch (error) {
-      await _mostrarMensaje('Error', error.toString().replaceFirst('Exception: ', ''));
+      await _mostrarMensaje(
+        'Error',
+        error.toString().replaceFirst('Exception: ', ''),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -224,7 +241,10 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
     if (resultado == null || resultado.tipo != TipoResultadoEscaneo.grupal) {
       return;
     }
-    final ids = resultado.invitadosGrupo.where((item) => !item.presente).map((item) => item.id).toList();
+    final ids = resultado.invitadosGrupo
+        .where((item) => !item.presente)
+        .map((item) => item.id)
+        .toList();
     if (ids.isEmpty) {
       await _mostrarMensaje('Informacion', 'No hay invitados pendientes.');
       return;
@@ -245,15 +265,21 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
       setState(() {
         _resultado = actualizado;
       });
-      final acreditados = int.tryParse('${respuesta['cantidad_ingresos']}') ?? ids.length;
+      final acreditados =
+          int.tryParse('${respuesta['cantidad_ingresos']}') ?? ids.length;
       final omitidos = int.tryParse('${respuesta['cantidad_omitidos']}') ?? 0;
-      final detalleOmitidos = omitidos > 0 ? ' $omitidos ya estaban acreditados.' : '';
+      final detalleOmitidos = omitidos > 0
+          ? ' $omitidos ya estaban acreditados.'
+          : '';
       await _mostrarMensaje(
         'Ingreso masivo',
         '$acreditados acreditados.$detalleOmitidos',
       );
     } catch (error) {
-      await _mostrarMensaje('Error', error.toString().replaceFirst('Exception: ', ''));
+      await _mostrarMensaje(
+        'Error',
+        error.toString().replaceFirst('Exception: ', ''),
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -304,23 +330,19 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
   @override
   Widget build(BuildContext context) {
     if (_cargando) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('SiGIC Accesos'),
-      ),
+      appBar: AppBar(title: const Text('SiGIC Accesos')),
       body: SafeArea(
         child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 250),
           child: _mostrandoCamara
               ? _construirVistaCamara(context)
               : _resultado != null
-                  ? _construirVistaResultado(context, _resultado!)
-                  : _construirVistaInicio(context),
+              ? _construirVistaResultado(context, _resultado!)
+              : _construirVistaInicio(context),
         ),
       ),
     );
@@ -339,14 +361,17 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
     return RefreshIndicator(
       onRefresh: _cargarPantalla,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+        padding: const EdgeInsets.fromLTRB(16, 6, 16, 24),
         children: [
           if (widget.mensajeShorebird != null)
             PanelTarjeta(
               colorBorde: TemaSigic.azulBrillante.withValues(alpha: 0.25),
               contenido: ListTile(
                 contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.system_update_alt, color: TemaSigic.azulPrincipal),
+                leading: const Icon(
+                  Icons.system_update_alt,
+                  color: TemaSigic.azulPrincipal,
+                ),
                 title: const Text('Shorebird'),
                 subtitle: Text(widget.mensajeShorebird!),
               ),
@@ -359,17 +384,24 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _usuario == null ? 'Acceso de porteria' : 'Hola, ${_usuario!.nombre.split(' ').first}',
-                        style: tema.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+                        _usuario == null
+                            ? 'Acceso de porteria'
+                            : 'Hola, ${_usuario!.nombre.split(' ').first}',
+                        style: tema.textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       Row(
                         children: [
                           Container(
                             width: 8,
                             height: 8,
                             margin: const EdgeInsets.only(right: 8),
-                            decoration: BoxDecoration(color: colorSesion, shape: BoxShape.circle),
+                            decoration: BoxDecoration(
+                              color: colorSesion,
+                              shape: BoxShape.circle,
+                            ),
                           ),
                           Expanded(
                             child: Text(
@@ -402,9 +434,17 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
               contenido: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Ceremonia activa', style: TextStyle(fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 10),
-                  Text(_ceremonia!.nombre, style: tema.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
+                  const Text(
+                    'Ceremonia activa',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    _ceremonia!.nombre,
+                    style: tema.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
                   const SizedBox(height: 6),
                   Text(formatterFecha.format(_ceremonia!.fecha)),
                   const SizedBox(height: 4),
@@ -417,8 +457,11 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
               contenido: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Ceremonias habilitadas', style: TextStyle(fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 10),
+                  const Text(
+                    'Ceremonias habilitadas',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 8),
                   ..._ceremoniasAutorizadas.map(
                     (ceremoniaAutorizada) => Padding(
                       padding: const EdgeInsets.only(bottom: 10),
@@ -426,19 +469,29 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
                         decoration: BoxDecoration(
                           color: ceremoniaAutorizada.activa
                               ? TemaSigic.azulPrincipal.withValues(alpha: 0.08)
-                              : Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+                              : Theme.of(context)
+                                    .colorScheme
+                                    .surfaceContainerHighest
+                                    .withValues(alpha: 0.35),
                           borderRadius: BorderRadius.circular(18),
                           border: Border.all(
                             color: ceremoniaAutorizada.activa
-                                ? TemaSigic.azulPrincipal.withValues(alpha: 0.25)
+                                ? TemaSigic.azulPrincipal.withValues(
+                                    alpha: 0.25,
+                                  )
                                 : Colors.transparent,
                           ),
                         ),
                         child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 4,
+                          ),
                           leading: Icon(
                             Icons.school,
-                            color: ceremoniaAutorizada.activa ? TemaSigic.azulPrincipal : null,
+                            color: ceremoniaAutorizada.activa
+                                ? TemaSigic.azulPrincipal
+                                : null,
                           ),
                           title: Text(ceremoniaAutorizada.nombre),
                           subtitle: Text(
@@ -459,11 +512,16 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
               contenido: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Acreditados en sala', style: TextStyle(fontWeight: FontWeight.w700)),
-                  const SizedBox(height: 10),
+                  const Text(
+                    'Acreditados en sala',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 8),
                   Text(
                     '${_estadisticas!.presentes} / ${_estadisticas!.totalInvitados}',
-                    style: tema.textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w900),
+                    style: tema.textTheme.displaySmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                 ],
               ),
@@ -476,23 +534,29 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
                 style: const TextStyle(color: TemaSigic.error),
               ),
             ),
-          if (_estadoSesion == EstadoSesion.sinConexion || _estadoSesion == EstadoSesion.expirada)
+          if (_estadoSesion == EstadoSesion.sinConexion ||
+              _estadoSesion == EstadoSesion.expirada)
             PanelTarjeta(
-              colorBorde: (_estadoSesion == EstadoSesion.sinConexion ? const Color(0xFFF59E0B) : TemaSigic.error)
-                  .withValues(alpha: 0.28),
+              colorBorde:
+                  (_estadoSesion == EstadoSesion.sinConexion
+                          ? const Color(0xFFF59E0B)
+                          : TemaSigic.error)
+                      .withValues(alpha: 0.28),
               contenido: Text(
                 _estadoSesion == EstadoSesion.sinConexion
                     ? 'La app conserva la sesion local, pero no pudo revalidarla con el servidor.'
                     : 'La sesion actual ya no es valida. Volve a iniciar sesion desde Ajustes o con un QR de acceso.',
               ),
             ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           FilledButton.icon(
             onPressed: _abrirCamara,
             icon: const Icon(Icons.qr_code_scanner),
-            label: Text(_token == null ? 'Escanear QR de acceso' : 'Abrir escaner QR'),
+            label: Text(
+              _token == null ? 'Escanear QR de acceso' : 'Abrir escaner QR',
+            ),
             style: FilledButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 20),
+              padding: const EdgeInsets.symmetric(vertical: 16),
               backgroundColor: TemaSigic.azulPrincipal,
               foregroundColor: Colors.white,
             ),
@@ -520,7 +584,9 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
           child: MobileScanner(
             controller: _controladorCamara,
             onDetect: (captura) {
-              final codigo = captura.barcodes.isEmpty ? null : captura.barcodes.first.rawValue;
+              final codigo = captura.barcodes.isEmpty
+                  ? null
+                  : captura.barcodes.first.rawValue;
               if (codigo != null) {
                 _procesarCodigo(codigo);
               }
@@ -545,11 +611,16 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(18, 18, 18, 8),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 14,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.15),
+                      ),
                       boxShadow: const [
                         BoxShadow(
                           color: Color(0x33000000),
@@ -574,7 +645,9 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                _token == null ? 'Escanear QR de acceso' : 'Escanear acreditacion',
+                                _token == null
+                                    ? 'Escanear QR de acceso'
+                                    : 'Escanear acreditacion',
                                 style: tema.textTheme.titleMedium?.copyWith(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w800,
@@ -621,20 +694,23 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
                     SizedBox(
                       width: 274,
                       height: 274,
-                      child: CustomPaint(
-                        painter: _MarcoEscanerPainter(),
-                      ),
+                      child: CustomPaint(painter: _MarcoEscanerPainter()),
                     ),
                   ],
                 ),
                 const SizedBox(height: 24),
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 28),
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 14,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(22),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.12),
+                    ),
                   ),
                   child: Row(
                     children: [
@@ -642,10 +718,15 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: TemaSigic.azulBrillante.withValues(alpha: 0.22),
+                          color: TemaSigic.azulBrillante.withValues(
+                            alpha: 0.22,
+                          ),
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        child: const Icon(Icons.center_focus_strong, color: Colors.white),
+                        child: const Icon(
+                          Icons.center_focus_strong,
+                          color: Colors.white,
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -694,7 +775,9 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
                   Expanded(
                     child: Text(
                       'Escaneo desde navegador',
-                      style: tema.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+                      style: tema.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
                 ],
@@ -703,12 +786,17 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest
+                      .withValues(alpha: 0.35),
                   borderRadius: BorderRadius.circular(22),
                 ),
                 child: Column(
                   children: [
-                    const Icon(Icons.qr_code_2, size: 72, color: TemaSigic.azulPrincipal),
+                    const Icon(
+                      Icons.qr_code_2,
+                      size: 72,
+                      color: TemaSigic.azulPrincipal,
+                    ),
                     const SizedBox(height: 12),
                     Text(
                       'En web la camara puede no iniciar segun el navegador o los permisos. Para no dejar la pantalla gris, esta vista permite procesar el codigo manualmente.',
@@ -737,13 +825,18 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
                     : () {
                         final codigo = _controladorCodigoManual.text.trim();
                         if (codigo.isEmpty) {
-                          _mostrarMensaje('Falta un codigo', 'Ingresa o pega un codigo antes de continuar.');
+                          _mostrarMensaje(
+                            'Falta un codigo',
+                            'Ingresa o pega un codigo antes de continuar.',
+                          );
                           return;
                         }
                         _procesarCodigo(codigo);
                       },
                 icon: const Icon(Icons.play_arrow),
-                label: Text(_cargandoEscaneo ? 'Procesando...' : 'Procesar codigo'),
+                label: Text(
+                  _cargandoEscaneo ? 'Procesando...' : 'Procesar codigo',
+                ),
                 style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 18),
                   backgroundColor: TemaSigic.azulPrincipal,
@@ -763,7 +856,10 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
     );
   }
 
-  Widget _construirVistaResultado(BuildContext context, ResultadoEscaneo resultado) {
+  Widget _construirVistaResultado(
+    BuildContext context,
+    ResultadoEscaneo resultado,
+  ) {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
       children: [
@@ -771,20 +867,26 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
           contenido: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(resultado.titulo, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800)),
+              Text(
+                resultado.titulo,
+                style: Theme.of(context).textTheme.headlineSmall
+                    ?.copyWith(fontWeight: FontWeight.w800),
+              ),
               const SizedBox(height: 8),
               Text(resultado.mensaje),
             ],
           ),
         ),
-        if (resultado.tipo == TipoResultadoEscaneo.individual && resultado.invitado != null)
+        if (resultado.tipo == TipoResultadoEscaneo.individual &&
+            resultado.invitado != null)
           _TarjetaInvitadoIndividual(
             invitado: resultado.invitado!,
             egresadoNombre: resultado.egresadoNombre ?? '',
             cargando: _cargandoEscaneo,
             alAcreditar: () => _acreditarInvitado(resultado.invitado!.id),
           ),
-        if (resultado.tipo == TipoResultadoEscaneo.grupal && resultado.grupoEgresado != null)
+        if (resultado.tipo == TipoResultadoEscaneo.grupal &&
+            resultado.grupoEgresado != null)
           _TarjetaGrupo(
             resultado: resultado,
             cargando: _cargandoEscaneo,
@@ -809,13 +911,7 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
   }
 }
 
-enum EstadoSesion {
-  comprobando,
-  autenticado,
-  invitado,
-  sinConexion,
-  expirada,
-}
+enum EstadoSesion { comprobando, autenticado, invitado, sinConexion, expirada }
 
 class _MarcoEscanerPainter extends CustomPainter {
   @override
@@ -842,11 +938,21 @@ class _MarcoEscanerPainter extends CustomPainter {
       ..lineTo(rect.right, rect.top + largoEsquina)
       ..moveTo(rect.right, rect.bottom - largoEsquina)
       ..lineTo(rect.right, rect.bottom - radio)
-      ..quadraticBezierTo(rect.right, rect.bottom, rect.right - radio, rect.bottom)
+      ..quadraticBezierTo(
+        rect.right,
+        rect.bottom,
+        rect.right - radio,
+        rect.bottom,
+      )
       ..lineTo(rect.right - largoEsquina, rect.bottom)
       ..moveTo(rect.left + largoEsquina, rect.bottom)
       ..lineTo(rect.left + radio, rect.bottom)
-      ..quadraticBezierTo(rect.left, rect.bottom, rect.left, rect.bottom - radio)
+      ..quadraticBezierTo(
+        rect.left,
+        rect.bottom,
+        rect.left,
+        rect.bottom - radio,
+      )
       ..lineTo(rect.left, rect.bottom - largoEsquina);
 
     canvas.drawPath(ruta, pintura);
@@ -876,7 +982,11 @@ class _TarjetaInvitadoIndividual extends StatelessWidget {
       contenido: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(invitado.nombre, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
+          Text(
+            invitado.nombre,
+            style: Theme.of(context).textTheme.titleLarge
+                ?.copyWith(fontWeight: FontWeight.w800),
+          ),
           const SizedBox(height: 6),
           Text('DNI: ${invitado.dni}'),
           Text('Relacion: ${invitado.relacion}'),
@@ -884,7 +994,9 @@ class _TarjetaInvitadoIndividual extends StatelessWidget {
           const SizedBox(height: 16),
           FilledButton(
             onPressed: puedeAcreditar ? alAcreditar : null,
-            child: Text(invitado.presente ? 'Ya acreditado' : 'Registrar ingreso'),
+            child: Text(
+              invitado.presente ? 'Ya acreditado' : 'Registrar ingreso',
+            ),
           ),
         ],
       ),
@@ -908,28 +1020,45 @@ class _TarjetaGrupo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final grupo = resultado.grupoEgresado!;
-    final invitadosPendientes = resultado.invitadosGrupo.where((item) => !item.presente).length;
+    final invitadosPendientes = resultado.invitadosGrupo
+        .where((item) => !item.presente)
+        .length;
 
     return PanelTarjeta(
       contenido: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Graduado', style: Theme.of(context).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800)),
+          Text(
+            'Graduado',
+            style: Theme.of(context).textTheme.labelLarge
+                ?.copyWith(fontWeight: FontWeight.w800),
+          ),
           const SizedBox(height: 6),
-          Text(grupo.nombre, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+          Text(
+            grupo.nombre,
+            style: Theme.of(context).textTheme.titleLarge
+                ?.copyWith(fontWeight: FontWeight.w900),
+          ),
           const SizedBox(height: 8),
           Text('Legajo: ${grupo.legajo}'),
           Text('Carrera: ${grupo.carrera.isEmpty ? 'N/C' : grupo.carrera}'),
-          Text('Asiento: ${grupo.asientoId.isEmpty ? 'Sin asiento' : grupo.asientoId}'),
+          Text(
+            'Asiento: ${grupo.asientoId.isEmpty ? 'Sin asiento' : grupo.asientoId}',
+          ),
           const SizedBox(height: 18),
-          Text('Invitados en grupo', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+          Text(
+            'Invitados en grupo',
+            style: Theme.of(context).textTheme.titleMedium
+                ?.copyWith(fontWeight: FontWeight.w800),
+          ),
           const SizedBox(height: 10),
           ...resultado.invitadosGrupo.map(
             (invitado) => Padding(
               padding: const EdgeInsets.only(bottom: 10),
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest
+                      .withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: Padding(
@@ -940,7 +1069,12 @@ class _TarjetaGrupo extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(invitado.nombre, style: const TextStyle(fontWeight: FontWeight.w700)),
+                            Text(
+                              invitado.nombre,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                             const SizedBox(height: 4),
                             Text('DNI: ${invitado.dni}'),
                             Text('Relacion: ${invitado.relacion}'),
@@ -951,10 +1085,15 @@ class _TarjetaGrupo extends StatelessWidget {
                       invitado.presente
                           ? const Chip(
                               label: Text('Ingreso'),
-                              avatar: Icon(Icons.check_circle, color: TemaSigic.exito),
+                              avatar: Icon(
+                                Icons.check_circle,
+                                color: TemaSigic.exito,
+                              ),
                             )
                           : FilledButton(
-                              onPressed: cargando ? null : () => alAcreditarInvitado(invitado.id),
+                              onPressed: cargando
+                                  ? null
+                                  : () => alAcreditarInvitado(invitado.id),
                               child: const Text('Ingresar'),
                             ),
                     ],
@@ -965,7 +1104,9 @@ class _TarjetaGrupo extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           FilledButton.icon(
-            onPressed: cargando || invitadosPendientes == 0 ? null : alAcreditarPendientes,
+            onPressed: cargando || invitadosPendientes == 0
+                ? null
+                : alAcreditarPendientes,
             icon: const Icon(Icons.groups_2),
             label: Text('Acreditar pendientes ($invitadosPendientes)'),
           ),

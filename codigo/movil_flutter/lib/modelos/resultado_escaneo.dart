@@ -17,10 +17,7 @@ class InvitadoEscaneado {
   final bool discapacidad;
   final String? fechaPresente;
 
-  InvitadoEscaneado copiarCon({
-    bool? presente,
-    String? fechaPresente,
-  }) {
+  InvitadoEscaneado copiarCon({bool? presente, String? fechaPresente}) {
     return InvitadoEscaneado(
       id: id,
       nombre: nombre,
@@ -77,18 +74,18 @@ class ResultadoEscaneo {
     required this.mensaje,
     required this.invitado,
     required this.egresadoNombre,
-  })  : tipo = TipoResultadoEscaneo.individual,
-        grupoEgresado = null,
-        invitadosGrupo = const [];
+  }) : tipo = TipoResultadoEscaneo.individual,
+       grupoEgresado = null,
+       invitadosGrupo = const [];
 
   const ResultadoEscaneo.grupal({
     required this.titulo,
     required this.mensaje,
     required this.grupoEgresado,
     required this.invitadosGrupo,
-  })  : tipo = TipoResultadoEscaneo.grupal,
-        invitado = null,
-        egresadoNombre = null;
+  }) : tipo = TipoResultadoEscaneo.grupal,
+       invitado = null,
+       egresadoNombre = null;
 
   final TipoResultadoEscaneo tipo;
   final String titulo;
@@ -103,27 +100,37 @@ class ResultadoEscaneo {
     if (tipo == 'grupo') {
       return ResultadoEscaneo.grupal(
         titulo: (mapa['titulo'] ?? 'Grupo encontrado').toString(),
-        mensaje: (mapa['mensaje'] ?? 'Grupo listo para acreditacion.').toString(),
+        mensaje: (mapa['mensaje'] ?? 'Grupo listo para acreditacion.')
+            .toString(),
         grupoEgresado: GrupoEgresado.desdeMapa(
-          (mapa['egresado'] as Map?)?.cast<String, dynamic>() ?? <String, dynamic>{},
+          (mapa['egresado'] as Map?)?.cast<String, dynamic>() ??
+              <String, dynamic>{},
         ),
         invitadosGrupo: ((mapa['invitados'] as List?) ?? const [])
-            .map((item) => InvitadoEscaneado.desdeMapa((item as Map).cast<String, dynamic>()))
+            .map(
+              (item) => InvitadoEscaneado.desdeMapa(
+                (item as Map).cast<String, dynamic>(),
+              ),
+            )
             .toList(),
       );
     }
 
-    final datos = (mapa['datos'] as Map?)?.cast<String, dynamic>() ?? <String, dynamic>{};
+    final datos =
+        (mapa['datos'] as Map?)?.cast<String, dynamic>() ?? <String, dynamic>{};
     return ResultadoEscaneo.individual(
       titulo: (mapa['titulo'] ?? 'Invitado encontrado').toString(),
-      mensaje: (mapa['mensaje'] ?? 'Invitado listo para acreditacion.').toString(),
+      mensaje: (mapa['mensaje'] ?? 'Invitado listo para acreditacion.')
+          .toString(),
       invitado: InvitadoEscaneado.desdeMapa(datos),
       egresadoNombre: datos['egresadoNombre']?.toString() ?? '',
     );
   }
 
   ResultadoEscaneo marcarInvitadoPresente(String id) {
-    if (tipo == TipoResultadoEscaneo.individual && invitado != null && invitado!.id == id) {
+    if (tipo == TipoResultadoEscaneo.individual &&
+        invitado != null &&
+        invitado!.id == id) {
       return ResultadoEscaneo.individual(
         titulo: titulo,
         mensaje: mensaje,
@@ -153,11 +160,12 @@ class ResultadoEscaneo {
   }
 }
 
-enum TipoResultadoEscaneo {
-  individual,
-  grupal,
-}
+enum TipoResultadoEscaneo { individual, grupal }
 
 bool _aBool(dynamic valor) {
-  return valor == true || valor == 1 || valor == '1' || valor == 'true' || valor == 't';
+  return valor == true ||
+      valor == 1 ||
+      valor == '1' ||
+      valor == 'true' ||
+      valor == 't';
 }

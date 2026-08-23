@@ -9,7 +9,8 @@ class ServicioAlmacenamiento {
   static const String claveToken = 'sigic_token';
   static const String claveUsuario = 'sigic_usuario';
 
-  Future<SharedPreferences> get _preferencias async => SharedPreferences.getInstance();
+  Future<SharedPreferences> get _preferencias async =>
+      SharedPreferences.getInstance();
 
   Future<String?> obtenerApiUrl() async {
     final preferencias = await _preferencias;

@@ -182,7 +182,9 @@ class ServicioApi {
     return (respuesta as Map).cast<String, dynamic>();
   }
 
-  Future<Map<String, dynamic>> acreditarInvitadosMasivo(List<String> ids) async {
+  Future<Map<String, dynamic>> acreditarInvitadosMasivo(
+    List<String> ids,
+  ) async {
     final respuesta = await _request(
       '/invitados/presente-masivo',
       metodo: 'PUT',

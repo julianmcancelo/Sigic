@@ -192,9 +192,8 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
     if (!mounted) {
       return;
     }
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(mensaje)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(mensaje)));
   }
 
   @override
@@ -203,7 +202,7 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
       appBar: AppBar(title: const Text('Ajustes')),
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+          padding: const EdgeInsets.fromLTRB(16, 6, 16, 24),
           children: [
             PanelTarjeta(
               contenido: Column(
@@ -364,9 +363,8 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
                   ] else ...[
                     Text(
                       _usuario!.nombre,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
+                      style: Theme.of(context).textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w800),
                     ),
                     const SizedBox(height: 6),
                     Text(_usuario!.email),
