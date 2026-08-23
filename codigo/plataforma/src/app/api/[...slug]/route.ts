@@ -1265,8 +1265,18 @@ export async function POST(
       const plantilla = generarPlantillaInvitacion(graduado.nombre, linkAcceso, hostBase);
       
       await enviarCorreo(graduado.correo, 'Invitación a Ceremonia de Colación - SiGIC', plantilla);
-      await query('UPDATE egresados SET invitacion_enviada = TRUE WHERE id = $1', [graduadoId]);
-      return NextResponse.json({ ok: true, mensaje: 'Invitación enviada correctamente' }, { headers });
+      const actualizado = await query(
+        `UPDATE egresados
+         SET invitacion_enviada = TRUE,
+             estado_flujo = CASE
+               WHEN estado_flujo IS NULL OR estado_flujo = '' OR estado_flujo = 'SIN_INVITAR' THEN 'PENDIENTE'
+               ELSE estado_flujo
+             END
+         WHERE id = $1
+         RETURNING id, invitacion_enviada, estado_flujo, estado`,
+        [graduadoId]
+      );
+      return NextResponse.json({ ok: true, mensaje: 'Invitación enviada correctamente', graduado: actualizado.rows[0] }, { headers });
     }
 
     if (path === 'egresados/solicitar-otp') {

@@ -84,7 +84,14 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
     }
     setEnviandoId(grad.id)
     try {
-      await enviarInvitacion(grad.id)
+      const respuesta = await enviarInvitacion(grad.id)
+      const actualizado = respuesta?.graduado
+      setGraduados(actuales => actuales.map(item => item.id === grad.id ? {
+        ...item,
+        invitacion_enviada: true,
+        estado_flujo: actualizado?.estado_flujo || (item.estado_flujo === 'SIN_INVITAR' ? 'PENDIENTE' : item.estado_flujo),
+        estado: actualizado?.estado || item.estado
+      } : item))
       setExitoEnvio(grad.id)
       setTimeout(() => setExitoEnvio(null), 3000)
       await cargarDatos()
@@ -402,7 +409,7 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
                           }`}
                         >
                           {exitoEnvio === grad.id ? <CheckCircle2 size={12} /> : <Send size={12} />}
-                          {enviandoId === grad.id ? 'Enviando...' : exitoEnvio === grad.id ? 'Enviado' : 'Enviar invitación'}
+                          {enviandoId === grad.id ? 'Enviando...' : exitoEnvio === grad.id ? 'Enviado' : grad.invitacion_enviada ? 'Reenviar invitación' : 'Enviar invitación'}
                         </button>
                         
                         <button
