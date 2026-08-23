@@ -218,7 +218,7 @@ export function ModalAsignarAsientos({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-3 sm:p-5 animate-in fade-in duration-300">
-      <div className="w-full max-w-6xl h-[min(92vh,760px)] bg-white rounded-[24px] sm:rounded-[32px] shadow-2xl overflow-hidden flex flex-col">
+      <div className="w-full max-w-6xl h-[min(92vh,760px)] bg-white rounded-[24px] sm:rounded-[32px] shadow-2xl overflow-hidden grid grid-rows-[auto_minmax(0,1fr)_auto]">
         
         {/* HEADER */}
         <div className="shrink-0 px-5 py-4 sm:px-7 sm:py-5 bg-gradient-to-r from-slate-950 via-slate-900 to-[#102a43] text-white flex items-center justify-between gap-4">
@@ -238,10 +238,10 @@ export function ModalAsignarAsientos({
         </div>
 
         {/* CONTENIDO PRINCIPAL */}
-        <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
+        <div className="min-h-0 flex flex-col md:flex-row overflow-hidden">
           
           {/* SIDEBAR IZQUIERDO: INTEGRANTES */}
-          <aside className="w-full md:w-[19rem] md:shrink-0 bg-slate-50 border-b md:border-b-0 md:border-r border-slate-200 px-4 py-3 sm:p-5 overflow-y-auto space-y-4">
+          <aside className="w-full md:w-[19rem] md:shrink-0 bg-slate-50 border-b md:border-b-0 md:border-r border-slate-200 px-4 py-3 sm:p-5 overflow-y-auto space-y-3">
             <div>
               <div className="flex items-center justify-between">
                 <h3 className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Integrantes del grupo</h3>
@@ -297,21 +297,23 @@ export function ModalAsignarAsientos({
           </aside>
 
           {/* ÁREA CENTRAL: MAPA DE ASIENTOS */}
-          <div className="flex-1 min-h-0 bg-[radial-gradient(circle_at_top,_#f0f9ff,_#ffffff_55%)] p-3 sm:p-5 overflow-auto flex flex-col items-center">
-            <div className="w-full max-w-3xl shrink-0 flex items-start gap-3 rounded-2xl border border-sky-100 bg-white/85 px-3.5 py-2.5 mb-3 shadow-sm">
+          <div className="flex-1 min-h-0 bg-[radial-gradient(circle_at_top,_#f0f9ff,_#ffffff_55%)] p-3 sm:p-4 overflow-hidden flex flex-col items-center">
+            <div className="w-full max-w-3xl shrink-0 flex items-start gap-3 rounded-2xl border border-sky-100 bg-white/85 px-3.5 py-2.5 mb-2 shadow-sm">
               <LockKeyhole size={16} className="text-sky-600 mt-0.5 shrink-0" />
               <p className="text-[11px] leading-relaxed text-slate-500"><strong className="text-slate-700">Asignación administrada.</strong> Las butacas ocupadas, de autoridades y reservadas permanecen bloqueadas. Las butacas de graduado solo se habilitan al seleccionar al graduado.</p>
             </div>
             {estructura ? (
-              <SeleccionAsientos
-                ceremoniaId={ceremoniaId}
-                estructura={estructura}
-                mapaRoles={mapaRolesParaAsignacion()}
-                seleccionados={asientosGrupoActual}
-                setSeleccionados={() => {}} // Manejado internamente por el click
-                onAsientoClick={manejarAsientoClick}
-                maxSeleccion={personasGrupo.length}
-              />
+              <div className="w-full min-h-0 flex-1 overflow-hidden">
+                <SeleccionAsientos
+                  ceremoniaId={ceremoniaId}
+                  estructura={estructura}
+                  mapaRoles={mapaRolesParaAsignacion()}
+                  seleccionados={asientosGrupoActual}
+                  setSeleccionados={() => {}} // Manejado internamente por el click
+                  onAsientoClick={manejarAsientoClick}
+                  maxSeleccion={personasGrupo.length}
+                />
+              </div>
             ) : (
               <div className="text-center opacity-40">
                 <RefreshCw className="animate-spin text-sky-500 mx-auto mb-4" size={32} />
@@ -322,8 +324,8 @@ export function ModalAsignarAsientos({
         </div>
 
         {/* FOOTER */}
-        <div className="shrink-0 px-4 py-3 sm:px-6 sm:py-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
-          <div>
+        <div className="shrink-0 px-4 py-3 sm:px-6 bg-slate-50 border-t border-slate-200 flex items-center justify-between gap-4">
+          <div className="min-w-0">
             <p className="text-xs font-bold text-slate-600">
               Asientos asignados: <span className="font-black text-slate-900">{asientosGrupoActual.length} / {personasGrupo.length}</span>
             </p>
@@ -332,23 +334,19 @@ export function ModalAsignarAsientos({
             </p>
           </div>
 
-          {error && (
-            <p className="text-xs font-black text-red-500 uppercase tracking-wider bg-red-50 border border-red-100 px-4 py-2 rounded-xl flex items-center gap-1.5">
-              <AlertTriangle size={14} /> {error}
-            </p>
-          )}
+          {error && <p className="hidden lg:flex max-w-sm text-[10px] font-black text-red-500 uppercase tracking-wider bg-red-50 border border-red-100 px-3 py-2 rounded-xl items-center gap-1.5"><AlertTriangle size={14} /> {error}</p>}
 
-          <div className="flex gap-4">
+          <div className="shrink-0 flex items-center gap-3">
             <button
               onClick={onCerrar}
-              className="px-4 sm:px-6 text-[10px] sm:text-xs font-black uppercase tracking-widest text-slate-400 hover:text-red-500 transition-colors"
+              className="px-3 sm:px-5 text-[10px] sm:text-xs font-black uppercase tracking-widest text-slate-400 hover:text-red-500 transition-colors"
             >
               Cancelar
             </button>
             <button
               onClick={guardar}
               disabled={procesando || !asignacionCompleta}
-              className="bg-slate-900 text-white font-black uppercase tracking-widest text-[10px] sm:text-xs py-3 px-5 sm:px-8 rounded-xl shadow-xl shadow-slate-900/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100"
+              className="bg-slate-900 text-white font-black uppercase tracking-widest text-[10px] sm:text-xs py-3 px-4 sm:px-6 rounded-xl shadow-xl shadow-slate-900/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100"
             >
               {procesando ? 'Guardando...' : 'Guardar Asignación'}
             </button>
