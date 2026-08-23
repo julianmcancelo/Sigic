@@ -46,7 +46,7 @@ button { cursor: pointer; }
 /* Administrador de ventanas: cada módulo conserva su acceso en la barra de tareas. */
 .sigic-window { position: relative; z-index: 2; transform-origin: top center; will-change: transform; animation: sigic-window-open .2s cubic-bezier(.2,.8,.2,1); transition: transform .2s cubic-bezier(.2,.8,.2,1), opacity .16s ease, box-shadow .2s ease, filter .16s ease; }
 .sigic-window-dragging { cursor: grabbing; user-select: none; transition: none; box-shadow: 0 38px 84px rgba(0,0,0,.42); }
-.sigic-window-maximized { position: absolute; inset: 14px 28px 18px; height: auto; z-index: 3; }
+.sigic-window-maximized { position: absolute; inset: 14px 28px 18px; height: auto; z-index: 3; animation: sigic-window-maximize .2s cubic-bezier(.2,.8,.2,1); }
 .sigic-window-closing { opacity: 0; transform: scale(.985) translateY(10px); pointer-events: none; filter: saturate(.8); }
 .sigic-window-caption { color: rgba(255,255,255,.3); font-size: 9px; margin-left: 8px; }
 .sigic-snap-preview { position: absolute; z-index: 1; border: 1px solid rgba(103, 232, 249, .5); border-radius: 10px; background: rgba(34, 211, 238, .12); box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); pointer-events: none; animation: sigic-snap-preview .12s ease-out; }
@@ -54,6 +54,7 @@ button { cursor: pointer; }
 .sigic-snap-preview-izquierda { top: 6px; bottom: 6px; left: 6px; width: calc(50% - 10px); }
 .sigic-snap-preview-derecha { top: 6px; right: 6px; bottom: 6px; width: calc(50% - 10px); }
 @keyframes sigic-window-open { from { opacity: 0; transform: scale(.985) translateY(8px); } to { opacity: 1; } }
+@keyframes sigic-window-maximize { from { opacity: .7; transform: scale(.97); } to { opacity: 1; transform: scale(1); } }
 @keyframes sigic-snap-preview { from { opacity: 0; transform: scale(.98); } to { opacity: 1; transform: scale(1); } }
 .sigic-empty-desktop { position: absolute; inset: 45% 0 auto; display: flex; flex-direction: column; align-items: center; gap: 8px; color: rgba(255,255,255,.48); font-size: 11px; }
 .sigic-empty-desktop strong { color: rgba(255,255,255,.8); font-size: 14px; }

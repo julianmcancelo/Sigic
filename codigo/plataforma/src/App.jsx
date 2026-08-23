@@ -927,7 +927,8 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
     onNavegar(id)
     if (!yaEstabaAbierta) {
       setPosicionVentana({ x: 0, y: 0 })
-      setVentanaMaximizada(false)
+      // Los tableros operativos necesitan el ancho completo desde el inicio.
+      setVentanaMaximizada(id === 'estado-ceremonia')
       setAjusteVentana(null)
     }
     setInicioAbierto(false)
