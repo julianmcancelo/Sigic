@@ -292,8 +292,9 @@ export async function GET(
       const proximaCeremoniaRes = await query(`
         SELECT id, nombre, fecha, lugar
         FROM ceremonias
-        WHERE id <> $1 AND fecha >= CURRENT_DATE
-        ORDER BY fecha ASC
+        WHERE id <> $1
+          AND NULLIF(fecha, '')::date >= CURRENT_DATE
+        ORDER BY NULLIF(fecha, '')::date ASC
         LIMIT 1
       `, [ceremoniaId]);
 
