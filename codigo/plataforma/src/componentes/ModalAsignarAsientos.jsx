@@ -38,7 +38,12 @@ export function ModalAsignarAsientos({
       egresadoAsiento: graduado.asiento_id || null,
       invitadosAsientos: invAsientos
     })
-    setPersonaActiva({ tipo: 'egresado', id: null })
+    const primerPendiente = !graduado.asiento_id
+      ? { tipo: 'egresado', id: null }
+      : invitados.find(inv => !inv.asiento_id)
+        ? { tipo: 'invitado', id: invitados.find(inv => !inv.asiento_id).id }
+        : { tipo: 'egresado', id: null }
+    setPersonaActiva(primerPendiente)
     setError('')
   }, [graduado.id, graduado.asiento_id, invitados])
 
@@ -132,6 +137,7 @@ export function ModalAsignarAsientos({
     persona => persona.tipo === personaActivaDatos.tipo && persona.id === personaActivaDatos.id
   ))
   const faltantes = personasGrupo.filter(persona => !persona.asiento).length
+  const grupoEnRevision = asignacionCompleta
 
   const mapaRolesParaAsignacion = () => {
     const roles = obtenerMapaRolesConOcupados()
@@ -250,73 +256,74 @@ export function ModalAsignarAsientos({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 backdrop-blur-sm p-3 sm:p-5 animate-in fade-in duration-300">
-      <div className="w-full max-w-7xl h-[min(92dvh,780px)] bg-[#f8fafc] rounded-[24px] sm:rounded-[30px] shadow-2xl overflow-hidden grid grid-rows-[auto_minmax(0,1fr)_auto]">
-        <header className="px-5 py-4 sm:px-7 bg-gradient-to-r from-slate-950 via-slate-900 to-[#13314d] text-white flex items-center justify-between gap-4">
-          <div className="min-w-0">
-            <p className="text-[9px] font-black uppercase tracking-[0.22em] text-sky-300 mb-1">Asignación de ubicaciones</p>
-            <h2 className="text-xl sm:text-2xl font-black flex items-center gap-2.5"><Armchair className="text-sky-400 shrink-0" /> Butacas del grupo</h2>
-            <p className="text-[10px] sm:text-xs text-slate-400 mt-1 uppercase tracking-widest font-bold truncate">{graduado.nombre} · DNI {graduado.dni}</p>
+      <div className="w-full max-w-6xl h-[min(84dvh,650px)] bg-[#f8fafc] rounded-[20px] sm:rounded-[24px] shadow-2xl overflow-hidden grid grid-rows-[auto_minmax(0,1fr)_auto]">
+        <header className="px-5 py-3 sm:px-6 bg-gradient-to-r from-slate-950 via-slate-900 to-[#13314d] text-white flex items-center justify-between gap-4">
+          <div className="min-w-0 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-sky-500/15 text-sky-400 flex items-center justify-center shrink-0"><Armchair size={19} /></div>
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-lg font-black">Butacas del grupo</h2>
+              <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold truncate">{graduado.nombre} · {personasGrupo.length} integrantes</p>
+            </div>
           </div>
           <div className="flex items-center gap-3 shrink-0">
             <div className="hidden sm:block rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-right">
-              <p className="text-[9px] uppercase font-black tracking-widest text-slate-400">Progreso</p>
-              <p className="text-sm font-black text-sky-300">{asientosGrupoActual.length} / {personasGrupo.length}</p>
+              <p className="text-[8px] uppercase font-black tracking-widest text-slate-400">Asignados</p>
+              <p className="text-xs font-black text-sky-300">{asientosGrupoActual.length} / {personasGrupo.length}</p>
             </div>
             <button onClick={onCerrar} aria-label="Cerrar asignación de butacas" className="p-2.5 hover:bg-white/10 rounded-xl transition-colors"><X size={22} /></button>
           </div>
         </header>
 
-        <div className="min-h-0 grid grid-cols-1 lg:grid-cols-[19rem_minmax(0,1fr)] overflow-hidden">
+        <div className="min-h-0 grid grid-cols-1 lg:grid-cols-[16rem_minmax(0,1fr)] overflow-hidden">
           <aside className="min-h-0 bg-white border-b lg:border-b-0 lg:border-r border-slate-200 flex flex-col">
-            <div className="px-4 py-3.5 border-b border-slate-100 flex items-center justify-between">
+            <div className="px-3 py-2.5 border-b border-slate-100 flex items-center justify-between">
               <div>
                 <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Integrantes</h3>
-                <p className="text-[10px] text-slate-400 mt-1">Elegí a quién le asignás.</p>
+                <p className="text-[9px] text-slate-400 mt-0.5">Elegí una persona para editar.</p>
               </div>
               <span className="flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-black text-slate-600"><Users size={13} /> {personasGrupo.length}</span>
             </div>
 
-            <div className="p-3 space-y-2 overflow-y-auto">
+            <div className="p-2 space-y-1.5 overflow-y-auto">
               {personasGrupo.map((persona, indice) => {
                 const esActivo = personaActivaDatos.tipo === persona.tipo && personaActivaDatos.id === persona.id
                 return (
-                  <button key={`${persona.tipo}-${persona.id || 'grupo'}`} onClick={() => { setPersonaActiva({ tipo: persona.tipo, id: persona.id }); setError('') }} className={`w-full flex items-center gap-3 p-3 rounded-2xl border text-left transition-all ${esActivo ? 'border-sky-400 bg-sky-50 shadow-sm ring-2 ring-sky-100' : 'border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50'}`}>
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-black text-xs ${persona.asiento ? 'bg-emerald-100 text-emerald-700' : esActivo ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                  <button key={`${persona.tipo}-${persona.id || 'grupo'}`} onClick={() => { setPersonaActiva({ tipo: persona.tipo, id: persona.id }); setError('') }} className={`w-full flex items-center gap-2.5 p-2.5 rounded-xl border text-left transition-all ${esActivo ? 'border-sky-400 bg-sky-50 shadow-sm' : 'border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50'}`}>
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-[10px] ${persona.asiento ? 'bg-emerald-100 text-emerald-700' : esActivo ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-400'}`}>
                       {persona.asiento ? <CheckCircle2 size={18} /> : indice + 1}
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-black text-slate-800 truncate">{persona.nombre}</p>
-                      <p className="mt-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-400">{persona.rolLabel}</p>
+                      <p className="mt-0.5 text-[8px] font-bold uppercase tracking-wider text-slate-400">{persona.rolLabel}</p>
                     </div>
-                    <div className={`shrink-0 rounded-lg px-2 py-1 text-[10px] font-black ${persona.asiento ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-600'}`}>{persona.asiento || 'S/A'}</div>
+                    <div className={`shrink-0 rounded-md px-1.5 py-1 text-[9px] font-black ${persona.asiento ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-600'}`}>{persona.asiento || 'S/A'}</div>
                   </button>
                 )
               })}
             </div>
 
-            <div className="p-3 border-t border-slate-100">
-              <button onClick={limpiarSeleccion} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-red-200 text-red-500 text-[10px] font-black uppercase tracking-widest hover:bg-red-50 transition-colors"><RotateCcw size={14} /> Reiniciar grupo</button>
+            <div className="p-2 border-t border-slate-100">
+              <button onClick={limpiarSeleccion} className="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-dashed border-red-200 text-red-500 text-[9px] font-black uppercase tracking-widest hover:bg-red-50 transition-colors"><RotateCcw size={13} /> Reiniciar grupo</button>
             </div>
           </aside>
 
-          <section className="min-h-0 p-3 sm:p-4 bg-[radial-gradient(circle_at_top,_#e0f2fe,_#f8fafc_42%)] flex flex-col gap-3 overflow-hidden">
-            <div className="shrink-0 bg-white/90 border border-sky-100 rounded-2xl p-3 sm:px-4 flex items-center gap-3 shadow-sm">
-              <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center"><User size={19} /></div>
+          <section className="min-h-0 p-2.5 sm:p-3 bg-[radial-gradient(circle_at_top,_#e0f2fe,_#f8fafc_42%)] flex flex-col gap-2 overflow-hidden">
+            <div className="shrink-0 bg-white/90 border border-sky-100 rounded-xl px-3 py-2 flex items-center gap-2.5 shadow-sm">
+              <div className="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center"><User size={16} /></div>
               <div className="min-w-0 flex-1">
-                <p className="text-[9px] uppercase tracking-[0.16em] font-black text-sky-600">Paso {pasoActivo + 1} de {personasGrupo.length}</p>
-                <p className="text-sm font-black text-slate-800 truncate">Asignando a {personaActivaDatos.nombre}</p>
-                <p className="text-[10px] text-slate-500">{personaActivaDatos.tipo === 'egresado' ? 'Puede usar butacas exclusivas de graduado.' : 'Elegí una butaca disponible para el acompañante.'}</p>
+                <p className="text-[8px] uppercase tracking-[0.16em] font-black text-sky-600">{grupoEnRevision ? 'Revisión del grupo' : `Paso ${pasoActivo + 1} de ${personasGrupo.length}`}</p>
+                <p className="text-xs font-black text-slate-800 truncate">{grupoEnRevision ? `Revisando: ${personaActivaDatos.nombre}` : `Asignando a ${personaActivaDatos.nombre}`}</p>
               </div>
               {personaActivaDatos.asiento ? (
-                <button onClick={limpiarPersonaActiva} className="shrink-0 px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-[10px] font-black uppercase tracking-wider text-amber-700 hover:bg-amber-100 transition-colors">Liberar {personaActivaDatos.asiento}</button>
+                <button onClick={limpiarPersonaActiva} className="shrink-0 px-2.5 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-[9px] font-black uppercase tracking-wider text-amber-700 hover:bg-amber-100 transition-colors">Liberar {personaActivaDatos.asiento}</button>
               ) : <ChevronRight className="text-sky-400 shrink-0" size={22} />}
             </div>
 
-            <div className="shrink-0 flex items-center gap-2 px-1 text-[10px] text-slate-500"><LockKeyhole size={14} className="text-slate-400" /> Las butacas ocupadas, reservadas y de autoridades están bloqueadas.</div>
+            <div className="shrink-0 flex items-center gap-2 px-1 text-[9px] text-slate-500"><LockKeyhole size={13} className="text-slate-400" /> Reservadas, autoridades y ocupadas: bloqueadas.</div>
 
             {estructura ? (
-              <div className="min-h-0 flex-1 overflow-auto rounded-2xl [scrollbar-width:thin] [&_.sigic-mapa]:p-4 [&_.sigic-mapa]:rounded-2xl [&_.sigic-escenario]:mb-4 [&_.sigic-escenario__sombra]:h-2 [&_.sigic-stats__pill]:px-2 [&_.sigic-stats__pill]:py-1">
-                <SeleccionAsientos ceremoniaId={ceremoniaId} estructura={estructura} mapaRoles={mapaRolesParaAsignacion()} seleccionados={asientosGrupoActual} setSeleccionados={() => {}} onAsientoClick={manejarAsientoClick} maxSeleccion={personasGrupo.length} zoom={0.72} setZoom={() => {}} compacto />
+              <div className="min-h-0 flex-1 overflow-auto rounded-xl [scrollbar-width:thin] [&_.sigic-wrapper]:gap-1.5 [&_.sigic-mapa]:p-3 [&_.sigic-mapa]:rounded-xl [&_.sigic-escenario]:mb-2 [&_.sigic-escenario__sombra]:h-1 [&_.sigic-stats__pill]:px-2 [&_.sigic-stats__pill]:py-1">
+                <SeleccionAsientos ceremoniaId={ceremoniaId} estructura={estructura} mapaRoles={mapaRolesParaAsignacion()} seleccionados={asientosGrupoActual} setSeleccionados={() => {}} onAsientoClick={manejarAsientoClick} maxSeleccion={personasGrupo.length} zoom={0.68} setZoom={() => {}} compacto />
               </div>
             ) : (
               <div className="flex-1 grid place-items-center text-center opacity-50"><div><RefreshCw className="animate-spin text-sky-500 mx-auto mb-3" size={28} /><p className="text-[10px] font-black uppercase tracking-widest">Cargando anfiteatro</p></div></div>
@@ -324,13 +331,13 @@ export function ModalAsignarAsientos({
           </section>
         </div>
 
-        <footer className="px-4 py-3 sm:px-6 bg-white border-t border-slate-200 flex items-center justify-between gap-4">
+        <footer className="px-4 py-2.5 sm:px-5 bg-white border-t border-slate-200 flex items-center justify-between gap-4">
           <div className="min-w-0">
             {error ? <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-red-500"><AlertTriangle size={14} /> {error}</p> : <p className={`text-[11px] font-bold ${asignacionCompleta ? 'text-emerald-600' : 'text-slate-500'}`}>{asignacionCompleta ? 'Grupo completo. La asignación está lista para confirmar.' : `${faltantes} integrante${faltantes === 1 ? '' : 's'} sin butaca.`}</p>}
           </div>
           <div className="shrink-0 flex items-center gap-3">
             <button onClick={onCerrar} className="px-3 sm:px-5 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-red-500 transition-colors">Cancelar</button>
-            <button onClick={guardar} disabled={procesando || !asignacionCompleta} className="bg-slate-900 text-white font-black uppercase tracking-widest text-[10px] py-3 px-4 sm:px-6 rounded-xl shadow-lg shadow-slate-900/20 hover:bg-slate-800 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed">{procesando ? 'Guardando...' : 'Confirmar asignación'}</button>
+            <button onClick={guardar} disabled={procesando || !asignacionCompleta} className="bg-slate-900 text-white font-black uppercase tracking-widest text-[9px] py-2.5 px-4 sm:px-5 rounded-lg shadow-lg shadow-slate-900/20 hover:bg-slate-800 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed">{procesando ? 'Guardando...' : 'Confirmar asignación'}</button>
           </div>
         </footer>
       </div>
