@@ -289,6 +289,27 @@ export async function GET(
         WHERE e.ceremonia_id = $1 AND i.presente IS TRUE
       `, [ceremoniaId]);
       const gruposConIngreso = parseInt(gruposRes.rows[0].total || '0');
+      const ingresosPorHoraRes = await query(`
+        SELECT EXTRACT(HOUR FROM i.fecha_presente)::int AS hora, COUNT(*)::int AS total
+        FROM invitados i
+        JOIN egresados e ON i.egresado_id = e.id
+        WHERE e.ceremonia_id = $1 AND i.presente IS TRUE AND i.fecha_presente IS NOT NULL
+        GROUP BY EXTRACT(HOUR FROM i.fecha_presente)
+        ORDER BY hora ASC
+      `, [ceremoniaId]);
+      const ingresosPorHora = Array.from({ length: 24 }, (_, hora) => ({
+        hora,
+        total: ingresosPorHoraRes.rows.find((fila: any) => Number(fila.hora) === hora)?.total || 0,
+      }));
+      const relacionesRes = await query(`
+        SELECT COALESCE(NULLIF(i.relacion, ''), 'Acompañante') AS relacion, COUNT(*)::int AS total
+        FROM invitados i
+        JOIN egresados e ON i.egresado_id = e.id
+        WHERE e.ceremonia_id = $1 AND i.presente IS TRUE
+        GROUP BY COALESCE(NULLIF(i.relacion, ''), 'Acompañante')
+        ORDER BY total DESC, relacion ASC
+        LIMIT 4
+      `, [ceremoniaId]);
       const proximaCeremoniaRes = await query(`
         SELECT id, nombre, fecha, lugar
         FROM ceremonias
@@ -331,6 +352,8 @@ export async function GET(
         ausentes,
         gruposConIngreso,
         porcentajeAsistencia,
+        ingresosPorHora,
+        ingresosPorRelacion: relacionesRes.rows,
         ultimosIngresos,
         proximaCeremonia: proximaCeremoniaRes.rows[0] || null,
         timestamp: new Date().toISOString(),
