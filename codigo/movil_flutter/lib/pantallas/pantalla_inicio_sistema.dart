@@ -140,7 +140,7 @@ class PantallaInicioSistema extends StatelessWidget {
                 const SizedBox(height: 18),
                 const Center(
                   child: Text(
-                    'SiGIC Movil v1.0.3  |  Actualizaciones seguras con Shorebird',
+                    'SiGIC Movil v1.0.4  |  Actualizaciones seguras con Shorebird',
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Color(0xFF718A97), fontSize: 10),
                   ),
