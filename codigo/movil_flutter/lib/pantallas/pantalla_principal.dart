@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../servicios/servicio_almacenamiento.dart';
 import '../servicios/servicio_api.dart';
 import '../servicios/servicio_shorebird.dart';
+import '../servicios/servicio_release.dart';
 import 'pantalla_inicio_sistema.dart';
 import 'pestanas/pestana_ajustes.dart';
 import 'pestanas/pestana_escaner.dart';
@@ -17,6 +19,7 @@ class PantallaPrincipal extends StatefulWidget {
 class _PantallaPrincipalState extends State<PantallaPrincipal> {
   late final ServicioApi _servicioApi;
   late final ServicioShorebird _servicioShorebird;
+  final ServicioRelease _servicioRelease = ServicioRelease();
 
   int _indiceActual = 0;
   String? _mensajeShorebird;
@@ -49,6 +52,38 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
       _estadoInicio = mensaje ?? 'Sistema verificado. Iniciando operaciones...';
       _inicializandoSistema = false;
     });
+    _avisarNuevaRelease();
+  }
+
+  Future<void> _avisarNuevaRelease() async {
+    final release = await _servicioRelease.buscarNuevaRelease();
+    if (!mounted || release == null) return;
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: !release.required,
+      builder: (context) => AlertDialog(
+        title: const Text('Nueva version disponible'),
+        content: Text(
+          'SiGIC ${release.version} esta disponible. ${release.notes}',
+        ),
+        actions: [
+          if (!release.required)
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Mas tarde'),
+            ),
+          FilledButton(
+            onPressed: () async {
+              final url = Uri.tryParse(release.apkUrl);
+              if (url != null) {
+                await launchUrl(url, mode: LaunchMode.externalApplication);
+              }
+            },
+            child: const Text('Descargar APK'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
