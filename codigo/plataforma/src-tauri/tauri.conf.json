@@ -1,0 +1,15 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "SiGIC Escritorio",
+  "version": "1.0.0",
+  "identifier": "ar.com.sigic.escritorio",
+  "build": {
+    "frontendDist": "../public/tauri-shell",
+    "devUrl": "https://demo.sigic.com.ar"
+  },
+  "app": {
+    "windows": [{ "label": "main", "title": "SiGIC Escritorio", "width": 1280, "height": 820, "minWidth": 900, "minHeight": 620, "resizable": true, "maximized": false }],
+    "security": { "csp": null }
+  },
+  "bundle": { "active": true, "targets": "all", "icon": ["icons/icon.ico", "icons/icon.png"] }
+}

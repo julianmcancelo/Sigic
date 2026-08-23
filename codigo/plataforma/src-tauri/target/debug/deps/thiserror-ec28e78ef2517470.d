@@ -1,0 +1,13 @@
+C:\Users\Jota\Documents\Sigic-demo\codigo\plataforma\src-tauri\target\debug\deps\thiserror-ec28e78ef2517470.d: C:\Users\Jota\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\lib.rs C:\Users\Jota\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\aserror.rs C:\Users\Jota\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\display.rs C:\Users\Jota\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\provide.rs C:\Users\Jota\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\var.rs C:\Users\Jota\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\private.rs C:\Users\Jota\Documents\Sigic-demo\codigo\plataforma\src-tauri\target\debug\build\thiserror-4ea1ec729682f757\out/private.rs
+
+C:\Users\Jota\Documents\Sigic-demo\codigo\plataforma\src-tauri\target\debug\deps\libthiserror-ec28e78ef2517470.rmeta: C:\Users\Jota\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\lib.rs C:\Users\Jota\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\aserror.rs C:\Users\Jota\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\display.rs C:\Users\Jota\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\provide.rs C:\Users\Jota\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\var.rs C:\Users\Jota\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\private.rs C:\Users\Jota\Documents\Sigic-demo\codigo\plataforma\src-tauri\target\debug\build\thiserror-4ea1ec729682f757\out/private.rs
+
+C:\Users\Jota\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\lib.rs:
+C:\Users\Jota\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\aserror.rs:
+C:\Users\Jota\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\display.rs:
+C:\Users\Jota\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\provide.rs:
+C:\Users\Jota\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\var.rs:
+C:\Users\Jota\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\thiserror-2.0.20\src\private.rs:
+C:\Users\Jota\Documents\Sigic-demo\codigo\plataforma\src-tauri\target\debug\build\thiserror-4ea1ec729682f757\out/private.rs:
+
+# env-dep:OUT_DIR=C:\\Users\\Jota\\Documents\\Sigic-demo\\codigo\\plataforma\\src-tauri\\target\\debug\\build\\thiserror-4ea1ec729682f757\\out
