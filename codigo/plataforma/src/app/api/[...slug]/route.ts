@@ -144,6 +144,7 @@ async function inicializarTablasAdicionales() {
     await query('ALTER TABLE otp_historial ALTER COLUMN otp_hash TYPE VARCHAR(64)');
     await query('ALTER TABLE otp_historial ALTER COLUMN resultado TYPE VARCHAR(32)');
     await query('ALTER TABLE egresados DROP CONSTRAINT IF EXISTS egresados_legajo_carrera_anio_key');
+    await query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS entregador_asiento_id VARCHAR(100)');
   } catch (e) {
     console.error('Error al inicializar tabla ceremonias_usuarios_autorizados:', e);
   }
@@ -1675,12 +1676,99 @@ export async function PUT(
     // -------------------------------------------------------------
     if (slug[0] === 'egresados' && slug[2] === 'asientos' && slug[1]) {
       const id = slug[1];
-      const esAutorizado = await esAutorizadoPersonalOEgresado(req, id, ROLES_GESTION);
-      if (!esAutorizado) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+      const esPersonal = await esPersonalValido(req, ROLES_GESTION);
+      if (!esPersonal) return NextResponse.json({ error: 'La asignación de butacas es exclusiva de administración' }, { status: 403, headers });
 
-      const { asientoId } = body;
-      await query('UPDATE egresados SET asiento_id = $1 WHERE id = $2', [asientoId, id]);
-      return NextResponse.json({ ok: true, asientoId }, { headers });
+      const normalizarAsiento = (valor: unknown) => {
+        if (valor === null || valor === undefined || valor === '') return null;
+        return String(valor).trim();
+      };
+      const egresadoAsiento = normalizarAsiento(body.egresadoAsiento ?? body.asientoId);
+      const entregadorAsiento = normalizarAsiento(body.entregadorAsiento);
+      const invitadosAsientos = body.invitadosAsientos && typeof body.invitadosAsientos === 'object'
+        ? Object.fromEntries(Object.entries(body.invitadosAsientos).map(([invitadoId, asiento]) => [invitadoId, normalizarAsiento(asiento)]))
+        : {};
+      const asignaciones = [egresadoAsiento, entregadorAsiento, ...Object.values(invitadosAsientos)].filter(Boolean) as string[];
+
+      if (new Set(asignaciones).size !== asignaciones.length) {
+        return NextResponse.json({ error: 'Una misma butaca no puede asignarse a dos personas del grupo' }, { status: 400, headers });
+      }
+
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        const graduadoRes = await client.query('SELECT ceremonia_id FROM egresados WHERE id = $1 FOR UPDATE', [id]);
+        if (graduadoRes.rowCount === 0) {
+          await client.query('ROLLBACK');
+          return NextResponse.json({ error: 'Graduado no encontrado' }, { status: 404, headers });
+        }
+        const ceremoniaId = graduadoRes.rows[0].ceremonia_id;
+        const idsInvitados = Object.keys(invitadosAsientos);
+
+        if (idsInvitados.length > 0) {
+          const placeholders = idsInvitados.map((_, indice) => `$${indice + 2}`).join(', ');
+          const invitadosRes = await client.query(
+            `SELECT id FROM invitados WHERE egresado_id = $1 AND id IN (${placeholders})`,
+            [id, ...idsInvitados]
+          );
+          if (invitadosRes.rowCount !== idsInvitados.length) {
+            await client.query('ROLLBACK');
+            return NextResponse.json({ error: 'La asignación contiene acompañantes que no pertenecen al graduado' }, { status: 400, headers });
+          }
+        }
+
+        // Serializa cada butaca solicitada: dos operadores no pueden reservarla a la vez.
+        for (const asiento of asignaciones.sort()) {
+          await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [`butaca:${ceremoniaId}:${asiento}`]);
+        }
+
+        if (asignaciones.length > 0) {
+          const ocupados = await client.query(
+            `SELECT asiento_id FROM egresados WHERE ceremonia_id = $1 AND id <> $2 AND asiento_id = ANY($3)
+             UNION
+             SELECT entregador_asiento_id AS asiento_id FROM egresados WHERE ceremonia_id = $1 AND id <> $2 AND entregador_asiento_id = ANY($3)
+             UNION
+             SELECT i.asiento_id FROM invitados i JOIN egresados e ON e.id = i.egresado_id
+             WHERE e.ceremonia_id = $1 AND e.id <> $2 AND i.asiento_id = ANY($3)`,
+            [ceremoniaId, id, asignaciones]
+          );
+          if (ocupados.rowCount > 0) {
+            await client.query('ROLLBACK');
+            return NextResponse.json({ error: `La butaca ${ocupados.rows[0].asiento_id} acaba de ser asignada a otro grupo. Actualizá el mapa e intentá de nuevo.` }, { status: 409, headers });
+          }
+        }
+
+        const planoRes = await client.query(
+          'SELECT mapa_roles FROM configuracion_anfiteatro WHERE ceremonia_id = $1 ORDER BY actualizado_en DESC LIMIT 1',
+          [ceremoniaId]
+        );
+        const mapaRoles = planoRes.rows[0]?.mapa_roles
+          ? (typeof planoRes.rows[0].mapa_roles === 'string' ? JSON.parse(planoRes.rows[0].mapa_roles) : planoRes.rows[0].mapa_roles)
+          : {};
+        const noAsignables = asignaciones.find(asiento => ['autoridad', 'reservado', 'bloqueado'].includes(mapaRoles[asiento]));
+        if (noAsignables) {
+          await client.query('ROLLBACK');
+          return NextResponse.json({ error: `La butaca ${noAsignables} pertenece a un sector reservado y no se puede asignar.` }, { status: 400, headers });
+        }
+
+        await client.query(
+          'UPDATE egresados SET asiento_id = $1, entregador_asiento_id = $2 WHERE id = $3',
+          [egresadoAsiento, entregadorAsiento, id]
+        );
+        await client.query('UPDATE invitados SET asiento_id = NULL WHERE egresado_id = $1', [id]);
+        for (const [invitadoId, asiento] of Object.entries(invitadosAsientos)) {
+          await client.query('UPDATE invitados SET asiento_id = $1 WHERE id = $2 AND egresado_id = $3', [asiento, invitadoId, id]);
+        }
+
+        await client.query('COMMIT');
+        return NextResponse.json({ ok: true, asignados: asignaciones.length }, { headers });
+      } catch (error: any) {
+        await client.query('ROLLBACK');
+        console.error('Error al asignar butacas:', error);
+        return NextResponse.json({ error: 'No se pudo guardar la asignación de butacas', detalle: error.message }, { status: 500, headers });
+      } finally {
+        client.release();
+      }
     }
 
     if (slug[0] === 'egresados' && slug[2] === 'entregador' && slug[1]) {

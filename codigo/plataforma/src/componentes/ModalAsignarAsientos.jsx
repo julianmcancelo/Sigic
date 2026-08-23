@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { X, Armchair, CheckCircle2, User, HelpCircle, RefreshCw, AlertTriangle } from 'lucide-react'
+import { X, Armchair, CheckCircle2, User, RefreshCw, AlertTriangle, LockKeyhole, Users } from 'lucide-react'
 import { SeleccionAsientos } from '../paginas/SeleccionAsientos'
 import { BASE, asignarAsientos, obtenerAjustes } from '../servicios/api'
 
@@ -135,6 +135,16 @@ export function ModalAsignarAsientos({
   }
 
   const asientosGrupoActual = obtenerTodosAsientosGrupo()
+  const asignacionCompleta = asientosGrupoActual.length === personasGrupo.length
+
+  const mapaRolesParaAsignacion = () => {
+    const roles = obtenerMapaRolesConOcupados()
+    Object.entries(roles).forEach(([asientoId, rol]) => {
+      if (['autoridad', 'reservado', 'bloqueado'].includes(rol)) roles[asientoId] = 'bloqueado'
+      if (rol === 'egresado' && personaActiva.tipo !== 'egresado') roles[asientoId] = 'bloqueado'
+    })
+    return roles
+  }
 
   // Al hacer clic en un asiento del mapa
   const manejarAsientoClick = (asientoId) => {
@@ -193,6 +203,7 @@ export function ModalAsignarAsientos({
 
   // Limpiar toda la selección actual
   const limpiarSeleccion = () => {
+    if (asientosGrupoActual.length > 0 && !window.confirm('Se quitarán todas las butacas de este grupo. Podés cancelar para conservar los cambios.')) return
     const invAsientos = {}
     invitados.forEach(inv => { invAsientos[inv.id] = null })
     setAsignaciones({
@@ -205,6 +216,10 @@ export function ModalAsignarAsientos({
 
   // Guardar asignación final
   const guardar = async () => {
+    if (!asignacionCompleta) {
+      setError('Asigná una butaca a cada integrante antes de guardar.')
+      return
+    }
     setProcesando(true)
     setError('')
     try {
@@ -222,21 +237,22 @@ export function ModalAsignarAsientos({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-      <div className="w-full max-w-6xl bg-white rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+      <div className="w-full max-w-6xl bg-white rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
         
         {/* HEADER */}
-        <div className="p-8 bg-slate-900 text-white flex items-center justify-between">
+        <div className="p-7 bg-gradient-to-r from-slate-950 via-slate-900 to-[#102a43] text-white flex items-center justify-between">
           <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-sky-300 mb-2">Mesa de asignación</p>
             <h2 className="text-2xl font-black flex items-center gap-3">
               <Armchair className="text-sky-400" />
-              Asignación de Asientos
+              Butacas del grupo
             </h2>
             <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest font-bold">
               Grupo de {graduado.nombre} · DNI: {graduado.dni}
             </p>
           </div>
-          <button onClick={onCerrar} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+          <button onClick={onCerrar} aria-label="Cerrar asignación de butacas" className="p-2 hover:bg-white/10 rounded-full transition-colors">
             <X size={24} />
           </button>
         </div>
@@ -245,8 +261,14 @@ export function ModalAsignarAsientos({
         <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
           
           {/* SIDEBAR IZQUIERDO: INTEGRANTES */}
-          <aside className="w-full md:w-80 bg-slate-50 border-r border-slate-100 p-6 overflow-y-auto space-y-6">
-            <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Integrantes del Grupo</h3>
+          <aside className="w-full md:w-80 bg-slate-50 border-r border-slate-200 p-6 overflow-y-auto space-y-5">
+            <div>
+              <div className="flex items-center justify-between">
+                <h3 className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Integrantes del grupo</h3>
+                <span className="flex items-center gap-1 text-[10px] font-black text-slate-500"><Users size={13} /> {personasGrupo.length}</span>
+              </div>
+              <p className="text-[11px] leading-relaxed text-slate-400 mt-2">Elegí una persona y luego una butaca disponible en el mapa.</p>
+            </div>
             
             <div className="space-y-3">
               {personasGrupo.map((p, idx) => {
@@ -295,12 +317,16 @@ export function ModalAsignarAsientos({
           </aside>
 
           {/* ÁREA CENTRAL: MAPA DE ASIENTOS */}
-          <div className="flex-1 bg-white p-8 overflow-y-auto flex flex-col items-center justify-center min-h-[400px]">
+          <div className="flex-1 bg-[radial-gradient(circle_at_top,_#f0f9ff,_#ffffff_55%)] p-6 md:p-8 overflow-y-auto flex flex-col items-center justify-center min-h-[400px]">
+            <div className="w-full max-w-3xl flex items-start gap-3 rounded-2xl border border-sky-100 bg-white/80 px-4 py-3 mb-5 shadow-sm">
+              <LockKeyhole size={16} className="text-sky-600 mt-0.5 shrink-0" />
+              <p className="text-[11px] leading-relaxed text-slate-500"><strong className="text-slate-700">Asignación administrada.</strong> Las butacas ocupadas, de autoridades y reservadas permanecen bloqueadas. Las butacas de graduado solo se habilitan al seleccionar al graduado.</p>
+            </div>
             {estructura ? (
               <SeleccionAsientos
                 ceremoniaId={ceremoniaId}
                 estructura={estructura}
-                mapaRoles={obtenerMapaRolesConOcupados()}
+                mapaRoles={mapaRolesParaAsignacion()}
                 seleccionados={asientosGrupoActual}
                 setSeleccionados={() => {}} // Manejado internamente por el click
                 onAsientoClick={manejarAsientoClick}
@@ -316,9 +342,14 @@ export function ModalAsignarAsientos({
         </div>
 
         {/* FOOTER */}
-        <div className="p-8 bg-slate-50 border-t border-slate-100 flex flex-wrap items-center justify-between gap-4">
-          <div className="text-xs font-bold text-slate-500">
-            Asientos asignados: <span className="font-black text-slate-800">{asientosGrupoActual.length} / {personasGrupo.length}</span>
+        <div className="p-6 md:p-7 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-xs font-bold text-slate-600">
+              Asientos asignados: <span className="font-black text-slate-900">{asientosGrupoActual.length} / {personasGrupo.length}</span>
+            </p>
+            <p className={`text-[10px] font-bold mt-1 ${asignacionCompleta ? 'text-emerald-600' : 'text-amber-600'}`}>
+              {asignacionCompleta ? 'El grupo está listo para guardar.' : 'Falta asignar al menos una persona.'}
+            </p>
           </div>
 
           {error && (
@@ -336,8 +367,8 @@ export function ModalAsignarAsientos({
             </button>
             <button
               onClick={guardar}
-              disabled={procesando}
-              className="bg-slate-900 text-white font-black uppercase tracking-widest text-xs py-4 px-10 rounded-2xl shadow-xl shadow-slate-900/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
+              disabled={procesando || !asignacionCompleta}
+              className="bg-slate-900 text-white font-black uppercase tracking-widest text-xs py-4 px-10 rounded-2xl shadow-xl shadow-slate-900/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100"
             >
               {procesando ? 'Guardando...' : 'Guardar Asignación'}
             </button>
