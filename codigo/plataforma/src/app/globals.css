@@ -3,6 +3,14 @@
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;
+  --sigic-ink: #102a43;
+  --sigic-muted: #63798a;
+  --sigic-line: #dce7ed;
+  --sigic-surface: #ffffff;
+  --sigic-brand: #087fbd;
+  --sigic-accent: #06b6d4;
+  --sigic-radius: 16px;
+  --sigic-shadow: 0 12px 30px rgba(15, 42, 67, .08);
 }
 
 @theme inline {
@@ -19,6 +27,11 @@ body {
 }
 
 button { cursor: pointer; }
+
+/* Base compartida para paneles administrativos y estados operativos. */
+.sigic-surface { border: 1px solid var(--sigic-line); border-radius: var(--sigic-radius); background: var(--sigic-surface); box-shadow: var(--sigic-shadow); }
+.sigic-eyebrow { color: var(--sigic-muted); font-size: 10px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
+@media (max-width: 640px) { .sigic-surface { border-radius: 14px; box-shadow: none; } }
 
 .sigic-os-shell { min-height: 100vh; background: #081624; color: #e8f2f7; position: relative; overflow: hidden; font-family: 'Trebuchet MS', sans-serif; }
 .sigic-os-grid { position: absolute; inset: 0; opacity: .24; background-image: linear-gradient(rgba(70, 207, 226, .08) 1px, transparent 1px), linear-gradient(90deg, rgba(70, 207, 226, .08) 1px, transparent 1px); background-size: 48px 48px; mask-image: linear-gradient(to bottom, black, transparent 90%); }

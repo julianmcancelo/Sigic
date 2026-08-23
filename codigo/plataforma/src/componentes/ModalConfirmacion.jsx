@@ -14,7 +14,7 @@ export function ModalConfirmacion({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/45 backdrop-blur-sm" />
 
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-sm -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl border border-[#B3E5FC] bg-white shadow-[0_24px_64px_rgba(41,171,226,0.22)] focus:outline-none">
+        <Dialog.Content className="fixed bottom-0 left-0 z-50 w-full max-w-sm overflow-hidden rounded-t-2xl border border-[#B3E5FC] bg-white shadow-[0_24px_64px_rgba(41,171,226,0.22)] focus:outline-none sm:left-1/2 sm:top-1/2 sm:bottom-auto sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl">
           <div className="bg-[#2A3448]">
             <div className="h-1 bg-[#29ABE2]" />
             <div className="flex items-center gap-3 px-5 py-4">
@@ -32,11 +32,11 @@ export function ModalConfirmacion({
               {descripcion}
             </Dialog.Description>
 
-            <div className="flex justify-end gap-3">
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3">
               <button
                 type="button"
                 onClick={onCancelar}
-                className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-[#546E7A] transition hover:bg-slate-50"
+                className="rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-[#546E7A] transition hover:bg-slate-50"
               >
                 Cancelar
               </button>
@@ -44,7 +44,7 @@ export function ModalConfirmacion({
               <button
                 type="button"
                 onClick={onConfirmar}
-                className="rounded-lg bg-[#29ABE2] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#0288D1] active:bg-[#0277BD]"
+                className="rounded-lg bg-[#29ABE2] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#0288D1] active:bg-[#0277BD]"
               >
                 {textoConfirmar}
               </button>
