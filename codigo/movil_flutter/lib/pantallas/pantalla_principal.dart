@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../servicios/servicio_almacenamiento.dart';
 import '../servicios/servicio_api.dart';
 import '../servicios/servicio_shorebird.dart';
+import 'pantalla_inicio_sistema.dart';
 import 'pestanas/pestana_ajustes.dart';
 import 'pestanas/pestana_escaner.dart';
 
@@ -20,6 +21,8 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
   int _indiceActual = 0;
   String? _mensajeShorebird;
   int _revisionSesion = 0;
+  bool _inicializandoSistema = true;
+  String _estadoInicio = 'Verificando actualizaciones seguras...';
 
   @override
   void initState() {
@@ -31,17 +34,29 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
   }
 
   Future<void> _inicializarShorebird() async {
+    final inicio = DateTime.now();
     final mensaje = await _servicioShorebird.buscarYDescargarActualizacion();
-    if (!mounted || mensaje == null) {
+    final transcurrido = DateTime.now().difference(inicio);
+    final espera = const Duration(milliseconds: 900) - transcurrido;
+    if (espera > Duration.zero) {
+      await Future<void>.delayed(espera);
+    }
+    if (!mounted) {
       return;
     }
     setState(() {
       _mensajeShorebird = mensaje;
+      _estadoInicio = mensaje ?? 'Sistema verificado. Iniciando operaciones...';
+      _inicializandoSistema = false;
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_inicializandoSistema) {
+      return PantallaInicioSistema(estado: _estadoInicio);
+    }
+
     final pantallas = [
       PestanaEscaner(
         servicioApi: _servicioApi,
