@@ -1,6 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  async rewrites() {
+    return [
+      {
+        source: '/',
+        has: [{ type: 'host', value: 'descargas.sigic.com.ar' }],
+        destination: '/descargas',
+      },
+    ];
+  },
   typescript: {
     // Ignorar errores de TypeScript en la compilacion para la migracion incremental
     ignoreBuildErrors: true,
