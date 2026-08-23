@@ -1287,61 +1287,88 @@ class _TarjetaGrupo extends StatelessWidget {
             'Asiento: ${grupo.asientoId.isEmpty ? 'Sin asiento' : grupo.asientoId}',
           ),
           const SizedBox(height: 18),
-          Text(
-            'Invitados en grupo',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
-          ),
-          const SizedBox(height: 10),
-          ...resultado.invitadosGrupo.map(
-            (invitado) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(14),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              invitado.nombre,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text('DNI: ${invitado.dni}'),
-                            Text('Relacion: ${invitado.relacion}'),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      invitado.presente
-                          ? const Chip(
-                              label: Text('Ingreso'),
-                              avatar: Icon(
-                                Icons.check_circle,
-                                color: TemaSigic.exito,
-                              ),
-                            )
-                          : FilledButton(
-                              onPressed: cargando
-                                  ? null
-                                  : () => alAcreditarInvitado(invitado.id),
-                              child: const Text('Ingresar'),
-                            ),
-                    ],
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Invitados del grupo',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
+              ),
+              Text(
+                '$invitadosPendientes pendientes',
+                style: const TextStyle(fontSize: 11, color: Color(0xFF63798A)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 236),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                border: Border.all(color: const Color(0xFFDCE7ED)),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: ListView.separated(
+                shrinkWrap: true,
+                padding: const EdgeInsets.all(6),
+                itemCount: resultado.invitadosGrupo.length,
+                separatorBuilder: (_, _) => const Divider(height: 1),
+                itemBuilder: (context, indice) {
+                  final invitado = resultado.invitadosGrupo[indice];
+                  return ListTile(
+                    dense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
+                    leading: CircleAvatar(
+                      radius: 16,
+                      backgroundColor: invitado.presente
+                          ? TemaSigic.exito.withValues(alpha: .12)
+                          : TemaSigic.azulPrincipal.withValues(alpha: .10),
+                      child: Icon(
+                        invitado.presente ? Icons.check : Icons.person_outline,
+                        size: 17,
+                        color: invitado.presente
+                            ? TemaSigic.exito
+                            : TemaSigic.azulPrincipal,
+                      ),
+                    ),
+                    title: Text(
+                      invitado.nombre,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    subtitle: Text(
+                      '${invitado.relacion} · DNI ${invitado.dni}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 11),
+                    ),
+                    trailing: invitado.presente
+                        ? const Text(
+                            'OK',
+                            style: TextStyle(
+                              color: TemaSigic.exito,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          )
+                        : TextButton(
+                            onPressed: cargando
+                                ? null
+                                : () => alAcreditarInvitado(invitado.id),
+                            child: const Text('Acreditar'),
+                          ),
+                  );
+                },
               ),
             ),
           ),
@@ -1350,8 +1377,10 @@ class _TarjetaGrupo extends StatelessWidget {
             onPressed: cargando || invitadosPendientes == 0
                 ? null
                 : alAcreditarPendientes,
-            icon: const Icon(Icons.groups_2),
-            label: Text('Acreditar pendientes ($invitadosPendientes)'),
+            icon: const Icon(Icons.check_circle),
+            label: Text(
+              'Acreditar $invitadosPendientes pendiente${invitadosPendientes == 1 ? '' : 's'}',
+            ),
           ),
         ],
       ),
