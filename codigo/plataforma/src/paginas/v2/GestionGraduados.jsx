@@ -5,7 +5,7 @@ import {
 } from 'lucide-react'
 
 import { 
-  obtenerGraduados, obtenerEntregadoresDeGraduado,
+  obtenerGraduados,
   eliminarGraduado,
   vaciarGraduados,
   obtenerInvitados, 
@@ -53,7 +53,6 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
   const [linkQR, setLinkQR] = useState(null)
   const [graduadoCredencial, setGraduadoCredencial] = useState(null)
   const [graduadoAsignar, setGraduadoAsignar] = useState(null)
-  const [padrinosAsignar, setPadrinosAsignar] = useState([])
 
   const [enviandoId, setEnviandoId] = useState(null)
   const [exitoEnvio, setExitoEnvio] = useState(null)
@@ -148,14 +147,8 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
 
   const invitadosDe = (id) => invitados.filter(i => i.egresadoId === id || i.egresado_id === id)
 
-  async function abrirAsignacion(grad) {
-    try {
-      const padrinos = await obtenerEntregadoresDeGraduado(grad.id)
-      setPadrinosAsignar(padrinos)
-      setGraduadoAsignar(grad)
-    } catch (err) {
-      setError(err.message || 'No se pudieron cargar los padrinos del grupo')
-    }
+  function abrirAsignacion(grad) {
+    setGraduadoAsignar(grad)
   }
 
   function siguientePaso(grad) {
@@ -515,11 +508,10 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
         <ModalAsignarAsientos
           graduado={graduadoAsignar}
           invitados={invitadosDe(graduadoAsignar.id)}
-          padrinos={padrinosAsignar}
           ceremoniaId={graduadoAsignar.ceremonia_id}
           todosLosGraduados={graduados}
           todosLosInvitados={invitados}
-          onCerrar={() => { setGraduadoAsignar(null); setPadrinosAsignar([]) }}
+          onCerrar={() => setGraduadoAsignar(null)}
           onAsignado={() => {
             setGraduadoAsignar(null)
             cargarDatos()

@@ -1685,13 +1685,10 @@ export async function PUT(
         return String(valor).trim();
       };
       const egresadoAsiento = normalizarAsiento(body.egresadoAsiento ?? body.asientoId);
-      const padrinosAsientos = body.padrinosAsientos && typeof body.padrinosAsientos === 'object'
-        ? Object.fromEntries(Object.entries(body.padrinosAsientos).map(([padrinoId, asiento]) => [padrinoId, normalizarAsiento(asiento)]))
-        : {};
       const invitadosAsientos = body.invitadosAsientos && typeof body.invitadosAsientos === 'object'
         ? Object.fromEntries(Object.entries(body.invitadosAsientos).map(([invitadoId, asiento]) => [invitadoId, normalizarAsiento(asiento)]))
         : {};
-      const asignaciones = [egresadoAsiento, ...Object.values(padrinosAsientos), ...Object.values(invitadosAsientos)].filter(Boolean) as string[];
+      const asignaciones = [egresadoAsiento, ...Object.values(invitadosAsientos)].filter(Boolean) as string[];
 
       if (new Set(asignaciones).size !== asignaciones.length) {
         return NextResponse.json({ error: 'Una misma butaca no puede asignarse a dos personas del grupo' }, { status: 400, headers });
@@ -1707,7 +1704,6 @@ export async function PUT(
         }
         const ceremoniaId = graduadoRes.rows[0].ceremonia_id;
         const idsInvitados = Object.keys(invitadosAsientos);
-        const idsPadrinos = Object.keys(padrinosAsientos);
 
         if (idsInvitados.length > 0) {
           const placeholders = idsInvitados.map((_, indice) => `$${indice + 2}`).join(', ');
@@ -1721,18 +1717,6 @@ export async function PUT(
           }
         }
 
-        if (idsPadrinos.length > 0) {
-          const placeholders = idsPadrinos.map((_, indice) => `$${indice + 2}`).join(', ');
-          const padrinosRes = await client.query(
-            `SELECT id FROM entregadores WHERE egresado_id = $1 AND id IN (${placeholders})`,
-            [id, ...idsPadrinos]
-          );
-          if (padrinosRes.rowCount !== idsPadrinos.length) {
-            await client.query('ROLLBACK');
-            return NextResponse.json({ error: 'La asignación contiene padrinos que no pertenecen al graduado' }, { status: 400, headers });
-          }
-        }
-
         // Serializa cada butaca solicitada: dos operadores no pueden reservarla a la vez.
         for (const asiento of asignaciones.sort()) {
           await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [`butaca:${ceremoniaId}:${asiento}`]);
@@ -1742,9 +1726,6 @@ export async function PUT(
           const ocupados = await client.query(
             `SELECT asiento_id FROM egresados WHERE ceremonia_id = $1 AND id <> $2 AND asiento_id = ANY($3)
              UNION
-             UNION
-             SELECT p.asiento_id FROM entregadores p JOIN egresados e ON e.id = p.egresado_id
-             WHERE e.ceremonia_id = $1 AND e.id <> $2 AND p.asiento_id = ANY($3)
              UNION
              SELECT i.asiento_id FROM invitados i JOIN egresados e ON e.id = i.egresado_id
              WHERE e.ceremonia_id = $1 AND e.id <> $2 AND i.asiento_id = ANY($3)`,
@@ -1773,13 +1754,9 @@ export async function PUT(
           'UPDATE egresados SET asiento_id = $1 WHERE id = $2',
           [egresadoAsiento, id]
         );
-        await client.query('UPDATE entregadores SET asiento_id = NULL WHERE egresado_id = $1', [id]);
         await client.query('UPDATE invitados SET asiento_id = NULL WHERE egresado_id = $1', [id]);
         for (const [invitadoId, asiento] of Object.entries(invitadosAsientos)) {
           await client.query('UPDATE invitados SET asiento_id = $1 WHERE id = $2 AND egresado_id = $3', [asiento, invitadoId, id]);
-        }
-        for (const [padrinoId, asiento] of Object.entries(padrinosAsientos)) {
-          await client.query('UPDATE entregadores SET asiento_id = $1 WHERE id = $2 AND egresado_id = $3', [asiento, padrinoId, id]);
         }
 
         await client.query('COMMIT');
