@@ -5,7 +5,7 @@ import {
 } from 'lucide-react'
 
 import { 
-  obtenerGraduados, 
+  obtenerGraduados, obtenerEntregadoresDeGraduado,
   eliminarGraduado,
   vaciarGraduados,
   obtenerInvitados, 
@@ -53,6 +53,7 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
   const [linkQR, setLinkQR] = useState(null)
   const [graduadoCredencial, setGraduadoCredencial] = useState(null)
   const [graduadoAsignar, setGraduadoAsignar] = useState(null)
+  const [padrinosAsignar, setPadrinosAsignar] = useState([])
 
   const [enviandoId, setEnviandoId] = useState(null)
   const [exitoEnvio, setExitoEnvio] = useState(null)
@@ -147,6 +148,24 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
 
   const invitadosDe = (id) => invitados.filter(i => i.egresadoId === id || i.egresado_id === id)
 
+  async function abrirAsignacion(grad) {
+    try {
+      const padrinos = await obtenerEntregadoresDeGraduado(grad.id)
+      setPadrinosAsignar(padrinos)
+      setGraduadoAsignar(grad)
+    } catch (err) {
+      setError(err.message || 'No se pudieron cargar los padrinos del grupo')
+    }
+  }
+
+  function siguientePaso(grad) {
+    if (grad.estado_flujo === 'RECHAZADO') return 'Participación rechazada'
+    if (!grad.invitacion_enviada) return 'Enviar invitación'
+    if (grad.estado !== 'ACEPTADO') return 'Esperar respuesta'
+    if (grad.estado_flujo === 'COMPLETO') return 'Asignar butacas'
+    return 'Completar grupo'
+  }
+
   return (
     <div className="font-sans">
       {/* HEADER INTEGRADO PRO */}
@@ -174,7 +193,7 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
       </div>
 
       {/* METRICAS COMPACTAS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 mb-6">
         <div className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm flex items-center justify-between">
           <div>
             <span className="block text-[8px] font-bold uppercase text-slate-400 tracking-wider">Total Estudiantes</span>
@@ -197,6 +216,14 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
             <span className="text-xl font-black tabular-nums text-amber-500">{maxPromedio > 0 ? maxPromedio.toFixed(2) : '-'}</span>
           </div>
           <div className="h-8 w-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-500"><Award size={16} /></div>
+        </div>
+
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-sm flex items-center justify-between text-white">
+          <div>
+            <span className="block text-[8px] font-bold uppercase text-slate-400 tracking-wider">Listos para ubicar</span>
+            <span className="text-xl font-black tabular-nums">{contadores.COMPLETO}</span>
+          </div>
+          <div className="h-8 w-8 rounded-lg bg-sky-400/15 flex items-center justify-center text-sky-300"><Armchair size={16} /></div>
         </div>
       </div>
 
@@ -329,7 +356,7 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
                           )}
                         </div>
                         
-                        <div className="flex flex-wrap items-center gap-2 mt-1">
+                  <div className="flex flex-wrap items-center gap-2 mt-1">
                           <span className="text-[10px] text-slate-500 font-semibold bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">
                             DNI: {grad.dni}
                           </span>
@@ -355,6 +382,13 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
                       <span>{estadoConfig.etiqueta}</span>
                     </div>
                   </div>
+
+                  {!esRechazado && (
+                    <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-slate-100 bg-slate-50 px-3 py-2">
+                      <span className="text-[8px] font-black uppercase tracking-[0.14em] text-slate-400">Siguiente acción</span>
+                      <span className={`text-[9px] font-black uppercase tracking-wider ${grad.estado_flujo === 'COMPLETO' ? 'text-emerald-600' : 'text-slate-700'}`}>{siguientePaso(grad)}</span>
+                    </div>
+                  )}
 
                   {/* Pipeline de Flujo Compacto */}
                   {!esRechazado && (
@@ -421,8 +455,8 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
                         
                         {grad.estado === 'ACEPTADO' && (
                           <button
-                            onClick={() => setGraduadoAsignar(grad)}
-                            className="flex items-center gap-1 px-2.5 py-1.5 text-slate-500 hover:bg-slate-50 hover:text-slate-800 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-colors border border-transparent"
+                          onClick={() => abrirAsignacion(grad)}
+                          className="flex items-center gap-1 px-3 py-1.5 bg-slate-900 text-white hover:bg-slate-700 rounded-lg text-[9px] font-black uppercase tracking-wider transition-colors shadow-sm"
                           >
                             <Armchair size={12} /> Asientos
                           </button>
@@ -481,10 +515,11 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
         <ModalAsignarAsientos
           graduado={graduadoAsignar}
           invitados={invitadosDe(graduadoAsignar.id)}
+          padrinos={padrinosAsignar}
           ceremoniaId={graduadoAsignar.ceremonia_id}
           todosLosGraduados={graduados}
           todosLosInvitados={invitados}
-          onCerrar={() => setGraduadoAsignar(null)}
+          onCerrar={() => { setGraduadoAsignar(null); setPadrinosAsignar([]) }}
           onAsignado={() => {
             setGraduadoAsignar(null)
             cargarDatos()

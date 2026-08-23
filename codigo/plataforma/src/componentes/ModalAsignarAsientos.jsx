@@ -6,6 +6,7 @@ import { BASE, asignarAsientos, obtenerAjustes } from '../servicios/api'
 export function ModalAsignarAsientos({
   graduado,
   invitados,
+  padrinos = [],
   ceremoniaId,
   todosLosGraduados,
   todosLosInvitados,
@@ -20,7 +21,7 @@ export function ModalAsignarAsientos({
   // Asignaciones locales en tiempo real
   const [asignaciones, setAsignaciones] = useState({
     egresadoAsiento: graduado.asiento_id || null,
-    entregadorAsiento: graduado.entregador_asiento_id || null,
+    padrinosAsientos: {},
     invitadosAsientos: {} // { [invitadoId]: asientoId }
   })
 
@@ -35,11 +36,14 @@ export function ModalAsignarAsientos({
     invitados.forEach(inv => {
       invAsientos[inv.id] = inv.asiento_id || null
     })
+    const padrinosAsientos = {}
+    padrinos.forEach(padrino => { padrinosAsientos[padrino.id] = padrino.asiento_id || null })
     setAsignaciones(prev => ({
       ...prev,
-      invitadosAsientos: invAsientos
+      invitadosAsientos: invAsientos,
+      padrinosAsientos
     }))
-  }, [invitados])
+  }, [invitados, padrinos])
 
   // Cargar mapa del anfiteatro
   useEffect(() => {
@@ -67,7 +71,6 @@ export function ModalAsignarAsientos({
     todosLosGraduados.forEach(g => {
       if (g.id !== graduado.id) {
         if (g.asiento_id) ocupados.add(g.asiento_id)
-        if (g.entregador_asiento_id) ocupados.add(g.entregador_asiento_id)
       }
     })
 
@@ -103,15 +106,15 @@ export function ModalAsignarAsientos({
     asiento: asignaciones.egresadoAsiento
   })
 
-  if (graduado.entregador_nombre) {
+  padrinos.forEach(padrino => {
     personasGrupo.push({
-      tipo: 'entregador',
-      id: null,
-      nombre: graduado.entregador_nombre,
-      rolLabel: 'Entregador',
-      asiento: asignaciones.entregadorAsiento
+      tipo: 'padrino',
+      id: padrino.id,
+      nombre: padrino.nombre,
+      rolLabel: 'Padrino',
+      asiento: asignaciones.padrinosAsientos[padrino.id] || null
     })
-  }
+  })
 
   invitados.forEach(inv => {
     personasGrupo.push({
@@ -127,7 +130,7 @@ export function ModalAsignarAsientos({
   const obtenerTodosAsientosGrupo = () => {
     const seleccionados = []
     if (asignaciones.egresadoAsiento) seleccionados.push(asignaciones.egresadoAsiento)
-    if (asignaciones.entregadorAsiento) seleccionados.push(asignaciones.entregadorAsiento)
+    Object.values(asignaciones.padrinosAsientos).forEach(seatId => { if (seatId) seleccionados.push(seatId) })
     Object.values(asignaciones.invitadosAsientos).forEach(seatId => {
       if (seatId) seleccionados.push(seatId)
     })
@@ -153,10 +156,14 @@ export function ModalAsignarAsientos({
     
     if (nuevasAsignaciones.egresadoAsiento === asientoId) {
       nuevasAsignaciones.egresadoAsiento = null
-    } else if (nuevasAsignaciones.entregadorAsiento === asientoId) {
-      nuevasAsignaciones.entregadorAsiento = null
     } else {
-      const invKey = Object.keys(nuevasAsignaciones.invitadosAsientos).find(
+      const padrinoKey = Object.keys(nuevasAsignaciones.padrinosAsientos).find(
+        key => nuevasAsignaciones.padrinosAsientos[key] === asientoId
+      )
+      if (padrinoKey) {
+        nuevasAsignaciones.padrinosAsientos[padrinoKey] = null
+      }
+      const invKey = !padrinoKey && Object.keys(nuevasAsignaciones.invitadosAsientos).find(
         key => nuevasAsignaciones.invitadosAsientos[key] === asientoId
       )
       if (invKey) {
@@ -167,8 +174,8 @@ export function ModalAsignarAsientos({
     // 2. Asignar el asiento a la persona activa
     if (personaActiva.tipo === 'egresado') {
       nuevasAsignaciones.egresadoAsiento = asientoId
-    } else if (personaActiva.tipo === 'entregador') {
-      nuevasAsignaciones.entregadorAsiento = asientoId
+    } else if (personaActiva.tipo === 'padrino') {
+      nuevasAsignaciones.padrinosAsientos[personaActiva.id] = asientoId
     } else if (personaActiva.tipo === 'invitado') {
       nuevasAsignaciones.invitadosAsientos[personaActiva.id] = asientoId
     }
@@ -187,7 +194,7 @@ export function ModalAsignarAsientos({
       const p = personasGrupo[idx]
       // Si la persona de la lista local actualizada no tiene asiento
       const tieneAsiento = p.tipo === 'egresado' ? nuevasAsignaciones.egresadoAsiento :
-                           p.tipo === 'entregador' ? nuevasAsignaciones.entregadorAsiento :
+                           p.tipo === 'padrino' ? nuevasAsignaciones.padrinosAsientos[p.id] :
                            nuevasAsignaciones.invitadosAsientos[p.id]
 
       if (!tieneAsiento) {
@@ -206,9 +213,11 @@ export function ModalAsignarAsientos({
     if (asientosGrupoActual.length > 0 && !window.confirm('Se quitarán todas las butacas de este grupo. Podés cancelar para conservar los cambios.')) return
     const invAsientos = {}
     invitados.forEach(inv => { invAsientos[inv.id] = null })
+    const padrinosAsientos = {}
+    padrinos.forEach(padrino => { padrinosAsientos[padrino.id] = null })
     setAsignaciones({
       egresadoAsiento: null,
-      entregadorAsiento: null,
+      padrinosAsientos,
       invitadosAsientos: invAsientos
     })
     setPersonaActiva({ tipo: 'egresado', id: null })
@@ -225,7 +234,7 @@ export function ModalAsignarAsientos({
     try {
       await asignarAsientos(graduado.id, {
         egresadoAsiento: asignaciones.egresadoAsiento,
-        entregadorAsiento: asignaciones.entregadorAsiento,
+        padrinosAsientos: asignaciones.padrinosAsientos,
         invitadosAsientos: asignaciones.invitadosAsientos
       })
       onAsignado()
