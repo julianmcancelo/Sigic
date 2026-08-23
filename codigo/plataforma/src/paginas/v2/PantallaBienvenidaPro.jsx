@@ -459,7 +459,7 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
                       >
                         {ceremonias.map(c => (
                           <option key={c.id} value={c.id}>
-                            {c.activa ? '★ ' : ''}{c.nombre}
+                            {c.activa ? '(Activa) ' : ''}{c.nombre}
                           </option>
                         ))}
                       </select>

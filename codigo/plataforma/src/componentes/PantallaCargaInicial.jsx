@@ -12,16 +12,12 @@ export function PantallaCargaInicial() {
 
   return (
     <main className="sigic-boot-screen">
-      <div className="sigic-boot-glow sigic-boot-glow-one" />
-      <div className="sigic-boot-glow sigic-boot-glow-two" />
-      <section className="sigic-boot-center sigic-boot-compact">
-        <div className="sigic-boot-logo-wrap"><img src="/logo-oficial.png" alt="Logo de SIGIC" className="sigic-boot-logo" /><span className="sigic-boot-ring" /></div>
-        <p className="sigic-boot-brand">SIGIC</p>
-        <p className="sigic-boot-subtitle">Iniciando tu espacio de trabajo</p>
-        <div className="sigic-boot-progress"><div style={{ width: `${progress}%` }} /></div>
-        <div className="sigic-boot-status"><span>Preparando el sistema...</span><strong>{progress}%</strong></div>
+      <section className="sigic-boot-center" aria-live="polite">
+        <img src="/logo-oficial.png" alt="SiGIC" className="sigic-boot-logo" />
+        <span className="sigic-windows-loader" aria-hidden="true" />
+        <p className="sigic-boot-status">Preparando SiGIC · {progress}%</p>
       </section>
-      <div className="sigic-boot-footer"><span>Instituto Tecnológico Beltrán</span><span>SIGIC · 2026</span></div>
+      <p className="sigic-boot-footer">Entorno de demostración</p>
     </main>
   )
 }

@@ -127,7 +127,7 @@ export function ModalCredencial({ egresado, onCerrar }) {
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <span className="rounded-lg bg-[#0056b3] px-3 py-1.5 text-[9px] font-black text-white">GRADUADO · {egresado.asiento_id || 'S/A'}</span>
-                      {egresado.entregador_asiento_id && <span className="rounded-lg bg-[#06194d] px-3 py-1.5 text-[9px] font-black text-white">ENTREGADOR · {egresado.entregador_asiento_id}</span>}
+                      {egresado.entregador_asiento_id && <span className="rounded-lg bg-[#06194d] px-3 py-1.5 text-[9px] font-black text-white">PADRINO · {egresado.entregador_asiento_id}</span>}
                       {asientosInvitados.map(invitado => (
                         <span key={invitado.id} className="rounded-lg border border-sky-200 bg-white px-3 py-1.5 text-[9px] font-black text-[#087fbd]">INVITADO · {invitado.asiento_id}</span>
                       ))}

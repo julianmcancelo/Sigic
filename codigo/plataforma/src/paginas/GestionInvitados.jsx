@@ -111,7 +111,7 @@ export function GestionInvitados({ usuario, onVolver, onCerrarSesion }) {
    * Genera el link de registro y abre el modal correspondiente.
    */
   function manejarLink(egr) { 
-    const url = `${window.location.origin}${window.location.pathname}?token=${egr.token}`
+    const url = `${window.location.origin}/?token=${egr.token}`
     setLinkQR({ egresado: egr, link: url })
   }
 

@@ -57,13 +57,13 @@ export function ModalImportar({ onCerrar, onCompletado }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-      <div className="w-full max-w-3xl bg-white rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/65 backdrop-blur-sm p-3 sm:p-5 animate-in fade-in duration-300">
+      <div className="w-full max-w-2xl bg-white rounded-[22px] shadow-2xl overflow-hidden flex flex-col max-h-[88dvh]">
         
         {/* Header */}
-        <div className="p-8 bg-slate-900 text-white flex items-center justify-between">
+        <div className="p-5 sm:p-6 bg-slate-900 text-white flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-black flex items-center gap-3">
+            <h2 className="text-lg sm:text-xl font-black flex items-center gap-2.5">
               <FileSpreadsheet className="text-sky-400" />
               Importar Graduados
             </h2>
@@ -74,7 +74,7 @@ export function ModalImportar({ onCerrar, onCompletado }) {
           </button>
         </div>
 
-        <div className="p-8 overflow-y-auto flex-1 space-y-8">
+        <div className="p-5 sm:p-6 overflow-y-auto flex-1 space-y-5">
           {!resultado ? (
             <>
               {/* Dropzone / Upload */}
@@ -85,12 +85,12 @@ export function ModalImportar({ onCerrar, onCompletado }) {
                   onChange={manejarArchivo}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                 />
-                <div className="border-4 border-dashed border-slate-100 rounded-[32px] p-12 flex flex-col items-center justify-center text-center group-hover:border-sky-500/30 transition-all bg-slate-50/50 group-hover:bg-sky-50/30">
-                  <div className="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <div className="border-2 border-dashed border-slate-200 rounded-2xl p-7 sm:p-9 flex flex-col items-center justify-center text-center group-hover:border-sky-500/30 transition-all bg-slate-50/50 group-hover:bg-sky-50/30">
+                  <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                     <Upload className="text-sky-500" />
                   </div>
-                  <h3 className="text-lg font-black text-slate-800">Seleccionar Archivo</h3>
-                  <p className="text-sm text-slate-400 font-medium">Arrastra o haz clic para cargar tu listado</p>
+                  <h3 className="text-sm font-black text-slate-800">Seleccionar archivo</h3>
+                  <p className="text-xs text-slate-400 font-medium">Arrastrá o hacé clic para cargar el listado</p>
                 </div>
               </div>
 
@@ -100,7 +100,7 @@ export function ModalImportar({ onCerrar, onCompletado }) {
                   <div className="flex items-center justify-between">
                     <h4 className="text-xs font-black uppercase tracking-widest text-slate-400">Previsualización ({previsualizacion.length} registros)</h4>
                   </div>
-                  <div className="border border-slate-100 rounded-2xl overflow-hidden">
+                  <div className="border border-slate-100 rounded-xl overflow-x-auto">
                     <table className="w-full text-left text-xs">
                       <thead className="bg-slate-50 text-slate-500 font-black uppercase">
                         <tr>

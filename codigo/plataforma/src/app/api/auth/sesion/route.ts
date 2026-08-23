@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { obtenerUsuarioAutenticado, ROLES_LECTURA } from '@/lib/auth-middleware';
 import { query } from '@/lib/db';
+import { inicializarBaseDatos } from '@/lib/schema';
 
 /**
  * GET /api/auth/sesion
  * Valida si el token de sesión sigue vigente y devuelve los datos del usuario.
  */
 export async function GET(req: NextRequest) {
+  await inicializarBaseDatos();
   const auth = obtenerUsuarioAutenticado(req, ROLES_LECTURA);
   
   if (!auth.valido) {

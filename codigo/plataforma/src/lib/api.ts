@@ -24,6 +24,17 @@ export function cabeceras() {
   };
 }
 
+export async function enviarCorreoPrueba(destinatario: string) {
+  const res = await fetch(`${BASE_LOCAL}/correo/prueba`, {
+    method: 'POST',
+    headers: cabeceras(),
+    body: JSON.stringify({ destinatario })
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo enviar el correo de prueba');
+  return json;
+}
+
 // ============================================================
 // SERVICIOS MIGRADOS AL BACKEND LOCAL (NEXT.JS)
 // ============================================================

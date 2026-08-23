@@ -23,15 +23,15 @@ export function ModalLinkRegistro({ egresado, link, onCerrar }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 backdrop-blur-sm"
       style={{ background: 'rgba(13, 27, 45, 0.7)' }}
       onClick={onCerrar}
     >
       <div
-        className="w-full max-w-sm overflow-hidden rounded-[24px] border border-white/10 bg-white shadow-2xl"
+        className="w-full max-w-sm overflow-hidden rounded-[20px] border border-white/10 bg-white shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="relative px-6 py-6 text-center" style={{ background: DARK }}>
+        <div className="relative px-5 py-5 text-center" style={{ background: DARK }}>
           <div
             className="absolute -top-12 -left-12 h-32 w-32 rounded-full blur-[40px] opacity-20"
             style={{ background: ACCENT }}
@@ -47,9 +47,9 @@ export function ModalLinkRegistro({ egresado, link, onCerrar }) {
           </button>
         </div>
 
-        <div className="flex flex-col items-center p-8 gap-6">
-          <div className="rounded-[20px] bg-slate-50 p-6 shadow-inner border border-slate-100">
-            <QRCodeSVG value={link} size={180} level="H" fgColor={DARK} />
+        <div className="flex flex-col items-center p-5 gap-4">
+          <div className="rounded-2xl bg-slate-50 p-4 shadow-inner border border-slate-100">
+            <QRCodeSVG value={link} size={150} level="H" fgColor={DARK} />
           </div>
 
           <div className="w-full space-y-3">
@@ -74,7 +74,7 @@ export function ModalLinkRegistro({ egresado, link, onCerrar }) {
 
           <button
             onClick={onCerrar}
-            className="w-full rounded-xl py-3 text-[13px] font-bold text-white transition-all"
+            className="w-full rounded-xl py-2.5 text-[11px] font-black uppercase tracking-wider text-white transition-all"
             style={{
               background: `linear-gradient(135deg, ${ACCENT}, #1a87c0)`,
               boxShadow: '0 4px 15px rgba(41,171,226,0.3)',

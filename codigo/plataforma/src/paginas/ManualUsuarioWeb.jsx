@@ -406,7 +406,7 @@ function ScreenPanelAdmin() {
         className="w-full object-cover object-top hover:scale-[1.02] transition-transform duration-500"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2 z-20 pointer-events-none">
-        <span className="text-[8px] font-bold text-white">📸 Captura real: Panel de Administración SiGIC</span>
+        <span className="text-[8px] font-bold text-white">Captura real: Panel de Administración SiGIC</span>
       </div>
     </div>
   )
@@ -426,7 +426,7 @@ function ScreenGestionGraduados() {
         className="w-[200%] max-w-none object-cover object-left-top hover:scale-[1.01] transition-transform duration-500"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2 z-20 pointer-events-none">
-        <span className="text-[8.5px] font-bold text-white">📸 Pipeline de estados en Gestión</span>
+        <span className="text-[8.5px] font-bold text-white">Pipeline de estados en Gestión</span>
       </div>
     </div>
   )
@@ -446,7 +446,7 @@ function ScreenGestionCeremonias() {
         className="w-full object-cover object-center hover:scale-[1.02] transition-transform duration-500"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2 z-20 pointer-events-none">
-        <span className="text-[8.5px] font-bold text-white">📸 Consola Multi-Hábitat de Ceremonias</span>
+        <span className="text-[8.5px] font-bold text-white">Consola Multi-Hábitat de Ceremonias</span>
       </div>
     </div>
   )
@@ -466,7 +466,7 @@ function ScreenDisenoAnfiteatro() {
         className="w-full object-cover object-center hover:scale-[1.02] transition-transform duration-500"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2 z-20 pointer-events-none">
-        <span className="text-[8.5px] font-bold text-white">📸 Modelador del Anfiteatro y Butacas</span>
+        <span className="text-[8.5px] font-bold text-white">Modelador del Anfiteatro y Butacas</span>
       </div>
     </div>
   )
@@ -486,7 +486,7 @@ function ScreenEmailInvitacion() {
         className="w-full object-cover object-top hover:scale-[1.01] transition-transform duration-500"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2 z-20 pointer-events-none">
-        <span className="text-[8px] font-bold text-white">📸 Correo real que recibe el egresado</span>
+        <span className="text-[8px] font-bold text-white">Correo real que recibe el egresado</span>
       </div>
     </div>
   )
@@ -618,7 +618,7 @@ function ScreenInasistencia() {
         className="w-full object-cover object-center hover:scale-[1.02] transition-transform duration-500"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-slate-900/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2 z-20 pointer-events-none">
-        <span className="text-[8px] font-bold text-white">📸 Confirmación de inasistencia</span>
+        <span className="text-[8px] font-bold text-white">Confirmación de inasistencia</span>
       </div>
     </div>
   )
@@ -654,7 +654,7 @@ function WireframeEgresado() {
         className="w-full max-h-[150px] object-cover object-top hover:scale-[1.02] transition-transform duration-300"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-2 z-20 pointer-events-none">
-        <span className="text-[8px] font-bold text-white">📸 Portal real de autogestión del graduado</span>
+        <span className="text-[8px] font-bold text-white">Portal real de autogestión del graduado</span>
       </div>
     </div>
   )
@@ -1135,7 +1135,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
           <div className="border border-emerald-100 bg-emerald-50/50 p-2 rounded-xl flex items-start gap-2">
             <CheckCircle2 className="text-emerald-500 shrink-0 mt-0.5" size={13} />
             <div>
-              <h5 className="font-bold text-emerald-700 text-[9px] uppercase">VERDE: Autorizado ✓</h5>
+              <h5 className="font-bold text-emerald-700 text-[9px] uppercase">VERDE: Autorizado</h5>
               <p className="text-slate-500 text-[9px] m-0 leading-snug">QR válido y de la ceremonia activa. El celular vibra y muestra la butaca asignada al invitado. Puede ingresar.</p>
             </div>
           </div>
@@ -1143,7 +1143,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
           <div className="border border-amber-100 bg-amber-50/50 p-2 rounded-xl flex items-start gap-2">
             <AlertTriangle className="text-amber-500 shrink-0 mt-0.5" size={13} />
             <div>
-              <h5 className="font-bold text-amber-700 text-[9px] uppercase">NARANJA: Duplicado ⚠</h5>
+              <h5 className="font-bold text-amber-700 text-[9px] uppercase">NARANJA: Duplicado</h5>
               <p className="text-slate-500 text-[9px] m-0 leading-snug">El código es válido pero este invitado ya ingresó previamente. Alerta de posible fraude o transferencia de credencial.</p>
             </div>
           </div>
@@ -1151,7 +1151,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
           <div className="border border-rose-100 bg-rose-50/50 p-2 rounded-xl flex items-start gap-2">
             <XCircle className="text-rose-500 shrink-0 mt-0.5" size={13} />
             <div>
-              <h5 className="font-bold text-rose-700 text-[9px] uppercase">ROJO: Denegado ✗</h5>
+              <h5 className="font-bold text-rose-700 text-[9px] uppercase">ROJO: Denegado</h5>
               <p className="text-slate-500 text-[9px] m-0 leading-snug">Token inválido, egresado que confirmó inasistencia, o credencial de otra ceremonia. No autorizar el ingreso.</p>
             </div>
           </div>
@@ -1219,9 +1219,10 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
           </div>
         </div>
 
-        <div className="bg-rose-50 border border-rose-100 rounded-lg p-2">
+        <div className="bg-rose-50 border border-rose-100 rounded-lg p-2 flex items-start gap-1.5">
+          <AlertTriangle size={12} className="text-rose-500 shrink-0 mt-0.5" />
           <p className="text-[9px] text-rose-700 m-0 leading-snug font-semibold">
-            ⚠️ El reseteo elimina TODOS los datos permanentemente. Siempre realizá un backup antes de ejecutarlo.
+            El reseteo elimina TODOS los datos permanentemente. Siempre realizá un backup antes de ejecutarlo.
           </p>
         </div>
       </div>

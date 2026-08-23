@@ -25,7 +25,8 @@ export function SeleccionAsientos({
   maxSeleccion = 1,
   onConfirmar,
   estaCargando = false,
-  onAsientoClick
+  onAsientoClick,
+  compacto = false
 }) {
   const [nivelLocal, setNivelLocal] = useState('baja');
   const [zoomLocal, setZoomLocal] = useState(1);
@@ -107,7 +108,7 @@ export function SeleccionAsientos({
   // En modo autónomo el mapa muestra sus propios controles de zoom; cuando lo
   // controla una pantalla externa (Editor del Anfiteatro), esa pantalla ya
   // tiene los suyos y acá solo sincronizamos el estado.
-  const esAutonomo = !nivelProp;
+  const esAutonomo = !nivelProp && !compacto;
 
   // El zoom se aplica como tamaño real de asiento (variables CSS) en lugar
   // del transform: scale() de la librería, que rompía el layout y la
@@ -120,7 +121,7 @@ export function SeleccionAsientos({
   };
 
   return (
-    <div className="flex flex-col items-center gap-4 w-full max-w-full sigic-zoom-por-variables" style={variablesZoom}>
+    <div className={`flex flex-col items-center w-full max-w-full sigic-zoom-por-variables ${compacto ? 'gap-2' : 'gap-4'}`} style={variablesZoom}>
       <MapaAsientos
         estructura={estructura}
         mapaRoles={mapaRoles}
@@ -135,14 +136,16 @@ export function SeleccionAsientos({
       />
 
       {/* Leyenda */}
-      <div className="mt-8 flex flex-wrap justify-center gap-8 border-t border-slate-50 pt-8 w-full max-w-3xl">
-        {LEYENDA.map(item => (
-          <div key={item.rol} className="flex items-center gap-3 group/item">
-            <div className={`w-4 h-4 rounded-lg ${item.color} shadow-sm group-hover/item:scale-110 transition-transform`}></div>
-            <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{item.label}</span>
-          </div>
-        ))}
-      </div>
+      {!compacto && (
+        <div className="mt-8 flex flex-wrap justify-center gap-8 border-t border-slate-50 pt-8 w-full max-w-3xl">
+          {LEYENDA.map(item => (
+            <div key={item.rol} className="flex items-center gap-3 group/item">
+              <div className={`w-4 h-4 rounded-lg ${item.color} shadow-sm group-hover/item:scale-110 transition-transform`}></div>
+              <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{item.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       {onConfirmar && !estaCargando && (
         <button

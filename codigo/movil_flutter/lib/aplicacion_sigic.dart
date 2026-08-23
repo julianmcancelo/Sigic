@@ -13,10 +13,7 @@ class AplicacionSigic extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'SiGIC Accesos',
       locale: const Locale('es', 'AR'),
-      supportedLocales: const [
-        Locale('es', 'AR'),
-        Locale('es'),
-      ],
+      supportedLocales: const [Locale('es', 'AR'), Locale('es')],
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,

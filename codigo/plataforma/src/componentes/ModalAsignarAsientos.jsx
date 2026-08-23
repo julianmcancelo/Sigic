@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { X, Armchair, CheckCircle2, User, HelpCircle, RefreshCw, AlertTriangle } from 'lucide-react'
+import { X, Armchair, CheckCircle2, User, RefreshCw, AlertTriangle, LockKeyhole, Users, ChevronRight, RotateCcw } from 'lucide-react'
 import { SeleccionAsientos } from '../paginas/SeleccionAsientos'
 import { BASE, asignarAsientos, obtenerAjustes } from '../servicios/api'
 
@@ -20,7 +20,6 @@ export function ModalAsignarAsientos({
   // Asignaciones locales en tiempo real
   const [asignaciones, setAsignaciones] = useState({
     egresadoAsiento: graduado.asiento_id || null,
-    entregadorAsiento: graduado.entregador_asiento_id || null,
     invitadosAsientos: {} // { [invitadoId]: asientoId }
   })
 
@@ -30,16 +29,23 @@ export function ModalAsignarAsientos({
   const [personaActiva, setPersonaActiva] = useState({ tipo: 'egresado', id: null })
 
   useEffect(() => {
-    // Inicializar asignaciones de invitados
+    // Cada grupo abre una sesión local nueva para que no se filtren selecciones previas.
     const invAsientos = {}
     invitados.forEach(inv => {
       invAsientos[inv.id] = inv.asiento_id || null
     })
-    setAsignaciones(prev => ({
-      ...prev,
+    setAsignaciones({
+      egresadoAsiento: graduado.asiento_id || null,
       invitadosAsientos: invAsientos
-    }))
-  }, [invitados])
+    })
+    const primerPendiente = !graduado.asiento_id
+      ? { tipo: 'egresado', id: null }
+      : invitados.find(inv => !inv.asiento_id)
+        ? { tipo: 'invitado', id: invitados.find(inv => !inv.asiento_id).id }
+        : { tipo: 'egresado', id: null }
+    setPersonaActiva(primerPendiente)
+    setError('')
+  }, [graduado.id, graduado.asiento_id, invitados])
 
   // Cargar mapa del anfiteatro
   useEffect(() => {
@@ -67,7 +73,6 @@ export function ModalAsignarAsientos({
     todosLosGraduados.forEach(g => {
       if (g.id !== graduado.id) {
         if (g.asiento_id) ocupados.add(g.asiento_id)
-        if (g.entregador_asiento_id) ocupados.add(g.entregador_asiento_id)
       }
     })
 
@@ -103,16 +108,6 @@ export function ModalAsignarAsientos({
     asiento: asignaciones.egresadoAsiento
   })
 
-  if (graduado.entregador_nombre) {
-    personasGrupo.push({
-      tipo: 'entregador',
-      id: null,
-      nombre: graduado.entregador_nombre,
-      rolLabel: 'Entregador',
-      asiento: asignaciones.entregadorAsiento
-    })
-  }
-
   invitados.forEach(inv => {
     personasGrupo.push({
       tipo: 'invitado',
@@ -127,7 +122,6 @@ export function ModalAsignarAsientos({
   const obtenerTodosAsientosGrupo = () => {
     const seleccionados = []
     if (asignaciones.egresadoAsiento) seleccionados.push(asignaciones.egresadoAsiento)
-    if (asignaciones.entregadorAsiento) seleccionados.push(asignaciones.entregadorAsiento)
     Object.values(asignaciones.invitadosAsientos).forEach(seatId => {
       if (seatId) seleccionados.push(seatId)
     })
@@ -135,6 +129,24 @@ export function ModalAsignarAsientos({
   }
 
   const asientosGrupoActual = obtenerTodosAsientosGrupo()
+  const asignacionCompleta = asientosGrupoActual.length === personasGrupo.length
+  const personaActivaDatos = personasGrupo.find(
+    persona => persona.tipo === personaActiva.tipo && persona.id === personaActiva.id
+  ) || personasGrupo[0]
+  const pasoActivo = Math.max(0, personasGrupo.findIndex(
+    persona => persona.tipo === personaActivaDatos.tipo && persona.id === personaActivaDatos.id
+  ))
+  const faltantes = personasGrupo.filter(persona => !persona.asiento).length
+  const grupoEnRevision = asignacionCompleta
+
+  const mapaRolesParaAsignacion = () => {
+    const roles = obtenerMapaRolesConOcupados()
+    Object.entries(roles).forEach(([asientoId, rol]) => {
+      if (['autoridad', 'reservado', 'bloqueado'].includes(rol)) roles[asientoId] = 'bloqueado'
+      if (rol === 'egresado' && personaActiva.tipo !== 'egresado') roles[asientoId] = 'bloqueado'
+    })
+    return roles
+  }
 
   // Al hacer clic en un asiento del mapa
   const manejarAsientoClick = (asientoId) => {
@@ -143,8 +155,6 @@ export function ModalAsignarAsientos({
     
     if (nuevasAsignaciones.egresadoAsiento === asientoId) {
       nuevasAsignaciones.egresadoAsiento = null
-    } else if (nuevasAsignaciones.entregadorAsiento === asientoId) {
-      nuevasAsignaciones.entregadorAsiento = null
     } else {
       const invKey = Object.keys(nuevasAsignaciones.invitadosAsientos).find(
         key => nuevasAsignaciones.invitadosAsientos[key] === asientoId
@@ -154,16 +164,24 @@ export function ModalAsignarAsientos({
       }
     }
 
+    // Si vuelve a tocar su propia butaca, la libera para poder corregirla.
+    const asientoActivo = personaActiva.tipo === 'egresado'
+      ? asignaciones.egresadoAsiento
+      : asignaciones.invitadosAsientos[personaActiva.id]
+    if (asientoActivo === asientoId) {
+      setAsignaciones(nuevasAsignaciones)
+      return
+    }
+
     // 2. Asignar el asiento a la persona activa
     if (personaActiva.tipo === 'egresado') {
       nuevasAsignaciones.egresadoAsiento = asientoId
-    } else if (personaActiva.tipo === 'entregador') {
-      nuevasAsignaciones.entregadorAsiento = asientoId
     } else if (personaActiva.tipo === 'invitado') {
       nuevasAsignaciones.invitadosAsientos[personaActiva.id] = asientoId
     }
 
     setAsignaciones(nuevasAsignaciones)
+    setError('')
 
     // 3. Auto-seleccionar a la siguiente persona sin asiento
     const idxActivo = personasGrupo.findIndex(
@@ -177,7 +195,6 @@ export function ModalAsignarAsientos({
       const p = personasGrupo[idx]
       // Si la persona de la lista local actualizada no tiene asiento
       const tieneAsiento = p.tipo === 'egresado' ? nuevasAsignaciones.egresadoAsiento :
-                           p.tipo === 'entregador' ? nuevasAsignaciones.entregadorAsiento :
                            nuevasAsignaciones.invitadosAsientos[p.id]
 
       if (!tieneAsiento) {
@@ -191,13 +208,26 @@ export function ModalAsignarAsientos({
     }
   }
 
+  const limpiarPersonaActiva = () => {
+    setAsignaciones(actual => {
+      if (personaActiva.tipo === 'egresado') {
+        return { ...actual, egresadoAsiento: null }
+      }
+      return {
+        ...actual,
+        invitadosAsientos: { ...actual.invitadosAsientos, [personaActiva.id]: null }
+      }
+    })
+    setError('')
+  }
+
   // Limpiar toda la selección actual
   const limpiarSeleccion = () => {
+    if (asientosGrupoActual.length > 0 && !window.confirm('Se quitarán todas las butacas de este grupo. Podés cancelar para conservar los cambios.')) return
     const invAsientos = {}
     invitados.forEach(inv => { invAsientos[inv.id] = null })
     setAsignaciones({
       egresadoAsiento: null,
-      entregadorAsiento: null,
       invitadosAsientos: invAsientos
     })
     setPersonaActiva({ tipo: 'egresado', id: null })
@@ -205,12 +235,15 @@ export function ModalAsignarAsientos({
 
   // Guardar asignación final
   const guardar = async () => {
+    if (!asignacionCompleta) {
+      setError('Asigná una butaca a cada integrante antes de guardar.')
+      return
+    }
     setProcesando(true)
     setError('')
     try {
       await asignarAsientos(graduado.id, {
         egresadoAsiento: asignaciones.egresadoAsiento,
-        entregadorAsiento: asignaciones.entregadorAsiento,
         invitadosAsientos: asignaciones.invitadosAsientos
       })
       onAsignado()
@@ -222,127 +255,91 @@ export function ModalAsignarAsientos({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-      <div className="w-full max-w-6xl bg-white rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
-        
-        {/* HEADER */}
-        <div className="p-8 bg-slate-900 text-white flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-black flex items-center gap-3">
-              <Armchair className="text-sky-400" />
-              Asignación de Asientos
-            </h2>
-            <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest font-bold">
-              Grupo de {graduado.nombre} · DNI: {graduado.dni}
-            </p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 backdrop-blur-sm p-3 sm:p-5 animate-in fade-in duration-300">
+      <div className="w-full max-w-6xl h-[min(84dvh,650px)] bg-[#f8fafc] rounded-[20px] sm:rounded-[24px] shadow-2xl overflow-hidden grid grid-rows-[auto_minmax(0,1fr)_auto]">
+        <header className="px-5 py-3 sm:px-6 bg-gradient-to-r from-slate-950 via-slate-900 to-[#13314d] text-white flex items-center justify-between gap-4">
+          <div className="min-w-0 flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-sky-500/15 text-sky-400 flex items-center justify-center shrink-0"><Armchair size={19} /></div>
+            <div className="min-w-0">
+              <h2 className="text-base sm:text-lg font-black">Butacas del grupo</h2>
+              <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold truncate">{graduado.nombre} · {personasGrupo.length} integrantes</p>
+            </div>
           </div>
-          <button onClick={onCerrar} className="p-2 hover:bg-white/10 rounded-full transition-colors">
-            <X size={24} />
-          </button>
-        </div>
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="hidden sm:block rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-right">
+              <p className="text-[8px] uppercase font-black tracking-widest text-slate-400">Asignados</p>
+              <p className="text-xs font-black text-sky-300">{asientosGrupoActual.length} / {personasGrupo.length}</p>
+            </div>
+            <button onClick={onCerrar} aria-label="Cerrar asignación de butacas" className="p-2.5 hover:bg-white/10 rounded-xl transition-colors"><X size={22} /></button>
+          </div>
+        </header>
 
-        {/* CONTENIDO PRINCIPAL */}
-        <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
-          
-          {/* SIDEBAR IZQUIERDO: INTEGRANTES */}
-          <aside className="w-full md:w-80 bg-slate-50 border-r border-slate-100 p-6 overflow-y-auto space-y-6">
-            <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Integrantes del Grupo</h3>
-            
-            <div className="space-y-3">
-              {personasGrupo.map((p, idx) => {
-                const esActivo = personaActiva.tipo === p.tipo && personaActiva.id === p.id
+        <div className="min-h-0 grid grid-cols-1 lg:grid-cols-[16rem_minmax(0,1fr)] overflow-hidden">
+          <aside className="min-h-0 bg-white border-b lg:border-b-0 lg:border-r border-slate-200 flex flex-col">
+            <div className="px-3 py-2.5 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Integrantes</h3>
+                <p className="text-[9px] text-slate-400 mt-0.5">Elegí una persona para editar.</p>
+              </div>
+              <span className="flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-black text-slate-600"><Users size={13} /> {personasGrupo.length}</span>
+            </div>
+
+            <div className="p-2 space-y-1.5 overflow-y-auto">
+              {personasGrupo.map((persona, indice) => {
+                const esActivo = personaActivaDatos.tipo === persona.tipo && personaActivaDatos.id === persona.id
                 return (
-                  <button
-                    key={idx}
-                    onClick={() => setPersonaActiva({ tipo: p.tipo, id: p.id })}
-                    className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all text-left ${
-                      esActivo 
-                        ? 'border-sky-500 bg-white shadow-md ring-2 ring-sky-100' 
-                        : 'border-transparent bg-white hover:bg-slate-100 text-slate-500'
-                    }`}
-                  >
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                      esActivo ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-400'
-                    }`}>
-                      <User size={18} />
+                  <button key={`${persona.tipo}-${persona.id || 'grupo'}`} onClick={() => { setPersonaActiva({ tipo: persona.tipo, id: persona.id }); setError('') }} className={`w-full flex items-center gap-2.5 p-2.5 rounded-xl border text-left transition-all ${esActivo ? 'border-sky-400 bg-sky-50 shadow-sm' : 'border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50'}`}>
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-[10px] ${persona.asiento ? 'bg-emerald-100 text-emerald-700' : esActivo ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                      {persona.asiento ? <CheckCircle2 size={18} /> : indice + 1}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-black text-slate-800 truncate">{p.nombre}</p>
-                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{p.rolLabel}</p>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-black text-slate-800 truncate">{persona.nombre}</p>
+                      <p className="mt-0.5 text-[8px] font-bold uppercase tracking-wider text-slate-400">{persona.rolLabel}</p>
                     </div>
-                    <div className="text-right">
-                      {p.asiento ? (
-                        <span className="bg-emerald-100 text-emerald-700 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg">
-                          {p.asiento}
-                        </span>
-                      ) : (
-                        <span className="bg-amber-50 text-amber-600 text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-lg border border-amber-200">
-                          S/A
-                        </span>
-                      )}
-                    </div>
+                    <div className={`shrink-0 rounded-md px-1.5 py-1 text-[9px] font-black ${persona.asiento ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-600'}`}>{persona.asiento || 'S/A'}</div>
                   </button>
                 )
               })}
             </div>
 
-            <button
-              onClick={limpiarSeleccion}
-              className="w-full py-3 border border-dashed border-red-200 hover:bg-red-50 text-red-500 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
-            >
-              Limpiar Selección
-            </button>
+            <div className="p-2 border-t border-slate-100">
+              <button onClick={limpiarSeleccion} className="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-dashed border-red-200 text-red-500 text-[9px] font-black uppercase tracking-widest hover:bg-red-50 transition-colors"><RotateCcw size={13} /> Reiniciar grupo</button>
+            </div>
           </aside>
 
-          {/* ÁREA CENTRAL: MAPA DE ASIENTOS */}
-          <div className="flex-1 bg-white p-8 overflow-y-auto flex flex-col items-center justify-center min-h-[400px]">
-            {estructura ? (
-              <SeleccionAsientos
-                ceremoniaId={ceremoniaId}
-                estructura={estructura}
-                mapaRoles={obtenerMapaRolesConOcupados()}
-                seleccionados={asientosGrupoActual}
-                setSeleccionados={() => {}} // Manejado internamente por el click
-                onAsientoClick={manejarAsientoClick}
-                maxSeleccion={personasGrupo.length}
-              />
-            ) : (
-              <div className="text-center opacity-40">
-                <RefreshCw className="animate-spin text-sky-500 mx-auto mb-4" size={32} />
-                <p className="text-xs font-black uppercase tracking-widest">Cargando Anfiteatro...</p>
+          <section className="min-h-0 p-2.5 sm:p-3 bg-[radial-gradient(circle_at_top,_#e0f2fe,_#f8fafc_42%)] flex flex-col gap-2 overflow-hidden">
+            <div className="shrink-0 bg-white/90 border border-sky-100 rounded-xl px-3 py-2 flex items-center gap-2.5 shadow-sm">
+              <div className="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center"><User size={16} /></div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[8px] uppercase tracking-[0.16em] font-black text-sky-600">{grupoEnRevision ? 'Revisión del grupo' : `Paso ${pasoActivo + 1} de ${personasGrupo.length}`}</p>
+                <p className="text-xs font-black text-slate-800 truncate">{grupoEnRevision ? `Revisando: ${personaActivaDatos.nombre}` : `Asignando a ${personaActivaDatos.nombre}`}</p>
               </div>
+              {personaActivaDatos.asiento ? (
+                <button onClick={limpiarPersonaActiva} className="shrink-0 px-2.5 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-[9px] font-black uppercase tracking-wider text-amber-700 hover:bg-amber-100 transition-colors">Liberar {personaActivaDatos.asiento}</button>
+              ) : <ChevronRight className="text-sky-400 shrink-0" size={22} />}
+            </div>
+
+            <div className="shrink-0 flex items-center gap-2 px-1 text-[9px] text-slate-500"><LockKeyhole size={13} className="text-slate-400" /> Reservadas, autoridades y ocupadas: bloqueadas.</div>
+
+            {estructura ? (
+              <div className="min-h-0 flex-1 overflow-auto rounded-xl [scrollbar-width:thin] [&_.sigic-wrapper]:gap-1.5 [&_.sigic-mapa]:p-3 [&_.sigic-mapa]:rounded-xl [&_.sigic-escenario]:mb-2 [&_.sigic-escenario__sombra]:h-1 [&_.sigic-stats__pill]:px-2 [&_.sigic-stats__pill]:py-1">
+                <SeleccionAsientos ceremoniaId={ceremoniaId} estructura={estructura} mapaRoles={mapaRolesParaAsignacion()} seleccionados={asientosGrupoActual} setSeleccionados={() => {}} onAsientoClick={manejarAsientoClick} maxSeleccion={personasGrupo.length} zoom={0.68} setZoom={() => {}} compacto />
+              </div>
+            ) : (
+              <div className="flex-1 grid place-items-center text-center opacity-50"><div><RefreshCw className="animate-spin text-sky-500 mx-auto mb-3" size={28} /><p className="text-[10px] font-black uppercase tracking-widest">Cargando anfiteatro</p></div></div>
             )}
-          </div>
+          </section>
         </div>
 
-        {/* FOOTER */}
-        <div className="p-8 bg-slate-50 border-t border-slate-100 flex flex-wrap items-center justify-between gap-4">
-          <div className="text-xs font-bold text-slate-500">
-            Asientos asignados: <span className="font-black text-slate-800">{asientosGrupoActual.length} / {personasGrupo.length}</span>
+        <footer className="px-4 py-2.5 sm:px-5 bg-white border-t border-slate-200 flex items-center justify-between gap-4">
+          <div className="min-w-0">
+            {error ? <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-red-500"><AlertTriangle size={14} /> {error}</p> : <p className={`text-[11px] font-bold ${asignacionCompleta ? 'text-emerald-600' : 'text-slate-500'}`}>{asignacionCompleta ? 'Grupo completo. La asignación está lista para confirmar.' : `${faltantes} integrante${faltantes === 1 ? '' : 's'} sin butaca.`}</p>}
           </div>
-
-          {error && (
-            <p className="text-xs font-black text-red-500 uppercase tracking-wider bg-red-50 border border-red-100 px-4 py-2 rounded-xl flex items-center gap-1.5">
-              <AlertTriangle size={14} /> {error}
-            </p>
-          )}
-
-          <div className="flex gap-4">
-            <button
-              onClick={onCerrar}
-              className="px-8 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-red-500 transition-colors"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={guardar}
-              disabled={procesando}
-              className="bg-slate-900 text-white font-black uppercase tracking-widest text-xs py-4 px-10 rounded-2xl shadow-xl shadow-slate-900/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50"
-            >
-              {procesando ? 'Guardando...' : 'Guardar Asignación'}
-            </button>
+          <div className="shrink-0 flex items-center gap-3">
+            <button onClick={onCerrar} className="px-3 sm:px-5 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-red-500 transition-colors">Cancelar</button>
+            <button onClick={guardar} disabled={procesando || !asignacionCompleta} className="bg-slate-900 text-white font-black uppercase tracking-widest text-[9px] py-2.5 px-4 sm:px-5 rounded-lg shadow-lg shadow-slate-900/20 hover:bg-slate-800 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed">{procesando ? 'Guardando...' : 'Confirmar asignación'}</button>
           </div>
-        </div>
+        </footer>
       </div>
     </div>
   )

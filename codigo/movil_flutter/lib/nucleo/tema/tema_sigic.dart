@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
 class TemaSigic {
-  static const Color azulPrincipal = Color(0xFF0E6BA8);
-  static const Color azulBrillante = Color(0xFF27A7E7);
-  static const Color fondoClaro = Color(0xFFF4F8FC);
-  static const Color fondoOscuro = Color(0xFF07111B);
+  static const Color azulPrincipal = Color(0xFF075985);
+  static const Color azulBrillante = Color(0xFF06B6D4);
+  static const Color fondoClaro = Color(0xFFF3F7FA);
+  static const Color fondoOscuro = Color(0xFF08131E);
   static const Color exito = Color(0xFF10B981);
   static const Color error = Color(0xFFEF4444);
 
@@ -23,12 +23,75 @@ class TemaSigic {
         centerTitle: false,
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
+        foregroundColor: Color(0xFF102A43),
+        elevation: 0,
+        titleTextStyle: TextStyle(
+          color: Color(0xFF102A43),
+          fontSize: 19,
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.3,
+        ),
       ),
       cardTheme: CardThemeData(
         color: Colors.white,
-        elevation: 3,
-        shadowColor: Colors.black12,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: const BorderSide(color: Color(0xFFE2EAF0)),
+        ),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        height: 68,
+        backgroundColor: Colors.white,
+        indicatorColor: azulBrillante.withValues(alpha: 0.15),
+        labelTextStyle: WidgetStateProperty.resolveWith(
+          (states) => TextStyle(
+            fontSize: 11,
+            fontWeight: states.contains(WidgetState.selected)
+                ? FontWeight.w800
+                : FontWeight.w600,
+          ),
+        ),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          backgroundColor: azulPrincipal,
+          foregroundColor: Colors.white,
+          minimumSize: const Size.fromHeight(46),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          textStyle: const TextStyle(
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.2,
+          ),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size.fromHeight(44),
+          side: const BorderSide(color: Color(0xFFC8D8E5)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+          textStyle: const TextStyle(fontWeight: FontWeight.w700),
+        ),
+      ),
+      snackBarTheme: SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: const Color(0xFF102A43),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        titleTextStyle: const TextStyle(
+          color: Color(0xFF102A43),
+          fontSize: 18,
+          fontWeight: FontWeight.w800,
+        ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -64,12 +127,21 @@ class TemaSigic {
         centerTitle: false,
         backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
+        elevation: 0,
       ),
       cardTheme: CardThemeData(
         color: const Color(0xFF0E1B2A),
-        elevation: 2,
-        shadowColor: Colors.black26,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        elevation: 0,
+        shadowColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+          side: const BorderSide(color: Color(0xFF1D334A)),
+        ),
+      ),
+      navigationBarTheme: NavigationBarThemeData(
+        height: 68,
+        backgroundColor: const Color(0xFF0E1B2A),
+        indicatorColor: azulBrillante.withValues(alpha: 0.18),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,

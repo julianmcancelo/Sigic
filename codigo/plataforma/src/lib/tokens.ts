@@ -1,9 +1,10 @@
 import crypto from 'crypto';
 
 let SECRETO = process.env.JWT_SECRET;
+const MODO_DEMO = process.env.DEMO_MODE === 'true';
 if (!SECRETO || SECRETO.length < 32) {
   SECRETO = crypto.randomBytes(48).toString('hex');
-  console.warn('⚠ JWT_SECRET no está definido (o es muy corto) en .env.local.');
+  console.warn('JWT_SECRET no está definido (o es muy corto) en .env.local.');
   console.warn('  Se generó un secreto temporal para el inicio de sesión.');
 }
 
@@ -49,8 +50,9 @@ export interface ResultadoVerificacion {
 export function verificar(token: string | null): ResultadoVerificacion {
   if (!token) return { valido: false, motivo: 'TOKEN_AUSENTE' };
 
-  // Soporte de bypass para el modo demo del Expositor
-  if (token.startsWith('bypass-')) {
+  // Los accesos del expositor solo existen en despliegues marcados expresamente
+  // como demo. Nunca deben habilitarse por defecto en producción.
+  if (MODO_DEMO && token.startsWith('bypass-')) {
     const ahora = Math.floor(Date.now() / 1000);
     const unDia = 24 * 60 * 60;
     if (token === 'bypass-admin-token') {

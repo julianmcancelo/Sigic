@@ -18,9 +18,12 @@ class Ceremonia {
     return Ceremonia(
       id: (mapa['id'] ?? '').toString(),
       nombre: (mapa['nombre'] ?? 'Ceremonia').toString(),
-      fecha: DateTime.tryParse((mapa['fecha'] ?? '').toString()) ?? DateTime.now(),
+      fecha:
+          DateTime.tryParse((mapa['fecha'] ?? '').toString()) ?? DateTime.now(),
       lugar: (mapa['lugar'] ?? 'Sede Beltran').toString(),
-      maximoInvitados: maximo is int ? maximo : int.tryParse(maximo.toString()) ?? 0,
+      maximoInvitados: maximo is int
+          ? maximo
+          : int.tryParse(maximo.toString()) ?? 0,
     );
   }
 }

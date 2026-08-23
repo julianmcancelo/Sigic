@@ -4,6 +4,7 @@
  * Todo en español.
  */
 import { useState, useEffect } from 'react'
+import { Search, Plus, Edit3, Trash2, GraduationCap, BookOpen } from 'lucide-react'
 import { obtenerProfesores, crearProfesor, editarProfesor, eliminarProfesor } from '../servicios/api'
 import { HeaderGlobal } from '../componentes/HeaderGlobal'
 
@@ -127,7 +128,7 @@ export function GestionProfesores({ usuario, onVolver, onCerrarSesion }) {
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
           {/* Buscador */}
           <div className="flex-1 relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-lg">🔍</span>
+            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
               placeholder="Buscar por nombre, materia o DNI..."
@@ -142,7 +143,7 @@ export function GestionProfesores({ usuario, onVolver, onCerrarSesion }) {
             onClick={abrirFormularioNuevo}
             className="flex items-center justify-center gap-2 bg-indigo-600 text-white px-6 py-3.5 rounded-2xl font-bold text-sm shadow-lg shadow-indigo-600/25 hover:bg-indigo-700 hover:-translate-y-0.5 transition-all active:scale-[0.98]"
           >
-            <span className="text-lg">+</span>
+            <Plus size={18} />
             Agregar Profesor
           </button>
         </div>
@@ -151,8 +152,9 @@ export function GestionProfesores({ usuario, onVolver, onCerrarSesion }) {
         {mostrarFormulario && (
           <div className="mb-8 bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
             <div className="bg-slate-900 px-6 py-4">
-              <p className="text-xs font-black uppercase tracking-[0.2em] text-sky-400">
-                {editandoId ? '✏️ Editar Profesor' : '➕ Nuevo Profesor'}
+              <p className="flex items-center gap-1.5 text-xs font-black uppercase tracking-[0.2em] text-sky-400">
+                {editandoId ? <Edit3 size={13} /> : <Plus size={13} />}
+                {editandoId ? 'Editar Profesor' : 'Nuevo Profesor'}
               </p>
             </div>
             <form onSubmit={manejarGuardar} className="p-6">
@@ -225,7 +227,7 @@ export function GestionProfesores({ usuario, onVolver, onCerrarSesion }) {
           </div>
         ) : profesoresFiltrados.length === 0 ? (
           <div className="text-center py-20">
-            <p className="text-5xl mb-4">🎓</p>
+            <GraduationCap size={48} className="mx-auto mb-4 text-slate-300" />
             <p className="text-lg font-bold text-slate-400">
               {busqueda ? 'No se encontraron resultados' : 'Aún no hay profesores cargados'}
             </p>
@@ -250,7 +252,7 @@ export function GestionProfesores({ usuario, onVolver, onCerrarSesion }) {
                     <div>
                       <p className="font-bold text-slate-800 text-sm">{profesor.nombre}</p>
                       {profesor.materia && (
-                        <p className="text-xs text-indigo-500 font-semibold mt-0.5">📚 {profesor.materia}</p>
+                        <p className="flex items-center gap-1 text-xs text-indigo-500 font-semibold mt-0.5"><BookOpen size={12} /> {profesor.materia}</p>
                       )}
                       {profesor.dni && (
                         <p className="text-[11px] text-slate-400 mt-0.5">DNI: {profesor.dni}</p>
@@ -265,14 +267,14 @@ export function GestionProfesores({ usuario, onVolver, onCerrarSesion }) {
                       className="h-8 w-8 rounded-xl bg-slate-100 hover:bg-indigo-100 flex items-center justify-center text-slate-500 hover:text-indigo-600 transition-all"
                       title="Editar profesor"
                     >
-                      ✏️
+                      <Edit3 size={15} />
                     </button>
                     <button
                       onClick={() => manejarEliminar(profesor)}
                       className="h-8 w-8 rounded-xl bg-slate-100 hover:bg-red-100 flex items-center justify-center text-slate-500 hover:text-red-600 transition-all"
                       title="Eliminar profesor"
                     >
-                      🗑️
+                      <Trash2 size={15} />
                     </button>
                   </div>
                 </div>

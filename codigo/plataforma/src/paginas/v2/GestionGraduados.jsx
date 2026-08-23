@@ -5,7 +5,7 @@ import {
 } from 'lucide-react'
 
 import { 
-  obtenerGraduados, 
+  obtenerGraduados,
   eliminarGraduado,
   vaciarGraduados,
   obtenerInvitados, 
@@ -84,7 +84,14 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
     }
     setEnviandoId(grad.id)
     try {
-      await enviarInvitacion(grad.id)
+      const respuesta = await enviarInvitacion(grad.id)
+      const actualizado = respuesta?.graduado
+      setGraduados(actuales => actuales.map(item => item.id === grad.id ? {
+        ...item,
+        invitacion_enviada: true,
+        estado_flujo: actualizado?.estado_flujo || (item.estado_flujo === 'SIN_INVITAR' ? 'PENDIENTE' : item.estado_flujo),
+        estado: actualizado?.estado || item.estado
+      } : item))
       setExitoEnvio(grad.id)
       setTimeout(() => setExitoEnvio(null), 3000)
       await cargarDatos()
@@ -96,7 +103,7 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
   }
 
   function manejarLink(grad) {
-    const url = `${window.location.origin}${window.location.pathname}?token=${grad.token}`
+    const url = `${window.location.origin}/?token=${grad.token}`
     setLinkQR({ egresado: grad, link: url })
   }
 
@@ -147,26 +154,38 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
 
   const invitadosDe = (id) => invitados.filter(i => i.egresadoId === id || i.egresado_id === id)
 
+  function abrirAsignacion(grad) {
+    setGraduadoAsignar(grad)
+  }
+
+  function siguientePaso(grad) {
+    if (grad.estado_flujo === 'RECHAZADO') return 'Participación rechazada'
+    if (!grad.invitacion_enviada) return 'Enviar invitación'
+    if (grad.estado !== 'ACEPTADO') return 'Esperar respuesta'
+    if (grad.estado_flujo === 'COMPLETO') return 'Asignar butacas'
+    return 'Completar grupo'
+  }
+
   return (
     <div className="font-sans">
       {/* HEADER INTEGRADO PRO */}
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100 flex-wrap gap-4">
+      <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 flex-wrap gap-3">
         <div>
           <h2 className="text-lg font-black tracking-tight" style={{ color: DARK }}>Gestión de Estudiantes</h2>
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Padrón de Graduados & Acompañantes</p>
         </div>
         
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           <button 
             onClick={() => setMostrarImportar(true)} 
-            className="flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 text-slate-600 rounded-xl text-[10px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-all shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-lg text-[9px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-all shadow-sm"
           >
             <Upload size={13} /> Importar Excel/CSV
           </button>
           
           <button
             onClick={() => setMostrarForm(!mostrarForm)}
-            className="flex items-center gap-1.5 px-4 py-2 bg-sky-500 text-white rounded-full text-[10px] font-black uppercase tracking-wider hover:bg-sky-600 transition-all active:scale-95 shadow-sm"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-500 text-white rounded-lg text-[9px] font-black uppercase tracking-wider hover:bg-sky-600 transition-all active:scale-95 shadow-sm"
           >
             <PlusCircle size={14} /> {mostrarForm ? 'Cerrar Formulario' : 'Nuevo Estudiante'}
           </button>
@@ -174,34 +193,42 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
       </div>
 
       {/* METRICAS COMPACTAS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm flex items-center justify-between">
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-2 mb-3">
+        <div className="bg-white border border-slate-100 rounded-lg p-2.5 shadow-sm flex items-center justify-between">
           <div>
             <span className="block text-[8px] font-bold uppercase text-slate-400 tracking-wider">Total Estudiantes</span>
             <span className="text-xl font-black tabular-nums" style={{ color: DARK }}>{graduados.length}</span>
           </div>
-          <div className="h-8 w-8 rounded-lg bg-sky-50 flex items-center justify-center text-[#0EA5E9]"><Users size={16} /></div>
+          <div className="h-7 w-7 rounded-md bg-sky-50 flex items-center justify-center text-[#0EA5E9]"><Users size={14} /></div>
         </div>
 
-        <div className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm flex items-center justify-between">
+        <div className="bg-white border border-slate-100 rounded-lg p-2.5 shadow-sm flex items-center justify-between">
           <div>
             <span className="block text-[8px] font-bold uppercase text-slate-400 tracking-wider">Acompañantes Registrados</span>
             <span className="text-xl font-black tabular-nums" style={{ color: DARK }}>{invitados.length}</span>
           </div>
-          <div className="h-8 w-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-500"><Users size={16} /></div>
+          <div className="h-7 w-7 rounded-md bg-emerald-50 flex items-center justify-center text-emerald-500"><Users size={14} /></div>
         </div>
 
-        <div className="bg-white border border-slate-100 rounded-xl p-4 shadow-sm flex items-center justify-between">
+        <div className="bg-white border border-slate-100 rounded-lg p-2.5 shadow-sm flex items-center justify-between">
           <div>
             <span className="block text-[8px] font-bold uppercase text-slate-400 tracking-wider">Mejor Promedio</span>
             <span className="text-xl font-black tabular-nums text-amber-500">{maxPromedio > 0 ? maxPromedio.toFixed(2) : '-'}</span>
           </div>
-          <div className="h-8 w-8 rounded-lg bg-amber-50 flex items-center justify-center text-amber-500"><Award size={16} /></div>
+          <div className="h-7 w-7 rounded-md bg-amber-50 flex items-center justify-center text-amber-500"><Award size={14} /></div>
+        </div>
+
+        <div className="bg-slate-900 border border-slate-800 rounded-lg p-2.5 shadow-sm flex items-center justify-between text-white">
+          <div>
+            <span className="block text-[8px] font-bold uppercase text-slate-400 tracking-wider">Listos para ubicar</span>
+            <span className="text-xl font-black tabular-nums">{contadores.COMPLETO}</span>
+          </div>
+          <div className="h-7 w-7 rounded-md bg-sky-400/15 flex items-center justify-center text-sky-300"><Armchair size={14} /></div>
         </div>
       </div>
 
       {/* FILTROS PILLS */}
-      <div className="flex flex-wrap gap-1.5 mb-6">
+      <div className="flex gap-1.5 overflow-x-auto pb-1 mb-3 [scrollbar-width:thin]">
         {[
           { clave: 'TODOS', etiqueta: 'Todos', color: 'bg-slate-900 text-white' },
           { clave: 'SIN_INVITAR', etiqueta: 'Sin invitar', color: 'bg-slate-400 text-white' },
@@ -213,7 +240,7 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
           <button
             key={f.clave}
             onClick={() => setFiltroEstado(f.clave)}
-            className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider transition-all ${
+            className={`shrink-0 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider transition-all ${
               filtroEstado === f.clave 
                 ? f.color + ' shadow-sm' 
                 : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-300'
@@ -225,7 +252,7 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
       </div>
 
       {/* BUSCADOR & ELIMINAR */}
-      <div className="flex items-center justify-between gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 mb-4">
         <div className="relative flex-1">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
           <input
@@ -233,14 +260,14 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
             placeholder="Buscar por nombre, DNI o legajo..."
             value={busqueda}
             onChange={e => setBusqueda(e.target.value)}
-            className="w-full bg-white border border-slate-200 rounded-xl py-2 pl-10 pr-4 text-xs font-semibold focus:outline-none focus:border-sky-500 transition-all shadow-sm placeholder-slate-400"
+            className="w-full bg-white border border-slate-200 rounded-lg py-2 pl-10 pr-4 text-xs font-semibold focus:outline-none focus:border-sky-500 transition-all shadow-sm placeholder-slate-400"
           />
         </div>
         
         {graduados.length > 0 && (
           <button 
             onClick={manejarVaciar} 
-            className="flex items-center gap-1.5 px-3.5 py-2 bg-red-50 text-red-500 border border-red-100 rounded-xl text-[10px] font-bold uppercase tracking-wider hover:bg-red-500 hover:text-white hover:border-red-500 transition-all shadow-sm"
+            className="flex items-center justify-center gap-1.5 px-3 py-2 bg-red-50 text-red-500 border border-red-100 rounded-lg text-[9px] font-bold uppercase tracking-wider hover:bg-red-500 hover:text-white hover:border-red-500 transition-all shadow-sm"
           >
             <Trash2 size={13} /> Vaciar Lista
           </button>
@@ -297,11 +324,13 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
           <p className="text-xs text-slate-400">No se encontraron estudiantes en esta selección.</p>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-2.5">
           {graduadosFiltrados.map(grad => {
             const estadoConfig = ESTADOS_FLUJO[grad.estado_flujo] || ESTADOS_FLUJO.SIN_INVITAR
             const misInvitados = invitadosDe(grad.id)
             const esRechazado = grad.estado_flujo === 'RECHAZADO'
+            const butacasAsignadas = [grad.asiento_id, ...misInvitados.map(inv => inv.asiento_id)].filter(Boolean).length
+            const integrantesGrupo = misInvitados.length + 1
 
             return (
               <div
@@ -310,8 +339,8 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
                   esRechazado ? 'border-red-150 opacity-70 bg-red-50/10' : 'border-slate-100'
                 }`}
               >
-                <div className="p-5">
-                  <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
+                <div className="p-3.5 sm:p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3 mb-2.5">
                     <div className="flex items-center gap-3">
                       <div className={`h-9 w-9 rounded-xl flex items-center justify-center text-white font-black text-sm shadow-sm ${
                         esRechazado ? 'bg-red-400' : 'bg-gradient-to-br from-[#0EA5E9] to-indigo-500'
@@ -329,7 +358,7 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
                           )}
                         </div>
                         
-                        <div className="flex flex-wrap items-center gap-2 mt-1">
+                  <div className="flex flex-wrap items-center gap-2 mt-1">
                           <span className="text-[10px] text-slate-500 font-semibold bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">
                             DNI: {grad.dni}
                           </span>
@@ -356,35 +385,13 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
                     </div>
                   </div>
 
-                  {/* Pipeline de Flujo Compacto */}
                   {!esRechazado && (
-                    <div className="flex items-center justify-between w-full mb-4 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
-                      <PasoFlujo
-                        etiqueta="Invitación"
-                        completado={grad.invitacion_enviada}
-                        activo={!grad.invitacion_enviada}
-                      />
-                      <LineaConexion completada={grad.invitacion_enviada} />
-
-                      <PasoFlujo
-                        etiqueta="Aceptación"
-                        completado={grad.estado === 'ACEPTADO'}
-                        activo={grad.estado === 'PENDIENTE'}
-                      />
-                      <LineaConexion completada={grad.estado === 'ACEPTADO'} />
-
-                      <PasoFlujo
-                        etiqueta={`Invitados (${grad.cantidad_invitados || 0})`}
-                        completado={(grad.cantidad_invitados || 0) > 0}
-                        activo={grad.estado === 'ACEPTADO' && (grad.cantidad_invitados || 0) === 0}
-                      />
-                      <LineaConexion completada={(grad.cantidad_invitados || 0) > 0 && (grad.cantidad_entregadores || 0) > 0} />
-
-                      <PasoFlujo
-                        etiqueta={`Entregadores (${grad.cantidad_entregadores || 0}/3)`}
-                        completado={(grad.cantidad_entregadores || 0) > 0}
-                        activo={grad.estado === 'ACEPTADO' && (grad.cantidad_entregadores || 0) === 0}
-                      />
+                    <div className="mb-2.5 flex flex-wrap items-center gap-1.5 rounded-lg border border-slate-100 bg-slate-50 px-2.5 py-2">
+                      <span className="mr-auto text-[8px] font-black uppercase tracking-[0.14em] text-slate-400">{siguientePaso(grad)}</span>
+                      <FlujoMini etiqueta="Invitación" listo={grad.invitacion_enviada} />
+                      <FlujoMini etiqueta="Aceptación" listo={grad.estado === 'ACEPTADO'} />
+                      <FlujoMini etiqueta={`Acompañantes ${misInvitados.length}`} listo={misInvitados.length > 0} />
+                      <FlujoMini etiqueta={`Butacas ${butacasAsignadas}/${integrantesGrupo}`} listo={butacasAsignadas === integrantesGrupo} />
                     </div>
                   )}
 
@@ -402,7 +409,7 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
                           }`}
                         >
                           {exitoEnvio === grad.id ? <CheckCircle2 size={12} /> : <Send size={12} />}
-                          {enviandoId === grad.id ? 'Enviando...' : exitoEnvio === grad.id ? 'Enviado' : 'Enviar invitación'}
+                          {enviandoId === grad.id ? 'Enviando...' : exitoEnvio === grad.id ? 'Enviado' : grad.invitacion_enviada ? 'Reenviar invitación' : 'Enviar invitación'}
                         </button>
                         
                         <button
@@ -421,8 +428,8 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
                         
                         {grad.estado === 'ACEPTADO' && (
                           <button
-                            onClick={() => setGraduadoAsignar(grad)}
-                            className="flex items-center gap-1 px-2.5 py-1.5 text-slate-500 hover:bg-slate-50 hover:text-slate-800 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-colors border border-transparent"
+                          onClick={() => abrirAsignacion(grad)}
+                          className="flex items-center gap-1 px-3 py-1.5 bg-slate-900 text-white hover:bg-slate-700 rounded-lg text-[9px] font-black uppercase tracking-wider transition-colors shadow-sm"
                           >
                             <Armchair size={12} /> Asientos
                           </button>
@@ -440,7 +447,7 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
 
                   {/* Invitados del graduado */}
                   {misInvitados.length > 0 && (
-                    <div className="mt-3 pt-3 border-t border-slate-100">
+                    <div className="mt-2.5 pt-2.5 border-t border-slate-100">
                       <p className="text-[8.5px] font-black uppercase tracking-widest text-slate-400 mb-1.5">
                         Acompañantes ({misInvitados.length})
                       </p>
@@ -492,6 +499,17 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
         />
       )}
     </div>
+  )
+}
+
+function FlujoMini({ etiqueta, listo }) {
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[8px] font-black uppercase tracking-wider ${
+      listo ? 'bg-emerald-50 text-emerald-700' : 'bg-white text-slate-400 border border-slate-200'
+    }`}>
+      <span className={`h-1.5 w-1.5 rounded-full ${listo ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+      {etiqueta}
+    </span>
   )
 }
 
