@@ -217,47 +217,47 @@ export function ModalAsignarAsientos({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-      <div className="w-full max-w-6xl bg-white rounded-[32px] shadow-2xl overflow-hidden flex flex-col max-h-[95vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-3 sm:p-5 animate-in fade-in duration-300">
+      <div className="w-full max-w-6xl h-[min(92vh,760px)] bg-white rounded-[24px] sm:rounded-[32px] shadow-2xl overflow-hidden flex flex-col">
         
         {/* HEADER */}
-        <div className="p-7 bg-gradient-to-r from-slate-950 via-slate-900 to-[#102a43] text-white flex items-center justify-between">
+        <div className="shrink-0 px-5 py-4 sm:px-7 sm:py-5 bg-gradient-to-r from-slate-950 via-slate-900 to-[#102a43] text-white flex items-center justify-between gap-4">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-sky-300 mb-2">Mesa de asignación</p>
-            <h2 className="text-2xl font-black flex items-center gap-3">
-              <Armchair className="text-sky-400" />
+            <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.22em] text-sky-300 mb-1">Mesa de asignación</p>
+            <h2 className="text-xl sm:text-2xl font-black flex items-center gap-2.5">
+              <Armchair className="text-sky-400 shrink-0" />
               Butacas del grupo
             </h2>
-            <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest font-bold">
+            <p className="text-[10px] sm:text-xs text-slate-400 mt-1 uppercase tracking-widest font-bold truncate max-w-[250px] sm:max-w-none">
               Grupo de {graduado.nombre} · DNI: {graduado.dni}
             </p>
           </div>
-          <button onClick={onCerrar} aria-label="Cerrar asignación de butacas" className="p-2 hover:bg-white/10 rounded-full transition-colors">
+          <button onClick={onCerrar} aria-label="Cerrar asignación de butacas" className="shrink-0 p-2 hover:bg-white/10 rounded-full transition-colors">
             <X size={24} />
           </button>
         </div>
 
         {/* CONTENIDO PRINCIPAL */}
-        <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+        <div className="flex-1 min-h-0 flex flex-col md:flex-row overflow-hidden">
           
           {/* SIDEBAR IZQUIERDO: INTEGRANTES */}
-          <aside className="w-full md:w-80 bg-slate-50 border-r border-slate-200 p-6 overflow-y-auto space-y-5">
+          <aside className="w-full md:w-[19rem] md:shrink-0 bg-slate-50 border-b md:border-b-0 md:border-r border-slate-200 px-4 py-3 sm:p-5 overflow-y-auto space-y-4">
             <div>
               <div className="flex items-center justify-between">
                 <h3 className="text-[10px] font-black uppercase text-slate-500 tracking-wider">Integrantes del grupo</h3>
                 <span className="flex items-center gap-1 text-[10px] font-black text-slate-500"><Users size={13} /> {personasGrupo.length}</span>
               </div>
-              <p className="text-[11px] leading-relaxed text-slate-400 mt-2">Elegí una persona y luego una butaca disponible en el mapa.</p>
+              <p className="text-[10px] sm:text-[11px] leading-relaxed text-slate-400 mt-1.5">Elegí una persona y luego una butaca disponible en el mapa.</p>
             </div>
             
-            <div className="space-y-3">
+            <div className="flex md:block gap-2 md:space-y-2 overflow-x-auto pb-1 md:pb-0">
               {personasGrupo.map((p, idx) => {
                 const esActivo = personaActiva.tipo === p.tipo && personaActiva.id === p.id
                 return (
                   <button
                     key={idx}
                     onClick={() => setPersonaActiva({ tipo: p.tipo, id: p.id })}
-                    className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 transition-all text-left ${
+                    className={`min-w-[245px] md:min-w-0 w-full flex items-center gap-3 p-3 rounded-2xl border-2 transition-all text-left ${
                       esActivo 
                         ? 'border-sky-500 bg-white shadow-md ring-2 ring-sky-100' 
                         : 'border-transparent bg-white hover:bg-slate-100 text-slate-500'
@@ -290,15 +290,15 @@ export function ModalAsignarAsientos({
 
             <button
               onClick={limpiarSeleccion}
-              className="w-full py-3 border border-dashed border-red-200 hover:bg-red-50 text-red-500 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+              className="w-full py-2.5 border border-dashed border-red-200 hover:bg-red-50 text-red-500 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"
             >
               Limpiar Selección
             </button>
           </aside>
 
           {/* ÁREA CENTRAL: MAPA DE ASIENTOS */}
-          <div className="flex-1 bg-[radial-gradient(circle_at_top,_#f0f9ff,_#ffffff_55%)] p-6 md:p-8 overflow-y-auto flex flex-col items-center justify-center min-h-[400px]">
-            <div className="w-full max-w-3xl flex items-start gap-3 rounded-2xl border border-sky-100 bg-white/80 px-4 py-3 mb-5 shadow-sm">
+          <div className="flex-1 min-h-0 bg-[radial-gradient(circle_at_top,_#f0f9ff,_#ffffff_55%)] p-3 sm:p-5 overflow-auto flex flex-col items-center">
+            <div className="w-full max-w-3xl shrink-0 flex items-start gap-3 rounded-2xl border border-sky-100 bg-white/85 px-3.5 py-2.5 mb-3 shadow-sm">
               <LockKeyhole size={16} className="text-sky-600 mt-0.5 shrink-0" />
               <p className="text-[11px] leading-relaxed text-slate-500"><strong className="text-slate-700">Asignación administrada.</strong> Las butacas ocupadas, de autoridades y reservadas permanecen bloqueadas. Las butacas de graduado solo se habilitan al seleccionar al graduado.</p>
             </div>
@@ -322,7 +322,7 @@ export function ModalAsignarAsientos({
         </div>
 
         {/* FOOTER */}
-        <div className="p-6 md:p-7 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-4">
+        <div className="shrink-0 px-4 py-3 sm:px-6 sm:py-4 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs font-bold text-slate-600">
               Asientos asignados: <span className="font-black text-slate-900">{asientosGrupoActual.length} / {personasGrupo.length}</span>
@@ -341,14 +341,14 @@ export function ModalAsignarAsientos({
           <div className="flex gap-4">
             <button
               onClick={onCerrar}
-              className="px-8 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-red-500 transition-colors"
+              className="px-4 sm:px-6 text-[10px] sm:text-xs font-black uppercase tracking-widest text-slate-400 hover:text-red-500 transition-colors"
             >
               Cancelar
             </button>
             <button
               onClick={guardar}
               disabled={procesando || !asignacionCompleta}
-              className="bg-slate-900 text-white font-black uppercase tracking-widest text-xs py-4 px-10 rounded-2xl shadow-xl shadow-slate-900/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100"
+              className="bg-slate-900 text-white font-black uppercase tracking-widest text-[10px] sm:text-xs py-3 px-5 sm:px-8 rounded-xl shadow-xl shadow-slate-900/20 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100"
             >
               {procesando ? 'Guardando...' : 'Guardar Asignación'}
             </button>
