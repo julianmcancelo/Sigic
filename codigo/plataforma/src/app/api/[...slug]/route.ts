@@ -3,7 +3,7 @@ import { query, pool } from '@/lib/db';
 import { firmar } from '@/lib/tokens';
 import { obtenerUsuarioAutenticado, ROLES_GESTION, ROLES_OPERACION, ROLES_LECTURA } from '@/lib/auth-middleware';
 import * as GestorOTP from '@/lib/otp';
-import { enviarCorreo, generarPlantillaInvitacion, generarPlantillaOTP } from '@/lib/email';
+import { enviarCorreo, generarPlantillaCierreInscripcion, generarPlantillaInvitacion, generarPlantillaOTP } from '@/lib/email';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { inicializarBaseDatos } from '@/lib/schema';
@@ -1798,6 +1798,57 @@ export async function PUT(
     // -------------------------------------------------------------
     // EGRESADOS (ASIENTOS / ENTREGADOR / RESPONDER)
     // -------------------------------------------------------------
+    if (slug[0] === 'egresados' && slug[2] === 'finalizar-inscripcion' && slug[1]) {
+      const id = slug[1];
+      const autorizado = await esAutorizadoPersonalOEgresado(req, id, ROLES_GESTION);
+      if (!autorizado) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+
+      const resultado = await query(
+        `SELECT id, nombre, correo, perfil_finalizado_en, aviso_edicion_enviado_en
+         FROM egresados WHERE id = $1`,
+        [id]
+      );
+      const graduado = resultado.rows[0];
+      if (!graduado) return NextResponse.json({ error: 'Graduado no encontrado' }, { status: 404, headers });
+
+      let avisoEnviado = false;
+      if (!graduado.aviso_edicion_enviado_en && graduado.correo) {
+        try {
+          const hostBase = new URL(req.url).origin;
+          await enviarCorreo(
+            graduado.correo,
+            'Tu inscripción quedó guardada · SiGIC',
+            generarPlantillaCierreInscripcion(graduado.nombre, hostBase)
+          );
+          avisoEnviado = true;
+        } catch (error) {
+          // El cierre es más importante que una notificación. Permitimos reintentarla luego.
+          console.error('No se pudo enviar el aviso de edición:', error);
+        }
+      }
+
+      const actualizado = await query(
+        `UPDATE egresados
+         SET estado_flujo = 'COMPLETO',
+             perfil_finalizado_en = COALESCE(perfil_finalizado_en, CURRENT_TIMESTAMP),
+             aviso_edicion_enviado_en = CASE
+               WHEN $2 THEN COALESCE(aviso_edicion_enviado_en, CURRENT_TIMESTAMP)
+               ELSE aviso_edicion_enviado_en
+             END
+         WHERE id = $1
+         RETURNING perfil_finalizado_en, aviso_edicion_enviado_en, estado_flujo`,
+        [id, avisoEnviado]
+      );
+      return NextResponse.json({
+        ok: true,
+        mensaje: avisoEnviado
+          ? 'Inscripción finalizada. Enviamos un correo único para que puedas volver a editarla.'
+          : 'Inscripción finalizada. Podés volver a editarla desde el portal cuando lo necesites.',
+        avisoEnviado,
+        graduado: actualizado.rows[0],
+      }, { headers });
+    }
+
     if (slug[0] === 'egresados' && slug[2] === 'asientos' && slug[1]) {
       const id = slug[1];
       const esPersonal = await esPersonalValido(req, ROLES_GESTION);

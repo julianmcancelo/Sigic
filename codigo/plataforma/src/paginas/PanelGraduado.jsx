@@ -8,12 +8,12 @@ import { useState, useEffect } from 'react'
 import { 
   Users, UserPlus, LogOut, Trash2, Edit3, QrCode, 
   AlertCircle, Plus, CheckCircle, X, GraduationCap, 
-  UserCheck, Armchair, History
+  UserCheck, Armchair, History, CircleCheck
 } from 'lucide-react'
 import { 
   obtenerInvitadosDeEgresado, eliminarInvitado, actualizarInvitado, 
   cargarInvitados, obtenerProfesores, obtenerEntregadoresDeGraduado,
-  asignarEntregador, eliminarEntregador, obtenerAjustes
+  asignarEntregador, eliminarEntregador, finalizarInscripcionGraduado, obtenerAjustes
 } from '../servicios/api'
 import { ModalCredencial } from '../componentes/ModalCredencial'
 import { ListaHistorialGraduado } from './HistorialGraduado'
@@ -33,6 +33,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
   })
   const [procesando, setProcesando] = useState(false)
   const [mensaje, setMensaje] = useState({ tipo: '', texto: '' })
+  const [finalizandoInscripcion, setFinalizandoInscripcion] = useState(false)
 
   // Entregadores
   const [profesores, setProfesores] = useState([])
@@ -120,6 +121,19 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
     } catch (err) { alert(err.message) }
   }
 
+  async function finalizarInscripcion() {
+    setFinalizandoInscripcion(true)
+    try {
+      const resultado = await finalizarInscripcionGraduado(graduado.id)
+      setGraduado(valor => ({ ...valor, ...resultado.graduado }))
+      setMensaje({ tipo: 'exito', texto: resultado.mensaje })
+    } catch (error) {
+      setMensaje({ tipo: 'error', texto: error.message || 'No se pudo finalizar la inscripción.' })
+    } finally {
+      setFinalizandoInscripcion(false)
+    }
+  }
+
   // ─── Funciones de entregadores ─────────────────────────────
 
   async function manejarAgregarEntregador(tipo, referencia) {
@@ -205,6 +219,9 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
         </nav>
 
         <div className="p-4 border-t border-white/10">
+          <button onClick={finalizarInscripcion} disabled={finalizandoInscripcion} className="mb-2 w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 transition-all disabled:opacity-60">
+            <CircleCheck size={18} /> <span className="text-sm font-bold">{finalizandoInscripcion ? 'Finalizando...' : graduado.perfil_finalizado_en ? 'Inscripción finalizada' : 'Guardar y finalizar'}</span>
+          </button>
           <button onClick={onCerrarSesion} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 transition-all">
             <LogOut size={18} /> <span className="text-sm font-bold">Cerrar Sesión</span>
           </button>

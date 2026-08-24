@@ -78,6 +78,8 @@ async function ejecutarInicializacion() {
         telefono TEXT,
         invitacion_enviada BOOLEAN DEFAULT FALSE,
         estado_flujo VARCHAR(30) DEFAULT 'SIN_INVITAR',
+        perfil_finalizado_en TIMESTAMP,
+        aviso_edicion_enviado_en TIMESTAMP,
         estado VARCHAR(20) DEFAULT 'PENDIENTE' CHECK (estado IN ('PENDIENTE','ACEPTADO','RECHAZADO')),
         promedio NUMERIC(5,2),
         creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -179,6 +181,8 @@ async function ejecutarInicializacion() {
 
     await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS invitacion_enviada BOOLEAN DEFAULT FALSE');
     await client.query("ALTER TABLE egresados ADD COLUMN IF NOT EXISTS estado_flujo VARCHAR(30) DEFAULT 'SIN_INVITAR'");
+    await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS perfil_finalizado_en TIMESTAMP');
+    await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS aviso_edicion_enviado_en TIMESTAMP');
     // El teléfono es útil para la operación, pero no debe impedir registrar un acompañante.
     await client.query('ALTER TABLE invitados ALTER COLUMN telefono DROP NOT NULL');
     await client.query(`

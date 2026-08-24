@@ -249,3 +249,23 @@ export function generarPlantillaOTP(codigo: string, hostBase: string) {
     </table>
   `;
 }
+
+/** Aviso único tras finalizar la autogestión; el graduado conserva acceso para corregir datos. */
+export function generarPlantillaCierreInscripcion(nombre: string, hostBase: string) {
+  const acceso = `${hostBase}/`;
+  return `
+    <div style="max-width:560px;margin:0 auto;padding:32px;background:#f1f5f9;font-family:Arial,sans-serif;color:#1e293b">
+      <div style="overflow:hidden;border-radius:20px;background:#ffffff;border:1px solid #e2e8f0">
+        <div style="padding:28px 32px;background:#0d1b2e;color:#ffffff">
+          <p style="margin:0;color:#67e8f9;font-size:11px;font-weight:bold;letter-spacing:1.4px;text-transform:uppercase">SiGIC · inscripción guardada</p>
+          <h1 style="margin:10px 0 0;font-size:24px">Hola, ${nombre}</h1>
+        </div>
+        <div style="padding:30px 32px;font-size:15px;line-height:1.6">
+          <p>Tu información quedó guardada correctamente. Podés volver cuando lo necesites para completar, corregir o modificar tus datos y acompañantes.</p>
+          <p>Ingresá al portal con tu <strong>DNI o correo electrónico</strong>; recibirás un código de acceso seguro.</p>
+          <p style="margin:26px 0;text-align:center"><a href="${acceso}" style="display:inline-block;padding:13px 22px;border-radius:10px;background:#0ea5e9;color:#ffffff;text-decoration:none;font-weight:bold">Volver a mi inscripción</a></p>
+          <p style="margin:0;color:#64748b;font-size:12px">Este aviso se envía una sola vez. Tus cambios posteriores seguirán disponibles desde el mismo acceso.</p>
+        </div>
+      </div>
+    </div>`;
+}

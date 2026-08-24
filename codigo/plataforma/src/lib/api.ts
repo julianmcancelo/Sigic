@@ -452,6 +452,16 @@ export async function responderInvitacion(graduadoId: string | number, respuesta
   return json;
 }
 
+export async function finalizarInscripcionGraduado(graduadoId: string | number) {
+  const res = await fetch(`${BASE_CLASSIC}/egresados/${graduadoId}/finalizar-inscripcion`, {
+    method: 'PUT',
+    headers: cabeceras(),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo finalizar la inscripción');
+  return json;
+}
+
 export async function obtenerUsuarios() {
   const res = await fetch(`${BASE_CLASSIC}/usuarios`, { headers: cabeceras() });
   if (!res.ok) throw new Error('No se pudieron cargar los usuarios del sistema');
