@@ -514,7 +514,7 @@ function App() {
         enMantenimiento={enMantenimiento}
         accesoOculto={accesoOculto}
         onSeleccionarAdmin={() => MODO_DEMO ? manejarLoginAdminExitoso(ADMIN_DEMO) : setVistaLogin('admin')}
-        onSeleccionarEgresado={() => MODO_DEMO ? manejarLoginGraduadoExitoso(EGRESADA_DEMO) : setVistaLogin('graduado')}
+        onSeleccionarEgresado={() => setVistaLogin('graduado')}
         onSeleccionarManual={() => setVistaLogin('manual')}
       />
     )
