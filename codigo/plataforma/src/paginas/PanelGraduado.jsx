@@ -1,7 +1,7 @@
 /**
  * PanelGraduado - Panel principal que ve el graduado al iniciar sesión.
  * Contiene 3 pestañas: Acompañantes, Padrinos y Credencial.
- * Los asientos son asignados por el admin (solo lectura para el graduado).
+ * El graduado propone las butacas del grupo y administración confirma la asignación final.
  * Reemplaza a RegistroInvitados.jsx con terminología y flujo actualizado.
  */
 import { useState, useEffect } from 'react'
@@ -16,6 +16,7 @@ import {
   asignarEntregador, eliminarEntregador, finalizarInscripcionGraduado, obtenerAjustes
 } from '../servicios/api'
 import { ModalCredencial } from '../componentes/ModalCredencial'
+import { ModalAsignarAsientos } from '../componentes/ModalAsignarAsientos'
 import { ListaHistorialGraduado } from './HistorialGraduado'
 
 export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
@@ -34,6 +35,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
   const [procesando, setProcesando] = useState(false)
   const [mensaje, setMensaje] = useState({ tipo: '', texto: '' })
   const [finalizandoInscripcion, setFinalizandoInscripcion] = useState(false)
+  const [mostrarButacas, setMostrarButacas] = useState(false)
 
   // Entregadores
   const [profesores, setProfesores] = useState([])
@@ -209,6 +211,9 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
           </button>
           <button onClick={() => setPestana('entregadores')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${pestana === 'entregadores' ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/20' : 'text-slate-400 hover:bg-white/5'}`}>
             <GraduationCap size={18} /> <span className="text-sm font-bold">Padrinos</span>
+          </button>
+          <button onClick={() => setMostrarButacas(true)} disabled={!graduado.perfil_finalizado_en} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 transition-all hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-40">
+            <Armchair size={18} /> <span className="text-sm font-bold">Elegir butacas</span>
           </button>
           <button onClick={() => setPestana('credencial')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${pestana === 'credencial' ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/20' : 'text-slate-400 hover:bg-white/5'}`}>
             <QrCode size={18} /> <span className="text-sm font-bold">Credencial</span>
@@ -528,6 +533,23 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
           </div>
         )}
       </main>
+      {mostrarButacas && (
+        <ModalAsignarAsientos
+          graduado={graduado}
+          invitados={invitados}
+          ceremoniaId={graduado.ceremonia_id}
+          todosLosGraduados={[graduado]}
+          todosLosInvitados={invitados}
+          modo="propuesta"
+          onCerrar={() => setMostrarButacas(false)}
+          onAsignado={() => {
+            setGraduado(actual => ({ ...actual, estado_asignacion_butacas: 'PENDIENTE_REVISION' }))
+            setMensaje({ tipo: 'exito', texto: 'Propuesta enviada. Administración revisará y confirmará las ubicaciones antes de enviar la credencial.' })
+            setMostrarButacas(false)
+            cargarDatos()
+          }}
+        />
+      )}
     </div>
   )
 }

@@ -1429,6 +1429,7 @@ export async function POST(
       if (!graduado) return NextResponse.json({ error: 'Graduado no encontrado' }, { status: 404, headers });
       if (!graduado.correo) return NextResponse.json({ error: 'El graduado no tiene un correo configurado' }, { status: 400, headers });
       if (graduado.estado !== 'ACEPTADO') return NextResponse.json({ error: 'La credencial se envía cuando el graduado confirma su participación' }, { status: 409, headers });
+      if (graduado.estado_asignacion_butacas !== 'CONFIRMADA') return NextResponse.json({ error: 'Confirmá las butacas del grupo antes de enviar la credencial' }, { status: 409, headers });
 
       const hostBase = new URL(req.url).origin;
       const acceso = `${hostBase}/?token=${graduado.token}`;
@@ -2002,7 +2003,8 @@ export async function PUT(
     if (slug[0] === 'egresados' && slug[2] === 'asientos' && slug[1]) {
       const id = slug[1];
       const esPersonal = await esPersonalValido(req, ROLES_GESTION);
-      if (!esPersonal) return NextResponse.json({ error: 'La asignación de butacas es exclusiva de administración' }, { status: 403, headers });
+      const esGraduado = await esAutorizadoPersonalOEgresado(req, id, ROLES_GESTION);
+      if (!esGraduado) return NextResponse.json({ error: 'No autorizado para modificar este grupo' }, { status: 403, headers });
 
       const normalizarAsiento = (valor: unknown) => {
         if (valor === null || valor === undefined || valor === '') return null;
@@ -2029,6 +2031,12 @@ export async function PUT(
         const ceremoniaId = graduadoRes.rows[0].ceremonia_id;
         const idsInvitados = Object.keys(invitadosAsientos);
 
+        const cantidadInvitados = await client.query('SELECT COUNT(*)::int AS cantidad FROM invitados WHERE egresado_id = $1', [id]);
+        if (!egresadoAsiento || Object.values(invitadosAsientos).filter(Boolean).length !== cantidadInvitados.rows[0].cantidad) {
+          await client.query('ROLLBACK');
+          return NextResponse.json({ error: 'Asigná una butaca a cada integrante antes de enviar la propuesta o confirmarla' }, { status: 400, headers });
+        }
+
         if (idsInvitados.length > 0) {
           const placeholders = idsInvitados.map((_, indice) => `$${indice + 2}`).join(', ');
           const invitadosRes = await client.query(
@@ -2049,9 +2057,12 @@ export async function PUT(
         if (asignaciones.length > 0) {
           const ocupados = await client.query(
             `SELECT asiento_id FROM egresados WHERE ceremonia_id = $1 AND id <> $2 AND asiento_id = ANY($3)
+             UNION SELECT asiento_solicitado_id AS asiento_id FROM egresados WHERE ceremonia_id = $1 AND id <> $2 AND asiento_solicitado_id = ANY($3)
              UNION
              SELECT i.asiento_id FROM invitados i JOIN egresados e ON e.id = i.egresado_id
-             WHERE e.ceremonia_id = $1 AND e.id <> $2 AND i.asiento_id = ANY($3)`,
+             WHERE e.ceremonia_id = $1 AND e.id <> $2 AND i.asiento_id = ANY($3)
+             UNION SELECT i.asiento_solicitado_id AS asiento_id FROM invitados i JOIN egresados e ON e.id = i.egresado_id
+             WHERE e.ceremonia_id = $1 AND e.id <> $2 AND i.asiento_solicitado_id = ANY($3)`,
             [ceremoniaId, id, asignaciones]
           );
           if (ocupados.rowCount > 0) {
@@ -2073,13 +2084,18 @@ export async function PUT(
           return NextResponse.json({ error: `La butaca ${noAsignables} pertenece a un sector reservado y no se puede asignar.` }, { status: 400, headers });
         }
 
+        const columna = esPersonal ? 'asiento_id' : 'asiento_solicitado_id';
         await client.query(
-          'UPDATE egresados SET asiento_id = $1 WHERE id = $2',
-          [egresadoAsiento, id]
+          `UPDATE egresados SET ${columna} = $1, estado_asignacion_butacas = $2 WHERE id = $3`,
+          [egresadoAsiento, esPersonal ? 'CONFIRMADA' : 'PENDIENTE_REVISION', id]
         );
-        await client.query('UPDATE invitados SET asiento_id = NULL WHERE egresado_id = $1', [id]);
+        await client.query(`UPDATE invitados SET ${columna} = NULL WHERE egresado_id = $1`, [id]);
         for (const [invitadoId, asiento] of Object.entries(invitadosAsientos)) {
-          await client.query('UPDATE invitados SET asiento_id = $1 WHERE id = $2 AND egresado_id = $3', [asiento, invitadoId, id]);
+          await client.query(`UPDATE invitados SET ${columna} = $1 WHERE id = $2 AND egresado_id = $3`, [asiento, invitadoId, id]);
+        }
+        if (esPersonal) {
+          await client.query('UPDATE egresados SET asiento_solicitado_id = NULL WHERE id = $1', [id]);
+          await client.query('UPDATE invitados SET asiento_solicitado_id = NULL WHERE egresado_id = $1', [id]);
         }
 
         await client.query('COMMIT');

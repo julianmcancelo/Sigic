@@ -9,9 +9,13 @@ export function ModalAsignarAsientos({
   ceremoniaId,
   todosLosGraduados,
   todosLosInvitados,
+  modo = 'confirmacion',
   onCerrar,
   onAsignado
 }) {
+  const asientoInicial = (persona) => modo === 'propuesta'
+    ? persona.asiento_solicitado_id
+    : (persona.asiento_id || persona.asiento_solicitado_id)
   const [procesando, setProcesando] = useState(false)
   const [error, setError] = useState('')
   const [estructura, setEstructura] = useState(null)
@@ -19,7 +23,7 @@ export function ModalAsignarAsientos({
   
   // Asignaciones locales en tiempo real
   const [asignaciones, setAsignaciones] = useState({
-    egresadoAsiento: graduado.asiento_id || null,
+    egresadoAsiento: asientoInicial(graduado) || null,
     invitadosAsientos: {} // { [invitadoId]: asientoId }
   })
 
@@ -32,20 +36,20 @@ export function ModalAsignarAsientos({
     // Cada grupo abre una sesión local nueva para que no se filtren selecciones previas.
     const invAsientos = {}
     invitados.forEach(inv => {
-      invAsientos[inv.id] = inv.asiento_id || null
+      invAsientos[inv.id] = asientoInicial(inv) || null
     })
     setAsignaciones({
-      egresadoAsiento: graduado.asiento_id || null,
+      egresadoAsiento: asientoInicial(graduado) || null,
       invitadosAsientos: invAsientos
     })
-    const primerPendiente = !graduado.asiento_id
+    const primerPendiente = !asientoInicial(graduado)
       ? { tipo: 'egresado', id: null }
-      : invitados.find(inv => !inv.asiento_id)
-        ? { tipo: 'invitado', id: invitados.find(inv => !inv.asiento_id).id }
+      : invitados.find(inv => !asientoInicial(inv))
+        ? { tipo: 'invitado', id: invitados.find(inv => !asientoInicial(inv)).id }
         : { tipo: 'egresado', id: null }
     setPersonaActiva(primerPendiente)
     setError('')
-  }, [graduado.id, graduado.asiento_id, invitados])
+  }, [graduado.id, graduado.asiento_id, graduado.asiento_solicitado_id, invitados, modo])
 
   // Cargar mapa del anfiteatro
   useEffect(() => {
@@ -105,6 +109,7 @@ export function ModalAsignarAsientos({
     id: null,
     nombre: graduado.nombre,
     rolLabel: 'Graduado',
+    requiereAccesibilidad: Boolean(graduado.discapacidad),
     asiento: asignaciones.egresadoAsiento
   })
 
@@ -114,6 +119,7 @@ export function ModalAsignarAsientos({
       id: inv.id,
       nombre: inv.nombre,
       rolLabel: `Acompañante (${inv.relacion || 'Familiar'})`,
+      requiereAccesibilidad: Boolean(inv.discapacidad),
       asiento: asignaciones.invitadosAsientos[inv.id] || null
     })
   })
@@ -144,6 +150,7 @@ export function ModalAsignarAsientos({
     Object.entries(roles).forEach(([asientoId, rol]) => {
       if (['autoridad', 'reservado', 'bloqueado'].includes(rol)) roles[asientoId] = 'bloqueado'
       if (rol === 'egresado' && personaActiva.tipo !== 'egresado') roles[asientoId] = 'bloqueado'
+      if (rol === 'discapacitado' && !personaActivaDatos.requiereAccesibilidad) roles[asientoId] = 'bloqueado'
     })
     return roles
   }
@@ -261,7 +268,7 @@ export function ModalAsignarAsientos({
           <div className="min-w-0 flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-sky-500/15 text-sky-400 flex items-center justify-center shrink-0"><Armchair size={19} /></div>
             <div className="min-w-0">
-              <h2 className="text-base sm:text-lg font-black">Butacas del grupo</h2>
+              <h2 className="text-base sm:text-lg font-black">{modo === 'propuesta' ? 'Proponer butacas del grupo' : 'Confirmar butacas del grupo'}</h2>
               <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold truncate">{graduado.nombre} · {personasGrupo.length} integrantes</p>
             </div>
           </div>
@@ -333,11 +340,11 @@ export function ModalAsignarAsientos({
 
         <footer className="px-4 py-2.5 sm:px-5 bg-white border-t border-slate-200 flex items-center justify-between gap-4">
           <div className="min-w-0">
-            {error ? <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-red-500"><AlertTriangle size={14} /> {error}</p> : <p className={`text-[11px] font-bold ${asignacionCompleta ? 'text-emerald-600' : 'text-slate-500'}`}>{asignacionCompleta ? 'Grupo completo. La asignación está lista para confirmar.' : `${faltantes} integrante${faltantes === 1 ? '' : 's'} sin butaca.`}</p>}
+            {error ? <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-red-500"><AlertTriangle size={14} /> {error}</p> : <p className={`text-[11px] font-bold ${asignacionCompleta ? 'text-emerald-600' : 'text-slate-500'}`}>{asignacionCompleta ? (modo === 'propuesta' ? 'Grupo completo. La propuesta quedará pendiente de revisión.' : 'Grupo completo. La asignación está lista para confirmar.') : `${faltantes} integrante${faltantes === 1 ? '' : 's'} sin butaca.`}</p>}
           </div>
           <div className="shrink-0 flex items-center gap-3">
             <button onClick={onCerrar} className="px-3 sm:px-5 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-red-500 transition-colors">Cancelar</button>
-            <button onClick={guardar} disabled={procesando || !asignacionCompleta} className="bg-slate-900 text-white font-black uppercase tracking-widest text-[9px] py-2.5 px-4 sm:px-5 rounded-lg shadow-lg shadow-slate-900/20 hover:bg-slate-800 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed">{procesando ? 'Guardando...' : 'Confirmar asignación'}</button>
+            <button onClick={guardar} disabled={procesando || !asignacionCompleta} className="bg-slate-900 text-white font-black uppercase tracking-widest text-[9px] py-2.5 px-4 sm:px-5 rounded-lg shadow-lg shadow-slate-900/20 hover:bg-slate-800 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed">{procesando ? 'Guardando...' : modo === 'propuesta' ? 'Enviar propuesta' : 'Confirmar asignación'}</button>
           </div>
         </footer>
       </div>

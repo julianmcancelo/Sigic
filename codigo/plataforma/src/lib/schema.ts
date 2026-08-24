@@ -73,6 +73,8 @@ async function ejecutarInicializacion() {
         otp VARCHAR(6),
         otp_expira TIMESTAMP,
         asiento_id VARCHAR(30),
+        asiento_solicitado_id VARCHAR(30),
+        estado_asignacion_butacas VARCHAR(30) NOT NULL DEFAULT 'SIN_SOLICITUD',
         entregador_nombre TEXT,
         entregador_asiento_id VARCHAR(30),
         telefono TEXT,
@@ -110,6 +112,7 @@ async function ejecutarInicializacion() {
         correo TEXT,
         relacion TEXT,
         asiento_id VARCHAR(30),
+        asiento_solicitado_id VARCHAR(30),
         discapacidad INTEGER DEFAULT 0,
         presente BOOLEAN DEFAULT FALSE,
         fecha_presente TIMESTAMP,
@@ -195,6 +198,9 @@ async function ejecutarInicializacion() {
     await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS google_wallet_actualizado_en TIMESTAMP');
     await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS identidad_corrobada_en TIMESTAMP');
     await client.query("ALTER TABLE egresados ADD COLUMN IF NOT EXISTS estado_flujo VARCHAR(30) DEFAULT 'SIN_INVITAR'");
+    await client.query("ALTER TABLE egresados ADD COLUMN IF NOT EXISTS asiento_solicitado_id VARCHAR(30)");
+    await client.query("ALTER TABLE egresados ADD COLUMN IF NOT EXISTS estado_asignacion_butacas VARCHAR(30) NOT NULL DEFAULT 'SIN_SOLICITUD'");
+    await client.query("ALTER TABLE invitados ADD COLUMN IF NOT EXISTS asiento_solicitado_id VARCHAR(30)");
     await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS perfil_finalizado_en TIMESTAMP');
     await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS aviso_edicion_enviado_en TIMESTAMP');
     await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS presente BOOLEAN DEFAULT FALSE');
