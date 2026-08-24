@@ -644,6 +644,7 @@ function App() {
       contenido = (
         <GestionCeremonias
           onVolver={() => setPantallaAdmin('bienvenida')}
+          onNavegar={setPantallaAdmin}
           onCambioCeremonia={() => {
             obtenerCeremoniaActiva().then(setCeremoniaActiva)
           }}

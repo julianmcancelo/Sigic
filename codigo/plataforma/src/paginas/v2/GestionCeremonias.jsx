@@ -1,14 +1,23 @@
 import { useState, useEffect } from 'react'
 import { 
   Plus, Calendar, MapPin, Users, Trash2, 
-  CheckCircle2, X, PlusCircle
+  CheckCircle2, X, PlusCircle, ArrowRight, LayoutTemplate, Send, Radio, Flag, ListChecks
 } from 'lucide-react'
-import { obtenerCeremonias, crearCeremonia, activarCeremonia, eliminarCeremonia } from '../../servicios/api'
+import { obtenerCeremonias, crearCeremonia, activarCeremonia, eliminarCeremonia, actualizarEstadoCeremonia } from '../../lib/api'
 
 const ACCENT = '#0EA5E9'
 const DARK   = '#2A3448'
 
-export function GestionCeremonias({ onVolver, onCambioCeremonia, sinHeader }) {
+const ETAPAS = [
+  ['BORRADOR', 'Borrador'], ['CONFIGURACION', 'Configuración'], ['CONVOCATORIA', 'Convocatoria'],
+  ['PREPARACION', 'Preparación'], ['EN_VIVO', 'En vivo'], ['FINALIZADA', 'Finalizada'],
+]
+
+function estadoCeremonia(c) {
+  return c.estado_operativo || (c.activa ? 'CONFIGURACION' : 'BORRADOR')
+}
+
+export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinHeader }) {
   const [ceremonias, setCeremonias] = useState([])
   const [cargando, setCargando] = useState(true)
   const [mostrarForm, setMostrarForm] = useState(false)
@@ -17,6 +26,7 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, sinHeader }) {
   })
   const [mensaje, setMensaje] = useState(null)
   const [cambiando, setCambiando] = useState(false)
+  const [actualizandoId, setActualizandoId] = useState(null)
 
   useEffect(() => { cargar() }, [])
 
@@ -72,6 +82,23 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, sinHeader }) {
       cargar()
     } catch (err) {
       setMensaje({ tipo: 'error', texto: err.message })
+    }
+  }
+
+  async function handleAvanzar(c) {
+    const indice = ETAPAS.findIndex(([id]) => id === estadoCeremonia(c))
+    const siguiente = ETAPAS[Math.min(indice + 1, ETAPAS.length - 1)]?.[0]
+    if (!siguiente || siguiente === estadoCeremonia(c)) return
+    setActualizandoId(c.id)
+    try {
+      await actualizarEstadoCeremonia(c.id, siguiente)
+      setMensaje({ tipo: 'exito', texto: siguiente === 'FINALIZADA' ? 'Ceremonia finalizada y archivada' : `Etapa actualizada: ${ETAPAS.find(([id]) => id === siguiente)?.[1]}` })
+      cargar()
+      if (siguiente === 'FINALIZADA' && onCambioCeremonia) onCambioCeremonia()
+    } catch (err) {
+      setMensaje({ tipo: 'error', texto: err.message })
+    } finally {
+      setActualizandoId(null)
     }
   }
 
@@ -156,7 +183,7 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, sinHeader }) {
                   )}
                 </div>
 
-                <div className="mb-6">
+                <div className="mb-5">
                   <h3 className="text-base font-black tracking-tight leading-tight mb-2.5" style={{ color: DARK }}>
                     {c.nombre}
                   </h3>
@@ -180,12 +207,27 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, sinHeader }) {
                     </div>
                   </div>
                 </div>
+                {(() => {
+                  const estado = estadoCeremonia(c)
+                  const indice = ETAPAS.findIndex(([id]) => id === estado)
+                  const tareas = [
+                    { ok: Boolean(c.total_egresados), texto: `${c.total_egresados || 0} graduados cargados`, destino: 'gestion-graduados' },
+                    { ok: Boolean(c.plano_configurado), texto: 'Plano de butacas configurado', destino: 'seleccion-asientos' },
+                    { ok: Number(c.invitaciones_enviadas) >= Number(c.total_egresados) && Number(c.total_egresados) > 0, texto: `${c.invitaciones_enviadas || 0}/${c.total_egresados || 0} invitaciones enviadas`, destino: 'gestion-graduados' },
+                  ]
+                  return <div className="mb-5 rounded-xl border border-slate-100 bg-slate-50/70 p-3">
+                    <div className="mb-2 flex items-center justify-between"><span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-slate-500"><ListChecks size={13} className="text-sky-500" /> {ETAPAS[indice]?.[1] || 'Borrador'}</span><span className="text-[9px] font-bold text-slate-400">{indice + 1}/6</span></div>
+                    <div className="mb-3 flex gap-1">{ETAPAS.map(([id], paso) => <span key={id} className={`h-1 flex-1 rounded-full ${paso <= indice ? 'bg-sky-500' : 'bg-slate-200'}`} />)}</div>
+                    <div className="space-y-1.5">{tareas.map(tarea => <button key={tarea.texto} onClick={() => onNavegar?.(tarea.destino)} className="flex w-full items-center gap-2 text-left text-[10px] font-semibold text-slate-500 hover:text-sky-600"><CheckCircle2 size={12} className={tarea.ok ? 'text-emerald-500' : 'text-slate-300'} />{tarea.texto}</button>)}</div>
+                  </div>
+                })()}
               </div>
 
               {c.activa ? (
-                <div className="w-full text-center py-2.5 bg-emerald-50/70 text-emerald-700 rounded-xl text-[10px] font-black uppercase tracking-widest border border-emerald-100">
-                  Entorno Seleccionado
-                </div>
+                estadoCeremonia(c) === 'FINALIZADA' ? <div className="w-full text-center py-2.5 bg-slate-100 text-slate-500 rounded-xl text-[10px] font-black uppercase tracking-widest">Ceremonia archivada</div> :
+                <button onClick={() => handleAvanzar(c)} disabled={actualizandoId === c.id} className="flex w-full items-center justify-center gap-2 bg-slate-900 py-2.5 text-[10px] font-black uppercase tracking-widest text-white transition-all hover:bg-sky-500 disabled:opacity-60 rounded-xl">
+                  {actualizandoId === c.id ? 'Actualizando...' : <>{ETAPAS[Math.min(ETAPAS.findIndex(([id]) => id === estadoCeremonia(c)) + 1, ETAPAS.length - 1)]?.[1] || 'Finalizar'} <ArrowRight size={13} /></>}
+                </button>
               ) : (
                 <button
                   onClick={() => handleActivar(c.id)}

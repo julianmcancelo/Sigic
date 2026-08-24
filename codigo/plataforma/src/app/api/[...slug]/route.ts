@@ -466,7 +466,20 @@ export async function GET(
     }
 
     if (path === 'ceremonias') {
-      const result = await query('SELECT * FROM ceremonias ORDER BY fecha DESC');
+      const result = await query(`
+        SELECT c.*,
+          COUNT(e.id)::int AS total_egresados,
+          COUNT(e.id) FILTER (WHERE e.invitacion_enviada)::int AS invitaciones_enviadas,
+          COUNT(e.id) FILTER (WHERE e.estado = 'ACEPTADO')::int AS egresados_confirmados,
+          COUNT(e.id) FILTER (WHERE e.asiento_id IS NOT NULL)::int AS egresados_con_butaca,
+          COUNT(i.id) FILTER (WHERE i.presente IS TRUE)::int AS asistencias,
+          EXISTS(SELECT 1 FROM configuracion_anfiteatro ca WHERE ca.ceremonia_id = c.id) AS plano_configurado
+        FROM ceremonias c
+        LEFT JOIN egresados e ON e.ceremonia_id = c.id
+        LEFT JOIN invitados i ON i.egresado_id = e.id
+        GROUP BY c.id
+        ORDER BY c.fecha DESC
+      `);
       return NextResponse.json(result.rows, { headers });
     }
 
@@ -1552,13 +1565,44 @@ export async function PUT(
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
       await query('UPDATE ceremonias SET activa = 0');
-      const result = await query('UPDATE ceremonias SET activa = 1 WHERE id = $1', [id]);
+      const result = await query(`
+        UPDATE ceremonias
+        SET activa = 1,
+            estado_operativo = CASE WHEN estado_operativo = 'BORRADOR' THEN 'CONFIGURACION' ELSE estado_operativo END
+        WHERE id = $1`, [id]);
 
       if (result.rowCount === 0) {
         return NextResponse.json({ error: 'Ceremonia no encontrada' }, { status: 404, headers });
       }
 
       return NextResponse.json({ ok: true, mensaje: 'Ceremonia activada correctamente' }, { headers });
+    }
+
+    if (slug[0] === 'ceremonias' && slug[2] === 'estado' && slug[1]) {
+      const isPersonal = await esPersonalValido(req, ROLES_GESTION);
+      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+
+      const siguiente = String(body?.estado || '').toUpperCase();
+      const permitidos = ['BORRADOR', 'CONFIGURACION', 'CONVOCATORIA', 'PREPARACION', 'EN_VIVO', 'FINALIZADA'];
+      if (!permitidos.includes(siguiente)) return NextResponse.json({ error: 'Estado operativo inválido' }, { status: 400, headers });
+
+      const indicadores = await query(`
+        SELECT COUNT(e.id)::int AS egresados,
+          COUNT(e.id) FILTER (WHERE e.invitacion_enviada)::int AS invitaciones,
+          EXISTS(SELECT 1 FROM configuracion_anfiteatro ca WHERE ca.ceremonia_id = c.id) AS plano
+        FROM ceremonias c LEFT JOIN egresados e ON e.ceremonia_id = c.id
+        WHERE c.id = $1 GROUP BY c.id`, [slug[1]]);
+      const info = indicadores.rows[0];
+      if (!info) return NextResponse.json({ error: 'Ceremonia no encontrada' }, { status: 404, headers });
+      if (siguiente === 'CONVOCATORIA' && !Number(info.egresados)) return NextResponse.json({ error: 'Agregá al menos un graduado antes de convocar' }, { status: 409, headers });
+      if (siguiente === 'PREPARACION' && !info.plano) return NextResponse.json({ error: 'Configurá el plano de butacas antes de preparar la ceremonia' }, { status: 409, headers });
+
+      const result = await query(`
+        UPDATE ceremonias SET estado_operativo = $1,
+          finalizada_en = CASE WHEN $1 = 'FINALIZADA' THEN CURRENT_TIMESTAMP ELSE finalizada_en END,
+          activa = CASE WHEN $1 = 'FINALIZADA' THEN 0 ELSE activa END
+        WHERE id = $2 RETURNING *`, [siguiente, slug[1]]);
+      return NextResponse.json({ ok: true, ceremonia: result.rows[0] }, { headers });
     }
 
     if (slug[0] === 'ceremonias' && slug[2] === 'autorizados' && slug[3] && slug[1]) {

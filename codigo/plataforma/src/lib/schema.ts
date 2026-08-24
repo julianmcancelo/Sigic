@@ -46,8 +46,13 @@ async function ejecutarInicializacion() {
         max_invitados INTEGER DEFAULT 4,
         max_entregadores INTEGER DEFAULT 3,
         activa INTEGER DEFAULT 0,
+        estado_operativo VARCHAR(24) NOT NULL DEFAULT 'BORRADOR',
+        finalizada_en TIMESTAMP,
         creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+
+      ALTER TABLE ceremonias ADD COLUMN IF NOT EXISTS estado_operativo VARCHAR(24) NOT NULL DEFAULT 'BORRADOR';
+      ALTER TABLE ceremonias ADD COLUMN IF NOT EXISTS finalizada_en TIMESTAMP;
       CREATE TABLE IF NOT EXISTS egresados (
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         ceremonia_id VARCHAR(50) REFERENCES ceremonias(id) ON DELETE CASCADE,

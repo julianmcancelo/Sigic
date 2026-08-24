@@ -343,6 +343,15 @@ export async function activarCeremonia(id: string | number) {
   return json;
 }
 
+export async function actualizarEstadoCeremonia(id: string | number, estado: string) {
+  const res = await fetch(`${BASE_CLASSIC}/ceremonias/${id}/estado`, {
+    method: 'PUT', headers: cabeceras(), body: JSON.stringify({ estado })
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo actualizar el estado operativo');
+  return json;
+}
+
 export async function eliminarCeremonia(id: string | number) {
   const res = await fetch(`${BASE_CLASSIC}/ceremonias/${id}`, {
     method: 'DELETE',
