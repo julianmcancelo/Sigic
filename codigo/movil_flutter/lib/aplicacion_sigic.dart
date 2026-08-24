@@ -21,7 +21,7 @@ class AplicacionSigic extends StatelessWidget {
       ],
       theme: TemaSigic.temaClaro,
       darkTheme: TemaSigic.temaOscuro,
-      themeMode: ThemeMode.system,
+      themeMode: ThemeMode.light,
       home: const PantallaPrincipal(),
     );
   }

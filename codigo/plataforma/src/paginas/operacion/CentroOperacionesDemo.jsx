@@ -22,13 +22,18 @@ export function CentroOperacionesDemo({ onNavegar }) {
   const aceptados = graduados.filter(item => item.estado === 'ACEPTADO').length
   const listos = graduados.filter(item => item.estado_flujo === 'COMPLETO').length
   const conButaca = graduados.filter(item => item.asiento_id).length
+  const propuestas = graduados.filter(item => item.estado_asignacion_butacas === 'PENDIENTE_REVISION').length
+  const confirmados = graduados.filter(item => item.estado_asignacion_butacas === 'CONFIRMADA').length
+  const credenciales = graduados.filter(item => item.credencial_enviada_en).length
   const pasos = [
     { titulo: 'Cargar graduados', detalle: `${graduados.length} registrados`, listo: graduados.length > 0, icono: Users, destino: 'gestion-graduados' },
     { titulo: 'Enviar invitaciones', detalle: `${enviados} de ${graduados.length} enviadas`, listo: graduados.length > 0 && enviados === graduados.length, icono: Mail, destino: 'gestion-graduados' },
     { titulo: 'Revisar respuestas', detalle: `${aceptados} aceptaron participar`, listo: aceptados > 0, icono: CheckCircle2, destino: 'gestion-graduados' },
-    { titulo: 'Completar grupos', detalle: `${invitados.length} acompañantes cargados`, listo: aceptados > 0 && invitados.length > 0, icono: ClipboardCheck, destino: 'gestion-graduados' },
-    { titulo: 'Asignar butacas', detalle: `${conButaca} graduados ubicados · ${listos} listos`, listo: listos > 0 && conButaca >= listos, icono: Armchair, destino: 'gestion-graduados' },
-    { titulo: 'Controlar ingresos', detalle: 'Abrir escáner de acceso', listo: false, icono: DoorOpen, destino: 'control-ingreso' },
+    { titulo: 'Completar grupos', detalle: `${invitados.length} acompañantes cargados`, listo: aceptados > 0 && graduados.filter(item => item.estado_flujo === 'COMPLETO').length === aceptados, icono: ClipboardCheck, destino: 'gestion-graduados' },
+    { titulo: 'Revisar propuestas', detalle: `${propuestas} grupos esperan revisión`, listo: aceptados > 0 && propuestas === 0, icono: Armchair, destino: 'gestion-graduados' },
+    { titulo: 'Confirmar butacas', detalle: `${confirmados}/${aceptados} grupos confirmados`, listo: aceptados > 0 && confirmados === aceptados && conButaca >= confirmados, icono: CheckCircle2, destino: 'gestion-graduados' },
+    { titulo: 'Enviar credenciales', detalle: `${credenciales}/${confirmados} enviadas`, listo: confirmados > 0 && credenciales === confirmados, icono: Mail, destino: 'gestion-graduados' },
+    { titulo: 'Controlar ingresos', detalle: datos.ceremonia?.estado === 'EN_VIVO' ? 'Ceremonia en vivo: abrir acreditación' : 'Activá la ceremonia antes de acreditar', listo: datos.ceremonia?.estado === 'FINALIZADA', icono: DoorOpen, destino: 'control-ingreso' },
   ]
   const proximo = pasos.find(item => !item.listo) || pasos.at(-1)
 
