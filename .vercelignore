@@ -1,0 +1,7 @@
+# El proyecto de Vercel usa codigo/plataforma como Root Directory.
+# Estos artefactos locales no son necesarios para compilar la web.
+codigo/plataforma/node_modules
+codigo/plataforma/.next
+codigo/plataforma/src-tauri/target
+codigo/movil_flutter/.dart_tool
+codigo/movil_flutter/build
