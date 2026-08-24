@@ -588,7 +588,7 @@ class _MensajeConexion extends StatelessWidget {
     child: Row(
       children: [
         Icon(
-          activa ? Icons.check_circle : Icons.error,
+          activa ? Icons.check_circle : Icons.tune,
           size: 18,
           color: activa ? const Color(0xFF0A7F5F) : const Color(0xFFB91C1C),
         ),
