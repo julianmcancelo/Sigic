@@ -236,8 +236,9 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
         _resultado = actualizado;
       });
       final yaAcreditado = respuesta['yaAcreditado'] == true;
-      final mensaje = (respuesta['mensaje'] ?? 'La acreditacion se realizo con exito.')
-          .toString();
+      final mensaje =
+          (respuesta['mensaje'] ?? 'La acreditacion se realizo con exito.')
+              .toString();
 
       if (actualizado?.tipo == TipoResultadoEscaneo.individual) {
         // Escaneo continuo: mostramos confirmacion breve y volvemos a la
@@ -603,9 +604,7 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
                       width: 52,
                       height: 52,
                       decoration: BoxDecoration(
-                        color: TemaSigic.azulBrillante.withValues(
-                          alpha: 0.18,
-                        ),
+                        color: TemaSigic.azulBrillante.withValues(alpha: 0.18),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: const Icon(
@@ -663,7 +662,10 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
                 children: [
                   const Text(
                     'Ceremonias habilitadas',
-                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14.5),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14.5,
+                    ),
                   ),
                   Text(
                     '${_ceremoniasAutorizadas.length}',
@@ -1048,7 +1050,9 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
                             borderRadius: BorderRadius.circular(14),
                           ),
                           child: Icon(
-                            enVivo ? Icons.autorenew : Icons.center_focus_strong,
+                            enVivo
+                                ? Icons.autorenew
+                                : Icons.center_focus_strong,
                             color: Colors.white,
                           ),
                         ),
@@ -1115,11 +1119,8 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
                 Container(
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.surfaceContainerHighest.withValues(
-                      alpha: 0.35,
-                    ),
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest
+                        .withValues(alpha: 0.35),
                     borderRadius: BorderRadius.circular(22),
                   ),
                   child: Column(
@@ -1489,7 +1490,9 @@ class _TarjetaFlotanteInvitado extends StatelessWidget {
               ),
               child: Icon(
                 invitado.presente ? Icons.check_circle : Icons.how_to_reg,
-                color: invitado.presente ? TemaSigic.exito : TemaSigic.azulPrincipal,
+                color: invitado.presente
+                    ? TemaSigic.exito
+                    : TemaSigic.azulPrincipal,
               ),
             ),
           ],
@@ -1566,10 +1569,7 @@ class _TarjetaFlotanteInvitado extends StatelessWidget {
         ),
         Align(
           alignment: Alignment.center,
-          child: TextButton(
-            onPressed: alCerrar,
-            child: const Text('Cerrar'),
-          ),
+          child: TextButton(onPressed: alCerrar, child: const Text('Cerrar')),
         ),
       ],
     );

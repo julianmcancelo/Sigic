@@ -192,59 +192,120 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
     if (!mounted) {
       return;
     }
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(mensaje)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(mensaje)));
   }
 
   @override
   Widget build(BuildContext context) {
+    final conectado = _conexionActiva == true;
     return Scaffold(
-      appBar: AppBar(title: const Text('Ajustes')),
+      appBar: AppBar(
+        title: const Text('Ajustes'),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: _PildoraEstado(
+              etiqueta: conectado ? 'EN LÍNEA' : 'SIN VERIFICAR',
+              color: conectado
+                  ? const Color(0xFF0A7F5F)
+                  : const Color(0xFF64798C),
+            ),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 6, 16, 24),
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 28),
           children: [
+            Container(
+              margin: const EdgeInsets.only(bottom: 18),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF0A1422),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 46,
+                    height: 46,
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Image.asset('assets/imagenes/splash-icono.png'),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _usuario?.nombre ?? 'Dispositivo sin sesión',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          _usuario == null
+                              ? 'Configurá el entorno y accedé para operar.'
+                              : '${_usuario!.rol} · ${_entorno.toUpperCase()}',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.68),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    conectado ? Icons.settings : Icons.tune,
+                    color: conectado
+                        ? const Color(0xFF6EE7B7)
+                        : const Color(0xFFB8C8D2),
+                  ),
+                ],
+              ),
+            ),
+            const _TituloSeccion(
+              titulo: 'ENTORNO DE TRABAJO',
+              detalle: 'Elegí dónde opera este dispositivo.',
+            ),
             PanelTarjeta(
               contenido: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
                     children: [
-                      const Expanded(
-                        child: Text(
-                          'Entorno de trabajo',
-                          style: TextStyle(fontWeight: FontWeight.w800),
-                        ),
+                      _BotonEntorno(
+                        etiqueta: 'Demo',
+                        icono: Icons.science_outlined,
+                        seleccionado: _entorno == 'demo',
+                        alPresionar: () => _cambiarEntorno('demo'),
                       ),
-                      if (_entorno == 'demo')
-                        const Chip(
-                          avatar: Icon(Icons.science_outlined, size: 16),
-                          label: Text('DEMO'),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  SegmentedButton<String>(
-                    segments: const [
-                      ButtonSegment(
-                        value: 'demo',
-                        icon: Icon(Icons.science_outlined),
-                        label: Text('Demo'),
+                      _BotonEntorno(
+                        etiqueta: 'Producción',
+                        icono: Icons.apartment,
+                        seleccionado: _entorno == 'produccion',
+                        alPresionar: () => _cambiarEntorno('produccion'),
                       ),
-                      ButtonSegment(
-                        value: 'produccion',
-                        icon: Icon(Icons.apartment),
-                        label: Text('Produccion'),
-                      ),
-                      ButtonSegment(
-                        value: 'personalizado',
-                        icon: Icon(Icons.tune),
-                        label: Text('Otro'),
+                      _BotonEntorno(
+                        etiqueta: 'Servidor',
+                        icono: Icons.tune,
+                        seleccionado: _entorno == 'personalizado',
+                        alPresionar: () => _cambiarEntorno('personalizado'),
                       ),
                     ],
-                    selected: {_entorno},
-                    onSelectionChanged: (seleccion) =>
-                        _cambiarEntorno(seleccion.first),
                   ),
                   if (_entorno == 'demo') ...[
                     const SizedBox(height: 12),
@@ -271,10 +332,17 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  FilledButton.tonal(
+                  OutlinedButton.icon(
                     onPressed: _probandoConexion ? null : _verificarConexion,
-                    child: Text(
-                      _probandoConexion ? 'Verificando...' : 'Probar conexion',
+                    icon: Icon(
+                      _probandoConexion
+                          ? Icons.system_update_alt
+                          : Icons.system_update_alt,
+                    ),
+                    label: Text(
+                      _probandoConexion
+                          ? 'Verificando conexión...'
+                          : 'Comprobar conexión',
                     ),
                   ),
                   if (widget.servicioApi.esDireccionLocal(
@@ -291,28 +359,19 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
                   ],
                   if (_conexionActiva != null) ...[
                     const SizedBox(height: 10),
-                    Text(
-                      _conexionActiva!
-                          ? 'Conexion correcta'
-                          : 'No se pudo conectar',
-                      style: TextStyle(
-                        color: _conexionActiva! ? Colors.green : Colors.red,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
+                    _MensajeConexion(activa: _conexionActiva!),
                   ],
                 ],
               ),
+            ),
+            const _TituloSeccion(
+              titulo: 'SESIÓN DE OPERADOR',
+              detalle: 'La cuenta define qué ceremonias podés acreditar.',
             ),
             PanelTarjeta(
               contenido: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Sesion de seguridad',
-                    style: TextStyle(fontWeight: FontWeight.w800),
-                  ),
-                  const SizedBox(height: 14),
                   if (_usuario == null) ...[
                     if (_entorno == 'demo') ...[
                       FilledButton.icon(
@@ -320,85 +379,101 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
                         icon: const Icon(Icons.play_arrow_rounded),
                         label: Text(
                           _iniciandoSesion
-                              ? 'Conectando...'
+                              ? 'Conectando demo...'
                               : 'Entrar a la demo',
                         ),
                       ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                        child: Row(
-                          children: [
-                            Expanded(child: Divider()),
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 10),
-                              child: Text('o usar credenciales'),
-                            ),
-                            Expanded(child: Divider()),
-                          ],
-                        ),
-                      ),
+                      const _SeparadorConTexto('o iniciá con tus credenciales'),
                     ],
                     TextField(
                       controller: _controladorCorreo,
                       keyboardType: TextInputType.emailAddress,
                       decoration: const InputDecoration(
-                        labelText: 'Correo electronico',
+                        labelText: 'Correo electrónico',
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
                     TextField(
                       controller: _controladorContrasena,
                       obscureText: true,
                       decoration: const InputDecoration(
-                        labelText: 'Contrasena',
+                        labelText: 'Contraseña',
                       ),
                     ),
                     const SizedBox(height: 12),
-                    FilledButton(
+                    FilledButton.icon(
                       onPressed: _iniciandoSesion ? null : _iniciarSesion,
-                      child: Text(
-                        _iniciandoSesion ? 'Iniciando...' : 'Iniciar sesion',
+                      icon: const Icon(Icons.play_arrow_rounded),
+                      label: Text(
+                        _iniciandoSesion
+                            ? 'Iniciando sesión...'
+                            : 'Iniciar sesión',
                       ),
                     ),
                   ] else ...[
-                    Text(
-                      _usuario!.nombre,
-                      style: Theme.of(context).textTheme.titleMedium
-                          ?.copyWith(fontWeight: FontWeight.w800),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: CircleAvatar(
+                        backgroundColor: const Color(0xFFE1F4FA),
+                        foregroundColor: const Color(0xFF075985),
+                        child: Text(
+                          _usuario!.nombre.substring(0, 1).toUpperCase(),
+                        ),
+                      ),
+                      title: Text(
+                        _usuario!.nombre,
+                        style: const TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                      subtitle: Text(_usuario!.email),
+                      trailing: _PildoraEstado(
+                        etiqueta: _usuario!.rol.toUpperCase(),
+                        color: const Color(0xFF075985),
+                      ),
                     ),
-                    const SizedBox(height: 6),
-                    Text(_usuario!.email),
-                    Text('Rol: ${_usuario!.rol}'),
-                    const SizedBox(height: 12),
-                    OutlinedButton(
+                    const SizedBox(height: 8),
+                    OutlinedButton.icon(
                       onPressed: _cerrarSesion,
-                      child: const Text('Cerrar sesion'),
+                      icon: const Icon(Icons.tune),
+                      label: const Text('Cerrar sesión en este dispositivo'),
                     ),
                   ],
                 ],
               ),
             ),
+            const _TituloSeccion(
+              titulo: 'ACTUALIZACIONES',
+              detalle:
+                  'El sistema se actualiza de forma segura en segundo plano.',
+            ),
             PanelTarjeta(
               contenido: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Shorebird',
-                    style: TextStyle(fontWeight: FontWeight.w800),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    'Parche actual: ${_parcheActual?.toString() ?? 'sin parche'}',
-                  ),
-                  const SizedBox(height: 12),
-                  FilledButton.tonalIcon(
-                    onPressed: _buscarActualizacion,
-                    icon: const Icon(Icons.system_update_alt),
-                    label: const Text('Buscar actualizacion OTA'),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.system_update_alt,
+                        color: Color(0xFF075985),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Shorebird · parche ${_parcheActual?.toString() ?? 'base'}',
+                          style: const TextStyle(fontWeight: FontWeight.w800),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Las actualizaciones se descargan en segundo plano y se aplican al reiniciar la aplicacion.',
+                    'Las mejoras se descargan en segundo plano y quedan listas al reiniciar la aplicación.',
+                    style: TextStyle(color: Color(0xFF5C7386), height: 1.35),
+                  ),
+                  const SizedBox(height: 14),
+                  FilledButton.tonalIcon(
+                    onPressed: _buscarActualizacion,
+                    icon: const Icon(Icons.system_update_alt),
+                    label: const Text('Buscar actualización ahora'),
                   ),
                 ],
               ),
@@ -408,4 +483,149 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
       ),
     );
   }
+}
+
+class _TituloSeccion extends StatelessWidget {
+  const _TituloSeccion({required this.titulo, required this.detalle});
+  final String titulo;
+  final String detalle;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(2, 2, 2, 9),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          titulo,
+          style: const TextStyle(
+            fontSize: 10.5,
+            letterSpacing: 1,
+            fontWeight: FontWeight.w900,
+            color: Color(0xFF64798C),
+          ),
+        ),
+        const SizedBox(height: 3),
+        Text(
+          detalle,
+          style: const TextStyle(fontSize: 12, color: Color(0xFF5C7386)),
+        ),
+      ],
+    ),
+  );
+}
+
+class _PildoraEstado extends StatelessWidget {
+  const _PildoraEstado({required this.etiqueta, required this.color});
+  final String etiqueta;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+    decoration: BoxDecoration(
+      color: color.withValues(alpha: .11),
+      borderRadius: BorderRadius.circular(20),
+    ),
+    child: Text(
+      etiqueta,
+      style: TextStyle(
+        fontSize: 10,
+        letterSpacing: .5,
+        fontWeight: FontWeight.w900,
+        color: color,
+      ),
+    ),
+  );
+}
+
+class _BotonEntorno extends StatelessWidget {
+  const _BotonEntorno({
+    required this.etiqueta,
+    required this.icono,
+    required this.seleccionado,
+    required this.alPresionar,
+  });
+  final String etiqueta;
+  final IconData icono;
+  final bool seleccionado;
+  final VoidCallback alPresionar;
+
+  @override
+  Widget build(BuildContext context) => ChoiceChip(
+    selected: seleccionado,
+    onSelected: (_) => alPresionar(),
+    avatar: Icon(
+      icono,
+      size: 17,
+      color: seleccionado ? const Color(0xFF075985) : const Color(0xFF5C7386),
+    ),
+    label: Text(etiqueta),
+    labelStyle: TextStyle(
+      fontWeight: FontWeight.w800,
+      color: seleccionado ? const Color(0xFF075985) : const Color(0xFF3F5668),
+    ),
+    selectedColor: const Color(0xFFE1F4FA),
+    side: BorderSide(
+      color: seleccionado ? const Color(0xFF075985) : const Color(0xFFE2EAF0),
+    ),
+  );
+}
+
+class _MensajeConexion extends StatelessWidget {
+  const _MensajeConexion({required this.activa});
+  final bool activa;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    width: double.infinity,
+    padding: const EdgeInsets.all(10),
+    decoration: BoxDecoration(
+      color: (activa ? const Color(0xFF10B981) : const Color(0xFFEF4444))
+          .withValues(alpha: .10),
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Row(
+      children: [
+        Icon(
+          activa ? Icons.check_circle : Icons.error,
+          size: 18,
+          color: activa ? const Color(0xFF0A7F5F) : const Color(0xFFB91C1C),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          activa
+              ? 'Conexión verificada y lista para operar.'
+              : 'No se pudo validar la conexión.',
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            color: activa ? const Color(0xFF0A7F5F) : const Color(0xFFB91C1C),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _SeparadorConTexto extends StatelessWidget {
+  const _SeparadorConTexto(this.texto);
+  final String texto;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 14),
+    child: Row(
+      children: [
+        const Expanded(child: Divider()),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 10),
+          child: Text(
+            texto,
+            style: const TextStyle(color: Color(0xFF64798C), fontSize: 12),
+          ),
+        ),
+        const Expanded(child: Divider()),
+      ],
+    ),
+  );
 }

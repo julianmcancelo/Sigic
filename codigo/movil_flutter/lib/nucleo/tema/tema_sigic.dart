@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class TemaSigic {
   static const Color azulPrincipal = Color(0xFF075985);
   static const Color azulBrillante = Color(0xFF06B6D4);
-  static const Color fondoClaro = Color(0xFFF3F7FA);
+  static const Color fondoClaro = Color(0xFFF5F7F8);
   static const Color fondoOscuro = Color(0xFF08131E);
   static const Color exito = Color(0xFF10B981);
   static const Color error = Color(0xFFEF4444);
@@ -19,6 +19,7 @@ class TemaSigic {
       useMaterial3: true,
       colorScheme: esquema,
       scaffoldBackgroundColor: fondoClaro,
+      fontFamily: 'Roboto',
       appBarTheme: const AppBarTheme(
         centerTitle: false,
         backgroundColor: Colors.transparent,
@@ -37,13 +38,15 @@ class TemaSigic {
         elevation: 0,
         shadowColor: Colors.transparent,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(20),
           side: const BorderSide(color: Color(0xFFE2EAF0)),
         ),
       ),
       navigationBarTheme: NavigationBarThemeData(
-        height: 68,
+        height: 72,
         backgroundColor: Colors.white,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
         indicatorColor: azulBrillante.withValues(alpha: 0.15),
         labelTextStyle: WidgetStateProperty.resolveWith(
           (states) => TextStyle(
@@ -58,9 +61,9 @@ class TemaSigic {
         style: FilledButton.styleFrom(
           backgroundColor: azulPrincipal,
           foregroundColor: Colors.white,
-          minimumSize: const Size.fromHeight(46),
+          minimumSize: const Size.fromHeight(50),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(16),
           ),
           textStyle: const TextStyle(
             fontWeight: FontWeight.w800,
@@ -70,10 +73,10 @@ class TemaSigic {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          minimumSize: const Size.fromHeight(44),
+          minimumSize: const Size.fromHeight(48),
           side: const BorderSide(color: Color(0xFFC8D8E5)),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(16),
           ),
           textStyle: const TextStyle(fontWeight: FontWeight.w700),
         ),
@@ -94,6 +97,10 @@ class TemaSigic {
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(

@@ -40,7 +40,8 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
     final inicio = DateTime.now();
     final mensaje = await _servicioShorebird.buscarYDescargarActualizacion();
     final transcurrido = DateTime.now().difference(inicio);
-    final espera = const Duration(milliseconds: 900) - transcurrido;
+    // Evita un parpadeo de la pantalla de inicio sin demorar el trabajo en puerta.
+    final espera = const Duration(milliseconds: 450) - transcurrido;
     if (espera > Duration.zero) {
       await Future<void>.delayed(espera);
     }
@@ -112,26 +113,31 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
 
     return Scaffold(
       body: IndexedStack(index: _indiceActual, children: pantallas),
-      bottomNavigationBar: NavigationBar(
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        selectedIndex: _indiceActual,
-        onDestinationSelected: (indice) {
-          setState(() {
-            _indiceActual = indice;
-          });
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.qr_code_scanner_outlined),
-            selectedIcon: Icon(Icons.qr_code_scanner),
-            label: 'Escanear',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
-            label: 'Ajustes',
-          ),
-        ],
+      bottomNavigationBar: DecoratedBox(
+        decoration: const BoxDecoration(
+          border: Border(top: BorderSide(color: Color(0xFFE2EAF0))),
+        ),
+        child: NavigationBar(
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+          selectedIndex: _indiceActual,
+          onDestinationSelected: (indice) {
+            setState(() {
+              _indiceActual = indice;
+            });
+          },
+          destinations: const [
+            NavigationDestination(
+              icon: Icon(Icons.qr_code_scanner_outlined),
+              selectedIcon: Icon(Icons.qr_code_scanner),
+              label: 'Escanear',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.settings_outlined),
+              selectedIcon: Icon(Icons.settings),
+              label: 'Ajustes',
+            ),
+          ],
+        ),
       ),
     );
   }

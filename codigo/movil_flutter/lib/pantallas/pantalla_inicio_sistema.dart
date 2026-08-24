@@ -10,60 +10,71 @@ class PantallaInicioSistema extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF071923),
+      backgroundColor: const Color(0xFF08131E),
       body: DecoratedBox(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF102C3D), Color(0xFF071923)],
+            colors: [Color(0xFF102C3D), Color(0xFF08131E)],
           ),
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(28),
+            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.12),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.12),
+                        ),
+                      ),
+                      child: const Text(
+                        'SiGIC  /  CONTROL DE ACCESOS',
+                        style: TextStyle(
+                          color: Color(0xFF9FDDEA),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.1,
+                        ),
+                      ),
                     ),
-                  ),
-                  child: const Text(
-                    'OPERACIONES  |  CONTROL DE ACCESOS',
-                    style: TextStyle(
-                      color: Color(0xFF9FDDEA),
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.1,
+                    const Spacer(),
+                    const Text(
+                      'v1.0.5',
+                      style: TextStyle(
+                        color: Color(0xFF718A97),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
+                  ],
                 ),
                 const Spacer(),
-                Container(
-                  width: 78,
-                  height: 78,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(22),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x4D2DD4E8),
-                        blurRadius: 30,
-                        spreadRadius: 2,
+                SizedBox(
+                  width: 112,
+                  height: 112,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Image.asset('assets/imagenes/logo-glow.png'),
+                      Image.asset(
+                        'assets/imagenes/splash-icono.png',
+                        width: 48,
+                        height: 48,
                       ),
                     ],
                   ),
-                  child: Image.asset('assets/imagenes/logo-oficial.png'),
                 ),
                 const SizedBox(height: 22),
                 const Text(
@@ -77,7 +88,7 @@ class PantallaInicioSistema extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'Preparando una jornada de acreditacion segura.',
+                  'Control de accesos para ceremonias institucionales.',
                   style: TextStyle(color: Color(0xFFB8C8D2), fontSize: 15),
                 ),
                 const Spacer(),
@@ -85,8 +96,8 @@ class PantallaInicioSistema extends StatelessWidget {
                   width: double.infinity,
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.07),
-                    borderRadius: BorderRadius.circular(18),
+                    color: Colors.white.withValues(alpha: 0.075),
+                    borderRadius: BorderRadius.circular(22),
                     border: Border.all(
                       color: Colors.white.withValues(alpha: 0.11),
                     ),
@@ -119,7 +130,7 @@ class PantallaInicioSistema extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       const LinearProgressIndicator(
-                        minHeight: 3,
+                        minHeight: 4,
                         backgroundColor: Color(0xFF294653),
                         valueColor: AlwaysStoppedAnimation(
                           TemaSigic.azulBrillante,
@@ -140,7 +151,7 @@ class PantallaInicioSistema extends StatelessWidget {
                 const SizedBox(height: 18),
                 const Center(
                   child: Text(
-                    'SiGIC Movil v1.0.4  |  Actualizaciones seguras con Shorebird',
+                    'Actualizaciones seguras con Shorebird',
                     textAlign: TextAlign.center,
                     style: TextStyle(color: Color(0xFF718A97), fontSize: 10),
                   ),

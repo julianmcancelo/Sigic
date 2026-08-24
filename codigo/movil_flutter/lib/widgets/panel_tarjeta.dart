@@ -9,11 +9,11 @@ class PanelTarjeta extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: 12),
       clipBehavior: Clip.antiAlias,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         side: BorderSide(color: colorBorde ?? const Color(0xFFE2EAF0)),
       ),
       child: Padding(padding: const EdgeInsets.all(16), child: contenido),
