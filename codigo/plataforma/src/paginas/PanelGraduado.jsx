@@ -516,6 +516,10 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
         {pestana === 'credencial' && (
           <div className="flex flex-col items-center">
             <div className="w-full max-w-lg">
+              <div className="mb-4 rounded-2xl border border-sky-100 bg-sky-50 px-4 py-3 text-sm font-semibold text-sky-900">
+                <p>Tu ubicación: <strong>{graduado.asiento_id || 'aún sin asignar'}</strong></p>
+                {invitados.filter(inv => inv.asiento_id).length > 0 && <p className="mt-1 text-xs text-sky-700">Acompañantes con ubicación: {invitados.filter(inv => inv.asiento_id).map(inv => `${inv.nombre} (${inv.asiento_id})`).join(' · ')}</p>}
+              </div>
               <ModalCredencial 
                 egresado={{...graduado, asientos: todosLosAsientos, invitados}} 
                 onCerrar={() => setPestana('invitados')} 

@@ -3,7 +3,7 @@ import { query, pool } from '@/lib/db';
 import { firmar } from '@/lib/tokens';
 import { obtenerUsuarioAutenticado, ROLES_GESTION, ROLES_OPERACION, ROLES_LECTURA } from '@/lib/auth-middleware';
 import * as GestorOTP from '@/lib/otp';
-import { enviarCorreo, generarPlantillaCierreInscripcion, generarPlantillaCredencialCeremonia, generarPlantillaInvitacion, generarPlantillaOTP } from '@/lib/email';
+import { enviarCorreo, generarPdfCredencial, generarPlantillaCierreInscripcion, generarPlantillaCredencialCeremonia, generarPlantillaInvitacion, generarPlantillaOTP } from '@/lib/email';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { inicializarBaseDatos } from '@/lib/schema';
@@ -1388,10 +1388,14 @@ export async function POST(
 
       const hostBase = new URL(req.url).origin;
       const acceso = `${hostBase}/?token=${graduado.token}`;
+      const invitados = await query('SELECT nombre, asiento_id FROM invitados WHERE egresado_id = $1 ORDER BY creado_en ASC', [graduado.id]);
+      const acompanantes = invitados.rows.map(item => `${item.nombre}${item.asiento_id ? ` (${item.asiento_id})` : ''}`);
+      const pdf = generarPdfCredencial({ nombre: graduado.nombre, ceremonia: graduado.ceremonia_nombre, fecha: graduado.ceremonia_fecha, lugar: graduado.ceremonia_lugar, asiento: graduado.asiento_id, acompanantes });
       await enviarCorreo(
         graduado.correo,
         `Tu credencial e información de ceremonia · ${graduado.ceremonia_nombre}`,
-        generarPlantillaCredencialCeremonia({ nombre: graduado.nombre, ceremonia: graduado.ceremonia_nombre, fecha: graduado.ceremonia_fecha, lugar: graduado.ceremonia_lugar, asiento: graduado.asiento_id, acceso })
+        generarPlantillaCredencialCeremonia({ nombre: graduado.nombre, ceremonia: graduado.ceremonia_nombre, fecha: graduado.ceremonia_fecha, lugar: graduado.ceremonia_lugar, asiento: graduado.asiento_id, acceso }),
+        [{ filename: `Credencial-SiGIC-${graduado.token}.pdf`, content: pdf, contentType: 'application/pdf' }]
       );
       const actualizado = await query(
         `UPDATE egresados SET credencial_enviada_en = CURRENT_TIMESTAMP,

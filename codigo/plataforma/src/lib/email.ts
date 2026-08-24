@@ -43,7 +43,9 @@ async function inicializarTransportador() {
 // Inicializar de forma asíncrona pero sin bloquear la carga del módulo
 inicializarTransportador();
 
-export async function enviarCorreo(destinatario: string, asunto: string, cuerpoHTML: string) {
+type ArchivoAdjunto = { filename: string; content: Buffer; contentType?: string };
+
+export async function enviarCorreo(destinatario: string, asunto: string, cuerpoHTML: string, adjuntos: ArchivoAdjunto[] = []) {
   const remitente = process.env.EMAIL_FROM || 'SiGIC <no-responder@notificaciones.sigic.com.ar>';
 
   if (process.env.RESEND_API_KEY) {
@@ -53,6 +55,7 @@ export async function enviarCorreo(destinatario: string, asunto: string, cuerpoH
       to: [destinatario],
       subject: asunto,
       html: cuerpoHTML,
+      attachments: adjuntos,
     });
 
     if (error) {
@@ -91,6 +94,7 @@ export async function enviarCorreo(destinatario: string, asunto: string, cuerpoH
       to: destinatario,
       subject: asunto,
       html: cuerpoHTML,
+      attachments: adjuntos,
     });
     console.log(`Correo enviado a [${destinatario}]`);
     if (opcionesTransporte.host?.includes('ethereal.email')) {
@@ -290,4 +294,36 @@ export function generarPlantillaCredencialCeremonia({ nombre, ceremonia, fecha, 
         </div>
       </div>
     </div>`;
+}
+
+/** PDF liviano, compatible con cualquier visor, para adjuntar al correo de ceremonia. */
+export function generarPdfCredencial({ nombre, ceremonia, fecha, lugar, asiento, acompanantes }: { nombre: string; ceremonia: string; fecha: string; lugar: string; asiento?: string | null; acompanantes: string[] }) {
+  const normalizar = (valor: string) => String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[()\\]/g, '\\$&');
+  const lineas = [
+    'SiGIC - CREDENCIAL DE CEREMONIA',
+    '',
+    `Graduado/a: ${nombre}`,
+    `Ceremonia: ${ceremonia}`,
+    `Fecha: ${fecha || 'A confirmar'}`,
+    `Lugar: ${lugar || 'A confirmar'}`,
+    `Butaca del graduado: ${asiento || 'Sin asignar'}`,
+    `Acompanantes: ${acompanantes.length ? acompanantes.join(' | ') : 'Sin acompanantes registrados'}`,
+    '',
+    'Presenta el QR desde tu portal SiGIC en porteria.',
+    'Esta credencial es personal e intransferible.'
+  ].map(normalizar);
+  const contenido = ['BT', '/F1 18 Tf', '54 760 Td', ...lineas.flatMap((linea, indice) => indice === 0 ? [`(${linea}) Tj`, '0 -28 Td', '/F1 11 Tf'] : [`(${linea}) Tj`, '0 -18 Td']), 'ET'].join('\n');
+  const objetos = [
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>',
+    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>',
+    `<< /Length ${Buffer.byteLength(contenido, 'latin1')} >>\nstream\n${contenido}\nendstream`
+  ];
+  let pdf = '%PDF-1.4\n';
+  const offsets = [0];
+  objetos.forEach((objeto, indice) => { offsets.push(Buffer.byteLength(pdf, 'latin1')); pdf += `${indice + 1} 0 obj\n${objeto}\nendobj\n`; });
+  const xref = Buffer.byteLength(pdf, 'latin1');
+  pdf += `xref\n0 ${objetos.length + 1}\n0000000000 65535 f \n${offsets.slice(1).map(offset => `${String(offset).padStart(10, '0')} 00000 n \n`).join('')}trailer\n<< /Size ${objetos.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+  return Buffer.from(pdf, 'latin1');
 }
