@@ -147,11 +147,11 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
 
   if (modoDemo) {
     return (
-      <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-slate-950 via-[#0b3554] to-cyan-950 px-4 py-16 text-white">
+      <main className="sigic-auth-console sigic-login-selector px-4 py-16 text-white">
         <div className="absolute inset-0 pointer-events-none opacity-30 [background-image:radial-gradient(circle_at_20%_20%,rgba(34,211,238,.35),transparent_34%),radial-gradient(circle_at_80%_80%,rgba(16,185,129,.25),transparent_30%)]" />
         <section className="relative z-10 w-full max-w-3xl text-center" aria-labelledby="demo-title">
-          <img src="/logo-oficial.png" alt="SiGIC" className="mx-auto h-20 w-auto rounded-2xl shadow-2xl" />
-          <p className="mt-7 text-xs font-black uppercase tracking-[0.25em] text-cyan-300">Demostración interactiva</p>
+          <img src="/logo.png" alt="SiGIC" className="mx-auto h-20 w-20 rounded-2xl bg-white object-cover shadow-2xl" />
+          <p className="mt-7 text-xs font-black uppercase tracking-[0.25em] text-cyan-300">Entorno de demostración</p>
           <h1 id="demo-title" className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">¿Cómo querés ingresar?</h1>
           <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-slate-300">Elegí un perfil para recorrer SiGIC. No necesitás usuario ni contraseña y todos los datos son ficticios.</p>
 
@@ -176,7 +176,7 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
   }
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#f4f6fa] select-none text-slate-800 font-sans">
+    <main className="sigic-auth-console sigic-login-selector relative flex min-h-screen flex-col items-center justify-center overflow-hidden select-none text-slate-800 font-sans">
       {/* Fondo con gradiente claro y orbes */}
       <div className="absolute inset-0 pointer-events-none bg-radial-light" />
 
@@ -194,7 +194,7 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
 
       {/* Modo Mantenimiento */}
       {enMantenimiento && (
-        <div className="relative z-10 flex flex-col items-center max-w-sm w-full px-8 py-12 text-center bg-white/80 border border-white/80 rounded-[32px] backdrop-blur-xl shadow-[0_20px_50px_rgba(15,23,42,0.05)] animate-fade-in">
+        <div className="sigic-login-panel relative z-10 flex flex-col items-center max-w-sm w-full px-8 py-12 text-center animate-fade-in">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-100 text-amber-500 mb-6 shadow-inner">
             <Settings size={32} className="animate-[spin_4s_linear_infinite]" />
           </div>
@@ -216,7 +216,7 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
 
       {/* Contenedor Principal (Tarjeta Glassmorphism Clara) */}
       {!revelado && !enMantenimiento && (
-        <div className={`relative z-10 flex flex-col items-center max-w-sm w-full px-8 py-10 text-center bg-white/70 border border-white/80 rounded-[32px] backdrop-blur-xl shadow-[0_20px_50px_rgba(15,23,42,0.05)] transition-all ${
+        <div className={`sigic-login-panel relative z-10 flex flex-col items-center max-w-sm w-full px-8 py-10 text-center transition-all ${
           snapActivo ? 'animate-thanos pointer-events-none' : ''
         }`}>
           
@@ -237,7 +237,7 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
             <div className="absolute inset-6 rounded-full bg-cyan-500/5 blur-xl pointer-events-none" />
             
             <img
-              src="/logo-oficial.png"
+              src="/logo.png"
               alt="SiGIC"
               className="h-20 w-auto object-contain relative z-10 logo-flotar filter drop-shadow-[0_8px_16px_rgba(14,165,233,0.1)]"
             />
@@ -272,7 +272,7 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
 
       {/* Opciones de Login (Reveladas con efecto de reconstrucción tras la desintegración de Thanos) */}
       {revelado && (
-        <div className="relative z-10 flex flex-col items-center max-w-sm w-full px-8 py-10 text-center bg-white/80 border border-slate-100 rounded-[32px] shadow-2xl backdrop-blur-xl animate-fade-slide-up">
+        <div className="sigic-login-panel relative z-10 flex flex-col items-center max-w-sm w-full px-8 py-10 text-center animate-fade-slide-up">
           <p className="text-[10px] font-black uppercase tracking-widest text-cyan-600 mb-4">
             Panel de Autenticación Habilitado
           </p>
