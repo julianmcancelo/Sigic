@@ -399,7 +399,7 @@ function ScreenPanelAdmin() {
   return (
     <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
       <ImagenManual
-        fuentes={['/manual/panel_admin.png?v=20260618', '/panel_admin.png?v=20260618']}
+        fuentes={['/manual/panel_admin.png?v=20260618']}
         alt="Panel de Administración SiGIC"
         etiqueta="Panel de Administración"
         descripcion="Vista general del evento activo, indicadores de graduados, invitados, ingresos y ocupación, junto con los accesos a los módulos operativos."
@@ -479,7 +479,7 @@ function ScreenEmailInvitacion() {
   return (
     <div className="w-full max-w-[200px] mx-auto overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
       <ImagenManual
-        fuentes={['/manual/email_invitacion.png?v=20260618', '/email_invitacion.png?v=20260618']}
+        fuentes={['/manual/email_invitacion.png?v=20260618']}
         alt="Correo de invitación enviado por SiGIC"
         etiqueta="Correo de Invitación"
         descripcion="Mensaje que recibe el graduado con la información de la ceremonia y el enlace personal para aceptar o rechazar su participación."
@@ -499,7 +499,7 @@ function ScreenPortalOTP() {
   return (
     <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
       <ImagenManual
-        fuentes={['/manual/portal_otp.png?v=20260618', '/portal_otp.png?v=20260618']}
+        fuentes={['/manual/portal_otp.png?v=20260618']}
         etiqueta="Acceso del Graduado"
         descripcion="Pantalla de acceso mediante correo institucional y código temporal. Protege la autogestión sin exigir una contraseña permanente."
         className="w-full object-cover object-top transition-transform duration-[2s] group-hover:scale-105"
@@ -611,7 +611,7 @@ function ScreenInasistencia() {
   return (
     <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
       <ImagenManual
-        fuentes={['/manual/portal_inasistencia.png?v=20260618', '/portal_inasistencia.png?v=20260618']}
+        fuentes={['/manual/portal_inasistencia.png?v=20260618']}
         alt="Confirmación de inasistencia"
         etiqueta="Confirmación de Inasistencia"
         descripcion="Resultado mostrado cuando el graduado rechaza la invitación. La decisión queda registrada para actualizar aforo y planificación."
@@ -631,7 +631,7 @@ function WireframePorteria() {
   return (
     <div className="w-[85px] mx-auto overflow-hidden rounded-[14px] border-2 border-slate-700 shadow-md bg-slate-50 relative select-none">
       <ImagenManual
-        fuentes={['/manual/porteria_wireframe.png?v=20260618', '/porteria_wireframe.png?v=20260618']}
+        fuentes={['/manual/porteria_wireframe.png?v=20260618']}
         alt="Escáner QR móvil de portería"
         etiqueta="Control de Ingreso QR"
         descripcion="Vista móvil utilizada por portería para leer la credencial, validar al grupo y confirmar su ingreso junto con la ubicación asignada."
@@ -711,7 +711,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
   const [direccionPaso, setDireccionPaso] = useState('adelante')
   const [nivelZoom, setNivelZoom] = useState(1.0) // Zoom: 1.0 (100%), 1.2 (120%), 1.4 (140%)
   const [esPantallaCompleta, setEsPantallaCompleta] = useState(false)
-  const [rutaPortada, setRutaPortada] = useState('/manual/manual_portada.png')
+  const rutaPortada = '/manual/manual_portada.png'
   const [mostrarCredencial, setMostrarCredencial] = useState(false)
   const [urlManual, setUrlManual] = useState('/manual')
   const [imagenAmpliada, setImagenAmpliada] = useState(null)
@@ -1300,11 +1300,6 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
           {/* Imagen de Portada Real */}
           <img 
             src={rutaPortada}
-            onError={() => {
-              if (rutaPortada === '/manual/manual_portada.png') {
-                setRutaPortada('/manual_portada.png')
-              }
-            }}
             alt="Guía de Uso Diario - SiGIC" 
             className="w-full h-full object-cover relative z-10 select-none pointer-events-none"
           />
