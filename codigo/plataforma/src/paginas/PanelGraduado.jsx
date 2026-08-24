@@ -180,6 +180,8 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
     graduado.entregador_asiento_id,
     ...invitados.map(i => i.asiento_id)
   ].filter(Boolean)
+  const estadoButacas = graduado.estado_asignacion_butacas || 'SIN_SOLICITUD'
+  const pasoButacas = estadoButacas === 'CONFIRMADA' ? 3 : estadoButacas === 'PENDIENTE_REVISION' ? 2 : 1
 
   if (cargando && invitados.length === 0) {
     return (
@@ -277,6 +279,16 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
             {mensaje.texto}
           </div>
         )}
+
+        <section className="mb-7 overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm">
+          <div className="flex flex-col gap-3 border-b border-slate-100 bg-slate-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div><p className="text-[10px] font-black uppercase tracking-[.16em] text-sky-600">Tu recorrido</p><p className="mt-1 text-sm font-bold text-slate-800">{estadoButacas === 'CONFIRMADA' ? 'Ubicaciones confirmadas' : estadoButacas === 'PENDIENTE_REVISION' ? 'Tu propuesta está siendo revisada' : graduado.perfil_finalizado_en ? 'Elegí las butacas de tu grupo' : 'Completá tu grupo para continuar'}</p></div>
+            {estadoButacas !== 'CONFIRMADA' && graduado.perfil_finalizado_en && <button onClick={() => setMostrarButacas(true)} className="rounded-xl bg-slate-900 px-4 py-2 text-[10px] font-black uppercase tracking-wider text-white transition hover:bg-sky-600">{estadoButacas === 'PENDIENTE_REVISION' ? 'Ver propuesta' : 'Elegir butacas'}</button>}
+          </div>
+          <div className="grid grid-cols-3 gap-2 px-5 py-4">
+            {['Grupo', 'Propuesta', 'Credencial'].map((etiqueta, indice) => <div key={etiqueta} className={`flex items-center gap-2 text-[10px] font-bold ${indice < pasoButacas ? 'text-emerald-700' : 'text-slate-400'}`}><span className={`grid h-5 w-5 place-items-center rounded-full text-[9px] ${indice < pasoButacas ? 'bg-emerald-500 text-white' : 'bg-slate-100'}`}>{indice + 1}</span>{etiqueta}</div>)}
+          </div>
+        </section>
 
         {pestana === 'historial' && (
           <section className="space-y-5">

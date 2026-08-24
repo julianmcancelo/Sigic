@@ -279,23 +279,28 @@ export function generarPlantillaCierreInscripcion(nombre: string, hostBase: stri
 /** Comunicación final con el pase digital y la información operativa de la ceremonia. */
 export function generarPlantillaCredencialCeremonia({ nombre, ceremonia, fecha, lugar, asiento, acceso, googleWalletUrl }: { nombre: string; ceremonia: string; fecha: string; lugar: string; asiento?: string | null; acceso: string; googleWalletUrl?: string | null }) {
   return `
-    <div style="max-width:600px;margin:0 auto;padding:28px;background:#eef4f8;font-family:Arial,sans-serif;color:#172033">
-      <div style="overflow:hidden;border:1px solid #d8e3ed;border-radius:22px;background:#ffffff">
-        <div style="padding:30px 34px;background:#071b34;color:#ffffff">
-          <p style="margin:0;color:#67e8f9;font-size:11px;font-weight:bold;letter-spacing:1.5px;text-transform:uppercase">SiGIC · Información de ceremonia</p>
-          <h1 style="margin:10px 0 0;font-size:25px">Tu credencial está disponible</h1>
-        </div>
-        <div style="padding:30px 34px;font-size:15px;line-height:1.55">
-          <p>Hola, <strong>${nombre}</strong>. Te esperamos en <strong>${ceremonia}</strong>.</p>
-          <table width="100%" cellspacing="0" cellpadding="0" style="margin:22px 0;border:1px solid #dbeafe;border-radius:14px;background:#f8fbff">
-            <tr><td style="padding:16px 18px"><strong>Fecha:</strong> ${fecha || 'A confirmar'}<br><strong>Lugar:</strong> ${lugar || 'A confirmar'}${asiento ? `<br><strong>Butaca del graduado:</strong> ${asiento}` : ''}</td></tr>
+    <div style="margin:0;padding:32px 14px;background:#edf3f7;font-family:'Helvetica Neue',Helvetica,sans-serif;color:#172033">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;margin:0 auto;border-collapse:separate;border-spacing:0;overflow:hidden;background:#ffffff;border:1px solid #d7e2ea;border-radius:24px;box-shadow:0 14px 40px rgba(7,27,52,.12)">
+        <tr><td style="padding:13px 34px;background:#071b34;color:#a5f3fc;font-size:10px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase">SiGIC · Pase digital de ceremonia</td></tr>
+        <tr><td style="padding:30px 34px 22px;background:linear-gradient(135deg,#071b34,#123f5b);color:#ffffff">
+          <p style="margin:0 0 9px;color:#67e8f9;font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase">Credencial confirmada</p>
+          <h1 style="margin:0;font-size:28px;line-height:1.15;letter-spacing:-.5px">Todo listo para tu ceremonia</h1>
+          <p style="margin:12px 0 0;color:#dbeafe;font-size:15px;line-height:1.55">Hola, <strong>${nombre}</strong>. Tu grupo tiene ubicaciones confirmadas.</p>
+        </td></tr>
+        <tr><td style="padding:26px 34px 10px">
+          <p style="margin:0;color:#516276;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase">Ceremonia</p>
+          <p style="margin:6px 0 20px;color:#172033;font-size:20px;font-weight:800">${ceremonia}</p>
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:separate;border-spacing:0;background:#f4f9fc;border:1px solid #d9ebf5;border-radius:16px">
+            <tr><td style="padding:16px 18px;width:50%;border-right:1px solid #d9ebf5"><span style="display:block;color:#64748b;font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase">Fecha</span><strong style="display:block;margin-top:5px;color:#0f2740;font-size:14px">${fecha || 'A confirmar'}</strong></td><td style="padding:16px 18px"><span style="display:block;color:#64748b;font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase">Ubicación</span><strong style="display:block;margin-top:5px;color:#0f2740;font-size:14px">${asiento || 'Consultar en el portal'}</strong></td></tr>
           </table>
-          <p>Ingresá con anticipación y presentá el QR de tu credencial en portería. Desde el enlace también podés revisar tus acompañantes y ubicaciones.</p>
-          <p style="margin:26px 0;text-align:center"><a href="${acceso}" style="display:inline-block;padding:14px 24px;border-radius:10px;background:#0ea5e9;color:#ffffff;text-decoration:none;font-weight:bold">Abrir mi credencial</a></p>
-          ${googleWalletUrl ? `<p style="margin:0 0 18px;text-align:center"><a href="${googleWalletUrl}" style="display:inline-block;padding:13px 22px;border-radius:10px;background:#071b34;color:#ffffff;text-decoration:none;font-weight:bold">Guardar en Google Wallet</a></p>` : ''}
-          <p style="margin:0;color:#64748b;font-size:12px">Guardala en tu teléfono o imprimila. Este enlace es personal.</p>
-        </div>
-      </div>
+          <p style="margin:16px 0 0;color:#516276;font-size:14px;line-height:1.55"><strong style="color:#172033">Lugar:</strong> ${lugar || 'A confirmar'}. Presentate con anticipación y exhibí el QR de tu credencial en portería.</p>
+        </td></tr>
+        <tr><td style="padding:22px 34px 30px;text-align:center">
+          <a href="${acceso}" style="display:inline-block;margin:0 0 12px;padding:14px 24px;border-radius:10px;background:#0ea5e9;color:#ffffff;text-decoration:none;font-size:14px;font-weight:800">Abrir mi credencial y QR</a><br>
+          ${googleWalletUrl ? `<a href="${googleWalletUrl}" style="display:inline-block;padding:12px 20px;border:1px solid #123f5b;border-radius:10px;background:#ffffff;color:#071b34;text-decoration:none;font-size:13px;font-weight:800">Guardar en Google Wallet</a><br>` : ''}
+          <p style="margin:16px 0 0;color:#7b8b9d;font-size:11px;line-height:1.45">Este acceso es personal. Conservá este correo para consultar tu grupo y tus ubicaciones.</p>
+        </td></tr>
+      </table>
     </div>`;
 }
 
