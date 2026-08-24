@@ -230,6 +230,7 @@ function App() {
   // Sincronizar estado inicial y ceremonia activa al iniciar
   useEffect(() => {
     async function inicializarApp() {
+      const inicioCarga = Date.now()
       try {
         const estado = await obtenerEstadoSetup()
         setRequiereSetup(estado.requiereConfiguracionInicial)
@@ -280,6 +281,11 @@ function App() {
       } catch (e) {
         console.warn("No se pudo contactar al servidor para el estado inicial:", e.message)
       } finally {
+        // La apertura institucional debe ser perceptible incluso con respuestas muy rápidas.
+        const esperaRestante = Math.max(0, 1600 - (Date.now() - inicioCarga))
+        if (esperaRestante) {
+          await new Promise(resolve => setTimeout(resolve, esperaRestante))
+        }
         setCargandoSetup(false)
       }
     }
