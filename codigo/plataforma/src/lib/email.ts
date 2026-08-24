@@ -1,7 +1,6 @@
 import nodemailer from 'nodemailer';
 import { Resend } from 'resend';
-// El build standalone incluye las fuentes y evita dependencias de archivos en Vercel.
-import PDFDocument from 'pdfkit/js/pdfkit.standalone';
+import PDFDocument from 'pdfkit';
 import QRCode from 'qrcode';
 
 let transportador: nodemailer.Transporter | null = null;
