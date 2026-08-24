@@ -173,6 +173,12 @@ async function esUltimoSuperAdmin(id: string) {
   return parseInt(result.rows[0]?.total ?? '0', 10) === 0;
 }
 
+// Tauri y los navegadores externos requieren responder el preflight antes de
+// realizar solicitudes autenticadas a la API.
+export async function OPTIONS(req: NextRequest) {
+  return new NextResponse(null, { status: 204, headers: corsHeaders(req) });
+}
+
 // MAIN HANDLER FOR GET REQUESTS
 export async function GET(
   req: NextRequest,
