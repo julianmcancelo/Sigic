@@ -89,7 +89,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
     e.preventDefault()
     if (datosForm.nombre.trim().length < 3) return setMensaje({ tipo: 'error', texto: 'El nombre debe tener al menos 3 caracteres.' })
     if (!/^\d{7,10}$/.test(datosForm.dni)) return setMensaje({ tipo: 'error', texto: 'El DNI debe ser numérico (7 a 10 dígitos).' })
-    if (datosForm.telefono.trim().length < 8) return setMensaje({ tipo: 'error', texto: 'Ingresá un número de teléfono válido.' })
+    if (datosForm.telefono.trim() && datosForm.telefono.trim().length < 8) return setMensaje({ tipo: 'error', texto: 'Si cargás un contacto, ingresá un número válido.' })
 
     const existe = invitados.find(i => i.dni === datosForm.dni && i.id !== editandoId)
     if (existe) return setMensaje({ tipo: 'error', texto: 'Este DNI ya está registrado en tu lista.' })
@@ -308,8 +308,8 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
                     </select>
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Contacto</label>
-                    <input type="tel" required className="w-full bg-slate-50 border border-slate-200 p-3.5 rounded-2xl focus:ring-2 focus:ring-sky-500 outline-none transition-all" value={datosForm.telefono} onChange={e => setDatosForm({...datosForm, telefono: e.target.value})}/>
+                    <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Contacto <span className="normal-case text-slate-300">(opcional)</span></label>
+                    <input type="tel" className="w-full bg-slate-50 border border-slate-200 p-3.5 rounded-2xl focus:ring-2 focus:ring-sky-500 outline-none transition-all" value={datosForm.telefono} onChange={e => setDatosForm({...datosForm, telefono: e.target.value})}/>
                   </div>
                   <div className="md:col-span-2 bg-indigo-50 p-4 rounded-2xl flex items-center justify-between">
                     <div className="flex items-center gap-3">

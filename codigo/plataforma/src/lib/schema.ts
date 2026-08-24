@@ -97,7 +97,7 @@ async function ejecutarInicializacion() {
         validado_por UUID REFERENCES usuarios_sistema(id) ON DELETE SET NULL,
         nombre TEXT NOT NULL,
         dni VARCHAR(20) NOT NULL,
-        telefono TEXT NOT NULL,
+        telefono TEXT,
         correo TEXT,
         relacion TEXT,
         asiento_id VARCHAR(30),
@@ -179,6 +179,8 @@ async function ejecutarInicializacion() {
 
     await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS invitacion_enviada BOOLEAN DEFAULT FALSE');
     await client.query("ALTER TABLE egresados ADD COLUMN IF NOT EXISTS estado_flujo VARCHAR(30) DEFAULT 'SIN_INVITAR'");
+    // El teléfono es útil para la operación, pero no debe impedir registrar un acompañante.
+    await client.query('ALTER TABLE invitados ALTER COLUMN telefono DROP NOT NULL');
     await client.query(`
       UPDATE egresados
       SET estado_flujo = CASE WHEN invitacion_enviada THEN 'PENDIENTE' ELSE 'SIN_INVITAR' END

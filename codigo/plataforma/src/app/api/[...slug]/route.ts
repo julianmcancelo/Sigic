@@ -1177,7 +1177,7 @@ export async function POST(
             `INSERT INTO invitados (egresado_id, nombre, dni, telefono, correo, relacion)
              VALUES ($1, $2, $3, $4, $5, $6)
              RETURNING *`,
-            [egresado.id, inv.nombre.trim(), dniLimpio, inv.telefono.trim(), (inv.correo || '').trim(), inv.relacion]
+            [egresado.id, inv.nombre.trim(), dniLimpio, String(inv.telefono || '').trim() || null, (inv.correo || '').trim() || null, inv.relacion]
           );
           registrosFinales.push(insRes.rows[0]);
         }
@@ -1790,7 +1790,7 @@ export async function PUT(
         `UPDATE invitados 
          SET nombre = $1, dni = $2, telefono = $3, correo = $4, relacion = $5 
          WHERE id = $6 RETURNING *`,
-        [nombre, dni, telefono, correo, relacion, id]
+        [nombre, dni, String(telefono || '').trim() || null, String(correo || '').trim() || null, relacion, id]
       );
       return NextResponse.json(result.rows[0], { headers });
     }
@@ -1943,7 +1943,7 @@ export async function PUT(
               await client.query(
                 `INSERT INTO invitados (egresado_id, nombre, dni, telefono, correo, relacion) 
                  VALUES ($1, $2, $3, $4, $5, $6)`,
-                [id, ac.nombre.trim(), dniLimpio, ac.telefono.trim(), (ac.correo || '').trim(), ac.relacion]
+                [id, ac.nombre.trim(), dniLimpio, String(ac.telefono || '').trim() || null, (ac.correo || '').trim() || null, ac.relacion]
               );
             }
           }
