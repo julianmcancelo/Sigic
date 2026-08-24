@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { 
   Plus, Calendar, MapPin, Users, Trash2, 
-  CheckCircle2, X, PlusCircle, ArrowRight, LayoutTemplate, Send, Radio, Flag, ListChecks
+  CheckCircle2, X, PlusCircle, ArrowRight, LayoutTemplate, Send, Radio, Flag, ListChecks,
+  ClipboardList, UserPlus, Armchair, ScanLine, BarChart3, PlayCircle, LoaderCircle
 } from 'lucide-react'
 import { obtenerCeremonias, crearCeremonia, activarCeremonia, eliminarCeremonia, actualizarEstadoCeremonia } from '../../lib/api'
 
@@ -27,6 +28,7 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
   const [mensaje, setMensaje] = useState(null)
   const [cambiando, setCambiando] = useState(false)
   const [actualizandoId, setActualizandoId] = useState(null)
+  const [asistenteId, setAsistenteId] = useState(null)
 
   useEffect(() => { cargar() }, [])
 
@@ -224,10 +226,13 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
               </div>
 
               {c.activa ? (
-                estadoCeremonia(c) === 'FINALIZADA' ? <div className="w-full text-center py-2.5 bg-slate-100 text-slate-500 rounded-xl text-[10px] font-black uppercase tracking-widest">Ceremonia archivada</div> :
-                <button onClick={() => handleAvanzar(c)} disabled={actualizandoId === c.id} className="flex w-full items-center justify-center gap-2 bg-slate-900 py-2.5 text-[10px] font-black uppercase tracking-widest text-white transition-all hover:bg-sky-500 disabled:opacity-60 rounded-xl">
-                  {actualizandoId === c.id ? 'Actualizando...' : <>{ETAPAS[Math.min(ETAPAS.findIndex(([id]) => id === estadoCeremonia(c)) + 1, ETAPAS.length - 1)]?.[1] || 'Finalizar'} <ArrowRight size={13} /></>}
-                </button>
+                <div className="space-y-2">
+                  <button onClick={() => setAsistenteId(c.id)} className="flex w-full items-center justify-center gap-2 bg-sky-500 py-2.5 text-[10px] font-black uppercase tracking-widest text-white transition-all hover:bg-sky-600 rounded-xl"><ClipboardList size={13} /> Asistente administrativo</button>
+                  {estadoCeremonia(c) === 'FINALIZADA' ? <div className="w-full text-center py-2 bg-slate-100 text-slate-500 rounded-xl text-[9px] font-black uppercase tracking-widest">Ceremonia archivada</div> :
+                  <button onClick={() => handleAvanzar(c)} disabled={actualizandoId === c.id} className="flex w-full items-center justify-center gap-2 bg-slate-900 py-2 text-[9px] font-black uppercase tracking-widest text-white transition-all hover:bg-slate-700 disabled:opacity-60 rounded-xl">
+                    {actualizandoId === c.id ? 'Actualizando...' : <>Avanzar a {ETAPAS[Math.min(ETAPAS.findIndex(([id]) => id === estadoCeremonia(c)) + 1, ETAPAS.length - 1)]?.[1] || 'finalizar'} <ArrowRight size={13} /></>}
+                  </button>}
+                </div>
               ) : (
                 <button
                   onClick={() => handleActivar(c.id)}
@@ -331,6 +336,14 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
         </div>
       )}
 
+      {asistenteId && <AsistenteAdministrativoCeremonia
+        ceremonia={ceremonias.find(item => item.id === asistenteId)}
+        actualizando={actualizandoId === asistenteId}
+        onCerrar={() => setAsistenteId(null)}
+        onNavegar={(destino) => { setAsistenteId(null); onNavegar?.(destino) }}
+        onAvanzar={async (ceremonia) => { await handleAvanzar(ceremonia) }}
+      />}
+
       {/* OVERLAY DE CAMBIO DE HABITAT PREMIUM */}
       {cambiando && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-6 z-55 animate-in fade-in duration-300">
@@ -358,4 +371,30 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
       )}
     </div>
   )
+}
+
+function AsistenteAdministrativoCeremonia({ ceremonia, actualizando, onCerrar, onNavegar, onAvanzar }) {
+  if (!ceremonia) return null
+  const estado = estadoCeremonia(ceremonia)
+  const indice = Math.max(0, ETAPAS.findIndex(([id]) => id === estado))
+  const graduados = Number(ceremonia.total_egresados || 0)
+  const invitaciones = Number(ceremonia.invitaciones_enviadas || 0)
+  const pasos = [
+    { etiqueta: 'Datos', listo: true, icono: ClipboardList, detalle: 'Ceremonia creada y activa.', accion: 'Ver configuración', destino: 'gestion-ceremonias' },
+    { etiqueta: 'Padrón', listo: graduados > 0, icono: UserPlus, detalle: graduados ? `${graduados} graduados cargados.` : 'Cargá el primer graduado o importá el padrón.', accion: 'Cargar graduados', destino: 'gestion-graduados' },
+    { etiqueta: 'Butacas', listo: Boolean(ceremonia.plano_configurado), icono: Armchair, detalle: ceremonia.plano_configurado ? 'Plano y reglas configurados.' : 'Definí el plano antes de ubicar grupos.', accion: 'Configurar plano', destino: 'seleccion-asientos' },
+    { etiqueta: 'Convocatoria', listo: graduados > 0 && invitaciones >= graduados, icono: Send, detalle: graduados ? `${invitaciones}/${graduados} invitaciones enviadas.` : 'Disponible al cargar el padrón.', accion: 'Gestionar invitaciones', destino: 'gestion-graduados' },
+    { etiqueta: 'Operación', listo: estado === 'EN_VIVO' || estado === 'FINALIZADA', icono: ScanLine, detalle: estado === 'EN_VIVO' ? 'Acreditación abierta.' : 'Revisá el padrón y las butacas.', accion: estado === 'EN_VIVO' ? 'Abrir acreditación' : 'Ver preparación', destino: estado === 'EN_VIVO' ? 'control-ingreso' : 'gestion-graduados' },
+    { etiqueta: 'Cierre', listo: estado === 'FINALIZADA', icono: Flag, detalle: estado === 'FINALIZADA' ? 'Acta operativa archivada.' : 'Cerrá cuando termine la ceremonia.', accion: 'Ver seguimiento', destino: 'estado-ceremonia' }
+  ]
+  const siguiente = ETAPAS[Math.min(indice + 1, ETAPAS.length - 1)]?.[1]
+
+  return <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/55 p-3 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="asistente-ceremonia-titulo">
+    <section className="w-full max-w-4xl overflow-hidden rounded-3xl bg-slate-50 shadow-2xl">
+      <header className="flex items-start justify-between bg-gradient-to-r from-[#071b34] to-[#0e5771] px-5 py-5 text-white sm:px-7"><div><p className="text-[9px] font-black uppercase tracking-[.18em] text-cyan-200">Centro de mando de ceremonia</p><h2 id="asistente-ceremonia-titulo" className="mt-1 text-xl font-black">{ceremonia.nombre}</h2><p className="mt-1 text-xs font-semibold text-white/65">{ceremonia.lugar} · {new Date(`${ceremonia.fecha}T12:00:00`).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })}</p></div><button onClick={onCerrar} className="rounded-xl p-2 text-white/70 hover:bg-white/10 hover:text-white" aria-label="Cerrar asistente"><X size={20} /></button></header>
+      <div className="border-b border-slate-200 bg-white px-5 py-4 sm:px-7"><div className="flex items-center justify-between gap-4"><div><p className="text-[9px] font-black uppercase tracking-wider text-slate-400">Etapa actual</p><strong className="text-sm text-slate-800">{ETAPAS[indice]?.[1]}</strong></div><span className="rounded-full bg-sky-50 px-3 py-1.5 text-[10px] font-black text-sky-700">{indice + 1} de {ETAPAS.length}</span></div><div className="mt-3 flex gap-1.5">{ETAPAS.map(([id], paso) => <span key={id} className={`h-1.5 flex-1 rounded-full ${paso <= indice ? 'bg-sky-500' : 'bg-slate-200'}`} />)}</div></div>
+      <div className="grid gap-3 p-5 sm:grid-cols-2 sm:p-7 lg:grid-cols-3">{pasos.map((paso, posicion) => { const Icono = paso.icono; const disponible = posicion <= indice + 1 || paso.listo; return <article key={paso.etiqueta} className={`rounded-2xl border p-4 ${paso.listo ? 'border-emerald-100 bg-emerald-50/40' : disponible ? 'border-sky-200 bg-white shadow-sm' : 'border-slate-100 bg-slate-100/60 opacity-70'}`}><div className="flex items-start justify-between gap-2"><span className={`grid h-8 w-8 place-items-center rounded-xl ${paso.listo ? 'bg-emerald-100 text-emerald-600' : 'bg-sky-50 text-sky-600'}`}><Icono size={16} /></span>{paso.listo && <CheckCircle2 size={16} className="text-emerald-500" />}</div><h3 className="mt-3 text-xs font-black text-slate-800">{paso.etiqueta}</h3><p className="mt-1 min-h-8 text-[10px] font-semibold leading-relaxed text-slate-500">{paso.detalle}</p><button disabled={!disponible} onClick={() => onNavegar(paso.destino)} className="mt-3 inline-flex items-center gap-1 text-[10px] font-black text-sky-600 disabled:text-slate-400">{paso.accion}<ArrowRight size={12} /></button></article>})}</div>
+      <footer className="flex flex-col-reverse gap-3 border-t border-slate-200 bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-7"><button onClick={() => onNavegar('estado-ceremonia')} className="inline-flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-wider text-slate-600"><BarChart3 size={14} /> Ver estado en vivo</button>{estado !== 'FINALIZADA' && <button disabled={actualizando} onClick={() => onAvanzar(ceremonia)} className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-white hover:bg-sky-600 disabled:opacity-60">{actualizando ? <LoaderCircle size={14} className="animate-spin" /> : <PlayCircle size={14} />}{actualizando ? 'Actualizando...' : `Avanzar a ${siguiente}`}</button>}</footer>
+    </section>
+  </div>
 }
