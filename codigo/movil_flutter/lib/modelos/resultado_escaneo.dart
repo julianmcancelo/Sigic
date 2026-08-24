@@ -44,26 +44,48 @@ class InvitadoEscaneado {
 
 class GrupoEgresado {
   const GrupoEgresado({
+    required this.id,
     required this.nombre,
     required this.legajo,
     required this.carrera,
     required this.asientoId,
     required this.estado,
+    required this.presente,
+    this.fechaPresente,
   });
 
+  final String id;
   final String nombre;
   final String legajo;
   final String carrera;
   final String asientoId;
   final String estado;
+  final bool presente;
+  final String? fechaPresente;
 
   factory GrupoEgresado.desdeMapa(Map<String, dynamic> mapa) {
     return GrupoEgresado(
+      id: (mapa['id'] ?? '').toString(),
       nombre: (mapa['nombre'] ?? 'Graduado').toString(),
       legajo: (mapa['legajo'] ?? '').toString(),
       carrera: (mapa['carrera'] ?? '').toString(),
       asientoId: (mapa['asiento_id'] ?? '').toString(),
       estado: (mapa['estado'] ?? '').toString(),
+      presente: _aBool(mapa['presente']),
+      fechaPresente: mapa['fecha_presente']?.toString(),
+    );
+  }
+
+  GrupoEgresado copiarCon({bool? presente, String? fechaPresente}) {
+    return GrupoEgresado(
+      id: id,
+      nombre: nombre,
+      legajo: legajo,
+      carrera: carrera,
+      asientoId: asientoId,
+      estado: estado,
+      presente: presente ?? this.presente,
+      fechaPresente: fechaPresente ?? this.fechaPresente,
     );
   }
 }
@@ -156,6 +178,21 @@ class ResultadoEscaneo {
                 : invitadoActual,
           )
           .toList(),
+    );
+  }
+
+  ResultadoEscaneo marcarGraduadoPresente() {
+    if (tipo != TipoResultadoEscaneo.grupal || grupoEgresado == null) {
+      return this;
+    }
+    return ResultadoEscaneo.grupal(
+      titulo: titulo,
+      mensaje: mensaje,
+      grupoEgresado: grupoEgresado!.copiarCon(
+        presente: true,
+        fechaPresente: DateTime.now().toIso8601String(),
+      ),
+      invitadosGrupo: invitadosGrupo,
     );
   }
 }

@@ -197,6 +197,8 @@ async function ejecutarInicializacion() {
     await client.query("ALTER TABLE egresados ADD COLUMN IF NOT EXISTS estado_flujo VARCHAR(30) DEFAULT 'SIN_INVITAR'");
     await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS perfil_finalizado_en TIMESTAMP');
     await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS aviso_edicion_enviado_en TIMESTAMP');
+    await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS presente BOOLEAN DEFAULT FALSE');
+    await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS fecha_presente TIMESTAMP');
     // El teléfono es útil para la operación, pero no debe impedir registrar un acompañante.
     await client.query('ALTER TABLE invitados ALTER COLUMN telefono DROP NOT NULL');
     await client.query(`

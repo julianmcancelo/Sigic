@@ -698,6 +698,49 @@ export async function GET(
     }
 
     // -------------------------------------------------------------
+    // ASISTENCIA OPERATIVA (GRADUADOS + INVITADOS)
+    // -------------------------------------------------------------
+    if (path === 'asistencia') {
+      const isPersonal = await esPersonalValido(req, ROLES_LECTURA);
+      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+
+      const result = await query(`
+        SELECT
+          e.id,
+          e.nombre,
+          e.dni,
+          e.legajo,
+          e.carrera,
+          e.asiento_id,
+          COALESCE(e.presente, FALSE) AS presente,
+          e.fecha_presente,
+          COUNT(i.id)::int AS total_invitados,
+          COUNT(i.id) FILTER (WHERE i.presente IS TRUE)::int AS invitados_presentes,
+          COALESCE(
+            JSON_AGG(
+              JSON_BUILD_OBJECT(
+                'id', i.id,
+                'nombre', i.nombre,
+                'dni', i.dni,
+                'relacion', i.relacion,
+                'presente', i.presente,
+                'fecha_presente', i.fecha_presente,
+                'discapacidad', i.discapacidad
+              ) ORDER BY i.nombre
+            ) FILTER (WHERE i.id IS NOT NULL),
+            '[]'::json
+          ) AS invitados
+        FROM egresados e
+        JOIN ceremonias c ON c.id = e.ceremonia_id
+        LEFT JOIN invitados i ON i.egresado_id = e.id
+        WHERE c.activa = 1
+        GROUP BY e.id
+        ORDER BY e.nombre ASC
+      `);
+      return NextResponse.json(result.rows, { headers });
+    }
+
+    // -------------------------------------------------------------
     // EGRESADOS
     // -------------------------------------------------------------
     if (slug[0] === 'egresados' && slug[1] === 'coincidencias-dni' && slug[2]) {
@@ -1804,6 +1847,30 @@ export async function PUT(
     // -------------------------------------------------------------
     // INVITADOS (PRESENTE / MASIVO / UPDATE)
     // -------------------------------------------------------------
+    if (slug[0] === 'egresados' && slug[2] === 'presente' && slug[1]) {
+      const id = slug[1];
+      const isPersonal = await esPersonalValido(req, ROLES_OPERACION);
+      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+
+      const result = await query(
+        'UPDATE egresados SET presente = TRUE, fecha_presente = CURRENT_TIMESTAMP WHERE id = $1 AND COALESCE(presente, FALSE) = FALSE RETURNING *',
+        [id]
+      );
+      if (result.rowCount === 0) {
+        const existente = await query('SELECT presente, fecha_presente FROM egresados WHERE id = $1', [id]);
+        if (existente.rows[0]?.presente === true) {
+          return NextResponse.json({
+            ok: true,
+            yaAcreditado: true,
+            mensaje: 'El graduado ya estaba acreditado.',
+            fecha_presente: existente.rows[0].fecha_presente,
+          }, { headers });
+        }
+        return NextResponse.json({ error: 'Graduado no encontrado' }, { status: 404, headers });
+      }
+      return NextResponse.json({ ok: true, yaAcreditado: false, mensaje: 'Ingreso del graduado confirmado', graduado: result.rows[0] }, { headers });
+    }
+
     if (slug[0] === 'invitados' && slug[2] === 'presente' && slug[1]) {
       const id = slug[1];
       const isPersonal = await esPersonalValido(req, ROLES_OPERACION);

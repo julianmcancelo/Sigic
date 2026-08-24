@@ -283,6 +283,28 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
     }
   }
 
+  Future<void> _acreditarGraduado(String id) async {
+    setState(() => _cargandoEscaneo = true);
+    try {
+      final respuesta = await widget.servicioApi.acreditarGraduado(id);
+      await _cargarPantalla();
+      if (!mounted) return;
+      setState(() => _resultado = _resultado?.marcarGraduadoPresente());
+      final yaAcreditado = respuesta['yaAcreditado'] == true;
+      await _mostrarMensaje(
+        yaAcreditado ? 'Graduado ya acreditado' : 'Ingreso del graduado',
+        (respuesta['mensaje'] ?? 'Ingreso confirmado.').toString(),
+      );
+    } catch (error) {
+      await _mostrarMensaje(
+        'Error',
+        error.toString().replaceFirst('Exception: ', ''),
+      );
+    } finally {
+      if (mounted) setState(() => _cargandoEscaneo = false);
+    }
+  }
+
   Future<void> _acreditarPendientes() async {
     final resultado = _resultado;
     if (resultado == null || resultado.tipo != TipoResultadoEscaneo.grupal) {
@@ -868,6 +890,7 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
                         ? _TarjetaFlotanteGrupo(
                             resultado: resultado,
                             cargando: _cargandoEscaneo,
+                            alAcreditarGraduado: _acreditarGraduado,
                             alAcreditarInvitado: _acreditarInvitado,
                             alAcreditarPendientes: _acreditarPendientes,
                             alCerrar: _cerrarTarjetaFlotante,
@@ -1613,6 +1636,7 @@ class _TarjetaFlotanteGrupo extends StatelessWidget {
   const _TarjetaFlotanteGrupo({
     required this.resultado,
     required this.cargando,
+    required this.alAcreditarGraduado,
     required this.alAcreditarInvitado,
     required this.alAcreditarPendientes,
     required this.alCerrar,
@@ -1620,6 +1644,7 @@ class _TarjetaFlotanteGrupo extends StatelessWidget {
 
   final ResultadoEscaneo resultado;
   final bool cargando;
+  final ValueChanged<String> alAcreditarGraduado;
   final ValueChanged<String> alAcreditarInvitado;
   final VoidCallback alAcreditarPendientes;
   final VoidCallback alCerrar;
@@ -1723,6 +1748,30 @@ class _TarjetaFlotanteGrupo extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 14),
+        if (!grupo.presente) ...[
+          FilledButton.icon(
+            onPressed: cargando ? null : () => alAcreditarGraduado(grupo.id),
+            icon: const Icon(Icons.how_to_reg),
+            label: const Text('Acreditar graduado'),
+          ),
+          const SizedBox(height: 12),
+        ] else
+          Container(
+            width: double.infinity,
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: TemaSigic.exito.withValues(alpha: .10),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Text(
+              'Graduado acreditado',
+              style: TextStyle(
+                color: TemaSigic.exito,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [

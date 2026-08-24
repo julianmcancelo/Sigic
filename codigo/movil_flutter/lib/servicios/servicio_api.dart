@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import '../modelos/ceremonia.dart';
 import '../modelos/ceremonia_autorizada.dart';
 import '../modelos/estadisticas_acceso.dart';
+import '../modelos/grupo_asistencia.dart';
 import '../modelos/resultado_escaneo.dart';
 import '../modelos/usuario_sesion.dart';
 import 'servicio_almacenamiento.dart';
@@ -172,6 +173,17 @@ class ServicioApi {
     return EstadisticasAcceso.desdeMapa(datos);
   }
 
+  Future<List<GrupoAsistencia>> obtenerAsistencia() async {
+    final datos = await _request('/asistencia');
+    if (datos is! List<dynamic>) return [];
+    return datos
+        .map(
+          (item) =>
+              GrupoAsistencia.desdeMapa((item as Map).cast<String, dynamic>()),
+        )
+        .toList();
+  }
+
   Future<ResultadoEscaneo> buscarInvitadoOGrupo(String codigo) async {
     final datos = await _request('/invitados/buscar/$codigo');
     return ResultadoEscaneo.desdeMapa(datos);
@@ -179,6 +191,11 @@ class ServicioApi {
 
   Future<Map<String, dynamic>> acreditarInvitado(String id) async {
     final respuesta = await _request('/invitados/$id/presente', metodo: 'PUT');
+    return (respuesta as Map).cast<String, dynamic>();
+  }
+
+  Future<Map<String, dynamic>> acreditarGraduado(String id) async {
+    final respuesta = await _request('/egresados/$id/presente', metodo: 'PUT');
     return (respuesta as Map).cast<String, dynamic>();
   }
 

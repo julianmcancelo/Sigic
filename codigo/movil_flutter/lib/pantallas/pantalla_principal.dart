@@ -6,6 +6,7 @@ import '../servicios/servicio_api.dart';
 import '../servicios/servicio_shorebird.dart';
 import '../servicios/servicio_release.dart';
 import 'pantalla_inicio_sistema.dart';
+import 'pestanas/pestana_asistencia.dart';
 import 'pestanas/pestana_ajustes.dart';
 import 'pestanas/pestana_escaner.dart';
 
@@ -99,6 +100,10 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
         mensajeShorebird: _mensajeShorebird,
         revisionSesion: _revisionSesion,
       ),
+      PestanaAsistencia(
+        servicioApi: _servicioApi,
+        revisionSesion: _revisionSesion,
+      ),
       PestanaAjustes(
         servicioApi: _servicioApi,
         servicioShorebird: _servicioShorebird,
@@ -130,6 +135,11 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
               icon: Icon(Icons.qr_code_scanner_outlined),
               selectedIcon: Icon(Icons.qr_code_scanner),
               label: 'Escanear',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.groups_2),
+              selectedIcon: Icon(Icons.groups_2),
+              label: 'Asistencia',
             ),
             NavigationDestination(
               icon: Icon(Icons.settings_outlined),
