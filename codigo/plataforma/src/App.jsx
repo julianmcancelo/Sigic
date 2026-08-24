@@ -816,6 +816,7 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
   const [busquedaInicio, setBusquedaInicio] = useState('')
   const [posicionVentana, setPosicionVentana] = useState({ x: 0, y: 0 })
   const arrastreRef = useRef(null)
+  const ventanaRef = useRef(null)
   const inicioRef = useRef(null)
   const inicioBotonRef = useRef(null)
   const buscadorInicioRef = useRef(null)
@@ -851,7 +852,13 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
     if (!pantallaActual || pantallaActual === anterior) return
     setVentanasAbiertas(ventanas => ventanas.includes(pantallaActual) ? ventanas : [...ventanas, pantallaActual])
     setVentanasCerrandose(ventanas => ventanas.filter(item => item !== pantallaActual))
-  }, [pantallaActual])
+    // En la aplicación instalada el módulo usa toda la superficie disponible por defecto.
+    if (esAplicacionNativa) {
+      setVentanaMaximizada(true)
+      setAjusteVentana(null)
+      setPosicionVentana({ x: 0, y: 0 })
+    }
+  }, [pantallaActual, esAplicacionNativa])
 
   useEffect(() => {
     if (!inicioAbierto) return
@@ -862,11 +869,17 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
     const mover = evento => {
       if (!arrastreRef.current || ventanaMaximizada) return
       const { inicioX, inicioY, posicionInicial } = arrastreRef.current
-      const limiteX = Math.max(120, Math.floor(window.innerWidth * 0.22))
-      const limiteY = Math.max(20, Math.floor(window.innerHeight * 0.12))
+      const marco = ventanaRef.current?.getBoundingClientRect()
+      const baseX = marco ? marco.left - posicionInicial.x : 96
+      const baseY = marco ? marco.top - posicionInicial.y : 8
+      // Deja siempre visible una porción del encabezado para poder recuperar la ventana.
+      const minimoX = 8 - baseX
+      const maximoX = window.innerWidth - 170 - baseX
+      const minimoY = 8 - baseY
+      const maximoY = window.innerHeight - 52 - baseY
       setPosicionVentana({
-        x: Math.max(-limiteX, Math.min(limiteX, posicionInicial.x + evento.clientX - inicioX)),
-        y: Math.max(-limiteY, Math.min(limiteY, posicionInicial.y + evento.clientY - inicioY)),
+        x: Math.max(minimoX, Math.min(maximoX, posicionInicial.x + evento.clientX - inicioX)),
+        y: Math.max(minimoY, Math.min(maximoY, posicionInicial.y + evento.clientY - inicioY)),
       })
       if (evento.clientY <= 18) setZonaAjuste('maximizada')
       else if (evento.clientX <= 24) setZonaAjuste('izquierda')
@@ -1025,7 +1038,7 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
         <div className="sigic-os-shortcuts">
           {accesos.map(({ id, titulo, icono: Icono, color }) => <button key={id} onClick={() => abrirVentana(id)} className="sigic-desktop-icon"><span className={`${color} sigic-desktop-icon-art`}><Icono size={22} /></span><span>{titulo}</span></button>)}
         </div>
-        {ventanasAbiertas.includes(pantallaActual) && !ventanasMinimizadas.includes(pantallaActual) ? <div style={!ventanaMaximizada && !ajusteVentana ? { transform: `translate3d(${posicionVentana.x}px, ${posicionVentana.y}px, 0)` } : undefined} className={`sigic-window ${tipoVentana} ${pantallaActual === 'bienvenida' ? 'sigic-window-welcome' : ''} ${ventanaMaximizada ? 'sigic-window-maximized' : ''} ${ajusteVentana ? `sigic-window-snapped sigic-window-snapped-${ajusteVentana}` : ''} ${arrastrandoVentana ? 'sigic-window-dragging' : ''} ${ventanasCerrandose.includes(pantallaActual) ? 'sigic-window-closing' : ''}`}>
+        {ventanasAbiertas.includes(pantallaActual) && !ventanasMinimizadas.includes(pantallaActual) ? <div ref={ventanaRef} style={!ventanaMaximizada && !ajusteVentana ? { transform: `translate3d(${posicionVentana.x}px, ${posicionVentana.y}px, 0)` } : undefined} className={`sigic-window ${tipoVentana} ${pantallaActual === 'bienvenida' ? 'sigic-window-welcome' : ''} ${ventanaMaximizada ? 'sigic-window-maximized' : ''} ${ajusteVentana ? `sigic-window-snapped sigic-window-snapped-${ajusteVentana}` : ''} ${arrastrandoVentana ? 'sigic-window-dragging' : ''} ${ventanasCerrandose.includes(pantallaActual) ? 'sigic-window-closing' : ''}`}>
           <div className="sigic-window-bar" onPointerDown={iniciarArrastre} onDoubleClick={() => { setAjusteVentana(null); setVentanaMaximizada(value => !value) }}><div className="sigic-window-heading"><div className="sigic-window-app-icon"><span className="sigic-window-app-dot" /></div><span className="sigic-window-title">{tituloVentana}</span></div><div className="sigic-window-controls"><button type="button" onPointerDown={evento => evento.stopPropagation()} onClick={evento => { evento.stopPropagation(); alternarMinimizada(pantallaActual) }} aria-label="Minimizar ventana" title="Minimizar"><Minus size={14} /></button><button type="button" onPointerDown={evento => evento.stopPropagation()} onClick={evento => { evento.stopPropagation(); setAjusteVentana(null); setVentanaMaximizada(value => !value) }} aria-label="Maximizar ventana" title={ventanaMaximizada ? 'Restaurar' : 'Maximizar'}><Maximize2 size={13} /></button><button type="button" onPointerDown={evento => evento.stopPropagation()} onClick={evento => { evento.stopPropagation(); cerrarVentana(pantallaActual) }} aria-label="Cerrar ventana" title="Cerrar"><X size={14} /></button></div></div>{!esAplicacionNativa && <div className="sigic-explorer-toolbar"><button onClick={() => window.history.back()} aria-label="Atrás"><ChevronRight size={14} className="rotate-180" /></button><button onClick={() => window.history.forward()} aria-label="Adelante"><ChevronRight size={14} /></button><button onClick={() => abrirVentana('bienvenida')} aria-label="Inicio"><Home size={13} /></button><div className="sigic-explorer-address"><span>SiGIC</span><b>›</b><span>{tituloVentana}</span></div><button onClick={() => window.location.reload()} aria-label="Actualizar"><RefreshCw size={13} /></button></div>}<div className="sigic-window-body">{children}</div>
         </div> : null}
         {zonaAjuste && <div className={`sigic-snap-preview sigic-snap-preview-${zonaAjuste}`} aria-hidden="true" />}
