@@ -382,6 +382,32 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
     });
   }
 
+  void _abrirIngresoManual() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (contexto) => Padding(
+        padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(contexto).viewInsets.bottom + 20),
+        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text('Ingresar código manual', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 6),
+          const Text('Usalo cuando el QR no pueda leerse. El código se valida igual que un escaneo.'),
+          const SizedBox(height: 16),
+          TextField(controller: _controladorCodigoManual, autofocus: true, textCapitalization: TextCapitalization.characters, decoration: const InputDecoration(labelText: 'Código alfanumérico', hintText: 'Ej.: SIGIC:ABC123'), onSubmitted: (_) => _procesarManual(contexto)),
+          const SizedBox(height: 12),
+          SizedBox(width: double.infinity, child: FilledButton.icon(onPressed: _cargandoEscaneo ? null : () => _procesarManual(contexto), icon: const Icon(Icons.check_circle_outline), label: const Text('Validar código'))),
+        ]),
+      ),
+    );
+  }
+
+  void _procesarManual(BuildContext contexto) {
+    final codigo = _controladorCodigoManual.text.trim();
+    if (codigo.isEmpty) return;
+    Navigator.of(contexto).pop();
+    _procesarCodigo(codigo);
+  }
+
   void _cerrarTarjetaFlotante() {
     setState(() {
       _resultado = null;
@@ -956,6 +982,13 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
                           ),
                           onPressed: _cerrarCamara,
                           icon: const Icon(Icons.arrow_back_rounded),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton.filled(
+                          tooltip: 'Ingresar código manual',
+                          style: IconButton.styleFrom(backgroundColor: Colors.white.withValues(alpha: 0.14), foregroundColor: Colors.white),
+                          onPressed: _abrirIngresoManual,
+                          icon: const Icon(Icons.keyboard_alt_outlined),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
