@@ -19,6 +19,18 @@ mobile_flutter/.flutter-plugins-dependencies
 mobile_flutter/.packages
 mobile_flutter/.metadata
 
+# Artefactos de proyectos dentro de codigo/
+codigo/plataforma/node_modules/
+codigo/plataforma/.next/
+codigo/plataforma/out/
+codigo/plataforma/src-tauri/target/
+codigo/plataforma/src-tauri/gen/
+codigo/movil_flutter/build/
+codigo/movil_flutter/.dart_tool/
+codigo/movil_flutter/.flutter-plugins
+codigo/movil_flutter/.flutter-plugins-dependencies
+codigo/movil_flutter/.packages
+
 # Logs
 logs
 *.log

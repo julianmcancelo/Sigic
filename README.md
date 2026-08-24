@@ -9,14 +9,14 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Next.js-15+-000000?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js" />
-  <img src="https://img.shields.io/badge/React_Native-Expo-61DAFB?style=for-the-badge&logo=react&logoColor=black" alt="React Native" />
+  <img src="https://img.shields.io/badge/Next.js-16-000000?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js" />
+  <img src="https://img.shields.io/badge/Flutter-Shorebird-02569B?style=for-the-badge&logo=flutter&logoColor=white" alt="Flutter con Shorebird" />
   <img src="https://img.shields.io/badge/PostgreSQL-Neon_Cloud-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
   <img src="https://img.shields.io/badge/Vercel-Deployed-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel" />
 </p>
 
 <p align="center">
-  <a href="https://sigic-one.vercel.app">Ver Demo en Vivo &rarr; sigic-one.vercel.app</a>
+  <a href="https://demo.sigic.com.ar">Ver Demo en Vivo &rarr; demo.sigic.com.ar</a>
 </p>
 
 > [!NOTE]
@@ -52,8 +52,9 @@ El sistema cubre todo el ciclo operativo de un acto de colación institucional:
 SiGIC/
 ├── codigo/
 │   ├── plataforma/              # Plataforma Web y API Serverless (Next.js + Neon PostgreSQL)
-│   └── movil/                   # Aplicación móvil de Acreditación (React Native + Expo)
-├── respaldo_legacy/             # Respaldo de código clásico V1 (Vite + Express) — Gitignored
+│   ├── movil_flutter/           # App vigente de portería (Flutter + Shorebird)
+│   ├── movil/                   # App React Native histórica (mantenimiento únicamente)
+│   └── movil-reactnative/       # Copia histórica de React Native (mantenimiento únicamente)
 ├── scripts/                     # Herramientas administrativas locales de Windows (.NET 8)
 ├── MANUAL.md                    # Manual de usuario (Administración, Alumnos y Portería)
 ├── LEEME.md                     # Guía técnica de desarrollo y seguridad
@@ -72,7 +73,8 @@ SiGIC/
 | **Backend / API** | Next.js Serverless Functions (API Routes) |
 | **Base de Datos** | PostgreSQL (Neon Cloud, con `pg` pool nativo) |
 | **Autenticación** | JWT HS256, OTP por email (Nodemailer + SMTP) |
-| **Aplicación Móvil** | React Native, Expo SDK 52, Expo Camera / BarcodeScanner |
+| **Aplicación Móvil vigente** | Flutter, `mobile_scanner`, Shorebird Code Push |
+| **Aplicaciones históricas** | React Native / Expo (sin releases activos) |
 | **Despliegue Web** | Vercel (serverless, CDN global) |
 | **Herramientas Admin** | .NET 8 (scripts locales de Windows para tareas de mantenimiento) |
 
@@ -96,7 +98,7 @@ SiGIC/
 
 - **Node.js** v20 o v22 (LTS)
 - **NPM** (gestor de paquetes de Node)
-- **Expo Go** en dispositivo móvil (para desarrollo móvil rápido)
+- **Flutter SDK** y Shorebird CLI (para la app móvil vigente)
 
 ### 1. Plataforma Web (Next.js)
 
@@ -114,21 +116,21 @@ npm run dev
 > Crea un archivo `.env.local` con las credenciales de base de datos (PostgreSQL), secreto JWT y SMTP.
 > Ver detalles completos en [`codigo/plataforma/README.md`](codigo/plataforma/README.md).
 
-### 2. Aplicación Móvil (React Native)
+### 2. Aplicación Móvil (Flutter)
 
 ```bash
 # Ingresar al directorio
-cd codigo/movil
+cd codigo/movil_flutter
 
-# Instalar dependencias
-npm install
+# Instalar dependencias de Dart
+flutter pub get
 
-# Iniciar bundler de Expo
-npx expo start
+# Ejecutar en un dispositivo o emulador
+flutter run
 ```
 
-Escanea el código QR de Metro con la cámara (iOS) o Expo Go (Android) para ejecutar la app.
-Ver detalles completos en [`codigo/movil/README.md`](codigo/movil/README.md).
+La distribución productiva y las actualizaciones OTA se realizan con Shorebird.
+Ver detalles completos en [`codigo/movil_flutter/README.md`](codigo/movil_flutter/README.md).
 
 ---
 
@@ -140,7 +142,8 @@ Ver detalles completos en [`codigo/movil/README.md`](codigo/movil/README.md).
 | [`LEEME.md`](LEEME.md) | Guía técnica de desarrollo, variables de entorno y ecosistema de seguridad |
 | [`CHANGELOG.md`](CHANGELOG.md) | Historial detallado de versiones y cambios |
 | [`codigo/plataforma/README.md`](codigo/plataforma/README.md) | Documentación específica de la plataforma web Next.js |
-| [`codigo/movil/README.md`](codigo/movil/README.md) | Documentación específica de la app móvil React Native |
+| [`codigo/movil_flutter/README.md`](codigo/movil_flutter/README.md) | Documentación específica de la app móvil Flutter |
+| [`docs/ESTRUCTURA_REPOSITORIO.md`](docs/ESTRUCTURA_REPOSITORIO.md) | Mapa de proyectos vigentes, históricos y archivos generados |
 
 ---
 
