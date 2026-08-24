@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+const apiRemotaDesarrollo = process.env.SIGIC_REMOTE_API_ORIGIN?.replace(/\/$/, '');
+
 const nextConfig: NextConfig = {
   // PDFKit resuelve las fuentes AFM en tiempo de ejecución. Mantenerlo externo
   // hace que Vercel empaquete el módulo completo, incluidos esos archivos.
@@ -8,13 +10,22 @@ const nextConfig: NextConfig = {
     '/api/[...slug]': ['./node_modules/pdfkit/js/data/**/*'],
   },
   async rewrites() {
-    return [
-      {
-        source: '/',
-        has: [{ type: 'host', value: 'descargas.sigic.com.ar' }],
-        destination: '/descargas',
-      },
-    ];
+    const descargas = {
+      source: '/',
+      has: [{ type: 'host' as const, value: 'descargas.sigic.com.ar' }],
+      destination: '/descargas',
+    };
+
+    if (!apiRemotaDesarrollo) return [descargas];
+
+    // Permite probar la UI local con el entorno demo sin copiar secretos de Neon.
+    return {
+      beforeFiles: [{
+        source: '/api/:path*',
+        destination: `${apiRemotaDesarrollo}/api/:path*`,
+      }],
+      afterFiles: [descargas],
+    };
   },
   typescript: {
     // Ignorar errores de TypeScript en la compilacion para la migracion incremental
