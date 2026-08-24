@@ -286,27 +286,28 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
 
         {/* ═══════ PESTAÑA: ACOMPAÑANTES ═══════ */}
         {pestana === 'invitados' && (
-          <div className="space-y-8">
-            <div className="flex items-center justify-between">
+          <div className="sigic-guest-section space-y-8">
+            <div className="sigic-guest-toolbar flex items-center justify-between">
               <h2 className="text-xl font-black text-slate-800 flex items-center gap-3">
                 <UserCheck className="text-sky-500" size={24} />
                 Invitados Familiares
               </h2>
               {invitados.length < maxInvitados && (
-                <button onClick={() => { limpiarForm(); setMostrarForm(true); }} className="flex items-center gap-2 bg-sky-500 text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-sky-500/30 hover:bg-sky-600 transition-all active:scale-95">
+                <button onClick={() => { limpiarForm(); setMostrarForm(true); }} className="sigic-guest-add-button flex items-center gap-2 bg-sky-500 text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-sky-500/30 hover:bg-sky-600 transition-all active:scale-95">
                   <Plus size={16} /> Añadir Familiar
                 </button>
               )}
             </div>
+            <p className="sigic-guest-help -mt-5 text-xs font-medium text-slate-500">Podés guardar cada acompañante y finalizar la inscripción cuando termines. El contacto es opcional.</p>
 
             {/* Formulario inline */}
             {mostrarForm && (
-              <div className="bg-white rounded-[32px] p-8 border-2 border-sky-100 shadow-2xl">
-                <div className="flex justify-between items-center mb-8">
+              <div className="sigic-guest-form bg-white rounded-[32px] p-8 border-2 border-sky-100 shadow-2xl">
+                <div className="sigic-guest-form-header flex justify-between items-center mb-8">
                   <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight">{editandoId ? 'Editar Datos' : 'Nuevo Acompañante'}</h3>
                   <button onClick={limpiarForm} className="text-slate-400 hover:text-slate-600 p-2 hover:bg-slate-50 rounded-xl transition-all"><X size={20} /></button>
                 </div>
-                <form onSubmit={guardarInvitado} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <form onSubmit={guardarInvitado} className="sigic-guest-fields grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-1">
                     <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Nombre y Apellido</label>
                     <input type="text" required className="w-full bg-slate-50 border border-slate-200 p-3.5 rounded-2xl focus:ring-2 focus:ring-sky-500 outline-none transition-all" value={datosForm.nombre} onChange={e => setDatosForm({...datosForm, nombre: e.target.value})}/>
@@ -341,7 +342,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
                       <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-500"></div>
                     </label>
                   </div>
-                  <div className="md:col-span-2 flex gap-4 pt-4">
+                  <div className="sigic-guest-form-actions md:col-span-2 flex gap-4 pt-4">
                     <button type="submit" disabled={procesando} className="flex-1 bg-sky-500 text-white font-black py-4 rounded-2xl hover:bg-sky-600 disabled:opacity-50 text-xs uppercase tracking-widest shadow-lg active:scale-95 transition-all">
                       {procesando ? 'Procesando...' : 'Confirmar Registro'}
                     </button>
@@ -352,9 +353,9 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
             )}
 
             {/* Lista de invitados */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="sigic-guest-list grid grid-cols-1 md:grid-cols-2 gap-5">
               {invitados.map(inv => (
-                <div key={inv.id} className="bg-white p-6 rounded-[28px] shadow-sm border border-slate-100 flex items-center justify-between group hover:border-sky-300 transition-all hover:shadow-xl">
+                <div key={inv.id} className="sigic-guest-card bg-white p-6 rounded-[28px] shadow-sm border border-slate-100 flex items-center justify-between group hover:border-sky-300 transition-all hover:shadow-xl">
                   <div className="flex items-center gap-5">
                     <div className="h-14 w-14 bg-slate-50 text-slate-300 rounded-2xl flex items-center justify-center font-black group-hover:bg-sky-50 group-hover:text-sky-500 transition-all text-xl">{inv.nombre.charAt(0)}</div>
                     <div>
@@ -368,7 +369,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
                       {inv.asiento_id && <p className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg inline-block mt-2">ASIENTO: {inv.asiento_id}</p>}
                     </div>
                   </div>
-                  <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                  <div className="sigic-guest-card-actions flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
                     <button onClick={() => iniciarEdicion(inv)} className="p-3 text-slate-400 hover:text-sky-500 hover:bg-sky-50 rounded-xl transition-all"><Edit3 size={18} /></button>
                     <button onClick={() => manejarEliminarInvitado(inv.id)} className="p-3 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"><Trash2 size={18} /></button>
                   </div>
