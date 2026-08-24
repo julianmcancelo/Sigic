@@ -123,3 +123,4 @@ scripts/SiGIC_ControlCenter/.vs/
 # Respaldo de Código Legacy (Inactivo)
 respaldo_legacy/
 
+.vercel
