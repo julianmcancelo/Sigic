@@ -1390,7 +1390,7 @@ export async function POST(
       const acceso = `${hostBase}/?token=${graduado.token}`;
       const invitados = await query('SELECT nombre, asiento_id FROM invitados WHERE egresado_id = $1 ORDER BY creado_en ASC', [graduado.id]);
       const acompanantes = invitados.rows.map(item => `${item.nombre}${item.asiento_id ? ` (${item.asiento_id})` : ''}`);
-      const pdf = generarPdfCredencial({ nombre: graduado.nombre, ceremonia: graduado.ceremonia_nombre, fecha: graduado.ceremonia_fecha, lugar: graduado.ceremonia_lugar, asiento: graduado.asiento_id, acompanantes });
+      const pdf = await generarPdfCredencial({ nombre: graduado.nombre, ceremonia: graduado.ceremonia_nombre, fecha: graduado.ceremonia_fecha, lugar: graduado.ceremonia_lugar, asiento: graduado.asiento_id, acompanantes, acceso });
       await enviarCorreo(
         graduado.correo,
         `Tu credencial e información de ceremonia · ${graduado.ceremonia_nombre}`,

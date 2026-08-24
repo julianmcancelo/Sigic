@@ -1,5 +1,7 @@
 import nodemailer from 'nodemailer';
 import { Resend } from 'resend';
+import PDFDocument from 'pdfkit';
+import QRCode from 'qrcode';
 
 let transportador: nodemailer.Transporter | null = null;
 
@@ -296,34 +298,45 @@ export function generarPlantillaCredencialCeremonia({ nombre, ceremonia, fecha, 
     </div>`;
 }
 
-/** PDF liviano, compatible con cualquier visor, para adjuntar al correo de ceremonia. */
-export function generarPdfCredencial({ nombre, ceremonia, fecha, lugar, asiento, acompanantes }: { nombre: string; ceremonia: string; fecha: string; lugar: string; asiento?: string | null; acompanantes: string[] }) {
-  const normalizar = (valor: string) => String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[()\\]/g, '\\$&');
-  const lineas = [
-    'SiGIC - CREDENCIAL DE CEREMONIA',
-    '',
-    `Graduado/a: ${nombre}`,
-    `Ceremonia: ${ceremonia}`,
-    `Fecha: ${fecha || 'A confirmar'}`,
-    `Lugar: ${lugar || 'A confirmar'}`,
-    `Butaca del graduado: ${asiento || 'Sin asignar'}`,
-    `Acompanantes: ${acompanantes.length ? acompanantes.join(' | ') : 'Sin acompanantes registrados'}`,
-    '',
-    'Presenta el QR desde tu portal SiGIC en porteria.',
-    'Esta credencial es personal e intransferible.'
-  ].map(normalizar);
-  const contenido = ['BT', '/F1 18 Tf', '54 760 Td', ...lineas.flatMap((linea, indice) => indice === 0 ? [`(${linea}) Tj`, '0 -28 Td', '/F1 11 Tf'] : [`(${linea}) Tj`, '0 -18 Td']), 'ET'].join('\n');
-  const objetos = [
-    '<< /Type /Catalog /Pages 2 0 R >>',
-    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
-    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>',
-    '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>',
-    `<< /Length ${Buffer.byteLength(contenido, 'latin1')} >>\nstream\n${contenido}\nendstream`
-  ];
-  let pdf = '%PDF-1.4\n';
-  const offsets = [0];
-  objetos.forEach((objeto, indice) => { offsets.push(Buffer.byteLength(pdf, 'latin1')); pdf += `${indice + 1} 0 obj\n${objeto}\nendobj\n`; });
-  const xref = Buffer.byteLength(pdf, 'latin1');
-  pdf += `xref\n0 ${objetos.length + 1}\n0000000000 65535 f \n${offsets.slice(1).map(offset => `${String(offset).padStart(10, '0')} 00000 n \n`).join('')}trailer\n<< /Size ${objetos.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
-  return Buffer.from(pdf, 'latin1');
+/** Credencial PDF diseñada para descargar, imprimir o presentar en portería. */
+export async function generarPdfCredencial({ nombre, ceremonia, fecha, lugar, asiento, acompanantes, acceso }: { nombre: string; ceremonia: string; fecha: string; lugar: string; asiento?: string | null; acompanantes: string[]; acceso: string }) {
+  const qrDataUrl = await QRCode.toDataURL(acceso, { width: 360, margin: 1, color: { dark: '#071b34', light: '#ffffff' } });
+  const qr = Buffer.from(qrDataUrl.split(',')[1], 'base64');
+  return new Promise<Buffer>((resolve, reject) => {
+    const doc = new PDFDocument({ size: 'A4', margin: 0 });
+    const partes: Buffer[] = [];
+    doc.on('data', (parte) => partes.push(parte));
+    doc.on('end', () => resolve(Buffer.concat(partes)));
+    doc.on('error', reject);
+
+    doc.rect(0, 0, 595, 842).fill('#f1f5f9');
+    doc.rect(0, 0, 595, 230).fill('#071b34');
+    doc.circle(555, 26, 120).fill('#0e5771');
+    doc.circle(70, 250, 80).fill('#e0f2fe');
+    doc.fillColor('#67e8f9').font('Helvetica-Bold').fontSize(10).text('SiGIC  |  CREDENCIAL DIGITAL', 48, 54, { characterSpacing: 1.5 });
+    doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(28).text('Ceremonia de colación', 48, 82);
+    doc.fillColor('#cbd5e1').font('Helvetica').fontSize(12).text(ceremonia, 48, 122, { width: 330 });
+    doc.roundedRect(48, 160, 178, 28, 14).fill('#ffffff');
+    doc.fillColor('#0f766e').font('Helvetica-Bold').fontSize(9).text('CREDENCIAL VÁLIDA', 67, 170, { characterSpacing: 1 });
+
+    doc.roundedRect(40, 205, 515, 520, 22).fill('#ffffff');
+    doc.fillColor('#64748b').font('Helvetica-Bold').fontSize(9).text('GRADUADO/A', 68, 245, { characterSpacing: 1.2 });
+    doc.fillColor('#0f172a').font('Helvetica-Bold').fontSize(25).text(nombre, 68, 263, { width: 285, lineBreak: true });
+    doc.fillColor('#475569').font('Helvetica').fontSize(11).text(`Fecha: ${fecha || 'A confirmar'}\nLugar: ${lugar || 'A confirmar'}`, 68, 335, { lineGap: 5, width: 285 });
+
+    doc.roundedRect(370, 242, 145, 145, 16).fill('#f8fafc');
+    doc.image(qr, 385, 257, { width: 115, height: 115 });
+    doc.fillColor('#334155').font('Helvetica-Bold').fontSize(8).text('PRESENTAR EN PORTERÍA', 380, 405, { width: 125, align: 'center' });
+
+    doc.roundedRect(68, 425, 447, 86, 14).fill('#e0f2fe');
+    doc.fillColor('#0369a1').font('Helvetica-Bold').fontSize(9).text('UBICACIÓN DEL GRADUADO', 88, 445, { characterSpacing: 1 });
+    doc.fillColor('#071b34').font('Helvetica-Bold').fontSize(22).text(asiento || 'SIN ASIGNAR', 88, 464);
+    doc.fillColor('#475569').font('Helvetica').fontSize(10).text(asiento ? 'Butaca reservada para el acto.' : 'La asignación se informará desde el portal.', 88, 491);
+
+    doc.fillColor('#64748b').font('Helvetica-Bold').fontSize(9).text('ACOMPAÑANTES Y UBICACIONES', 68, 545, { characterSpacing: 1 });
+    doc.fillColor('#1e293b').font('Helvetica').fontSize(11).text(acompanantes.length ? acompanantes.join('\n') : 'Sin acompañantes registrados.', 68, 565, { width: 447, lineGap: 5 });
+    doc.moveTo(68, 661).lineTo(515, 661).strokeColor('#e2e8f0').stroke();
+    doc.fillColor('#64748b').font('Helvetica').fontSize(9).text('Guardá esta credencial en tu teléfono o imprimila. El código QR es personal e intransferible.', 68, 680, { width: 447, align: 'center' });
+    doc.end();
+  });
 }
