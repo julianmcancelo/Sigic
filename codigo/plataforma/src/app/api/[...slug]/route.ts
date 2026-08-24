@@ -1630,9 +1630,9 @@ export async function PUT(
       if (siguiente === 'PREPARACION' && !info.plano) return NextResponse.json({ error: 'Configurá el plano de butacas antes de preparar la ceremonia' }, { status: 409, headers });
 
       const result = await query(`
-        UPDATE ceremonias SET estado_operativo = $1,
-          finalizada_en = CASE WHEN $1 = 'FINALIZADA' THEN CURRENT_TIMESTAMP ELSE finalizada_en END,
-          activa = CASE WHEN $1 = 'FINALIZADA' THEN 0 ELSE activa END
+        UPDATE ceremonias SET estado_operativo = $1::varchar,
+          finalizada_en = CASE WHEN $1::varchar = 'FINALIZADA' THEN CURRENT_TIMESTAMP ELSE finalizada_en END,
+          activa = CASE WHEN $1::varchar = 'FINALIZADA' THEN 0 ELSE activa END
         WHERE id = $2 RETURNING *`, [siguiente, slug[1]]);
       return NextResponse.json({ ok: true, ceremonia: result.rows[0] }, { headers });
     }
