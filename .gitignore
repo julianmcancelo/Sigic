@@ -3,8 +3,6 @@ node_modules/
 jspm_packages/
 .pnp
 .pnp.js
-mobile/.expo/
-mobile/.expo-shared/
 
 # Build y Distribucion
 dist/
@@ -12,12 +10,6 @@ dist-ssr/
 build/
 *.exe
 *.spec
-mobile_flutter/build/
-mobile_flutter/.dart_tool/
-mobile_flutter/.flutter-plugins
-mobile_flutter/.flutter-plugins-dependencies
-mobile_flutter/.packages
-mobile_flutter/.metadata
 
 # Artefactos de proyectos dentro de codigo/
 codigo/plataforma/node_modules/
@@ -126,11 +118,6 @@ iniciar.bat
 backend/datos/backup_postgres.sql
 backend/datos/sigic_backup.db
 tools/sigic_control_config.json
-
-# C# / .NET
-scripts/SiGIC_ControlCenter/bin/
-scripts/SiGIC_ControlCenter/obj/
-scripts/SiGIC_ControlCenter/.vs/
 
 # Respaldo de Código Legacy (Inactivo)
 respaldo_legacy/

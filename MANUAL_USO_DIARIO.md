@@ -18,17 +18,14 @@ Este manual detalla las tareas, secuencias y procedimientos paso a paso que el o
 ## 🔌 Fase 1: Preparación del Entorno y Encendido
 Cada día que deba operar la plataforma de gestión, siga este orden de encendido:
 
-1. **Abrir el Centro de Control:**
-   * Haga doble clic en el archivo [SiGIC_ControlCenter.exe](file:///d:/Sigic/scripts/SiGIC_ControlCenter.exe) ubicado en la carpeta de herramientas.
-2. **Verificar Estado de Conexión:**
-   * En el panel superior, observe las luces indicadoras:
-     * **Base de Datos (DB):** Debe marcar en **Verde (Conectado)**. Si marca en rojo, verifique la conexión a internet de su computadora (necesaria para conectar con Neon Cloud PostgreSQL).
-3. **Encender la Infraestructura:**
-   * Haga clic en el botón central **Iniciar Infraestructura**.
-   * Las luces de **Backend** y **Frontend** cambiarán a verde en unos segundos.
-   * La consola inferior comenzará a mostrar registros de actividad en color azul.
-4. **Ingresar a la Web:**
-   * Pulse el botón **Abrir en Navegador** o ingrese manualmente a [http://localhost:5173](http://localhost:5173).
+1. **Abrir la plataforma:**
+   * Ingrese a [demo.sigic.com.ar](https://demo.sigic.com.ar) desde un navegador actualizado.
+2. **Verificar conectividad:**
+   * Si aparece un aviso de conexión, confirme que el equipo tenga acceso a internet y recargue la página.
+3. **Ingresar como administrador:**
+   * Acceda al panel con la cuenta autorizada. El estado de ceremonia y la operación se sincronizan automáticamente con la base de datos.
+4. **Preparar portería:**
+   * En los dispositivos de acceso, abra SiGIC Portería e inicie sesión. La aplicación debe quedar vinculada a la ceremonia activa antes de acreditar asistentes.
 
 ---
 

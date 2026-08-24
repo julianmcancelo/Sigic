@@ -53,9 +53,7 @@ SiGIC/
 ├── codigo/
 │   ├── plataforma/              # Plataforma Web y API Serverless (Next.js + Neon PostgreSQL)
 │   ├── movil_flutter/           # App vigente de portería (Flutter + Shorebird)
-│   ├── movil/                   # App React Native histórica (mantenimiento únicamente)
-│   └── movil-reactnative/       # Copia histórica de React Native (mantenimiento únicamente)
-├── scripts/                     # Herramientas administrativas locales de Windows (.NET 8)
+│   └── landing/                 # Sitio institucional estático
 ├── MANUAL.md                    # Manual de usuario (Administración, Alumnos y Portería)
 ├── LEEME.md                     # Guía técnica de desarrollo y seguridad
 ├── README.md                    # Este archivo
