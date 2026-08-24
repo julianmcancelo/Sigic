@@ -269,3 +269,25 @@ export function generarPlantillaCierreInscripcion(nombre: string, hostBase: stri
       </div>
     </div>`;
 }
+
+/** Comunicación final con el pase digital y la información operativa de la ceremonia. */
+export function generarPlantillaCredencialCeremonia({ nombre, ceremonia, fecha, lugar, asiento, acceso }: { nombre: string; ceremonia: string; fecha: string; lugar: string; asiento?: string | null; acceso: string }) {
+  return `
+    <div style="max-width:600px;margin:0 auto;padding:28px;background:#eef4f8;font-family:Arial,sans-serif;color:#172033">
+      <div style="overflow:hidden;border:1px solid #d8e3ed;border-radius:22px;background:#ffffff">
+        <div style="padding:30px 34px;background:#071b34;color:#ffffff">
+          <p style="margin:0;color:#67e8f9;font-size:11px;font-weight:bold;letter-spacing:1.5px;text-transform:uppercase">SiGIC · Información de ceremonia</p>
+          <h1 style="margin:10px 0 0;font-size:25px">Tu credencial está disponible</h1>
+        </div>
+        <div style="padding:30px 34px;font-size:15px;line-height:1.55">
+          <p>Hola, <strong>${nombre}</strong>. Te esperamos en <strong>${ceremonia}</strong>.</p>
+          <table width="100%" cellspacing="0" cellpadding="0" style="margin:22px 0;border:1px solid #dbeafe;border-radius:14px;background:#f8fbff">
+            <tr><td style="padding:16px 18px"><strong>Fecha:</strong> ${fecha || 'A confirmar'}<br><strong>Lugar:</strong> ${lugar || 'A confirmar'}${asiento ? `<br><strong>Butaca del graduado:</strong> ${asiento}` : ''}</td></tr>
+          </table>
+          <p>Ingresá con anticipación y presentá el QR de tu credencial en portería. Desde el enlace también podés revisar tus acompañantes y ubicaciones.</p>
+          <p style="margin:26px 0;text-align:center"><a href="${acceso}" style="display:inline-block;padding:14px 24px;border-radius:10px;background:#0ea5e9;color:#ffffff;text-decoration:none;font-weight:bold">Abrir mi credencial</a></p>
+          <p style="margin:0;color:#64748b;font-size:12px">Guardala en tu teléfono o imprimila. Este enlace es personal.</p>
+        </div>
+      </div>
+    </div>`;
+}

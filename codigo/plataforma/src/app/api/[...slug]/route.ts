@@ -3,7 +3,7 @@ import { query, pool } from '@/lib/db';
 import { firmar } from '@/lib/tokens';
 import { obtenerUsuarioAutenticado, ROLES_GESTION, ROLES_OPERACION, ROLES_LECTURA } from '@/lib/auth-middleware';
 import * as GestorOTP from '@/lib/otp';
-import { enviarCorreo, generarPlantillaCierreInscripcion, generarPlantillaInvitacion, generarPlantillaOTP } from '@/lib/email';
+import { enviarCorreo, generarPlantillaCierreInscripcion, generarPlantillaCredencialCeremonia, generarPlantillaInvitacion, generarPlantillaOTP } from '@/lib/email';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { inicializarBaseDatos } from '@/lib/schema';
@@ -1364,6 +1364,36 @@ export async function POST(
       );
       if (!actualizado.rows[0]) return NextResponse.json({ error: 'Graduado no encontrado' }, { status: 404, headers });
       return NextResponse.json({ ok: true, graduado: actualizado.rows[0] }, { headers });
+    }
+
+    if (slug[0] === 'egresados' && slug[2] === 'enviar-credencial' && slug[1]) {
+      const isPersonal = await esPersonalValido(req, ROLES_GESTION);
+      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+
+      const datos = await query(
+        `SELECT e.*, c.nombre AS ceremonia_nombre, c.fecha AS ceremonia_fecha, c.lugar AS ceremonia_lugar
+         FROM egresados e JOIN ceremonias c ON c.id = e.ceremonia_id WHERE e.id = $1`,
+        [slug[1]]
+      );
+      const graduado = datos.rows[0];
+      if (!graduado) return NextResponse.json({ error: 'Graduado no encontrado' }, { status: 404, headers });
+      if (!graduado.correo) return NextResponse.json({ error: 'El graduado no tiene un correo configurado' }, { status: 400, headers });
+      if (graduado.estado !== 'ACEPTADO') return NextResponse.json({ error: 'La credencial se envía cuando el graduado confirma su participación' }, { status: 409, headers });
+
+      const hostBase = new URL(req.url).origin;
+      const acceso = `${hostBase}/?token=${graduado.token}`;
+      await enviarCorreo(
+        graduado.correo,
+        `Tu credencial e información de ceremonia · ${graduado.ceremonia_nombre}`,
+        generarPlantillaCredencialCeremonia({ nombre: graduado.nombre, ceremonia: graduado.ceremonia_nombre, fecha: graduado.ceremonia_fecha, lugar: graduado.ceremonia_lugar, asiento: graduado.asiento_id, acceso })
+      );
+      const actualizado = await query(
+        `UPDATE egresados SET credencial_enviada_en = CURRENT_TIMESTAMP,
+          credencial_envios_count = COALESCE(credencial_envios_count, 0) + 1
+         WHERE id = $1 RETURNING id, credencial_enviada_en, credencial_envios_count`,
+        [slug[1]]
+      );
+      return NextResponse.json({ ok: true, mensaje: 'Credencial e información enviadas', graduado: actualizado.rows[0] }, { headers });
     }
 
     if (path === 'egresados/solicitar-otp') {

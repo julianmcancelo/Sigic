@@ -9,7 +9,7 @@ import {
   eliminarGraduado,
   vaciarGraduados,
   obtenerInvitados, 
-  enviarInvitacion, corroborarGraduado
+  enviarInvitacion, corroborarGraduado, enviarCredencialCeremonia
 } from '../../servicios/api'
 
 import { ModalQR } from '../../componentes/ModalQR'
@@ -58,6 +58,8 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
   const [exitoEnvio, setExitoEnvio] = useState(null)
   const [corroborandoId, setCorroborandoId] = useState(null)
   const [envioMasivo, setEnvioMasivo] = useState(null)
+  const [enviandoCredencialId, setEnviandoCredencialId] = useState(null)
+  const [credencialEnviadaId, setCredencialEnviadaId] = useState(null)
   const [altaExitosa, setAltaExitosa] = useState('')
 
   const [busqueda, setBusqueda] = useState('')
@@ -174,6 +176,25 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
       alert(err.message)
     } finally {
       setCorroborandoId(null)
+    }
+  }
+
+  async function manejarEnvioCredencial(grad) {
+    if (!grad.correo) return
+    setEnviandoCredencialId(grad.id)
+    try {
+      const respuesta = await enviarCredencialCeremonia(grad.id)
+      setGraduados(actuales => actuales.map(item => item.id === grad.id ? {
+        ...item,
+        credencial_enviada_en: respuesta.graduado.credencial_enviada_en,
+        credencial_envios_count: respuesta.graduado.credencial_envios_count
+      } : item))
+      setCredencialEnviadaId(grad.id)
+      setTimeout(() => setCredencialEnviadaId(null), 3000)
+    } catch (err) {
+      alert(err.message)
+    } finally {
+      setEnviandoCredencialId(null)
     }
   }
 
@@ -512,6 +533,17 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
                         >
                           <CreditCard size={12} /> Credencial
                         </button>
+
+                        {grad.estado === 'ACEPTADO' && (
+                          <button
+                            onClick={() => manejarEnvioCredencial(grad)}
+                            disabled={enviandoCredencialId === grad.id || !grad.correo}
+                            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-colors disabled:opacity-40 ${credencialEnviadaId === grad.id ? 'bg-emerald-50 text-emerald-700' : 'text-indigo-600 hover:bg-indigo-50'}`}
+                          >
+                            {credencialEnviadaId === grad.id ? <CheckCircle2 size={12} /> : <Mail size={12} />}
+                            {enviandoCredencialId === grad.id ? 'Enviando...' : credencialEnviadaId === grad.id ? 'Credencial enviada' : grad.credencial_enviada_en ? 'Reenviar credencial' : 'Enviar credencial'}
+                          </button>
+                        )}
                         
                         {grad.estado === 'ACEPTADO' && (
                           <button

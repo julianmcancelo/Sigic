@@ -362,6 +362,15 @@ export async function corroborarGraduado(id: string | number) {
   return json;
 }
 
+export async function enviarCredencialCeremonia(id: string | number) {
+  const res = await fetch(`${BASE_CLASSIC}/egresados/${id}/enviar-credencial`, {
+    method: 'POST', headers: cabeceras()
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo enviar la credencial');
+  return json;
+}
+
 export async function eliminarCeremonia(id: string | number) {
   const res = await fetch(`${BASE_CLASSIC}/ceremonias/${id}`, {
     method: 'DELETE',
