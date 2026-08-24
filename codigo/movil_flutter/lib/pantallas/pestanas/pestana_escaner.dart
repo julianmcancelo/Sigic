@@ -1666,6 +1666,8 @@ class _TarjetaFlotanteGrupo extends StatelessWidget {
                   children: [
                     Text(
                       grupo.nombre,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w900,
@@ -1676,6 +1678,8 @@ class _TarjetaFlotanteGrupo extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       'Legajo ${grupo.legajo} · ${grupo.carrera.isEmpty ? 'N/C' : grupo.carrera}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.78),
                         fontSize: 12,
@@ -1726,7 +1730,20 @@ class _TarjetaFlotanteGrupo extends StatelessWidget {
               'Invitados en grupo',
               style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14.5),
             ),
-            TextButton(onPressed: alCerrar, child: const Text('Cerrar')),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '$invitadosPendientes pendientes',
+                  style: const TextStyle(
+                    color: Color(0xFF5C7386),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                TextButton(onPressed: alCerrar, child: const Text('Cerrar')),
+              ],
+            ),
           ],
         ),
         const SizedBox(height: 6),
@@ -1747,20 +1764,48 @@ class _TarjetaFlotanteGrupo extends StatelessWidget {
                 ),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
                 child: Row(
                   children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: invitado.presente
+                            ? TemaSigic.exito.withValues(alpha: .14)
+                            : TemaSigic.azulPrincipal.withValues(alpha: .10),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        invitado.presente
+                            ? Icons.check_circle
+                            : Icons.how_to_reg,
+                        size: 18,
+                        color: invitado.presente
+                            ? TemaSigic.exito
+                            : TemaSigic.azulPrincipal,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             invitado.nombre,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(fontWeight: FontWeight.w700),
                           ),
                           const SizedBox(height: 3),
                           Text(
                             'DNI ${invitado.dni} · ${invitado.relacion}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 12,
                               color: Color(0xFF5C7386),
@@ -1771,9 +1816,18 @@ class _TarjetaFlotanteGrupo extends StatelessWidget {
                     ),
                     const SizedBox(width: 10),
                     invitado.presente
-                        ? const Icon(Icons.check_circle, color: TemaSigic.exito)
+                        ? const Text(
+                            'INGRESÓ',
+                            style: TextStyle(
+                              color: TemaSigic.exito,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 10,
+                              letterSpacing: .4,
+                            ),
+                          )
                         : SizedBox(
-                            height: 38,
+                            width: 88,
+                            height: 40,
                             child: FilledButton(
                               onPressed: cargando
                                   ? null
