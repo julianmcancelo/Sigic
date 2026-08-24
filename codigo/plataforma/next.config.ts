@@ -1,6 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // PDFKit resuelve las fuentes AFM en tiempo de ejecución. Mantenerlo externo
+  // hace que Vercel empaquete el módulo completo, incluidos esos archivos.
+  serverExternalPackages: ['pdfkit'],
   outputFileTracingIncludes: {
     '/api/[...slug]': ['./node_modules/pdfkit/js/data/**/*'],
   },
