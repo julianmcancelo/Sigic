@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { ArrowRight, CalendarClock, CheckCircle2, ChevronDown, ChevronUp, LayoutTemplate, Radio, Send, Users } from 'lucide-react'
-import { obtenerCeremonias } from '../lib/api'
+import { AlertCircle, ArrowRight, CalendarClock, CheckCircle2, ChevronDown, ChevronUp, FileSpreadsheet, LayoutTemplate, LoaderCircle, Plus, Radio, Send, Users, X } from 'lucide-react'
+import { crearGraduado, obtenerCeremonias } from '../lib/api'
+import { ModalImportar } from './ModalImportar'
 
 const ETAPAS = ['Ceremonia', 'Padrón', 'Anfiteatro', 'Convocatoria', 'Preparación', 'En vivo']
 
@@ -17,6 +18,16 @@ function siguientePaso(ceremonia) {
 export function AsistenteOperativoCeremonia({ onNavegar }) {
   const [abierto, setAbierto] = useState(true)
   const [ceremonia, setCeremonia] = useState(null)
+  const [mostrarCargaRapida, setMostrarCargaRapida] = useState(false)
+  const [mostrarImportar, setMostrarImportar] = useState(false)
+  const [guardando, setGuardando] = useState(false)
+  const [errorCarga, setErrorCarga] = useState('')
+  const [graduado, setGraduado] = useState({ nombre: '', dni: '', legajo: '', correo: '', carrera: '' })
+
+  const actualizarCeremonia = async () => {
+    const ceremonias = await obtenerCeremonias()
+    setCeremonia(ceremonias.find(item => item.activa) || null)
+  }
 
   useEffect(() => {
     let activo = true
@@ -33,6 +44,32 @@ export function AsistenteOperativoCeremonia({ onNavegar }) {
     return () => { activo = false; window.clearInterval(intervalo) }
   }, [])
 
+  async function guardarGraduado(evento) {
+    evento.preventDefault()
+    if (!graduado.nombre.trim() || graduado.dni.replace(/\D/g, '').length < 7) {
+      setErrorCarga('Completá el nombre y un DNI válido para continuar.')
+      return
+    }
+
+    setGuardando(true)
+    setErrorCarga('')
+    try {
+      await crearGraduado({
+        ...graduado,
+        nombre: graduado.nombre.trim(),
+        dni: graduado.dni.replace(/\D/g, ''),
+        ceremonia_id: ceremonia?.id
+      })
+      await actualizarCeremonia()
+      setGraduado({ nombre: '', dni: '', legajo: '', correo: '', carrera: '' })
+      setMostrarCargaRapida(false)
+    } catch (error) {
+      setErrorCarga(error.message || 'No se pudo guardar el graduado.')
+    } finally {
+      setGuardando(false)
+    }
+  }
+
   const paso = siguientePaso(ceremonia)
   const Icono = paso.icono
   return <aside className={`sigic-ceremony-assistant ${abierto ? 'is-open' : ''}`} aria-label="Asistente operativo de ceremonia">
@@ -44,7 +81,26 @@ export function AsistenteOperativoCeremonia({ onNavegar }) {
       <div><p className="sigic-ceremony-assistant-kicker">Siguiente acción</p><strong>{paso.titulo}</strong><p>{paso.detalle}</p></div>
       <div className="sigic-ceremony-assistant-progress"><span style={{ width: `${(paso.avance / 6) * 100}%` }} /></div>
       <div className="sigic-ceremony-assistant-stages">{ETAPAS.map((etapa, indice) => <span key={etapa} className={indice < paso.avance ? 'is-done' : indice === paso.avance ? 'is-current' : ''}>{indice < paso.avance ? <CheckCircle2 size={10} /> : <i />}{etapa}</span>)}</div>
+      {paso.avance === 1 && <div className="sigic-ceremony-assistant-load">
+        <p>Podés incorporar el padrón sin salir del escritorio.</p>
+        <div><button onClick={() => { setErrorCarga(''); setMostrarCargaRapida(true) }}><Plus size={13} /> Cargar uno</button><button onClick={() => setMostrarImportar(true)}><FileSpreadsheet size={13} /> Importar archivo</button></div>
+      </div>}
       <button onClick={() => onNavegar(paso.destino)} className="sigic-ceremony-assistant-action">Ir ahora <ArrowRight size={14} /></button>
     </div>}
+    {mostrarCargaRapida && <div className="sigic-quick-graduate-overlay" role="dialog" aria-modal="true" aria-labelledby="carga-rapida-titulo">
+      <form className="sigic-quick-graduate-card" onSubmit={guardarGraduado}>
+        <header><div><span>Asistente operativo</span><h2 id="carga-rapida-titulo">Cargar graduado</h2><p>{ceremonia?.nombre || 'Ceremonia activa'}</p></div><button type="button" onClick={() => setMostrarCargaRapida(false)} aria-label="Cerrar"><X size={18} /></button></header>
+        {errorCarga && <p className="sigic-quick-graduate-error"><AlertCircle size={14} />{errorCarga}</p>}
+        <div className="sigic-quick-graduate-fields">
+          <label>Nombre completo<input autoFocus value={graduado.nombre} onChange={evento => setGraduado(valor => ({ ...valor, nombre: evento.target.value }))} placeholder="Nombre y apellido" /></label>
+          <label>DNI<input inputMode="numeric" value={graduado.dni} onChange={evento => setGraduado(valor => ({ ...valor, dni: evento.target.value }))} placeholder="Sin puntos" /></label>
+          <label>Legajo<input value={graduado.legajo} onChange={evento => setGraduado(valor => ({ ...valor, legajo: evento.target.value }))} placeholder="Opcional" /></label>
+          <label>Correo<input type="email" value={graduado.correo} onChange={evento => setGraduado(valor => ({ ...valor, correo: evento.target.value }))} placeholder="Opcional" /></label>
+          <label className="sigic-quick-graduate-field-wide">Carrera<input value={graduado.carrera} onChange={evento => setGraduado(valor => ({ ...valor, carrera: evento.target.value }))} placeholder="Opcional" /></label>
+        </div>
+        <footer><button type="button" onClick={() => setMostrarCargaRapida(false)}>Cancelar</button><button type="submit" disabled={guardando}>{guardando ? <LoaderCircle size={15} className="animate-spin" /> : <Plus size={15} />}{guardando ? 'Guardando...' : 'Agregar al padrón'}</button></footer>
+      </form>
+    </div>}
+    {mostrarImportar && <ModalImportar onCerrar={() => setMostrarImportar(false)} onCompletado={async () => { await actualizarCeremonia(); setMostrarImportar(false) }} />}
   </aside>
 }
