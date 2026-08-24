@@ -1,6 +1,6 @@
 [package]
 name = "sigic_escritorio"
-version = "1.0.2"
+version = "1.0.3"
 description = "Cliente nativo multiplataforma de SiGIC"
 edition = "2021"
 
