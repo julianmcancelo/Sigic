@@ -214,7 +214,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
           <button onClick={() => setPestana('entregadores')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${pestana === 'entregadores' ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/20' : 'text-slate-400 hover:bg-white/5'}`}>
             <GraduationCap size={18} /> <span className="text-sm font-bold">Padrinos</span>
           </button>
-          <button onClick={() => setMostrarButacas(true)} disabled={!graduado.perfil_finalizado_en} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 transition-all hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-40">
+          <button onClick={() => setMostrarButacas(true)} disabled={graduado.estado !== 'ACEPTADO'} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 transition-all hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-40">
             <Armchair size={18} /> <span className="text-sm font-bold">Elegir butacas</span>
           </button>
           <button onClick={() => setPestana('credencial')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${pestana === 'credencial' ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/20' : 'text-slate-400 hover:bg-white/5'}`}>
@@ -282,8 +282,8 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
 
         <section className="mb-7 overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm">
           <div className="flex flex-col gap-3 border-b border-slate-100 bg-slate-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <div><p className="text-[10px] font-black uppercase tracking-[.16em] text-sky-600">Tu recorrido</p><p className="mt-1 text-sm font-bold text-slate-800">{estadoButacas === 'CONFIRMADA' ? 'Ubicaciones confirmadas' : estadoButacas === 'PENDIENTE_REVISION' ? 'Tu propuesta está siendo revisada' : graduado.perfil_finalizado_en ? 'Elegí las butacas de tu grupo' : 'Completá tu grupo para continuar'}</p></div>
-            {estadoButacas !== 'CONFIRMADA' && graduado.perfil_finalizado_en && <button onClick={() => setMostrarButacas(true)} className="rounded-xl bg-slate-900 px-4 py-2 text-[10px] font-black uppercase tracking-wider text-white transition hover:bg-sky-600">{estadoButacas === 'PENDIENTE_REVISION' ? 'Ver propuesta' : 'Elegir butacas'}</button>}
+            <div><p className="text-[10px] font-black uppercase tracking-[.16em] text-sky-600">Tu recorrido</p><p className="mt-1 text-sm font-bold text-slate-800">{estadoButacas === 'CONFIRMADA' ? 'Ubicaciones confirmadas' : estadoButacas === 'PENDIENTE_REVISION' ? 'Tu propuesta está siendo revisada' : graduado.estado === 'ACEPTADO' ? 'Elegí las butacas del grupo cargado' : 'Confirmá tu participación para elegir butacas'}</p></div>
+            {estadoButacas !== 'CONFIRMADA' && graduado.estado === 'ACEPTADO' && <button onClick={() => setMostrarButacas(true)} className="rounded-xl bg-slate-900 px-4 py-2 text-[10px] font-black uppercase tracking-wider text-white transition hover:bg-sky-600">{estadoButacas === 'PENDIENTE_REVISION' ? 'Ver propuesta' : 'Elegir butacas'}</button>}
           </div>
           <div className="grid grid-cols-3 gap-2 px-5 py-4">
             {['Grupo', 'Propuesta', 'Credencial'].map((etiqueta, indice) => <div key={etiqueta} className={`flex items-center gap-2 text-[10px] font-bold ${indice < pasoButacas ? 'text-emerald-700' : 'text-slate-400'}`}><span className={`grid h-5 w-5 place-items-center rounded-full text-[9px] ${indice < pasoButacas ? 'bg-emerald-500 text-white' : 'bg-slate-100'}`}>{indice + 1}</span>{etiqueta}</div>)}
