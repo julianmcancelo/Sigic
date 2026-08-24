@@ -178,10 +178,15 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string[] }> }
 ) {
-  await inicializarBaseDatos();
-  await inicializarTablasAdicionales();
-  const { slug } = await params;
   const headers = corsHeaders(req);
+  try {
+    await inicializarBaseDatos();
+    await inicializarTablasAdicionales();
+  } catch (error: any) {
+    console.error('Error al inicializar la base de datos:', error);
+    return NextResponse.json({ error: error?.message || 'No se pudo inicializar la base de datos' }, { status: 500, headers });
+  }
+  const { slug } = await params;
   const path = slug.join('/');
 
   try {
