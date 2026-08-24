@@ -77,6 +77,10 @@ function idSeguro(valor: string) {
   return valor.toLowerCase().replace(/[^a-z0-9._-]/g, '-').slice(0, 100);
 }
 
+function textoLocalizado(valor: string) {
+  return { defaultValue: { language: 'es-419', value: valor } };
+}
+
 /** Crea o actualiza un Event Ticket y devuelve una URL firmada para Google Wallet. */
 export async function generarPaseGoogleWallet(pase: PaseCeremonia) {
   const configuracion = obtenerConfiguracion();
@@ -92,7 +96,9 @@ export async function generarPaseGoogleWallet(pase: PaseCeremonia) {
     ticketNumber: pase.token,
     barcode: { type: 'QR_CODE', value: `SIGIC:${pase.token}`, alternateText: pase.token },
     groupingInfo: { groupingId: pase.ceremoniaId },
-    seatInfo: pase.asiento ? { seat: pase.asiento } : undefined,
+    // Event Ticket usa LocalizedString en sus campos de butaca, a diferencia
+    // de ticketNumber y barcode que aceptan texto plano.
+    seatInfo: pase.asiento ? { seat: textoLocalizado(pase.asiento) } : undefined,
     linksModuleData: {
       uris: [{ uri: pase.acceso, description: 'Abrir credencial en SiGIC', id: 'portal-sigic' }],
     },
