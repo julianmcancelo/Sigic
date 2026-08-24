@@ -1564,18 +1564,29 @@ export async function PUT(
       const isPersonal = await esPersonalValido(req, ROLES_GESTION);
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
-      await query('UPDATE ceremonias SET activa = 0');
-      const result = await query(`
-        UPDATE ceremonias
-        SET activa = 1,
-            estado_operativo = CASE WHEN estado_operativo = 'BORRADOR' THEN 'CONFIGURACION' ELSE estado_operativo END
-        WHERE id = $1`, [id]);
-
-      if (result.rowCount === 0) {
-        return NextResponse.json({ error: 'Ceremonia no encontrada' }, { status: 404, headers });
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        // Serializa el cambio para que nunca puedan coexistir dos entornos activos.
+        await client.query("SELECT pg_advisory_xact_lock(hashtext('sigic-ceremonia-activa'))");
+        await client.query('UPDATE ceremonias SET activa = 0 WHERE activa = 1');
+        const result = await client.query(`
+          UPDATE ceremonias
+          SET activa = 1,
+              estado_operativo = CASE WHEN estado_operativo = 'BORRADOR' THEN 'CONFIGURACION' ELSE estado_operativo END
+          WHERE id = $1`, [id]);
+        if (result.rowCount === 0) {
+          await client.query('ROLLBACK');
+          return NextResponse.json({ error: 'Ceremonia no encontrada' }, { status: 404, headers });
+        }
+        await client.query('COMMIT');
+        return NextResponse.json({ ok: true, mensaje: 'Ceremonia activada correctamente' }, { headers });
+      } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+      } finally {
+        client.release();
       }
-
-      return NextResponse.json({ ok: true, mensaje: 'Ceremonia activada correctamente' }, { headers });
     }
 
     if (slug[0] === 'ceremonias' && slug[2] === 'estado' && slug[1]) {

@@ -53,6 +53,12 @@ async function ejecutarInicializacion() {
 
       ALTER TABLE ceremonias ADD COLUMN IF NOT EXISTS estado_operativo VARCHAR(24) NOT NULL DEFAULT 'BORRADOR';
       ALTER TABLE ceremonias ADD COLUMN IF NOT EXISTS finalizada_en TIMESTAMP;
+      UPDATE ceremonias SET activa = 0
+      WHERE activa = 1 AND id <> (
+        SELECT id FROM ceremonias WHERE activa = 1 ORDER BY fecha DESC, creado_en DESC LIMIT 1
+      );
+      CREATE UNIQUE INDEX IF NOT EXISTS ceremonias_una_activa
+        ON ceremonias ((activa)) WHERE activa = 1;
       CREATE TABLE IF NOT EXISTS egresados (
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
         ceremonia_id VARCHAR(50) REFERENCES ceremonias(id) ON DELETE CASCADE,

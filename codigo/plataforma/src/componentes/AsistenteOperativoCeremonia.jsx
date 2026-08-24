@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { ArrowRight, CalendarClock, CheckCircle2, ChevronDown, ChevronUp, LayoutTemplate, Radio, Send, Users } from 'lucide-react'
 import { obtenerCeremonias } from '../lib/api'
 
+const ETAPAS = ['Ceremonia', 'Padrón', 'Anfiteatro', 'Convocatoria', 'Preparación', 'En vivo']
+
 function siguientePaso(ceremonia) {
   if (!ceremonia) return { titulo: 'Prepará la próxima ceremonia', detalle: 'Creá una ceremonia y activala para comenzar el flujo.', destino: 'gestion-ceremonias', icono: CalendarClock, avance: 0 }
   if (!Number(ceremonia.total_egresados)) return { titulo: 'Cargá el padrón de graduados', detalle: 'Necesitás al menos un graduado para iniciar la convocatoria.', destino: 'gestion-graduados', icono: Users, avance: 1 }
@@ -41,6 +43,7 @@ export function AsistenteOperativoCeremonia({ onNavegar }) {
       <div className="sigic-ceremony-assistant-icon"><Icono size={18} /></div>
       <div><p className="sigic-ceremony-assistant-kicker">Siguiente acción</p><strong>{paso.titulo}</strong><p>{paso.detalle}</p></div>
       <div className="sigic-ceremony-assistant-progress"><span style={{ width: `${(paso.avance / 6) * 100}%` }} /></div>
+      <div className="sigic-ceremony-assistant-stages">{ETAPAS.map((etapa, indice) => <span key={etapa} className={indice < paso.avance ? 'is-done' : indice === paso.avance ? 'is-current' : ''}>{indice < paso.avance ? <CheckCircle2 size={10} /> : <i />}{etapa}</span>)}</div>
       <button onClick={() => onNavegar(paso.destino)} className="sigic-ceremony-assistant-action">Ir ahora <ArrowRight size={14} /></button>
     </div>}
   </aside>
