@@ -189,6 +189,165 @@ button { cursor: pointer; }
 @media (max-width:640px) { .demo-watermark { grid-template-columns: repeat(2,minmax(220px,1fr)); opacity: .03; } .demo-environment-badge { top: 6px; font-size: 8px; } }
 @media print { .demo-watermark,.demo-environment-badge { display: none !important; } }
 
+/* Inicio institucional: breve, legible y sin simular una carga que no existe. */
+.sigic-boot-screen.sigic-boot-console {
+  isolation: isolate;
+  min-height: 100dvh;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 43%, rgba(14, 105, 139, .22), transparent 27rem),
+    radial-gradient(circle at 10% 100%, rgba(22, 70, 118, .24), transparent 31rem),
+    #03080e;
+  color: #d9f7fb;
+  font-family: "Segoe UI", ui-sans-serif, sans-serif;
+}
+.sigic-boot-console:before,
+.sigic-boot-console:after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+}
+.sigic-boot-console:before {
+  inset: 0;
+  opacity: .22;
+  background-image: linear-gradient(rgba(111, 226, 236, .08) 1px, transparent 1px), linear-gradient(90deg, rgba(111, 226, 236, .08) 1px, transparent 1px);
+  background-size: 52px 52px;
+  mask-image: radial-gradient(ellipse at center, black, transparent 72%);
+}
+.sigic-boot-console:after {
+  width: min(64vw, 760px);
+  height: 1px;
+  top: 50%;
+  left: 50%;
+  background: linear-gradient(90deg, transparent, rgba(89, 226, 235, .45), transparent);
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 32px rgba(49, 213, 229, .35);
+}
+.sigic-boot-console .sigic-boot-noise {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: .18;
+  background-image: radial-gradient(rgba(255,255,255,.45) .55px, transparent .7px);
+  background-size: 5px 5px;
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+}
+.sigic-boot-console .sigic-boot-center {
+  width: min(430px, calc(100% - 42px));
+  transform: translateY(-2vh);
+}
+.sigic-boot-mark {
+  position: relative;
+  display: grid;
+  width: 104px;
+  height: 104px;
+  place-items: center;
+}
+.sigic-boot-console .sigic-boot-logo {
+  position: relative;
+  z-index: 1;
+  width: 72px;
+  height: 72px;
+  border: 1px solid rgba(143, 244, 244, .32);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 0 0 7px rgba(91, 218, 227, .05), 0 0 44px rgba(32, 195, 225, .34);
+  object-fit: cover;
+}
+.sigic-boot-mark-orbit {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(103, 232, 240, .58);
+  border-top-color: transparent;
+  border-left-color: transparent;
+  border-radius: 50%;
+  animation: sigic-boot-spin 2.8s linear infinite;
+}
+.sigic-boot-mark-orbit:after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 15px;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: #68e1e6;
+  box-shadow: 0 0 14px #68e1e6;
+}
+.sigic-boot-title { margin-top: 20px; text-align: center; }
+.sigic-boot-title strong {
+  display: block;
+  color: #f5feff;
+  font-size: clamp(27px, 7vw, 37px);
+  font-weight: 750;
+  letter-spacing: .2em;
+  line-height: 1;
+  text-indent: .2em;
+}
+.sigic-boot-title span {
+  display: block;
+  margin-top: 9px;
+  color: rgba(194, 234, 239, .58);
+  font-family: ui-monospace, "Cascadia Code", monospace;
+  font-size: 9px;
+  letter-spacing: .13em;
+  text-transform: uppercase;
+}
+.sigic-boot-terminal {
+  width: min(338px, 100%);
+  margin-top: 42px;
+  padding: 16px 17px;
+  border: 1px solid rgba(110, 223, 233, .16);
+  border-radius: 10px;
+  background: rgba(4, 17, 27, .62);
+  box-shadow: 0 20px 60px rgba(0,0,0,.25), inset 0 1px rgba(255,255,255,.025);
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+}
+.sigic-boot-terminal-title { margin: 0; color: #5fe6ed; font-size: 10px; letter-spacing: .08em; }
+.sigic-boot-console .sigic-boot-progress {
+  display: block;
+  width: 100%;
+  height: 3px;
+  margin: 14px 0;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(141, 232, 238, .14);
+}
+.sigic-boot-console .sigic-boot-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #16adc2, #83f0d9);
+  box-shadow: 0 0 12px rgba(99, 237, 228, .8);
+  transition: width .22s ease-out;
+}
+.sigic-boot-terminal-line { min-height: 15px; margin: 5px 0 0; color: #d1fbfc; font-size: 9px; line-height: 1.5; }
+.sigic-boot-terminal-line.is-muted { color: rgba(195, 237, 241, .45); }
+.sigic-boot-terminal-line i { display: inline-block; width: 5px; height: 11px; margin-left: 4px; background: #6de9e5; vertical-align: -2px; animation: sigic-boot-caret 1s steps(2, end) infinite; }
+.sigic-boot-console .sigic-boot-footer {
+  position: fixed;
+  right: 28px;
+  bottom: 23px;
+  left: 28px;
+  display: flex;
+  justify-content: space-between;
+  color: rgba(192, 231, 235, .36);
+  font-family: ui-monospace, "Cascadia Code", monospace;
+  font-size: 8px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+@keyframes sigic-boot-caret { 50% { opacity: 0; } }
+@media (max-width: 520px) {
+  .sigic-boot-console .sigic-boot-center { width: min(340px, calc(100% - 32px)); transform: translateY(-3vh); }
+  .sigic-boot-mark { width: 88px; height: 88px; }
+  .sigic-boot-console .sigic-boot-logo { width: 62px; height: 62px; border-radius: 15px; }
+  .sigic-boot-terminal { margin-top: 32px; padding: 14px; }
+  .sigic-boot-console .sigic-boot-footer { right: 16px; bottom: 16px; left: 16px; gap: 6px; flex-direction: column; text-align: center; }
+}
+
 .asiento-ocupado {
   background-color: #ef4444 !important;
   opacity: 0.6;
