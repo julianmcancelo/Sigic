@@ -235,6 +235,12 @@ async function sembrarDemo(client: Awaited<ReturnType<typeof pool.connect>>) {
     [ADMIN_DEMO_ID, hash]
   );
   await client.query(
+    `UPDATE ceremonias
+     SET activa = 0
+     WHERE activa = 1 AND id <> $1`,
+    [CEREMONIA_DEMO_ID]
+  );
+  await client.query(
     `INSERT INTO ceremonias (id,nombre,fecha,lugar,max_invitados,max_entregadores,activa)
      VALUES ($1,'Ceremonia Demo SiGIC 2026','2026-12-01','Auditorio Instituto Beltrán',4,3,1)
      ON CONFLICT (id) DO UPDATE SET activa=1`,
