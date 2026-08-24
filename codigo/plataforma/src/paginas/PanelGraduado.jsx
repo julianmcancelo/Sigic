@@ -191,11 +191,11 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-slate-100 font-sans">
+    <div className="sigic-graduate-portal min-h-screen flex flex-col md:flex-row bg-slate-100 font-sans">
       
       {/* SIDEBAR */}
-      <aside className="w-full md:w-64 bg-[#0d1b2e] text-white flex flex-col">
-        <div className="p-6 border-b border-white/10 text-center md:text-left">
+      <aside className="sigic-graduate-nav w-full md:w-64 bg-[#0d1b2e] text-white flex flex-col">
+        <div className="sigic-graduate-brand p-6 border-b border-white/10 text-center md:text-left">
           <div className="flex items-center gap-3 justify-center md:justify-start">
             <div className="h-8 w-8 bg-sky-500 rounded-lg flex items-center justify-center font-bold text-white shadow-lg shadow-sky-500/20">S</div>
             <span className="font-black tracking-wider text-xl">SiGIC</span>
@@ -203,7 +203,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
           <p className="text-[9px] text-sky-400 font-bold mt-1 tracking-widest uppercase opacity-70">Panel Graduado v4.0</p>
         </div>
 
-        <nav className="flex-1 p-4 space-y-2">
+        <nav className="sigic-graduate-tabs flex-1 p-4 space-y-2">
           <button onClick={() => setPestana('invitados')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${pestana === 'invitados' ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/20' : 'text-slate-400 hover:bg-white/5'}`}>
             <Users size={18} /> <span className="text-sm font-bold">Acompañantes</span>
           </button>
@@ -218,7 +218,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
           </button>
         </nav>
 
-        <div className="p-4 border-t border-white/10">
+        <div className="sigic-graduate-actions p-4 border-t border-white/10">
           <button onClick={finalizarInscripcion} disabled={finalizandoInscripcion} className="mb-2 w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 transition-all disabled:opacity-60">
             <CircleCheck size={18} /> <span className="text-sm font-bold">{finalizandoInscripcion ? 'Finalizando...' : graduado.perfil_finalizado_en ? 'Inscripción finalizada' : 'Guardar y finalizar'}</span>
           </button>
@@ -229,16 +229,16 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
       </aside>
 
       {/* CONTENIDO */}
-      <main className="flex-1 p-6 md:p-10 overflow-y-auto">
+      <main className="sigic-graduate-main flex-1 p-6 md:p-10 overflow-y-auto">
         
         {/* HEADER */}
-        <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10">
+        <header className="sigic-graduate-header flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-sky-500 mb-1">Bienvenido al Portal</p>
             <h1 className="text-4xl font-black text-slate-800 tracking-tight">{graduado.nombre}</h1>
             <p className="text-slate-500 font-medium">Legajo {graduado.legajo} • Sede Beltrán</p>
           </div>
-          <div className="flex gap-4">
+          <div className="sigic-graduate-metrics flex gap-4">
             <div className="flex items-center gap-4 bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
               <div className="h-10 w-10 bg-sky-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-sky-200">
                 <Users size={20} />

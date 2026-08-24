@@ -84,6 +84,32 @@ button { cursor: pointer; }
 .sigic-theme-claro { background: #dbe8ee; color: #173044; }.sigic-theme-claro .sigic-os-grid { opacity: .42; background-image: linear-gradient(rgba(27,103,125,.12) 1px, transparent 1px), linear-gradient(90deg, rgba(27,103,125,.12) 1px, transparent 1px); }.sigic-theme-claro .sigic-os-topbar, .sigic-theme-claro .sigic-taskbar { background: rgba(244,250,252,.9); border-color: rgba(25,80,100,.15); }.sigic-theme-claro .sigic-brand, .sigic-theme-claro .sigic-os-topbar .text-white\/60, .sigic-theme-claro .sigic-taskbar .text-white\/65 { color: #173044; }.sigic-theme-claro .sigic-task-app, .sigic-theme-claro .sigic-start-button, .sigic-theme-claro .sigic-open-task { color: rgba(23,48,68,.72); }.sigic-theme-claro .sigic-start-button:hover, .sigic-theme-claro .sigic-start-button.is-active, .sigic-theme-claro .sigic-task-app:hover, .sigic-theme-claro .sigic-open-task:hover, .sigic-theme-claro .sigic-open-task.is-current { background: rgba(23,128,157,.12); color: #0d4f67; }.sigic-theme-claro .sigic-session-card { background: rgba(248,253,255,.8); border-color: rgba(25,80,100,.18); }.sigic-theme-claro .sigic-session-card strong { color: #173044; }.sigic-theme-claro .sigic-session-card div + div span { color: rgba(23,48,68,.55); }.sigic-theme-claro .sigic-context-menu { background: rgba(248,253,255,.98); border-color: rgba(25,80,100,.16); }.sigic-theme-claro .sigic-context-title { color: rgba(23,48,68,.5); }.sigic-theme-claro .sigic-context-menu button { color: rgba(23,48,68,.78); }.sigic-theme-claro .sigic-context-menu button:hover { background: rgba(23,128,157,.12); color: #0d4f67; }.sigic-theme-claro .sigic-context-separator { background: rgba(23,48,68,.1); }
 @media (max-width: 700px) { .sigic-session-card { right: 12px; bottom: 14px; min-width: 0; }.sigic-session-card div + div, .sigic-session-state { display: none; } }
 
+/* Mobile first: el escritorio deja de simular una PC y prioriza superficie táctil real. */
+@media (max-width: 700px) {
+  html { -webkit-text-size-adjust: 100%; }
+  body { overflow-x: hidden; }
+  button, input, select, textarea { touch-action: manipulation; }
+  .sigic-os-shell { min-height: 100dvh; }
+  .sigic-os-workspace { height: calc(100dvh - 52px); padding: 5px; }
+  .sigic-os-shortcuts { display: none; }
+  .sigic-window, .sigic-window-welcome { width: 100% !important; max-width: none !important; height: calc(100% - 4px) !important; margin: 0 !important; border-radius: 8px; }
+  .sigic-window-maximized, .sigic-native-host .sigic-window-maximized, .sigic-window-snapped { inset: 3px !important; width: auto !important; height: auto !important; }
+  .sigic-window-bar { min-height: 38px; padding: 0 8px; }
+  .sigic-window-heading { min-width: 0; overflow: hidden; }.sigic-window-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sigic-window-controls button { width: 34px; height: 30px; }
+  .sigic-window-browser .sigic-window-bar { height: 66px; }.sigic-window-browser .sigic-window-body { height: calc(100% - 66px); }
+  .sigic-taskbar { height: 52px; padding: 0 6px; gap: 3px; }.sigic-task-divider, .sigic-taskbar > .ml-auto > svg, .sigic-clock span { display: none; }
+  .sigic-task-app { padding: 0 8px; }.sigic-open-tasks { flex: 1; max-width: none; }.sigic-open-task { min-width: 38px; max-width: 42px; justify-content: center; padding: 0; }.sigic-open-task svg { width: 15px; height: 15px; }.sigic-open-task:not(.is-current) { opacity: .72; }.sigic-clock { min-width: 43px; }.sigic-clock strong { font-size: 10px; }
+  .sigic-start-menu { bottom: 59px; padding: 12px; }.sigic-start-apps { grid-template-columns: 1fr 1fr; }.sigic-start-app { min-height: 54px; flex-direction: row; justify-content: flex-start; padding: 8px; }
+  .sigic-ceremony-assistant { right: 8px; bottom: 58px; width: min(360px, calc(100vw - 16px)); }.sigic-ceremony-assistant-toggle { min-height: 42px; }.sigic-ceremony-assistant-action { min-height: 38px; }
+  .sigic-quick-graduate-overlay { align-items: end; padding: 0; }.sigic-quick-graduate-card { width: 100%; max-height: 92dvh; overflow-y: auto; border-bottom-right-radius: 0; border-bottom-left-radius: 0; }.sigic-quick-graduate-fields { grid-template-columns: 1fr; gap: 10px; padding: 14px; }.sigic-quick-graduate-field-wide { grid-column: auto; }.sigic-quick-graduate-card header { padding: 15px 16px; }.sigic-quick-graduate-card footer { position: sticky; bottom: 0; padding: 12px 14px; }.sigic-quick-graduate-card footer button { min-height: 40px; }
+  .sigic-graduate-nav { position: sticky; top: 0; z-index: 20; box-shadow: 0 6px 18px rgba(2, 12, 25, .2); }.sigic-graduate-brand { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; text-align: left; }.sigic-graduate-brand > div { justify-content: flex-start; }.sigic-graduate-brand p { display: none; }
+  .sigic-graduate-tabs { display: flex; gap: 6px; overflow-x: auto; padding: 8px 12px; white-space: nowrap; scrollbar-width: none; }.sigic-graduate-tabs::-webkit-scrollbar { display: none; }.sigic-graduate-tabs button { width: auto; flex: 0 0 auto; min-height: 42px; padding: 0 12px; }.sigic-graduate-tabs button span { font-size: 11px; }
+  .sigic-graduate-actions { display: flex; gap: 6px; padding: 8px 12px; border-top: 1px solid rgba(255,255,255,.1); }.sigic-graduate-actions button { min-height: 40px; margin: 0 !important; flex: 1; justify-content: center; padding: 0 8px; }.sigic-graduate-actions button span { font-size: 10px; }
+  .sigic-graduate-main { padding: 20px 14px 34px; overflow: visible; }.sigic-graduate-header { gap: 16px; margin-bottom: 24px; }.sigic-graduate-header h1 { font-size: clamp(26px, 9vw, 34px); overflow-wrap: anywhere; }.sigic-graduate-header > div:first-child > p:last-child { font-size: 12px; }.sigic-graduate-metrics { width: 100%; gap: 8px; }.sigic-graduate-metrics > div { flex: 1; min-width: 0; gap: 10px; padding: 13px; border-radius: 18px; }.sigic-graduate-metrics > div > div:first-child { width: 34px; height: 34px; border-radius: 12px; }.sigic-graduate-metrics p:last-child { font-size: 17px; }
+  .sigic-graduate-portal .rounded-\[32px\] { border-radius: 20px; }.sigic-graduate-portal .p-8 { padding: 18px; }.sigic-graduate-portal .gap-6 { gap: 14px; }.sigic-graduate-portal input, .sigic-graduate-portal select { min-height: 46px; font-size: 16px; }.sigic-graduate-portal form button { min-height: 46px; }.sigic-graduate-portal .group:hover .opacity-0 { opacity: 1; }
+}
+
 /* Escritorio SIGIC: composición limpia inspirada en el escritorio de Transporte. */
 .sigic-os-topbar { display: none; }
 .sigic-os-workspace { height: calc(100vh - 48px); padding: 10px 8px; }
@@ -258,6 +284,16 @@ button { cursor: pointer; }
   .homer-div-mobile { display: flex; margin: 6px; }
   .homer-div-mobile img { max-width: 70px; }
   .homer-cortina-izq img, .homer-cortina-der img { max-width: 185px; }
+}
+
+/* Debe permanecer al final: prioriza el modo táctil sobre las reglas del escritorio heredado. */
+@media (max-width: 700px) {
+  .sigic-os-workspace { height: calc(100dvh - 52px); padding: 5px; }
+  .sigic-os-shortcuts { display: none; }
+  .sigic-window, .sigic-window-welcome { width: 100% !important; max-width: none !important; height: calc(100% - 4px) !important; margin: 0 !important; }
+  .sigic-window-maximized, .sigic-native-host .sigic-window-maximized, .sigic-window-snapped { inset: 3px !important; width: auto !important; height: auto !important; }
+  .sigic-native-host .sigic-window { max-width: none; }
+  .sigic-taskbar { height: 52px; }.sigic-open-tasks { flex: 1; max-width: none; }
 }
 
 
