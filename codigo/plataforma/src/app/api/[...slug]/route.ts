@@ -1644,6 +1644,19 @@ export async function PUT(
 
   let body: any = {};
   try {
+    if (slug[0] === 'egresados' && slug[1] && !slug[2]) {
+      const isPersonal = await esPersonalValido(req, ROLES_GESTION);
+      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+      const actualizado = await query(
+        `UPDATE egresados SET nombre = $1, dni = $2, legajo = $3, correo = $4, carrera = $5,
+          anio_inscripcion = $6, promedio = $7 WHERE id = $8
+         RETURNING id, nombre, dni, legajo, correo, carrera, anio_inscripcion, promedio`,
+        [body.nombre?.trim(), body.dni?.replace(/\D/g, ''), body.legajo?.trim(), body.correo?.trim() || null,
+          body.carrera?.trim() || null, body.anio_inscripcion || null, body.promedio || null, slug[1]]
+      );
+      if (!actualizado.rows[0]) return NextResponse.json({ error: 'Graduado no encontrado' }, { status: 404, headers });
+      return NextResponse.json({ ok: true, graduado: actualizado.rows[0] }, { headers });
+    }
     body = await req.json();
   } catch (e) {
     // Ignorar si el cuerpo está vacío o no es JSON

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { 
   Users, Search, Upload, Trash2, X, Mail, Link2, CreditCard, 
-  UserX, CheckCircle2, Clock, AlertCircle, Armchair, Send, Award, PlusCircle, BadgeCheck, MailWarning
+  UserX, CheckCircle2, Clock, AlertCircle, Armchair, Send, Award, PlusCircle, BadgeCheck, MailWarning, Edit3
 } from 'lucide-react'
 
 import { 
@@ -9,7 +9,7 @@ import {
   eliminarGraduado,
   vaciarGraduados,
   obtenerInvitados, 
-  enviarInvitacion, corroborarGraduado, enviarCredencialCeremonia
+  enviarInvitacion, corroborarGraduado, enviarCredencialCeremonia, actualizarGraduado
 } from '../../servicios/api'
 
 import { ModalQR } from '../../componentes/ModalQR'
@@ -61,6 +61,7 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
   const [enviandoCredencialId, setEnviandoCredencialId] = useState(null)
   const [credencialEnviadaId, setCredencialEnviadaId] = useState(null)
   const [altaExitosa, setAltaExitosa] = useState('')
+  const [graduadoEditar, setGraduadoEditar] = useState(null)
 
   const [busqueda, setBusqueda] = useState('')
   const [filtroEstado, setFiltroEstado] = useState('TODOS')
@@ -202,6 +203,14 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
     } finally {
       setEnviandoCredencialId(null)
     }
+  }
+
+  async function guardarEdicion(datos) {
+    const actualizado = await actualizarGraduado(graduadoEditar.id, datos)
+    setGraduados(actuales => actuales.map(item => item.id === actualizado.id ? { ...item, ...actualizado } : item))
+    setGraduadoEditar(null)
+    setAltaExitosa(`Datos de ${actualizado.nombre} actualizados.`)
+    setTimeout(() => setAltaExitosa(''), 4000)
   }
 
   async function manejarEnvioMasivo() {
@@ -527,6 +536,10 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
                         </button>
                         
                         <button
+                          onClick={() => setGraduadoEditar(grad)}
+                          className="flex items-center gap-1 px-2.5 py-1.5 text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-colors"
+                        ><Edit3 size={12} /> Editar</button>
+                        <button
                           onClick={() => manejarLink(grad)}
                           className="flex items-center gap-1 px-2.5 py-1.5 text-slate-500 hover:bg-slate-50 hover:text-slate-800 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-colors border border-transparent"
                         >
@@ -623,8 +636,17 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
           }}
         />
       )}
+      {graduadoEditar && <ModalEditarGraduado graduado={graduadoEditar} onCerrar={() => setGraduadoEditar(null)} onGuardar={guardarEdicion} />}
     </div>
   )
+}
+
+function ModalEditarGraduado({ graduado, onCerrar, onGuardar }) {
+  const [form, setForm] = useState({ nombre: graduado.nombre || '', dni: graduado.dni || '', legajo: graduado.legajo || '', correo: graduado.correo || '', carrera: graduado.carrera || '', promedio: graduado.promedio || '' })
+  const [guardando, setGuardando] = useState(false)
+  async function enviar(evento) { evento.preventDefault(); setGuardando(true); try { await onGuardar(form) } catch (error) { alert(error.message) } finally { setGuardando(false) } }
+  const campo = (clave, etiqueta, tipo = 'text') => <label className="grid gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-500"><span>{etiqueta}</span><input type={tipo} value={form[clave]} onChange={e => setForm(actual => ({ ...actual, [clave]: e.target.value }))} className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-800 outline-none focus:border-sky-400" /></label>
+  return <div className="fixed inset-0 z-[70] grid place-items-center bg-slate-950/45 p-4 backdrop-blur-sm"><form onSubmit={enviar} className="w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl"><div className="mb-5 flex items-start justify-between"><div><p className="text-[10px] font-black uppercase tracking-[.16em] text-sky-600">Edición administrativa</p><h3 className="mt-1 text-lg font-black text-slate-900">Actualizar graduado</h3></div><button type="button" onClick={onCerrar} className="text-slate-400 hover:text-slate-900"><X size={20} /></button></div><div className="grid gap-3 sm:grid-cols-2">{campo('nombre', 'Nombre completo')}{campo('dni', 'DNI', 'text')}{campo('legajo', 'Legajo')}{campo('correo', 'Correo', 'email')}{campo('carrera', 'Carrera')}{campo('promedio', 'Promedio', 'number')}</div><div className="mt-5 flex justify-end gap-2"><button type="button" onClick={onCerrar} className="px-4 py-2 text-xs font-bold text-slate-500">Cancelar</button><button disabled={guardando} className="rounded-lg bg-slate-900 px-4 py-2 text-xs font-black text-white disabled:opacity-50">{guardando ? 'Guardando...' : 'Guardar cambios'}</button></div></form></div>
 }
 
 function FlujoMini({ etiqueta, listo }) {
