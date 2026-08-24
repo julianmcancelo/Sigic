@@ -1,11 +1,11 @@
 {
-  "version": "1.0.3",
-  "notes": "Actualización de escritorio: marco nativo, instalador en español y actualizador seguro.",
-  "pub_date": "2026-08-23T21:01:15-03:00",
+  "version": "1.0.4",
+  "notes": "Actualización de prueba del actualizador automático de SiGIC Escritorio.",
+  "pub_date": "2026-08-23T21:10:04-03:00",
   "platforms": {
     "windows-x86_64": {
-      "url": "https://descargas.sigic.com.ar/descargas/SiGIC-Escritorio-Setup-1.0.3.exe",
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSQnBCUTRMWnJVREMrOVdBZ0RqVi9xcTJlTms2ZmRDTTRCSmt2T2VQK1pFVFdnV3h4YVRPZ2hCTHVReDAwQ0hoOEtqRXlSUEVqQkZFWnhvckt3RldWdlR1c1JzYUFNdmdNPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg3NTI5Njc0CWZpbGU6U2lHSUMgRXNjcml0b3Jpb18xLjAuM194NjQtc2V0dXAuZXhlCitzUzhtRTl5RFpyandTTUsxdUo4NExVcEh3T1lmMlhrWjV4ck1PUUlLQ0h3dHcxdjhHNk9aSFhJNDIxaVZIS1FJQXJ0ZGh1RGd0YU1reWJzRWVSSERRPT0K"
+      "url": "https://descargas.sigic.com.ar/descargas/SiGIC-Escritorio-Setup-1.0.4.exe",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSQnBCUTRMWnJVREpxZUZQblhTRzd5QXcrbm03RGhOVEVVZzRzbWpoK0FkckRHMzZOUHEwNnFYc2cwVXhqSklWbWtzOFRaM1FCaWRDdmFiUE4xZ0czVEZQNVJPaXBiWkFZPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg3NTMwMjgxCWZpbGU6U2lHSUMgRXNjcml0b3Jpb18xLjAuNF94NjQtc2V0dXAuZXhlCnRKNkVPZnE0Ull3eEhvOFZ2RFMrRVRFdUNlWjlONzdWS0Irbkw4MHFQRTB6N2cwcDRPVGV2Y0QrL3g0ZEhTK042NU54aWVkbzNVbDZ5bUNwWVRvR0NRPT0K"
     }
   }
 }

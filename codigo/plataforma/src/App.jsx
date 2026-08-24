@@ -1011,7 +1011,7 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
   }
 
   return (
-    <main className={`sigic-os-shell sigic-theme-${tema}`} onContextMenu={abrirMenuContextual} onClick={() => menuContextual && setMenuContextual(null)}>
+    <main className={`sigic-os-shell ${esAplicacionNativa ? 'sigic-native-host' : ''} sigic-theme-${tema}`} onContextMenu={abrirMenuContextual} onClick={() => menuContextual && setMenuContextual(null)}>
       <div className="sigic-os-grid" />
       <div className="sigic-watermark" aria-hidden="true"><img src="/logo-oficial.png" alt="" /><span>SIGIC</span><small>Sistema Integral de Gestión Institucional</small></div>
       <header className="sigic-os-topbar">

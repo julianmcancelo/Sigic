@@ -103,6 +103,11 @@ button { cursor: pointer; }
 .sigic-window-native .sigic-window-bar { background: linear-gradient(100deg, #0b1c32, #143a55); }
 .sigic-window-native .sigic-window-app-icon { background: rgba(73, 205, 228, .22); }
 .sigic-window-native .sigic-window-body { height: calc(100% - 34px); }
+.sigic-native-host { height: 100dvh; min-height: 620px; min-width: 0; }
+.sigic-native-host .sigic-os-workspace { height: calc(100dvh - 48px); min-height: 0; box-sizing: border-box; }
+.sigic-native-host .sigic-window { box-sizing: border-box; max-width: calc(100% - 106px); }
+.sigic-native-host .sigic-window-maximized { inset: 8px 8px 8px 96px; width: auto; max-width: none; }
+.sigic-native-host .sigic-window-snapped { top: 8px; bottom: 8px; }
 .sigic-session-card { right: 14px; bottom: 13px; opacity: .82; }
 .sigic-taskbar { height: 48px; padding: 0 12px; background: rgba(2,8,23,.9); border-top: 1px solid rgba(255,255,255,.1); }
 .sigic-start-button, .sigic-task-app { height: 32px; padding: 0 9px; border-radius: 4px; font-size: 12px; }
@@ -118,7 +123,7 @@ button { cursor: pointer; }
 .sigic-theme-claro .sigic-taskbar { background: rgba(239,247,250,.92); border-color: rgba(25,80,100,.16); }
 .sigic-theme-claro .sigic-start-button, .sigic-theme-claro .sigic-task-app, .sigic-theme-claro .sigic-open-task { color: #173044; }
 .sigic-theme-claro .sigic-open-task.is-minimized { color: rgba(23,48,68,.45); }
-@media (max-width: 700px) { .sigic-os-shortcuts { width: 64px; }.sigic-desktop-icon { width: 62px; min-width: 62px; }.sigic-desktop-icon-art { width: 34px; height: 34px; }.sigic-window { margin-left: 68px; }.sigic-session-card { display: none; } }
+@media (max-width: 700px) { .sigic-os-shortcuts { width: 64px; }.sigic-desktop-icon { width: 62px; min-width: 62px; }.sigic-desktop-icon-art { width: 34px; height: 34px; }.sigic-window { margin-left: 68px; }.sigic-native-host .sigic-window { max-width: calc(100% - 76px); }.sigic-native-host .sigic-window-maximized { inset: 5px 5px 7px 68px; }.sigic-session-card { display: none; } }
 
 /* Estilo para asientos ocupados */
 /* Demo: carga y escritorio con lenguaje visual Windows/Explorer. */

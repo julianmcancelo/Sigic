@@ -1,6 +1,6 @@
 const opciones = [
   ['Portería Android', 'v1.0.4+5', 'Acreditación QR y control de acceso.', '/descargas/SIGIC-Porteria-1.0.4.apk', 'Descargar APK'],
-  ['SiGIC Escritorio', 'v1.0.3', 'Cliente nativo Windows para gestión institucional.', '/descargas/SiGIC-Escritorio-Setup-1.0.3.exe', 'Descargar para Windows'],
+  ['SiGIC Escritorio', 'v1.0.4', 'Cliente nativo Windows para gestión institucional.', '/descargas/SiGIC-Escritorio-Setup-1.0.4.exe', 'Descargar para Windows'],
   ['Versión web', 'Siempre actualizada', 'Usá SiGIC desde cualquier navegador.', 'https://demo.sigic.com.ar', 'Abrir SiGIC web'],
 ];
 
