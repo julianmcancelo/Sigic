@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -42,6 +44,8 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
   bool _mostrandoCamara = false;
   bool _escaneoBloqueado = false;
   ResultadoEscaneo? _resultado;
+  DateTime? _ultimaActualizacion;
+  Timer? _relojActualizacion;
   final TextEditingController _controladorCodigoManual =
       TextEditingController();
 
@@ -55,6 +59,9 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
   void initState() {
     super.initState();
     _cargarPantalla();
+    _relojActualizacion = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
   }
 
   @override
@@ -67,9 +74,20 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
 
   @override
   void dispose() {
+    _relojActualizacion?.cancel();
     _controladorCodigoManual.dispose();
     _controladorCamara.dispose();
     super.dispose();
+  }
+
+  String get _textoUltimaActualizacion {
+    final ultima = _ultimaActualizacion;
+    if (ultima == null) return '';
+    final segundos = DateTime.now().difference(ultima).inSeconds;
+    if (segundos < 2) return 'actualizado ahora mismo';
+    if (segundos < 60) return 'actualizado hace $segundos s';
+    final minutos = segundos ~/ 60;
+    return 'actualizado hace $minutos min';
   }
 
   Future<void> _cargarPantalla() async {
@@ -125,6 +143,7 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
         _mensajeSesion = mensajeSesion;
         _cargando = false;
         _mostrandoCamara = !kIsWeb && token == null;
+        _ultimaActualizacion = DateTime.now();
       });
     } catch (error) {
       if (!mounted) {
@@ -140,7 +159,7 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
   }
 
   Future<void> _procesarCodigo(String codigo) async {
-    if (_escaneoBloqueado || _cargandoEscaneo) {
+    if (_escaneoBloqueado || _cargandoEscaneo || _resultado != null) {
       return;
     }
 
@@ -186,7 +205,6 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
       }
       setState(() {
         _resultado = resultado;
-        _mostrandoCamara = false;
       });
     } catch (error) {
       await _mostrarMensaje(
@@ -213,15 +231,43 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
       if (!mounted) {
         return;
       }
+      final actualizado = _resultado?.marcarInvitadoPresente(id);
       setState(() {
-        _resultado = _resultado?.marcarInvitadoPresente(id);
+        _resultado = actualizado;
       });
       final yaAcreditado = respuesta['yaAcreditado'] == true;
-      await _mostrarMensaje(
-        yaAcreditado ? 'Invitado ya acreditado' : 'Ingreso registrado',
-        (respuesta['mensaje'] ?? 'La acreditacion se realizo con exito.')
-            .toString(),
-      );
+      final mensaje = (respuesta['mensaje'] ?? 'La acreditacion se realizo con exito.')
+          .toString();
+
+      if (actualizado?.tipo == TipoResultadoEscaneo.individual) {
+        // Escaneo continuo: mostramos confirmacion breve y volvemos a la
+        // camara automaticamente, sin salir de la pantalla de escaneo.
+        if (mounted) {
+          ScaffoldMessenger.of(context)
+            ..hideCurrentSnackBar()
+            ..showSnackBar(
+              SnackBar(
+                content: Text(
+                  yaAcreditado ? 'Invitado ya acreditado' : mensaje,
+                ),
+                backgroundColor: yaAcreditado
+                    ? const Color(0xFFB4530A)
+                    : TemaSigic.exito,
+              ),
+            );
+        }
+        await Future.delayed(const Duration(milliseconds: 700));
+        if (mounted && _resultado?.tipo == TipoResultadoEscaneo.individual) {
+          setState(() {
+            _resultado = null;
+          });
+        }
+      } else {
+        await _mostrarMensaje(
+          yaAcreditado ? 'Invitado ya acreditado' : 'Ingreso registrado',
+          mensaje,
+        );
+      }
     } catch (error) {
       await _mostrarMensaje(
         'Error',
@@ -271,10 +317,16 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
       final detalleOmitidos = omitidos > 0
           ? ' $omitidos ya estaban acreditados.'
           : '';
-      await _mostrarMensaje(
-        'Ingreso masivo',
-        '$acreditados acreditados.$detalleOmitidos',
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            SnackBar(
+              content: Text('$acreditados acreditados.$detalleOmitidos'),
+              backgroundColor: TemaSigic.exito,
+            ),
+          );
+      }
     } catch (error) {
       await _mostrarMensaje(
         'Error',
@@ -303,6 +355,13 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
     }
     setState(() {
       _mostrandoCamara = false;
+      _resultado = null;
+    });
+  }
+
+  void _cerrarTarjetaFlotante() {
+    setState(() {
+      _resultado = null;
     });
   }
 
@@ -334,49 +393,20 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        leadingWidth: 60,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 16, top: 7, bottom: 7),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFD9E5EC)),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(4),
-              child: Image.asset('assets/imagenes/logo-oficial.png'),
-            ),
-          ),
-        ),
-        title: const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('SiGIC Accesos'),
-            Text(
-              'CONTROL DE PORTERIA',
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 1.1,
-              ),
-            ),
-          ],
-        ),
-      ),
       body: SafeArea(
+        top: !_mostrandoCamara,
+        bottom: false,
         child: AnimatedSwitcher(
           duration: const Duration(milliseconds: 250),
           child: _mostrandoCamara
-              ? _construirVistaCamara(context)
-              : _resultado != null
-              ? _construirVistaResultado(context, _resultado!)
+              ? _construirVistaCamaraConTarjeta(context)
               : _construirVistaInicio(context),
         ),
       ),
     );
   }
+
+  // ─── INICIO ────────────────────────────────────────────────────
 
   Widget _construirVistaInicio(BuildContext context) {
     final tema = Theme.of(context);
@@ -388,316 +418,325 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
       EstadoSesion.expirada => TemaSigic.error,
       EstadoSesion.invitado => TemaSigic.error,
     };
-    final estadoEtiqueta = switch (_estadoSesion) {
-      EstadoSesion.autenticado => 'OPERATIVO',
-      EstadoSesion.sinConexion => 'MODO LOCAL',
-      EstadoSesion.expirada => 'REQUIERE ACCESO',
-      _ => 'EN VERIFICACION',
-    };
+
     return RefreshIndicator(
+      key: const ValueKey('inicio'),
       onRefresh: _cargarPantalla,
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 28),
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 24),
         children: [
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF123D57), Color(0xFF0A2233)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(22),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x22061826),
-                  blurRadius: 18,
-                  offset: Offset(0, 8),
+          if (widget.mensajeShorebird != null)
+            PanelTarjeta(
+              colorBorde: TemaSigic.azulBrillante.withValues(alpha: 0.25),
+              contenido: ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(
+                  Icons.system_update_alt,
+                  color: TemaSigic.azulPrincipal,
                 ),
-              ],
+                title: const Text('Shorebird'),
+                subtitle: Text(widget.mensajeShorebird!),
+              ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+
+          // Cabecera: logo + saludo + estado de sesion + rol
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(13),
+                  border: Border.all(color: const Color(0xFFE2EAF0)),
+                  image: const DecorationImage(
+                    image: AssetImage('assets/imagenes/logo-glow.png'),
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 11),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 52,
-                      height: 52,
-                      padding: const EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(15),
+                    Text(
+                      _usuario == null
+                          ? 'Acceso de porteria'
+                          : 'Hola, ${_usuario!.nombre.split(' ').first}',
+                      style: tema.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.4,
                       ),
-                      child: Image.asset('assets/imagenes/logo-oficial.png'),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'PUESTO DE CONTROL',
-                            style: TextStyle(
-                              color: Color(0xFF9BD8E7),
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 1.2,
-                            ),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Container(
+                          width: 7,
+                          height: 7,
+                          margin: const EdgeInsets.only(right: 6),
+                          decoration: BoxDecoration(
+                            color: colorSesion,
+                            shape: BoxShape.circle,
                           ),
-                          const SizedBox(height: 3),
-                          Text(
-                            _usuario == null
-                                ? 'Acceso de porteria'
-                                : _usuario!.nombre,
-                            maxLines: 1,
+                        ),
+                        Flexible(
+                          child: Text(
+                            _mensajeSesion,
+                            style: tema.textTheme.bodySmall?.copyWith(
+                              color: const Color(0xFF4A6275),
+                            ),
                             overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w800,
-                            ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-                const SizedBox(height: 18),
+              ),
+              if (_usuario != null)
                 Container(
-                  width: double.infinity,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 10,
+                    horizontal: 9,
+                    vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.09),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.10),
-                    ),
+                    color: TemaSigic.azulPrincipal.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 9,
-                        height: 9,
-                        decoration: BoxDecoration(
-                          color: colorSesion,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(color: colorSesion, blurRadius: 7),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 9),
-                      Expanded(
-                        child: Text(
-                          _mensajeSesion,
-                          style: const TextStyle(
-                            color: Color(0xFFD9EAF0),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      Text(
-                        estadoEtiqueta,
-                        style: const TextStyle(
-                          color: Color(0xFF9BD8E7),
-                          fontSize: 9,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.7,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    _usuario!.rol,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 10.5,
+                      letterSpacing: 0.6,
+                      color: TemaSigic.azulPrincipal,
+                    ),
                   ),
                 ),
-              ],
-            ),
+            ],
           ),
-          if (widget.mensajeShorebird != null) ...[
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(13),
-              decoration: BoxDecoration(
-                color: const Color(0xFFEAF8FC),
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: const Color(0xFFB9E6F1)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.system_update_alt,
-                    color: TemaSigic.azulPrincipal,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      widget.mensajeShorebird!,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-          const SizedBox(height: 18),
-          const Text(
-            'OPERACION ACTUAL',
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1.1,
-              color: Color(0xFF597080),
-            ),
-          ),
-          const SizedBox(height: 8),
-          if (_ceremonia != null)
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: const Color(0xFFDCE7ED)),
-              ),
-              child: Column(
+          const SizedBox(height: 14),
+
+          // Tarjeta principal: ceremonia activa con contador en vivo
+          if (_ceremonia != null && _estadisticas != null)
+            _TarjetaCeremoniaActiva(
+              ceremonia: _ceremonia!,
+              estadisticas: _estadisticas!,
+              formatterFecha: formatterFecha,
+              textoActualizacion: _textoUltimaActualizacion,
+            )
+          else if (_ceremonia != null)
+            PanelTarjeta(
+              contenido: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.school,
-                        color: TemaSigic.azulPrincipal,
-                        size: 19,
-                      ),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'Ceremonia activa',
-                        style: TextStyle(fontWeight: FontWeight.w800),
-                      ),
-                    ],
+                  const Text(
+                    'Ceremonia activa',
+                    style: TextStyle(fontWeight: FontWeight.w700),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
                   Text(
                     _ceremonia!.nombre,
                     style: tema.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w800,
                     ),
                   ),
-                  const SizedBox(height: 7),
-                  Text(
-                    '${formatterFecha.format(_ceremonia!.fecha)}  |  ${_ceremonia!.lugar}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF5E7280),
-                    ),
-                  ),
-                ],
-              ),
-            )
-          else
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF8E8),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.school, color: Color(0xFFB7791F)),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'No hay una ceremonia activa para acreditar.',
-                      style: TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                  ),
+                  const SizedBox(height: 6),
+                  Text(formatterFecha.format(_ceremonia!.fecha)),
+                  const SizedBox(height: 4),
+                  Text(_ceremonia!.lugar),
                 ],
               ),
             ),
-          const SizedBox(height: 12),
-          if (_estadisticas != null)
+
+          if (_estadisticas != null) ...[
+            const SizedBox(height: 10),
             Row(
               children: [
                 Expanded(
-                  child: _tarjetaIndicador(
-                    'ACREDITADOS',
-                    '${_estadisticas!.presentes}',
-                    Icons.school,
-                    TemaSigic.exito,
+                  child: _TarjetaEstadistica(
+                    valor: '${_estadisticas!.ausentes}',
+                    etiqueta: 'PENDIENTES',
+                    color: const Color(0xFFB4530A),
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 9),
                 Expanded(
-                  child: _tarjetaIndicador(
-                    'PENDIENTES',
-                    '${_estadisticas!.totalInvitados - _estadisticas!.presentes}',
-                    Icons.qr_code_scanner,
-                    TemaSigic.azulPrincipal,
+                  child: _TarjetaEstadistica(
+                    valor: '${_estadisticas!.totalEgresados}',
+                    etiqueta: 'EGRESADOS',
+                    color: TemaSigic.azulPrincipal,
+                  ),
+                ),
+                const SizedBox(width: 9),
+                Expanded(
+                  child: _TarjetaEstadistica(
+                    valor: '${_estadisticas!.porcentajeAsistencia}%',
+                    etiqueta: 'ASISTENCIA',
+                    color: const Color(0xFF0A7F5F),
                   ),
                 ),
               ],
             ),
-          if (_ceremoniasAutorizadas.isNotEmpty)
-            PanelTarjeta(
-              contenido: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          ],
+
+          const SizedBox(height: 12),
+
+          // Boton principal: abrir escaner
+          Material(
+            color: const Color(0xFF0A1422),
+            borderRadius: BorderRadius.circular(22),
+            child: InkWell(
+              onTap: _abrirCamara,
+              borderRadius: BorderRadius.circular(22),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        color: TemaSigic.azulBrillante.withValues(
+                          alpha: 0.18,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Icon(
+                        Icons.qr_code_scanner,
+                        color: Color(0xFF7DD3FC),
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _token == null
+                                ? 'Escanear QR de acceso'
+                                : 'Escanear QR',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 18,
+                              letterSpacing: -0.3,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            _token == null
+                                ? 'Configuracion o inicio de sesion'
+                                : 'Invitado individual o grupo completo',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.7),
+                              fontSize: 12.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right,
+                      color: Colors.white.withValues(alpha: 0.55),
+                      size: 26,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          if (_ceremoniasAutorizadas.isNotEmpty) ...[
+            const SizedBox(height: 18),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 2),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
                     'Ceremonias habilitadas',
-                    style: TextStyle(fontWeight: FontWeight.w700),
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14.5),
                   ),
-                  const SizedBox(height: 8),
-                  ..._ceremoniasAutorizadas.map(
-                    (ceremoniaAutorizada) => Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: ceremoniaAutorizada.activa
-                              ? TemaSigic.azulPrincipal.withValues(alpha: 0.08)
-                              : Theme.of(context)
-                                    .colorScheme
-                                    .surfaceContainerHighest
-                                    .withValues(alpha: 0.35),
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(
-                            color: ceremoniaAutorizada.activa
-                                ? TemaSigic.azulPrincipal.withValues(
-                                    alpha: 0.25,
-                                  )
-                                : Colors.transparent,
-                          ),
-                        ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 14,
-                            vertical: 4,
-                          ),
-                          leading: Icon(
-                            Icons.school,
-                            color: ceremoniaAutorizada.activa
-                                ? TemaSigic.azulPrincipal
-                                : null,
-                          ),
-                          title: Text(ceremoniaAutorizada.nombre),
-                          subtitle: Text(
-                            '${ceremoniaAutorizada.fecha == null ? 'Fecha a confirmar' : DateFormat('dd/MM/yyyy', 'es_AR').format(ceremoniaAutorizada.fecha!)} · ${ceremoniaAutorizada.lugar}',
-                          ),
-                          trailing: ceremoniaAutorizada.activa
-                              ? const Chip(label: Text('Activa'))
-                              : const Chip(label: Text('Habilitada')),
-                        ),
-                      ),
+                  Text(
+                    '${_ceremoniasAutorizadas.length}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF5C7386),
                     ),
                   ),
                 ],
               ),
             ),
-          if (_error != null)
+            const SizedBox(height: 8),
+            ..._ceremoniasAutorizadas.map(
+              (ceremoniaAutorizada) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: ceremoniaAutorizada.activa
+                          ? TemaSigic.azulPrincipal.withValues(alpha: 0.28)
+                          : const Color(0xFFE2EAF0),
+                    ),
+                  ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 13,
+                      vertical: 2,
+                    ),
+                    leading: Icon(
+                      Icons.school,
+                      color: ceremoniaAutorizada.activa
+                          ? TemaSigic.azulPrincipal
+                          : const Color(0xFF8496A6),
+                    ),
+                    title: Text(
+                      ceremoniaAutorizada.nombre,
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    subtitle: Text(
+                      '${ceremoniaAutorizada.fecha == null ? 'Fecha a confirmar' : DateFormat('dd/MM/yyyy', 'es_AR').format(ceremoniaAutorizada.fecha!)} · ${ceremoniaAutorizada.lugar}',
+                    ),
+                    trailing: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: ceremoniaAutorizada.activa
+                            ? const Color(0xFF10B981).withValues(alpha: 0.13)
+                            : const Color(0xFFEEF3F7),
+                        borderRadius: BorderRadius.circular(7),
+                      ),
+                      child: Text(
+                        ceremoniaAutorizada.activa ? 'ACTIVA' : 'HABILITADA',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 10.5,
+                          color: ceremoniaAutorizada.activa
+                              ? const Color(0xFF0A7F5F)
+                              : const Color(0xFF5C7386),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+
+          if (_error != null) ...[
+            const SizedBox(height: 10),
             PanelTarjeta(
               colorBorde: TemaSigic.error.withValues(alpha: 0.28),
               contenido: Text(
@@ -705,8 +744,10 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
                 style: const TextStyle(color: TemaSigic.error),
               ),
             ),
+          ],
           if (_estadoSesion == EstadoSesion.sinConexion ||
-              _estadoSesion == EstadoSesion.expirada)
+              _estadoSesion == EstadoSesion.expirada) ...[
+            const SizedBox(height: 10),
             PanelTarjeta(
               colorBorde:
                   (_estadoSesion == EstadoSesion.sinConexion
@@ -719,100 +760,120 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
                     : 'La sesion actual ya no es valida. Volve a iniciar sesion desde Ajustes o con un QR de acceso.',
               ),
             ),
-          const SizedBox(height: 18),
-          const Text(
-            'ACCIONES DE PORTERIA',
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1.1,
-              color: Color(0xFF597080),
-            ),
-          ),
-          const SizedBox(height: 8),
-          FilledButton.icon(
-            onPressed: _abrirCamara,
-            icon: const Icon(Icons.qr_code_scanner),
-            label: Text(
-              _token == null ? 'Escanear QR de acceso' : 'Abrir escaner QR',
-            ),
-            style: FilledButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 17),
-              backgroundColor: TemaSigic.azulPrincipal,
-              foregroundColor: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 12),
-          OutlinedButton.icon(
-            onPressed: _cargarPantalla,
-            icon: const Icon(Icons.refresh),
-            label: const Text('Actualizar estado'),
-          ),
+          ],
         ],
       ),
     );
   }
 
-  Widget _tarjetaIndicador(
-    String etiqueta,
-    String valor,
-    IconData icono,
-    Color color,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(13),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFDCE7ED)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 34,
-            height: 34,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.11),
-              borderRadius: BorderRadius.circular(10),
+  // ─── CAMARA + TARJETA FLOTANTE ─────────────────────────────────
+
+  Widget _construirVistaCamaraConTarjeta(BuildContext context) {
+    return Stack(
+      key: const ValueKey('camara'),
+      children: [
+        Positioned.fill(
+          child: kIsWeb
+              ? _construirVistaEscaneoWeb(context)
+              : _construirVistaCamara(context),
+        ),
+        if (_resultado != null)
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () {},
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: _construirTarjetaFlotante(context, _resultado!),
+              ),
             ),
-            child: Icon(icono, color: color, size: 18),
           ),
-          const SizedBox(width: 9),
-          Expanded(
+      ],
+    );
+  }
+
+  Widget _construirTarjetaFlotante(
+    BuildContext context,
+    ResultadoEscaneo resultado,
+  ) {
+    return ConstrainedBox(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.68,
+      ),
+      child: Container(
+        width: double.infinity,
+        margin: const EdgeInsets.only(top: 40),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(28),
+            topRight: Radius.circular(28),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Color(0x59000000),
+              blurRadius: 30,
+              offset: Offset(0, -12),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(18, 10, 18, 18),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  valor,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    color: Color(0xFF132C3B),
+                Center(
+                  child: Container(
+                    width: 38,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD5E0E9),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-                Text(
-                  etiqueta,
-                  style: const TextStyle(
-                    fontSize: 8,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.8,
-                    color: Color(0xFF68808E),
+                Flexible(
+                  child: SingleChildScrollView(
+                    child:
+                        resultado.tipo == TipoResultadoEscaneo.individual &&
+                            resultado.invitado != null
+                        ? _TarjetaFlotanteInvitado(
+                            invitado: resultado.invitado!,
+                            egresadoNombre: resultado.egresadoNombre ?? '',
+                            cargando: _cargandoEscaneo,
+                            alAcreditar: () =>
+                                _acreditarInvitado(resultado.invitado!.id),
+                            alCerrar: _cerrarTarjetaFlotante,
+                          )
+                        : resultado.tipo == TipoResultadoEscaneo.grupal &&
+                              resultado.grupoEgresado != null
+                        ? _TarjetaFlotanteGrupo(
+                            resultado: resultado,
+                            cargando: _cargandoEscaneo,
+                            alAcreditarInvitado: _acreditarInvitado,
+                            alAcreditarPendientes: _acreditarPendientes,
+                            alCerrar: _cerrarTarjetaFlotante,
+                          )
+                        : const SizedBox.shrink(),
                   ),
                 ),
               ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _construirVistaCamara(BuildContext context) {
-    if (kIsWeb) {
-      return _construirVistaEscaneoWeb(context);
-    }
-
     final tema = Theme.of(context);
+    final estadisticas = _estadisticas;
+    final enVivo = _token != null && _ceremonia != null;
+
     return Stack(
       children: [
         Positioned.fill(
@@ -835,41 +896,26 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Color(0xA30A1422),
-                  Color(0x66101C2D),
-                  Color(0xB8071019),
+                  Color(0xC70A1422),
+                  Color(0x4D101C2D),
+                  Color(0x99071019),
                 ],
               ),
             ),
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(18, 18, 18, 8),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 14,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.15),
-                      ),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x33000000),
-                          blurRadius: 20,
-                          offset: Offset(0, 10),
-                        ),
-                      ],
-                    ),
+            child: SafeArea(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
                     child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         IconButton.filled(
                           style: IconButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            foregroundColor: TemaSigic.azulPrincipal,
+                            backgroundColor: Colors.white.withValues(
+                              alpha: 0.14,
+                            ),
+                            foregroundColor: Colors.white,
                           ),
                           onPressed: _cerrarCamara,
                           icon: const Icon(Icons.arrow_back_rounded),
@@ -880,7 +926,9 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                _token == null
+                                enVivo
+                                    ? 'Acreditando en vivo'
+                                    : _token == null
                                     ? 'Escanear QR de acceso'
                                     : 'Escanear acreditacion',
                                 style: tema.textTheme.titleMedium?.copyWith(
@@ -888,101 +936,145 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
                                   fontWeight: FontWeight.w800,
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 3),
                               Text(
-                                _token == null
+                                enVivo
+                                    ? _ceremonia!.nombre
+                                    : _token == null
                                     ? 'Apunta al QR de configuracion o inicio de sesion.'
                                     : 'Alinea el codigo dentro del marco para acreditar rapido.',
                                 style: tema.textTheme.bodySmall?.copyWith(
-                                  color: Colors.white.withValues(alpha: 0.85),
+                                  color: Colors.white.withValues(alpha: 0.8),
                                 ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ],
+                          ),
+                        ),
+                        if (enVivo && estadisticas != null) ...[
+                          const SizedBox(width: 10),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 11,
+                              vertical: 7,
+                            ),
+                            decoration: BoxDecoration(
+                              color: TemaSigic.exito.withValues(alpha: 0.22),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: TemaSigic.exito.withValues(alpha: 0.45),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 7,
+                                  height: 7,
+                                  margin: const EdgeInsets.only(right: 6),
+                                  decoration: const BoxDecoration(
+                                    color: TemaSigic.exito,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                Text(
+                                  '${estadisticas.presentes}/${estadisticas.totalInvitados}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w800,
+                                    fontFamily: 'monospace',
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const Spacer(),
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Container(
+                        width: 292,
+                        height: 292,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(40),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.16),
+                            width: 1.4,
+                          ),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x66000000),
+                              blurRadius: 28,
+                              spreadRadius: 4,
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        width: 274,
+                        height: 274,
+                        child: CustomPaint(painter: _MarcoEscanerPainter()),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 28),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 14,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(22),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.12),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: TemaSigic.azulBrillante.withValues(
+                              alpha: 0.22,
+                            ),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Icon(
+                            enVivo ? Icons.autorenew : Icons.center_focus_strong,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            enVivo
+                                ? 'La camara sigue activa: cada escaneo suma sin salir de esta pantalla.'
+                                : _token == null
+                                ? 'Este escaner acepta QR de configuracion y de acceso seguro.'
+                                : 'El sistema reconocera invitados individuales o grupos completos.',
+                            style: tema.textTheme.bodyMedium?.copyWith(
+                              color: Colors.white,
+                              height: 1.3,
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
-                const Spacer(),
-                Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Container(
-                      width: 292,
-                      height: 292,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(40),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.16),
-                          width: 1.4,
-                        ),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x66000000),
-                            blurRadius: 28,
-                            spreadRadius: 4,
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(
-                      width: 274,
-                      height: 274,
-                      child: CustomPaint(painter: _MarcoEscanerPainter()),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 28),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 14,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(22),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.12),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: TemaSigic.azulBrillante.withValues(
-                            alpha: 0.22,
-                          ),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: const Icon(
-                          Icons.center_focus_strong,
-                          color: Colors.white,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          _token == null
-                              ? 'Este escaner acepta QR de configuracion y de acceso seguro.'
-                              : 'El sistema reconocera invitados individuales o grupos completos.',
-                          style: tema.textTheme.bodyMedium?.copyWith(
-                            color: Colors.white,
-                            height: 1.3,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 28),
-                if (_cargandoEscaneo)
-                  const CircularProgressIndicator(color: Colors.white),
-                const SizedBox(height: 48),
-              ],
+                  const SizedBox(height: 28),
+                  if (_cargandoEscaneo && _resultado == null)
+                    const CircularProgressIndicator(color: Colors.white),
+                  const SizedBox(height: 32),
+                ],
+              ),
             ),
           ),
         ),
@@ -992,159 +1084,109 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
 
   Widget _construirVistaEscaneoWeb(BuildContext context) {
     final tema = Theme.of(context);
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-      children: [
-        PanelTarjeta(
-          colorBorde: TemaSigic.azulBrillante.withValues(alpha: 0.24),
-          contenido: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  IconButton.filledTonal(
-                    onPressed: _cerrarCamara,
-                    icon: const Icon(Icons.close),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      'Escaneo desde navegador',
-                      style: tema.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
-                  borderRadius: BorderRadius.circular(22),
-                ),
-                child: Column(
+    return Container(
+      color: TemaSigic.fondoClaro,
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+        children: [
+          PanelTarjeta(
+            colorBorde: TemaSigic.azulBrillante.withValues(alpha: 0.24),
+            contenido: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    const Icon(
-                      Icons.qr_code_2,
-                      size: 72,
-                      color: TemaSigic.azulPrincipal,
+                    IconButton.filledTonal(
+                      onPressed: _cerrarCamara,
+                      icon: const Icon(Icons.close),
                     ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'En web la camara puede no iniciar segun el navegador o los permisos. Para no dejar la pantalla gris, esta vista permite procesar el codigo manualmente.',
-                      style: tema.textTheme.bodyMedium,
-                      textAlign: TextAlign.center,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Escaneo desde navegador',
+                        style: tema.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 18),
-              TextField(
-                controller: _controladorCodigoManual,
-                minLines: 2,
-                maxLines: 4,
-                textInputAction: TextInputAction.done,
-                decoration: const InputDecoration(
-                  labelText: 'Codigo QR o texto del escaneo',
-                  hintText:
-                      'Pega aqui sigic-config:, sigic-login: o el codigo del invitado',
-                  alignLabelWithHint: true,
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest.withValues(
+                      alpha: 0.35,
+                    ),
+                    borderRadius: BorderRadius.circular(22),
+                  ),
+                  child: Column(
+                    children: [
+                      const Icon(
+                        Icons.qr_code_2,
+                        size: 72,
+                        color: TemaSigic.azulPrincipal,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'En web la camara puede no iniciar segun el navegador o los permisos. Para no dejar la pantalla gris, esta vista permite procesar el codigo manualmente.',
+                        style: tema.textTheme.bodyMedium,
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 14),
-              FilledButton.icon(
-                onPressed: _cargandoEscaneo
-                    ? null
-                    : () {
-                        final codigo = _controladorCodigoManual.text.trim();
-                        if (codigo.isEmpty) {
-                          _mostrarMensaje(
-                            'Falta un codigo',
-                            'Ingresa o pega un codigo antes de continuar.',
-                          );
-                          return;
-                        }
-                        _procesarCodigo(codigo);
-                      },
-                icon: const Icon(Icons.play_arrow),
-                label: Text(
-                  _cargandoEscaneo ? 'Procesando...' : 'Procesar codigo',
+                const SizedBox(height: 18),
+                TextField(
+                  controller: _controladorCodigoManual,
+                  minLines: 2,
+                  maxLines: 4,
+                  textInputAction: TextInputAction.done,
+                  decoration: const InputDecoration(
+                    labelText: 'Codigo QR o texto del escaneo',
+                    hintText:
+                        'Pega aqui sigic-config:, sigic-login: o el codigo del invitado',
+                    alignLabelWithHint: true,
+                  ),
                 ),
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 18),
-                  backgroundColor: TemaSigic.azulPrincipal,
-                  foregroundColor: Colors.white,
+                const SizedBox(height: 14),
+                FilledButton.icon(
+                  onPressed: _cargandoEscaneo
+                      ? null
+                      : () {
+                          final codigo = _controladorCodigoManual.text.trim();
+                          if (codigo.isEmpty) {
+                            _mostrarMensaje(
+                              'Falta un codigo',
+                              'Ingresa o pega un codigo antes de continuar.',
+                            );
+                            return;
+                          }
+                          _procesarCodigo(codigo);
+                        },
+                  icon: const Icon(Icons.play_arrow),
+                  label: Text(
+                    _cargandoEscaneo ? 'Procesando...' : 'Procesar codigo',
+                  ),
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    backgroundColor: TemaSigic.azulPrincipal,
+                    foregroundColor: Colors.white,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 10),
-              OutlinedButton.icon(
-                onPressed: _cargandoEscaneo ? null : _cargarPantalla,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Actualizar estado'),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _construirVistaResultado(
-    BuildContext context,
-    ResultadoEscaneo resultado,
-  ) {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
-      children: [
-        PanelTarjeta(
-          contenido: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                resultado.titulo,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
+                const SizedBox(height: 10),
+                OutlinedButton.icon(
+                  onPressed: _cargandoEscaneo ? null : _cargarPantalla,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Actualizar estado'),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Text(resultado.mensaje),
-            ],
+              ],
+            ),
           ),
-        ),
-        if (resultado.tipo == TipoResultadoEscaneo.individual &&
-            resultado.invitado != null)
-          _TarjetaInvitadoIndividual(
-            invitado: resultado.invitado!,
-            egresadoNombre: resultado.egresadoNombre ?? '',
-            cargando: _cargandoEscaneo,
-            alAcreditar: () => _acreditarInvitado(resultado.invitado!.id),
-          ),
-        if (resultado.tipo == TipoResultadoEscaneo.grupal &&
-            resultado.grupoEgresado != null)
-          _TarjetaGrupo(
-            resultado: resultado,
-            cargando: _cargandoEscaneo,
-            alAcreditarInvitado: _acreditarInvitado,
-            alAcreditarPendientes: _acreditarPendientes,
-          ),
-        const SizedBox(height: 12),
-        OutlinedButton.icon(
-          onPressed: _abrirCamara,
-          icon: const Icon(Icons.qr_code_scanner),
-          label: const Text('Escanear siguiente'),
-        ),
-        TextButton.icon(
-          onPressed: () => setState(() {
-            _resultado = null;
-          }),
-          icon: const Icon(Icons.home_outlined),
-          label: const Text('Volver al inicio'),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -1200,41 +1242,135 @@ class _MarcoEscanerPainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
-class _TarjetaInvitadoIndividual extends StatelessWidget {
-  const _TarjetaInvitadoIndividual({
-    required this.invitado,
-    required this.egresadoNombre,
-    required this.cargando,
-    required this.alAcreditar,
+/// Tarjeta hero de la ceremonia activa (pantalla de inicio, direccion 2d).
+class _TarjetaCeremoniaActiva extends StatelessWidget {
+  const _TarjetaCeremoniaActiva({
+    required this.ceremonia,
+    required this.estadisticas,
+    required this.formatterFecha,
+    required this.textoActualizacion,
   });
 
-  final InvitadoEscaneado invitado;
-  final String egresadoNombre;
-  final bool cargando;
-  final VoidCallback alAcreditar;
+  final Ceremonia ceremonia;
+  final EstadisticasAcceso estadisticas;
+  final DateFormat formatterFecha;
+  final String textoActualizacion;
 
   @override
   Widget build(BuildContext context) {
-    final puedeAcreditar = !invitado.presente && !cargando;
-    return PanelTarjeta(
-      contenido: Column(
+    final total = estadisticas.totalInvitados;
+    final porcentaje = total > 0
+        ? (estadisticas.presentes / total).clamp(0.0, 1.0)
+        : 0.0;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: TemaSigic.azulPrincipal,
+        borderRadius: BorderRadius.circular(22),
+      ),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            children: [
+              Container(
+                width: 6,
+                height: 6,
+                margin: const EdgeInsets.only(right: 7),
+                decoration: const BoxDecoration(
+                  color: Color(0xFF7DD3FC),
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const Text(
+                'CEREMONIA ACTIVA',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 10.5,
+                  letterSpacing: 1.1,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
           Text(
-            invitado.nombre,
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+            ceremonia.nombre,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w900,
+              fontSize: 21,
+              letterSpacing: -0.4,
+              height: 1.2,
+            ),
           ),
           const SizedBox(height: 6),
-          Text('DNI: ${invitado.dni}'),
-          Text('Relacion: ${invitado.relacion}'),
-          if (egresadoNombre.isNotEmpty) Text('Egresado: $egresadoNombre'),
+          Text(
+            '${formatterFecha.format(ceremonia.fecha)} · ${ceremonia.lugar}',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.82),
+              fontSize: 12.5,
+            ),
+          ),
           const SizedBox(height: 16),
-          FilledButton(
-            onPressed: puedeAcreditar ? alAcreditar : null,
-            child: Text(
-              invitado.presente ? 'Ya acreditado' : 'Registrar ingreso',
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: '${estadisticas.presentes}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 32,
+                        letterSpacing: -1,
+                      ),
+                    ),
+                    TextSpan(
+                      text: ' / $total',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.7),
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '${estadisticas.porcentajeAsistencia}%',
+                style: const TextStyle(
+                  color: Color(0xFF7DD3FC),
+                  fontWeight: FontWeight.w800,
+                  fontFamily: 'monospace',
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: porcentaje,
+              minHeight: 8,
+              backgroundColor: Colors.white.withValues(alpha: 0.22),
+              valueColor: const AlwaysStoppedAnimation(Color(0xFF7DD3FC)),
+            ),
+          ),
+          const SizedBox(height: 7),
+          Text(
+            'Acreditados en sala'
+            '${textoActualizacion.isEmpty ? '' : ' · $textoActualizacion'}',
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.72),
+              fontWeight: FontWeight.w600,
+              fontSize: 11.5,
             ),
           ),
         ],
@@ -1243,18 +1379,238 @@ class _TarjetaInvitadoIndividual extends StatelessWidget {
   }
 }
 
-class _TarjetaGrupo extends StatelessWidget {
-  const _TarjetaGrupo({
+/// Mini tarjeta de metrica (fila de 3, pantalla de inicio).
+class _TarjetaEstadistica extends StatelessWidget {
+  const _TarjetaEstadistica({
+    required this.valor,
+    required this.etiqueta,
+    required this.color,
+  });
+
+  final String valor;
+  final String etiqueta;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2EAF0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            valor,
+            style: TextStyle(
+              fontWeight: FontWeight.w900,
+              fontSize: 22,
+              letterSpacing: -0.7,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            etiqueta,
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 10,
+              letterSpacing: 0.3,
+              color: Color(0xFF5C7386),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Tarjeta flotante de invitado individual, se muestra sobre la camara
+/// activa (direccion 2a: escaneo continuo).
+class _TarjetaFlotanteInvitado extends StatelessWidget {
+  const _TarjetaFlotanteInvitado({
+    required this.invitado,
+    required this.egresadoNombre,
+    required this.cargando,
+    required this.alAcreditar,
+    required this.alCerrar,
+  });
+
+  final InvitadoEscaneado invitado;
+  final String egresadoNombre;
+  final bool cargando;
+  final VoidCallback alAcreditar;
+  final VoidCallback alCerrar;
+
+  @override
+  Widget build(BuildContext context) {
+    final puedeAcreditar = !invitado.presente && !cargando;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'INVITADO',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 10.5,
+                      letterSpacing: 1,
+                      color: Color(0xFF64798C),
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    invitado.nombre,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 22,
+                      letterSpacing: -0.4,
+                      color: Color(0xFF102A43),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: TemaSigic.azulBrillante.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(
+                invitado.presente ? Icons.check_circle : Icons.how_to_reg,
+                color: invitado.presente ? TemaSigic.exito : TemaSigic.azulPrincipal,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 7,
+          runSpacing: 7,
+          children: [
+            _chip('DNI ${invitado.dni}'),
+            _chip(invitado.relacion),
+            if (invitado.discapacidad)
+              _chip('Accesibilidad', color: const Color(0xFFB4530A)),
+          ],
+        ),
+        if (egresadoNombre.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Text.rich(
+            TextSpan(
+              text: 'Egresado: ',
+              style: const TextStyle(color: Color(0xFF4A6275), fontSize: 13),
+              children: [
+                TextSpan(
+                  text: egresadoNombre,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF102A43),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 54,
+          child: FilledButton.icon(
+            onPressed: puedeAcreditar ? alAcreditar : null,
+            icon: cargando
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : const Icon(Icons.check_circle),
+            label: Text(
+              invitado.presente ? 'Ya acreditado' : 'Registrar ingreso',
+            ),
+            style: FilledButton.styleFrom(
+              backgroundColor: TemaSigic.exito,
+              disabledBackgroundColor: invitado.presente
+                  ? TemaSigic.exito.withValues(alpha: 0.55)
+                  : null,
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Center(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.autorenew, size: 15, color: Color(0xFF64798C)),
+              const SizedBox(width: 6),
+              const Text(
+                'La camara sigue activa · proximo escaneo automatico',
+                style: TextStyle(fontSize: 11.5, color: Color(0xFF64798C)),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+        Align(
+          alignment: Alignment.center,
+          child: TextButton(
+            onPressed: alCerrar,
+            child: const Text('Cerrar'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _chip(String texto, {Color? color}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color != null
+            ? color.withValues(alpha: 0.13)
+            : const Color(0xFFEEF3F7),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        texto,
+        style: TextStyle(
+          fontWeight: FontWeight.w700,
+          fontSize: 12,
+          color: color ?? const Color(0xFF102A43),
+        ),
+      ),
+    );
+  }
+}
+
+/// Tarjeta flotante de grupo, se muestra sobre la camara activa.
+class _TarjetaFlotanteGrupo extends StatelessWidget {
+  const _TarjetaFlotanteGrupo({
     required this.resultado,
     required this.cargando,
     required this.alAcreditarInvitado,
     required this.alAcreditarPendientes,
+    required this.alCerrar,
   });
 
   final ResultadoEscaneo resultado;
   final bool cargando;
   final ValueChanged<String> alAcreditarInvitado;
   final VoidCallback alAcreditarPendientes;
+  final VoidCallback alCerrar;
 
   @override
   Widget build(BuildContext context) {
@@ -1263,127 +1619,179 @@ class _TarjetaGrupo extends StatelessWidget {
         .where((item) => !item.presente)
         .length;
 
-    return PanelTarjeta(
-      contenido: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Graduado',
-            style: Theme.of(
-              context,
-            ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: TemaSigic.azulPrincipal,
+            borderRadius: BorderRadius.circular(18),
           ),
-          const SizedBox(height: 6),
-          Text(
-            grupo.nombre,
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
-          ),
-          const SizedBox(height: 8),
-          Text('Legajo: ${grupo.legajo}'),
-          Text('Carrera: ${grupo.carrera.isEmpty ? 'N/C' : grupo.carrera}'),
-          Text(
-            'Asiento: ${grupo.asientoId.isEmpty ? 'Sin asiento' : grupo.asientoId}',
-          ),
-          const SizedBox(height: 18),
-          Row(
+          child: Row(
             children: [
-              Expanded(
+              Container(
+                width: 46,
+                height: 46,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(14),
+                ),
                 child: Text(
-                  'Invitados del grupo',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  grupo.nombre.isEmpty ? '?' : grupo.nombre[0].toUpperCase(),
+                  style: const TextStyle(
+                    color: Colors.white,
                     fontWeight: FontWeight.w800,
+                    fontSize: 17,
                   ),
                 ),
               ),
-              Text(
-                '$invitadosPendientes pendientes',
-                style: const TextStyle(fontSize: 11, color: Color(0xFF63798A)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      grupo.nombre,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 17,
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Legajo ${grupo.legajo} · ${grupo.carrera.isEmpty ? 'N/C' : grupo.carrera}',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.78),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              if (grupo.asientoId.isNotEmpty)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    children: [
+                      const Text(
+                        'BUTACA',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 8.5,
+                        ),
+                      ),
+                      Text(
+                        grupo.asientoId,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
             ],
           ),
-          const SizedBox(height: 8),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 236),
+        ),
+        const SizedBox(height: 14),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Invitados en grupo',
+              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14.5),
+            ),
+            TextButton(onPressed: alCerrar, child: const Text('Cerrar')),
+          ],
+        ),
+        const SizedBox(height: 6),
+        ...resultado.invitadosGrupo.map(
+          (invitado) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
             child: DecoratedBox(
               decoration: BoxDecoration(
-                border: Border.all(color: const Color(0xFFDCE7ED)),
-                borderRadius: BorderRadius.circular(14),
+                color: invitado.presente
+                    ? const Color(0xFFEDF2F6)
+                    : Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: invitado.presente
+                      ? const Color(0xFFE2EAF0)
+                      : TemaSigic.azulPrincipal,
+                  width: invitado.presente ? 1 : 1.4,
+                ),
               ),
-              child: ListView.separated(
-                shrinkWrap: true,
-                padding: const EdgeInsets.all(6),
-                itemCount: resultado.invitadosGrupo.length,
-                separatorBuilder: (_, _) => const Divider(height: 1),
-                itemBuilder: (context, indice) {
-                  final invitado = resultado.invitadosGrupo[indice];
-                  return ListTile(
-                    dense: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 2,
-                    ),
-                    leading: CircleAvatar(
-                      radius: 16,
-                      backgroundColor: invitado.presente
-                          ? TemaSigic.exito.withValues(alpha: .12)
-                          : TemaSigic.azulPrincipal.withValues(alpha: .10),
-                      child: Icon(
-                        invitado.presente ? Icons.check : Icons.person_outline,
-                        size: 17,
-                        color: invitado.presente
-                            ? TemaSigic.exito
-                            : TemaSigic.azulPrincipal,
-                      ),
-                    ),
-                    title: Text(
-                      invitado.nombre,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    subtitle: Text(
-                      '${invitado.relacion} · DNI ${invitado.dni}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 11),
-                    ),
-                    trailing: invitado.presente
-                        ? const Text(
-                            'OK',
-                            style: TextStyle(
-                              color: TemaSigic.exito,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          )
-                        : TextButton(
-                            onPressed: cargando
-                                ? null
-                                : () => alAcreditarInvitado(invitado.id),
-                            child: const Text('Acreditar'),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            invitado.nombre,
+                            style: const TextStyle(fontWeight: FontWeight.w700),
                           ),
-                  );
-                },
+                          const SizedBox(height: 3),
+                          Text(
+                            'DNI ${invitado.dni} · ${invitado.relacion}',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF5C7386),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    invitado.presente
+                        ? const Icon(Icons.check_circle, color: TemaSigic.exito)
+                        : SizedBox(
+                            height: 38,
+                            child: FilledButton(
+                              onPressed: cargando
+                                  ? null
+                                  : () => alAcreditarInvitado(invitado.id),
+                              style: FilledButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                              ),
+                              child: const Text('Ingresar'),
+                            ),
+                          ),
+                  ],
+                ),
               ),
             ),
           ),
-          const SizedBox(height: 8),
-          FilledButton.icon(
+        ),
+        const SizedBox(height: 6),
+        SizedBox(
+          height: 52,
+          child: FilledButton.icon(
             onPressed: cargando || invitadosPendientes == 0
                 ? null
                 : alAcreditarPendientes,
-            icon: const Icon(Icons.check_circle),
-            label: Text(
-              'Acreditar $invitadosPendientes pendiente${invitadosPendientes == 1 ? '' : 's'}',
-            ),
+            icon: const Icon(Icons.groups_2),
+            label: Text('Acreditar $invitadosPendientes pendientes'),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
