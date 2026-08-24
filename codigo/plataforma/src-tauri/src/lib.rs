@@ -13,8 +13,9 @@ fn abrir_modulo(app: tauri::AppHandle, ruta: String, titulo: String) -> Result<(
   let url = url::Url::parse(&destino).map_err(|error| error.to_string())?;
   WebviewWindowBuilder::new(&app, etiqueta, WebviewUrl::External(url))
     .title(titulo)
-    .inner_size(1180.0, 760.0)
-    .min_inner_size(820.0, 560.0)
+    .inner_size(1280.0, 820.0)
+    .min_inner_size(960.0, 640.0)
+    .center()
     .resizable(true)
     .build()
     .map_err(|error| error.to_string())?;

@@ -94,6 +94,10 @@ function App() {
   // ─── 3. ESTADO DE NAVEGACIÓN ───
   const [pantallaAdmin, setPantallaAdmin] = useState(() => {
     if (typeof window !== 'undefined') {
+      const moduloSolicitado = new URLSearchParams(window.location.search).get('modulo')
+      if (moduloSolicitado && /^[a-z-]+$/.test(moduloSolicitado)) {
+        return moduloSolicitado
+      }
       try {
         const u = JSON.parse(localStorage.getItem('admin_user') || 'null');
         if (u && u.correo && u.correo.toLowerCase() === 'soporte@ibeltran.com.ar') {
@@ -943,6 +947,17 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
   }, [inicioAbierto, menuContextual, mostrarEquipo, pantallaActual, ventanasAbiertas, ventanasMinimizadas])
 
   const abrirVentana = (id) => {
+    const app = aplicaciones.find(item => item.id === id)
+    // En Tauri cada módulo se abre en su propia ventana del sistema operativo.
+    // La ventana principal permanece disponible como escritorio de trabajo.
+    if (esAplicacionNativa && id !== pantallaActual && id !== 'bienvenida') {
+      import('@tauri-apps/api/core')
+        .then(({ invoke }) => invoke('abrir_modulo', { ruta: `?modulo=${encodeURIComponent(id)}`, titulo: app?.titulo || 'SiGIC' }))
+        .catch(() => onNavegar(id))
+      setInicioAbierto(false)
+      setMenuContextual(null)
+      return
+    }
     const yaEstabaAbierta = ventanasAbiertas.includes(id)
     setVentanasAbiertas(ventanas => yaEstabaAbierta ? ventanas : [...ventanas, id])
     setVentanasCerrandose(ventanas => ventanas.filter(item => item !== id))

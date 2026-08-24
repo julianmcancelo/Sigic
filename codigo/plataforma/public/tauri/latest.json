@@ -1,11 +1,11 @@
 {
-  "version": "1.0.4",
-  "notes": "Actualización de prueba del actualizador automático de SiGIC Escritorio.",
-  "pub_date": "2026-08-23T21:10:04-03:00",
+  "version": "1.0.5",
+  "notes": "Ventanas nativas múltiples para abrir y usar varios módulos en paralelo.",
+  "pub_date": "2026-08-23T21:27:02-03:00",
   "platforms": {
     "windows-x86_64": {
-      "url": "https://descargas.sigic.com.ar/descargas/SiGIC-Escritorio-Setup-1.0.4.exe",
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSQnBCUTRMWnJVREpxZUZQblhTRzd5QXcrbm03RGhOVEVVZzRzbWpoK0FkckRHMzZOUHEwNnFYc2cwVXhqSklWbWtzOFRaM1FCaWRDdmFiUE4xZ0czVEZQNVJPaXBiWkFZPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg3NTMwMjgxCWZpbGU6U2lHSUMgRXNjcml0b3Jpb18xLjAuNF94NjQtc2V0dXAuZXhlCnRKNkVPZnE0Ull3eEhvOFZ2RFMrRVRFdUNlWjlONzdWS0Irbkw4MHFQRTB6N2cwcDRPVGV2Y0QrL3g0ZEhTK042NU54aWVkbzNVbDZ5bUNwWVRvR0NRPT0K"
+      "url": "https://descargas.sigic.com.ar/descargas/SiGIC-Escritorio-Setup-1.0.5.exe",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVSQnBCUTRMWnJVREJwZENObU9CWGdMSG1FOGxXSkpLaDUrVGhQdDZKTkc1NTlDemFjSTE0RytieXB1TEdDUFFkNDNSSjhmRVFrRDJIcXd0RzJiMFZITnFJa1hGL2hpdmdNPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg3NTMxMjIxCWZpbGU6U2lHSUMgRXNjcml0b3Jpb18xLjAuNV94NjQtc2V0dXAuZXhlCkpJUUNsbm5RVFh3dkdQbHIvdWFRRHUrQilsTkhvUW5Va3hHanFSYjR0N1N3QU1sdTREaldLckFoNWF1NWc4b0I1NXMwdlRuM3piOGdaOERLZUd3ZkR3PT0K"
     }
   }
 }
