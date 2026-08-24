@@ -7,6 +7,7 @@ import { enviarCorreo, generarPdfCredencial, generarPlantillaCierreInscripcion, 
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { inicializarBaseDatos } from '@/lib/schema';
+import { generarPaseGoogleWallet } from '@/lib/google-wallet';
 
 const RONDAS_BCRYPT = 12;
 const LARGO_MINIMO_PASSWORD = 8;
@@ -1390,20 +1391,39 @@ export async function POST(
       const acceso = `${hostBase}/?token=${graduado.token}`;
       const invitados = await query('SELECT nombre, asiento_id FROM invitados WHERE egresado_id = $1 ORDER BY creado_en ASC', [graduado.id]);
       const acompanantes = invitados.rows.map(item => `${item.nombre}${item.asiento_id ? ` (${item.asiento_id})` : ''}`);
+      let paseGoogleWallet: Awaited<ReturnType<typeof generarPaseGoogleWallet>> = null;
+      try {
+        paseGoogleWallet = await generarPaseGoogleWallet({
+          graduadoId: graduado.id,
+          token: graduado.token,
+          nombre: graduado.nombre,
+          ceremoniaId: graduado.ceremonia_id,
+          ceremonia: graduado.ceremonia_nombre,
+          fecha: graduado.ceremonia_fecha,
+          lugar: graduado.ceremonia_lugar,
+          asiento: graduado.asiento_id,
+          acceso,
+        });
+      } catch (error) {
+        // El PDF y el correo siguen siendo entregables aunque Wallet se encuentre en configuración.
+        console.error('No se pudo generar el pase de Google Wallet:', error);
+      }
       const pdf = await generarPdfCredencial({ nombre: graduado.nombre, ceremonia: graduado.ceremonia_nombre, fecha: graduado.ceremonia_fecha, lugar: graduado.ceremonia_lugar, asiento: graduado.asiento_id, acompanantes, acceso });
       await enviarCorreo(
         graduado.correo,
         `Tu credencial e información de ceremonia · ${graduado.ceremonia_nombre}`,
-        generarPlantillaCredencialCeremonia({ nombre: graduado.nombre, ceremonia: graduado.ceremonia_nombre, fecha: graduado.ceremonia_fecha, lugar: graduado.ceremonia_lugar, asiento: graduado.asiento_id, acceso }),
+        generarPlantillaCredencialCeremonia({ nombre: graduado.nombre, ceremonia: graduado.ceremonia_nombre, fecha: graduado.ceremonia_fecha, lugar: graduado.ceremonia_lugar, asiento: graduado.asiento_id, acceso, googleWalletUrl: paseGoogleWallet?.url }),
         [{ filename: `Credencial-SiGIC-${graduado.token}.pdf`, content: pdf, contentType: 'application/pdf' }]
       );
       const actualizado = await query(
         `UPDATE egresados SET credencial_enviada_en = CURRENT_TIMESTAMP,
-          credencial_envios_count = COALESCE(credencial_envios_count, 0) + 1
-         WHERE id = $1 RETURNING id, credencial_enviada_en, credencial_envios_count`,
-        [slug[1]]
+          credencial_envios_count = COALESCE(credencial_envios_count, 0) + 1,
+          google_wallet_object_id = COALESCE($2, google_wallet_object_id),
+          google_wallet_actualizado_en = CASE WHEN $2 IS NULL THEN google_wallet_actualizado_en ELSE CURRENT_TIMESTAMP END
+         WHERE id = $1 RETURNING id, credencial_enviada_en, credencial_envios_count, google_wallet_object_id, google_wallet_actualizado_en`,
+        [slug[1], paseGoogleWallet?.objectId || null]
       );
-      return NextResponse.json({ ok: true, mensaje: 'Credencial e información enviadas', graduado: actualizado.rows[0] }, { headers });
+      return NextResponse.json({ ok: true, mensaje: 'Credencial e información enviadas', googleWallet: Boolean(paseGoogleWallet), graduado: actualizado.rows[0] }, { headers });
     }
 
     if (path === 'egresados/solicitar-otp') {

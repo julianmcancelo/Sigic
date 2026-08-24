@@ -277,7 +277,7 @@ export function generarPlantillaCierreInscripcion(nombre: string, hostBase: stri
 }
 
 /** Comunicación final con el pase digital y la información operativa de la ceremonia. */
-export function generarPlantillaCredencialCeremonia({ nombre, ceremonia, fecha, lugar, asiento, acceso }: { nombre: string; ceremonia: string; fecha: string; lugar: string; asiento?: string | null; acceso: string }) {
+export function generarPlantillaCredencialCeremonia({ nombre, ceremonia, fecha, lugar, asiento, acceso, googleWalletUrl }: { nombre: string; ceremonia: string; fecha: string; lugar: string; asiento?: string | null; acceso: string; googleWalletUrl?: string | null }) {
   return `
     <div style="max-width:600px;margin:0 auto;padding:28px;background:#eef4f8;font-family:Arial,sans-serif;color:#172033">
       <div style="overflow:hidden;border:1px solid #d8e3ed;border-radius:22px;background:#ffffff">
@@ -292,6 +292,7 @@ export function generarPlantillaCredencialCeremonia({ nombre, ceremonia, fecha, 
           </table>
           <p>Ingresá con anticipación y presentá el QR de tu credencial en portería. Desde el enlace también podés revisar tus acompañantes y ubicaciones.</p>
           <p style="margin:26px 0;text-align:center"><a href="${acceso}" style="display:inline-block;padding:14px 24px;border-radius:10px;background:#0ea5e9;color:#ffffff;text-decoration:none;font-weight:bold">Abrir mi credencial</a></p>
+          ${googleWalletUrl ? `<p style="margin:0 0 18px;text-align:center"><a href="${googleWalletUrl}" style="display:inline-block;padding:13px 22px;border-radius:10px;background:#071b34;color:#ffffff;text-decoration:none;font-weight:bold">Guardar en Google Wallet</a></p>` : ''}
           <p style="margin:0;color:#64748b;font-size:12px">Guardala en tu teléfono o imprimila. Este enlace es personal.</p>
         </div>
       </div>
