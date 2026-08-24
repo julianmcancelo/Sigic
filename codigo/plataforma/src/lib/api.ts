@@ -352,6 +352,16 @@ export async function actualizarEstadoCeremonia(id: string | number, estado: str
   return json;
 }
 
+export async function corroborarGraduado(id: string | number) {
+  const res = await fetch(`${BASE_CLASSIC}/egresados/${id}/corroborar`, {
+    method: 'POST',
+    headers: cabeceras()
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudieron corroborar los datos');
+  return json;
+}
+
 export async function eliminarCeremonia(id: string | number) {
   const res = await fetch(`${BASE_CLASSIC}/ceremonias/${id}`, {
     method: 'DELETE',

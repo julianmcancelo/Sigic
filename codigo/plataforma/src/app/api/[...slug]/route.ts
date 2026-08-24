@@ -1250,8 +1250,8 @@ export async function POST(
       const token = crypto.randomBytes(4).toString('hex').toUpperCase(); // 8-char código seguro
 
       const result = await query(
-        `INSERT INTO egresados (nombre, legajo, dni, correo, token, ceremonia_id, carrera, anio_inscripcion, promedio) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+        `INSERT INTO egresados (nombre, legajo, dni, correo, token, ceremonia_id, carrera, anio_inscripcion, promedio, identidad_corrobada_en)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP) RETURNING *`,
         [
           nombre.trim(), 
           legajo?.trim() || '',
@@ -1285,8 +1285,8 @@ export async function POST(
         for (const e of egresados) {
           const token = crypto.randomBytes(4).toString('hex').toUpperCase(); // 8-char código seguro
           const result = await client.query(
-            `INSERT INTO egresados (nombre, legajo, dni, correo, token, ceremonia_id, carrera, anio_inscripcion, promedio) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            `INSERT INTO egresados (nombre, legajo, dni, correo, token, ceremonia_id, carrera, anio_inscripcion, promedio, identidad_corrobada_en)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP)
              ON CONFLICT DO NOTHING
              RETURNING *`,
             [
@@ -1339,15 +1339,31 @@ export async function POST(
       const actualizado = await query(
         `UPDATE egresados
          SET invitacion_enviada = TRUE,
+             invitacion_ultimo_envio_en = CURRENT_TIMESTAMP,
+             invitacion_envios_count = COALESCE(invitacion_envios_count, 0) + 1,
              estado_flujo = CASE
                WHEN estado_flujo IS NULL OR estado_flujo = '' OR estado_flujo = 'SIN_INVITAR' THEN 'PENDIENTE'
                ELSE estado_flujo
              END
          WHERE id = $1
-         RETURNING id, invitacion_enviada, estado_flujo, estado`,
+         RETURNING id, invitacion_enviada, invitacion_ultimo_envio_en, invitacion_envios_count, estado_flujo, estado`,
         [graduadoId]
       );
       return NextResponse.json({ ok: true, mensaje: 'Invitación enviada correctamente', graduado: actualizado.rows[0] }, { headers });
+    }
+
+    if (slug[0] === 'egresados' && slug[2] === 'corroborar' && slug[1]) {
+      const isPersonal = await esPersonalValido(req, ROLES_GESTION);
+      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+
+      const actualizado = await query(
+        `UPDATE egresados SET identidad_corrobada_en = CURRENT_TIMESTAMP
+         WHERE id = $1
+         RETURNING id, identidad_corrobada_en`,
+        [slug[1]]
+      );
+      if (!actualizado.rows[0]) return NextResponse.json({ error: 'Graduado no encontrado' }, { status: 404, headers });
+      return NextResponse.json({ ok: true, graduado: actualizado.rows[0] }, { headers });
     }
 
     if (path === 'egresados/solicitar-otp') {

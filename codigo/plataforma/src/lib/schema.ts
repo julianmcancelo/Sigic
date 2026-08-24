@@ -77,6 +77,9 @@ async function ejecutarInicializacion() {
         entregador_asiento_id VARCHAR(30),
         telefono TEXT,
         invitacion_enviada BOOLEAN DEFAULT FALSE,
+        invitacion_ultimo_envio_en TIMESTAMP,
+        invitacion_envios_count INTEGER NOT NULL DEFAULT 0,
+        identidad_corrobada_en TIMESTAMP,
         estado_flujo VARCHAR(30) DEFAULT 'SIN_INVITAR',
         perfil_finalizado_en TIMESTAMP,
         aviso_edicion_enviado_en TIMESTAMP,
@@ -180,6 +183,9 @@ async function ejecutarInicializacion() {
     `);
 
     await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS invitacion_enviada BOOLEAN DEFAULT FALSE');
+    await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS invitacion_ultimo_envio_en TIMESTAMP');
+    await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS invitacion_envios_count INTEGER NOT NULL DEFAULT 0');
+    await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS identidad_corrobada_en TIMESTAMP');
     await client.query("ALTER TABLE egresados ADD COLUMN IF NOT EXISTS estado_flujo VARCHAR(30) DEFAULT 'SIN_INVITAR'");
     await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS perfil_finalizado_en TIMESTAMP');
     await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS aviso_edicion_enviado_en TIMESTAMP');

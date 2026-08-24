@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { 
   Users, Search, Upload, Trash2, X, Mail, Link2, CreditCard, 
-  UserX, CheckCircle2, Clock, AlertCircle, Armchair, Send, Award, PlusCircle
+  UserX, CheckCircle2, Clock, AlertCircle, Armchair, Send, Award, PlusCircle, BadgeCheck, MailWarning
 } from 'lucide-react'
 
 import { 
@@ -9,7 +9,7 @@ import {
   eliminarGraduado,
   vaciarGraduados,
   obtenerInvitados, 
-  enviarInvitacion 
+  enviarInvitacion, corroborarGraduado
 } from '../../servicios/api'
 
 import { ModalQR } from '../../componentes/ModalQR'
@@ -56,6 +56,8 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
 
   const [enviandoId, setEnviandoId] = useState(null)
   const [exitoEnvio, setExitoEnvio] = useState(null)
+  const [corroborandoId, setCorroborandoId] = useState(null)
+  const [envioMasivo, setEnvioMasivo] = useState(null)
   const [altaExitosa, setAltaExitosa] = useState('')
 
   const [busqueda, setBusqueda] = useState('')
@@ -151,11 +153,49 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
     COMPLETO: graduados.filter(g => g.estado_flujo === 'COMPLETO').length,
     RECHAZADO: graduados.filter(g => g.estado_flujo === 'RECHAZADO').length,
   }
+  const pendientesConCorreo = graduados.filter(grad => !grad.invitacion_enviada && grad.correo && grad.estado_flujo !== 'RECHAZADO')
+  const sinCorreo = graduados.filter(grad => !grad.correo && grad.estado_flujo !== 'RECHAZADO')
+  const sinCorroborar = graduados.filter(grad => !grad.identidad_corrobada_en)
 
   const invitadosDe = (id) => invitados.filter(i => i.egresadoId === id || i.egresado_id === id)
 
   function abrirAsignacion(grad) {
     setGraduadoAsignar(grad)
+  }
+
+  async function manejarCorroboracion(grad) {
+    setCorroborandoId(grad.id)
+    try {
+      const respuesta = await corroborarGraduado(grad.id)
+      setGraduados(actuales => actuales.map(item => item.id === grad.id ? {
+        ...item, identidad_corrobada_en: respuesta.graduado.identidad_corrobada_en
+      } : item))
+    } catch (err) {
+      alert(err.message)
+    } finally {
+      setCorroborandoId(null)
+    }
+  }
+
+  async function manejarEnvioMasivo() {
+    const pendientes = graduados.filter(grad => !grad.invitacion_enviada && grad.correo && grad.estado_flujo !== 'RECHAZADO')
+    if (!pendientes.length) return
+    if (!confirm(`Se enviarán ${pendientes.length} invitaciones pendientes. ¿Deseás continuar?`)) return
+
+    let enviados = 0
+    let fallidos = 0
+    setEnvioMasivo({ total: pendientes.length, enviados, fallidos })
+    for (const grad of pendientes) {
+      try {
+        await enviarInvitacion(grad.id)
+        enviados += 1
+      } catch {
+        fallidos += 1
+      }
+      setEnvioMasivo({ total: pendientes.length, enviados, fallidos })
+    }
+    await cargarDatos()
+    setTimeout(() => setEnvioMasivo(null), 4500)
   }
 
   function siguientePaso(grad) {
@@ -176,6 +216,13 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
         </div>
         
         <div className="flex items-center gap-2">
+          <button
+            onClick={manejarEnvioMasivo}
+            disabled={!pendientesConCorreo.length || envioMasivo}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[9px] font-black uppercase tracking-wider hover:bg-slate-700 disabled:opacity-40 transition-all shadow-sm"
+          >
+            <Send size={13} /> {envioMasivo ? `${envioMasivo.enviados}/${envioMasivo.total} enviadas` : `Enviar pendientes (${pendientesConCorreo.length})`}
+          </button>
           <button 
             onClick={() => setMostrarImportar(true)} 
             className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-lg text-[9px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-all shadow-sm"
@@ -191,6 +238,27 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
           </button>
         </div>
       </div>
+
+      <div className="mb-3 grid gap-2 md:grid-cols-3">
+        <div className="flex items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-[10px] font-semibold text-emerald-800">
+          <BadgeCheck size={15} className="shrink-0" />
+          <span><strong>{graduados.length - sinCorroborar}</strong> datos corroborados. {sinCorroborar.length ? `${sinCorroborar.length} requieren revisión.` : 'Padrón validado.'}</span>
+        </div>
+        <div className="flex items-center gap-2 rounded-lg border border-sky-100 bg-sky-50 px-3 py-2 text-[10px] font-semibold text-sky-800">
+          <Mail size={15} className="shrink-0" />
+          <span><strong>{pendientesConCorreo.length}</strong> invitaciones listas para enviar.</span>
+        </div>
+        <div className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-[10px] font-semibold ${sinCorreo.length ? 'border-amber-200 bg-amber-50 text-amber-800' : 'border-slate-100 bg-slate-50 text-slate-600'}`}>
+          <MailWarning size={15} className="shrink-0" />
+          <span>{sinCorreo.length ? <><strong>{sinCorreo.length}</strong> sin correo: cargalo antes de invitar.</> : 'Todos tienen correo para notificaciones.'}</span>
+        </div>
+      </div>
+
+      {envioMasivo && (
+        <div role="status" aria-live="polite" className="mb-3 rounded-lg border border-sky-100 bg-white px-3 py-2 text-[10px] font-semibold text-slate-600 shadow-sm">
+          Envío en curso: {envioMasivo.enviados} de {envioMasivo.total} enviados{envioMasivo.fallidos ? `, ${envioMasivo.fallidos} con error.` : '.'}
+        </div>
+      )}
 
       {/* METRICAS COMPACTAS */}
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-2 mb-3">
@@ -374,6 +442,9 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
                               Prom: {parseFloat(grad.promedio).toFixed(2)}
                             </span>
                           )}
+                          <span className={`flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded border ${grad.identidad_corrobada_en ? 'text-emerald-700 bg-emerald-50 border-emerald-100' : 'text-amber-700 bg-amber-50 border-amber-100'}`}>
+                            <BadgeCheck size={10} /> {grad.identidad_corrobada_en ? 'Datos corroborados' : 'Pendiente de corroborar'}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -394,10 +465,27 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
                     </div>
                   )}
 
+                  {!esRechazado && (
+                    <div className={`mb-2.5 flex items-center gap-2 rounded-lg border px-2.5 py-2 text-[10px] ${grad.correo ? 'border-slate-100 bg-white text-slate-600' : 'border-amber-200 bg-amber-50 text-amber-800'}`}>
+                      <Mail size={13} className="shrink-0" />
+                      <span className="truncate">{grad.correo || 'Falta correo electrónico: no se puede enviar la invitación.'}</span>
+                      {grad.invitacion_enviada && <span className="ml-auto shrink-0 text-emerald-600 font-bold">Enviada {grad.invitacion_envios_count > 1 ? `${grad.invitacion_envios_count} veces` : ''}</span>}
+                    </div>
+                  )}
+
                   {/* Acciones */}
                   <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-slate-100">
                     {!esRechazado && (
                       <>
+                        {!grad.identidad_corrobada_en && (
+                          <button
+                            onClick={() => manejarCorroboracion(grad)}
+                            disabled={corroborandoId === grad.id}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-100 hover:bg-emerald-500 hover:text-white disabled:opacity-40 transition-all"
+                          >
+                            <BadgeCheck size={12} /> {corroborandoId === grad.id ? 'Corroborando...' : 'Corroborar datos'}
+                          </button>
+                        )}
                         <button
                           onClick={() => manejarEnvioInvitacion(grad)}
                           disabled={enviandoId === grad.id || !grad.correo}
