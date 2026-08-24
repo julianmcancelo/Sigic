@@ -8,7 +8,7 @@ import { BASE, cabeceras } from '../../servicios/api'
 import { obtenerDetalleClima } from '../../utilidades/clima'
 import { CloudSun } from 'lucide-react'
 
-// Importación de sub-vistas del sistema (locales v2)
+// Importación de sub-vistas operativas del sistema.
 import { GestionCeremonias } from './GestionCeremonias'
 import { GestionGraduados } from './GestionGraduados'
 import { GestionProfesores } from './GestionProfesores'

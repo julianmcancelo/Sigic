@@ -72,7 +72,7 @@ plataforma/
 │   │   ├── otp.ts              # Generación y validación de códigos OTP
 │   │   └── tokens.ts           # Firma y verificación de tokens JWT
 │   ├── paginas/
-│   │   ├── v2/                 # Vistas modernas Bento Grid (interfaz activa)
+│   │   ├── operacion/          # Vistas operativas activas de la plataforma
 │   │   │   ├── CentroControl.jsx       # Diagnóstico, backups y system reset
 │   │   │   ├── GestionCeremonias.jsx   # CRUD de ceremonias
 │   │   │   ├── GestionGraduados.jsx    # Padrón de egresados e importación

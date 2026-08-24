@@ -17,6 +17,8 @@ Este documento define los proyectos vigentes y evita que archivos generados vuel
 | `codigo/movil` | Histórico | React Native/Expo. No publicar releases nuevos desde aquí. |
 | `codigo/movil-reactnative` | Histórico | Copia anterior de React Native. Conservar solo como referencia. |
 
+Dentro de `codigo/plataforma/src/paginas`, `operacion` contiene las vistas activas. Las pantallas equivalentes fuera de esa carpeta son implementaciones anteriores que se conservan temporalmente como referencia y no se cargan desde `App.jsx`.
+
 ## Archivos generados
 
 Los directorios siguientes se generan localmente y no deben agregarse a Git:
