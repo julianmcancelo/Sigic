@@ -445,15 +445,27 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
-                width: 42,
-                height: 42,
+                width: 48,
+                height: 48,
+                clipBehavior: Clip.antiAlias,
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(13),
-                  border: Border.all(color: const Color(0xFFE2EAF0)),
-                  image: const DecorationImage(
-                    image: AssetImage('assets/imagenes/logo-glow.png'),
-                    fit: BoxFit.contain,
+                  color: const Color(0xFF0A1422),
+                  borderRadius: BorderRadius.circular(15),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x26075985),
+                      blurRadius: 12,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Semantics(
+                  label: 'SiGIC Accesos',
+                  image: true,
+                  child: Image.asset(
+                    'assets/imagenes/logo-oficial.png',
+                    fit: BoxFit.cover,
+                    filterQuality: FilterQuality.high,
                   ),
                 ),
               ),
