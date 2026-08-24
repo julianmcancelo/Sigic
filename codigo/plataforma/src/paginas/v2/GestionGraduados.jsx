@@ -276,8 +276,8 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
 
       {/* FORMULARIO DE ALTA */}
       {mostrarForm && (
-        <div className="mb-6">
           <FormularioGraduado
+            enModal
             onCreado={(nuevo) => {
               setMostrarForm(false)
               setAltaExitosa(`${nuevo.nombre} fue registrado correctamente en la ceremonia activa.`)
@@ -286,7 +286,6 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
             }}
             onCancelar={() => setMostrarForm(false)}
           />
-        </div>
       )}
 
       {altaExitosa && (

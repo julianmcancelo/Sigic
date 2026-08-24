@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { Users, CheckCircle2, Mail, GraduationCap, Calendar, Award, Search, ShieldCheck, AlertTriangle, History } from 'lucide-react'
 import { buscarGraduadoPorDNI, crearGraduado, obtenerAjustes, obtenerCeremoniaActiva } from '../servicios/api'
 import { InputCampo } from './InputCampo'
@@ -8,7 +9,7 @@ import { InputCampo } from './InputCampo'
  * @param {Function} onCreado - Callback ejecutado tras crear exitosamente el graduado.
  * @param {Function} onCancelar - Callback para cerrar el formulario.
  */
-export function FormularioGraduado({ onCreado, onCancelar }) {
+export function FormularioGraduado({ onCreado, onCancelar, enModal = false }) {
   const [form, setForm] = useState({ 
     nombre: '', 
     legajo: '', 
@@ -146,8 +147,8 @@ export function FormularioGraduado({ onCreado, onCancelar }) {
     }
   }
 
-  return (
-    <div className="bg-white/50 backdrop-blur-sm p-8 border-b border-slate-100 animate-in fade-in slide-in-from-top-4 duration-500 rounded-[32px] mb-6 shadow-sm">
+  const formulario = (
+    <div className={`${enModal ? 'bg-white p-5 sm:p-8' : 'bg-white/50 backdrop-blur-sm p-8 border-b border-slate-100 animate-in fade-in slide-in-from-top-4 duration-500 rounded-[32px] mb-6 shadow-sm'}`}>
       <form onSubmit={handleSubmit} className="mx-auto max-w-5xl space-y-8">
         {error && (
           <div ref={errorRef} role="alert" aria-live="assertive" className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-red-700 shadow-sm animate-in fade-in slide-in-from-top-2">
@@ -454,5 +455,20 @@ export function FormularioGraduado({ onCreado, onCancelar }) {
         </div>
       )}
     </div>
+  )
+
+  if (!enModal || typeof document === 'undefined') return formulario
+
+  return createPortal(
+    <div className="fixed inset-0 z-[200] flex items-end justify-center bg-slate-950/60 p-0 backdrop-blur-sm sm:items-center sm:p-5" role="dialog" aria-modal="true" aria-label="Registrar graduado">
+      <section className="max-h-[94dvh] w-full max-w-5xl overflow-y-auto rounded-t-[28px] bg-white shadow-2xl sm:rounded-[28px]">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white/95 px-5 py-3 backdrop-blur sm:px-8">
+          <div><p className="text-[9px] font-black uppercase tracking-[.18em] text-sky-600">Padrón de ceremonia</p><h2 className="text-base font-black text-slate-900">Nuevo graduado</h2></div>
+          <button type="button" onClick={onCancelar} className="grid h-9 w-9 place-items-center rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Cerrar formulario">X</button>
+        </div>
+        {formulario}
+      </section>
+    </div>,
+    document.body
   )
 }
