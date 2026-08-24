@@ -1466,7 +1466,14 @@ export async function POST(
          WHERE id = $1 RETURNING id, credencial_enviada_en, credencial_envios_count, google_wallet_object_id, google_wallet_actualizado_en`,
         [slug[1], paseGoogleWallet?.objectId || null]
       );
-      return NextResponse.json({ ok: true, mensaje: 'Credencial e información enviadas', googleWallet: Boolean(paseGoogleWallet), graduado: actualizado.rows[0] }, { headers });
+      return NextResponse.json({
+        ok: true,
+        mensaje: paseGoogleWallet
+          ? 'Credencial, PDF y pase de Google Wallet enviados.'
+          : 'Credencial e información enviadas. El pase de Google Wallet no se pudo generar.',
+        googleWallet: Boolean(paseGoogleWallet),
+        graduado: actualizado.rows[0]
+      }, { headers });
     }
 
     if (path === 'egresados/solicitar-otp') {

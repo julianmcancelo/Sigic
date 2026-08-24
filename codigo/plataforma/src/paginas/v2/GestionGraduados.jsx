@@ -191,6 +191,12 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
       } : item))
       setCredencialEnviadaId(grad.id)
       setTimeout(() => setCredencialEnviadaId(null), 3000)
+      setAltaExitosa(
+        respuesta.googleWallet
+          ? `Credencial enviada a ${grad.nombre}. El correo incluye el botón para guardar el pase en Google Wallet.`
+          : `Credencial enviada a ${grad.nombre}. El correo incluye el PDF y el acceso al portal.`
+      )
+      setTimeout(() => setAltaExitosa(''), 6000)
     } catch (err) {
       alert(err.message)
     } finally {
