@@ -343,6 +343,28 @@ export async function activarCeremonia(id: string | number) {
   return json;
 }
 
+export async function solicitarRestablecimientoContrasena(email: string) {
+  const res = await fetch(`${BASE_LOCAL}/auth/recuperar-contrasena`, {
+    method: 'POST',
+    headers: cabeceras(),
+    body: JSON.stringify({ email })
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No pudimos enviar el enlace de recuperación.');
+  return json;
+}
+
+export async function restablecerContrasena(token: string, password: string) {
+  const res = await fetch(`${BASE_LOCAL}/auth/restablecer-contrasena`, {
+    method: 'POST',
+    headers: cabeceras(),
+    body: JSON.stringify({ token, password })
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No pudimos actualizar la contraseña.');
+  return json;
+}
+
 export async function actualizarGraduado(id: string | number, datos: any) {
   const res = await fetch(`${BASE_CLASSIC}/egresados/${id}`, { method: 'PUT', headers: cabeceras(), body: JSON.stringify(datos) });
   const json = await res.json();

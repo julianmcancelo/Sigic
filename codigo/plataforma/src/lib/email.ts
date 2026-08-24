@@ -47,6 +47,10 @@ inicializarTransportador();
 
 type ArchivoAdjunto = { filename: string; content: Buffer; contentType?: string };
 
+function escaparHTML(valor: string) {
+  return String(valor || '').replace(/[&<>"']/g, caracter => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[caracter] || caracter);
+}
+
 export async function enviarCorreo(destinatario: string, asunto: string, cuerpoHTML: string, adjuntos: ArchivoAdjunto[] = []) {
   const remitente = process.env.EMAIL_FROM || 'SiGIC <no-responder@notificaciones.sigic.com.ar>';
 
@@ -254,6 +258,30 @@ export function generarPlantillaOTP(codigo: string, hostBase: string) {
       </tr>
     </table>
   `;
+}
+
+export function generarPlantillaRecuperacionContrasena(nombre: string, enlace: string, hostBase: string) {
+  const logo = `${hostBase}/logo.png`;
+  return `
+    <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#edf4f6" style="font-family:Arial,sans-serif;">
+      <tr><td align="center" style="padding:34px 14px;">
+        <table width="560" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="max-width:560px;border:1px solid #d9e8eb;border-radius:18px;overflow:hidden;">
+          <tr><td bgcolor="#061321" style="padding:28px 34px;text-align:center;">
+            <img src="${logo}" alt="SiGIC" width="54" height="54" style="display:inline-block;border-radius:13px;background:#ffffff;" />
+            <p style="margin:16px 0 0;color:#62e5e9;font-size:10px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;">Acceso institucional</p>
+            <h1 style="margin:8px 0 0;color:#ffffff;font-size:25px;letter-spacing:4px;">SiGIC</h1>
+          </td></tr>
+          <tr><td style="padding:34px;color:#173044;">
+            <h2 style="margin:0 0 14px;font-size:21px;">Restablecer contraseña</h2>
+            <p style="margin:0;color:#52687a;font-size:15px;line-height:1.6;">Hola, ${escaparHTML(nombre)}. Recibimos una solicitud para actualizar la contraseña de tu cuenta administrativa.</p>
+            <p style="margin:18px 0 24px;color:#52687a;font-size:14px;line-height:1.6;">Usá el siguiente enlace para elegir una contraseña nueva. Es personal, tiene un único uso y vence en 30 minutos.</p>
+            <table cellspacing="0" cellpadding="0" border="0" align="center"><tr><td bgcolor="#087f9d" style="border-radius:9px;"><a href="${enlace}" style="display:inline-block;padding:14px 22px;color:#ffffff;font-size:13px;font-weight:bold;text-decoration:none;">Restablecer contraseña</a></td></tr></table>
+            <p style="margin:26px 0 0;padding-top:18px;border-top:1px solid #e4ecef;color:#78909c;font-size:12px;line-height:1.55;">Si no solicitaste este cambio, podés ignorar este correo. Tu contraseña actual no será modificada.</p>
+          </td></tr>
+          <tr><td bgcolor="#f6fafb" style="padding:16px 26px;text-align:center;color:#91a4ae;font-size:10px;letter-spacing:.4px;">Instituto Tecnológico Beltrán · SiGIC</td></tr>
+        </table>
+      </td></tr>
+    </table>`;
 }
 
 /** Aviso único tras finalizar la autogestión; el graduado conserva acceso para corregir datos. */

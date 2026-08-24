@@ -50,6 +50,15 @@ async function ejecutarInicializacion() {
         finalizada_en TIMESTAMP,
         creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+      CREATE TABLE IF NOT EXISTS tokens_recuperacion_contrasena (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        usuario_id UUID NOT NULL REFERENCES usuarios_sistema(id) ON DELETE CASCADE,
+        token_hash VARCHAR(64) NOT NULL UNIQUE,
+        expira_en TIMESTAMP NOT NULL,
+        usado_en TIMESTAMP,
+        solicitado_ip VARCHAR(120),
+        creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
 
       ALTER TABLE ceremonias ADD COLUMN IF NOT EXISTS estado_operativo VARCHAR(24) NOT NULL DEFAULT 'BORRADOR';
       ALTER TABLE ceremonias ADD COLUMN IF NOT EXISTS finalizada_en TIMESTAMP;
@@ -179,6 +188,7 @@ async function ejecutarInicializacion() {
         ultimo_acceso TIMESTAMP DEFAULT CURRENT_TIMESTAMP, sesion_activa SMALLINT DEFAULT 1
       );
       CREATE INDEX IF NOT EXISTS idx_egresados_token ON egresados(token);
+      CREATE INDEX IF NOT EXISTS idx_recuperacion_usuario ON tokens_recuperacion_contrasena(usuario_id);
       CREATE INDEX IF NOT EXISTS idx_egresados_correo ON egresados(correo);
       CREATE INDEX IF NOT EXISTS idx_invitados_egresado ON invitados(egresado_id);
       CREATE INDEX IF NOT EXISTS idx_invitados_presente ON invitados(presente);

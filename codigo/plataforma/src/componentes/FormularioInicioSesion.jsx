@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { iniciarSesionAdmin } from '../servicios/api'
+import { iniciarSesionAdmin, solicitarRestablecimientoContrasena } from '../servicios/api'
 import { validarFormularioLogin } from '../utilidades/validar-formulario-login'
 import { CampoFormulario } from './CampoFormulario'
 
@@ -10,6 +10,10 @@ export function FormularioInicioSesion({ onInicioSesionExitoso }) {
   const [errores, setErrores] = useState({})
   const [mensajeEstado, setMensajeEstado] = useState('')
   const [modalVisible, setModalVisible] = useState(false)
+  const [correoRecuperacion, setCorreoRecuperacion] = useState('')
+  const [recuperando, setRecuperando] = useState(false)
+  const [recuperacionEnviada, setRecuperacionEnviada] = useState(false)
+  const [errorRecuperacion, setErrorRecuperacion] = useState('')
 
   const [cargando, setCargando] = useState(false)
 
@@ -50,6 +54,20 @@ export function FormularioInicioSesion({ onInicioSesionExitoso }) {
       setMensajeEstado('No pudimos validar tus datos.')
     } finally {
       setCargando(false)
+    }
+  }
+
+  async function solicitarRecuperacion(evento) {
+    evento.preventDefault()
+    setRecuperando(true)
+    setErrorRecuperacion('')
+    try {
+      await solicitarRestablecimientoContrasena(correoRecuperacion)
+      setRecuperacionEnviada(true)
+    } catch (error) {
+      setErrorRecuperacion(error.message || 'No pudimos enviar el enlace.')
+    } finally {
+      setRecuperando(false)
     }
   }
 
@@ -120,7 +138,12 @@ export function FormularioInicioSesion({ onInicioSesionExitoso }) {
             <button
               type="button"
               className="font-medium text-[#1565C0] underline-offset-2 hover:underline"
-              onClick={() => setModalVisible(true)}
+              onClick={() => {
+                setCorreoRecuperacion(formulario.correo)
+                setErrorRecuperacion('')
+                setRecuperacionEnviada(false)
+                setModalVisible(true)
+              }}
             >
               Olvidé mi contraseña
             </button>
@@ -141,7 +164,7 @@ export function FormularioInicioSesion({ onInicioSesionExitoso }) {
         </div>
       </div>
 
-      {/* Modal de credenciales demo */}
+      {/* Recuperación administrativa por enlace de un solo uso. */}
       {modalVisible ? (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4 backdrop-blur-sm"
@@ -151,41 +174,29 @@ export function FormularioInicioSesion({ onInicioSesionExitoso }) {
             className="w-full max-w-xs overflow-hidden rounded-2xl bg-white shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="bg-[#2A3448] px-5 py-3">
+            <div className="bg-[#102a43] px-5 py-4">
               <p className="text-xs font-bold uppercase tracking-widest text-[#29ABE2]">
-                Cuenta de prueba
+                Recuperar acceso
               </p>
             </div>
 
-            <div className="space-y-3 px-5 py-4">
-              <p className="text-xs text-[#546E7A]">
-                Usa estas credenciales para probar el sistema sin una cuenta real.
-              </p>
-
-              <div className="rounded-lg border border-[#B3E5FC] bg-[#EEF6FC] px-4 py-2.5">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-[#546E7A]">
-                  Correo
-                </p>
-                <p className="mt-0.5 font-mono text-sm font-semibold text-[#1565C0]">
-                  Tu correo registrado
-                </p>
-              </div>
-
-              <div className="rounded-lg border border-[#B3E5FC] bg-[#EEF6FC] px-4 py-2.5">
-                <p className="text-[10px] font-semibold uppercase tracking-wider text-[#546E7A]">
-                  Contraseña
-                </p>
-                <p className="mt-0.5 font-mono text-sm font-semibold text-[#1565C0]">
-                  Tu clave personal
-                </p>
-              </div>
-
-              <button
-                className="w-full rounded-lg bg-[#29ABE2] py-2 text-sm font-semibold text-white transition hover:bg-[#0288D1]"
-                onClick={() => setModalVisible(false)}
-              >
-                Cerrar
-              </button>
+            <div className="space-y-4 px-5 py-5">
+              {recuperacionEnviada ? (
+                <>
+                  <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-3 text-xs leading-relaxed text-emerald-800">Si el correo corresponde a una cuenta activa, vas a recibir un enlace para crear una contraseña nueva. Revisá también correo no deseado.</p>
+                  <button className="w-full rounded-lg bg-[#29ABE2] py-2.5 text-sm font-semibold text-white transition hover:bg-[#0288D1]" onClick={() => setModalVisible(false)}>Volver al acceso</button>
+                </>
+              ) : (
+                <form className="space-y-3" onSubmit={solicitarRecuperacion}>
+                  <p className="text-xs leading-relaxed text-[#546E7A]">Ingresá tu correo administrativo. Te enviaremos un enlace personal que vence en 30 minutos.</p>
+                  <label className="grid gap-1.5 text-left text-[10px] font-bold uppercase tracking-wider text-[#546E7A]">
+                    Correo electrónico
+                    <input autoFocus required type="email" value={correoRecuperacion} onChange={evento => setCorreoRecuperacion(evento.target.value)} placeholder="nombre@institucion.edu.ar" className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm normal-case tracking-normal outline-none focus:border-[#29ABE2] focus:ring-2 focus:ring-sky-100" />
+                  </label>
+                  {errorRecuperacion ? <p className="rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-700">{errorRecuperacion}</p> : null}
+                  <button disabled={recuperando} className="w-full rounded-lg bg-[#29ABE2] py-2.5 text-sm font-semibold text-white transition hover:bg-[#0288D1] disabled:cursor-wait disabled:bg-slate-300">{recuperando ? 'Enviando enlace...' : 'Enviar enlace seguro'}</button>
+                </form>
+              )}
             </div>
           </div>
         </div>
