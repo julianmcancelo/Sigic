@@ -4,6 +4,7 @@ import '../../modelos/usuario_sesion.dart';
 import '../../servicios/servicio_api.dart';
 import '../../servicios/servicio_shorebird.dart';
 import '../../widgets/panel_tarjeta.dart';
+import '../../nucleo/tema/controlador_tema.dart';
 
 class PestanaAjustes extends StatefulWidget {
   const PestanaAjustes({
@@ -273,6 +274,39 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
                         : const Color(0xFFB8C8D2),
                   ),
                 ],
+              ),
+            ),
+            const _TituloSeccion(
+              titulo: 'APARIENCIA',
+              detalle: 'El modo claro es el predeterminado.',
+            ),
+            PanelTarjeta(
+              contenido: ValueListenableBuilder<ThemeMode>(
+                valueListenable: modoTemaSigic,
+                builder: (context, modo, _) =>
+                    DropdownButtonFormField<ThemeMode>(
+                  initialValue: modo,
+                      decoration: const InputDecoration(
+                        labelText: 'Tema de la aplicación',
+                      ),
+                      items: const [
+                        DropdownMenuItem(
+                          value: ThemeMode.light,
+                          child: Text('Claro'),
+                        ),
+                        DropdownMenuItem(
+                          value: ThemeMode.dark,
+                          child: Text('Oscuro'),
+                        ),
+                        DropdownMenuItem(
+                          value: ThemeMode.system,
+                          child: Text('Según el sistema'),
+                        ),
+                      ],
+                      onChanged: (valor) {
+                        if (valor != null) modoTemaSigic.value = valor;
+                      },
+                    ),
               ),
             ),
             const _TituloSeccion(
