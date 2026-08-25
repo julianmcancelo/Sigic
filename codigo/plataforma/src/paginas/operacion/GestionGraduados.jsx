@@ -381,14 +381,14 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
                   </div>
 
                   <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
-                    {!esRechazado && !grad.identidad_corrobada_en && <button onClick={() => manejarCorroboracion(grad)} disabled={corroborandoId === grad.id} className="rounded-lg bg-emerald-50 px-3 py-1.5 text-[9px] font-bold text-emerald-700 disabled:opacity-40"><BadgeCheck size={12} className="mr-1 inline" />Verificar</button>}
+                    <button onClick={() => setGraduadoEditar(grad)} className="rounded-lg bg-slate-900 px-3 py-1.5 text-[9px] font-bold text-white"><Edit3 size={12} className="mr-1 inline" />Editar</button>
                     {!esRechazado && !grad.invitacion_enviada && <button onClick={() => manejarEnvioInvitacion(grad)} disabled={enviandoId === grad.id || !grad.correo} className="rounded-lg bg-sky-50 px-3 py-1.5 text-[9px] font-bold text-sky-700 disabled:opacity-40"><Send size={12} className="mr-1 inline" />{enviandoId === grad.id ? 'Enviando' : 'Invitar'}</button>}
                     {!esRechazado && grad.estado === 'ACEPTADO' && <button onClick={() => abrirAsignacion(grad)} className="rounded-lg bg-slate-900 px-3 py-1.5 text-[9px] font-bold text-white"><Armchair size={12} className="mr-1 inline" />Butacas</button>}
                     {misInvitados.length > 0 && <span className="text-[9px] font-semibold text-slate-400">{misInvitados.length} acompañantes</span>}
                     <details className="relative ml-auto">
                       <summary className="grid h-7 w-8 cursor-pointer list-none place-items-center rounded-lg text-slate-400 hover:bg-slate-100"><MoreHorizontal size={15} /></summary>
                       <div className="absolute bottom-9 right-0 z-20 w-48 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl">
-                        <button onClick={() => setGraduadoEditar(grad)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-slate-600 hover:bg-slate-50"><Edit3 size={13} /> Editar</button>
+                        {!esRechazado && !grad.identidad_corrobada_en && <button onClick={() => manejarCorroboracion(grad)} disabled={corroborandoId === grad.id} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-emerald-700 hover:bg-emerald-50 disabled:opacity-40"><BadgeCheck size={13} /> Verificar datos</button>}
                         {!esRechazado && <button onClick={() => manejarLink(grad)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-slate-600 hover:bg-slate-50"><Link2 size={13} /> Enlace</button>}
                         {!esRechazado && <button onClick={() => setGraduadoCredencial(grad)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-slate-600 hover:bg-slate-50"><CreditCard size={13} /> Ver credencial</button>}
                         {!esRechazado && grad.estado === 'ACEPTADO' && <button onClick={() => manejarEnvioCredencial(grad)} disabled={enviandoCredencialId === grad.id || !grad.correo} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-indigo-600 hover:bg-indigo-50 disabled:opacity-40"><Mail size={13} /> Enviar credencial</button>}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { AlertCircle, ArrowRight, CalendarClock, CheckCircle2, ChevronDown, ChevronUp, FileSpreadsheet, LayoutTemplate, LoaderCircle, Plus, Radio, Send, Users, X } from 'lucide-react'
+import { AlertCircle, ArrowRight, CalendarClock, CheckCircle2, FileSpreadsheet, LayoutTemplate, LoaderCircle, Plus, Radio, Send, Users, X } from 'lucide-react'
 import { crearGraduado, obtenerCeremonias } from '../lib/api'
 import { ModalImportar } from './ModalImportar'
 
@@ -16,7 +16,6 @@ function siguientePaso(ceremonia) {
 }
 
 export function AsistenteOperativoCeremonia({ onNavegar }) {
-  const [abierto, setAbierto] = useState(true)
   const [ceremonia, setCeremonia] = useState(null)
   const [mostrarCargaRapida, setMostrarCargaRapida] = useState(false)
   const [mostrarImportar, setMostrarImportar] = useState(false)
@@ -72,21 +71,21 @@ export function AsistenteOperativoCeremonia({ onNavegar }) {
 
   const paso = siguientePaso(ceremonia)
   const Icono = paso.icono
-  return <aside className={`sigic-ceremony-assistant ${abierto ? 'is-open' : ''}`} aria-label="Asistente operativo de ceremonia">
-    <button className="sigic-ceremony-assistant-toggle" onClick={() => setAbierto(valor => !valor)}>
-      <span><span className="sigic-ceremony-assistant-pulse" /> Asistente operativo</span>{abierto ? <ChevronDown size={15} /> : <ChevronUp size={15} />}
-    </button>
-    {abierto && <div className="sigic-ceremony-assistant-body">
-      <div className="sigic-ceremony-assistant-icon"><Icono size={18} /></div>
-      <div><p className="sigic-ceremony-assistant-kicker">Siguiente acción</p><strong>{paso.titulo}</strong><p>{paso.detalle}</p></div>
-      <div className="sigic-ceremony-assistant-progress"><span style={{ width: `${(paso.avance / 6) * 100}%` }} /></div>
-      <div className="sigic-ceremony-assistant-stages">{ETAPAS.map((etapa, indice) => <span key={etapa} className={indice < paso.avance ? 'is-done' : indice === paso.avance ? 'is-current' : ''}>{indice < paso.avance ? <CheckCircle2 size={10} /> : <i />}{etapa}</span>)}</div>
-      {paso.avance === 1 && <div className="sigic-ceremony-assistant-load">
-        <p>Podés incorporar el padrón sin salir del escritorio.</p>
-        <div><button onClick={() => { setErrorCarga(''); setMostrarCargaRapida(true) }}><Plus size={13} /> Cargar uno</button><button onClick={() => setMostrarImportar(true)}><FileSpreadsheet size={13} /> Importar archivo</button></div>
-      </div>}
-      <button onClick={() => onNavegar(paso.destino)} className="sigic-ceremony-assistant-action">Ir ahora <ArrowRight size={14} /></button>
-    </div>}
+  return <section className="mx-auto w-full max-w-3xl p-4 sm:p-8" aria-label="Asistente administrativo de ceremonia">
+    <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <header className="flex items-center gap-3 border-b border-slate-100 px-5 py-4">
+        <span className="grid h-10 w-10 place-items-center rounded-xl bg-sky-50 text-sky-600"><Icono size={19} /></span>
+        <div><p className="text-[9px] font-black uppercase tracking-[.18em] text-sky-600">Asistente administrativo</p><h2 className="text-base font-black text-slate-900">Próxima acción</h2></div>
+      </header>
+      <div className="p-5 sm:p-7">
+        <h3 className="text-xl font-black text-slate-900">{paso.titulo}</h3>
+        <p className="mt-1 text-sm text-slate-500">{paso.detalle}</p>
+        <div className="mt-6 h-1.5 overflow-hidden rounded-full bg-slate-100"><span className="block h-full rounded-full bg-sky-500" style={{ width: `${(paso.avance / 6) * 100}%` }} /></div>
+        <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6">{ETAPAS.map((etapa, indice) => <div key={etapa} className={`flex items-center gap-1 text-[9px] font-bold ${indice <= paso.avance ? 'text-sky-600' : 'text-slate-300'}`}>{indice < paso.avance ? <CheckCircle2 size={11} /> : <span className="h-2 w-2 rounded-full bg-current" />}{etapa}</div>)}</div>
+        {paso.avance === 1 && <div className="mt-6 flex flex-wrap gap-2"><button onClick={() => { setErrorCarga(''); setMostrarCargaRapida(true) }} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"><Plus size={14} /> Cargar graduado</button><button onClick={() => setMostrarImportar(true)} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"><FileSpreadsheet size={14} /> Importar archivo</button></div>}
+        <button onClick={() => onNavegar(paso.destino)} className="mt-7 flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-black text-white hover:bg-slate-800">Continuar <ArrowRight size={14} /></button>
+      </div>
+    </div>
     {mostrarCargaRapida && <div className="sigic-quick-graduate-overlay" role="dialog" aria-modal="true" aria-labelledby="carga-rapida-titulo">
       <form className="sigic-quick-graduate-card" onSubmit={guardarGraduado}>
         <header><div><span>Asistente operativo</span><h2 id="carga-rapida-titulo">Cargar graduado</h2><p>{ceremonia?.nombre || 'Ceremonia activa'}</p></div><button type="button" onClick={() => setMostrarCargaRapida(false)} aria-label="Cerrar"><X size={18} /></button></header>
@@ -102,5 +101,5 @@ export function AsistenteOperativoCeremonia({ onNavegar }) {
       </form>
     </div>}
     {mostrarImportar && <ModalImportar onCerrar={() => setMostrarImportar(false)} onCompletado={async () => { await actualizarCeremonia(); setMostrarImportar(false) }} />}
-  </aside>
+  </section>
 }
