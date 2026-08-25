@@ -13,6 +13,11 @@
   --sigic-shadow: 0 12px 30px rgba(15, 42, 67, .08);
 }
 
+/* Ventanas flotantes: cada módulo conserva su propio lugar y foco en el escritorio. */
+.sigic-os-workspace .sigic-window:not(.sigic-window-maximized):not(.sigic-window-snapped) { position: absolute; top: 76px; right: 28px; bottom: 18px; left: 96px; width: auto; height: auto; margin: 0; }.sigic-os-workspace .sigic-window-active { border-color: rgba(110, 231, 239, .42); box-shadow: 0 32px 78px rgba(0,0,0,.42), 0 0 0 1px rgba(80, 221, 229, .08); }.sigic-os-workspace .sigic-window-inactive { filter: saturate(.9) brightness(.96); box-shadow: 0 18px 46px rgba(0,0,0,.26); }.sigic-window-bar { cursor: grab; touch-action: none; }.sigic-window-bar:active { cursor: grabbing; }
+
+@media (max-width: 700px) { .sigic-os-workspace .sigic-window:not(.sigic-window-maximized):not(.sigic-window-snapped) { top: 3px; right: 3px; bottom: 3px; left: 3px; width: auto !important; height: auto !important; } .sigic-os-workspace .sigic-window-inactive { display: none; } }
+
 /* Confirmación explícita cuando el asistente encuentra un DNI existente. */
 .sigic-quick-graduate-identity { display: grid; gap: 10px; margin: 0 18px 18px; padding: 12px; border: 1px solid #f0bd55; border-radius: 10px; background: #fff9eb; color: #70460c; }.sigic-quick-graduate-identity strong { display: block; font-size: 11px; }.sigic-quick-graduate-identity p { margin: 4px 0 0; color: #80633b; font-size: 10px; }.sigic-quick-graduate-identity > div:last-child { display: flex; flex-wrap: wrap; gap: 7px; }.sigic-quick-graduate-identity button { padding: 7px 9px; border-radius: 7px; font-size: 9px; font-weight: 800; }.sigic-quick-graduate-identity button:first-child { background: #0c8aa3; color: white; }.sigic-quick-graduate-identity button:last-child { border: 1px solid #d7b575; color: #76521c; }.sigic-quick-graduate-identity.is-confirmed { border-color: #87d8b0; background: #effcf5; color: #08734c; }.sigic-quick-graduate-identity.is-confirmed p { color: #318463; }
 .sigic-quick-graduate-success { display: flex; align-items: center; gap: 7px; margin: 14px 18px 0; padding: 9px; border-radius: 8px; background: #effcf5; color: #08734c; font-size: 10px; font-weight: 700; }
