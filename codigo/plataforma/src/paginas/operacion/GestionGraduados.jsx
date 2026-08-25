@@ -428,9 +428,10 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
           todosLosGraduados={graduados}
           todosLosInvitados={invitados}
           onCerrar={() => setGraduadoAsignar(null)}
-          onAsignado={() => {
+          onAsignado={async () => {
             setGraduadoAsignar(null)
-            cargarDatos()
+            await cargarDatos()
+            if (graduadoAsignar.correo) await manejarEnvioCredencial(graduadoAsignar)
           }}
         />
       )}
