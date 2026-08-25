@@ -429,8 +429,12 @@ export async function GET(
     // ANFITEATRO CONFIG
     // -------------------------------------------------------------
     if (path === 'anfiteatro/config') {
+      const ceremoniaActiva = await query('SELECT id FROM ceremonias WHERE activa = 1 LIMIT 1');
+      const ceremoniaId = ceremoniaActiva.rows[0]?.id;
+      if (!ceremoniaId) return NextResponse.json({ error: 'No hay una ceremonia activa' }, { status: 404, headers });
       const result = await query(
-        'SELECT estructura, mapa_roles FROM configuracion_anfiteatro ORDER BY actualizado_en DESC LIMIT 1'
+        'SELECT estructura, mapa_roles FROM configuracion_anfiteatro WHERE ceremonia_id = $1 ORDER BY actualizado_en DESC LIMIT 1',
+        [ceremoniaId]
       );
       
       if (result.rows.length === 0) {
@@ -1035,9 +1039,12 @@ export async function POST(
         return NextResponse.json({ error: 'Formato de configuración inválido' }, { status: 400, headers });
       }
 
+      const ceremoniaActiva = await query('SELECT id FROM ceremonias WHERE activa = 1 LIMIT 1');
+      const ceremoniaId = ceremoniaActiva.rows[0]?.id;
+      if (!ceremoniaId) return NextResponse.json({ error: 'No hay una ceremonia activa' }, { status: 409, headers });
       await query(
-        'INSERT INTO configuracion_anfiteatro (estructura, mapa_roles, actualizado_en) VALUES ($1, $2, CURRENT_TIMESTAMP)',
-        [estructura, mapaRoles]
+        'INSERT INTO configuracion_anfiteatro (ceremonia_id, estructura, mapa_roles, actualizado_en) VALUES ($1, $2, $3, CURRENT_TIMESTAMP)',
+        [ceremoniaId, estructura, mapaRoles]
       );
       return NextResponse.json({ mensaje: 'Configuración guardada con éxito en la base de datos' }, { headers });
     }
@@ -1220,7 +1227,13 @@ export async function POST(
         }
 
         for (const inv of nuevos) {
-          const existRes = await client.query('SELECT id FROM invitados WHERE dni = $1', [inv.dni]);
+          const existRes = await client.query(
+            `SELECT i.id FROM invitados i
+             JOIN egresados e ON e.id = i.egresado_id
+             WHERE e.ceremonia_id = $1
+               AND REGEXP_REPLACE(COALESCE(i.dni, ''), '[^0-9]', '', 'g') = $2`,
+            [egresado.ceremonia_id, String(inv.dni || '').replace(/\D/g, '')]
+          );
           if (existRes.rows.length > 0) {
             throw new Error(`El DNI ${inv.dni} ya está registrado en el sistema.`);
           }
@@ -1301,6 +1314,16 @@ export async function POST(
       );
       if (existente.rows.length > 0) {
         return NextResponse.json({ error: 'Esta inscripción ya existe para la misma ceremonia, carrera y año' }, { status: 409, headers });
+      }
+
+      const identidadEnCeremonia = await query(
+        `SELECT id FROM egresados
+         WHERE ceremonia_id = $1
+           AND REGEXP_REPLACE(COALESCE(dni, ''), '[^0-9]', '', 'g') = $2`,
+        [ceremoniaIdFinal, dniLimpio]
+      );
+      if (identidadEnCeremonia.rows.length > 0) {
+        return NextResponse.json({ error: 'Esta persona ya tiene una inscripción en la ceremonia activa. Podés editar su registro existente.' }, { status: 409, headers });
       }
 
       const token = crypto.randomBytes(4).toString('hex').toUpperCase(); // 8-char código seguro
