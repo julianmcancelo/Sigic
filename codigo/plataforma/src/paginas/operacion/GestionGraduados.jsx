@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { 
-  Users, Search, Upload, Trash2, X, Mail, Link2, CreditCard, 
+  Users, Search, Upload, Trash2, X, Link2, CreditCard,
   UserX, CheckCircle2, Clock, AlertCircle, Armchair, Send, PlusCircle, BadgeCheck, Edit3, MoreHorizontal
 } from 'lucide-react'
 
@@ -9,7 +9,7 @@ import {
   eliminarGraduado,
   vaciarGraduados,
   obtenerInvitados, 
-  enviarInvitacion, corroborarGraduado, enviarCredencialCeremonia, actualizarGraduado
+  corroborarGraduado, actualizarGraduado
 } from '../../servicios/api'
 
 import { ModalLinkRegistro } from '../../componentes/ModalLinkRegistro'
@@ -51,10 +51,7 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
   const [graduadoCredencial, setGraduadoCredencial] = useState(null)
   const [graduadoAsignar, setGraduadoAsignar] = useState(null)
 
-  const [enviandoId, setEnviandoId] = useState(null)
   const [corroborandoId, setCorroborandoId] = useState(null)
-  const [envioMasivo, setEnvioMasivo] = useState(null)
-  const [enviandoCredencialId, setEnviandoCredencialId] = useState(null)
   const [altaExitosa, setAltaExitosa] = useState('')
   const [graduadoEditar, setGraduadoEditar] = useState(null)
 
@@ -74,29 +71,6 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
       setError('Error de conexión al servidor')
     } finally {
       setCargando(false)
-    }
-  }
-
-  async function manejarEnvioInvitacion(grad) {
-    if (!grad.correo) {
-      alert('Este graduado no tiene un correo electrónico registrado.')
-      return
-    }
-    setEnviandoId(grad.id)
-    try {
-      const respuesta = await enviarInvitacion(grad.id)
-      const actualizado = respuesta?.graduado
-      setGraduados(actuales => actuales.map(item => item.id === grad.id ? {
-        ...item,
-        invitacion_enviada: true,
-        estado_flujo: actualizado?.estado_flujo || (item.estado_flujo === 'SIN_INVITAR' ? 'PENDIENTE' : item.estado_flujo),
-        estado: actualizado?.estado || item.estado
-      } : item))
-      await cargarDatos()
-    } catch (err) {
-      alert(err.message)
-    } finally {
-      setEnviandoId(null)
     }
   }
 
@@ -152,7 +126,6 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
     COMPLETO: graduados.filter(g => g.estado_flujo === 'COMPLETO').length,
     RECHAZADO: graduados.filter(g => g.estado_flujo === 'RECHAZADO').length,
   }
-  const pendientesConCorreo = graduados.filter(grad => !grad.invitacion_enviada && grad.correo && grad.estado_flujo !== 'RECHAZADO')
   const sinCorreo = graduados.filter(grad => !grad.correo && grad.estado_flujo !== 'RECHAZADO')
   const sinCorroborar = graduados.filter(grad => !grad.identidad_corrobada_en)
 
@@ -176,56 +149,12 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
     }
   }
 
-  async function manejarEnvioCredencial(grad) {
-    if (!grad.correo) return
-    setEnviandoCredencialId(grad.id)
-    try {
-      const respuesta = await enviarCredencialCeremonia(grad.id)
-      setGraduados(actuales => actuales.map(item => item.id === grad.id ? {
-        ...item,
-        credencial_enviada_en: respuesta.graduado.credencial_enviada_en,
-        credencial_envios_count: respuesta.graduado.credencial_envios_count
-      } : item))
-      setAltaExitosa(
-        respuesta.googleWallet
-          ? `Credencial enviada a ${grad.nombre}. El correo incluye el botón para guardar el pase en Google Wallet.`
-          : `Credencial enviada a ${grad.nombre}. El correo incluye el PDF y el acceso al portal.`
-      )
-      setTimeout(() => setAltaExitosa(''), 6000)
-    } catch (err) {
-      alert(err.message)
-    } finally {
-      setEnviandoCredencialId(null)
-    }
-  }
-
   async function guardarEdicion(datos) {
     const actualizado = await actualizarGraduado(graduadoEditar.id, datos)
     setGraduados(actuales => actuales.map(item => item.id === actualizado.id ? { ...item, ...actualizado } : item))
     setGraduadoEditar(null)
     setAltaExitosa(`Datos de ${actualizado.nombre} actualizados.`)
     setTimeout(() => setAltaExitosa(''), 4000)
-  }
-
-  async function manejarEnvioMasivo() {
-    const pendientes = graduados.filter(grad => !grad.invitacion_enviada && grad.correo && grad.estado_flujo !== 'RECHAZADO')
-    if (!pendientes.length) return
-    if (!confirm(`Se enviarán ${pendientes.length} invitaciones pendientes. ¿Deseás continuar?`)) return
-
-    let enviados = 0
-    let fallidos = 0
-    setEnvioMasivo({ total: pendientes.length, enviados, fallidos })
-    for (const grad of pendientes) {
-      try {
-        await enviarInvitacion(grad.id)
-        enviados += 1
-      } catch {
-        fallidos += 1
-      }
-      setEnvioMasivo({ total: pendientes.length, enviados, fallidos })
-    }
-    await cargarDatos()
-    setTimeout(() => setEnvioMasivo(null), 4500)
   }
 
   function siguientePaso(grad) {
@@ -248,7 +177,6 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
           <details className="group relative">
             <summary className="flex cursor-pointer list-none items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[10px] font-bold text-slate-600 hover:bg-slate-50"><MoreHorizontal size={14} /> Acciones</summary>
             <div className="absolute right-0 z-30 mt-2 w-52 overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl">
-              <button onClick={manejarEnvioMasivo} disabled={!pendientesConCorreo.length || envioMasivo} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"><Send size={14} /> Enviar pendientes ({pendientesConCorreo.length})</button>
               <button onClick={() => setMostrarImportar(true)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50"><Upload size={14} /> Importar archivo</button>
               {graduados.length > 0 && <button onClick={manejarVaciar} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50"><Trash2 size={14} /> Vaciar padrón</button>}
             </div>
@@ -264,16 +192,9 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
 
       <div className="mb-4 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-semibold text-slate-500">
         <span><strong className="text-slate-800">{graduados.length - sinCorroborar}</strong> verificados</span>
-        <span><strong className="text-slate-800">{pendientesConCorreo.length}</strong> por invitar</span>
         <span><strong className="text-slate-800">{contadores.COMPLETO}</strong> listos para ubicar</span>
         {sinCorreo.length > 0 && <span className="text-amber-700"><strong>{sinCorreo.length}</strong> sin correo</span>}
       </div>
-
-      {envioMasivo && (
-        <div role="status" aria-live="polite" className="mb-3 rounded-lg border border-sky-100 bg-white px-3 py-2 text-[10px] font-semibold text-slate-600 shadow-sm">
-          Envío en curso: {envioMasivo.enviados} de {envioMasivo.total} enviados{envioMasivo.fallidos ? `, ${envioMasivo.fallidos} con error.` : '.'}
-        </div>
-      )}
 
       {/* FILTROS PILLS */}
       <div className="flex gap-1.5 overflow-x-auto pb-1 mb-3 [scrollbar-width:thin]">
@@ -388,7 +309,6 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
 
                   <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
                     <button onClick={() => setGraduadoEditar(grad)} className="rounded-lg bg-slate-900 px-3 py-1.5 text-[9px] font-bold text-white"><Edit3 size={12} className="mr-1 inline" />Editar</button>
-                    {!esRechazado && !grad.invitacion_enviada && <button onClick={() => manejarEnvioInvitacion(grad)} disabled={enviandoId === grad.id || !grad.correo} className="rounded-lg bg-sky-50 px-3 py-1.5 text-[9px] font-bold text-sky-700 disabled:opacity-40"><Send size={12} className="mr-1 inline" />{enviandoId === grad.id ? 'Enviando' : 'Invitar'}</button>}
                     {!esRechazado && grad.estado === 'ACEPTADO' && <button onClick={() => abrirAsignacion(grad)} className="rounded-lg bg-slate-900 px-3 py-1.5 text-[9px] font-bold text-white"><Armchair size={12} className="mr-1 inline" />Butacas</button>}
                     {misInvitados.length > 0 && <span className="text-[9px] font-semibold text-slate-400">{misInvitados.length} acompañantes</span>}
                     <details className="relative ml-auto">
@@ -397,7 +317,6 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
                         {!esRechazado && !grad.identidad_corrobada_en && <button onClick={() => manejarCorroboracion(grad)} disabled={corroborandoId === grad.id} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-emerald-700 hover:bg-emerald-50 disabled:opacity-40"><BadgeCheck size={13} /> Verificar datos</button>}
                         {!esRechazado && <button onClick={() => manejarLink(grad)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-slate-600 hover:bg-slate-50"><Link2 size={13} /> Enlace</button>}
                         {!esRechazado && <button onClick={() => setGraduadoCredencial(grad)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-slate-600 hover:bg-slate-50"><CreditCard size={13} /> Ver credencial</button>}
-                        {!esRechazado && grad.estado === 'ACEPTADO' && <button onClick={() => manejarEnvioCredencial(grad)} disabled={enviandoCredencialId === grad.id || !grad.correo} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-indigo-600 hover:bg-indigo-50 disabled:opacity-40"><Mail size={13} /> Enviar credencial</button>}
                         <button onClick={() => manejarEliminar(grad.id)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-rose-600 hover:bg-rose-50"><Trash2 size={13} /> Eliminar</button>
                       </div>
                     </details>
@@ -431,7 +350,6 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
           onAsignado={async () => {
             setGraduadoAsignar(null)
             await cargarDatos()
-            if (graduadoAsignar.correo) await manejarEnvioCredencial(graduadoAsignar)
           }}
         />
       )}
