@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { inicializarBaseDatos } from '@/lib/schema';
 import { enviarCorreo, generarPlantillaRecuperacionContrasena } from '@/lib/email';
+import { obtenerOrigenPublico } from '@/lib/public-origin';
 
 const VENTANA_MS = 60 * 60 * 1000;
 const MAX_SOLICITUDES = 5;
@@ -17,12 +18,6 @@ function permitirSolicitud(ip: string) {
   }
   registro.cantidad += 1;
   return registro.cantidad <= MAX_SOLICITUDES;
-}
-
-function origenPublico(req: NextRequest) {
-  const protocolo = req.headers.get('x-forwarded-proto') || 'https';
-  const host = req.headers.get('x-forwarded-host') || req.headers.get('host');
-  return host ? `${protocolo}://${host}` : new URL(req.url).origin;
 }
 
 export async function POST(req: NextRequest) {
@@ -56,7 +51,7 @@ export async function POST(req: NextRequest) {
       [usuario.id, tokenHash, ip]
     );
 
-    const origen = origenPublico(req);
+    const origen = obtenerOrigenPublico(req);
     const enlace = `${origen}/restablecer-contrasena?token=${token}`;
     await enviarCorreo(usuario.email, 'SiGIC · Restablecé tu contraseña', generarPlantillaRecuperacionContrasena(usuario.nombre, enlace, origen));
     return NextResponse.json({ ok: true });
