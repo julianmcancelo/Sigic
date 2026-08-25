@@ -21,6 +21,7 @@ export function AsistenteOperativoCeremonia({ onNavegar }) {
   const [mostrarImportar, setMostrarImportar] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [errorCarga, setErrorCarga] = useState('')
+  const [mensajeCarga, setMensajeCarga] = useState('')
   const [graduado, setGraduado] = useState({ nombre: '', dni: '', legajo: '', correo: '', carrera: '' })
   const [coincidenciasDni, setCoincidenciasDni] = useState([])
   const [identidadConfirmada, setIdentidadConfirmada] = useState(false)
@@ -53,6 +54,7 @@ export function AsistenteOperativoCeremonia({ onNavegar }) {
     }
 
     setErrorCarga('')
+    setMensajeCarga('')
     const dni = graduado.dni.replace(/\D/g, '')
     try {
       const resultado = await buscarGraduadoPorDNI(dni)
@@ -80,7 +82,7 @@ export function AsistenteOperativoCeremonia({ onNavegar }) {
       setGraduado({ nombre: '', dni: '', legajo: '', correo: '', carrera: '' })
       setCoincidenciasDni([])
       setIdentidadConfirmada(false)
-      setMostrarCargaRapida(false)
+      setMensajeCarga('Graduado agregado al padrón. Podés cargar otra persona o cerrar esta ventana.')
     } catch (error) {
       const persona = error.persona
       if (error.codigo === 'REQUIERE_CONFIRMACION_IDENTIDAD' && persona) {
@@ -108,7 +110,7 @@ export function AsistenteOperativoCeremonia({ onNavegar }) {
         <p className="mt-1 text-sm text-slate-500">{paso.detalle}</p>
         <div className="mt-6 h-1.5 overflow-hidden rounded-full bg-slate-100"><span className="block h-full rounded-full bg-sky-500" style={{ width: `${(paso.avance / 6) * 100}%` }} /></div>
         <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6">{ETAPAS.map((etapa, indice) => <div key={etapa} className={`flex items-center gap-1 text-[9px] font-bold ${indice <= paso.avance ? 'text-sky-600' : 'text-slate-300'}`}>{indice < paso.avance ? <CheckCircle2 size={11} /> : <span className="h-2 w-2 rounded-full bg-current" />}{etapa}</div>)}</div>
-        {paso.avance === 1 && <div className="mt-6 flex flex-wrap gap-2"><button onClick={() => { setErrorCarga(''); setMostrarCargaRapida(true) }} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"><Plus size={14} /> Cargar graduado</button><button onClick={() => setMostrarImportar(true)} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"><FileSpreadsheet size={14} /> Importar archivo</button></div>}
+        {ceremonia && !['EN_VIVO', 'FINALIZADA'].includes(ceremonia.estado_operativo) && <div className="mt-6 flex flex-wrap gap-2"><button onClick={() => { setErrorCarga(''); setMensajeCarga(''); setMostrarCargaRapida(true) }} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"><Plus size={14} /> Cargar graduado</button>{paso.avance === 1 && <button onClick={() => setMostrarImportar(true)} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"><FileSpreadsheet size={14} /> Importar archivo</button>}</div>}
         <button onClick={() => onNavegar(paso.destino)} className="mt-7 flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-black text-white hover:bg-slate-800">Continuar <ArrowRight size={14} /></button>
       </div>
     </div>
@@ -116,6 +118,7 @@ export function AsistenteOperativoCeremonia({ onNavegar }) {
       <form className="sigic-quick-graduate-card" onSubmit={guardarGraduado}>
         <header><div><span>Asistente operativo</span><h2 id="carga-rapida-titulo">Cargar graduado</h2><p>{ceremonia?.nombre || 'Ceremonia activa'}</p></div><button type="button" onClick={() => setMostrarCargaRapida(false)} aria-label="Cerrar"><X size={18} /></button></header>
         {errorCarga && <p className="sigic-quick-graduate-error"><AlertCircle size={14} />{errorCarga}</p>}
+        {mensajeCarga && <p className="sigic-quick-graduate-success"><CheckCircle2 size={14} />{mensajeCarga}</p>}
         <div className="sigic-quick-graduate-fields">
           <label>Nombre completo<input autoFocus value={graduado.nombre} onChange={evento => setGraduado(valor => ({ ...valor, nombre: evento.target.value }))} placeholder="Nombre y apellido" /></label>
           <label>DNI<input inputMode="numeric" value={graduado.dni} onChange={evento => { setIdentidadConfirmada(false); setCoincidenciasDni([]); setGraduado(valor => ({ ...valor, dni: evento.target.value.replace(/\D/g, '') })) }} placeholder="Sin puntos" /></label>
