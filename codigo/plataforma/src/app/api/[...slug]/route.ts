@@ -1647,6 +1647,12 @@ export async function PUT(
 
   let body: any = {};
   try {
+    body = await req.json();
+  } catch {
+    // Algunas operaciones PUT no llevan cuerpo.
+  }
+
+  try {
     if (slug[0] === 'egresados' && slug[1] && !slug[2]) {
       const isPersonal = await esPersonalValido(req, ROLES_GESTION);
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
@@ -1660,12 +1666,6 @@ export async function PUT(
       if (!actualizado.rows[0]) return NextResponse.json({ error: 'Graduado no encontrado' }, { status: 404, headers });
       return NextResponse.json({ ok: true, graduado: actualizado.rows[0] }, { headers });
     }
-    body = await req.json();
-  } catch (e) {
-    // Ignorar si el cuerpo está vacío o no es JSON
-  }
-
-  try {
     // -------------------------------------------------------------
     // CONFIGURACIÓN CLAVE
     // -------------------------------------------------------------
