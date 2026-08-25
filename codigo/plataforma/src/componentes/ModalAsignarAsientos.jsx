@@ -158,7 +158,10 @@ export function ModalAsignarAsientos({
   // Al hacer clic en un asiento del mapa
   const manejarAsientoClick = (asientoId) => {
     // 1. Si el asiento ya está ocupado por otra persona de este grupo, removerlo de esa persona
-    let nuevasAsignaciones = { ...asignaciones }
+    let nuevasAsignaciones = {
+      ...asignaciones,
+      invitadosAsientos: { ...asignaciones.invitadosAsientos }
+    }
     
     if (nuevasAsignaciones.egresadoAsiento === asientoId) {
       nuevasAsignaciones.egresadoAsiento = null
@@ -249,11 +252,11 @@ export function ModalAsignarAsientos({
     setProcesando(true)
     setError('')
     try {
-      await asignarAsientos(graduado.id, {
+      const resultado = await asignarAsientos(graduado.id, {
         egresadoAsiento: asignaciones.egresadoAsiento,
         invitadosAsientos: asignaciones.invitadosAsientos
       })
-      onAsignado()
+      await onAsignado(resultado)
     } catch (err) {
       setError(err.message || 'Error al guardar la asignación')
     } finally {
@@ -344,7 +347,7 @@ export function ModalAsignarAsientos({
           </div>
           <div className="shrink-0 flex items-center gap-3">
             <button onClick={onCerrar} className="px-3 sm:px-5 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-red-500 transition-colors">Cancelar</button>
-            <button onClick={guardar} disabled={procesando || !asignacionCompleta} className="bg-slate-900 text-white font-black uppercase tracking-widest text-[9px] py-2.5 px-4 sm:px-5 rounded-lg shadow-lg shadow-slate-900/20 hover:bg-slate-800 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed">{procesando ? 'Guardando...' : modo === 'propuesta' ? 'Enviar propuesta' : 'Confirmar asignación'}</button>
+            <button onClick={guardar} disabled={procesando || !asignacionCompleta} className="bg-slate-900 text-white font-black uppercase tracking-widest text-[9px] py-2.5 px-4 sm:px-5 rounded-lg shadow-lg shadow-slate-900/20 hover:bg-slate-800 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed">{procesando ? 'Guardando...' : modo === 'propuesta' ? 'Guardar propuesta' : 'Confirmar y enviar credencial'}</button>
           </div>
         </footer>
       </div>

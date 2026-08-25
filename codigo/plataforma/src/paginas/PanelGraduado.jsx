@@ -176,12 +176,22 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
   // ─── Info de asientos (solo lectura) ───────────────────────
 
   const todosLosAsientos = [
-    graduado.asiento_id,
+    graduado.asiento_id || graduado.asiento_solicitado_id,
     graduado.entregador_asiento_id,
-    ...invitados.map(i => i.asiento_id)
+    ...invitados.map(i => i.asiento_id || i.asiento_solicitado_id)
   ].filter(Boolean)
   const estadoButacas = graduado.estado_asignacion_butacas || 'SIN_SOLICITUD'
   const pasoButacas = estadoButacas === 'CONFIRMADA' ? 3 : estadoButacas === 'PENDIENTE_REVISION' ? 2 : 1
+  const perfilCompleto = Boolean(graduado.perfil_finalizado_en)
+  const accionSiguiente = estadoButacas === 'CONFIRMADA'
+    ? { titulo: 'Todo listo', detalle: 'Tu credencial y tus ubicaciones están confirmadas.', etiqueta: 'Ver credencial', accion: () => setPestana('credencial') }
+    : estadoButacas === 'PENDIENTE_REVISION'
+      ? { titulo: 'Propuesta guardada', detalle: 'Podés revisarla mientras administración confirma las ubicaciones.', etiqueta: 'Ver propuesta', accion: () => setMostrarButacas(true) }
+      : !perfilCompleto
+        ? { titulo: 'Completá tu grupo', detalle: 'Revisá acompañantes y padrinos; después guardá la inscripción.', etiqueta: 'Revisar grupo', accion: () => setPestana('invitados') }
+        : graduado.estado === 'ACEPTADO'
+          ? { titulo: 'Elegí las butacas', detalle: 'Asigná una ubicación a cada integrante de tu grupo.', etiqueta: 'Elegir butacas', accion: () => setMostrarButacas(true) }
+          : { titulo: 'Confirmá tu participación', detalle: 'La selección de butacas se habilita cuando aceptás la invitación.', etiqueta: null, accion: null }
 
   if (cargando && invitados.length === 0) {
     return (
@@ -217,7 +227,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
           <button onClick={() => setMostrarButacas(true)} disabled={graduado.estado !== 'ACEPTADO'} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 transition-all hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-40">
             <Armchair size={18} /> <span className="text-sm font-bold">Elegir butacas</span>
           </button>
-          <button onClick={() => setPestana('credencial')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${pestana === 'credencial' ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/20' : 'text-slate-400 hover:bg-white/5'}`}>
+          <button onClick={() => setPestana('credencial')} disabled={estadoButacas !== 'CONFIRMADA'} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all disabled:cursor-not-allowed disabled:opacity-35 ${pestana === 'credencial' ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/20' : 'text-slate-400 hover:bg-white/5'}`}>
             <QrCode size={18} /> <span className="text-sm font-bold">Credencial</span>
           </button>
           <button onClick={() => setPestana('historial')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${pestana === 'historial' ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/20' : 'text-slate-400 hover:bg-white/5'}`}>
@@ -226,7 +236,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
         </nav>
 
         <div className="sigic-graduate-actions p-4 border-t border-white/10">
-          <button onClick={finalizarInscripcion} disabled={finalizandoInscripcion} className="mb-2 w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 transition-all disabled:opacity-60">
+          <button onClick={finalizarInscripcion} disabled={finalizandoInscripcion || perfilCompleto} className="mb-2 w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 transition-all disabled:opacity-60">
             <CircleCheck size={18} /> <span className="text-sm font-bold">{finalizandoInscripcion ? 'Finalizando...' : graduado.perfil_finalizado_en ? 'Inscripción finalizada' : 'Guardar y finalizar'}</span>
           </button>
           <button onClick={onCerrarSesion} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 transition-all">
@@ -282,8 +292,8 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
 
         <section className="mb-7 overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm">
           <div className="flex flex-col gap-3 border-b border-slate-100 bg-slate-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <div><p className="text-[10px] font-black uppercase tracking-[.16em] text-sky-600">Tu recorrido</p><p className="mt-1 text-sm font-bold text-slate-800">{estadoButacas === 'CONFIRMADA' ? 'Ubicaciones confirmadas' : estadoButacas === 'PENDIENTE_REVISION' ? 'Tu propuesta está siendo revisada' : graduado.estado === 'ACEPTADO' ? 'Elegí las butacas del grupo cargado' : 'Confirmá tu participación para elegir butacas'}</p></div>
-            {estadoButacas !== 'CONFIRMADA' && graduado.estado === 'ACEPTADO' && <button onClick={() => setMostrarButacas(true)} className="rounded-xl bg-slate-900 px-4 py-2 text-[10px] font-black uppercase tracking-wider text-white transition hover:bg-sky-600">{estadoButacas === 'PENDIENTE_REVISION' ? 'Ver propuesta' : 'Elegir butacas'}</button>}
+            <div><p className="text-[10px] font-black uppercase tracking-[.16em] text-sky-600">Próxima acción</p><p className="mt-1 text-sm font-black text-slate-800">{accionSiguiente.titulo}</p><p className="mt-0.5 text-xs text-slate-500">{accionSiguiente.detalle}</p></div>
+            {accionSiguiente.etiqueta && <button onClick={accionSiguiente.accion} className="rounded-xl bg-slate-900 px-4 py-2 text-[10px] font-black uppercase tracking-wider text-white transition hover:bg-sky-600">{accionSiguiente.etiqueta}</button>}
           </div>
           <div className="grid grid-cols-3 gap-2 px-5 py-4">
             {['Grupo', 'Propuesta', 'Credencial'].map((etiqueta, indice) => <div key={etiqueta} className={`flex items-center gap-2 text-[10px] font-bold ${indice < pasoButacas ? 'text-emerald-700' : 'text-slate-400'}`}><span className={`grid h-5 w-5 place-items-center rounded-full text-[9px] ${indice < pasoButacas ? 'bg-emerald-500 text-white' : 'bg-slate-100'}`}>{indice + 1}</span>{etiqueta}</div>)}
@@ -383,7 +393,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
                         )}
                       </div>
                       <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">{inv.relacion} • DNI {inv.dni}</p>
-                      {inv.asiento_id && <p className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg inline-block mt-2">ASIENTO: {inv.asiento_id}</p>}
+                      {(inv.asiento_id || inv.asiento_solicitado_id) && <p className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg inline-block mt-2">{inv.asiento_id ? 'ASIENTO' : 'PROPUESTA'}: {inv.asiento_id || inv.asiento_solicitado_id}</p>}
                     </div>
                   </div>
                   <div className="sigic-guest-card-actions flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
@@ -534,8 +544,8 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
           <div className="flex flex-col items-center">
             <div className="w-full max-w-lg">
               <div className="mb-4 rounded-2xl border border-sky-100 bg-sky-50 px-4 py-3 text-sm font-semibold text-sky-900">
-                <p>Tu ubicación: <strong>{graduado.asiento_id || 'aún sin asignar'}</strong></p>
-                {invitados.filter(inv => inv.asiento_id).length > 0 && <p className="mt-1 text-xs text-sky-700">Acompañantes con ubicación: {invitados.filter(inv => inv.asiento_id).map(inv => `${inv.nombre} (${inv.asiento_id})`).join(' · ')}</p>}
+                <p>{estadoButacas === 'PENDIENTE_REVISION' ? 'Tu propuesta' : 'Tu ubicación'}: <strong>{graduado.asiento_id || graduado.asiento_solicitado_id || 'aún sin asignar'}</strong></p>
+                {invitados.some(inv => inv.asiento_id || inv.asiento_solicitado_id) && <p className="mt-1 text-xs text-sky-700">Acompañantes: {invitados.filter(inv => inv.asiento_id || inv.asiento_solicitado_id).map(inv => `${inv.nombre} (${inv.asiento_id || inv.asiento_solicitado_id})`).join(' · ')}</p>}
               </div>
               <ModalCredencial 
                 egresado={{...graduado, asientos: todosLosAsientos, invitados}} 
@@ -554,11 +564,14 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
           todosLosInvitados={invitados}
           modo="propuesta"
           onCerrar={() => setMostrarButacas(false)}
-          onAsignado={() => {
-            setGraduado(actual => ({ ...actual, estado_asignacion_butacas: 'PENDIENTE_REVISION' }))
-            setMensaje({ tipo: 'exito', texto: 'Propuesta enviada. Administración revisará y confirmará las ubicaciones antes de enviar la credencial.' })
+          onAsignado={(resultado) => {
+            setGraduado(actual => ({ ...actual, ...resultado.graduado }))
+            setInvitados(actuales => actuales.map(invitado => {
+              const guardado = resultado.invitados?.find(item => String(item.id) === String(invitado.id))
+              return guardado ? { ...invitado, ...guardado } : invitado
+            }))
+            setMensaje({ tipo: 'exito', texto: 'Propuesta guardada. Podés volver a verla mientras administración la revisa.' })
             setMostrarButacas(false)
-            cargarDatos()
           }}
         />
       )}

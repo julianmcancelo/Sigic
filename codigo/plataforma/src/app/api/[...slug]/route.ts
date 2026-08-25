@@ -2112,8 +2112,24 @@ export async function PUT(
           await client.query('UPDATE invitados SET asiento_solicitado_id = NULL WHERE egresado_id = $1', [id]);
         }
 
+        const estadoGraduado = await client.query(
+          `SELECT id, asiento_id, asiento_solicitado_id, estado_asignacion_butacas
+           FROM egresados WHERE id = $1`,
+          [id]
+        );
+        const estadoInvitados = await client.query(
+          `SELECT id, asiento_id, asiento_solicitado_id
+           FROM invitados WHERE egresado_id = $1 ORDER BY creado_en ASC`,
+          [id]
+        );
+
         await client.query('COMMIT');
-        return NextResponse.json({ ok: true, asignados: asignaciones.length }, { headers });
+        return NextResponse.json({
+          ok: true,
+          asignados: asignaciones.length,
+          graduado: estadoGraduado.rows[0],
+          invitados: estadoInvitados.rows,
+        }, { headers });
       } catch (error: any) {
         await client.query('ROLLBACK');
         console.error('Error al asignar butacas:', error);
