@@ -28,7 +28,7 @@ export function RestablecerContrasena() {
     }
   }
 
-  return <LayoutAutenticacion>
+  return <LayoutAutenticacion centrado>
     <div className="px-8 py-9">
       <div className="mb-6 flex h-11 w-11 items-center justify-center rounded-xl bg-sky-50 text-sky-600"><KeyRound size={20} /></div>
       <p className="text-[10px] font-black uppercase tracking-[.16em] text-sky-600">Recuperación de acceso</p>
