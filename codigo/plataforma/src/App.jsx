@@ -136,6 +136,13 @@ function App() {
   })
 
   const [ceremoniaActiva, setCeremoniaActiva] = useState(null)
+
+  async function sincronizarEntornoCeremonia() {
+    const ceremonia = await obtenerCeremoniaActiva()
+    setCeremoniaActiva(ceremonia)
+    window.dispatchEvent(new CustomEvent('sigic-ceremonia-cambiada', { detail: ceremonia }))
+    return ceremonia
+  }
   
   // ─── 3.0 ESTADO DE CONFIGURACIÓN INICIAL (SETUP) ───
   const [requiereSetup, setRequiereSetup] = useState(null)
@@ -825,12 +832,6 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
   const [mostrarEquipo, setMostrarEquipo] = useState(false)
   const [ceremoniaActiva, setCeremoniaActiva] = useState(null)
 
-  async function sincronizarEntornoCeremonia() {
-    const ceremonia = await obtenerCeremoniaActiva()
-    setCeremoniaActiva(ceremonia)
-    window.dispatchEvent(new CustomEvent('sigic-ceremonia-cambiada', { detail: ceremonia }))
-    return ceremonia
-  }
   const [ventanasAbiertas, setVentanasAbiertas] = useState([])
   const [contenidoVentanas, setContenidoVentanas] = useState({})
   const [ventanasMinimizadas, setVentanasMinimizadas] = useState([])
