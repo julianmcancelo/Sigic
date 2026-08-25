@@ -1001,7 +1001,7 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
     if (id === 'bienvenida') {
       setVentanasMinimizadas(ventanasAbiertas)
       onNavegar('bienvenida')
-      setInicioAbierto(false)
+      setInicioAbierto(true)
       setMenuContextual(null)
       return
     }
