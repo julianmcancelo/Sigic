@@ -141,7 +141,22 @@ export function FormularioGraduado({ onCreado, onCancelar, enModal = false }) {
       })
       onCreado(nuevo)
     } catch (err) {
-      setError(err.message)
+      if (err.codigo === 'REQUIERE_CONFIRMACION_IDENTIDAD') {
+        try {
+          const resultado = await buscarGraduadoPorDNI(form.dni)
+          const registros = resultado.coincidencias || (err.persona ? [err.persona] : [])
+          setCoincidencias(registros)
+          setIdentidadConfirmada(false)
+          setMostrarModalIdentidad(registros.length > 0)
+          setError('Confirmá la identidad de la persona encontrada antes de crear la inscripción.')
+        } catch {
+          setCoincidencias(err.persona ? [err.persona] : [])
+          setMostrarModalIdentidad(Boolean(err.persona))
+          setError('Confirmá la identidad de la persona encontrada antes de crear la inscripción.')
+        }
+      } else {
+        setError(err.message)
+      }
     } finally {
       setCargando(false)
     }

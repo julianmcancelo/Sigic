@@ -84,7 +84,13 @@ export async function crearGraduado(datos: any) {
     body: JSON.stringify(datos)
   });
   const json = await res.json();
-  if (!res.ok) throw new Error(json.error || 'Ocurrió un error al intentar crear el graduado');
+  if (!res.ok) {
+    const error = Object.assign(new Error(json.error || 'Ocurrió un error al intentar crear el graduado'), {
+      codigo: json.codigo,
+      persona: json.persona,
+    });
+    throw error;
+  }
   return json;
 }
 
