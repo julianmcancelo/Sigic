@@ -101,7 +101,13 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
   }
 
   function manejarLink(grad) {
-    const url = `${window.location.origin}/?token=${grad.token}`
+    const host = window.location.hostname.toLowerCase()
+    const origen = host.includes('sigic-demo') || host === 'demo.sigic.com.ar'
+      ? 'https://demo.sigic.com.ar'
+      : host.endsWith('.sigic.com.ar')
+        ? window.location.origin
+        : 'https://app.sigic.com.ar'
+    const url = `${origen}/?token=${grad.token}`
     setLinkQR({ egresado: grad, link: url })
   }
 

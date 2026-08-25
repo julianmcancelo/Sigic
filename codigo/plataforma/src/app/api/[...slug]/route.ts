@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { obtenerOrigenPublico } from '@/lib/public-origin';
 import { query, pool } from '@/lib/db';
 import { firmar } from '@/lib/tokens';
 import { obtenerUsuarioAutenticado, ROLES_GESTION, ROLES_OPERACION, ROLES_LECTURA } from '@/lib/auth-middleware';
@@ -1381,7 +1382,7 @@ export async function POST(
 
       // La invitación debe volver al mismo entorno que la generó. Esto evita
       // que una variable global de producción mande la demo a otro login.
-      const hostBase = new URL(req.url).origin;
+      const hostBase = obtenerOrigenPublico(req);
       const linkAcceso = `${hostBase}/?token=${graduado.token}`;
       const plantilla = generarPlantillaInvitacion(graduado.nombre, linkAcceso, hostBase);
       
@@ -1431,7 +1432,7 @@ export async function POST(
       if (graduado.estado !== 'ACEPTADO') return NextResponse.json({ error: 'La credencial se envía cuando el graduado confirma su participación' }, { status: 409, headers });
       if (graduado.estado_asignacion_butacas !== 'CONFIRMADA') return NextResponse.json({ error: 'Confirmá las butacas del grupo antes de enviar la credencial' }, { status: 409, headers });
 
-      const hostBase = new URL(req.url).origin;
+      const hostBase = obtenerOrigenPublico(req);
       const acceso = `${hostBase}/?token=${graduado.token}`;
       const invitados = await query('SELECT nombre, asiento_id FROM invitados WHERE egresado_id = $1 ORDER BY creado_en ASC', [graduado.id]);
       const acompanantes = invitados.rows.map(item => `${item.nombre}${item.asiento_id ? ` (${item.asiento_id})` : ''}`);
