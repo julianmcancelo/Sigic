@@ -1,6 +1,18 @@
 import type { NextConfig } from "next";
 
-const apiRemotaDesarrollo = process.env.SIGIC_REMOTE_API_ORIGIN?.replace(/\/$/, '');
+// El archivo exportado de Vercel permite probar el backend real de Neon en local
+// sin volver a apuntar la interfaz a una demo remota que puede estar desactualizada.
+if (!process.env.DATABASE_URL) {
+  try {
+    process.loadEnvFile('.env.local.production');
+  } catch {
+    // En Vercel este archivo no existe: las variables llegan desde el entorno.
+  }
+}
+
+const apiRemotaDesarrollo = process.env.DATABASE_URL
+  ? undefined
+  : process.env.SIGIC_REMOTE_API_ORIGIN?.replace(/\/$/, '');
 
 const nextConfig: NextConfig = {
   // PDFKit resuelve las fuentes AFM en tiempo de ejecución. Mantenerlo externo
