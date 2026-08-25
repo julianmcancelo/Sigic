@@ -245,7 +245,7 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
       </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-semibold text-slate-500">
-        <span><strong className="text-slate-800">{graduados.length - sinCorroborar}</strong> verificados</span>
+        <span><strong className="text-slate-800">{graduados.length - sinCorroborar.length}</strong> verificados</span>
         <span><strong className="text-slate-800">{contadores.COMPLETO}</strong> listos para ubicar</span>
         {sinCorreo.length > 0 && <span className="text-amber-700"><strong>{sinCorreo.length}</strong> sin correo</span>}
       </div>
