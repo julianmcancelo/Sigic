@@ -1748,6 +1748,11 @@ export async function PUT(
       const indicadores = await query(`
         SELECT COUNT(e.id)::int AS egresados,
           COUNT(e.id) FILTER (WHERE e.invitacion_enviada)::int AS invitaciones,
+          COUNT(e.id) FILTER (
+            WHERE e.estado = 'ACEPTADO'
+              AND (e.asiento_id IS NULL OR COALESCE(e.estado_asignacion_butacas, '') <> 'CONFIRMADA')
+          )::int AS grupos_sin_ubicacion_confirmada,
+          COUNT(e.id) FILTER (WHERE e.estado = 'ACEPTADO')::int AS graduados_aceptados,
           EXISTS(SELECT 1 FROM configuracion_anfiteatro ca WHERE ca.ceremonia_id = c.id) AS plano
         FROM ceremonias c LEFT JOIN egresados e ON e.ceremonia_id = c.id
         WHERE c.id = $1 GROUP BY c.id`, [slug[1]]);
@@ -1755,6 +1760,8 @@ export async function PUT(
       if (!info) return NextResponse.json({ error: 'Ceremonia no encontrada' }, { status: 404, headers });
       if (siguiente === 'CONVOCATORIA' && !Number(info.egresados)) return NextResponse.json({ error: 'Agregá al menos un graduado antes de convocar' }, { status: 409, headers });
       if (siguiente === 'PREPARACION' && !info.plano) return NextResponse.json({ error: 'Configurá el plano de butacas antes de preparar la ceremonia' }, { status: 409, headers });
+      if (siguiente === 'EN_VIVO' && !Number(info.graduados_aceptados)) return NextResponse.json({ error: 'No hay graduados aceptados para abrir la acreditación' }, { status: 409, headers });
+      if (siguiente === 'EN_VIVO' && Number(info.grupos_sin_ubicacion_confirmada)) return NextResponse.json({ error: `Faltan confirmar las butacas de ${info.grupos_sin_ubicacion_confirmada} grupo(s) antes de abrir la acreditación` }, { status: 409, headers });
 
       const result = await query(`
         UPDATE ceremonias SET estado_operativo = $1::varchar,

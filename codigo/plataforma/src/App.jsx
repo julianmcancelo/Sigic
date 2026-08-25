@@ -9,7 +9,7 @@
  * 3. Si rechaza → Inhabilitado, se cierra sesión automáticamente
  */
 import { useState, useEffect, useRef } from 'react'
-import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, RefreshCw, Shield, Server, Search, Power, Bell, Wifi, Volume2, ChevronRight, ChevronUp, LayoutGrid, X, Minus, Maximize2, Sun, Moon, MousePointer2, Lock, ClipboardCheck, Activity, Send } from 'lucide-react'
+import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, RefreshCw, Shield, Server, Search, Power, Bell, Wifi, Volume2, ChevronRight, ChevronUp, LayoutGrid, X, Minus, Maximize2, Sun, Moon, MousePointer2, Lock, ClipboardCheck, Activity, Send, ListChecks } from 'lucide-react'
 
 // Importación de Páginas
 import { PaginaInicioSesion } from './paginas/PaginaInicioSesion'
@@ -27,6 +27,7 @@ import { GestionPorteria } from './paginas/operacion/GestionPorteria'
 import { CentroControl } from './paginas/operacion/CentroControl'
 import { GestionGraduados } from './paginas/operacion/GestionGraduados'
 import { GestionConvocatoria } from './paginas/operacion/GestionConvocatoria'
+import { PreparacionCeremonia } from './paginas/operacion/PreparacionCeremonia'
 import { ControlIngreso } from './paginas/operacion/ControlIngreso'
 import { PanelAjustes } from './paginas/operacion/PanelAjustes'
 import { GestionCeremonias } from './paginas/operacion/GestionCeremonias'
@@ -625,6 +626,8 @@ function App() {
       )
     } else if (pantallaAdmin === 'convocatoria') {
       contenido = <GestionConvocatoria onNavegar={setPantallaAdmin} />
+    } else if (pantallaAdmin === 'preparacion-ceremonia') {
+      contenido = <PreparacionCeremonia onNavegar={setPantallaAdmin} />
     } else if (pantallaAdmin === 'asistente-operativo') {
       contenido = <AsistenteOperativoCeremonia onNavegar={setPantallaAdmin} />
     } else if (pantallaAdmin === 'control-ingreso') {
@@ -845,6 +848,7 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
     { id: 'estado-ceremonia', titulo: 'Ceremonia en vivo', icono: Activity, color: 'bg-cyan-500', escritorio: true },
     { id: 'gestion-graduados', titulo: 'Graduados', icono: Users, color: 'bg-emerald-500', escritorio: true },
     { id: 'convocatoria', titulo: 'Convocatoria', icono: Send, color: 'bg-sky-500', escritorio: true },
+    { id: 'preparacion-ceremonia', titulo: 'Preparación', icono: ListChecks, color: 'bg-cyan-600', escritorio: true },
     { id: 'asistente-operativo', titulo: 'Asistente', icono: ClipboardCheck, color: 'bg-sky-500', escritorio: true },
     { id: 'control-ingreso', titulo: 'Escáner', icono: ScanLine, color: 'bg-amber-500', escritorio: true },
     { id: 'panel-reportes', titulo: 'Reportes', icono: BarChart3, color: 'bg-rose-500', escritorio: true },
@@ -1045,7 +1049,7 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
   const aplicacionesFiltradas = aplicaciones.filter(app => app.titulo.toLowerCase().includes(busquedaInicio.trim().toLowerCase()))
   const tipoVentana = esAplicacionNativa
     ? 'sigic-window-native'
-    : ['control-ingreso', 'panel-reportes', 'estado-ceremonia'].includes(pantallaActual) ? 'sigic-window-browser' : ['gestion-graduados', 'convocatoria', 'gestion-profesores', 'gestion-ceremonias'].includes(pantallaActual) ? 'sigic-window-explorer' : pantallaActual === 'gestion-porteria' ? 'sigic-window-secure' : 'sigic-window-default'
+    : ['control-ingreso', 'panel-reportes', 'estado-ceremonia'].includes(pantallaActual) ? 'sigic-window-browser' : ['gestion-graduados', 'convocatoria', 'preparacion-ceremonia', 'gestion-profesores', 'gestion-ceremonias'].includes(pantallaActual) ? 'sigic-window-explorer' : pantallaActual === 'gestion-porteria' ? 'sigic-window-secure' : 'sigic-window-default'
   const cambiarTema = () => setTema(actual => actual === 'oscuro' ? 'claro' : 'oscuro')
   const abrirMenuContextual = (evento) => {
     evento.preventDefault()
@@ -1095,6 +1099,7 @@ function AdminDock({ pantallaActual, onNavegar, posicion, setPosicion, usuario }
       { id: 'control-ingreso', titulo: 'Escáner', icono: ScanLine },
       { id: 'gestion-graduados', titulo: 'Graduados', icono: Users },
       { id: 'convocatoria', titulo: 'Convocatoria', icono: Send },
+      { id: 'preparacion-ceremonia', titulo: 'Preparación', icono: ListChecks },
       { id: 'gestion-profesores', titulo: 'Docentes', icono: GraduationCap },
       { id: 'seleccion-asientos', titulo: 'Anfiteatro', icono: MapPin },
       { id: 'panel-reportes', titulo: 'Reportes', icono: BarChart3 },
