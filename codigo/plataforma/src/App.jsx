@@ -826,6 +826,7 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
   const [tema, setTema] = useState(() => localStorage.getItem('sigic_tema') || 'oscuro')
   const [menuContextual, setMenuContextual] = useState(null)
   const [mostrarEquipo, setMostrarEquipo] = useState(false)
+  const [ceremoniaActiva, setCeremoniaActiva] = useState(null)
   const [ventanasAbiertas, setVentanasAbiertas] = useState([])
   const [contenidoVentanas, setContenidoVentanas] = useState({})
   const [ventanasMinimizadas, setVentanasMinimizadas] = useState([])
@@ -871,6 +872,20 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
     const intervalo = setInterval(() => setHora(new Date()), 1000)
     return () => clearInterval(intervalo)
   }, [])
+
+  useEffect(() => {
+    let vigente = true
+    const cargarCeremonia = async () => {
+      try {
+        const ceremonia = await obtenerCeremoniaActiva()
+        if (vigente) setCeremoniaActiva(ceremonia)
+      } catch {
+        if (vigente) setCeremoniaActiva(null)
+      }
+    }
+    cargarCeremonia()
+    return () => { vigente = false }
+  }, [pantallaActual])
 
   useEffect(() => {
     localStorage.setItem('sigic_tema', tema)
@@ -1081,6 +1096,7 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
           <img src="/logo-oficial.png" alt="Logo de SIGIC" className="sigic-real-logo" />
           <div><p className="sigic-brand">SIGIC</p><p className="sigic-subbrand">Sistema Integral de Gestión Institucional</p></div>
         </div>
+        <div className="sigic-active-ceremony" title={ceremoniaActiva ? `Entorno activo: ${ceremoniaActiva.nombre}` : 'No hay una ceremonia activa'}><Calendar size={13} /><div><span>Entorno activo</span><strong>{ceremoniaActiva?.nombre || 'Sin ceremonia activa'}</strong></div>{ceremoniaActiva?.fecha && <small>{new Date(`${ceremoniaActiva.fecha}T12:00:00`).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}</small>}</div>
         <div className="hidden items-center gap-5 text-white/60 md:flex"><span className="text-[10px] uppercase tracking-[.24em]">Sesión segura</span><div className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_12px_#34d399]" /></div>
       </header>
       <section className="sigic-os-workspace">
