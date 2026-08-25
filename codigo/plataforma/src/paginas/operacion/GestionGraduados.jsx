@@ -59,8 +59,22 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
   const [filtroEstado, setFiltroEstado] = useState('TODOS')
   const [historialGlobal, setHistorialGlobal] = useState([])
   const [buscandoHistorial, setBuscandoHistorial] = useState(false)
+  const [ceremoniaMostrada, setCeremoniaMostrada] = useState(ceremoniaActiva || null)
 
-  useEffect(() => { cargarDatos() }, [ceremoniaActiva?.id])
+  useEffect(() => {
+    setCeremoniaMostrada(ceremoniaActiva || null)
+    cargarDatos(ceremoniaActiva?.id)
+  }, [ceremoniaActiva?.id])
+
+  useEffect(() => {
+    const actualizarEntorno = evento => {
+      const ceremonia = evento.detail || null
+      setCeremoniaMostrada(ceremonia)
+      cargarDatos(ceremonia?.id)
+    }
+    window.addEventListener('sigic-ceremonia-cambiada', actualizarEntorno)
+    return () => window.removeEventListener('sigic-ceremonia-cambiada', actualizarEntorno)
+  }, [])
 
   useEffect(() => {
     const termino = busqueda.trim()
@@ -89,13 +103,13 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
     }
   }, [busqueda])
 
-  async function cargarDatos() {
+  async function cargarDatos(ceremoniaId = ceremoniaMostrada?.id || ceremoniaActiva?.id) {
     setCargando(true)
     setError('')
     try {
       const [listaGrad, listaInv] = await Promise.all([
-        obtenerGraduados(ceremoniaActiva?.id),
-        obtenerInvitados(ceremoniaActiva?.id)
+        obtenerGraduados(ceremoniaId),
+        obtenerInvitados(ceremoniaId)
       ])
       setGraduados(listaGrad)
       setInvitados(listaInv)
@@ -210,7 +224,7 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
         <div>
           <h2 className="text-lg font-black tracking-tight" style={{ color: DARK }}>Gestión de Estudiantes</h2>
-          <p className="mt-0.5 text-xs text-slate-400">{ceremoniaActiva ? `Ceremonia activa: ${ceremoniaActiva.nombre} · ` : ''}{graduados.length} estudiantes · {invitados.length} acompañantes</p>
+          <p className="mt-0.5 text-xs text-slate-400">{ceremoniaMostrada ? `Ceremonia activa: ${ceremoniaMostrada.nombre} · ` : ''}{graduados.length} estudiantes · {invitados.length} acompañantes</p>
         </div>
 
         <div className="flex items-center gap-2">

@@ -661,9 +661,7 @@ function App() {
         <GestionCeremonias
           onVolver={() => setPantallaAdmin('bienvenida')}
           onNavegar={setPantallaAdmin}
-          onCambioCeremonia={() => {
-            obtenerCeremoniaActiva().then(setCeremoniaActiva)
-          }}
+          onCambioCeremonia={sincronizarEntornoCeremonia}
         />
       )
     } else if (pantallaAdmin === 'gestion-profesores') {
@@ -737,9 +735,7 @@ function App() {
             setVersionAdmin('clasica')
             localStorage.setItem('version_admin', 'clasica')
           }}
-          onCambioCeremonia={() => {
-            obtenerCeremoniaActiva().then(setCeremoniaActiva)
-          }}
+          onCambioCeremonia={sincronizarEntornoCeremonia}
         />
       )
     }
@@ -828,6 +824,13 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
   const [menuContextual, setMenuContextual] = useState(null)
   const [mostrarEquipo, setMostrarEquipo] = useState(false)
   const [ceremoniaActiva, setCeremoniaActiva] = useState(null)
+
+  async function sincronizarEntornoCeremonia() {
+    const ceremonia = await obtenerCeremoniaActiva()
+    setCeremoniaActiva(ceremonia)
+    window.dispatchEvent(new CustomEvent('sigic-ceremonia-cambiada', { detail: ceremonia }))
+    return ceremonia
+  }
   const [ventanasAbiertas, setVentanasAbiertas] = useState([])
   const [contenidoVentanas, setContenidoVentanas] = useState({})
   const [ventanasMinimizadas, setVentanasMinimizadas] = useState([])
@@ -887,6 +890,12 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
     cargarCeremonia()
     return () => { vigente = false }
   }, [pantallaActual])
+
+  useEffect(() => {
+    const actualizarEntorno = evento => setCeremoniaActiva(evento.detail || null)
+    window.addEventListener('sigic-ceremonia-cambiada', actualizarEntorno)
+    return () => window.removeEventListener('sigic-ceremonia-cambiada', actualizarEntorno)
+  }, [])
 
   useEffect(() => {
     localStorage.setItem('sigic_tema', tema)
