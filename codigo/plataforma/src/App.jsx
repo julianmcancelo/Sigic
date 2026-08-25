@@ -620,6 +620,7 @@ function App() {
       contenido = (
         <GestionGraduados
           usuario={adminUser}
+          ceremoniaActiva={ceremoniaActiva}
           onVolver={() => setPantallaAdmin('bienvenida')}
           onCerrarSesion={cerrarSesionAdmin}
         />

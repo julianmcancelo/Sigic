@@ -71,8 +71,9 @@ export async function validarSesionLocal() {
 // SERVICIOS EN TRANSICIÓN (APUNTAN AL BACKEND CLÁSICO)
 // ============================================================
 
-export async function obtenerGraduados() {
-  const res = await fetch(`${BASE_CLASSIC}/egresados`, { headers: cabeceras() });
+export async function obtenerGraduados(ceremoniaId: string | number | null = null) {
+  const params = ceremoniaId ? `?ceremoniaId=${encodeURIComponent(String(ceremoniaId))}` : '';
+  const res = await fetch(`${BASE_CLASSIC}/egresados${params}`, { headers: cabeceras() });
   if (!res.ok) throw new Error('No se pudo establecer conexión con el servidor de graduados');
   return res.json();
 }
@@ -210,8 +211,9 @@ export async function verificarOTP(identificador: string, otp: string, inscripci
   return json;
 }
 
-export async function obtenerInvitados() {
-  const res = await fetch(`${BASE_CLASSIC}/invitados`, { headers: cabeceras() });
+export async function obtenerInvitados(ceremoniaId: string | number | null = null) {
+  const params = ceremoniaId ? `?ceremoniaId=${encodeURIComponent(String(ceremoniaId))}` : '';
+  const res = await fetch(`${BASE_CLASSIC}/invitados${params}`, { headers: cabeceras() });
   if (!res.ok) throw new Error('No se pudo cargar la base de datos de invitados');
   return res.json();
 }
@@ -357,6 +359,18 @@ export async function solicitarRestablecimientoContrasena(email: string) {
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'No pudimos enviar el enlace de recuperación.');
+  return json;
+}
+
+export async function buscarHistorialGraduados(termino: string) {
+  const query = String(termino || '').trim();
+  if (query.length < 2) return [];
+
+  const res = await fetch(`${BASE_CLASSIC}/egresados/historial?q=${encodeURIComponent(query)}`, {
+    headers: cabeceras()
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo consultar el historial institucional');
   return json;
 }
 

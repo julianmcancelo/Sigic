@@ -620,15 +620,18 @@ export async function GET(
       const isPersonal = await esPersonalValido(req, ROLES_LECTURA);
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
+      const ceremoniaId = req.nextUrl.searchParams.get('ceremoniaId');
+      const condicionCeremonia = ceremoniaId ? 'c.id = $1' : 'c.activa = 1';
+
       const queryStr = `
         SELECT i.*, e.nombre as "egresadoNombre", e.legajo as "egresadoLegajo"
         FROM invitados i
         JOIN egresados e ON i.egresado_id = e.id
         JOIN ceremonias c ON e.ceremonia_id = c.id
-        WHERE c.activa = 1
+        WHERE ${condicionCeremonia}
         ORDER BY i.creado_en DESC
       `;
-      const result = await query(queryStr);
+      const result = await query(queryStr, ceremoniaId ? [ceremoniaId] : []);
       return NextResponse.json(result.rows, { headers });
     }
 
@@ -751,6 +754,34 @@ export async function GET(
     // -------------------------------------------------------------
     // EGRESADOS
     // -------------------------------------------------------------
+    if (path === 'egresados/historial') {
+      const isPersonal = await esPersonalValido(req, ROLES_LECTURA);
+      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+
+      const termino = String(req.nextUrl.searchParams.get('q') || '').trim();
+      if (termino.length < 2) return NextResponse.json([], { headers });
+
+      const dni = termino.replace(/\D/g, '');
+      const esDni = dni.length >= 7;
+      const condicion = esDni
+        ? "REGEXP_REPLACE(COALESCE(e.dni, ''), '[^0-9]', '', 'g') = $1"
+        : "(e.nombre ILIKE $1 OR e.legajo ILIKE $1 OR e.correo ILIKE $1)";
+      const valor = esDni ? dni : `%${termino}%`;
+
+      const result = await query(`
+        SELECT e.id, e.nombre, e.dni, e.legajo, e.correo, e.carrera, e.estado,
+               e.estado_flujo, e.ceremonia_id, c.nombre AS ceremonia_nombre,
+               c.fecha AS ceremonia_fecha, c.lugar AS ceremonia_lugar, c.activa AS ceremonia_activa
+        FROM egresados e
+        LEFT JOIN ceremonias c ON c.id = e.ceremonia_id
+        WHERE ${condicion}
+        ORDER BY c.fecha DESC NULLS LAST, e.nombre ASC
+        LIMIT 60
+      `, [valor]);
+
+      return NextResponse.json(result.rows, { headers });
+    }
+
     if (slug[0] === 'egresados' && slug[1] === 'coincidencias-dni' && slug[2]) {
       const isPersonal = await esPersonalValido(req, ROLES_LECTURA);
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
@@ -782,16 +813,19 @@ export async function GET(
       const isPersonal = await esPersonalValido(req, ROLES_LECTURA);
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
+      const ceremoniaId = req.nextUrl.searchParams.get('ceremoniaId');
+      const condicionCeremonia = ceremoniaId ? 'c.id = $1' : 'c.activa = 1';
+
       const queryStr = `
         SELECT e.*, c.nombre as "ceremoniaNombre", c.max_entregadores,
           (SELECT COUNT(*)::int FROM invitados i WHERE i.egresado_id = e.id) AS cantidad_invitados,
           (SELECT COUNT(*)::int FROM entregadores p WHERE p.egresado_id = e.id) AS cantidad_entregadores
         FROM egresados e
         LEFT JOIN ceremonias c ON e.ceremonia_id = c.id
-        WHERE c.activa = 1
+        WHERE ${condicionCeremonia}
         ORDER BY e.nombre
       `;
-      const result = await query(queryStr);
+      const result = await query(queryStr, ceremoniaId ? [ceremoniaId] : []);
       return NextResponse.json(result.rows, { headers });
     }
 

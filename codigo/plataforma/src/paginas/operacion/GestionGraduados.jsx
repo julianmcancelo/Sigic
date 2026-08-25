@@ -9,7 +9,7 @@ import {
   eliminarGraduado,
   vaciarGraduados,
   obtenerInvitados, 
-  corroborarGraduado, actualizarGraduado
+  corroborarGraduado, actualizarGraduado, buscarHistorialGraduados
 } from '../../servicios/api'
 
 import { ModalLinkRegistro } from '../../componentes/ModalLinkRegistro'
@@ -28,7 +28,7 @@ const ESTADOS_FLUJO = {
 
 const DARK   = '#2A3448'
 
-export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader }) {
+export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarSesion, sinHeader }) {
   function obtenerIconoEstado(key, size = 12) {
     switch(key) {
       case 'SIN_INVITAR': return <Send size={size} />
@@ -57,14 +57,46 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
 
   const [busqueda, setBusqueda] = useState('')
   const [filtroEstado, setFiltroEstado] = useState('TODOS')
+  const [historialGlobal, setHistorialGlobal] = useState([])
+  const [buscandoHistorial, setBuscandoHistorial] = useState(false)
 
-  useEffect(() => { cargarDatos() }, [])
+  useEffect(() => { cargarDatos() }, [ceremoniaActiva?.id])
+
+  useEffect(() => {
+    const termino = busqueda.trim()
+    if (termino.length < 2) {
+      setHistorialGlobal([])
+      setBuscandoHistorial(false)
+      return undefined
+    }
+
+    let vigente = true
+    const temporizador = window.setTimeout(async () => {
+      setBuscandoHistorial(true)
+      try {
+        const resultado = await buscarHistorialGraduados(termino)
+        if (vigente) setHistorialGlobal(Array.isArray(resultado) ? resultado : [])
+      } catch {
+        if (vigente) setHistorialGlobal([])
+      } finally {
+        if (vigente) setBuscandoHistorial(false)
+      }
+    }, 280)
+
+    return () => {
+      vigente = false
+      window.clearTimeout(temporizador)
+    }
+  }, [busqueda])
 
   async function cargarDatos() {
     setCargando(true)
     setError('')
     try {
-      const [listaGrad, listaInv] = await Promise.all([obtenerGraduados(), obtenerInvitados()])
+      const [listaGrad, listaInv] = await Promise.all([
+        obtenerGraduados(ceremoniaActiva?.id),
+        obtenerInvitados(ceremoniaActiva?.id)
+      ])
       setGraduados(listaGrad)
       setInvitados(listaInv)
     } catch {
@@ -118,6 +150,14 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
     return coincideBusqueda && coincideEstado
   })
 
+  const historialAgrupado = historialGlobal.reduce((grupos, registro) => {
+    const clave = String(registro.dni || registro.correo || registro.nombre || registro.id).toLowerCase()
+    const existente = grupos.find(grupo => grupo.clave === clave)
+    if (existente) existente.participaciones.push(registro)
+    else grupos.push({ clave, nombre: registro.nombre, dni: registro.dni, correo: registro.correo, participaciones: [registro] })
+    return grupos
+  }, [])
+
   const contadores = {
     TODOS: graduados.length,
     SIN_INVITAR: graduados.filter(g => g.estado_flujo === 'SIN_INVITAR').length,
@@ -170,7 +210,7 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
         <div>
           <h2 className="text-lg font-black tracking-tight" style={{ color: DARK }}>Gestión de Estudiantes</h2>
-          <p className="mt-0.5 text-xs text-slate-400">{graduados.length} estudiantes · {invitados.length} acompañantes</p>
+          <p className="mt-0.5 text-xs text-slate-400">{ceremoniaActiva ? `Ceremonia activa: ${ceremoniaActiva.nombre} · ` : ''}{graduados.length} estudiantes · {invitados.length} acompañantes</p>
         </div>
 
         <div className="flex items-center gap-2">
@@ -226,7 +266,7 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
           <input
             type="text"
-            placeholder="Buscar por nombre, DNI o legajo..."
+            placeholder="Buscar en el padrón e historial: nombre, DNI, legajo o correo..."
             value={busqueda}
             onChange={e => setBusqueda(e.target.value)}
             className="w-full bg-white border border-slate-200 rounded-lg py-2 pl-10 pr-4 text-xs font-semibold focus:outline-none focus:border-sky-500 transition-all shadow-sm placeholder-slate-400"
@@ -234,6 +274,40 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
         </div>
         
       </div>
+
+      {busqueda.trim().length >= 2 && (
+        <section className="mb-4 overflow-hidden rounded-xl border border-sky-100 bg-sky-50/60">
+          <div className="flex items-center justify-between gap-3 border-b border-sky-100 bg-white/80 px-4 py-2.5">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-wider text-sky-700">Historial institucional</p>
+              <p className="mt-0.5 text-[10px] text-slate-500">Participaciones anteriores. No modifica la ceremonia activa.</p>
+            </div>
+            <span className="rounded-full bg-sky-100 px-2 py-1 text-[9px] font-black text-sky-700">
+              {buscandoHistorial ? 'Buscando...' : `${historialAgrupado.length} persona${historialAgrupado.length === 1 ? '' : 's'}`}
+            </span>
+          </div>
+          {!buscandoHistorial && historialAgrupado.length > 0 && (
+            <div className="divide-y divide-sky-100/80">
+              {historialAgrupado.map(persona => (
+                <div key={persona.clave} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="truncate text-xs font-black text-slate-800">{persona.nombre}</p>
+                    <p className="mt-0.5 text-[10px] font-medium text-slate-500">{persona.dni ? `DNI ${persona.dni}` : persona.correo || 'Sin identificador disponible'}</p>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {persona.participaciones.map(participacion => (
+                      <span key={participacion.id} className={`rounded-md px-2 py-1 text-[9px] font-bold ${participacion.ceremonia_activa ? 'bg-emerald-100 text-emerald-700' : 'bg-white text-slate-600 ring-1 ring-slate-200'}`}>
+                        {participacion.ceremonia_nombre || 'Ceremonia sin nombre'}{participacion.ceremonia_fecha ? ` · ${new Date(`${participacion.ceremonia_fecha}T12:00:00`).toLocaleDateString('es-AR')}` : ''}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          {!buscandoHistorial && historialAgrupado.length === 0 && <p className="px-4 py-3 text-[11px] font-medium text-slate-500">No hay participaciones históricas para esta búsqueda.</p>}
+        </section>
+      )}
 
       {/* FORMULARIO DE ALTA */}
       {mostrarForm && (
