@@ -75,7 +75,12 @@ export async function obtenerGraduados(ceremoniaId: string | number | null = nul
   const params = ceremoniaId ? `?ceremoniaId=${encodeURIComponent(String(ceremoniaId))}` : '';
   const res = await fetch(`${BASE_CLASSIC}/egresados${params}`, { headers: cabeceras() });
   if (!res.ok) throw new Error('No se pudo establecer conexión con el servidor de graduados');
-  return res.json();
+  const graduados = await res.json();
+  // Compatibilidad con entornos que aún no aplican el parámetro en el backend.
+  // Nunca debemos mezclar el padrón de dos ceremonias en la interfaz.
+  return ceremoniaId
+    ? graduados.filter((graduado: any) => String(graduado.ceremonia_id) === String(ceremoniaId))
+    : graduados;
 }
 
 export async function crearGraduado(datos: any) {

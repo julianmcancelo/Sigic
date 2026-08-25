@@ -112,7 +112,8 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
         obtenerInvitados(ceremoniaId)
       ])
       setGraduados(listaGrad)
-      setInvitados(listaInv)
+      const idsGraduados = new Set(listaGrad.map(graduado => String(graduado.id)))
+      setInvitados(listaInv.filter(invitado => idsGraduados.has(String(invitado.egresadoId || invitado.egresado_id))))
     } catch {
       setError('Error de conexión al servidor')
     } finally {
