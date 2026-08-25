@@ -387,6 +387,15 @@ export async function actualizarEstadoCeremonia(id: string | number, estado: str
   return json;
 }
 
+export async function actualizarPlazosCeremonia(id: string | number, plazos: any) {
+  const res = await fetch(`${BASE_CLASSIC}/ceremonias/${id}`, {
+    method: 'PUT', headers: cabeceras(), body: JSON.stringify(plazos)
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudieron actualizar los plazos de la ceremonia');
+  return json.ceremonia;
+}
+
 export async function corroborarGraduado(id: string | number) {
   const res = await fetch(`${BASE_CLASSIC}/egresados/${id}/corroborar`, {
     method: 'POST',

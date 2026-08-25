@@ -1802,10 +1802,14 @@ export async function PUT(
       const isPersonal = await esPersonalValido(req, ROLES_GESTION);
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
-      const { nombre, fecha, lugar, max_invitados, max_entregadores } = body;
+      const { nombre, fecha, lugar, max_invitados, max_entregadores, fecha_limite_respuesta, fecha_limite_grupo, fecha_cierre_butacas } = body;
       const result = await query(
-        'UPDATE ceremonias SET nombre = $1, fecha = $2, lugar = $3, max_invitados = $4, max_entregadores = $5 WHERE id = $6 RETURNING *',
-        [nombre, fecha, lugar, max_invitados || 4, max_entregadores || 3, id]
+        `UPDATE ceremonias SET nombre = COALESCE($1, nombre), fecha = COALESCE($2, fecha), lugar = COALESCE($3, lugar),
+          max_invitados = COALESCE($4, max_invitados), max_entregadores = COALESCE($5, max_entregadores),
+          fecha_limite_respuesta = $6, fecha_limite_grupo = $7, fecha_cierre_butacas = $8
+         WHERE id = $9 RETURNING *`,
+        [nombre || null, fecha || null, lugar || null, max_invitados || null, max_entregadores || null,
+          fecha_limite_respuesta || null, fecha_limite_grupo || null, fecha_cierre_butacas || null, id]
       );
 
       if (result.rowCount === 0) {

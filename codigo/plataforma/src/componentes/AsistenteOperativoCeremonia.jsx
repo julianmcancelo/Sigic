@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { AlertCircle, ArrowLeft, ArrowRight, CalendarClock, CheckCircle2, Clock3, FileSpreadsheet, LayoutTemplate, LoaderCircle, Plus, Radio, Send, Users, X } from 'lucide-react'
-import { buscarGraduadoPorDNI, crearGraduado, obtenerCeremonias } from '../lib/api'
+import { actualizarPlazosCeremonia, buscarGraduadoPorDNI, crearGraduado, obtenerCeremonias } from '../lib/api'
 import { ModalImportar } from './ModalImportar'
 
 const ETAPAS = ['Ceremonia', 'Padrón', 'Anfiteatro', 'Convocatoria', 'Respuestas', 'Grupos', 'Preparación', 'En vivo']
@@ -43,6 +43,8 @@ export function AsistenteOperativoCeremonia({ onNavegar }) {
   const [graduado, setGraduado] = useState({ nombre: '', dni: '', legajo: '', correo: '', carrera: '' })
   const [coincidenciasDni, setCoincidenciasDni] = useState([])
   const [identidadConfirmada, setIdentidadConfirmada] = useState(false)
+  const [mostrarPlazos, setMostrarPlazos] = useState(false)
+  const [plazos, setPlazos] = useState({ fecha_limite_respuesta: '', fecha_limite_grupo: '', fecha_cierre_butacas: '' })
 
   const actualizarCeremonia = async () => {
     const ceremonias = await obtenerCeremonias()
@@ -117,6 +119,19 @@ export function AsistenteOperativoCeremonia({ onNavegar }) {
 
   const paso = siguientePaso(ceremonia)
   const anterior = pasoAnterior(paso.avance)
+  const abrirPlazos = () => {
+    const fechaLocal = valor => valor ? new Date(valor).toISOString().slice(0, 16) : ''
+    setPlazos({ fecha_limite_respuesta: fechaLocal(ceremonia?.fecha_limite_respuesta), fecha_limite_grupo: fechaLocal(ceremonia?.fecha_limite_grupo), fecha_cierre_butacas: fechaLocal(ceremonia?.fecha_cierre_butacas) })
+    setMostrarPlazos(true)
+  }
+  const guardarPlazos = async evento => {
+    evento.preventDefault()
+    try {
+      await actualizarPlazosCeremonia(ceremonia.id, plazos)
+      await actualizarCeremonia()
+      setMostrarPlazos(false)
+    } catch (error) { setErrorCarga(error.message || 'No se pudieron guardar los plazos.') }
+  }
   const Icono = paso.icono
   return <section className="mx-auto w-full max-w-3xl p-4 sm:p-8" aria-label="Asistente administrativo de ceremonia">
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -129,7 +144,7 @@ export function AsistenteOperativoCeremonia({ onNavegar }) {
         <p className="mt-1 text-sm text-slate-500">{paso.detalle}</p>
         <div className="mt-6 h-1.5 overflow-hidden rounded-full bg-slate-100"><span className="block h-full rounded-full bg-sky-500" style={{ width: `${Math.min(100, (paso.avance / (ETAPAS.length - 1)) * 100)}%` }} /></div>
         <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6">{ETAPAS.map((etapa, indice) => <div key={etapa} className={`flex items-center gap-1 text-[9px] font-bold ${indice <= paso.avance ? 'text-sky-600' : 'text-slate-300'}`}>{indice < paso.avance ? <CheckCircle2 size={11} /> : <span className="h-2 w-2 rounded-full bg-current" />}{etapa}</div>)}</div>
-        {ceremonia && !['EN_VIVO', 'FINALIZADA'].includes(ceremonia.estado_operativo) && <div className="mt-6 flex flex-wrap gap-2"><button onClick={() => { setErrorCarga(''); setMensajeCarga(''); setMostrarCargaRapida(true) }} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"><Plus size={14} /> Cargar graduado</button>{paso.avance === 1 && <button onClick={() => setMostrarImportar(true)} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"><FileSpreadsheet size={14} /> Importar archivo</button>}</div>}
+        {ceremonia && !['EN_VIVO', 'FINALIZADA'].includes(ceremonia.estado_operativo) && <div className="mt-6 flex flex-wrap gap-2"><button onClick={() => { setErrorCarga(''); setMensajeCarga(''); setMostrarCargaRapida(true) }} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"><Plus size={14} /> Cargar graduado</button><button onClick={abrirPlazos} className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">Configurar plazos</button>{paso.avance === 1 && <button onClick={() => setMostrarImportar(true)} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"><FileSpreadsheet size={14} /> Importar archivo</button>}</div>}
         <div className="mt-7 flex flex-wrap items-center gap-3"><button onClick={() => onNavegar(paso.destino)} className="flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-black text-white hover:bg-slate-800">Continuar <ArrowRight size={14} /></button>{anterior && <button onClick={() => onNavegar(anterior.destino)} className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50"><ArrowLeft size={14} /> Volver a {anterior.titulo}</button>}</div>
       </div>
     </div>
@@ -150,5 +165,6 @@ export function AsistenteOperativoCeremonia({ onNavegar }) {
       </form>
     </div>}
     {mostrarImportar && <ModalImportar onCerrar={() => setMostrarImportar(false)} onCompletado={async () => { await actualizarCeremonia(); setMostrarImportar(false) }} />}
+    {mostrarPlazos && <div className="sigic-quick-graduate-overlay" role="dialog" aria-modal="true"><form className="sigic-quick-graduate-card" onSubmit={guardarPlazos}><header><div><span>Control operativo</span><h2>Plazos de la ceremonia</h2><p>Son opcionales y no afectan cambios administrativos.</p></div><button type="button" onClick={() => setMostrarPlazos(false)} aria-label="Cerrar"><X size={18} /></button></header><div className="sigic-quick-graduate-fields"><label>Responder invitación<input type="datetime-local" value={plazos.fecha_limite_respuesta} onChange={evento => setPlazos(valor => ({ ...valor, fecha_limite_respuesta: evento.target.value }))} /></label><label>Completar grupo<input type="datetime-local" value={plazos.fecha_limite_grupo} onChange={evento => setPlazos(valor => ({ ...valor, fecha_limite_grupo: evento.target.value }))} /></label><label className="sigic-quick-graduate-field-wide">Cierre de butacas<input type="datetime-local" value={plazos.fecha_cierre_butacas} onChange={evento => setPlazos(valor => ({ ...valor, fecha_cierre_butacas: evento.target.value }))} /></label></div><footer><button type="button" onClick={() => setMostrarPlazos(false)}>Cancelar</button><button type="submit">Guardar plazos</button></footer></form></div>}
   </section>
 }

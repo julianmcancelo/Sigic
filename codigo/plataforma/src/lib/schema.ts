@@ -48,6 +48,9 @@ async function ejecutarInicializacion() {
         activa INTEGER DEFAULT 0,
         estado_operativo VARCHAR(24) NOT NULL DEFAULT 'BORRADOR',
         finalizada_en TIMESTAMP,
+        fecha_limite_respuesta TIMESTAMP,
+        fecha_limite_grupo TIMESTAMP,
+        fecha_cierre_butacas TIMESTAMP,
         creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
       CREATE TABLE IF NOT EXISTS tokens_recuperacion_contrasena (
@@ -62,6 +65,9 @@ async function ejecutarInicializacion() {
 
       ALTER TABLE ceremonias ADD COLUMN IF NOT EXISTS estado_operativo VARCHAR(24) NOT NULL DEFAULT 'BORRADOR';
       ALTER TABLE ceremonias ADD COLUMN IF NOT EXISTS finalizada_en TIMESTAMP;
+      ALTER TABLE ceremonias ADD COLUMN IF NOT EXISTS fecha_limite_respuesta TIMESTAMP;
+      ALTER TABLE ceremonias ADD COLUMN IF NOT EXISTS fecha_limite_grupo TIMESTAMP;
+      ALTER TABLE ceremonias ADD COLUMN IF NOT EXISTS fecha_cierre_butacas TIMESTAMP;
       UPDATE ceremonias SET activa = 0
       WHERE activa = 1 AND id <> (
         SELECT id FROM ceremonias WHERE activa = 1 ORDER BY fecha DESC, id DESC LIMIT 1
@@ -213,6 +219,8 @@ async function ejecutarInicializacion() {
     await client.query("ALTER TABLE invitados ADD COLUMN IF NOT EXISTS asiento_solicitado_id VARCHAR(30)");
     await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS perfil_finalizado_en TIMESTAMP');
     await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS aviso_edicion_enviado_en TIMESTAMP');
+    await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS edicion_habilitada_hasta TIMESTAMP');
+    await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS edicion_habilitada_motivo TEXT');
     await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS presente BOOLEAN DEFAULT FALSE');
     await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS fecha_presente TIMESTAMP');
     // El teléfono es útil para la operación, pero no debe impedir registrar un acompañante.
