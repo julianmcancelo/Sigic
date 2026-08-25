@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { 
   Users, Search, Upload, Trash2, X, Mail, Link2, CreditCard, 
-  UserX, CheckCircle2, Clock, AlertCircle, Armchair, Send, Award, PlusCircle, BadgeCheck, MailWarning, Edit3
+  UserX, CheckCircle2, Clock, AlertCircle, Armchair, Send, PlusCircle, BadgeCheck, Edit3, MoreHorizontal
 } from 'lucide-react'
 
 import { 
@@ -12,7 +12,6 @@ import {
   enviarInvitacion, corroborarGraduado, enviarCredencialCeremonia, actualizarGraduado
 } from '../../servicios/api'
 
-import { ModalQR } from '../../componentes/ModalQR'
 import { ModalLinkRegistro } from '../../componentes/ModalLinkRegistro'
 import { ModalCredencial } from '../../componentes/ModalCredencial'
 import { FormularioGraduado } from '../../componentes/FormularioGraduado'
@@ -27,7 +26,6 @@ const ESTADOS_FLUJO = {
   RECHAZADO:         { etiqueta: 'No aceptó',        color: 'bg-rose-50 text-rose-700 border border-rose-200/50',        iconKey: 'RECHAZADO' },
 }
 
-const ACCENT = '#0EA5E9'
 const DARK   = '#2A3448'
 
 export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader }) {
@@ -49,17 +47,14 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
 
   const [mostrarForm, setMostrarForm] = useState(false)
   const [mostrarImportar, setMostrarImportar] = useState(false)
-  const [invitadoQR, setInvitadoQR] = useState(null)
   const [linkQR, setLinkQR] = useState(null)
   const [graduadoCredencial, setGraduadoCredencial] = useState(null)
   const [graduadoAsignar, setGraduadoAsignar] = useState(null)
 
   const [enviandoId, setEnviandoId] = useState(null)
-  const [exitoEnvio, setExitoEnvio] = useState(null)
   const [corroborandoId, setCorroborandoId] = useState(null)
   const [envioMasivo, setEnvioMasivo] = useState(null)
   const [enviandoCredencialId, setEnviandoCredencialId] = useState(null)
-  const [credencialEnviadaId, setCredencialEnviadaId] = useState(null)
   const [altaExitosa, setAltaExitosa] = useState('')
   const [graduadoEditar, setGraduadoEditar] = useState(null)
 
@@ -97,8 +92,6 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
         estado_flujo: actualizado?.estado_flujo || (item.estado_flujo === 'SIN_INVITAR' ? 'PENDIENTE' : item.estado_flujo),
         estado: actualizado?.estado || item.estado
       } : item))
-      setExitoEnvio(grad.id)
-      setTimeout(() => setExitoEnvio(null), 3000)
       await cargarDatos()
     } catch (err) {
       alert(err.message)
@@ -132,9 +125,6 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
       alert(err.message)
     }
   }
-
-  const promediosValidos = graduados.map(g => parseFloat(g.promedio)).filter(p => !isNaN(p) && p > 0)
-  const maxPromedio = promediosValidos.length > 0 ? Math.max(...promediosValidos) : 0
 
   const graduadosFiltrados = graduados.filter(g => {
     const term = busqueda.toLowerCase().trim()
@@ -190,8 +180,6 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
         credencial_enviada_en: respuesta.graduado.credencial_enviada_en,
         credencial_envios_count: respuesta.graduado.credencial_envios_count
       } : item))
-      setCredencialEnviadaId(grad.id)
-      setTimeout(() => setCredencialEnviadaId(null), 3000)
       setAltaExitosa(
         respuesta.googleWallet
           ? `Credencial enviada a ${grad.nombre}. El correo incluye el botón para guardar el pase en Google Wallet.`
@@ -244,50 +232,35 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
 
   return (
     <div className="font-sans">
-      {/* HEADER INTEGRADO PRO */}
-      <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 flex-wrap gap-3">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
         <div>
           <h2 className="text-lg font-black tracking-tight" style={{ color: DARK }}>Gestión de Estudiantes</h2>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Padrón de Graduados & Acompañantes</p>
+          <p className="mt-0.5 text-xs text-slate-400">{graduados.length} estudiantes · {invitados.length} acompañantes</p>
         </div>
-        
+
         <div className="flex items-center gap-2">
-          <button
-            onClick={manejarEnvioMasivo}
-            disabled={!pendientesConCorreo.length || envioMasivo}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-[9px] font-black uppercase tracking-wider hover:bg-slate-700 disabled:opacity-40 transition-all shadow-sm"
-          >
-            <Send size={13} /> {envioMasivo ? `${envioMasivo.enviados}/${envioMasivo.total} enviadas` : `Enviar pendientes (${pendientesConCorreo.length})`}
-          </button>
-          <button 
-            onClick={() => setMostrarImportar(true)} 
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-slate-600 rounded-lg text-[9px] font-bold uppercase tracking-wider hover:bg-slate-50 transition-all shadow-sm"
-          >
-            <Upload size={13} /> Importar Excel/CSV
-          </button>
-          
+          <details className="group relative">
+            <summary className="flex cursor-pointer list-none items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[10px] font-bold text-slate-600 hover:bg-slate-50"><MoreHorizontal size={14} /> Acciones</summary>
+            <div className="absolute right-0 z-30 mt-2 w-52 overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl">
+              <button onClick={manejarEnvioMasivo} disabled={!pendientesConCorreo.length || envioMasivo} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-40"><Send size={14} /> Enviar pendientes ({pendientesConCorreo.length})</button>
+              <button onClick={() => setMostrarImportar(true)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50"><Upload size={14} /> Importar archivo</button>
+              {graduados.length > 0 && <button onClick={manejarVaciar} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50"><Trash2 size={14} /> Vaciar padrón</button>}
+            </div>
+          </details>
           <button
             onClick={() => setMostrarForm(!mostrarForm)}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-500 text-white rounded-lg text-[9px] font-black uppercase tracking-wider hover:bg-sky-600 transition-all active:scale-95 shadow-sm"
+            className="flex items-center gap-1.5 rounded-lg bg-sky-600 px-3 py-2 text-[10px] font-black text-white transition hover:bg-sky-700"
           >
-            <PlusCircle size={14} /> {mostrarForm ? 'Cerrar Formulario' : 'Nuevo Estudiante'}
+            {mostrarForm ? <X size={14} /> : <PlusCircle size={14} />} {mostrarForm ? 'Cerrar' : 'Nuevo estudiante'}
           </button>
         </div>
       </div>
 
-      <div className="mb-3 grid gap-2 md:grid-cols-3">
-        <div className="flex items-center gap-2 rounded-lg border border-emerald-100 bg-emerald-50 px-3 py-2 text-[10px] font-semibold text-emerald-800">
-          <BadgeCheck size={15} className="shrink-0" />
-          <span><strong>{graduados.length - sinCorroborar}</strong> datos corroborados. {sinCorroborar.length ? `${sinCorroborar.length} requieren revisión.` : 'Padrón validado.'}</span>
-        </div>
-        <div className="flex items-center gap-2 rounded-lg border border-sky-100 bg-sky-50 px-3 py-2 text-[10px] font-semibold text-sky-800">
-          <Mail size={15} className="shrink-0" />
-          <span><strong>{pendientesConCorreo.length}</strong> invitaciones listas para enviar.</span>
-        </div>
-        <div className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-[10px] font-semibold ${sinCorreo.length ? 'border-amber-200 bg-amber-50 text-amber-800' : 'border-slate-100 bg-slate-50 text-slate-600'}`}>
-          <MailWarning size={15} className="shrink-0" />
-          <span>{sinCorreo.length ? <><strong>{sinCorreo.length}</strong> sin correo: cargalo antes de invitar.</> : 'Todos tienen correo para notificaciones.'}</span>
-        </div>
+      <div className="mb-4 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-semibold text-slate-500">
+        <span><strong className="text-slate-800">{graduados.length - sinCorroborar}</strong> verificados</span>
+        <span><strong className="text-slate-800">{pendientesConCorreo.length}</strong> por invitar</span>
+        <span><strong className="text-slate-800">{contadores.COMPLETO}</strong> listos para ubicar</span>
+        {sinCorreo.length > 0 && <span className="text-amber-700"><strong>{sinCorreo.length}</strong> sin correo</span>}
       </div>
 
       {envioMasivo && (
@@ -295,41 +268,6 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
           Envío en curso: {envioMasivo.enviados} de {envioMasivo.total} enviados{envioMasivo.fallidos ? `, ${envioMasivo.fallidos} con error.` : '.'}
         </div>
       )}
-
-      {/* METRICAS COMPACTAS */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-2 mb-3">
-        <div className="bg-white border border-slate-100 rounded-lg p-2.5 shadow-sm flex items-center justify-between">
-          <div>
-            <span className="block text-[8px] font-bold uppercase text-slate-400 tracking-wider">Total Estudiantes</span>
-            <span className="text-xl font-black tabular-nums" style={{ color: DARK }}>{graduados.length}</span>
-          </div>
-          <div className="h-7 w-7 rounded-md bg-sky-50 flex items-center justify-center text-[#0EA5E9]"><Users size={14} /></div>
-        </div>
-
-        <div className="bg-white border border-slate-100 rounded-lg p-2.5 shadow-sm flex items-center justify-between">
-          <div>
-            <span className="block text-[8px] font-bold uppercase text-slate-400 tracking-wider">Acompañantes Registrados</span>
-            <span className="text-xl font-black tabular-nums" style={{ color: DARK }}>{invitados.length}</span>
-          </div>
-          <div className="h-7 w-7 rounded-md bg-emerald-50 flex items-center justify-center text-emerald-500"><Users size={14} /></div>
-        </div>
-
-        <div className="bg-white border border-slate-100 rounded-lg p-2.5 shadow-sm flex items-center justify-between">
-          <div>
-            <span className="block text-[8px] font-bold uppercase text-slate-400 tracking-wider">Mejor Promedio</span>
-            <span className="text-xl font-black tabular-nums text-amber-500">{maxPromedio > 0 ? maxPromedio.toFixed(2) : '-'}</span>
-          </div>
-          <div className="h-7 w-7 rounded-md bg-amber-50 flex items-center justify-center text-amber-500"><Award size={14} /></div>
-        </div>
-
-        <div className="bg-slate-900 border border-slate-800 rounded-lg p-2.5 shadow-sm flex items-center justify-between text-white">
-          <div>
-            <span className="block text-[8px] font-bold uppercase text-slate-400 tracking-wider">Listos para ubicar</span>
-            <span className="text-xl font-black tabular-nums">{contadores.COMPLETO}</span>
-          </div>
-          <div className="h-7 w-7 rounded-md bg-sky-400/15 flex items-center justify-center text-sky-300"><Armchair size={14} /></div>
-        </div>
-      </div>
 
       {/* FILTROS PILLS */}
       <div className="flex gap-1.5 overflow-x-auto pb-1 mb-3 [scrollbar-width:thin]">
@@ -368,14 +306,6 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
           />
         </div>
         
-        {graduados.length > 0 && (
-          <button 
-            onClick={manejarVaciar} 
-            className="flex items-center justify-center gap-1.5 px-3 py-2 bg-red-50 text-red-500 border border-red-100 rounded-lg text-[9px] font-bold uppercase tracking-wider hover:bg-red-500 hover:text-white hover:border-red-500 transition-all shadow-sm"
-          >
-            <Trash2 size={13} /> Vaciar Lista
-          </button>
-        )}
       </div>
 
       {/* FORMULARIO DE ALTA */}
@@ -432,8 +362,6 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
             const estadoConfig = ESTADOS_FLUJO[grad.estado_flujo] || ESTADOS_FLUJO.SIN_INVITAR
             const misInvitados = invitadosDe(grad.id)
             const esRechazado = grad.estado_flujo === 'RECHAZADO'
-            const butacasAsignadas = [grad.asiento_id, ...misInvitados.map(inv => inv.asiento_id)].filter(Boolean).length
-            const integrantesGrupo = misInvitados.length + 1
 
             return (
               <div
@@ -442,167 +370,32 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
                   esRechazado ? 'border-red-150 opacity-70 bg-red-50/10' : 'border-slate-100'
                 }`}
               >
-                <div className="p-3.5 sm:p-4">
-                  <div className="flex flex-wrap items-start justify-between gap-3 mb-2.5">
-                    <div className="flex items-center gap-3">
-                      <div className={`h-9 w-9 rounded-xl flex items-center justify-center text-white font-black text-sm shadow-sm ${
-                        esRechazado ? 'bg-red-400' : 'bg-gradient-to-br from-[#0EA5E9] to-indigo-500'
-                      }`}>
-                        {grad.nombre?.charAt(0)?.toUpperCase() || '?'}
-                      </div>
-                      
-                      <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h4 className="font-black text-sm tracking-tight" style={{ color: DARK }}>{grad.nombre}</h4>
-                          {!esRechazado && maxPromedio > 0 && parseFloat(grad.promedio) === maxPromedio && (
-                            <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-100 rounded text-[7.5px] font-black uppercase tracking-wider">
-                              <Award size={10} className="text-amber-500" /> Excelencia
-                            </span>
-                          )}
-                        </div>
-                        
-                  <div className="flex flex-wrap items-center gap-2 mt-1">
-                          <span className="text-[10px] text-slate-500 font-semibold bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">
-                            DNI: {grad.dni}
-                          </span>
-                          <span className="text-[10px] text-slate-500 font-semibold bg-slate-50 border border-slate-100 px-2 py-0.5 rounded">
-                            Legajo: {grad.legajo}
-                          </span>
-                          {grad.carrera && (
-                            <span className="text-[10px] text-[#0ea5e9] font-bold bg-sky-50 border border-sky-100 px-2 py-0.5 rounded">
-                              {grad.carrera}
-                            </span>
-                          )}
-                          {grad.promedio && parseFloat(grad.promedio) > 0 && (
-                            <span className="text-[10px] text-slate-600 font-bold bg-slate-50 border border-slate-200 px-2 py-0.5 rounded">
-                              Prom: {parseFloat(grad.promedio).toFixed(2)}
-                            </span>
-                          )}
-                          <span className={`flex items-center gap-1 text-[9px] font-bold px-2 py-0.5 rounded border ${grad.identidad_corrobada_en ? 'text-emerald-700 bg-emerald-50 border-emerald-100' : 'text-amber-700 bg-amber-50 border-amber-100'}`}>
-                            <BadgeCheck size={10} /> {grad.identidad_corrobada_en ? 'Datos corroborados' : 'Pendiente de corroborar'}
-                          </span>
-                        </div>
-                      </div>
+                <div className="p-4">
+                  <div className="flex items-start gap-3">
+                    <div className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-sm font-black text-white ${esRechazado ? 'bg-rose-400' : 'bg-sky-500'}`}>{grad.nombre?.charAt(0)?.toUpperCase() || '?'}</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2"><h4 className="truncate text-sm font-black text-slate-800">{grad.nombre}</h4><span className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[8px] font-black uppercase ${estadoConfig.color}`}>{obtenerIconoEstado(estadoConfig.iconKey, 9)}{estadoConfig.etiqueta}</span></div>
+                      <p className="mt-1 truncate text-[10px] text-slate-400">DNI {grad.dni} · {grad.legajo || 'Sin legajo'} · {grad.correo || 'Sin correo'}</p>
                     </div>
-
-                    <div className={`flex items-center gap-1 px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-widest ${estadoConfig.color}`}>
-                      {obtenerIconoEstado(estadoConfig.iconKey, 10)}
-                      <span>{estadoConfig.etiqueta}</span>
-                    </div>
+                    {!esRechazado && <span className="hidden text-[9px] font-bold text-slate-400 sm:block">{siguientePaso(grad)}</span>}
                   </div>
 
-                  {!esRechazado && (
-                    <div className="mb-2.5 flex flex-wrap items-center gap-1.5 rounded-lg border border-slate-100 bg-slate-50 px-2.5 py-2">
-                      <span className="mr-auto text-[8px] font-black uppercase tracking-[0.14em] text-slate-400">{siguientePaso(grad)}</span>
-                      <FlujoMini etiqueta="Invitación" listo={grad.invitacion_enviada} />
-                      <FlujoMini etiqueta="Aceptación" listo={grad.estado === 'ACEPTADO'} />
-                      <FlujoMini etiqueta={`Acompañantes ${misInvitados.length}`} listo={misInvitados.length > 0} />
-                      <FlujoMini etiqueta={`Butacas ${butacasAsignadas}/${integrantesGrupo}`} listo={butacasAsignadas === integrantesGrupo} />
-                    </div>
-                  )}
-
-                  {!esRechazado && (
-                    <div className={`mb-2.5 flex items-center gap-2 rounded-lg border px-2.5 py-2 text-[10px] ${grad.correo ? 'border-slate-100 bg-white text-slate-600' : 'border-amber-200 bg-amber-50 text-amber-800'}`}>
-                      <Mail size={13} className="shrink-0" />
-                      <span className="truncate">{grad.correo || 'Falta correo electrónico: no se puede enviar la invitación.'}</span>
-                      {grad.invitacion_enviada && <span className="ml-auto shrink-0 text-emerald-600 font-bold">Enviada {grad.invitacion_envios_count > 1 ? `${grad.invitacion_envios_count} veces` : ''}</span>}
-                    </div>
-                  )}
-
-                  {/* Acciones */}
-                  <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-slate-100">
-                    {!esRechazado && (
-                      <>
-                        {!grad.identidad_corrobada_en && (
-                          <button
-                            onClick={() => manejarCorroboracion(grad)}
-                            disabled={corroborandoId === grad.id}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 border border-emerald-100 hover:bg-emerald-500 hover:text-white disabled:opacity-40 transition-all"
-                          >
-                            <BadgeCheck size={12} /> {corroborandoId === grad.id ? 'Corroborando...' : 'Corroborar datos'}
-                          </button>
-                        )}
-                        <button
-                          onClick={() => manejarEnvioInvitacion(grad)}
-                          disabled={enviandoId === grad.id || !grad.correo}
-                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-all disabled:opacity-40 border ${
-                            exitoEnvio === grad.id 
-                              ? 'bg-emerald-50 text-emerald-600 border-emerald-200' 
-                              : 'bg-sky-50 text-sky-600 border-transparent hover:bg-sky-500 hover:text-white'
-                          }`}
-                        >
-                          {exitoEnvio === grad.id ? <CheckCircle2 size={12} /> : <Send size={12} />}
-                          {enviandoId === grad.id ? 'Enviando...' : exitoEnvio === grad.id ? 'Enviado' : grad.invitacion_enviada ? 'Reenviar invitación' : 'Enviar invitación'}
-                        </button>
-                        
-                        <button
-                          onClick={() => setGraduadoEditar(grad)}
-                          className="flex items-center gap-1 px-2.5 py-1.5 text-slate-500 hover:bg-slate-50 hover:text-slate-900 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-colors"
-                        ><Edit3 size={12} /> Editar</button>
-                        <button
-                          onClick={() => manejarLink(grad)}
-                          className="flex items-center gap-1 px-2.5 py-1.5 text-slate-500 hover:bg-slate-50 hover:text-slate-800 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-colors border border-transparent"
-                        >
-                          <Link2 size={12} /> Link
-                        </button>
-                        
-                        <button
-                          onClick={() => setGraduadoCredencial(grad)}
-                          className="flex items-center gap-1 px-2.5 py-1.5 text-slate-500 hover:bg-slate-50 hover:text-slate-800 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-colors border border-transparent"
-                        >
-                          <CreditCard size={12} /> Credencial
-                        </button>
-
-                        {grad.estado === 'ACEPTADO' && (
-                          <button
-                            onClick={() => manejarEnvioCredencial(grad)}
-                            disabled={enviandoCredencialId === grad.id || !grad.correo}
-                            className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-colors disabled:opacity-40 ${credencialEnviadaId === grad.id ? 'bg-emerald-50 text-emerald-700' : 'text-indigo-600 hover:bg-indigo-50'}`}
-                          >
-                            {credencialEnviadaId === grad.id ? <CheckCircle2 size={12} /> : <Mail size={12} />}
-                            {enviandoCredencialId === grad.id ? 'Enviando...' : credencialEnviadaId === grad.id ? 'Credencial enviada' : grad.credencial_enviada_en ? 'Reenviar credencial' : 'Enviar credencial'}
-                          </button>
-                        )}
-                        
-                        {grad.estado === 'ACEPTADO' && (
-                          <button
-                          onClick={() => abrirAsignacion(grad)}
-                          className="flex items-center gap-1 px-3 py-1.5 bg-slate-900 text-white hover:bg-slate-700 rounded-lg text-[9px] font-black uppercase tracking-wider transition-colors shadow-sm"
-                          >
-                            <Armchair size={12} /> Asientos
-                          </button>
-                        )}
-                      </>
-                    )}
-                    <div className="flex-1" />
-                    <button
-                      onClick={() => manejarEliminar(grad.id)}
-                      className="flex items-center gap-1 px-2.5 py-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 rounded-lg text-[9px] font-bold uppercase tracking-wider transition-colors border border-transparent"
-                    >
-                      <Trash2 size={12} /> Eliminar
-                    </button>
-                  </div>
-
-                  {/* Invitados del graduado */}
-                  {misInvitados.length > 0 && (
-                    <div className="mt-2.5 pt-2.5 border-t border-slate-100">
-                      <p className="text-[8.5px] font-black uppercase tracking-widest text-slate-400 mb-1.5">
-                        Acompañantes ({misInvitados.length})
-                      </p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {misInvitados.map(inv => (
-                          <button
-                            key={inv.id}
-                            onClick={() => setInvitadoQR(inv)}
-                            className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-100 rounded text-[9.5px] font-semibold text-slate-600 hover:bg-sky-50 hover:text-sky-600 transition-all"
-                          >
-                            <span className={`w-1.5 h-1.5 rounded-full ${inv.presente ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
-                            {inv.nombre}
-                          </button>
-                        ))}
+                  <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
+                    {!esRechazado && !grad.identidad_corrobada_en && <button onClick={() => manejarCorroboracion(grad)} disabled={corroborandoId === grad.id} className="rounded-lg bg-emerald-50 px-3 py-1.5 text-[9px] font-bold text-emerald-700 disabled:opacity-40"><BadgeCheck size={12} className="mr-1 inline" />Verificar</button>}
+                    {!esRechazado && !grad.invitacion_enviada && <button onClick={() => manejarEnvioInvitacion(grad)} disabled={enviandoId === grad.id || !grad.correo} className="rounded-lg bg-sky-50 px-3 py-1.5 text-[9px] font-bold text-sky-700 disabled:opacity-40"><Send size={12} className="mr-1 inline" />{enviandoId === grad.id ? 'Enviando' : 'Invitar'}</button>}
+                    {!esRechazado && grad.estado === 'ACEPTADO' && <button onClick={() => abrirAsignacion(grad)} className="rounded-lg bg-slate-900 px-3 py-1.5 text-[9px] font-bold text-white"><Armchair size={12} className="mr-1 inline" />Butacas</button>}
+                    {misInvitados.length > 0 && <span className="text-[9px] font-semibold text-slate-400">{misInvitados.length} acompañantes</span>}
+                    <details className="relative ml-auto">
+                      <summary className="grid h-7 w-8 cursor-pointer list-none place-items-center rounded-lg text-slate-400 hover:bg-slate-100"><MoreHorizontal size={15} /></summary>
+                      <div className="absolute bottom-9 right-0 z-20 w-48 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl">
+                        <button onClick={() => setGraduadoEditar(grad)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-slate-600 hover:bg-slate-50"><Edit3 size={13} /> Editar</button>
+                        {!esRechazado && <button onClick={() => manejarLink(grad)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-slate-600 hover:bg-slate-50"><Link2 size={13} /> Enlace</button>}
+                        {!esRechazado && <button onClick={() => setGraduadoCredencial(grad)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-slate-600 hover:bg-slate-50"><CreditCard size={13} /> Ver credencial</button>}
+                        {!esRechazado && grad.estado === 'ACEPTADO' && <button onClick={() => manejarEnvioCredencial(grad)} disabled={enviandoCredencialId === grad.id || !grad.correo} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-indigo-600 hover:bg-indigo-50 disabled:opacity-40"><Mail size={13} /> Enviar credencial</button>}
+                        <button onClick={() => manejarEliminar(grad.id)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-rose-600 hover:bg-rose-50"><Trash2 size={13} /> Eliminar</button>
                       </div>
-                    </div>
-                  )}
+                    </details>
+                  </div>
                 </div>
               </div>
             )
@@ -620,7 +413,6 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
       {/* MODALES */}
       {graduadoCredencial && <ModalCredencial egresado={graduadoCredencial} onCerrar={() => setGraduadoCredencial(null)} />}
       {linkQR && <ModalLinkRegistro egresado={linkQR.egresado} link={linkQR.link} onCerrar={() => setLinkQR(null)} />}
-      {invitadoQR && <ModalQR invitado={invitadoQR} onCerrar={() => setInvitadoQR(null)} />}
       {mostrarImportar && <ModalImportar onCerrar={() => setMostrarImportar(false)} onCompletado={cargarDatos} />}
       {graduadoAsignar && (
         <ModalAsignarAsientos
@@ -640,56 +432,10 @@ export function GestionGraduados({ usuario, onVolver, onCerrarSesion, sinHeader 
     </div>
   )
 }
-
 function ModalEditarGraduado({ graduado, onCerrar, onGuardar }) {
   const [form, setForm] = useState({ nombre: graduado.nombre || '', dni: graduado.dni || '', legajo: graduado.legajo || '', correo: graduado.correo || '', carrera: graduado.carrera || '', promedio: graduado.promedio || '' })
   const [guardando, setGuardando] = useState(false)
   async function enviar(evento) { evento.preventDefault(); setGuardando(true); try { await onGuardar(form) } catch (error) { alert(error.message) } finally { setGuardando(false) } }
   const campo = (clave, etiqueta, tipo = 'text') => <label className="grid gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-500"><span>{etiqueta}</span><input type={tipo} value={form[clave]} onChange={e => setForm(actual => ({ ...actual, [clave]: e.target.value }))} className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-800 outline-none focus:border-sky-400" /></label>
   return <div className="fixed inset-0 z-[70] grid place-items-center bg-slate-950/45 p-4 backdrop-blur-sm"><form onSubmit={enviar} className="w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl"><div className="mb-5 flex items-start justify-between"><div><p className="text-[10px] font-black uppercase tracking-[.16em] text-sky-600">Edición administrativa</p><h3 className="mt-1 text-lg font-black text-slate-900">Actualizar graduado</h3></div><button type="button" onClick={onCerrar} className="text-slate-400 hover:text-slate-900"><X size={20} /></button></div><div className="grid gap-3 sm:grid-cols-2">{campo('nombre', 'Nombre completo')}{campo('dni', 'DNI', 'text')}{campo('legajo', 'Legajo')}{campo('correo', 'Correo', 'email')}{campo('carrera', 'Carrera')}{campo('promedio', 'Promedio', 'number')}</div><div className="mt-5 flex justify-end gap-2"><button type="button" onClick={onCerrar} className="px-4 py-2 text-xs font-bold text-slate-500">Cancelar</button><button disabled={guardando} className="rounded-lg bg-slate-900 px-4 py-2 text-xs font-black text-white disabled:opacity-50">{guardando ? 'Guardando...' : 'Guardar cambios'}</button></div></form></div>
-}
-
-function FlujoMini({ etiqueta, listo }) {
-  return (
-    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[8px] font-black uppercase tracking-wider ${
-      listo ? 'bg-emerald-50 text-emerald-700' : 'bg-white text-slate-400 border border-slate-200'
-    }`}>
-      <span className={`h-1.5 w-1.5 rounded-full ${listo ? 'bg-emerald-500' : 'bg-slate-300'}`} />
-      {etiqueta}
-    </span>
-  )
-}
-
-function PasoFlujo({ etiqueta, completado, activo }) {
-  return (
-    <div className="flex flex-col items-center flex-1 z-10">
-      <div className={`w-4 h-4 rounded-full flex items-center justify-center transition-all duration-300 border bg-white ${
-        completado ? 'border-sky-500' :
-        activo ? 'border-sky-500 border-2 shadow-[0_0_8px_rgba(14,165,233,0.35)]' :
-        'border-slate-200'
-      }`}>
-        {completado ? <div className="w-1.5 h-1.5 bg-sky-500 rounded-full" /> :
-         activo ? <div className="w-1 h-1 bg-sky-500 rounded-full animate-pulse" /> :
-         null}
-      </div>
-      <span className={`text-[8px] uppercase tracking-wider text-center mt-1.5 ${
-        completado ? 'text-slate-700 font-bold' : 
-        activo ? 'text-sky-600 font-black' : 
-        'text-slate-400 font-semibold'
-      }`}>
-        <span className="sm:hidden">{etiqueta.split(' ')[0]}</span>
-        <span className="hidden sm:inline">{etiqueta}</span>
-      </span>
-    </div>
-  )
-}
-
-function LineaConexion({ completada }) {
-  return (
-    <div className="flex-1 flex items-center justify-center px-0 min-w-[15px] self-start mt-2">
-      <div className={`h-[1px] w-full transition-all duration-300 ${
-        completada ? 'bg-sky-400' : 'bg-slate-200'
-      }`} />
-    </div>
-  )
 }
