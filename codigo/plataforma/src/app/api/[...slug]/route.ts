@@ -484,6 +484,9 @@ export async function GET(
           COUNT(DISTINCT e.id)::int AS total_egresados,
           COUNT(DISTINCT e.id) FILTER (WHERE e.invitacion_enviada)::int AS invitaciones_enviadas,
           COUNT(DISTINCT e.id) FILTER (WHERE e.estado = 'ACEPTADO')::int AS egresados_confirmados,
+          COUNT(DISTINCT e.id) FILTER (WHERE e.invitacion_enviada AND COALESCE(e.estado, '') NOT IN ('ACEPTADO', 'RECHAZADO'))::int AS respuestas_pendientes,
+          COUNT(DISTINCT e.id) FILTER (WHERE e.estado = 'RECHAZADO')::int AS egresados_rechazados,
+          COUNT(DISTINCT e.id) FILTER (WHERE e.estado = 'ACEPTADO' AND e.estado_flujo = 'COMPLETO')::int AS grupos_completos,
           COUNT(DISTINCT e.id) FILTER (WHERE e.asiento_id IS NOT NULL)::int AS egresados_con_butaca,
           COUNT(i.id) FILTER (WHERE i.presente IS TRUE)::int AS asistencias,
           EXISTS(SELECT 1 FROM configuracion_anfiteatro ca WHERE ca.ceremonia_id = c.id) AS plano_configurado

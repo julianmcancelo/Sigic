@@ -1,18 +1,21 @@
 import { useEffect, useState } from 'react'
-import { AlertCircle, ArrowLeft, ArrowRight, CalendarClock, CheckCircle2, FileSpreadsheet, LayoutTemplate, LoaderCircle, Plus, Radio, Send, Users, X } from 'lucide-react'
+import { AlertCircle, ArrowLeft, ArrowRight, CalendarClock, CheckCircle2, Clock3, FileSpreadsheet, LayoutTemplate, LoaderCircle, Plus, Radio, Send, Users, X } from 'lucide-react'
 import { buscarGraduadoPorDNI, crearGraduado, obtenerCeremonias } from '../lib/api'
 import { ModalImportar } from './ModalImportar'
 
-const ETAPAS = ['Ceremonia', 'Padrón', 'Anfiteatro', 'Convocatoria', 'Preparación', 'En vivo']
+const ETAPAS = ['Ceremonia', 'Padrón', 'Anfiteatro', 'Convocatoria', 'Respuestas', 'Grupos', 'Preparación', 'En vivo']
 
 function siguientePaso(ceremonia) {
   if (!ceremonia) return { titulo: 'Prepará la próxima ceremonia', detalle: 'Creá una ceremonia y activala para comenzar el flujo.', destino: 'gestion-ceremonias', icono: CalendarClock, avance: 0 }
   if (!Number(ceremonia.total_egresados)) return { titulo: 'Cargá el padrón de graduados', detalle: 'Necesitás al menos un graduado para iniciar la convocatoria.', destino: 'gestion-graduados', icono: Users, avance: 1 }
   if (!ceremonia.plano_configurado) return { titulo: 'Configurá el anfiteatro', detalle: 'Definí el plano y las reglas de butacas antes de preparar el grupo.', destino: 'seleccion-asientos', icono: LayoutTemplate, avance: 2 }
   if (Number(ceremonia.invitaciones_enviadas) < Number(ceremonia.total_egresados)) return { titulo: 'Completá las invitaciones', detalle: `${ceremonia.invitaciones_enviadas || 0} de ${ceremonia.total_egresados} graduados recibieron su invitación.`, destino: 'convocatoria', icono: Send, avance: 3 }
-  if (ceremonia.estado_operativo === 'EN_VIVO') return { titulo: 'Ceremonia en seguimiento', detalle: `${ceremonia.asistencias || 0} asistencias acreditadas hasta el momento.`, destino: 'estado-ceremonia', icono: Radio, avance: 5 }
-  if (ceremonia.estado_operativo === 'FINALIZADA') return { titulo: 'Ceremonia finalizada', detalle: 'El acta operativa quedó archivada. Podés consultar los reportes.', destino: 'panel-reportes', icono: CheckCircle2, avance: 6 }
-  return { titulo: 'Prepará la operación', detalle: 'Revisá grupos, confirmaciones y butacas antes de abrir la acreditación.', destino: 'preparacion-ceremonia', icono: CheckCircle2, avance: 4 }
+  if (Number(ceremonia.respuestas_pendientes)) return { titulo: 'Esperá las respuestas', detalle: `${ceremonia.respuestas_pendientes} graduado(s) todavía deben aceptar o rechazar la invitación desde su correo.`, destino: 'convocatoria', icono: Clock3, avance: 4 }
+  if (!Number(ceremonia.egresados_confirmados)) return { titulo: 'Revisá la convocatoria', detalle: 'No hay graduados aceptados todavía. Podés reenviar invitaciones o revisar sus datos de contacto.', destino: 'convocatoria', icono: Send, avance: 4 }
+  if (Number(ceremonia.grupos_completos) < Number(ceremonia.egresados_confirmados)) return { titulo: 'Esperá la carga de grupos', detalle: `${ceremonia.grupos_completos || 0} de ${ceremonia.egresados_confirmados} graduados aceptados completaron sus acompañantes y necesidades.`, destino: 'convocatoria', icono: Users, avance: 5 }
+  if (ceremonia.estado_operativo === 'EN_VIVO') return { titulo: 'Ceremonia en seguimiento', detalle: `${ceremonia.asistencias || 0} asistencias acreditadas hasta el momento.`, destino: 'estado-ceremonia', icono: Radio, avance: 7 }
+  if (ceremonia.estado_operativo === 'FINALIZADA') return { titulo: 'Ceremonia finalizada', detalle: 'El acta operativa quedó archivada. Podés consultar los reportes.', destino: 'panel-reportes', icono: CheckCircle2, avance: 8 }
+  return { titulo: 'Prepará la operación', detalle: 'Los grupos están listos. Revisá y confirmá las butacas antes de abrir la acreditación.', destino: 'preparacion-ceremonia', icono: CheckCircle2, avance: 6 }
 }
 
 function pasoAnterior(avance) {
@@ -21,6 +24,8 @@ function pasoAnterior(avance) {
     { titulo: 'Ceremonia', destino: 'gestion-ceremonias' },
     { titulo: 'Padrón', destino: 'gestion-graduados' },
     { titulo: 'Anfiteatro', destino: 'seleccion-asientos' },
+    { titulo: 'Convocatoria', destino: 'convocatoria' },
+    { titulo: 'Convocatoria', destino: 'convocatoria' },
     { titulo: 'Convocatoria', destino: 'convocatoria' },
     { titulo: 'Preparación', destino: 'preparacion-ceremonia' },
     { titulo: 'Ceremonia en vivo', destino: 'estado-ceremonia' },
@@ -122,7 +127,7 @@ export function AsistenteOperativoCeremonia({ onNavegar }) {
       <div className="p-5 sm:p-7">
         <h3 className="text-xl font-black text-slate-900">{paso.titulo}</h3>
         <p className="mt-1 text-sm text-slate-500">{paso.detalle}</p>
-        <div className="mt-6 h-1.5 overflow-hidden rounded-full bg-slate-100"><span className="block h-full rounded-full bg-sky-500" style={{ width: `${(paso.avance / 6) * 100}%` }} /></div>
+        <div className="mt-6 h-1.5 overflow-hidden rounded-full bg-slate-100"><span className="block h-full rounded-full bg-sky-500" style={{ width: `${Math.min(100, (paso.avance / (ETAPAS.length - 1)) * 100)}%` }} /></div>
         <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6">{ETAPAS.map((etapa, indice) => <div key={etapa} className={`flex items-center gap-1 text-[9px] font-bold ${indice <= paso.avance ? 'text-sky-600' : 'text-slate-300'}`}>{indice < paso.avance ? <CheckCircle2 size={11} /> : <span className="h-2 w-2 rounded-full bg-current" />}{etapa}</div>)}</div>
         {ceremonia && !['EN_VIVO', 'FINALIZADA'].includes(ceremonia.estado_operativo) && <div className="mt-6 flex flex-wrap gap-2"><button onClick={() => { setErrorCarga(''); setMensajeCarga(''); setMostrarCargaRapida(true) }} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"><Plus size={14} /> Cargar graduado</button>{paso.avance === 1 && <button onClick={() => setMostrarImportar(true)} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"><FileSpreadsheet size={14} /> Importar archivo</button>}</div>}
         <div className="mt-7 flex flex-wrap items-center gap-3"><button onClick={() => onNavegar(paso.destino)} className="flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-black text-white hover:bg-slate-800">Continuar <ArrowRight size={14} /></button>{anterior && <button onClick={() => onNavegar(anterior.destino)} className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50"><ArrowLeft size={14} /> Volver a {anterior.titulo}</button>}</div>

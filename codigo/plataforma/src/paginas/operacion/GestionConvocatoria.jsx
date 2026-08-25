@@ -5,6 +5,7 @@ import { enviarCredencialCeremonia, enviarInvitacion, obtenerGraduados } from '.
 const FILTROS = [
   { id: 'PENDIENTES', etiqueta: 'Por invitar' },
   { id: 'RESPUESTAS', etiqueta: 'Esperando respuesta' },
+  { id: 'GRUPOS', etiqueta: 'Completando grupo' },
   { id: 'CREDENCIALES', etiqueta: 'Credenciales listas' },
   { id: 'SIN_CORREO', etiqueta: 'Sin correo' },
 ]
@@ -34,11 +35,13 @@ export function GestionConvocatoria({ onNavegar }) {
   const pendientes = graduados.filter(item => !item.invitacion_enviada && item.estado_flujo !== 'RECHAZADO' && item.correo)
   const sinCorreo = graduados.filter(item => !item.correo && item.estado_flujo !== 'RECHAZADO')
   const esperandoRespuesta = graduados.filter(item => item.invitacion_enviada && item.estado_flujo === 'PENDIENTE')
+  const completandoGrupo = graduados.filter(item => item.estado === 'ACEPTADO' && item.estado_flujo !== 'COMPLETO')
   const credencialesListas = graduados.filter(item => item.estado === 'ACEPTADO' && item.estado_asignacion_butacas === 'CONFIRMADA' && item.asiento_id && !item.credencial_enviada_en)
 
   const listados = {
     PENDIENTES: pendientes,
     RESPUESTAS: esperandoRespuesta,
+    GRUPOS: completandoGrupo,
     CREDENCIALES: credencialesListas,
     SIN_CORREO: sinCorreo,
   }
@@ -96,6 +99,7 @@ export function GestionConvocatoria({ onNavegar }) {
   const metricas = [
     { etiqueta: 'Por invitar', valor: pendientes.length, icono: Send, color: 'text-sky-600 bg-sky-50' },
     { etiqueta: 'Sin respuesta', valor: esperandoRespuesta.length, icono: Clock3, color: 'text-amber-600 bg-amber-50' },
+    { etiqueta: 'Completando grupo', valor: completandoGrupo.length, icono: Users, color: 'text-violet-600 bg-violet-50' },
     { etiqueta: 'Credenciales listas', valor: credencialesListas.length, icono: CreditCard, color: 'text-indigo-600 bg-indigo-50' },
     { etiqueta: 'Requieren correo', valor: sinCorreo.length, icono: AlertCircle, color: 'text-rose-600 bg-rose-50' },
   ]
@@ -113,7 +117,7 @@ export function GestionConvocatoria({ onNavegar }) {
       </div>
     </header>
 
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
       {metricas.map(({ etiqueta, valor, icono: Icono, color }) => <article key={etiqueta} className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm"><span className={`grid h-8 w-8 place-items-center rounded-xl ${color}`}><Icono size={16} /></span><strong className="mt-4 block text-2xl font-black text-slate-900">{valor}</strong><span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">{etiqueta}</span></article>)}
     </div>
 
