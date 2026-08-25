@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Settings, Users, GraduationCap, BookOpen, ChevronRight, Info } from 'lucide-react'
+import { Settings, Users, GraduationCap, BookOpen, ChevronRight, Info, LogIn } from 'lucide-react'
 import { VERSION_LABEL } from '../lib/version'
 
 export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresado, onSeleccionarManual, enMantenimiento, accesoOculto, modoDemo = false }) {
@@ -254,8 +254,17 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
             </p>
           </div>
 
+          <button
+            type="button"
+            onClick={() => setRevelado(true)}
+            className="group mt-8 flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 py-3.5 text-sm font-black text-white shadow-lg shadow-slate-900/15 transition-all hover:-translate-y-0.5 hover:bg-cyan-600 hover:shadow-cyan-600/20 active:translate-y-0 active:scale-[0.98] focus-visible:outline focus-visible:outline-4 focus-visible:outline-cyan-300"
+          >
+            <LogIn size={18} aria-hidden="true" className="transition-transform group-hover:translate-x-0.5" />
+            Ingresar
+          </button>
+
           {/* Footer */}
-          <div className="mt-10 text-center space-y-1">
+          <div className="mt-8 text-center space-y-1">
             <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400">
               Instituto Tecnológico Beltrán
             </p>
