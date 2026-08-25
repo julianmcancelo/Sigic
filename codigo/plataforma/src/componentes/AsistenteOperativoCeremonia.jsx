@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { AlertCircle, ArrowRight, CalendarClock, CheckCircle2, FileSpreadsheet, LayoutTemplate, LoaderCircle, Plus, Radio, Send, Users, X } from 'lucide-react'
-import { crearGraduado, obtenerCeremonias } from '../lib/api'
+import { buscarGraduadoPorDNI, crearGraduado, obtenerCeremonias } from '../lib/api'
 import { ModalImportar } from './ModalImportar'
 
 const ETAPAS = ['Ceremonia', 'Padrón', 'Anfiteatro', 'Convocatoria', 'Preparación', 'En vivo']
@@ -22,6 +22,8 @@ export function AsistenteOperativoCeremonia({ onNavegar }) {
   const [guardando, setGuardando] = useState(false)
   const [errorCarga, setErrorCarga] = useState('')
   const [graduado, setGraduado] = useState({ nombre: '', dni: '', legajo: '', correo: '', carrera: '' })
+  const [coincidenciasDni, setCoincidenciasDni] = useState([])
+  const [identidadConfirmada, setIdentidadConfirmada] = useState(false)
 
   const actualizarCeremonia = async () => {
     const ceremonias = await obtenerCeremonias()
@@ -50,20 +52,44 @@ export function AsistenteOperativoCeremonia({ onNavegar }) {
       return
     }
 
-    setGuardando(true)
     setErrorCarga('')
+    const dni = graduado.dni.replace(/\D/g, '')
+    try {
+      const resultado = await buscarGraduadoPorDNI(dni)
+      const coincidencias = resultado.coincidencias || []
+      if (coincidencias.length && !identidadConfirmada) {
+        setCoincidenciasDni(coincidencias)
+        setErrorCarga('Este DNI ya figura en el sistema. Confirmá si corresponde a la misma persona antes de continuar.')
+        return
+      }
+    } catch (error) {
+      setErrorCarga(error.message || 'No se pudo verificar el DNI.')
+      return
+    }
+
+    setGuardando(true)
     try {
       await crearGraduado({
         ...graduado,
         nombre: graduado.nombre.trim(),
-        dni: graduado.dni.replace(/\D/g, ''),
-        ceremonia_id: ceremonia?.id
+        dni,
+        ceremonia_id: ceremonia?.id,
+        identidad_confirmada: identidadConfirmada
       })
       await actualizarCeremonia()
       setGraduado({ nombre: '', dni: '', legajo: '', correo: '', carrera: '' })
+      setCoincidenciasDni([])
+      setIdentidadConfirmada(false)
       setMostrarCargaRapida(false)
     } catch (error) {
-      setErrorCarga(error.message || 'No se pudo guardar el graduado.')
+      const persona = error.persona
+      if (error.codigo === 'REQUIERE_CONFIRMACION_IDENTIDAD' && persona) {
+        setCoincidenciasDni([persona])
+        setIdentidadConfirmada(false)
+        setErrorCarga('Confirmá la identidad de la persona encontrada antes de crear la inscripción.')
+      } else {
+        setErrorCarga(error.message || 'No se pudo guardar el graduado.')
+      }
     } finally {
       setGuardando(false)
     }
@@ -92,12 +118,13 @@ export function AsistenteOperativoCeremonia({ onNavegar }) {
         {errorCarga && <p className="sigic-quick-graduate-error"><AlertCircle size={14} />{errorCarga}</p>}
         <div className="sigic-quick-graduate-fields">
           <label>Nombre completo<input autoFocus value={graduado.nombre} onChange={evento => setGraduado(valor => ({ ...valor, nombre: evento.target.value }))} placeholder="Nombre y apellido" /></label>
-          <label>DNI<input inputMode="numeric" value={graduado.dni} onChange={evento => setGraduado(valor => ({ ...valor, dni: evento.target.value }))} placeholder="Sin puntos" /></label>
+          <label>DNI<input inputMode="numeric" value={graduado.dni} onChange={evento => { setIdentidadConfirmada(false); setCoincidenciasDni([]); setGraduado(valor => ({ ...valor, dni: evento.target.value.replace(/\D/g, '') })) }} placeholder="Sin puntos" /></label>
           <label>Legajo<input value={graduado.legajo} onChange={evento => setGraduado(valor => ({ ...valor, legajo: evento.target.value }))} placeholder="Opcional" /></label>
           <label>Correo<input type="email" value={graduado.correo} onChange={evento => setGraduado(valor => ({ ...valor, correo: evento.target.value }))} placeholder="Opcional" /></label>
           <label className="sigic-quick-graduate-field-wide">Carrera<input value={graduado.carrera} onChange={evento => setGraduado(valor => ({ ...valor, carrera: evento.target.value }))} placeholder="Opcional" /></label>
         </div>
-        <footer><button type="button" onClick={() => setMostrarCargaRapida(false)}>Cancelar</button><button type="submit" disabled={guardando}>{guardando ? <LoaderCircle size={15} className="animate-spin" /> : <Plus size={15} />}{guardando ? 'Guardando...' : 'Agregar al padrón'}</button></footer>
+        {coincidenciasDni.length > 0 && <section className={`sigic-quick-graduate-identity ${identidadConfirmada ? 'is-confirmed' : ''}`} aria-live="polite"><div><strong>{identidadConfirmada ? 'Identidad confirmada' : 'DNI encontrado en una inscripción anterior'}</strong><p>{coincidenciasDni[0].nombre || 'Persona registrada'} · {coincidenciasDni[0].correo || 'Sin correo registrado'}</p></div>{!identidadConfirmada && <div><button type="button" onClick={() => { const persona = coincidenciasDni[0]; setGraduado(valor => ({ ...valor, nombre: persona.nombre || valor.nombre, correo: persona.correo || valor.correo })); setIdentidadConfirmada(true); setErrorCarga('') }}>Sí, es la misma persona</button><button type="button" onClick={() => { setGraduado(valor => ({ ...valor, dni: '' })); setCoincidenciasDni([]); setErrorCarga('Revisá el DNI para continuar.') }}>No coincide, revisar DNI</button></div>}</section>}
+        <footer><button type="button" onClick={() => setMostrarCargaRapida(false)}>Cancelar</button><button type="submit" disabled={guardando || (coincidenciasDni.length > 0 && !identidadConfirmada)}>{guardando ? <LoaderCircle size={15} className="animate-spin" /> : <Plus size={15} />}{guardando ? 'Guardando...' : coincidenciasDni.length > 0 && !identidadConfirmada ? 'Confirmá la identidad' : 'Agregar al padrón'}</button></footer>
       </form>
     </div>}
     {mostrarImportar && <ModalImportar onCerrar={() => setMostrarImportar(false)} onCompletado={async () => { await actualizarCeremonia(); setMostrarImportar(false) }} />}
