@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { AlertCircle, ArrowRight, CalendarClock, CheckCircle2, FileSpreadsheet, LayoutTemplate, LoaderCircle, Plus, Radio, Send, Users, X } from 'lucide-react'
+import { AlertCircle, ArrowLeft, ArrowRight, CalendarClock, CheckCircle2, FileSpreadsheet, LayoutTemplate, LoaderCircle, Plus, Radio, Send, Users, X } from 'lucide-react'
 import { buscarGraduadoPorDNI, crearGraduado, obtenerCeremonias } from '../lib/api'
 import { ModalImportar } from './ModalImportar'
 
@@ -13,6 +13,19 @@ function siguientePaso(ceremonia) {
   if (ceremonia.estado_operativo === 'EN_VIVO') return { titulo: 'Ceremonia en seguimiento', detalle: `${ceremonia.asistencias || 0} asistencias acreditadas hasta el momento.`, destino: 'estado-ceremonia', icono: Radio, avance: 5 }
   if (ceremonia.estado_operativo === 'FINALIZADA') return { titulo: 'Ceremonia finalizada', detalle: 'El acta operativa quedó archivada. Podés consultar los reportes.', destino: 'panel-reportes', icono: CheckCircle2, avance: 6 }
   return { titulo: 'Prepará la operación', detalle: 'Revisá grupos, confirmaciones y butacas antes de abrir la acreditación.', destino: 'preparacion-ceremonia', icono: CheckCircle2, avance: 4 }
+}
+
+function pasoAnterior(avance) {
+  const pasos = [
+    null,
+    { titulo: 'Ceremonia', destino: 'gestion-ceremonias' },
+    { titulo: 'Padrón', destino: 'gestion-graduados' },
+    { titulo: 'Anfiteatro', destino: 'seleccion-asientos' },
+    { titulo: 'Convocatoria', destino: 'convocatoria' },
+    { titulo: 'Preparación', destino: 'preparacion-ceremonia' },
+    { titulo: 'Ceremonia en vivo', destino: 'estado-ceremonia' },
+  ]
+  return pasos[avance] || null
 }
 
 export function AsistenteOperativoCeremonia({ onNavegar }) {
@@ -98,6 +111,7 @@ export function AsistenteOperativoCeremonia({ onNavegar }) {
   }
 
   const paso = siguientePaso(ceremonia)
+  const anterior = pasoAnterior(paso.avance)
   const Icono = paso.icono
   return <section className="mx-auto w-full max-w-3xl p-4 sm:p-8" aria-label="Asistente administrativo de ceremonia">
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -111,7 +125,7 @@ export function AsistenteOperativoCeremonia({ onNavegar }) {
         <div className="mt-6 h-1.5 overflow-hidden rounded-full bg-slate-100"><span className="block h-full rounded-full bg-sky-500" style={{ width: `${(paso.avance / 6) * 100}%` }} /></div>
         <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6">{ETAPAS.map((etapa, indice) => <div key={etapa} className={`flex items-center gap-1 text-[9px] font-bold ${indice <= paso.avance ? 'text-sky-600' : 'text-slate-300'}`}>{indice < paso.avance ? <CheckCircle2 size={11} /> : <span className="h-2 w-2 rounded-full bg-current" />}{etapa}</div>)}</div>
         {ceremonia && !['EN_VIVO', 'FINALIZADA'].includes(ceremonia.estado_operativo) && <div className="mt-6 flex flex-wrap gap-2"><button onClick={() => { setErrorCarga(''); setMensajeCarga(''); setMostrarCargaRapida(true) }} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"><Plus size={14} /> Cargar graduado</button>{paso.avance === 1 && <button onClick={() => setMostrarImportar(true)} className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"><FileSpreadsheet size={14} /> Importar archivo</button>}</div>}
-        <button onClick={() => onNavegar(paso.destino)} className="mt-7 flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-black text-white hover:bg-slate-800">Continuar <ArrowRight size={14} /></button>
+        <div className="mt-7 flex flex-wrap items-center gap-3"><button onClick={() => onNavegar(paso.destino)} className="flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-black text-white hover:bg-slate-800">Continuar <ArrowRight size={14} /></button>{anterior && <button onClick={() => onNavegar(anterior.destino)} className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-50"><ArrowLeft size={14} /> Volver a {anterior.titulo}</button>}</div>
       </div>
     </div>
     {mostrarCargaRapida && <div className="sigic-quick-graduate-overlay" role="dialog" aria-modal="true" aria-labelledby="carga-rapida-titulo">
