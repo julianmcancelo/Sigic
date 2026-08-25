@@ -26,6 +26,7 @@ export function FormularioGraduado({ onCreado, onCancelar, enModal = false }) {
   const [identidadConfirmada, setIdentidadConfirmada] = useState(false)
   const [mostrarModalIdentidad, setMostrarModalIdentidad] = useState(false)
   const [ceremoniaActiva, setCeremoniaActiva] = useState(null)
+  const coincidenciaEnCeremoniaActiva = coincidencias.find(registro => String(registro.ceremonia_id) === String(ceremoniaActiva?.id))
   const errorRef = useRef(null)
   const dniPerdioFocoRef = useRef(false)
   const [ajustes, setAjustes] = useState({
@@ -111,6 +112,11 @@ export function FormularioGraduado({ onCreado, onCancelar, enModal = false }) {
 
     if (coincidencias.length > 0 && !identidadConfirmada) {
       setError('Confirmá si el DNI corresponde a la persona encontrada antes de continuar')
+      return
+    }
+
+    if (coincidenciaEnCeremoniaActiva) {
+      setError('Esta persona ya está inscripta en la ceremonia activa. Cerrá este formulario y usá Editar en su registro existente.')
       return
     }
 
@@ -283,17 +289,17 @@ export function FormularioGraduado({ onCreado, onCancelar, enModal = false }) {
                     </div>
                     <div>
                       <p className="text-sm font-black text-slate-900">
-                        {identidadConfirmada ? 'Identidad confirmada' : 'Este DNI ya figura en el sistema'}
+                        {coincidenciaEnCeremoniaActiva ? 'Ya está inscripto en esta ceremonia' : identidadConfirmada ? 'Identidad confirmada' : 'Este DNI ya figura en el sistema'}
                       </p>
                       <p className="mt-1 text-xs leading-relaxed text-slate-600">
                         {coincidencias[0].nombre} · {coincidencias[0].correo || 'Sin correo registrado'}
                       </p>
                       <p className="mt-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                        <History size={12} /> {coincidencias.length} {coincidencias.length === 1 ? 'participación anterior' : 'participaciones anteriores'}
+                        <History size={12} /> {coincidenciaEnCeremoniaActiva ? 'Registro activo encontrado' : `${coincidencias.length} ${coincidencias.length === 1 ? 'participación anterior' : 'participaciones anteriores'}`}
                       </p>
                     </div>
                   </div>
-                  {!identidadConfirmada && (
+                  {!identidadConfirmada && !coincidenciaEnCeremoniaActiva && (
                     <div className="flex flex-wrap gap-2">
                       <button
                         type="button"
@@ -319,6 +325,7 @@ export function FormularioGraduado({ onCreado, onCancelar, enModal = false }) {
                       </button>
                     </div>
                   )}
+                  {coincidenciaEnCeremoniaActiva && <p className="max-w-xs text-[10px] font-bold leading-relaxed text-rose-700">No se creará una segunda inscripción. Cerrá este formulario y editá el registro existente desde el padrón.</p>}
                 </div>
 
                 <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -386,9 +393,11 @@ export function FormularioGraduado({ onCreado, onCancelar, enModal = false }) {
                 </div>
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.25em] text-amber-600">DNI registrado anteriormente</p>
-                  <h2 id="titulo-confirmar-identidad" className="mt-2 text-2xl font-black tracking-tight text-slate-900">¿Es la persona que intentás registrar?</h2>
+                  <h2 id="titulo-confirmar-identidad" className="mt-2 text-2xl font-black tracking-tight text-slate-900">{coincidenciaEnCeremoniaActiva ? 'Esta persona ya está en el padrón activo' : '¿Es la persona que intentás registrar?'}</h2>
                   <p className="mt-2 text-sm leading-relaxed text-slate-600">
-                    Encontramos este DNI en otras participaciones. Revisá la información antes de crear la nueva inscripción.
+                    {coincidenciaEnCeremoniaActiva
+                      ? 'Esta persona ya tiene una inscripción en la ceremonia activa. Para mantener un único registro, editá el existente desde el padrón.'
+                      : 'Encontramos este DNI en otras participaciones. Revisá la información antes de crear la nueva inscripción para esta ceremonia.'}
                   </p>
                 </div>
               </div>
@@ -432,12 +441,14 @@ export function FormularioGraduado({ onCreado, onCancelar, enModal = false }) {
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold leading-relaxed text-amber-800">
-                Si no es la misma persona, revisá el número ingresado: este DNI ya está asociado a la persona mostrada.
+              <div className={`rounded-2xl border px-4 py-3 text-xs font-semibold leading-relaxed ${coincidenciaEnCeremoniaActiva ? 'border-rose-200 bg-rose-50 text-rose-800' : 'border-amber-200 bg-amber-50 text-amber-800'}`}>
+                {coincidenciaEnCeremoniaActiva
+                  ? 'No se permiten dos inscripciones del mismo DNI en una misma ceremonia.'
+                  : 'Si no es la misma persona, revisá el número ingresado: este DNI ya está asociado a la persona mostrada.'}
               </div>
 
               <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                <button
+                {!coincidenciaEnCeremoniaActiva && <button
                   type="button"
                   onClick={() => {
                     setMostrarModalIdentidad(false)
@@ -449,8 +460,8 @@ export function FormularioGraduado({ onCreado, onCancelar, enModal = false }) {
                   className="rounded-2xl border border-amber-300 bg-white px-5 py-3.5 text-xs font-black uppercase tracking-wider text-amber-700 hover:bg-amber-50"
                 >
                   Es otra persona, revisar DNI
-                </button>
-                <button
+                </button>}
+                {!coincidenciaEnCeremoniaActiva ? <button
                   type="button"
                   autoFocus
                   onClick={() => {
@@ -463,7 +474,14 @@ export function FormularioGraduado({ onCreado, onCancelar, enModal = false }) {
                   className="rounded-2xl bg-slate-900 px-5 py-3.5 text-xs font-black uppercase tracking-wider text-white shadow-lg hover:bg-emerald-600"
                 >
                   Sí, es la misma persona
-                </button>
+                </button> : <button
+                  type="button"
+                  autoFocus
+                  onClick={onCancelar}
+                  className="rounded-2xl bg-slate-900 px-5 py-3.5 text-xs font-black uppercase tracking-wider text-white shadow-lg hover:bg-sky-700"
+                >
+                  Cerrar y editar registro
+                </button>}
               </div>
             </div>
           </div>
