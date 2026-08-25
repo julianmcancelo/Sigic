@@ -964,9 +964,9 @@ export async function POST(
     // -------------------------------------------------------------
     if (path === 'setup/reset') {
       const auth = obtenerUsuarioAutenticado(req);
-      if (!auth.valido || auth.datos?.email?.toLowerCase() !== 'soporte@ibeltran.com.ar') {
+      if (!auth.valido || auth.datos?.rol !== 'SUPER_ADMIN') {
         return NextResponse.json(
-          { error: 'No autorizado. Solo la cuenta de soporte puede resetear el sistema.' },
+          { error: 'No autorizado. Solo una cuenta SUPER_ADMIN puede resetear el sistema.' },
           { status: 403, headers }
         );
       }
