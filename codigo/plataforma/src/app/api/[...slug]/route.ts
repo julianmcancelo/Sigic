@@ -971,9 +971,11 @@ export async function POST(
         );
       }
 
-      // Limpiar tablas usando DELETE FROM para compatibilidad con PostgreSQL y SQLite
+      // Conservamos el equipo administrativo: el reinicio prepara una nueva
+      // ceremonia sin obligar a recrear las cuentas que gestionan SiGIC.
       const tables = [
         'ceremonias_usuarios_autorizados',
+        'tokens_recuperacion_contrasena',
         'otp_historial',
         'invitados',
         'egresados',
@@ -981,8 +983,8 @@ export async function POST(
         'entregadores',
         'configuracion_anfiteatro',
         'logs_auditoria',
+        'dispositivos_moviles',
         'ceremonias',
-        'usuarios_sistema'
       ];
       for (const t of tables) {
         await query(`DELETE FROM ${t}`).catch((e) => {
