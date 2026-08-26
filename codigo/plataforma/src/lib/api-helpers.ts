@@ -129,12 +129,40 @@ export function parsearCodigoAcreditacion(codigoRaw: string): ParametrosBusqueda
   let codigo = String(codigoRaw || '').trim();
   const formatoOriginal = codigo;
 
-  // 1. Quitar prefijo de Google Wallet o escáneres con prefijo institucional
+  // 1. Decodificar JWT de Google Wallet (si se escaneó la URL de Save to Wallet: https://pay.google.com/gp/v/save/...)
+  if (codigo.includes('pay.google.com') || codigo.includes('/save/')) {
+    try {
+      const matchJwt = codigo.match(/\/save\/([A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)/);
+      if (matchJwt) {
+        const payloadBase64 = matchJwt[1].split('.')[1];
+        const payloadJson = Buffer.from(payloadBase64, 'base64url').toString('utf-8');
+        const payload = JSON.parse(payloadJson);
+        const eventTicket = payload?.payload?.eventTicketObjects?.[0] || payload?.eventTicketObjects?.[0];
+        if (eventTicket?.ticketNumber) {
+          codigo = String(eventTicket.ticketNumber).trim();
+        } else if (eventTicket?.barcode?.value) {
+          codigo = String(eventTicket.barcode.value).replace(/^SIGIC:/i, '').trim();
+        } else if (eventTicket?.reservationInfo?.confirmationCode) {
+          codigo = String(eventTicket.reservationInfo.confirmationCode).trim();
+        }
+      }
+    } catch (e) {
+      console.warn('Error decodificando JWT de Google Wallet:', e);
+    }
+  }
+
+  // 2. Extraer token si es un Google Wallet Object ID: issuer.sigic-ceremonia-token
+  const matchObjId = codigo.match(/\.sigic-[^-]+-(.+)$/i);
+  if (matchObjId) {
+    codigo = matchObjId[1].trim();
+  }
+
+  // 3. Quitar prefijo de Google Wallet o escáneres con prefijo institucional
   if (/^SIGIC:/i.test(codigo)) {
     codigo = codigo.replace(/^SIGIC:/i, '').trim();
   }
 
-  // 2. Si es una URL (ej: https://.../?token=XYZ o /egresado/token/XYZ)
+  // 4. Si es una URL (ej: https://.../?token=XYZ o /egresado/token/XYZ)
   if (/^https?:\/\//i.test(codigo) || codigo.includes('token=')) {
     try {
       const url = new URL(codigo.startsWith('http') ? codigo : `https://sigic.local/${codigo.replace(/^\//, '')}`);
@@ -153,15 +181,18 @@ export function parsearCodigoAcreditacion(codigoRaw: string): ParametrosBusqueda
     }
   }
 
-  // 3. Si es JSON serializado (Credencial digital Web)
+  // 5. Si es JSON serializado (Credencial digital Web)
   if (codigo.startsWith('{') && codigo.endsWith('}')) {
     try {
       const parsed = JSON.parse(codigo);
+      const token = parsed.token ? String(parsed.token).trim() : undefined;
+      const id = parsed.id ? String(parsed.id).trim() : undefined;
+      const dni = parsed.dni ? String(parsed.dni).replace(/\D/g, '') : undefined;
       return {
-        codigoLimpio: parsed.token || parsed.id || parsed.dni || codigo,
-        token: parsed.token ? String(parsed.token).trim() : undefined,
-        id: parsed.id ? String(parsed.id).trim() : undefined,
-        dni: parsed.dni ? String(parsed.dni).replace(/\D/g, '') : undefined,
+        codigoLimpio: token || id || dni || codigo,
+        token,
+        id,
+        dni,
         esIndividual: false,
         esGrupo: true,
         formatoOriginal,
@@ -178,7 +209,7 @@ export function parsearCodigoAcreditacion(codigoRaw: string): ParametrosBusqueda
 
   return {
     codigoLimpio: codigo,
-    token: !esDNI && !esUUID ? codigo : undefined,
+    token: codigo,
     id: esUUID ? codigo : undefined,
     dni: esDNI ? codigo : undefined,
     legajo: esLegajo ? codigo : undefined,

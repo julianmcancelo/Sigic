@@ -562,16 +562,23 @@ export async function GET(
     }
 
     if (slug[0] === 'invitados' && slug[1] === 'buscar' && slug[2]) {
-      const codigoRaw = slug[2];
-      const codigoDecodificado = decodeURIComponent(codigoRaw);
       const isPersonal = await esPersonalValido(req, ROLES_OPERACION);
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
+      const codigoRaw = slug.slice(2).join('/');
+      let codigoDecodificado = codigoRaw;
+      try {
+        codigoDecodificado = decodeURIComponent(codigoRaw);
+      } catch {
+        codigoDecodificado = codigoRaw;
+      }
+
       const parsed = parsearCodigoAcreditacion(codigoDecodificado);
+      const valor = parsed.codigoLimpio || codigoDecodificado;
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-      // 1. Si se detectó ID de invitado individual (UUID)
-      if (parsed.id && uuidRegex.test(parsed.id)) {
+      // 1. Si coincide con UUID de un invitado individual
+      if (uuidRegex.test(valor)) {
         const invRes = await query(`
           SELECT i.*, e.nombre as "egresadoNombre", e.dni as "egresadoDni", e.carrera as "egresadoCarrera",
                  e.asiento_id as "egresadoAsiento",
@@ -580,7 +587,7 @@ export async function GET(
           JOIN egresados e ON i.egresado_id = e.id 
           JOIN ceremonias c ON e.ceremonia_id = c.id
           WHERE i.id = $1
-        `, [parsed.id]);
+        `, [valor]);
 
         if (invRes.rows.length > 0) {
           const inv = invRes.rows[0];
@@ -588,88 +595,73 @@ export async function GET(
           const invsRes = await query('SELECT * FROM invitados WHERE egresado_id = $1 ORDER BY nombre ASC', [inv.egresado_id]);
           return NextResponse.json({
             tipo: 'individual',
+            datos: inv,
             invitado: inv,
             egresado: egrRes.rows[0] || null,
+            egresadoNombre: inv.egresadoNombre,
             invitadosGrupo: invsRes.rows,
             ceremonia: { id: inv.ceremoniaId, nombre: inv.ceremoniaNombre, activa: inv.ceremoniaActiva }
           }, { headers });
         }
       }
 
-      // 2. Búsqueda de egresado por Token, ID (UUID), DNI o Legajo
-      const condiciones = [];
-      const params = [];
+      // 2. Búsqueda de egresado por Token, ID (UUID), DNI, Legajo o Google Wallet
+      const egrRes = await query(`
+        SELECT e.*, c.nombre as "ceremoniaNombre", c.activa as "ceremoniaActiva", c.fecha as "ceremoniaFecha", c.lugar as "ceremoniaLugar"
+        FROM egresados e
+        JOIN ceremonias c ON e.ceremonia_id = c.id
+        WHERE UPPER(e.token) = UPPER($1)
+           OR e.id::text = $1
+           OR e.dni = $1
+           OR UPPER(e.legajo) = UPPER($1)
+           OR e.google_wallet_object_id = $1
+           OR e.google_wallet_object_id LIKE '%' || $1
+        ORDER BY c.activa DESC, e.creado_en DESC
+        LIMIT 1
+      `, [valor]);
 
-      if (parsed.token) {
-        params.push(parsed.token.toUpperCase());
-        condiciones.push(`UPPER(e.token) = $${params.length}`);
-      }
-      if (parsed.id && uuidRegex.test(parsed.id)) {
-        params.push(parsed.id);
-        condiciones.push(`e.id = $${params.length}`);
-      }
-      if (parsed.dni) {
-        params.push(parsed.dni);
-        condiciones.push(`e.dni = $${params.length}`);
-      }
-      if (parsed.legajo) {
-        params.push(parsed.legajo.toUpperCase());
-        condiciones.push(`UPPER(e.legajo) = $${params.length}`);
-      }
-
-      if (condiciones.length > 0) {
-        const egrRes = await query(`
-          SELECT e.*, c.nombre as "ceremoniaNombre", c.activa as "ceremoniaActiva", c.fecha as "ceremoniaFecha", c.lugar as "ceremoniaLugar"
-          FROM egresados e
-          JOIN ceremonias c ON e.ceremonia_id = c.id
-          WHERE ${condiciones.join(' OR ')}
-          ORDER BY c.activa DESC, e.creado_en DESC
-          LIMIT 1
-        `, params);
-
-        if (egrRes.rows.length > 0) {
-          const egr = egrRes.rows[0];
-          const invs = await query('SELECT * FROM invitados WHERE egresado_id = $1 ORDER BY nombre ASC', [egr.id]);
-          return NextResponse.json({
-            tipo: 'grupo',
-            egresado: egr,
-            invitados: invs.rows,
-            ceremonia: {
-              id: egr.ceremonia_id,
-              nombre: egr.ceremoniaNombre,
-              activa: egr.ceremoniaActiva,
-              fecha: egr.ceremoniaFecha,
-              lugar: egr.ceremoniaLugar
-            }
-          }, { headers });
-        }
-
-        // 3. Si no se encontró como egresado, buscar si el DNI pertenece a un invitado registrado
-        if (parsed.dni) {
-          const invDniRes = await query(`
-            SELECT i.*, e.nombre as "egresadoNombre", e.dni as "egresadoDni", e.carrera as "egresadoCarrera",
-                   c.id as "ceremoniaId", c.nombre as "ceremoniaNombre", c.activa as "ceremoniaActiva"
-            FROM invitados i
-            JOIN egresados e ON i.egresado_id = e.id
-            JOIN ceremonias c ON e.ceremonia_id = c.id
-            WHERE i.dni = $1
-            ORDER BY c.activa DESC
-            LIMIT 1
-          `, [parsed.dni]);
-
-          if (invDniRes.rows.length > 0) {
-            const inv = invDniRes.rows[0];
-            const egr = await query('SELECT * FROM egresados WHERE id = $1', [inv.egresado_id]);
-            const invs = await query('SELECT * FROM invitados WHERE egresado_id = $1 ORDER BY nombre ASC', [inv.egresado_id]);
-            return NextResponse.json({
-              tipo: 'individual',
-              invitado: inv,
-              egresado: egr.rows[0] || null,
-              invitadosGrupo: invs.rows,
-              ceremonia: { id: inv.ceremoniaId, nombre: inv.ceremoniaNombre, activa: inv.ceremoniaActiva }
-            }, { headers });
+      if (egrRes.rows.length > 0) {
+        const egr = egrRes.rows[0];
+        const invs = await query('SELECT * FROM invitados WHERE egresado_id = $1 ORDER BY nombre ASC', [egr.id]);
+        return NextResponse.json({
+          tipo: 'grupo',
+          egresado: egr,
+          invitados: invs.rows,
+          ceremonia: {
+            id: egr.ceremonia_id,
+            nombre: egr.ceremoniaNombre,
+            activa: egr.ceremoniaActiva,
+            fecha: egr.ceremoniaFecha,
+            lugar: egr.ceremoniaLugar
           }
-        }
+        }, { headers });
+      }
+
+      // 3. Buscar si el código o DNI pertenece a un invitado registrado
+      const invDniRes = await query(`
+        SELECT i.*, e.nombre as "egresadoNombre", e.dni as "egresadoDni", e.carrera as "egresadoCarrera",
+               c.id as "ceremoniaId", c.nombre as "ceremoniaNombre", c.activa as "ceremoniaActiva"
+        FROM invitados i
+        JOIN egresados e ON i.egresado_id = e.id
+        JOIN ceremonias c ON e.ceremonia_id = c.id
+        WHERE i.id::text = $1 OR i.dni = $1
+        ORDER BY c.activa DESC
+        LIMIT 1
+      `, [valor]);
+
+      if (invDniRes.rows.length > 0) {
+        const inv = invDniRes.rows[0];
+        const egr = await query('SELECT * FROM egresados WHERE id = $1', [inv.egresado_id]);
+        const invs = await query('SELECT * FROM invitados WHERE egresado_id = $1 ORDER BY nombre ASC', [inv.egresado_id]);
+        return NextResponse.json({
+          tipo: 'individual',
+          datos: inv,
+          invitado: inv,
+          egresado: egr.rows[0] || null,
+          egresadoNombre: inv.egresadoNombre,
+          invitadosGrupo: invs.rows,
+          ceremonia: { id: inv.ceremoniaId, nombre: inv.ceremoniaNombre, activa: inv.ceremoniaActiva }
+        }, { headers });
       }
 
       return NextResponse.json({ error: 'Credencial o código no encontrado para esta ceremonia' }, { status: 404, headers });
@@ -1261,6 +1253,109 @@ export async function POST(
     // -------------------------------------------------------------
     // INVITADOS
     // -------------------------------------------------------------
+    if (path === 'invitados/buscar' || (slug[0] === 'invitados' && slug[1] === 'buscar')) {
+      const isPersonal = await esPersonalValido(req, ROLES_OPERACION);
+      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+
+      const codigoRaw = String(body.codigo || '').trim();
+      if (!codigoRaw) {
+        return NextResponse.json({ error: 'Código de acreditación requerido' }, { status: 400, headers });
+      }
+
+      const parsed = parsearCodigoAcreditacion(codigoRaw);
+      const valor = parsed.codigoLimpio || codigoRaw;
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+      // 1. Si coincide con UUID de un invitado individual
+      if (uuidRegex.test(valor)) {
+        const invRes = await query(`
+          SELECT i.*, e.nombre as "egresadoNombre", e.dni as "egresadoDni", e.carrera as "egresadoCarrera",
+                 e.asiento_id as "egresadoAsiento",
+                 c.id as "ceremoniaId", c.nombre as "ceremoniaNombre", c.activa as "ceremoniaActiva"
+          FROM invitados i 
+          JOIN egresados e ON i.egresado_id = e.id 
+          JOIN ceremonias c ON e.ceremonia_id = c.id
+          WHERE i.id = $1
+        `, [valor]);
+
+        if (invRes.rows.length > 0) {
+          const inv = invRes.rows[0];
+          const egrRes = await query('SELECT * FROM egresados WHERE id = $1', [inv.egresado_id]);
+          const invsRes = await query('SELECT * FROM invitados WHERE egresado_id = $1 ORDER BY nombre ASC', [inv.egresado_id]);
+          return NextResponse.json({
+            tipo: 'individual',
+            datos: inv,
+            invitado: inv,
+            egresado: egrRes.rows[0] || null,
+            egresadoNombre: inv.egresadoNombre,
+            invitadosGrupo: invsRes.rows,
+            ceremonia: { id: inv.ceremoniaId, nombre: inv.ceremoniaNombre, activa: inv.ceremoniaActiva }
+          }, { headers });
+        }
+      }
+
+      // 2. Búsqueda de egresado por Token, ID (UUID), DNI, Legajo o Google Wallet
+      const egrRes = await query(`
+        SELECT e.*, c.nombre as "ceremoniaNombre", c.activa as "ceremoniaActiva", c.fecha as "ceremoniaFecha", c.lugar as "ceremoniaLugar"
+        FROM egresados e
+        JOIN ceremonias c ON e.ceremonia_id = c.id
+        WHERE UPPER(e.token) = UPPER($1)
+           OR e.id::text = $1
+           OR e.dni = $1
+           OR UPPER(e.legajo) = UPPER($1)
+           OR e.google_wallet_object_id = $1
+           OR e.google_wallet_object_id LIKE '%' || $1
+        ORDER BY c.activa DESC, e.creado_en DESC
+        LIMIT 1
+      `, [valor]);
+
+      if (egrRes.rows.length > 0) {
+        const egr = egrRes.rows[0];
+        const invs = await query('SELECT * FROM invitados WHERE egresado_id = $1 ORDER BY nombre ASC', [egr.id]);
+        return NextResponse.json({
+          tipo: 'grupo',
+          egresado: egr,
+          invitados: invs.rows,
+          ceremonia: {
+            id: egr.ceremonia_id,
+            nombre: egr.ceremoniaNombre,
+            activa: egr.ceremoniaActiva,
+            fecha: egr.ceremoniaFecha,
+            lugar: egr.ceremoniaLugar
+          }
+        }, { headers });
+      }
+
+      // 3. Buscar si el código o DNI pertenece a un invitado registrado
+      const invDniRes = await query(`
+        SELECT i.*, e.nombre as "egresadoNombre", e.dni as "egresadoDni", e.carrera as "egresadoCarrera",
+               c.id as "ceremoniaId", c.nombre as "ceremoniaNombre", c.activa as "ceremoniaActiva"
+        FROM invitados i
+        JOIN egresados e ON i.egresado_id = e.id
+        JOIN ceremonias c ON e.ceremonia_id = c.id
+        WHERE i.id::text = $1 OR i.dni = $1
+        ORDER BY c.activa DESC
+        LIMIT 1
+      `, [valor]);
+
+      if (invDniRes.rows.length > 0) {
+        const inv = invDniRes.rows[0];
+        const egr = await query('SELECT * FROM egresados WHERE id = $1', [inv.egresado_id]);
+        const invs = await query('SELECT * FROM invitados WHERE egresado_id = $1 ORDER BY nombre ASC', [inv.egresado_id]);
+        return NextResponse.json({
+          tipo: 'individual',
+          datos: inv,
+          invitado: inv,
+          egresado: egr.rows[0] || null,
+          egresadoNombre: inv.egresadoNombre,
+          invitadosGrupo: invs.rows,
+          ceremonia: { id: inv.ceremoniaId, nombre: inv.ceremoniaNombre, activa: inv.ceremoniaActiva }
+        }, { headers });
+      }
+
+      return NextResponse.json({ error: 'Credencial o código no encontrado para esta ceremonia' }, { status: 404, headers });
+    }
+
     if (path === 'invitados') {
       const { token, egresadoId, invitados: nuevos } = body;
 

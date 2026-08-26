@@ -138,14 +138,20 @@ class ResultadoEscaneo {
       );
     }
 
-    final datos =
-        (mapa['datos'] as Map?)?.cast<String, dynamic>() ?? <String, dynamic>{};
+    final datos = (mapa['invitado'] as Map?)?.cast<String, dynamic>() ??
+        (mapa['datos'] as Map?)?.cast<String, dynamic>() ??
+        <String, dynamic>{};
+    final egresadoNombre = (mapa['egresadoNombre'] ??
+            datos['egresadoNombre'] ??
+            (mapa['egresado'] as Map?)?['nombre'])
+        ?.toString() ??
+        '';
     return ResultadoEscaneo.individual(
       titulo: (mapa['titulo'] ?? 'Invitado encontrado').toString(),
       mensaje: (mapa['mensaje'] ?? 'Invitado listo para acreditacion.')
           .toString(),
       invitado: InvitadoEscaneado.desdeMapa(datos),
-      egresadoNombre: datos['egresadoNombre']?.toString() ?? '',
+      egresadoNombre: egresadoNombre,
     );
   }
 

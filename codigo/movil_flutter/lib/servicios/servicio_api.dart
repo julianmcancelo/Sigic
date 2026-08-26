@@ -231,9 +231,23 @@ class ServicioApi {
   }
 
   Future<ResultadoEscaneo> buscarInvitadoOGrupo(String codigo) async {
-    final codigoNormalizado = Uri.encodeComponent(codigo.trim());
-    final datos = await _request('/invitados/buscar/$codigoNormalizado');
-    return ResultadoEscaneo.desdeMapa(datos);
+    final codigoLimpio = codigo.trim();
+    try {
+      final datos = await _request(
+        '/invitados/buscar',
+        metodo: 'POST',
+        cuerpo: {'codigo': codigoLimpio},
+      );
+      return ResultadoEscaneo.desdeMapa(
+        (datos as Map).cast<String, dynamic>(),
+      );
+    } catch (_) {
+      final codigoNormalizado = Uri.encodeComponent(codigoLimpio);
+      final datos = await _request('/invitados/buscar/$codigoNormalizado');
+      return ResultadoEscaneo.desdeMapa(
+        (datos as Map).cast<String, dynamic>(),
+      );
+    }
   }
 
   Future<Map<String, dynamic>> acreditarInvitado(String id) async {
