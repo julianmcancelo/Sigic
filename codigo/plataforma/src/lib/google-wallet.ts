@@ -81,6 +81,34 @@ function textoLocalizado(valor: string) {
   return { defaultValue: { language: 'es-419', value: valor } };
 }
 
+function capitalizar(valor: string) {
+  const limpio = valor.replace(/[_]+/g, ' ').trim();
+  return limpio ? limpio.charAt(0).toUpperCase() + limpio.slice(1).toLowerCase() : limpio;
+}
+
+function desglosarAsiento(valor?: string | null) {
+  if (!valor) return undefined;
+
+  const partes = valor.split('-').map(parte => parte.trim()).filter(Boolean);
+  if (partes.length < 3) return { seat: textoLocalizado(valor) };
+
+  const seat = partes.pop()!;
+  const row = partes.pop()!;
+  const section = partes.map(capitalizar).join(' ');
+  return {
+    section: textoLocalizado(section),
+    row: textoLocalizado(row.toUpperCase()),
+    seat: textoLocalizado(seat),
+  };
+}
+
+function imagen(uri: string, descripcion: string) {
+  return {
+    sourceUri: { uri },
+    contentDescription: textoLocalizado(descripcion),
+  };
+}
+
 /** Crea o actualiza un Event Ticket y devuelve una URL firmada para Google Wallet. */
 export async function generarPaseGoogleWallet(pase: PaseCeremonia) {
   const configuracion = obtenerConfiguracion();
@@ -88,20 +116,40 @@ export async function generarPaseGoogleWallet(pase: PaseCeremonia) {
 
   const { cuenta, classId, issuerId } = configuracion;
   const objectId = `${issuerId}.sigic-${idSeguro(pase.ceremoniaId)}-${idSeguro(pase.token)}`;
+  const heroUrl = new URL('/google-wallet-hero.jpg', pase.acceso).toString();
+  const enlaceMapa = pase.lugar
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(pase.lugar)}`
+    : null;
+  const enlaces = [
+    { uri: pase.acceso, description: 'Abrir mi credencial SiGIC', id: 'portal-sigic' },
+    ...(enlaceMapa ? [{ uri: enlaceMapa, description: 'Cómo llegar a la ceremonia', id: 'mapa-ceremonia' }] : []),
+  ];
   const objeto = {
     id: objectId,
     classId,
     state: 'ACTIVE',
+    hexBackgroundColor: '#071b34',
+    heroImage: imagen(heroUrl, 'Identidad visual de la ceremonia SiGIC'),
     ticketHolderName: pase.nombre,
     ticketNumber: pase.token,
-    barcode: { type: 'QR_CODE', value: `SIGIC:${pase.token}`, alternateText: pase.token },
+    ticketType: textoLocalizado('Graduado'),
+    reservationInfo: { confirmationCode: pase.token },
+    barcode: { type: 'QR_CODE', value: `SIGIC:${pase.token}`, alternateText: `Acceso ${pase.token}` },
     groupingInfo: { groupingId: pase.ceremoniaId },
-    // Event Ticket usa LocalizedString en sus campos de butaca, a diferencia
-    // de ticketNumber y barcode que aceptan texto plano.
-    seatInfo: pase.asiento ? { seat: textoLocalizado(pase.asiento) } : undefined,
-    linksModuleData: {
-      uris: [{ uri: pase.acceso, description: 'Abrir credencial en SiGIC', id: 'portal-sigic' }],
-    },
+    seatInfo: desglosarAsiento(pase.asiento),
+    textModulesData: [
+      {
+        id: 'indicaciones-acceso',
+        header: 'Ingreso a la ceremonia',
+        body: 'Presentá el código QR al personal de acreditación. Esta credencial es personal.',
+      },
+      {
+        id: 'datos-ceremonia',
+        header: pase.ceremonia,
+        body: [pase.fecha, pase.lugar].filter(Boolean).join(' · ') || 'Consultá el portal para ver la información actualizada.',
+      },
+    ],
+    linksModuleData: { uris: enlaces },
   };
 
   const token = await obtenerToken(cuenta);
