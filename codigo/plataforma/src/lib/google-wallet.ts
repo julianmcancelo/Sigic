@@ -116,7 +116,7 @@ export async function generarPaseGoogleWallet(pase: PaseCeremonia) {
 
   const { cuenta, classId, issuerId } = configuracion;
   const objectId = `${issuerId}.sigic-${idSeguro(pase.ceremoniaId)}-${idSeguro(pase.token)}`;
-  const heroUrl = new URL('/google-wallet-hero.jpg', pase.acceso).toString();
+  const heroUrl = new URL('/google-wallet-hero-institucional.jpg', pase.acceso).toString();
   const enlaceMapa = pase.lugar
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(pase.lugar)}`
     : null;
