@@ -319,12 +319,25 @@ export async function GET(
         [ceremoniaId]
       );
       if (result.rows.length === 0) {
+        const defaultRoles: Record<string, string> = {};
+        ['A', 'B', 'C', 'D', 'E', 'F', 'G'].forEach((letra, idx) => {
+          defaultRoles[`baja-${letra}-5`] = 'bloqueado';
+          defaultRoles[`baja-${letra}-16`] = 'bloqueado';
+          if (idx === 0 || idx === 1) {
+            for (let col = 6; col <= 15; col++) defaultRoles[`baja-${letra}-${col}`] = 'egresado';
+          }
+          if (idx === 0) {
+            defaultRoles[`baja-A-4`] = 'discapacitado';
+            defaultRoles[`baja-A-17`] = 'discapacitado';
+          }
+        });
+
         return NextResponse.json({
           estructura: { 
-            baja: { filas: 8, asientos: 16 },
-            alta: { filas: 6, asientos: 20 }
+            baja: { filas: 7, asientos: 20 },
+            alta: { filas: 5, asientos: 22 }
           },
-          mapaRoles: {}
+          mapaRoles: defaultRoles
         }, { headers });
       }
       const data = result.rows[0];
@@ -347,9 +360,22 @@ export async function GET(
       );
       
       if (result.rows.length === 0) {
+        const defaultRoles: Record<string, string> = {};
+        ['A', 'B', 'C', 'D', 'E', 'F', 'G'].forEach((letra, idx) => {
+          defaultRoles[`baja-${letra}-5`] = 'bloqueado';
+          defaultRoles[`baja-${letra}-16`] = 'bloqueado';
+          if (idx === 0 || idx === 1) {
+            for (let col = 6; col <= 15; col++) defaultRoles[`baja-${letra}-${col}`] = 'egresado';
+          }
+          if (idx === 0) {
+            defaultRoles[`baja-A-4`] = 'discapacitado';
+            defaultRoles[`baja-A-17`] = 'discapacitado';
+          }
+        });
+
         return NextResponse.json({
-          estructura: { baja: { filas: 8, asientos: 16 }, alta: { filas: 6, asientos: 20 } },
-          mapaRoles: {}
+          estructura: { baja: { filas: 7, asientos: 20 }, alta: { filas: 5, asientos: 22 } },
+          mapaRoles: defaultRoles
         }, { headers });
       }
 
