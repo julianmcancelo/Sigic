@@ -8,11 +8,19 @@ const ETAPAS = ['Ceremonia', 'Padrón', 'Anfiteatro', 'Convocatoria', 'Respuesta
 function siguientePaso(ceremonia) {
   if (!ceremonia) return { titulo: 'Prepará la próxima ceremonia', detalle: 'Creá una ceremonia y activala para comenzar el flujo.', destino: 'gestion-ceremonias', icono: CalendarClock, avance: 0 }
   if (!Number(ceremonia.total_egresados)) return { titulo: 'Cargá el padrón de graduados', detalle: 'Necesitás al menos un graduado para iniciar la convocatoria.', destino: 'gestion-graduados', icono: Users, avance: 1 }
-  if (!ceremonia.plano_configurado) return { titulo: 'Configurá el anfiteatro', detalle: 'Definí el plano y las reglas de butacas antes de preparar el grupo.', destino: 'seleccion-asientos', icono: LayoutTemplate, avance: 2 }
-  if (Number(ceremonia.invitaciones_enviadas) < Number(ceremonia.total_egresados)) return { titulo: 'Completá las invitaciones', detalle: `${ceremonia.invitaciones_enviadas || 0} de ${ceremonia.total_egresados} graduados recibieron su invitación.`, destino: 'convocatoria', icono: Send, avance: 3 }
-  if (Number(ceremonia.respuestas_pendientes)) return { titulo: 'Esperá las respuestas', detalle: `${ceremonia.respuestas_pendientes} graduado(s) todavía deben aceptar o rechazar la invitación desde su correo.`, destino: 'convocatoria', icono: Clock3, avance: 4 }
-  if (!Number(ceremonia.egresados_confirmados)) return { titulo: 'Revisá la convocatoria', detalle: 'No hay graduados aceptados todavía. Podés reenviar invitaciones o revisar sus datos de contacto.', destino: 'convocatoria', icono: Send, avance: 4 }
-  if (Number(ceremonia.grupos_completos) < Number(ceremonia.egresados_confirmados)) return { titulo: 'Esperá la carga de grupos', detalle: `${ceremonia.grupos_completos || 0} de ${ceremonia.egresados_confirmados} graduados aceptados completaron sus acompañantes y necesidades.`, destino: 'convocatoria', icono: Users, avance: 5 }
+  if (Number(ceremonia.invitaciones_enviadas) < Number(ceremonia.total_egresados)) {
+    const faltan = Number(ceremonia.total_egresados) - Number(ceremonia.invitaciones_enviadas || 0);
+    return { titulo: 'Despachá las invitaciones', detalle: `Faltan enviar ${faltan} de ${ceremonia.total_egresados} invitaciones a los graduados.`, destino: 'convocatoria', icono: Send, avance: 3 };
+  }
+  if (Number(ceremonia.respuestas_pendientes) > 0 && !Number(ceremonia.egresados_confirmados)) {
+    return { titulo: 'Seguimiento de convocatoria', detalle: `${ceremonia.respuestas_pendientes} graduado(s) aún no respondieron. Podés enviar recordatorios, compartir el link de WhatsApp o confirmar asistencia por ventanilla.`, destino: 'convocatoria', icono: Clock3, avance: 4 };
+  }
+  if (Number(ceremonia.respuestas_pendientes) > 0 && Number(ceremonia.egresados_confirmados) > 0) {
+    return { titulo: 'Respuestas en curso', detalle: `${ceremonia.egresados_confirmados} graduado(s) confirmaron asistencia y ${ceremonia.respuestas_pendientes} siguen pendientes de respuesta.`, destino: 'convocatoria', icono: Users, avance: 4 };
+  }
+  if (Number(ceremonia.grupos_completos) < Number(ceremonia.egresados_confirmados)) {
+    return { titulo: 'Carga de acompañantes', detalle: `${ceremonia.grupos_completos || 0} de ${ceremonia.egresados_confirmados} graduados aceptados completaron sus acompañantes y necesidades.`, destino: 'convocatoria', icono: Users, avance: 5 };
+  }
   if (ceremonia.estado_operativo === 'EN_VIVO') return { titulo: 'Ceremonia en seguimiento', detalle: `${ceremonia.asistencias || 0} asistencias acreditadas hasta el momento.`, destino: 'estado-ceremonia', icono: Radio, avance: 7 }
   if (ceremonia.estado_operativo === 'FINALIZADA') return { titulo: 'Ceremonia finalizada', detalle: 'El acta operativa quedó archivada. Podés consultar los reportes.', destino: 'panel-reportes', icono: CheckCircle2, avance: 8 }
   return { titulo: 'Prepará la operación', detalle: 'Los grupos están listos. Revisá y confirmá las butacas antes de abrir la acreditación.', destino: 'preparacion-ceremonia', icono: CheckCircle2, avance: 6 }
