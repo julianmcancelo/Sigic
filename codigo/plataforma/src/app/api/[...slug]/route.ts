@@ -83,6 +83,10 @@ async function inicializarTablasAdicionales() {
     await query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS diploma_entregado BOOLEAN DEFAULT FALSE');
     await query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS menciones VARCHAR(200)');
     await query('ALTER TABLE invitados ADD COLUMN IF NOT EXISTS menor_en_brazos BOOLEAN DEFAULT FALSE');
+    await query('ALTER TABLE ceremonias ADD COLUMN IF NOT EXISTS fecha_limite_confirmacion TIMESTAMP');
+    await query('ALTER TABLE ceremonias ADD COLUMN IF NOT EXISTS fecha_limite_respuesta TIMESTAMP');
+    await query('ALTER TABLE ceremonias ADD COLUMN IF NOT EXISTS fecha_limite_grupo TIMESTAMP');
+    await query('ALTER TABLE ceremonias ADD COLUMN IF NOT EXISTS fecha_cierre_butacas TIMESTAMP');
   } catch (e) {
     console.error('Error al inicializar tabla ceremonias_usuarios_autorizados:', e);
   }
@@ -1251,15 +1255,16 @@ export async function POST(
       const isPersonal = await esPersonalValido(req, ROLES_GESTION);
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
-      const { nombre, fecha, lugar, max_invitados, max_entregadores } = body;
+      const { nombre, fecha, lugar, max_invitados, max_entregadores, fecha_limite_confirmacion, fecha_limite_respuesta } = body;
       if (!nombre || !fecha) {
         return NextResponse.json({ error: 'El nombre y la fecha son obligatorios' }, { status: 400, headers });
       }
 
       const id = `cer-${Date.now()}`;
+      const limite = fecha_limite_confirmacion || fecha_limite_respuesta || null;
       await query(
-        'INSERT INTO ceremonias (id, nombre, fecha, lugar, max_invitados, max_entregadores, activa) VALUES ($1, $2, $3, $4, $5, $6, 0)',
-        [id, nombre, fecha, lugar || 'Sede Beltrán', max_invitados || 4, max_entregadores || 3]
+        'INSERT INTO ceremonias (id, nombre, fecha, lugar, max_invitados, max_entregadores, fecha_limite_confirmacion, activa) VALUES ($1, $2, $3, $4, $5, $6, $7, 0)',
+        [id, nombre, fecha, lugar || 'Sede Beltrán', max_invitados || 4, max_entregadores || 3, limite]
       );
 
       return NextResponse.json({ ok: true, mensaje: 'Ceremonia creada con éxito', id }, { status: 201, headers });
@@ -2245,14 +2250,15 @@ export async function PUT(
       const isPersonal = await esPersonalValido(req, ROLES_GESTION);
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
-      const { nombre, fecha, lugar, max_invitados, max_entregadores, fecha_limite_respuesta, fecha_limite_grupo, fecha_cierre_butacas } = body;
+      const { nombre, fecha, lugar, max_invitados, max_entregadores, fecha_limite_confirmacion, fecha_limite_respuesta, fecha_limite_grupo, fecha_cierre_butacas } = body;
+      const limite = fecha_limite_confirmacion !== undefined ? fecha_limite_confirmacion : fecha_limite_respuesta;
       const result = await query(
         `UPDATE ceremonias SET nombre = COALESCE($1, nombre), fecha = COALESCE($2, fecha), lugar = COALESCE($3, lugar),
           max_invitados = COALESCE($4, max_invitados), max_entregadores = COALESCE($5, max_entregadores),
-          fecha_limite_respuesta = $6, fecha_limite_grupo = $7, fecha_cierre_butacas = $8
+          fecha_limite_confirmacion = $6, fecha_limite_respuesta = $6, fecha_limite_grupo = $7, fecha_cierre_butacas = $8
          WHERE id = $9 RETURNING *`,
         [nombre || null, fecha || null, lugar || null, max_invitados || null, max_entregadores || null,
-          fecha_limite_respuesta || null, fecha_limite_grupo || null, fecha_cierre_butacas || null, id]
+          limite || null, fecha_limite_grupo || null, fecha_cierre_butacas || null, id]
       );
 
       if (result.rowCount === 0) {

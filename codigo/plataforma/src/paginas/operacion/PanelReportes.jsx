@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react'
 import { 
   BarChart3, Users, GraduationCap, CheckCircle2, 
   ArrowLeft, Download, Search, AlertCircle, FileSpreadsheet,
-  TrendingUp, Award, Calendar, CheckSquare, Square, RefreshCw
+  TrendingUp, Award, Calendar, CheckSquare, Square, RefreshCw, FileText
 } from 'lucide-react'
 import { HeaderGlobal } from '../../componentes/HeaderGlobal'
-import { obtenerGraduados, obtenerInvitados, marcarPresente } from '../../servicios/api'
+import { obtenerGraduados, obtenerInvitados, marcarPresente, obtenerCeremoniaActiva } from '../../servicios/api'
+import { ModalActaCierre } from '../../componentes/ModalActaCierre'
 
 // ─── Colores del sistema (Identical to Version 1) ─────────────────
 const DARK   = '#2A3448'
@@ -13,6 +14,7 @@ const ACCENT = '#0EA5E9'
 const BG     = '#F8FAFC'
 
 export function PanelReportes({ usuario, onVolver, onCerrarSesion, sinHeader }) {
+  const [ceremonia, setCeremonia] = useState(null)
   const [graduados, setGraduados] = useState([])
   const [invitados, setInvitados] = useState([])
   const [cargando, setCargando] = useState(true)
@@ -20,6 +22,7 @@ export function PanelReportes({ usuario, onVolver, onCerrarSesion, sinHeader }) 
   const [busqueda, setBusqueda] = useState('')
   const [pestanaActiva, setPestanaActiva] = useState('general') // 'general', 'graduados', 'invitados'
   const [procesandoId, setProcesandoId] = useState(null)
+  const [mostrarActa, setMostrarActa] = useState(false)
 
   useEffect(() => {
     cargarDatos()
@@ -29,12 +32,14 @@ export function PanelReportes({ usuario, onVolver, onCerrarSesion, sinHeader }) 
     setCargando(true)
     setError('')
     try {
-      const [listaGrad, listaInv] = await Promise.all([
+      const [listaGrad, listaInv, cer] = await Promise.all([
         obtenerGraduados(),
-        obtenerInvitados()
+        obtenerInvitados(),
+        obtenerCeremoniaActiva().catch(() => null)
       ])
       setGraduados(listaGrad)
       setInvitados(listaInv)
+      setCeremonia(cer)
     } catch (err) {
       console.error(err)
       setError('Error al conectar con el servidor para obtener los reportes.')
@@ -192,10 +197,16 @@ export function PanelReportes({ usuario, onVolver, onCerrarSesion, sinHeader }) 
               </div>
             </div>
             
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
+              <button 
+                onClick={() => setMostrarActa(true)}
+                className="flex items-center gap-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-md hover:shadow-lg active:scale-95 transition-all cursor-pointer"
+              >
+                <FileText size={14} /> Generar Acta Oficial (PDF)
+              </button>
               <button 
                 onClick={cargarDatos}
-                className="flex items-center gap-2 px-4 py-3 bg-white/10 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest border border-white/10 hover:bg-white/25 active:scale-95 transition-all"
+                className="flex items-center gap-2 px-4 py-3 bg-white/10 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest border border-white/10 hover:bg-white/25 active:scale-95 transition-all cursor-pointer"
               >
                 <RefreshCw size={12} /> Actualizar Datos
               </button>
@@ -587,6 +598,14 @@ export function PanelReportes({ usuario, onVolver, onCerrarSesion, sinHeader }) 
             </div>
 
           </div>
+        )}
+
+        {mostrarActa && (
+          <ModalActaCierre
+            ceremonia={ceremonia}
+            graduados={graduados}
+            onCerrar={() => setMostrarActa(false)}
+          />
         )}
 
       </main>

@@ -4,7 +4,7 @@
  * Diseño premium con glassmorphism y círculos decorativos desenfocados.
  */
 import { useState } from 'react'
-import { CheckCircle, XCircle, AlertTriangle, GraduationCap, MapPin, Calendar, BookOpen, History, X } from 'lucide-react'
+import { CheckCircle, XCircle, AlertTriangle, GraduationCap, MapPin, Calendar, BookOpen, History, X, Clock } from 'lucide-react'
 import { ListaHistorialGraduado } from './HistorialGraduado'
 
 export function PantallaAceptacion({ graduado, onAceptar, onRechazar }) {
@@ -12,6 +12,8 @@ export function PantallaAceptacion({ graduado, onAceptar, onRechazar }) {
   const [mostrarModalRechazo, setMostrarModalRechazo] = useState(false)
   const [mostrarHistorial, setMostrarHistorial] = useState(false)
   const participacionesAnteriores = (graduado.historial || []).filter((registro) => String(registro.id) !== String(graduado.id))
+  const fechaLimite = graduado.ceremonia_fecha_limite_confirmacion || graduado.ceremonia_fecha_limite || graduado.fecha_limite_confirmacion
+  const plazoVencido = Boolean(fechaLimite && new Date(fechaLimite).getTime() < Date.now())
 
   async function manejarAceptar() {
     setCargando(true)
@@ -121,8 +123,40 @@ export function PantallaAceptacion({ graduado, onAceptar, onRechazar }) {
                     <p className="text-sm font-extrabold text-slate-700">{graduado.ceremonia_lugar || 'Sede Beltrán'}</p>
                   </div>
                 </div>
+
+                {fechaLimite && (
+                  <div className={`flex items-center gap-3 p-3 rounded-xl border ${
+                    plazoVencido ? 'bg-rose-50/70 border-rose-200 text-rose-800' : 'bg-amber-50/70 border-amber-200 text-amber-800'
+                  }`}>
+                    <div className={`h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                      plazoVencido ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600'
+                    }`}>
+                      <Clock size={16} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-wider">
+                        {plazoVencido ? 'Plazo en línea vencido' : 'Plazo de confirmación'}
+                      </p>
+                      <p className="text-xs font-semibold leading-tight mt-0.5">
+                        {plazoVencido 
+                          ? `Cerró el ${new Date(fechaLimite).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} hs.`
+                          : `Hasta el ${new Date(fechaLimite).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })} hs.`
+                        }
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
+
+            {plazoVencido && (
+              <div className="mb-6 p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-left text-xs space-y-1">
+                <strong className="block font-black">¿No llegaste a confirmar a tiempo?</strong>
+                <p className="text-[11px] text-amber-800 leading-relaxed">
+                  El período de confirmación en línea ha finalizado. Por favor, acercate o comunicate con <strong>Bedelía del Instituto</strong> para que un administrativo tramite tu incorporación manual.
+                </p>
+              </div>
+            )}
 
             {participacionesAnteriores.length > 0 && (
               <button
@@ -149,18 +183,18 @@ export function PantallaAceptacion({ graduado, onAceptar, onRechazar }) {
               {/* Botón Aceptar */}
               <button
                 onClick={manejarAceptar}
-                disabled={cargando}
-                className="w-full flex items-center justify-center gap-3 bg-emerald-600 text-white py-3.5 px-8 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-emerald-600/10 hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-600/15 hover:-translate-y-0.5 transition-all duration-300 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={cargando || plazoVencido}
+                className="w-full flex items-center justify-center gap-3 bg-emerald-600 text-white py-3.5 px-8 rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg shadow-emerald-600/10 hover:bg-emerald-700 hover:shadow-xl hover:shadow-emerald-600/15 hover:-translate-y-0.5 transition-all duration-300 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
               >
                 <CheckCircle size={16} />
-                {cargando ? 'Procesando...' : 'Acepto participar'}
+                {cargando ? 'Procesando...' : plazoVencido ? 'Período en línea finalizado' : 'Acepto participar'}
               </button>
 
               {/* Botón Rechazar (Estilizado como acción secundaria outline premium) */}
               <button
                 onClick={() => setMostrarModalRechazo(true)}
                 disabled={cargando}
-                className="w-full flex items-center justify-center gap-3 bg-red-50/30 hover:bg-red-500 text-red-600 hover:text-white py-3.5 px-8 rounded-2xl font-bold text-xs uppercase tracking-widest border border-red-200/40 hover:border-red-500 shadow-sm transition-all duration-300 hover:shadow-lg hover:shadow-red-500/10 hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-3 bg-red-50/30 hover:bg-red-500 text-red-600 hover:text-white py-3.5 px-8 rounded-2xl font-bold text-xs uppercase tracking-widest border border-red-200/40 hover:border-red-500 shadow-sm transition-all duration-300 hover:shadow-lg hover:shadow-red-500/10 hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
               >
                 <XCircle size={16} />
                 No voy a participar
