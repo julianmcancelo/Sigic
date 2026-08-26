@@ -49,11 +49,18 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
   async function handleCrear(e) {
     e.preventDefault()
     try {
-      await crearCeremonia(nuevoEvento)
+      const res = await crearCeremonia(nuevoEvento)
       setMostrarForm(false)
       setNuevoEvento({ nombre: '', fecha: '', lugar: 'Sede Beltrán', max_invitados: 4, fecha_limite_confirmacion: '' })
-      setMensaje({ tipo: 'exito', texto: 'Ceremonia creada con éxito' })
-      cargar()
+      
+      if (res?.id) {
+        await activarCeremonia(res.id)
+        if (onCambioCeremonia) onCambioCeremonia()
+      }
+
+      setMensaje({ tipo: 'exito', texto: 'Ceremonia creada y activada. ¡Comencemos cargando los graduados!' })
+      await cargar()
+      if (onNavegar) onNavegar('gestion-graduados')
     } catch (err) {
       setMensaje({ tipo: 'error', texto: err.message })
     }
@@ -227,29 +234,121 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
                     )}
                   </div>
                 </div>
+                {/* Visualización de fases y progreso */}
                 {(() => {
                   const estado = estadoCeremonia(c)
                   const indice = ETAPAS.findIndex(([id]) => id === estado)
+                  const graduados = Number(c.total_egresados || 0)
+                  const plano = Boolean(c.plano_configurado)
+                  const invitaciones = Number(c.invitaciones_enviadas || 0)
+
                   const tareas = [
-                    { ok: Boolean(c.total_egresados), texto: `${c.total_egresados || 0} graduados cargados`, destino: 'gestion-graduados' },
-                    { ok: Boolean(c.plano_configurado), texto: 'Plano de butacas configurado', destino: 'seleccion-asientos' },
-                    { ok: Number(c.invitaciones_enviadas) >= Number(c.total_egresados) && Number(c.total_egresados) > 0, texto: `${c.invitaciones_enviadas || 0}/${c.total_egresados || 0} invitaciones enviadas`, destino: 'convocatoria' },
+                    { ok: graduados > 0, texto: graduados ? `${graduados} graduados cargados` : 'Cargar padrón de graduados', destino: 'gestion-graduados', paso: 'Paso 1' },
+                    { ok: plano, texto: plano ? 'Plano y butacas listos' : 'Configurar butacas y sala', destino: 'preparacion-ceremonia', paso: 'Paso 2' },
+                    { ok: invitaciones >= graduados && graduados > 0, texto: graduados > 0 && invitaciones >= graduados ? `${invitaciones}/${graduados} invitaciones enviadas` : 'Enviar invitaciones por correo', destino: 'convocatoria', paso: 'Paso 3' },
                   ]
-                  return <div className="mb-5 rounded-xl border border-slate-100 bg-slate-50/70 p-3">
-                    <div className="mb-2 flex items-center justify-between"><span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-slate-500"><ListChecks size={13} className="text-sky-500" /> {ETAPAS[indice]?.[1] || 'Borrador'}</span><span className="text-[9px] font-bold text-slate-400">{indice + 1}/6</span></div>
-                    <div className="mb-3 flex gap-1">{ETAPAS.map(([id], paso) => <span key={id} className={`h-1 flex-1 rounded-full ${paso <= indice ? 'bg-sky-500' : 'bg-slate-200'}`} />)}</div>
-                    <div className="space-y-1.5">{tareas.map(tarea => <button key={tarea.texto} onClick={() => onNavegar?.(tarea.destino)} className="flex w-full items-center gap-2 text-left text-[10px] font-semibold text-slate-500 hover:text-sky-600 cursor-pointer"><CheckCircle2 size={12} className={tarea.ok ? 'text-emerald-500' : 'text-slate-300'} />{tarea.texto}</button>)}</div>
-                  </div>
+
+                  return (
+                    <div className="mb-4 rounded-2xl border border-slate-100 bg-slate-50/80 p-3.5 space-y-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-slate-600">
+                          <ListChecks size={13} className="text-sky-500" /> Etapa: {ETAPAS[indice]?.[1] || 'Borrador'}
+                        </span>
+                        <span className="text-[9px] font-bold text-slate-400">{indice + 1} de 6</span>
+                      </div>
+
+                      <div className="flex gap-1">
+                        {ETAPAS.map(([id], paso) => (
+                          <span key={id} className={`h-1.5 flex-1 rounded-full ${paso <= indice ? 'bg-sky-500' : 'bg-slate-200'}`} />
+                        ))}
+                      </div>
+
+                      <div className="space-y-1.5 pt-1">
+                        {tareas.map(t => (
+                          <button
+                            key={t.paso}
+                            onClick={() => onNavegar?.(t.destino)}
+                            className="w-full flex items-center justify-between p-2 rounded-xl bg-white hover:bg-sky-50 border border-slate-100 hover:border-sky-200 transition text-left text-[10px] font-semibold text-slate-600 cursor-pointer group"
+                          >
+                            <span className="flex items-center gap-2">
+                              <CheckCircle2 size={13} className={t.ok ? 'text-emerald-500' : 'text-slate-300'} />
+                              <span>{t.texto}</span>
+                            </span>
+                            <span className="text-[8.5px] font-black uppercase text-slate-400 group-hover:text-sky-600 flex items-center gap-0.5">
+                              Ir <ArrowRight size={10} />
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )
                 })()}
               </div>
 
               {c.activa ? (
-                <div className="space-y-2">
-                  <button onClick={() => setAsistenteId(c.id)} className="flex w-full items-center justify-center gap-2 bg-sky-500 py-2.5 text-[10px] font-black uppercase tracking-widest text-white transition-all hover:bg-sky-600 rounded-xl cursor-pointer"><ClipboardList size={13} /> Asistente administrativo</button>
-                  {estadoCeremonia(c) === 'FINALIZADA' ? <div className="w-full text-center py-2 bg-slate-100 text-slate-500 rounded-xl text-[9px] font-black uppercase tracking-widest">Ceremonia archivada</div> :
-                  <button onClick={() => handleAvanzar(c)} disabled={actualizandoId === c.id} className="flex w-full items-center justify-center gap-2 bg-slate-900 py-2 text-[9px] font-black uppercase tracking-widest text-white transition-all hover:bg-slate-700 disabled:opacity-60 rounded-xl cursor-pointer">
-                    {actualizandoId === c.id ? 'Actualizando...' : <>Avanzar a {ETAPAS[Math.min(ETAPAS.findIndex(([id]) => id === estadoCeremonia(c)) + 1, ETAPAS.length - 1)]?.[1] || 'finalizar'} <ArrowRight size={13} /></>}
-                  </button>}
+                <div className="space-y-2 pt-1 border-t border-slate-100">
+                  {(() => {
+                    const graduados = Number(c.total_egresados || 0)
+                    const plano = Boolean(c.plano_configurado)
+                    const invitaciones = Number(c.invitaciones_enviadas || 0)
+
+                    if (estadoCeremonia(c) === 'FINALIZADA') {
+                      return (
+                        <div className="w-full text-center py-2.5 bg-slate-100 text-slate-500 rounded-xl text-[9.5px] font-black uppercase tracking-widest">
+                          Ceremonia finalizada y archivada
+                        </div>
+                      )
+                    }
+
+                    if (graduados === 0) {
+                      return (
+                        <button
+                          onClick={() => onNavegar?.('gestion-graduados')}
+                          className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md shadow-emerald-600/20 transition active:scale-98 cursor-pointer"
+                        >
+                          <UserPlus size={15} /> Paso 1: Cargar Graduados (Excel) <ArrowRight size={13} />
+                        </button>
+                      )
+                    }
+
+                    if (!plano) {
+                      return (
+                        <button
+                          onClick={() => onNavegar?.('preparacion-ceremonia')}
+                          className="w-full flex items-center justify-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md shadow-cyan-600/20 transition active:scale-98 cursor-pointer"
+                        >
+                          <Armchair size={15} /> Paso 2: Configurar Butacas & Sala <ArrowRight size={13} />
+                        </button>
+                      )
+                    }
+
+                    if (invitaciones < graduados) {
+                      return (
+                        <button
+                          onClick={() => onNavegar?.('convocatoria')}
+                          className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md shadow-blue-600/20 transition active:scale-98 cursor-pointer"
+                        >
+                          <Send size={15} /> Paso 3: Enviar Convocatoria Masiva <ArrowRight size={13} />
+                        </button>
+                      )
+                    }
+
+                    return (
+                      <button
+                        onClick={() => onNavegar?.('locucion')}
+                        className="w-full flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-500 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md shadow-purple-600/20 transition active:scale-98 cursor-pointer"
+                      >
+                        <Mic size={15} /> Paso 4: Abrir Modo Locución <ArrowRight size={13} />
+                      </button>
+                    )
+                  })()}
+
+                  <button 
+                    onClick={() => setAsistenteId(c.id)} 
+                    className="flex w-full items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 py-2.5 text-[9.5px] font-black uppercase tracking-widest text-slate-700 transition-all rounded-xl cursor-pointer"
+                  >
+                    <ClipboardList size={13} className="text-sky-600" /> Ver Asistente de Todas las Fases
+                  </button>
                 </div>
               ) : (
                 <button
