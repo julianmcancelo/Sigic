@@ -1,0 +1,75 @@
+{
+  "name": "@jcancelo/google-wallet",
+  "version": "1.0.0",
+  "description": "Librería moderna, tipada y 100% en español para crear, firmar y emitir pases de Google Wallet (Eventos, Credenciales y Membresías) en Node.js, Next.js y React.",
+  "author": "Julian Cancelo <jcancelo.dev@gmail.com>",
+  "license": "MIT",
+  "keywords": [
+    "google-wallet",
+    "google-pay",
+    "pases-digitales",
+    "wallet",
+    "billetera-digital",
+    "credenciales",
+    "event-ticket",
+    "entradas",
+    "pass",
+    "react",
+    "nextjs",
+    "espanol"
+  ],
+  "bin": {
+    "google-wallet": "./bin/cli.js"
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "import": "./dist/react/index.mjs",
+      "require": "./dist/react/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "GUIA_GOOGLE_WALLET.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "jsonwebtoken": "^9.0.2"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/jsonwebtoken": "^9.0.7",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2"
+  }
+}
