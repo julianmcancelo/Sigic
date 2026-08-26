@@ -9,11 +9,13 @@ import {
   exportarBaseDatos, 
   resetearSistema 
 } from '../../servicios/api'
+import { useConfirmacion } from '../../componentes/ModalConfirmacion'
 
 const ACCENT = '#0EA5E9'
 const DARK   = '#2A3448'
 
 export function CentroControl({ usuario, onVolver, onCerrarSesion }) {
+  const { confirmar, dialogoConfirmacion } = useConfirmacion()
   const [metricas, setMetricas] = useState({
     usuarios: 0,
     ceremonias: 0,
@@ -139,9 +141,13 @@ export function CentroControl({ usuario, onVolver, onCerrarSesion }) {
   }
 
   async function handleResetearSistema() {
-    if (!confirm('¡ATENCIÓN! ¿Estás completamente seguro de que deseas resetear el sistema?\n\nEsta acción eliminará todos los egresados, invitados, ceremonias y cuentas de usuario. Volverás al asistente de configuración inicial.')) {
-      return
-    }
+    const confirmado = await confirmar({
+      titulo: 'Formatear todo el sistema',
+      descripcion: 'Se eliminarán graduados, invitados, ceremonias y cuentas. Luego volverá a abrirse el asistente de configuración inicial.',
+      textoConfirmar: 'Continuar con el reset',
+      tipo: 'peligro',
+    })
+    if (!confirmado) return
 
     const confirmacionText = prompt('Por favor, escribe "RESET" para confirmar el formateo del sistema:')
     if (confirmacionText !== 'RESET') {
@@ -358,6 +364,7 @@ export function CentroControl({ usuario, onVolver, onCerrarSesion }) {
 
       </div>
 
+      {dialogoConfirmacion}
       <style>{`
         @keyframes alert-vibe {
           0%, 100% { transform: scale(1) translate(0, 0) rotate(0deg); }

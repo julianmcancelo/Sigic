@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AlertCircle, CheckCircle2, Clock3, CreditCard, Mail, RefreshCw, Send, UserPlus, Users } from 'lucide-react'
 import { enviarCredencialCeremonia, enviarInvitacion, obtenerGraduados } from '../../servicios/api'
+import { useConfirmacion } from '../../componentes/ModalConfirmacion'
 
 const FILTROS = [
   { id: 'PENDIENTES', etiqueta: 'Por invitar' },
@@ -11,6 +12,7 @@ const FILTROS = [
 ]
 
 export function GestionConvocatoria({ onNavegar }) {
+  const { confirmar, dialogoConfirmacion } = useConfirmacion()
   const [graduados, setGraduados] = useState([])
   const [cargando, setCargando] = useState(true)
   const [procesando, setProcesando] = useState(null)
@@ -62,7 +64,14 @@ export function GestionConvocatoria({ onNavegar }) {
   }
 
   async function enviarPendientes() {
-    if (!pendientes.length || !window.confirm(`Se enviarán ${pendientes.length} invitaciones. ¿Deseás continuar?`)) return
+    if (!pendientes.length) return
+    const confirmado = await confirmar({
+      titulo: 'Enviar invitaciones pendientes',
+      descripcion: `Se enviarán ${pendientes.length} invitaciones por correo electrónico.`,
+      textoConfirmar: 'Enviar invitaciones',
+      tipo: 'info',
+    })
+    if (!confirmado) return
     setProcesando('lote-invitaciones')
     setAviso('')
     let enviados = 0
@@ -104,7 +113,8 @@ export function GestionConvocatoria({ onNavegar }) {
     { etiqueta: 'Requieren correo', valor: sinCorreo.length, icono: AlertCircle, color: 'text-rose-600 bg-rose-50' },
   ]
 
-  return <section className="mx-auto w-full max-w-5xl font-sans">
+  return <>
+  <section className="mx-auto w-full max-w-5xl font-sans">
     <header className="mb-5 flex flex-col gap-4 border-b border-slate-100 pb-5 sm:flex-row sm:items-end sm:justify-between">
       <div>
         <p className="text-[10px] font-black uppercase tracking-[.18em] text-sky-600">Ceremonia activa</p>
@@ -144,4 +154,6 @@ export function GestionConvocatoria({ onNavegar }) {
       </div>}
     </div>
   </section>
+  {dialogoConfirmacion}
+  </>
 }

@@ -5,6 +5,7 @@ import {
   ClipboardList, UserPlus, Armchair, ScanLine, BarChart3, PlayCircle, LoaderCircle
 } from 'lucide-react'
 import { obtenerCeremonias, crearCeremonia, activarCeremonia, eliminarCeremonia, actualizarEstadoCeremonia } from '../../lib/api'
+import { useConfirmacion } from '../../componentes/ModalConfirmacion'
 
 const ACCENT = '#0EA5E9'
 const DARK   = '#2A3448'
@@ -19,6 +20,7 @@ function estadoCeremonia(c) {
 }
 
 export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinHeader }) {
+  const { confirmar, dialogoConfirmacion } = useConfirmacion()
   const [ceremonias, setCeremonias] = useState([])
   const [cargando, setCargando] = useState(true)
   const [mostrarForm, setMostrarForm] = useState(false)
@@ -78,7 +80,14 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
   }
 
   async function handleEliminar(id) {
-    if (!window.confirm('¿Eliminar esta ceremonia? Se perderán todos los datos del padrón asociado.')) return
+    const ceremonia = ceremonias.find(item => item.id === id)
+    const confirmado = await confirmar({
+      titulo: 'Eliminar ceremonia',
+      descripcion: `Se eliminará ${ceremonia?.nombre || 'esta ceremonia'} junto con todo el padrón asociado.`,
+      textoConfirmar: 'Eliminar ceremonia',
+      tipo: 'peligro',
+    })
+    if (!confirmado) return
     try {
       await eliminarCeremonia(id)
       cargar()
@@ -345,6 +354,7 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
       />}
 
       {/* OVERLAY DE CAMBIO DE HABITAT PREMIUM */}
+      {dialogoConfirmacion}
       {cambiando && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-6 z-55 animate-in fade-in duration-300">
           <div className="text-center space-y-6 max-w-sm bg-white/10 p-8 rounded-3xl border border-white/10 shadow-2xl backdrop-blur-lg">

@@ -23,6 +23,7 @@ import { ListaHistorialGraduado } from './HistorialGraduado'
 import { FormularioAcompanante } from '../componentes/graduado/FormularioAcompanante'
 import { ListaAcompanantes } from '../componentes/graduado/ListaAcompanantes'
 import { SeccionPadrinos } from '../componentes/graduado/SeccionPadrinos'
+import { useConfirmacion } from '../componentes/ModalConfirmacion'
 
 function formatearFechaCeremonia(valor) {
   if (!valor) return 'Fecha a confirmar'
@@ -50,6 +51,7 @@ function obtenerIniciales(nombre = '') {
 }
 
 export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
+  const { confirmar, dialogoConfirmacion } = useConfirmacion()
   const [graduado, setGraduado] = useState(graduadoSesion)
   const [invitados, setInvitados] = useState([])
   const [cargando, setCargando] = useState(true)
@@ -183,7 +185,13 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
       ? `¿Estás seguro de eliminar a ${invitadoABorrar?.nombre}? Su butaca asignada quedará liberada.`
       : `¿Estás seguro de eliminar a ${invitadoABorrar?.nombre || 'este acompañante'}?`
 
-    if (!window.confirm(aviso)) return
+    const confirmado = await confirmar({
+      titulo: 'Eliminar acompañante',
+      descripcion: aviso.replace(/^¿|\?$/g, ''),
+      textoConfirmar: 'Eliminar',
+      tipo: 'peligro',
+    })
+    if (!confirmado) return
     try {
       await eliminarInvitado(id)
       setInvitados(prev => prev.filter(i => i.id !== id))
@@ -244,7 +252,14 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
   }
 
   async function manejarEliminarEntregador(id) {
-    if (!confirm('¿Quitar este padrino de la lista?')) return
+    const padrino = entregadores.find(entregador => entregador.id === id)
+    const confirmado = await confirmar({
+      titulo: 'Quitar padrino',
+      descripcion: `Se quitará a ${padrino?.nombre || 'esta persona'} de la entrega del diploma.`,
+      textoConfirmar: 'Quitar padrino',
+      tipo: 'peligro',
+    })
+    if (!confirmado) return
     try {
       await eliminarEntregador(id)
       setEntregadores(prev => prev.filter(e => e.id !== id))
@@ -527,6 +542,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
           }}
         />
       )}
+      {dialogoConfirmacion}
     </div>
   )
 }

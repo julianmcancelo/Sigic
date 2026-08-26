@@ -3,6 +3,7 @@ import { obtenerProfesores, crearProfesor, editarProfesor, eliminarProfesor } fr
 import { 
   PlusCircle, Search, Edit3, Trash2, CheckCircle2, X, Award, BookOpen, UserCheck, Eye
 } from 'lucide-react'
+import { useConfirmacion } from '../../componentes/ModalConfirmacion'
 
 const ACCENT = '#0EA5E9'
 const DARK   = '#2A3448'
@@ -36,6 +37,7 @@ const CATALOGO_CARRERAS = {
 }
 
 export function GestionProfesores({ usuario, onVolver, onCerrarSesion, sinHeader }) {
+  const { confirmar, dialogoConfirmacion } = useConfirmacion()
   const [profesores, setProfesores] = useState([])
   const [cargando, setCargando] = useState(true)
   const [busqueda, setBusqueda] = useState('')
@@ -164,7 +166,13 @@ export function GestionProfesores({ usuario, onVolver, onCerrarSesion, sinHeader
   }
 
   async function manejarEliminar(profesor) {
-    if (!confirm(`¿Estás seguro de eliminar a "${profesor.nombre}" del plantel docente?`)) return
+    const confirmado = await confirmar({
+      titulo: 'Eliminar profesor',
+      descripcion: `${profesor.nombre} dejará de estar disponible como padrino o entregador de diplomas.`,
+      textoConfirmar: 'Eliminar profesor',
+      tipo: 'peligro',
+    })
+    if (!confirmado) return
 
     try {
       await eliminarProfesor(profesor.id)
@@ -511,6 +519,7 @@ export function GestionProfesores({ usuario, onVolver, onCerrarSesion, sinHeader
           {profesoresFiltrados.length} de {profesores.length} profesores registrados
         </p>
       )}
+      {dialogoConfirmacion}
     </div>
   )
 }

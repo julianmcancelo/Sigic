@@ -30,7 +30,7 @@ const nextConfig: NextConfig = {
         { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
         { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
         { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
-        { key: 'Content-Security-Policy', value: `default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; img-src 'self' data: https:; font-src 'self' data:; style-src 'self' 'unsafe-inline'; ${directivaScripts}; connect-src 'self' https:; form-action 'self'; upgrade-insecure-requests` },
+        { key: 'Content-Security-Policy', value: `default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; ${directivaScripts}; connect-src 'self' https:; form-action 'self'; upgrade-insecure-requests` },
       ],
     }];
   },

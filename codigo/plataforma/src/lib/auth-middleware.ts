@@ -23,7 +23,12 @@ export function obtenerUsuarioAutenticado(
   const cabecera = req.headers.get('authorization') || '';
   const tokenCabecera = cabecera.startsWith('Bearer ') ? cabecera.slice(7) : '';
   const tokenCookie = req.cookies.get('sigic_admin_session')?.value || '';
-  const token = tokenCabecera || tokenCookie;
+  // Las operaciones exclusivamente administrativas priorizan la cookie
+  // HttpOnly. Un token de graduado abierto en otra pestaña no debe reemplazar
+  // accidentalmente la sesión del personal.
+  const token = rolesPermitidos?.length && tokenCookie
+    ? tokenCookie
+    : tokenCabecera || tokenCookie;
   if (!token) {
     return {
       valido: false,

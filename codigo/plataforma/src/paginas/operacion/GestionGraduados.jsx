@@ -18,6 +18,7 @@ import { ModalCredencial } from '../../componentes/ModalCredencial'
 import { FormularioGraduado } from '../../componentes/FormularioGraduado'
 import { ModalImportar } from '../../componentes/ModalImportar'
 import { ModalAsignarAsientos } from '../../componentes/ModalAsignarAsientos'
+import { useConfirmacion } from '../../componentes/ModalConfirmacion'
 
 const ESTADOS_FLUJO = {
   SIN_INVITAR:       { etiqueta: 'Sin invitar',        color: 'bg-slate-100 text-slate-600 border border-slate-200/50',   iconKey: 'SIN_INVITAR' },
@@ -30,6 +31,7 @@ const ESTADOS_FLUJO = {
 const DARK   = '#2A3448'
 
 export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarSesion, sinHeader }) {
+  const { confirmar, dialogoConfirmacion } = useConfirmacion()
   function obtenerIconoEstado(key, size = 12) {
     switch(key) {
       case 'SIN_INVITAR': return <Send size={size} />
@@ -139,7 +141,14 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
   }
 
   async function manejarEliminar(id) {
-    if (!confirm('¿Estás seguro de que deseas eliminar este graduado y todos sus datos asociados?')) return
+    const graduado = graduados.find(item => item.id === id)
+    const confirmado = await confirmar({
+      titulo: 'Eliminar graduado',
+      descripcion: `Se eliminará a ${graduado?.nombre || 'este graduado'} junto con sus acompañantes, padrinos y asignaciones.`,
+      textoConfirmar: 'Eliminar graduado',
+      tipo: 'peligro',
+    })
+    if (!confirmado) return
     try {
       await eliminarGraduado(id)
       emitirCambioSync('EGRESADOS', { id })
@@ -151,8 +160,13 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
   }
 
   async function manejarVaciar() {
-    if (!confirm('¡ATENCIÓN! ¿Estás seguro de que deseas eliminar TODOS los graduados registrados?')) return
-    if (!confirm('Esta acción no se puede deshacer. Se perderán todos los datos.')) return
+    const confirmado = await confirmar({
+      titulo: 'Vaciar todo el padrón',
+      descripcion: `Se eliminarán los ${graduados.length} graduados registrados y todos sus datos asociados. Esta acción no se puede deshacer.`,
+      textoConfirmar: 'Vaciar padrón',
+      tipo: 'peligro',
+    })
+    if (!confirmado) return
     try {
       await vaciarGraduados()
       emitirCambioSync('EGRESADOS')
@@ -457,6 +471,7 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
         />
       )}
       {graduadoEditar && <ModalEditarGraduado graduado={graduadoEditar} onCerrar={() => setGraduadoEditar(null)} onGuardar={guardarEdicion} />}
+      {dialogoConfirmacion}
     </div>
   )
 }

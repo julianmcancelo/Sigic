@@ -9,15 +9,35 @@ export const BASE = BASE_CLASSIC;
 const CLAVE_TOKEN = 'sigic_token';
 
 export function guardarTokenSesion(token: string) {
-  if (token && typeof window !== 'undefined') localStorage.setItem(CLAVE_TOKEN, token);
+  if (token && typeof window !== 'undefined') {
+    sessionStorage.setItem(CLAVE_TOKEN, token);
+    localStorage.removeItem(CLAVE_TOKEN);
+  }
 }
 
 export function limpiarTokenSesion() {
-  if (typeof window !== 'undefined') localStorage.removeItem(CLAVE_TOKEN);
+  if (typeof window !== 'undefined') {
+    sessionStorage.removeItem(CLAVE_TOKEN);
+    localStorage.removeItem(CLAVE_TOKEN);
+  }
+}
+
+export function obtenerTokenSesion() {
+  if (typeof window === 'undefined') return '';
+  const tokenSesion = sessionStorage.getItem(CLAVE_TOKEN) || '';
+  if (tokenSesion) return tokenSesion;
+
+  // Migra una sesión anterior al almacenamiento aislado por pestaña.
+  const tokenAnterior = localStorage.getItem(CLAVE_TOKEN) || '';
+  if (tokenAnterior) {
+    sessionStorage.setItem(CLAVE_TOKEN, tokenAnterior);
+    localStorage.removeItem(CLAVE_TOKEN);
+  }
+  return tokenAnterior;
 }
 
 export function cabeceras() {
-  const token = typeof window !== 'undefined' ? localStorage.getItem(CLAVE_TOKEN) : '';
+  const token = obtenerTokenSesion();
   return {
     'Content-Type': 'application/json',
     ...(token ? { Authorization: `Bearer ${token}` } : {})
@@ -56,7 +76,9 @@ export async function iniciarSesionAdmin(email: string, password: string) {
     }
     throw new Error(json.error || 'Credenciales inválidas');
   }
-  guardarTokenSesion(json.token);
+  // El personal se autentica mediante una cookie HttpOnly. Quitamos cualquier
+  // bearer previo de graduado para que no compita con esa cookie.
+  limpiarTokenSesion();
   return json;
 }
 

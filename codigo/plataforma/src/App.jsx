@@ -43,7 +43,7 @@ import { PantallaCargaInicial } from './componentes/PantallaCargaInicial'
 import { AsistenteOperativoCeremonia } from './componentes/AsistenteOperativoCeremonia'
 
 // Servicios
-import { validarToken, obtenerCeremoniaActiva, obtenerEstadoSetup, responderInvitacion, limpiarTokenSesion, obtenerAjustes, actualizarAjuste } from './servicios/api'
+import { validarToken, obtenerCeremoniaActiva, obtenerEstadoSetup, responderInvitacion, limpiarTokenSesion, guardarTokenSesion, obtenerTokenSesion, obtenerAjustes, actualizarAjuste } from './servicios/api'
 
 const MODO_DEMO = process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
 
@@ -322,7 +322,7 @@ function App() {
                            url.includes('/egresados/token/') ||
                            url.includes('/solicitar-otp')
 
-        const token = localStorage.getItem('sigic_token') || ''
+        const token = obtenerTokenSesion()
         const esBypass = token.startsWith('bypass-')
 
         if ((response.status === 401 || response.status === 403) && !esRutaAuth && !esBypass) {
@@ -333,7 +333,7 @@ function App() {
     }
 
     const manejarDesautorizado = () => {
-      console.warn("Sesión expirada o desautorizada (HTTP 401). Cerrando sesión...")
+      console.warn('La sesión expiró o ya no tiene autorización. Cerrando el acceso actual...')
       if (adminActivoRef.current) cerrarSesionAdmin()
       if (graduadoActivoRef.current) cerrarSesionGraduado()
     }
@@ -422,12 +422,12 @@ function App() {
     localStorage.setItem('admin_user', JSON.stringify(datosNormalizados))
     
     // Si es una simulación del expositor (no hay token real guardado), guardamos el token de bypass correspondiente
-    const tokenActual = localStorage.getItem('sigic_token')
+    const tokenActual = obtenerTokenSesion()
     if (!tokenActual || tokenActual.startsWith('bypass-')) {
     const tokenBypass = (datosNormalizados && datosNormalizados.correo && datosNormalizados.correo.toLowerCase() === 'soporte@ibeltran.com.ar')
         ? 'bypass-support-token'
         : 'bypass-admin-token'
-      localStorage.setItem('sigic_token', tokenBypass)
+      guardarTokenSesion(tokenBypass)
     }
     if (datosNormalizados && datosNormalizados.correo && datosNormalizados.correo.toLowerCase() === 'soporte@ibeltran.com.ar') {
       setPantallaAdmin('centro-control')
@@ -461,9 +461,9 @@ function App() {
     localStorage.setItem('graduado_usuario', JSON.stringify(datos))
     
     // Si es una simulación del expositor (no hay token real guardado), guardamos el token de bypass correspondiente
-    const tokenActual = localStorage.getItem('sigic_token')
+    const tokenActual = obtenerTokenSesion()
     if (!tokenActual || tokenActual.startsWith('bypass-')) {
-      localStorage.setItem('sigic_token', `bypass-egresado-${datos.id}`)
+      guardarTokenSesion(`bypass-egresado-${datos.id}`)
     }
     
     setVistaLogin(null)

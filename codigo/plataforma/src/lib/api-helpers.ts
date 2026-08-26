@@ -50,12 +50,12 @@ export async function esAutorizadoPersonalOEgresado(
   egresadoId: string | number,
   rolesPermitidos = ROLES_GESTION
 ) {
+  const authPersonal = obtenerUsuarioAutenticado(req, rolesPermitidos);
+  if (authPersonal.valido && authPersonal.datos?.tipo === 'personal') return true;
+
   const auth = obtenerUsuarioAutenticado(req);
   if (!auth.valido) return false;
   const datos = auth.datos!;
-  if (datos.tipo === 'personal' && datos.rol && rolesPermitidos.includes(datos.rol)) {
-    return true;
-  }
   if (datos.tipo === 'egresado' && String(datos.id) === String(egresadoId)) {
     return true;
   }
@@ -63,7 +63,7 @@ export async function esAutorizadoPersonalOEgresado(
 }
 
 export async function esPersonalValido(req: NextRequest, rolesPermitidos = ROLES_LECTURA) {
-  const auth = obtenerUsuarioAutenticado(req);
+  const auth = obtenerUsuarioAutenticado(req, rolesPermitidos);
   if (!auth.valido) return false;
   const datos = auth.datos!;
   const esRolValido = datos.tipo === 'personal' && datos.rol && rolesPermitidos.includes(datos.rol);

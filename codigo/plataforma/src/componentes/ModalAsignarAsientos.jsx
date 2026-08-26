@@ -3,6 +3,7 @@ import { X, Armchair, CheckCircle2, User, RefreshCw, AlertTriangle, LockKeyhole,
 import { SeleccionAsientos } from '../paginas/SeleccionAsientos'
 import { BASE, asignarAsientos, obtenerAjustes } from '../servicios/api'
 import { emitirCambioSync } from '../lib/sync'
+import { useConfirmacion } from './ModalConfirmacion'
 
 export function ModalAsignarAsientos({
   graduado,
@@ -15,6 +16,7 @@ export function ModalAsignarAsientos({
   onAsignado,
   onVerCredencial
 }) {
+  const { confirmar, dialogoConfirmacion } = useConfirmacion()
   const esSoloLectura = modo === 'lectura' || modo === 'aprobado' || (graduado.estado_asignacion_butacas === 'CONFIRMADA' && modo !== 'confirmacion')
   const asientoInicial = (persona) => persona.asiento_id || persona.asiento_solicitado_id || null
   const [procesando, setProcesando] = useState(false)
@@ -236,9 +238,17 @@ export function ModalAsignarAsientos({
   }
 
   // Limpiar toda la selección actual
-  const limpiarSeleccion = () => {
+  const limpiarSeleccion = async () => {
     if (esSoloLectura) return
-    if (asientosGrupoActual.length > 0 && !window.confirm('Se quitarán todas las butacas de este grupo. Podés cancelar para conservar los cambios.')) return
+    if (asientosGrupoActual.length > 0) {
+      const confirmado = await confirmar({
+        titulo: 'Reiniciar ubicación del grupo',
+        descripcion: 'Se quitarán todas las butacas seleccionadas para volver a comenzar la propuesta.',
+        textoConfirmar: 'Reiniciar grupo',
+        tipo: 'advertencia',
+      })
+      if (!confirmado) return
+    }
     const invAsientos = {}
     invitados.forEach(inv => { invAsientos[inv.id] = null })
     setAsignaciones({
@@ -385,6 +395,7 @@ export function ModalAsignarAsientos({
           </div>
         </footer>
       </div>
+      {dialogoConfirmacion}
     </div>
   )
 }

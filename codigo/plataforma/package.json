@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@jcancelo/mapa-asientos-sigic": "^2.0.7",
+    "@radix-ui/react-alert-dialog": "^1.1.23",
     "@radix-ui/react-dialog": "^1.1.16",
     "@tauri-apps/api": "^2.11.1",
     "@tauri-apps/plugin-updater": "^2.10.1",
