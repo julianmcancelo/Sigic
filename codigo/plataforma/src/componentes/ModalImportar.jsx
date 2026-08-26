@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { X, FileSpreadsheet, Upload, AlertCircle, CheckCircle2, ShieldAlert } from 'lucide-react'
+import { X, FileSpreadsheet, Upload, AlertCircle, CheckCircle2, ShieldAlert, Download } from 'lucide-react'
 import * as XLSX from 'xlsx'
 import { importarGraduadosMasivo } from '../servicios/api'
 
@@ -56,6 +56,18 @@ export function ModalImportar({ onCerrar, onCompletado }) {
     }
   }
 
+  const descargarPlantilla = () => {
+    const datosEjemplo = [
+      { 'Nombre Completo': 'García Juan Manuel', 'DNI': '40123456', 'Legajo': 'LEG-2024-001', 'Correo': 'juan.garcia@gmail.com', 'Carrera': 'Desarrollo de Software', 'Año': 2024 },
+      { 'Nombre Completo': 'Martínez Lucía Belén', 'DNI': '41234567', 'Legajo': 'LEG-2024-002', 'Correo': 'lucia.martinez@gmail.com', 'Carrera': 'Automatización y Robótica', 'Año': 2024 },
+      { 'Nombre Completo': 'Rodríguez Matías', 'DNI': '39987654', 'Legajo': 'LEG-2024-003', 'Correo': 'matias.rodriguez@gmail.com', 'Carrera': 'Redes e Infraestructura', 'Año': 2024 },
+    ]
+    const ws = XLSX.utils.json_to_sheet(datosEjemplo)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Graduados')
+    XLSX.writeFile(wb, 'Plantilla_Padron_SiGIC.xlsx')
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/65 backdrop-blur-sm p-3 sm:p-5 animate-in fade-in duration-300">
       <div className="w-full max-w-2xl bg-white rounded-[22px] shadow-2xl overflow-hidden flex flex-col max-h-[88dvh]">
@@ -65,11 +77,11 @@ export function ModalImportar({ onCerrar, onCompletado }) {
           <div>
             <h2 className="text-lg sm:text-xl font-black flex items-center gap-2.5">
               <FileSpreadsheet className="text-sky-400" />
-              Importar Graduados
+              Importar Padrón de Graduados
             </h2>
-            <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest font-bold">CSV · XLSX · JSON</p>
+            <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest font-bold">Carga Masiva · Excel / CSV</p>
           </div>
-          <button onClick={onCerrar} className="p-2 hover:bg-white/10 rounded-full transition-colors">
+          <button onClick={onCerrar} className="p-2 hover:bg-white/10 rounded-full transition-colors cursor-pointer">
             <X size={24} />
           </button>
         </div>
@@ -77,6 +89,21 @@ export function ModalImportar({ onCerrar, onCompletado }) {
         <div className="p-5 sm:p-6 overflow-y-auto flex-1 space-y-5">
           {!resultado ? (
             <>
+              {/* Barra de descarga de plantilla */}
+              <div className="flex items-center justify-between p-3.5 bg-sky-50/80 border border-sky-100 rounded-2xl">
+                <div>
+                  <p className="text-xs font-bold text-sky-950">¿No tenés el formato listo?</p>
+                  <p className="text-[10px] text-sky-700 font-medium">Descargá nuestra plantilla modelo de Excel con las columnas correctas.</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={descargarPlantilla}
+                  className="flex items-center gap-1.5 bg-white hover:bg-sky-100 text-sky-700 border border-sky-200 px-3 py-2 rounded-xl text-xs font-black shadow-sm transition active:scale-95 cursor-pointer shrink-0"
+                >
+                  <Download size={13} /> Descargar Plantilla
+                </button>
+              </div>
+
               {/* Dropzone / Upload */}
               <div className="relative group">
                 <input 
@@ -85,12 +112,14 @@ export function ModalImportar({ onCerrar, onCompletado }) {
                   onChange={manejarArchivo}
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                 />
-                <div className="border-2 border-dashed border-slate-200 rounded-2xl p-7 sm:p-9 flex flex-col items-center justify-center text-center group-hover:border-sky-500/30 transition-all bg-slate-50/50 group-hover:bg-sky-50/30">
+                <div className="border-2 border-dashed border-slate-200 rounded-2xl p-7 sm:p-9 flex flex-col items-center justify-center text-center group-hover:border-sky-500 transition-all bg-slate-50/50 group-hover:bg-sky-50/30 cursor-pointer">
                   <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
                     <Upload className="text-sky-500" />
                   </div>
-                  <h3 className="text-sm font-black text-slate-800">Seleccionar archivo</h3>
-                  <p className="text-xs text-slate-400 font-medium">Arrastrá o hacé clic para cargar el listado</p>
+                  <h3 className="text-sm font-black text-slate-800">
+                    {archivo ? archivo.name : 'Hacé clic o arrastrá tu archivo Excel aquí'}
+                  </h3>
+                  <p className="text-xs text-slate-400 font-medium mt-1">Formatos soportados: .XLSX, .CSV, .XLS</p>
                 </div>
               </div>
 

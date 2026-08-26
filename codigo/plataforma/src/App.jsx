@@ -636,6 +636,7 @@ function App() {
           ceremoniaActiva={ceremoniaActiva}
           onVolver={() => setPantallaAdmin('bienvenida')}
           onCerrarSesion={cerrarSesionAdmin}
+          onNavegar={setPantallaAdmin}
         />
       )
     } else if (pantallaAdmin === 'convocatoria') {

@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { 
   Users, Search, Upload, Trash2, X, Link2, CreditCard,
-  UserX, CheckCircle2, Clock, AlertCircle, Armchair, Send, PlusCircle, BadgeCheck, Edit3, MoreHorizontal
+  UserX, CheckCircle2, Clock, AlertCircle, Armchair, Send, PlusCircle, BadgeCheck, Edit3, MoreHorizontal,
+  FileSpreadsheet, Download, ArrowRight, UserPlus, Sparkles
 } from 'lucide-react'
+import * as XLSX from 'xlsx'
 
 import { 
   obtenerGraduados,
@@ -30,7 +32,7 @@ const ESTADOS_FLUJO = {
 
 const DARK   = '#2A3448'
 
-export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarSesion, sinHeader }) {
+export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarSesion, sinHeader, onNavegar }) {
   const { confirmar, dialogoConfirmacion } = useConfirmacion()
   function obtenerIconoEstado(key, size = 12) {
     switch(key) {
@@ -47,6 +49,18 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
   const [invitados, setInvitados] = useState([])
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState('')
+
+  const descargarPlantillaExcel = () => {
+    const datosEjemplo = [
+      { 'Nombre Completo': 'García Juan Manuel', 'DNI': '40123456', 'Legajo': 'LEG-2024-001', 'Correo': 'juan.garcia@gmail.com', 'Carrera': 'Desarrollo de Software', 'Año': 2024 },
+      { 'Nombre Completo': 'Martínez Lucía Belén', 'DNI': '41234567', 'Legajo': 'LEG-2024-002', 'Correo': 'lucia.martinez@gmail.com', 'Carrera': 'Automatización y Robótica', 'Año': 2024 },
+      { 'Nombre Completo': 'Rodríguez Matías', 'DNI': '39987654', 'Legajo': 'LEG-2024-003', 'Correo': 'matias.rodriguez@gmail.com', 'Carrera': 'Redes e Infraestructura', 'Año': 2024 },
+    ]
+    const ws = XLSX.utils.json_to_sheet(datosEjemplo)
+    const wb = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(wb, ws, 'Graduados')
+    XLSX.writeFile(wb, 'Plantilla_Padron_SiGIC.xlsx')
+  }
 
   const [mostrarForm, setMostrarForm] = useState(false)
   const [mostrarImportar, setMostrarImportar] = useState(false)
@@ -252,26 +266,77 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
     <div className="font-sans">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
         <div>
-          <h2 className="text-lg font-black tracking-tight" style={{ color: DARK }}>Gestión de Estudiantes</h2>
-          <p className="mt-0.5 text-xs text-slate-400">{ceremoniaMostrada ? `Ceremonia activa: ${ceremoniaMostrada.nombre} · ` : ''}{graduados.length} estudiantes · {invitados.length} acompañantes</p>
+          <h2 className="text-lg font-black tracking-tight" style={{ color: DARK }}>Padrón de Graduados</h2>
+          <p className="mt-0.5 text-xs text-slate-400">
+            {ceremoniaMostrada ? `Ceremonia activa: ${ceremoniaMostrada.nombre} · ` : ''}
+            <strong className="text-slate-700">{graduados.length}</strong> estudiantes registrados · <strong className="text-slate-700">{invitados.length}</strong> acompañantes
+          </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <details className="group relative">
-            <summary className="flex cursor-pointer list-none items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-[10px] font-bold text-slate-600 hover:bg-slate-50"><MoreHorizontal size={14} /> Acciones</summary>
-            <div className="absolute right-0 z-30 mt-2 w-52 overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl">
-              <button onClick={() => setMostrarImportar(true)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50"><Upload size={14} /> Importar archivo</button>
-              {graduados.length > 0 && <button onClick={manejarVaciar} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50"><Trash2 size={14} /> Vaciar padrón</button>}
-            </div>
-          </details>
+          <button
+            onClick={() => setMostrarImportar(true)}
+            className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-2 text-[10.5px] font-black text-white shadow-sm hover:bg-emerald-500 transition active:scale-95 cursor-pointer"
+          >
+            <FileSpreadsheet size={15} /> Importar Excel / CSV
+          </button>
+
           <button
             onClick={() => setMostrarForm(!mostrarForm)}
-            className="flex items-center gap-1.5 rounded-lg bg-sky-600 px-3 py-2 text-[10px] font-black text-white transition hover:bg-sky-700"
+            className="flex items-center gap-1.5 rounded-xl bg-sky-600 px-3.5 py-2 text-[10.5px] font-black text-white shadow-sm hover:bg-sky-500 transition active:scale-95 cursor-pointer"
           >
-            {mostrarForm ? <X size={14} /> : <PlusCircle size={14} />} {mostrarForm ? 'Cerrar' : 'Nuevo estudiante'}
+            {mostrarForm ? <X size={15} /> : <UserPlus size={15} />} {mostrarForm ? 'Cerrar' : 'Nuevo Alumno'}
           </button>
+
+          <button
+            onClick={descargarPlantillaExcel}
+            title="Descargar plantilla Excel modelo"
+            className="hidden sm:flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-3 py-2 text-[10px] font-bold text-slate-600 transition cursor-pointer"
+          >
+            <Download size={13} /> Plantilla
+          </button>
+
+          <details className="group relative">
+            <summary className="flex cursor-pointer list-none items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-[10px] font-bold text-slate-600 hover:bg-slate-50">
+              <MoreHorizontal size={15} />
+            </summary>
+            <div className="absolute right-0 z-30 mt-2 w-52 overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl">
+              <button onClick={descargarPlantillaExcel} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer">
+                <Download size={14} /> Descargar plantilla Excel
+              </button>
+              <button onClick={() => setMostrarImportar(true)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer">
+                <Upload size={14} /> Importar archivo
+              </button>
+              {graduados.length > 0 && (
+                <button onClick={manejarVaciar} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50 cursor-pointer">
+                  <Trash2 size={14} /> Vaciar padrón
+                </button>
+              )}
+            </div>
+          </details>
         </div>
       </div>
+
+      {/* BANNER DE CONTINUIDAD AL PASO 2 */}
+      {graduados.length > 0 && onNavegar && (
+        <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-2xl border border-sky-100 bg-gradient-to-r from-sky-50 to-blue-50 p-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 rounded-xl bg-sky-500 text-white flex items-center justify-center font-black text-sm shrink-0 shadow-sm shadow-sky-500/30">
+              ✓
+            </div>
+            <div>
+              <p className="text-xs font-black text-slate-900">Padrón cargado ({graduados.length} alumnos registrados)</p>
+              <p className="text-[10px] text-slate-500 font-medium">¿Listo para continuar? Configurá las butacas del auditorio y aplicá Auto-Seating.</p>
+            </div>
+          </div>
+          <button
+            onClick={() => onNavegar('preparacion-ceremonia')}
+            className="flex items-center gap-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white px-4 py-2 text-[10px] font-black uppercase tracking-wider shadow-sm transition active:scale-95 cursor-pointer shrink-0"
+          >
+            Paso 2: Configurar Butacas <ArrowRight size={13} />
+          </button>
+        </div>
+      )}
 
       <div className="mb-4 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-semibold text-slate-500">
         <span><strong className="text-slate-800">{graduados.length - sinCorroborar.length}</strong> verificados</span>
@@ -303,7 +368,7 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
         ))}
       </div>
 
-      {/* BUSCADOR & ELIMINAR */}
+      {/* BUSCADOR */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 mb-4">
         <div className="relative flex-1">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
@@ -315,7 +380,6 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
             className="w-full bg-white border border-slate-200 rounded-lg py-2 pl-10 pr-4 text-xs font-semibold focus:outline-none focus:border-sky-500 transition-all shadow-sm placeholder-slate-400"
           />
         </div>
-        
       </div>
 
       {busqueda.trim().length >= 2 && (
@@ -354,16 +418,16 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
 
       {/* FORMULARIO DE ALTA */}
       {mostrarForm && (
-          <FormularioGraduado
-            enModal
-            onCreado={(nuevo) => {
-              setMostrarForm(false)
-              setAltaExitosa(`${nuevo.nombre} fue registrado correctamente en la ceremonia activa.`)
-              cargarDatos()
-              setTimeout(() => setAltaExitosa(''), 6000)
-            }}
-            onCancelar={() => setMostrarForm(false)}
-          />
+        <FormularioGraduado
+          enModal
+          onCreado={(nuevo) => {
+            setMostrarForm(false)
+            setAltaExitosa(`${nuevo.nombre} fue registrado correctamente en la ceremonia activa.`)
+            cargarDatos()
+            setTimeout(() => setAltaExitosa(''), 6000)
+          }}
+          onCancelar={() => setMostrarForm(false)}
+        />
       )}
 
       {altaExitosa && (
@@ -380,7 +444,7 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
         </div>
       )}
 
-      {/* LISTA */}
+      {/* LISTA O EMPTY STATE GUIADO */}
       {cargando ? (
         <div className="flex flex-col items-center justify-center py-20 select-none">
           <div className="relative w-14 h-14 flex items-center justify-center mb-4">
@@ -395,11 +459,84 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
           <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 animate-pulse">Cargando padrón...</p>
         </div>
       ) : graduadosFiltrados.length === 0 ? (
-        <div className="py-20 text-center bg-white border border-slate-100 rounded-2xl">
-          <Users size={36} className="mx-auto mb-3 text-slate-200" />
-          <h3 className="text-sm font-black text-slate-400 mb-1">Sin coincidencias</h3>
-          <p className="text-xs text-slate-400">No se encontraron estudiantes en esta selección.</p>
-        </div>
+        graduados.length === 0 && !busqueda.trim() ? (
+          /* EMPTY STATE GUIADO ONBOARDING */
+          <div className="bg-white border border-slate-100 rounded-3xl p-6 sm:p-10 shadow-sm space-y-8 animate-in fade-in duration-300">
+            <div className="text-center max-w-xl mx-auto space-y-2">
+              <div className="inline-flex p-3 rounded-2xl bg-emerald-50 text-emerald-600 mb-1">
+                <Users size={32} />
+              </div>
+              <h3 className="text-lg font-black text-slate-800 tracking-tight">El padrón de graduados está vacío</h3>
+              <p className="text-xs text-slate-500 font-medium leading-relaxed">
+                Para comenzar a organizar esta colación, necesitás cargar a los estudiantes que van a participar. Elegí la forma que más te convenga:
+              </p>
+            </div>
+
+            <div className="grid sm:grid-cols-2 gap-4 max-w-3xl mx-auto">
+              {/* OPCIÓN 1: EXCEL */}
+              <div className="rounded-2xl border-2 border-emerald-500/30 bg-emerald-50/40 p-6 flex flex-col justify-between space-y-4 hover:border-emerald-500 transition">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="p-2.5 rounded-xl bg-emerald-500 text-white inline-block shadow-sm shadow-emerald-500/30">
+                      <FileSpreadsheet size={20} />
+                    </span>
+                    <span className="text-[9px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">Recomendado</span>
+                  </div>
+                  <h4 className="text-sm font-black text-slate-900">Carga Masiva con Excel (.xlsx / .csv)</h4>
+                  <p className="text-[11px] text-slate-600 font-medium leading-relaxed">
+                    Subí el listado institucional de egresados. El sistema asocia automáticamente nombres, DNI, legajos, correos y carreras en 1 segundo.
+                  </p>
+                </div>
+                
+                <div className="space-y-2 pt-2">
+                  <button
+                    onClick={() => setMostrarImportar(true)}
+                    className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl font-black text-xs uppercase tracking-wider shadow-md shadow-emerald-600/20 transition active:scale-95 cursor-pointer"
+                  >
+                    <Upload size={15} /> Subir Archivo Excel
+                  </button>
+                  <button
+                    onClick={descargarPlantillaExcel}
+                    className="w-full flex items-center justify-center gap-1.5 text-[10.5px] font-bold text-emerald-700 hover:text-emerald-800 py-1.5 transition cursor-pointer"
+                  >
+                    <Download size={13} /> Descargar plantilla de ejemplo (.xlsx)
+                  </button>
+                </div>
+              </div>
+
+              {/* OPCIÓN 2: MANUAL */}
+              <div className="rounded-2xl border-2 border-slate-200 bg-slate-50/50 p-6 flex flex-col justify-between space-y-4 hover:border-sky-400 transition">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="p-2.5 rounded-xl bg-sky-500 text-white inline-block shadow-sm shadow-sky-500/30">
+                      <UserPlus size={20} />
+                    </span>
+                    <span className="text-[9px] font-black uppercase tracking-wider bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full">Manual</span>
+                  </div>
+                  <h4 className="text-sm font-black text-slate-900">Carga Individual Uno a Uno</h4>
+                  <p className="text-[11px] text-slate-600 font-medium leading-relaxed">
+                    Completá el formulario para registrar un alumno puntualmente con sus datos de contacto y titulación.
+                  </p>
+                </div>
+
+                <div className="pt-2">
+                  <button
+                    onClick={() => setMostrarForm(true)}
+                    className="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white py-3 rounded-xl font-black text-xs uppercase tracking-wider shadow-md transition active:scale-95 cursor-pointer"
+                  >
+                    <UserPlus size={15} /> Cargar Alumno Manualmente
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="py-20 text-center bg-white border border-slate-100 rounded-2xl">
+            <Users size={36} className="mx-auto mb-3 text-slate-200" />
+            <h3 className="text-sm font-black text-slate-400 mb-1">Sin coincidencias</h3>
+            <p className="text-xs text-slate-400">No se encontraron estudiantes en esta selección.</p>
+          </div>
+        )
       ) : (
         <div className="space-y-2.5">
           {graduadosFiltrados.map(grad => {
@@ -425,16 +562,16 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
                   </div>
 
                   <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
-                    <button onClick={() => setGraduadoEditar(grad)} className="rounded-lg bg-slate-900 px-3 py-1.5 text-[9px] font-bold text-white"><Edit3 size={12} className="mr-1 inline" />Editar</button>
-                    {!esRechazado && grad.estado === 'ACEPTADO' && <button onClick={() => abrirAsignacion(grad)} className="rounded-lg bg-slate-900 px-3 py-1.5 text-[9px] font-bold text-white"><Armchair size={12} className="mr-1 inline" />Butacas</button>}
+                    <button onClick={() => setGraduadoEditar(grad)} className="rounded-lg bg-slate-900 px-3 py-1.5 text-[9px] font-bold text-white cursor-pointer"><Edit3 size={12} className="mr-1 inline" />Editar</button>
+                    {!esRechazado && grad.estado === 'ACEPTADO' && <button onClick={() => abrirAsignacion(grad)} className="rounded-lg bg-slate-900 px-3 py-1.5 text-[9px] font-bold text-white cursor-pointer"><Armchair size={12} className="mr-1 inline" />Butacas</button>}
                     {misInvitados.length > 0 && <span className="text-[9px] font-semibold text-slate-400">{misInvitados.length} acompañantes</span>}
                     <details className="relative ml-auto">
                       <summary className="grid h-7 w-8 cursor-pointer list-none place-items-center rounded-lg text-slate-400 hover:bg-slate-100"><MoreHorizontal size={15} /></summary>
                       <div className="absolute bottom-9 right-0 z-20 w-48 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl">
-                        {!esRechazado && !grad.identidad_corrobada_en && <button onClick={() => manejarCorroboracion(grad)} disabled={corroborandoId === grad.id} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-emerald-700 hover:bg-emerald-50 disabled:opacity-40"><BadgeCheck size={13} /> Verificar datos</button>}
-                        {!esRechazado && <button onClick={() => manejarLink(grad)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-slate-600 hover:bg-slate-50"><Link2 size={13} /> Enlace</button>}
-                        {!esRechazado && <button onClick={() => setGraduadoCredencial(grad)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-slate-600 hover:bg-slate-50"><CreditCard size={13} /> Ver credencial</button>}
-                        <button onClick={() => manejarEliminar(grad.id)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-rose-600 hover:bg-rose-50"><Trash2 size={13} /> Eliminar</button>
+                        {!esRechazado && !grad.identidad_corrobada_en && <button onClick={() => manejarCorroboracion(grad)} disabled={corroborandoId === grad.id} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-emerald-700 hover:bg-emerald-50 disabled:opacity-40 cursor-pointer"><BadgeCheck size={13} /> Verificar datos</button>}
+                        {!esRechazado && <button onClick={() => manejarLink(grad)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-slate-600 hover:bg-slate-50 cursor-pointer"><Link2 size={13} /> Enlace</button>}
+                        {!esRechazado && <button onClick={() => setGraduadoCredencial(grad)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-slate-600 hover:bg-slate-50 cursor-pointer"><CreditCard size={13} /> Ver credencial</button>}
+                        <button onClick={() => manejarEliminar(grad.id)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-rose-600 hover:bg-rose-50 cursor-pointer"><Trash2 size={13} /> Eliminar</button>
                       </div>
                     </details>
                   </div>
@@ -455,7 +592,16 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
       {/* MODALES */}
       {graduadoCredencial && <ModalCredencial egresado={graduadoCredencial} onCerrar={() => setGraduadoCredencial(null)} />}
       {linkQR && <ModalLinkRegistro egresado={linkQR.egresado} link={linkQR.link} onCerrar={() => setLinkQR(null)} />}
-      {mostrarImportar && <ModalImportar onCerrar={() => setMostrarImportar(false)} onCompletado={cargarDatos} />}
+      {mostrarImportar && (
+        <ModalImportar 
+          onCerrar={() => setMostrarImportar(false)} 
+          onCompletado={() => {
+            setMostrarImportar(false)
+            cargarDatos()
+            emitirCambioSync('EGRESADOS')
+          }} 
+        />
+      )}
       {graduadoAsignar && (
         <ModalAsignarAsientos
           graduado={graduadoAsignar}
@@ -475,6 +621,7 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
     </div>
   )
 }
+
 function ModalEditarGraduado({ graduado, onCerrar, onGuardar }) {
   const [form, setForm] = useState({ nombre: graduado.nombre || '', dni: graduado.dni || '', legajo: graduado.legajo || '', correo: graduado.correo || '', carrera: graduado.carrera || '', promedio: graduado.promedio || '' })
   const [guardando, setGuardando] = useState(false)
