@@ -272,7 +272,7 @@ async function ejecutarInicializacion() {
   }
 }
 
-async function sembrarDemo(client: Awaited<ReturnType<typeof pool.connect>>) {
+async function sembrarDemo(client: any) {
   const hash = await bcrypt.hash('Demo1234', 12);
   await client.query(
     `INSERT INTO usuarios_sistema (id,nombre,email,password_hash,rol,activo)

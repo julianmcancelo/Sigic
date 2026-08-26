@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
         rol: usuarioActual.rol,
         expira: usuario.exp
       }
-    });
+    }, { headers: { 'Cache-Control': 'no-store' } });
   } catch (error) {
     console.error('Error al validar sesión en DB:', error);
     return NextResponse.json({ error: 'Error interno de validación de sesión.' }, { status: 500 });

@@ -10,89 +10,19 @@ import crypto from 'crypto';
 import { inicializarBaseDatos } from '@/lib/schema';
 import { generarPaseGoogleWallet } from '@/lib/google-wallet';
 
-const RONDAS_BCRYPT = 12;
-const LARGO_MINIMO_PASSWORD = 8;
-const ROLES_VALIDOS = ['SUPER_ADMIN', 'ADMINISTRATIVO', 'ADMIN', 'PORTERIA', 'AUDITOR'];
-
-function prepararIdentificadorGraduado(valor: unknown) {
-  const identificador = String(valor || '').trim();
-  const esCorreo = identificador.includes('@');
-  const normalizado = esCorreo ? identificador.toLowerCase() : identificador.replace(/\D/g, '');
-  return { identificador, esCorreo, normalizado };
-}
-
-function ocultarCorreo(correo: string) {
-  const [usuario = '', dominio = ''] = correo.split('@');
-  const visible = usuario.slice(0, Math.min(2, usuario.length));
-  return `${visible}${'*'.repeat(Math.max(3, usuario.length - visible.length))}@${dominio}`;
-}
-
-// CORS configuration utility
-function corsHeaders(req: NextRequest) {
-  const origin = req.headers.get('origin') || '*';
-  return {
-    'Access-Control-Allow-Origin': origin,
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, Bypass-Tunnel-Reminder',
-    'Access-Control-Allow-Credentials': 'true',
-  };
-}
-
-// Global dynamic rate limiter
-const rateLimits = new Map<string, { contador: number; reinicio: number }>();
-function verificarRateLimit(key: string, limit: number, windowMs: number) {
-  const ahora = Date.now();
-  let reg = rateLimits.get(key);
-  if (!reg || ahora > reg.reinicio) {
-    reg = { contador: 0, reinicio: ahora + windowMs };
-    rateLimits.set(key, reg);
-  }
-  reg.contador++;
-  if (reg.contador > limit) {
-    const segundosRestantes = Math.ceil((reg.reinicio - ahora) / 1000);
-    return { permitido: false, segundosRestantes };
-  }
-  return { permitido: true, segundosRestantes: 0 };
-}
-
-// Helpers for permission checks
-async function esAutorizadoPersonalOEgresado(req: NextRequest, egresadoId: string | number, rolesPermitidos = ROLES_GESTION) {
-  const auth = obtenerUsuarioAutenticado(req);
-  if (!auth.valido) return false;
-  const datos = auth.datos!;
-  if (datos.tipo === 'personal' && datos.rol && rolesPermitidos.includes(datos.rol)) {
-    return true;
-  }
-  if (datos.tipo === 'egresado' && String(datos.id) === String(egresadoId)) {
-    return true;
-  }
-  return false;
-}
-
-async function esPersonalValido(req: NextRequest, rolesPermitidos = ROLES_LECTURA) {
-  const auth = obtenerUsuarioAutenticado(req);
-  if (!auth.valido) return false;
-  const datos = auth.datos!;
-  const esRolValido = datos.tipo === 'personal' && datos.rol && rolesPermitidos.includes(datos.rol);
-  if (!esRolValido) return false;
-
-  // Si es SUPER_ADMIN, siempre tiene acceso
-  if (datos.rol === 'SUPER_ADMIN') return true;
-
-  // Si el rol es PORTERIA, debe estar autorizado para la ceremonia activa actual
-  if (datos.rol === 'PORTERIA') {
-    const activeCer = await query('SELECT id FROM ceremonias WHERE activa = 1 LIMIT 1');
-    if (activeCer.rows.length === 0) return false; // Bloquear si no hay ceremonia activa
-    
-    const authCheck = await query(
-      'SELECT 1 FROM ceremonias_usuarios_autorizados WHERE ceremonia_id = $1 AND usuario_id = $2',
-      [activeCer.rows[0].id, datos.id]
-    );
-    return authCheck.rows.length > 0;
-  }
-
-  return true;
-}
+import {
+  RONDAS_BCRYPT,
+  LARGO_MINIMO_PASSWORD,
+  ROLES_VALIDOS,
+  prepararIdentificadorGraduado,
+  ocultarCorreo,
+  corsHeaders,
+  verificarRateLimit,
+  esAutorizadoPersonalOEgresado,
+  esPersonalValido,
+  registrarAuditoriaOTP,
+  esUltimoSuperAdmin
+} from '@/lib/api-helpers';
 
 async function inicializarTablasAdicionales() {
   try {
@@ -151,28 +81,6 @@ async function inicializarTablasAdicionales() {
   } catch (e) {
     console.error('Error al inicializar tabla ceremonias_usuarios_autorizados:', e);
   }
-}
-
-async function registrarAuditoriaOTP(egresadoId: string | number, otpHash: string, ip: string, resultado: string) {
-  try {
-    await query(
-      `INSERT INTO otp_historial (egresado_id, otp_hash, ip_origen, resultado)
-       VALUES ($1, $2, $3, $4)`,
-      [egresadoId, otpHash, ip, resultado]
-    );
-  } catch (error) {
-    // La auditoría nunca debe impedir que el graduado reciba o valide su código.
-    console.error('No se pudo registrar la auditoría OTP:', error);
-  }
-}
-
-async function esUltimoSuperAdmin(id: string) {
-  const result = await query(
-    `SELECT COUNT(*) AS total FROM usuarios_sistema
-     WHERE rol = 'SUPER_ADMIN' AND activo = 1 AND id <> $1`,
-    [id]
-  );
-  return parseInt(result.rows[0]?.total ?? '0', 10) === 0;
 }
 
 // Tauri y los navegadores externos requieren responder el preflight antes de
@@ -856,6 +764,23 @@ export async function GET(
       }, { headers });
     }
 
+    if (slug[0] === 'egresados' && slug[1] && !slug[2]) {
+      const id = slug[1];
+      const esAutorizado = await esAutorizadoPersonalOEgresado(req, id, ROLES_LECTURA);
+      if (!esAutorizado) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+
+      const result = await query(`
+        SELECT e.*, c.nombre AS ceremonia_nombre, c.fecha AS ceremonia_fecha, c.lugar AS ceremonia_lugar, c.activa AS ceremonia_activa
+        FROM egresados e
+        LEFT JOIN ceremonias c ON e.ceremonia_id = c.id
+        WHERE e.id = $1
+      `, [id]);
+      if (result.rows.length === 0) {
+        return NextResponse.json({ error: 'Graduado no encontrado' }, { status: 404, headers });
+      }
+      return NextResponse.json(result.rows[0], { headers });
+    }
+
     // Fallback: 404 para GET
     return NextResponse.json({ error: `Ruta GET '${path}' no encontrada` }, { status: 404, headers });
 
@@ -1277,12 +1202,19 @@ export async function POST(
         for (const inv of nuevos) {
           const dniLimpio = inv.dni.replace(/\s/g, '');
           const insRes = await client.query(
-            `INSERT INTO invitados (egresado_id, nombre, dni, telefono, correo, relacion)
-             VALUES ($1, $2, $3, $4, $5, $6)
+            `INSERT INTO invitados (egresado_id, nombre, dni, telefono, correo, relacion, discapacidad)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)
              RETURNING *`,
-            [egresado.id, inv.nombre.trim(), dniLimpio, String(inv.telefono || '').trim() || null, (inv.correo || '').trim() || null, inv.relacion]
+            [egresado.id, inv.nombre.trim(), dniLimpio, String(inv.telefono || '').trim() || null, (inv.correo || '').trim() || null, inv.relacion, inv.discapacidad ? 1 : 0]
           );
           registrosFinales.push(insRes.rows[0]);
+        }
+
+        if (egresado.estado_asignacion_butacas === 'CONFIRMADA') {
+          await client.query(
+            "UPDATE egresados SET estado_asignacion_butacas = 'PENDIENTE_REVISION' WHERE id = $1",
+            [egresado.id]
+          );
         }
 
         await client.query('COMMIT');
@@ -1538,6 +1470,53 @@ export async function POST(
         googleWallet: Boolean(paseGoogleWallet),
         graduado: actualizado.rows[0]
       }, { headers });
+    }
+
+    if (slug[0] === 'egresados' && slug[2] === 'wallet' && slug[1]) {
+      const id = slug[1];
+      const esAutorizado = await esAutorizadoPersonalOEgresado(req, id, ROLES_GESTION);
+      if (!esAutorizado) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+
+      const datos = await query(
+        `SELECT e.*, c.nombre AS ceremonia_nombre, c.fecha AS ceremonia_fecha, c.lugar AS ceremonia_lugar
+         FROM egresados e JOIN ceremonias c ON c.id = e.ceremonia_id WHERE e.id = $1`,
+        [id]
+      );
+      const graduado = datos.rows[0];
+      if (!graduado) return NextResponse.json({ error: 'Graduado no encontrado' }, { status: 404, headers });
+      if (graduado.estado !== 'ACEPTADO') return NextResponse.json({ error: 'La credencial se genera cuando el graduado confirma su participación' }, { status: 409, headers });
+      if (graduado.estado_asignacion_butacas !== 'CONFIRMADA') return NextResponse.json({ error: 'Confirmá las butacas del grupo antes de generar el pase de Google Wallet' }, { status: 409, headers });
+
+      const hostBase = obtenerOrigenPublico(req);
+      const acceso = `${hostBase}/?token=${graduado.token}`;
+      try {
+        const paseGoogleWallet = await generarPaseGoogleWallet({
+          graduadoId: graduado.id,
+          token: graduado.token,
+          nombre: graduado.nombre,
+          ceremoniaId: graduado.ceremonia_id,
+          ceremonia: graduado.ceremonia_nombre,
+          fecha: graduado.ceremonia_fecha,
+          lugar: graduado.ceremonia_lugar,
+          asiento: graduado.asiento_id,
+          acceso,
+        });
+
+        if (paseGoogleWallet) {
+          await query(
+            `UPDATE egresados SET google_wallet_object_id = COALESCE($2, google_wallet_object_id),
+              google_wallet_actualizado_en = CURRENT_TIMESTAMP
+             WHERE id = $1`,
+            [id, paseGoogleWallet.objectId]
+          );
+          return NextResponse.json({ ok: true, url: paseGoogleWallet.url, objectId: paseGoogleWallet.objectId }, { headers });
+        } else {
+          return NextResponse.json({ ok: false, noConfigurado: true, mensaje: 'Google Wallet no está configurado en el servidor' }, { headers });
+        }
+      } catch (error: any) {
+        console.error('Error al generar pase de Google Wallet:', error);
+        return NextResponse.json({ error: 'No se pudo generar el pase de Google Wallet', detalle: error.message }, { status: 500, headers });
+      }
     }
 
     if (path === 'egresados/solicitar-otp') {
@@ -2023,13 +2002,16 @@ export async function PUT(
       const esAutorizado = await esAutorizadoPersonalOEgresado(req, egresadoId, ROLES_GESTION);
       if (!esAutorizado) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
-      const { nombre, dni, telefono, correo, relacion } = body;
+      const { nombre, dni, telefono, correo, relacion, discapacidad } = body;
       const result = await query(
         `UPDATE invitados 
-         SET nombre = $1, dni = $2, telefono = $3, correo = $4, relacion = $5 
-         WHERE id = $6 RETURNING *`,
-        [nombre, dni, String(telefono || '').trim() || null, String(correo || '').trim() || null, relacion, id]
+         SET nombre = $1, dni = $2, telefono = $3, correo = $4, relacion = $5, discapacidad = $6
+         WHERE id = $7 RETURNING *`,
+        [nombre, dni, String(telefono || '').trim() || null, String(correo || '').trim() || null, relacion, discapacidad ? 1 : 0, id]
       );
+      if (nombre) {
+        await query('UPDATE entregadores SET nombre = $1 WHERE invitado_id = $2', [nombre, id]);
+      }
       return NextResponse.json(result.rows[0], { headers });
     }
 
@@ -2110,12 +2092,20 @@ export async function PUT(
       const client = await pool.connect();
       try {
         await client.query('BEGIN');
-        const graduadoRes = await client.query('SELECT ceremonia_id FROM egresados WHERE id = $1 FOR UPDATE', [id]);
+        const graduadoRes = await client.query('SELECT ceremonia_id, estado_asignacion_butacas FROM egresados WHERE id = $1 FOR UPDATE', [id]);
         if (graduadoRes.rowCount === 0) {
           await client.query('ROLLBACK');
           return NextResponse.json({ error: 'Graduado no encontrado' }, { status: 404, headers });
         }
-        const ceremoniaId = graduadoRes.rows[0].ceremonia_id;
+        const { ceremonia_id: ceremoniaId, estado_asignacion_butacas: estadoActual } = graduadoRes.rows[0];
+
+        if (!esPersonal && estadoActual === 'CONFIRMADA') {
+          await client.query('ROLLBACK');
+          return NextResponse.json({
+            error: 'Las butacas de tu grupo ya fueron confirmadas por la administración y no pueden modificarse. Si necesitás realizar un cambio, comunicate con la institución.'
+          }, { status: 409, headers });
+        }
+
         const idsInvitados = Object.keys(invitadosAsientos);
 
         const cantidadInvitados = await client.query('SELECT COUNT(*)::int AS cantidad FROM invitados WHERE egresado_id = $1', [id]);
@@ -2152,7 +2142,7 @@ export async function PUT(
              WHERE e.ceremonia_id = $1 AND e.id <> $2 AND i.asiento_solicitado_id = ANY($3)`,
             [ceremoniaId, id, asignaciones]
           );
-          if (ocupados.rowCount > 0) {
+          if ((ocupados.rowCount || 0) > 0) {
             await client.query('ROLLBACK');
             return NextResponse.json({ error: `La butaca ${ocupados.rows[0].asiento_id} acaba de ser asignada a otro grupo. Actualizá el mapa e intentá de nuevo.` }, { status: 409, headers });
           }
@@ -2359,14 +2349,23 @@ export async function DELETE(
     if (slug[0] === 'invitados' && slug[1] && !slug[2]) {
       const id = slug[1];
       
-      const checkRes = await query('SELECT egresado_id FROM invitados WHERE id = $1', [id]);
-      const egresadoId = checkRes.rows[0]?.egresado_id;
-      if (!egresadoId) return NextResponse.json({ error: 'Invitado no encontrado' }, { status: 404, headers });
+      const checkRes = await query('SELECT egresado_id, asiento_id, asiento_solicitado_id FROM invitados WHERE id = $1', [id]);
+      const invitado = checkRes.rows[0];
+      if (!invitado) return NextResponse.json({ error: 'Invitado no encontrado' }, { status: 404, headers });
+      const egresadoId = invitado.egresado_id;
 
       const esAutorizado = await esAutorizadoPersonalOEgresado(req, egresadoId, ROLES_GESTION);
       if (!esAutorizado) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
-      const result = await query('DELETE FROM invitados WHERE id = $1 RETURNING *', [id]);
+      await query('DELETE FROM entregadores WHERE invitado_id = $1', [id]);
+      await query('DELETE FROM invitados WHERE id = $1', [id]);
+
+      // Si el grupo estaba CONFIRMADA o si el invitado eliminado tenía asiento asignado, pasar a PENDIENTE_REVISION
+      const egresadoRes = await query('SELECT estado_asignacion_butacas FROM egresados WHERE id = $1', [egresadoId]);
+      if (egresadoRes.rows[0]?.estado_asignacion_butacas === 'CONFIRMADA' || invitado.asiento_id || invitado.asiento_solicitado_id) {
+        await query("UPDATE egresados SET estado_asignacion_butacas = 'PENDIENTE_REVISION' WHERE id = $1", [egresadoId]);
+      }
+
       return NextResponse.json({ ok: true, mensaje: 'Invitado eliminado' }, { headers });
     }
 

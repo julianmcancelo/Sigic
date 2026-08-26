@@ -8,18 +8,19 @@ import { inicializarBaseDatos } from '@/lib/schema';
 const registros = new Map<string, { contador: number; reinicio: number }>();
 const VENTANA_MS = 10 * 60 * 1000; // 10 minutos
 const MAX_INTENTOS = 8;
+const MAX_INTENTOS_CUENTA = 5;
 
-function verificarLimite(ip: string): { permitido: boolean; segundosRestantes: number } {
+function verificarLimite(clave: string, maximo = MAX_INTENTOS): { permitido: boolean; segundosRestantes: number } {
   const ahora = Date.now();
-  let registro = registros.get(ip);
+  let registro = registros.get(clave);
 
   if (!registro || ahora > registro.reinicio) {
     registro = { contador: 0, reinicio: ahora + VENTANA_MS };
-    registros.set(ip, registro);
+    registros.set(clave, registro);
   }
 
   registro.contador++;
-  if (registro.contador > MAX_INTENTOS) {
+  if (registro.contador > maximo) {
     const segundosRestantes = Math.ceil((registro.reinicio - ahora) / 1000);
     return { permitido: false, segundosRestantes };
   }
@@ -34,10 +35,10 @@ function verificarLimite(ip: string): { permitido: boolean; segundosRestantes: n
 export async function POST(req: NextRequest) {
   await inicializarBaseDatos();
   // Obtener IP del cliente de forma segura en Next.js
-  const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '127.0.0.1';
+  const ip = (req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '127.0.0.1').split(',')[0].trim();
 
   // Verificar rate limit
-  const control = verificarLimite(ip);
+  const control = verificarLimite(`ip:${ip}`);
   if (!control.permitido) {
     return NextResponse.json(
       { 
@@ -60,6 +61,13 @@ export async function POST(req: NextRequest) {
     }
 
     const emailLimpio = String(email).toLowerCase().trim();
+    const controlCuenta = verificarLimite(`cuenta:${emailLimpio}`, MAX_INTENTOS_CUENTA);
+    if (!controlCuenta.permitido) {
+      return NextResponse.json(
+        { error: 'Demasiados intentos de inicio de sesión. Esperá unos minutos y volvé a intentar.', segundosRestantes: controlCuenta.segundosRestantes },
+        { status: 429, headers: { 'Retry-After': String(controlCuenta.segundosRestantes) } }
+      );
+    }
 
     // 1. Buscar usuario en base de datos PostgreSQL
     const result = await query(
@@ -77,6 +85,9 @@ export async function POST(req: NextRequest) {
     if (!passwordValido) {
       return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
     }
+
+    // Un acceso válido corta el bloqueo acumulado de esa cuenta.
+    registros.delete(`cuenta:${emailLimpio}`);
 
     // El personal de portería puede iniciar sesión si tiene al menos una ceremonia
     // asignada. Las operaciones de acreditación validan aparte la ceremonia activa.
@@ -101,9 +112,8 @@ export async function POST(req: NextRequest) {
       nombre: usuario.nombre
     }, 8 * 60 * 60);
 
-    return NextResponse.json({
+    const respuesta = NextResponse.json({
       ok: true,
-      token,
       usuario: {
         id: usuario.id,
         nombre: usuario.nombre,
@@ -111,6 +121,16 @@ export async function POST(req: NextRequest) {
         rol: usuario.rol
       }
     });
+
+    respuesta.cookies.set('sigic_admin_session', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 8 * 60 * 60
+    });
+    respuesta.headers.set('Cache-Control', 'no-store');
+    return respuesta;
 
   } catch (error) {
     console.error('Error en API Login:', error);

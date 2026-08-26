@@ -62,9 +62,6 @@ export function FormularioGraduado({ onCreado, onCancelar, enModal = false }) {
 
   useEffect(() => {
     const dniLimpio = form.dni.replace(/\D/g, '')
-    setIdentidadConfirmada(false)
-    setMostrarModalIdentidad(false)
-    setCoincidencias([])
     if (dniLimpio.length < 7) return undefined
 
     const temporizador = setTimeout(async () => {
@@ -169,8 +166,8 @@ export function FormularioGraduado({ onCreado, onCancelar, enModal = false }) {
   }
 
   const formulario = (
-    <div className={`${enModal ? 'bg-white p-5 sm:p-8' : 'bg-white/50 backdrop-blur-sm p-8 border-b border-slate-100 animate-in fade-in slide-in-from-top-4 duration-500 rounded-[32px] mb-6 shadow-sm'}`}>
-      <form onSubmit={handleSubmit} className="mx-auto max-w-5xl space-y-8">
+    <div className={`${enModal ? 'bg-white p-5 sm:p-6' : 'bg-white/50 backdrop-blur-sm p-6 border-b border-slate-100 animate-in fade-in slide-in-from-top-4 duration-500 rounded-[28px] mb-6 shadow-sm'}`}>
+      <form onSubmit={handleSubmit} className="mx-auto max-w-4xl space-y-5">
         {error && (
           <div ref={errorRef} role="alert" aria-live="assertive" className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-red-700 shadow-sm animate-in fade-in slide-in-from-top-2">
             <AlertTriangle size={20} className="mt-0.5 shrink-0" />
@@ -181,26 +178,21 @@ export function FormularioGraduado({ onCreado, onCancelar, enModal = false }) {
           </div>
         )}
 
-        <div className={`flex flex-col gap-3 rounded-2xl border px-5 py-4 sm:flex-row sm:items-center sm:justify-between ${ceremoniaActiva ? 'border-sky-200 bg-sky-50' : 'border-red-200 bg-red-50'}`}>
+        <div className={`flex flex-col gap-2 rounded-xl border px-4 py-3 sm:flex-row sm:items-center sm:justify-between ${ceremoniaActiva ? 'border-sky-200 bg-sky-50/70' : 'border-red-200 bg-red-50'}`}>
           <div>
             <p className={`text-[10px] font-black uppercase tracking-widest ${ceremoniaActiva ? 'text-sky-600' : 'text-red-600'}`}>
               Ceremonia de destino
             </p>
-            <p className="mt-1 text-sm font-black text-slate-900">
+            <p className="mt-0.5 text-sm font-black text-slate-900">
               {ceremoniaActiva?.nombre || 'No hay una ceremonia activa'}
             </p>
-            {ceremoniaActiva && (
-              <p className="mt-1 text-xs font-semibold text-slate-500">
-                El nuevo graduado quedará registrado en esta ceremonia.
-              </p>
-            )}
           </div>
           <span className={`w-fit rounded-full px-3 py-1.5 text-[9px] font-black uppercase tracking-widest ${ceremoniaActiva ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
             {ceremoniaActiva ? 'Activa' : 'Requiere activación'}
           </span>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-x-5 gap-y-4 md:grid-cols-2 lg:grid-cols-3">
           <InputCampo
             label="Nombre completo"
             valor={form.nombre}
@@ -213,6 +205,9 @@ export function FormularioGraduado({ onCreado, onCancelar, enModal = false }) {
             valor={form.dni}
             onChange={(v) => {
               dniPerdioFocoRef.current = false
+              setIdentidadConfirmada(false)
+              setMostrarModalIdentidad(false)
+              setCoincidencias([])
               setForm((p) => ({ ...p, dni: v.replace(/\D/g, '') }))
             }}
             onBlur={() => {
@@ -274,92 +269,46 @@ export function FormularioGraduado({ onCreado, onCancelar, enModal = false }) {
         </div>
 
         {(buscandoDni || (coincidencias.length > 0 && identidadConfirmada)) && (
-          <div className={`rounded-[24px] border p-5 ${identidadConfirmada ? 'border-emerald-200 bg-emerald-50/70' : 'border-amber-200 bg-amber-50/70'}`}>
+          <div className={`rounded-xl border px-4 py-3 ${identidadConfirmada ? 'border-emerald-200 bg-emerald-50/60' : 'border-amber-200 bg-amber-50/70'}`}>
             {buscandoDni ? (
               <div className="flex items-center gap-3 text-slate-600">
                 <Search size={18} className="animate-pulse text-sky-500" />
-                <p className="text-xs font-black uppercase tracking-wider">Comprobando antecedentes del DNI…</p>
+                <p className="text-xs font-bold">Comprobando antecedentes del DNI…</p>
               </div>
             ) : (
-              <>
-                <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                  <div className="flex gap-3">
-                    <div className={`rounded-2xl p-3 ${identidadConfirmada ? 'bg-emerald-500 text-white' : 'bg-amber-100 text-amber-700'}`}>
-                      {identidadConfirmada ? <ShieldCheck size={22} /> : <AlertTriangle size={22} />}
+              <div className="flex items-start gap-3">
+                <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-emerald-500 text-white"><ShieldCheck size={18} /></div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-black text-slate-900">Identidad confirmada</p>
+                  <p className="mt-0.5 truncate text-[11px] font-semibold text-slate-600">{coincidencias[0].nombre} · {coincidencias[0].correo || 'Sin correo registrado'}</p>
+                  <details className="mt-1.5 text-[10px] text-slate-500">
+                    <summary className="flex cursor-pointer list-none items-center gap-1.5 font-bold text-emerald-700"><History size={11} /> {coincidencias.length} {coincidencias.length === 1 ? 'participación anterior' : 'participaciones anteriores'} · Ver historial</summary>
+                    <div className="mt-2 grid gap-2 sm:grid-cols-2">
+                      {coincidencias.map((registro) => <div key={registro.id} className="rounded-lg border border-emerald-100 bg-white/80 px-3 py-2"><strong className="block text-slate-800">{registro.carrera || 'Carrera sin informar'}</strong><span>{registro.ceremonia_nombre || 'Ceremonia sin informar'} · {registro.estado === 'RECHAZADO' ? 'No participó' : registro.ceremonia_activa ? (registro.estado || 'Pendiente') : 'Finalizada'}</span></div>)}
                     </div>
-                    <div>
-                      <p className="text-sm font-black text-slate-900">
-                        {coincidenciaEnCeremoniaActiva ? 'Ya está inscripto en esta ceremonia' : identidadConfirmada ? 'Identidad confirmada' : 'Este DNI ya figura en el sistema'}
-                      </p>
-                      <p className="mt-1 text-xs leading-relaxed text-slate-600">
-                        {coincidencias[0].nombre} · {coincidencias[0].correo || 'Sin correo registrado'}
-                      </p>
-                      <p className="mt-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                        <History size={12} /> {coincidenciaEnCeremoniaActiva ? 'Registro activo encontrado' : `${coincidencias.length} ${coincidencias.length === 1 ? 'participación anterior' : 'participaciones anteriores'}`}
-                      </p>
-                    </div>
-                  </div>
-                  {!identidadConfirmada && !coincidenciaEnCeremoniaActiva && (
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const persona = coincidencias[0]
-                          setForm((p) => ({ ...p, nombre: persona.nombre || p.nombre, correo: persona.correo || p.correo }))
-                          setIdentidadConfirmada(true)
-                          setError('')
-                        }}
-                        className="rounded-xl bg-slate-900 px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-white hover:bg-emerald-600"
-                      >
-                        Sí, es la misma persona
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setForm((p) => ({ ...p, dni: '' }))
-                          setError('Revisá el DNI antes de continuar: ya está asociado a otra persona.')
-                        }}
-                        className="rounded-xl border border-amber-300 bg-white px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-amber-700"
-                      >
-                        No coincide, revisar
-                      </button>
-                    </div>
-                  )}
-                  {coincidenciaEnCeremoniaActiva && <p className="max-w-xs text-[10px] font-bold leading-relaxed text-rose-700">No se creará una segunda inscripción. Cerrá este formulario y editá el registro existente desde el padrón.</p>}
+                  </details>
                 </div>
-
-                <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                  {coincidencias.map((registro) => (
-                    <div key={registro.id} className="rounded-2xl border border-white bg-white/80 p-3 shadow-sm">
-                      <p className="text-xs font-black text-slate-800">{registro.carrera || 'Carrera sin informar'}</p>
-                      <p className="mt-1 text-[10px] font-bold text-slate-500">{registro.ceremonia_nombre || 'Ceremonia sin informar'}</p>
-                      <p className="mt-2 text-[9px] font-black uppercase tracking-wider text-sky-600">
-                        {registro.estado === 'RECHAZADO' ? 'No participó' : registro.ceremonia_activa ? (registro.estado || 'Pendiente') : 'Ceremonia finalizada'}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              </>
+              </div>
             )}
           </div>
         )}
 
         {/* Vista previa del identificador configurado */}
-        <div className="p-5 bg-slate-900/5 rounded-2xl border border-slate-900/10 flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3">
           <div>
-            <p className="text-[10px] font-black uppercase text-slate-400 tracking-wider">Identificador Generado (Vista Previa)</p>
-            <p className="text-sm font-black text-slate-700 mt-1">{generarIdentificadorPreview()}</p>
+            <p className="text-[9px] font-black uppercase text-slate-400 tracking-wider">Identificador</p>
+            <p className="mt-0.5 text-sm font-black text-slate-700">{generarIdentificadorPreview()}</p>
           </div>
           <span className="text-[9px] font-bold text-slate-400 bg-white border border-slate-200 px-3 py-1.5 rounded-xl uppercase tracking-widest">
-            Patrón: {ajustes.formato_identificador}
+            {ajustes.formato_identificador}
           </span>
         </div>
         
-        <div className="flex items-center gap-6 pt-2">
+        <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-end">
           <button
             type="submit"
             disabled={cargando || !ceremoniaActiva || (coincidencias.length > 0 && !identidadConfirmada)}
-            className="group relative overflow-hidden rounded-[20px] bg-slate-900 px-8 py-4 text-white shadow-2xl shadow-slate-900/20 transition-all hover:bg-sky-600 active:scale-95 disabled:opacity-50"
+            className="group relative overflow-hidden rounded-xl bg-slate-900 px-6 py-3.5 text-white shadow-lg shadow-slate-900/15 transition-all hover:bg-sky-600 active:scale-95 disabled:opacity-50"
           >
             <span className="relative z-10 flex items-center gap-3 text-xs font-black uppercase tracking-widest">
               {cargando
@@ -376,7 +325,7 @@ export function FormularioGraduado({ onCreado, onCancelar, enModal = false }) {
           <button
             type="button"
             onClick={onCancelar}
-            className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-red-500 transition-colors"
+            className="px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] text-slate-400 hover:text-red-500 transition-colors"
           >
             Descartar
           </button>
@@ -494,7 +443,7 @@ export function FormularioGraduado({ onCreado, onCancelar, enModal = false }) {
 
   return createPortal(
     <div className="fixed inset-0 z-[200] flex items-end justify-center bg-slate-950/60 p-0 backdrop-blur-sm sm:items-center sm:p-5" role="dialog" aria-modal="true" aria-label="Registrar graduado">
-      <section className="max-h-[94dvh] w-full max-w-5xl overflow-y-auto rounded-t-[28px] bg-white shadow-2xl sm:rounded-[28px]">
+      <section className="max-h-[92dvh] w-full max-w-4xl overflow-y-auto rounded-t-[24px] bg-white shadow-2xl sm:rounded-[24px]">
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white/95 px-5 py-3 backdrop-blur sm:px-8">
           <div><p className="text-[9px] font-black uppercase tracking-[.18em] text-sky-600">Padrón de ceremonia</p><h2 className="text-base font-black text-slate-900">Nuevo graduado</h2></div>
           <button type="button" onClick={onCancelar} className="grid h-9 w-9 place-items-center rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-700" aria-label="Cerrar formulario">X</button>

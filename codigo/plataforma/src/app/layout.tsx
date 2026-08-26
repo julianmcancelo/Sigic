@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import "@jcancelo/mapa-asientos-sigic/dist/style.css";
 
 export const metadata: Metadata = {
   title: "SiGIC · Sistema de Gestión Integral de Colación",

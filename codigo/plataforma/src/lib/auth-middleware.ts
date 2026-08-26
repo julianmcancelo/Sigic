@@ -21,7 +21,10 @@ export function obtenerUsuarioAutenticado(
   rolesPermitidos?: string[]
 ): AuthResult {
   const cabecera = req.headers.get('authorization') || '';
-  if (!cabecera.startsWith('Bearer ')) {
+  const tokenCabecera = cabecera.startsWith('Bearer ') ? cabecera.slice(7) : '';
+  const tokenCookie = req.cookies.get('sigic_admin_session')?.value || '';
+  const token = tokenCabecera || tokenCookie;
+  if (!token) {
     return {
       valido: false,
       error: 'Sesión requerida. Iniciá sesión para continuar.',
@@ -29,7 +32,6 @@ export function obtenerUsuarioAutenticado(
     };
   }
 
-  const token = cabecera.slice(7);
   const resultado = verificar(token);
 
   if (!resultado.valido) {

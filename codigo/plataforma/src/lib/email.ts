@@ -12,13 +12,28 @@ function obtenerClienteResend() {
 }
 
 type ArchivoAdjunto = { filename: string; content: Buffer; contentType?: string };
+const REMITENTE_PREDETERMINADO = 'SiGIC <no-responder@notificaciones.sigic.com.ar>';
+
+export function normalizarRemitente(valor?: string) {
+  const limpio = String(valor || '')
+    .trim()
+    .replace(/^["']+|["']+$/g, '')
+    .replace(/[\r\n]/g, ' ')
+    .trim();
+  const correo = limpio.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)?.[0]?.toLowerCase();
+  if (!correo) return REMITENTE_PREDETERMINADO;
+
+  const nombreCrudo = limpio.includes('<') ? limpio.slice(0, limpio.indexOf('<')) : '';
+  const nombre = nombreCrudo.replace(/["'<>]/g, '').trim() || 'SiGIC';
+  return `${nombre} <${correo}>`;
+}
 
 function escaparHTML(valor: string) {
   return String(valor || '').replace(/[&<>"']/g, caracter => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[caracter] || caracter);
 }
 
 export async function enviarCorreo(destinatario: string, asunto: string, cuerpoHTML: string, adjuntos: ArchivoAdjunto[] = []) {
-  const remitente = process.env.EMAIL_FROM || 'SiGIC <no-responder@notificaciones.sigic.com.ar>';
+  const remitente = normalizarRemitente(process.env.EMAIL_FROM);
   const { data, error } = await obtenerClienteResend().emails.send({
     from: remitente,
     to: [destinatario],

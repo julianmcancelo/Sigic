@@ -2,22 +2,52 @@
  * PanelGraduado - Panel principal que ve el graduado al iniciar sesión.
  * Contiene 3 pestañas: Acompañantes, Padrinos y Credencial.
  * El graduado propone las butacas del grupo y administración confirma la asignación final.
- * Reemplaza a RegistroInvitados.jsx con terminología y flujo actualizado.
  */
 import { useState, useEffect } from 'react'
-import { 
-  Users, UserPlus, LogOut, Trash2, Edit3, QrCode, 
-  AlertCircle, Plus, CheckCircle, X, GraduationCap, 
-  UserCheck, Armchair, History, CircleCheck
+import Image from 'next/image'
+import {
+  Users, LogOut, QrCode,
+  GraduationCap, Armchair,
+  CalendarDays, MapPin, Check, ArrowLeft
 } from 'lucide-react'
 import { 
   obtenerInvitadosDeEgresado, eliminarInvitado, actualizarInvitado, 
   cargarInvitados, obtenerProfesores, obtenerEntregadoresDeGraduado,
-  asignarEntregador, eliminarEntregador, finalizarInscripcionGraduado, obtenerAjustes
+  asignarEntregador, eliminarEntregador, finalizarInscripcionGraduado, obtenerAjustes,
+  obtenerGraduadoPorId
 } from '../servicios/api'
+import { useSincronizacion, emitirCambioSync } from '../lib/sync'
 import { ModalCredencial } from '../componentes/ModalCredencial'
 import { ModalAsignarAsientos } from '../componentes/ModalAsignarAsientos'
 import { ListaHistorialGraduado } from './HistorialGraduado'
+import { FormularioAcompanante } from '../componentes/graduado/FormularioAcompanante'
+import { ListaAcompanantes } from '../componentes/graduado/ListaAcompanantes'
+import { SeccionPadrinos } from '../componentes/graduado/SeccionPadrinos'
+
+function formatearFechaCeremonia(valor) {
+  if (!valor) return 'Fecha a confirmar'
+
+  const fecha = /^\d{4}-\d{2}-\d{2}$/.test(String(valor))
+    ? new Date(`${valor}T12:00:00`)
+    : new Date(valor)
+
+  if (Number.isNaN(fecha.getTime())) return 'Fecha a confirmar'
+
+  return fecha.toLocaleDateString('es-AR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  })
+}
+
+function obtenerIniciales(nombre = '') {
+  return nombre
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map(parte => parte.charAt(0).toUpperCase())
+    .join('') || 'G'
+}
 
 export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
   const [graduado, setGraduado] = useState(graduadoSesion)
@@ -42,32 +72,53 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
   const [entregadores, setEntregadores] = useState([])
   const [mostrarSelectorEntregador, setMostrarSelectorEntregador] = useState(false)
 
-  useEffect(() => { cargarDatos() }, [])
-
-  async function cargarDatos() {
+  async function cargarDatos(mostrarSpinner = true) {
     try {
-      setCargando(true)
-      const [dataInv, dataProf, dataEntr] = await Promise.all([
+      if (mostrarSpinner) setCargando(true)
+      const [resultadoInvitados, resultadoProfesores, resultadoEntregadores, resultadoGraduado] = await Promise.allSettled([
         obtenerInvitadosDeEgresado(graduadoSesion.id),
         obtenerProfesores(),
-        obtenerEntregadoresDeGraduado(graduadoSesion.id)
+        obtenerEntregadoresDeGraduado(graduadoSesion.id),
+        obtenerGraduadoPorId(graduadoSesion.id)
       ])
-      setInvitados(dataInv)
-      setProfesores(dataProf)
-      setEntregadores(dataEntr)
+
+      if (resultadoInvitados.status === 'fulfilled') {
+        setInvitados(resultadoInvitados.value)
+      }
+      if (resultadoProfesores.status === 'fulfilled') {
+        setProfesores(resultadoProfesores.value)
+      }
+      if (resultadoEntregadores.status === 'fulfilled') {
+        setEntregadores(resultadoEntregadores.value)
+      }
+      if (resultadoGraduado.status === 'fulfilled' && resultadoGraduado.value) {
+        setGraduado(prev => ({ ...prev, ...resultadoGraduado.value }))
+      }
 
       try {
         const config = await obtenerAjustes()
-        if (config.max_invitados_por_egresado) {
-          setMaxInvitados(parseInt(config.max_invitados_por_egresado.valor))
+        if (config?.max_invitados_por_egresado) {
+          setMaxInvitados(parseInt(config.max_invitados_por_egresado.valor, 10))
         }
       } catch {}
     } catch (err) {
       console.error('Error al cargar datos del panel:', err)
+      if (mostrarSpinner) {
+        setMensaje({ tipo: 'error', texto: 'No pudimos cargar tu grupo. Actualizá la página para volver a intentar.' })
+      }
     } finally {
-      setCargando(false)
+      if (mostrarSpinner) setCargando(false)
     }
   }
+
+  useEffect(() => {
+    cargarDatos(true)
+  }, [graduadoSesion.id])
+
+  // Escuchar cambios en vivo emitidos desde el administrador u otras pestañas
+  useSincronizacion(['BUTACAS', 'EGRESADOS', 'INVITADOS', 'ENTREGADORES'], () => {
+    cargarDatos(false)
+  })
 
   // ─── Funciones de invitados ─────────────────────────────────
 
@@ -80,7 +131,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
 
   function iniciarEdicion(inv) {
     setDatosForm({
-      nombre: inv.nombre, dni: inv.dni, telefono: inv.telefono,
+      nombre: inv.nombre, dni: inv.dni, telefono: inv.telefono || '',
       correo: inv.correo || '', relacion: inv.relacion || 'Acompañante',
       discapacidad: inv.discapacidad === 1 || inv.discapacidad === true
     })
@@ -102,11 +153,21 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
       if (editandoId) {
         const actualizado = await actualizarInvitado(editandoId, datosForm)
         setInvitados(prev => prev.map(i => i.id === editandoId ? actualizado : i))
+        setEntregadores(prev => prev.map(e => e.invitado_id === editandoId ? { ...e, nombre: actualizado.nombre } : e))
+        setMensaje({ tipo: 'exito', texto: 'Acompañante actualizado correctamente.' })
+        emitirCambioSync('INVITADOS', { egresadoId: graduadoSesion.id })
       } else {
         const [creado] = await cargarInvitados(null, [datosForm], graduadoSesion.id)
         setInvitados(prev => [...prev, creado])
+        if (graduado.estado_asignacion_butacas === 'CONFIRMADA') {
+          setGraduado(prev => ({ ...prev, estado_asignacion_butacas: 'PENDIENTE_REVISION' }))
+          setMensaje({ tipo: 'info', texto: `${creado.nombre} agregado. Al cambiar tu grupo, podés asignarle una butaca para enviar la propuesta a administración.` })
+        } else {
+          setMensaje({ tipo: 'exito', texto: 'Acompañante añadido con éxito.' })
+        }
+        emitirCambioSync('INVITADOS', { egresadoId: graduadoSesion.id })
+        emitirCambioSync('EGRESADOS', { egresadoId: graduadoSesion.id })
       }
-      setMensaje({ tipo: 'exito', texto: editandoId ? 'Actualizado correctamente' : 'Invitado añadido con éxito' })
       setTimeout(limpiarForm, 1000)
     } catch (err) {
       setMensaje({ tipo: 'error', texto: err.message })
@@ -116,11 +177,28 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
   }
 
   async function manejarEliminarInvitado(id) {
-    if (!window.confirm('¿Estás seguro de eliminar a este invitado?')) return
+    const invitadoABorrar = invitados.find(i => i.id === id)
+    const tieneButaca = Boolean(invitadoABorrar?.asiento_id || invitadoABorrar?.asiento_solicitado_id)
+    const aviso = tieneButaca 
+      ? `¿Estás seguro de eliminar a ${invitadoABorrar?.nombre}? Su butaca asignada quedará liberada.`
+      : `¿Estás seguro de eliminar a ${invitadoABorrar?.nombre || 'este acompañante'}?`
+
+    if (!window.confirm(aviso)) return
     try {
       await eliminarInvitado(id)
       setInvitados(prev => prev.filter(i => i.id !== id))
-    } catch (err) { alert(err.message) }
+      setEntregadores(prev => prev.filter(e => e.invitado_id !== id))
+      if (graduado.estado_asignacion_butacas === 'CONFIRMADA' || tieneButaca) {
+        setGraduado(prev => ({ ...prev, estado_asignacion_butacas: 'PENDIENTE_REVISION' }))
+      }
+      emitirCambioSync('INVITADOS', { egresadoId: graduadoSesion.id })
+      emitirCambioSync('EGRESADOS', { egresadoId: graduadoSesion.id })
+      emitirCambioSync('BUTACAS', { egresadoId: graduadoSesion.id })
+      setMensaje({ tipo: 'exito', texto: `Acompañante eliminado${tieneButaca ? ' y su butaca fue liberada.' : '.'}` })
+      setTimeout(() => setMensaje({ tipo: '', texto: '' }), 4000)
+    } catch (err) {
+      setMensaje({ tipo: 'error', texto: err.message || 'Error al eliminar acompañante' })
+    }
   }
 
   async function finalizarInscripcion() {
@@ -128,6 +206,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
     try {
       const resultado = await finalizarInscripcionGraduado(graduado.id)
       setGraduado(valor => ({ ...valor, ...resultado.graduado }))
+      emitirCambioSync('EGRESADOS', { egresadoId: graduado.id })
       setMensaje({ tipo: 'exito', texto: resultado.mensaje })
     } catch (error) {
       setMensaje({ tipo: 'error', texto: error.message || 'No se pudo finalizar la inscripción.' })
@@ -141,8 +220,6 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
   async function manejarAgregarEntregador(tipo, referencia) {
     setProcesando(true)
     try {
-      // Usar el primer slot (1-3) que esté realmente libre: si se borró un padrino
-      // del medio, "cantidad + 1" puede chocar con un orden que ya existe.
       const ordenLibre = [1, 2, 3].find(o => !entregadores.some(e => e.orden === o)) || (entregadores.length + 1)
       const datos = {
         egresado_id: graduadoSesion.id,
@@ -156,6 +233,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
       const creado = await asignarEntregador(datos)
       setEntregadores(prev => [...prev, creado])
       setMostrarSelectorEntregador(false)
+      emitirCambioSync('ENTREGADORES', { egresadoId: graduadoSesion.id })
       setMensaje({ tipo: 'exito', texto: `${referencia.nombre} agregado como padrino` })
       setTimeout(() => setMensaje({ tipo: '', texto: '' }), 2000)
     } catch (err) {
@@ -170,6 +248,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
     try {
       await eliminarEntregador(id)
       setEntregadores(prev => prev.filter(e => e.id !== id))
+      emitirCambioSync('ENTREGADORES', { egresadoId: graduadoSesion.id })
     } catch (err) { alert(err.message) }
   }
 
@@ -181,380 +260,249 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
     ...invitados.map(i => i.asiento_id || i.asiento_solicitado_id)
   ].filter(Boolean)
   const estadoButacas = graduado.estado_asignacion_butacas || 'SIN_SOLICITUD'
-  const pasoButacas = estadoButacas === 'CONFIRMADA' ? 3 : estadoButacas === 'PENDIENTE_REVISION' ? 2 : 1
   const perfilCompleto = Boolean(graduado.perfil_finalizado_en)
+  const propuestaGuardada = estadoButacas === 'PENDIENTE_REVISION' || estadoButacas === 'CONFIRMADA'
+  const credencialDisponible = estadoButacas === 'CONFIRMADA'
+  const cuposRestantes = Math.max(maxInvitados - invitados.length, 0)
+  const fechaCeremonia = formatearFechaCeremonia(graduado.ceremonia_fecha)
+  const lugarCeremonia = graduado.ceremonia_lugar || 'Sede Beltrán'
+  const nombreCeremonia = graduado.ceremonia_nombre || 'Ceremonia de colación'
+  const etapasPortal = [
+    { etiqueta: 'Grupo', completada: perfilCompleto },
+    { etiqueta: 'Propuesta', completada: propuestaGuardada },
+    { etiqueta: 'Credencial', completada: credencialDisponible }
+  ]
+  const pasosCompletados = etapasPortal.filter(etapa => etapa.completada).length
   const accionSiguiente = estadoButacas === 'CONFIRMADA'
-    ? { titulo: 'Todo listo', detalle: 'Tu credencial y tus ubicaciones están confirmadas.', etiqueta: 'Ver credencial', accion: () => setPestana('credencial') }
+    ? { titulo: 'Ubicaciones confirmadas', detalle: 'La institución aprobó tus butacas. Tu credencial ya está disponible para descargar, imprimir o guardar en Google Wallet.', etiqueta: 'Ver credencial digital', accion: () => setPestana('credencial') }
     : estadoButacas === 'PENDIENTE_REVISION'
-      ? { titulo: 'Propuesta guardada', detalle: 'Podés revisarla mientras administración confirma las ubicaciones.', etiqueta: 'Ver propuesta', accion: () => setMostrarButacas(true) }
-      : !perfilCompleto
-        ? { titulo: 'Completá tu grupo', detalle: 'Revisá acompañantes y padrinos; después guardá la inscripción.', etiqueta: 'Revisar grupo', accion: () => setPestana('invitados') }
-        : graduado.estado === 'ACEPTADO'
-          ? { titulo: 'Elegí las butacas', detalle: 'Asigná una ubicación a cada integrante de tu grupo.', etiqueta: 'Elegir butacas', accion: () => setMostrarButacas(true) }
-          : { titulo: 'Confirmá tu participación', detalle: 'La selección de butacas se habilita cuando aceptás la invitación.', etiqueta: null, accion: null }
+      ? { titulo: 'Propuesta en revisión', detalle: 'Tus butacas fueron enviadas. Podés ver el mapa mientras administración realiza la confirmación oficial.', etiqueta: 'Ver propuesta', accion: () => setMostrarButacas(true) }
+      : perfilCompleto
+        ? { titulo: 'Elegí las butacas', detalle: 'Proponé las butacas del grupo para que administración confirme tus lugares en el anfiteatro.', etiqueta: 'Proponer butacas', accion: () => setMostrarButacas(true) }
+        : { titulo: 'Revisá tus acompañantes', detalle: 'Cargá tus invitados o continuá solo para habilitar la propuesta de butacas.', etiqueta: 'Cargar acompañante', accion: () => { setPestana('invitados'); setMostrarForm(true); } }
 
-  if (cargando && invitados.length === 0) {
+  if (cargando) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50">
-        <div className="text-center">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-sky-500 border-t-transparent mx-auto mb-4" />
-          <p className="text-xs font-bold uppercase tracking-widest text-sky-500">Cargando tu panel...</p>
+      <div className="flex min-h-screen items-center justify-center bg-[#f8fafc]">
+        <div className="flex flex-col items-center gap-3 text-slate-500">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-sky-500 border-t-transparent" />
+          <p className="text-xs font-semibold">Cargando tu panel...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="sigic-graduate-portal min-h-screen flex flex-col md:flex-row bg-slate-100 font-sans">
-      
-      {/* SIDEBAR */}
-      <aside className="sigic-graduate-nav w-full md:w-64 bg-[#0d1b2e] text-white flex flex-col">
-        <div className="sigic-graduate-brand p-6 border-b border-white/10 text-center md:text-left">
-          <div className="flex items-center gap-3 justify-center md:justify-start">
-            <div className="h-8 w-8 bg-sky-500 rounded-lg flex items-center justify-center font-bold text-white shadow-lg shadow-sky-500/20">S</div>
-            <span className="font-black tracking-wider text-xl">SiGIC</span>
+    <div className="min-h-screen bg-[#f8fafc] text-slate-900 pb-16 font-sans">
+      {/* Topbar Institucional */}
+      <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur-md">
+        <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-6">
+          <div className="flex items-center gap-3">
+            <div className="relative h-9 w-9 overflow-hidden rounded-xl border border-slate-200 bg-white p-1">
+              <Image src="/logo.png" alt="Logo Beltrán" fill className="object-contain" sizes="36px" />
+            </div>
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[.18em] text-slate-400">SiGIC · Instituto Beltrán</p>
+              <h1 className="text-sm font-black text-slate-800">{nombreCeremonia}</h1>
+            </div>
           </div>
-          <p className="text-[9px] text-sky-400 font-bold mt-1 tracking-widest uppercase opacity-70">Panel Graduado v4.0</p>
-        </div>
-
-        <nav className="sigic-graduate-tabs flex-1 p-4 space-y-2">
-          <button onClick={() => setPestana('invitados')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${pestana === 'invitados' ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/20' : 'text-slate-400 hover:bg-white/5'}`}>
-            <Users size={18} /> <span className="text-sm font-bold">Acompañantes</span>
-          </button>
-          <button onClick={() => setPestana('entregadores')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${pestana === 'entregadores' ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/20' : 'text-slate-400 hover:bg-white/5'}`}>
-            <GraduationCap size={18} /> <span className="text-sm font-bold">Padrinos</span>
-          </button>
-          <button onClick={() => setMostrarButacas(true)} disabled={graduado.estado !== 'ACEPTADO'} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 transition-all hover:bg-white/5 disabled:cursor-not-allowed disabled:opacity-40">
-            <Armchair size={18} /> <span className="text-sm font-bold">Elegir butacas</span>
-          </button>
-          <button onClick={() => setPestana('credencial')} disabled={estadoButacas !== 'CONFIRMADA'} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all disabled:cursor-not-allowed disabled:opacity-35 ${pestana === 'credencial' ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/20' : 'text-slate-400 hover:bg-white/5'}`}>
-            <QrCode size={18} /> <span className="text-sm font-bold">Credencial</span>
-          </button>
-          <button onClick={() => setPestana('historial')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${pestana === 'historial' ? 'bg-sky-500 text-white shadow-lg shadow-sky-500/20' : 'text-slate-400 hover:bg-white/5'}`}>
-            <History size={18} /> <span className="text-sm font-bold">Mis ceremonias</span>
-          </button>
-        </nav>
-
-        <div className="sigic-graduate-actions p-4 border-t border-white/10">
-          <button onClick={finalizarInscripcion} disabled={finalizandoInscripcion || perfilCompleto} className="mb-2 w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 transition-all disabled:opacity-60">
-            <CircleCheck size={18} /> <span className="text-sm font-bold">{finalizandoInscripcion ? 'Finalizando...' : graduado.perfil_finalizado_en ? 'Inscripción finalizada' : 'Guardar y finalizar'}</span>
-          </button>
-          <button onClick={onCerrarSesion} className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 transition-all">
-            <LogOut size={18} /> <span className="text-sm font-bold">Cerrar Sesión</span>
+          <button
+            onClick={onCerrarSesion}
+            className="inline-flex h-9 items-center gap-2 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+          >
+            <LogOut size={14} /> <span className="hidden sm:inline">Cerrar sesión</span>
           </button>
         </div>
-      </aside>
+      </header>
 
-      {/* CONTENIDO */}
-      <main className="sigic-graduate-main flex-1 p-6 md:p-10 overflow-y-auto">
-        
-        {/* HEADER */}
-        <header className="sigic-graduate-header flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10">
-          <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-sky-500 mb-1">Bienvenido al Portal</p>
-            <h1 className="text-4xl font-black text-slate-800 tracking-tight">{graduado.nombre}</h1>
-            <p className="text-slate-500 font-medium">Legajo {graduado.legajo} • Sede Beltrán</p>
-          </div>
-          <div className="sigic-graduate-metrics flex gap-4">
-            <div className="flex items-center gap-4 bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
-              <div className="h-10 w-10 bg-sky-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-sky-200">
-                <Users size={20} />
+      <main className="mx-auto max-w-5xl px-4 pt-6 sm:px-6">
+        {/* Banner de Bienvenida y Estado */}
+        <section className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-[#0c1e33] via-[#10243c] to-[#0a1829] p-6 text-white shadow-xl sm:p-8">
+          <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+            <div className="space-y-3">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold text-sky-300 backdrop-blur-sm">
+                <span>{nombreCeremonia}</span>
+                <span className="h-1 w-1 rounded-full bg-sky-400" />
+                <span className="text-white/80">{fechaCeremonia}</span>
               </div>
               <div>
-                <p className="text-[9px] uppercase font-black text-slate-400 tracking-widest leading-none mb-1">Invitados</p>
-                <p className="text-xl font-black text-slate-800 leading-none">{invitados.length} / {maxInvitados}</p>
+                <p className="text-xs font-bold uppercase tracking-widest text-white/50">Portal del Graduado</p>
+                <h1 className="mt-1 text-2xl font-black tracking-tight sm:text-3xl text-white">Hola, {graduado.nombre}</h1>
+                <p className="mt-1 text-xs font-medium text-white/70">
+                  Legajo {graduado.legajo} · {graduado.carrera || 'Tecnicatura Superior'} · DNI {graduado.dni}
+                </p>
               </div>
             </div>
 
-            {/* Asientos asignados (solo lectura) */}
-            {todosLosAsientos.length > 0 && (
-              <div className="flex items-center gap-4 bg-emerald-50 p-5 rounded-3xl shadow-sm border border-emerald-100">
-                <div className="h-10 w-10 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-200">
-                  <Armchair size={20} />
-                </div>
-                <div>
-                  <p className="text-[9px] uppercase font-black text-emerald-600 tracking-widest leading-none mb-1">Asientos asignados</p>
-                  <p className="text-xl font-black text-emerald-700 leading-none">{todosLosAsientos.length}</p>
-                </div>
+            {/* Próximo Paso Card */}
+            <div className="w-full lg:max-w-md rounded-2xl border border-white/10 bg-white/10 p-4 backdrop-blur-md">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-[10px] font-black uppercase tracking-wider text-sky-300">Próximo paso</span>
+                <span className="rounded-full bg-white/10 px-2 py-0.5 text-[9px] font-black text-white">
+                  {pasosCompletados} de 3 listos
+                </span>
               </div>
-            )}
-          </div>
-        </header>
-
-        {/* Mensaje global */}
-        {mensaje.texto && (
-          <div className={`mb-6 px-5 py-3 rounded-2xl text-sm font-semibold border ${
-            mensaje.tipo === 'exito' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-600 border-red-200'
-          }`}>
-            {mensaje.texto}
-          </div>
-        )}
-
-        <section className="mb-7 overflow-hidden rounded-[22px] border border-slate-200 bg-white shadow-sm">
-          <div className="flex flex-col gap-3 border-b border-slate-100 bg-slate-50 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-            <div><p className="text-[10px] font-black uppercase tracking-[.16em] text-sky-600">Próxima acción</p><p className="mt-1 text-sm font-black text-slate-800">{accionSiguiente.titulo}</p><p className="mt-0.5 text-xs text-slate-500">{accionSiguiente.detalle}</p></div>
-            {accionSiguiente.etiqueta && <button onClick={accionSiguiente.accion} className="rounded-xl bg-slate-900 px-4 py-2 text-[10px] font-black uppercase tracking-wider text-white transition hover:bg-sky-600">{accionSiguiente.etiqueta}</button>}
-          </div>
-          <div className="grid grid-cols-3 gap-2 px-5 py-4">
-            {['Grupo', 'Propuesta', 'Credencial'].map((etiqueta, indice) => <div key={etiqueta} className={`flex items-center gap-2 text-[10px] font-bold ${indice < pasoButacas ? 'text-emerald-700' : 'text-slate-400'}`}><span className={`grid h-5 w-5 place-items-center rounded-full text-[9px] ${indice < pasoButacas ? 'bg-emerald-500 text-white' : 'bg-slate-100'}`}>{indice + 1}</span>{etiqueta}</div>)}
-          </div>
-        </section>
-
-        {pestana === 'historial' && (
-          <section className="space-y-5">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-sky-500">Historial personal</p>
-              <h2 className="mt-1 text-2xl font-black text-slate-800">Mis carreras y ceremonias</h2>
-              <p className="mt-1 text-sm text-slate-500">Cada participación conserva su fecha, carrera y decisión de asistencia.</p>
+              <h3 className="mt-2 text-sm font-black text-white">{accionSiguiente.titulo}</h3>
+              <p className="mt-1 text-xs text-white/75 leading-relaxed">{accionSiguiente.detalle}</p>
+              <button
+                onClick={accionSiguiente.accion}
+                className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-sky-500 px-4 text-xs font-black text-white shadow-lg shadow-sky-500/25 transition hover:bg-sky-400"
+              >
+                {accionSiguiente.etiqueta}
+              </button>
             </div>
-            <ListaHistorialGraduado historial={graduadoSesion.historial || [graduadoSesion]} actualId={graduadoSesion.id} />
-          </section>
-        )}
+          </div>
 
-        {/* ═══════ PESTAÑA: ACOMPAÑANTES ═══════ */}
-        {pestana === 'invitados' && (
-          <div className="sigic-guest-section space-y-8">
-            <div className="sigic-guest-toolbar flex items-center justify-between">
-              <h2 className="text-xl font-black text-slate-800 flex items-center gap-3">
-                <UserCheck className="text-sky-500" size={24} />
-                Invitados Familiares
-              </h2>
-              {invitados.length < maxInvitados && (
-                <button onClick={() => { limpiarForm(); setMostrarForm(true); }} className="sigic-guest-add-button flex items-center gap-2 bg-sky-500 text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl shadow-sky-500/30 hover:bg-sky-600 transition-all active:scale-95">
-                  <Plus size={16} /> Añadir Familiar
-                </button>
-              )}
-            </div>
-            <p className="sigic-guest-help -mt-5 text-xs font-medium text-slate-500">Podés guardar cada acompañante y finalizar la inscripción cuando termines. El contacto es opcional.</p>
-
-            {/* Formulario inline */}
-            {mostrarForm && (
-              <div className="sigic-guest-form bg-white rounded-[32px] p-8 border-2 border-sky-100 shadow-2xl">
-                <div className="sigic-guest-form-header flex justify-between items-center mb-8">
-                  <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight">{editandoId ? 'Editar Datos' : 'Nuevo Acompañante'}</h3>
-                  <button onClick={limpiarForm} className="text-slate-400 hover:text-slate-600 p-2 hover:bg-slate-50 rounded-xl transition-all"><X size={20} /></button>
-                </div>
-                <form onSubmit={guardarInvitado} className="sigic-guest-fields grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Nombre y Apellido</label>
-                    <input type="text" required className="w-full bg-slate-50 border border-slate-200 p-3.5 rounded-2xl focus:ring-2 focus:ring-sky-500 outline-none transition-all" value={datosForm.nombre} onChange={e => setDatosForm({...datosForm, nombre: e.target.value})}/>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">DNI / Pasaporte</label>
-                    <input type="text" required className="w-full bg-slate-50 border border-slate-200 p-3.5 rounded-2xl focus:ring-2 focus:ring-sky-500 outline-none transition-all" value={datosForm.dni} onChange={e => setDatosForm({...datosForm, dni: e.target.value})}/>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Vínculo</label>
-                    <select className="w-full bg-slate-50 border border-slate-200 p-3.5 rounded-2xl focus:ring-2 focus:ring-sky-500 outline-none transition-all" value={datosForm.relacion} onChange={e => setDatosForm({...datosForm, relacion: e.target.value})}>
-                      <option value="Padre/Madre">Padre/Madre</option>
-                      <option value="Hermano/a">Hermano/a</option>
-                      <option value="Pareja">Pareja</option>
-                      <option value="Otro">Otro Familiar</option>
-                    </select>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase ml-1">Contacto <span className="normal-case text-slate-300">(opcional)</span></label>
-                    <input type="tel" className="w-full bg-slate-50 border border-slate-200 p-3.5 rounded-2xl focus:ring-2 focus:ring-sky-500 outline-none transition-all" value={datosForm.telefono} onChange={e => setDatosForm({...datosForm, telefono: e.target.value})}/>
-                  </div>
-                  <div className="md:col-span-2 bg-indigo-50 p-4 rounded-2xl flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center"><AlertCircle size={18} /></div>
-                      <div>
-                        <p className="text-sm font-black text-indigo-900 leading-tight">Acceso Prioritario</p>
-                        <p className="text-[10px] text-indigo-500 font-bold uppercase tracking-wide">¿Requiere ubicación para movilidad reducida?</p>
-                      </div>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input type="checkbox" className="sr-only peer" checked={datosForm.discapacidad} onChange={e => setDatosForm({...datosForm, discapacidad: e.target.checked})}/>
-                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-500"></div>
-                    </label>
-                  </div>
-                  <div className="sigic-guest-form-actions md:col-span-2 flex gap-4 pt-4">
-                    <button type="submit" disabled={procesando} className="flex-1 bg-sky-500 text-white font-black py-4 rounded-2xl hover:bg-sky-600 disabled:opacity-50 text-xs uppercase tracking-widest shadow-lg active:scale-95 transition-all">
-                      {procesando ? 'Procesando...' : 'Confirmar Registro'}
-                    </button>
-                    <button type="button" onClick={limpiarForm} className="bg-slate-100 text-slate-600 font-black px-10 rounded-2xl hover:bg-slate-200 text-xs uppercase tracking-widest transition-all">Cancelar</button>
-                  </div>
-                </form>
-              </div>
-            )}
-
-            {/* Lista de invitados */}
-            <div className="sigic-guest-list grid grid-cols-1 md:grid-cols-2 gap-5">
-              {invitados.map(inv => (
-                <div key={inv.id} className="sigic-guest-card bg-white p-6 rounded-[28px] shadow-sm border border-slate-100 flex items-center justify-between group hover:border-sky-300 transition-all hover:shadow-xl">
-                  <div className="flex items-center gap-5">
-                    <div className="h-14 w-14 bg-slate-50 text-slate-300 rounded-2xl flex items-center justify-center font-black group-hover:bg-sky-50 group-hover:text-sky-500 transition-all text-xl">{inv.nombre.charAt(0)}</div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-bold text-slate-800 text-lg leading-tight">{inv.nombre}</h4>
-                        {inv.discapacidad === 1 && (
-                          <span className="bg-indigo-100 text-indigo-600 p-1 rounded-md" title="Acceso Prioritario"><AlertCircle size={14} /></span>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">{inv.relacion} • DNI {inv.dni}</p>
-                      {(inv.asiento_id || inv.asiento_solicitado_id) && <p className="text-[10px] font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-lg inline-block mt-2">{inv.asiento_id ? 'ASIENTO' : 'PROPUESTA'}: {inv.asiento_id || inv.asiento_solicitado_id}</p>}
-                    </div>
-                  </div>
-                  <div className="sigic-guest-card-actions flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                    <button onClick={() => iniciarEdicion(inv)} className="p-3 text-slate-400 hover:text-sky-500 hover:bg-sky-50 rounded-xl transition-all"><Edit3 size={18} /></button>
-                    <button onClick={() => manejarEliminarInvitado(inv.id)} className="p-3 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"><Trash2 size={18} /></button>
-                  </div>
+          {/* Progreso de 3 etapas */}
+          <div className="mt-6 border-t border-white/10 pt-5">
+            <div className="grid grid-cols-3 gap-2">
+              {etapasPortal.map((etapa, idx) => (
+                <div key={etapa.etiqueta} className="flex items-center gap-2">
+                  <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-[10px] font-black ${etapa.completada ? 'bg-emerald-500 text-white' : 'bg-white/10 text-white/60'}`}>
+                    {etapa.completada ? <Check size={12} strokeWidth={3} /> : idx + 1}
+                  </span>
+                  <span className={`text-xs font-bold truncate ${etapa.completada ? 'text-white' : 'text-white/60'}`}>
+                    {etapa.etiqueta}
+                  </span>
                 </div>
               ))}
             </div>
           </div>
-        )}
+        </section>
 
-        {/* ═══════ PESTAÑA: ENTREGADORES ═══════ */}
-        {pestana === 'entregadores' && (
-          <div className="space-y-8">
-            <div>
-              <h2 className="text-2xl font-black text-slate-800 tracking-tight mb-2">Seleccioná tus Padrinos</h2>
-              <p className="text-sm text-slate-500 font-medium">Elegí hasta 3 personas que te entreguen el título, entre profesores de la institución y tus familiares invitados.</p>
-            </div>
-
-            {/* Slots de entregadores */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {[1, 2, 3].map(orden => {
-                const entregadorActual = entregadores.find(e => e.orden === orden)
-
-                return (
-                  <div key={orden} className={`bg-white rounded-3xl border-2 p-6 transition-all ${
-                    entregadorActual ? 'border-indigo-200 shadow-lg' : 'border-dashed border-slate-200'
-                  }`}>
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500 mb-4">{orden}° Padrino</p>
-
-                    {entregadorActual ? (
-                      <div>
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className={`h-12 w-12 rounded-2xl flex items-center justify-center text-white font-black shadow-lg ${
-                            entregadorActual.tipo === 'PROFESOR' ? 'bg-gradient-to-br from-indigo-500 to-purple-600' : 'bg-gradient-to-br from-sky-500 to-cyan-600'
-                          }`}>
-                            {entregadorActual.nombre?.charAt(0)?.toUpperCase()}
-                          </div>
-                          <div>
-                            <p className="font-bold text-slate-800">{entregadorActual.nombre}</p>
-                            <p className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                              {entregadorActual.tipo === 'PROFESOR' ? <GraduationCap size={12} /> : <Users size={12} />}
-                              {entregadorActual.tipo === 'PROFESOR' ? 'Profesor' : 'Familiar'}
-                            </p>
-                          </div>
-                        </div>
-                        <button
-                          onClick={() => manejarEliminarEntregador(entregadorActual.id)}
-                          className="w-full mt-2 flex items-center justify-center gap-2 px-4 py-2 bg-red-50 text-red-400 rounded-xl text-[10px] font-bold uppercase tracking-wider hover:bg-red-100 hover:text-red-600 transition-all"
-                        >
-                          <Trash2 size={12} /> Quitar
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => setMostrarSelectorEntregador(true)}
-                        disabled={entregadores.length >= 3}
-                        className="w-full flex flex-col items-center justify-center py-8 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-2xl transition-all disabled:opacity-30"
-                      >
-                        <Plus size={32} className="mb-2" />
-                        <span className="text-xs font-bold">Agregar padrino</span>
-                      </button>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-
-            {/* Selector de entregador (modal inline) */}
-            {mostrarSelectorEntregador && (
-              <div className="bg-white rounded-3xl border border-slate-100 shadow-xl overflow-hidden">
-                <div className="bg-slate-900 px-6 py-4 flex items-center justify-between">
-                  <p className="text-xs font-black uppercase tracking-[0.2em] text-sky-400">Elegí un padrino</p>
-                  <button onClick={() => setMostrarSelectorEntregador(false)} className="text-slate-400 hover:text-white transition-colors"><X size={18} /></button>
-                </div>
-
-                <div className="p-6">
-                  {/* Sección Profesores */}
-                  <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-indigo-500 mb-3"><GraduationCap size={13} /> Profesores de la institución</p>
-                  {profesores.length === 0 ? (
-                    <p className="text-xs text-slate-400 mb-6">No hay profesores cargados en el sistema.</p>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6">
-                      {profesores.map(prof => {
-                        const yaAsignado = entregadores.some(e => e.profesor_id === prof.id)
-                        return (
-                          <button
-                            key={prof.id}
-                            onClick={() => manejarAgregarEntregador('PROFESOR', prof)}
-                            disabled={yaAsignado || procesando}
-                            className={`flex items-center gap-3 p-3 rounded-xl text-left transition-all ${
-                              yaAsignado ? 'bg-slate-50 opacity-40 cursor-not-allowed' : 'hover:bg-indigo-50 hover:border-indigo-300 border border-slate-100'
-                            }`}
-                          >
-                            <div className="h-9 w-9 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm flex-shrink-0">
-                              {prof.nombre?.charAt(0)}
-                            </div>
-                            <div>
-                              <p className="text-sm font-bold text-slate-700">{prof.nombre}</p>
-                              {prof.materia && <p className="text-[10px] text-slate-400">{prof.materia}</p>}
-                            </div>
-                            {yaAsignado && <span className="ml-auto flex items-center gap-1 text-[9px] font-bold text-emerald-500"><CheckCircle size={11} /> Asignado</span>}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  )}
-
-                  {/* Sección Familiares */}
-                  <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-sky-500 mb-3"><Users size={13} /> Mis invitados</p>
-                  {invitados.length === 0 ? (
-                    <p className="text-xs text-slate-400">Primero cargá invitados en la pestaña "Acompañantes".</p>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {invitados.map(inv => {
-                        const yaAsignado = entregadores.some(e => e.invitado_id === inv.id)
-                        return (
-                          <button
-                            key={inv.id}
-                            onClick={() => manejarAgregarEntregador('FAMILIAR', inv)}
-                            disabled={yaAsignado || procesando}
-                            className={`flex items-center gap-3 p-3 rounded-xl text-left transition-all ${
-                              yaAsignado ? 'bg-slate-50 opacity-40 cursor-not-allowed' : 'hover:bg-sky-50 hover:border-sky-300 border border-slate-100'
-                            }`}
-                          >
-                            <div className="h-9 w-9 rounded-lg bg-sky-100 text-sky-600 flex items-center justify-center font-bold text-sm flex-shrink-0">
-                              {inv.nombre?.charAt(0)}
-                            </div>
-                            <div>
-                              <p className="text-sm font-bold text-slate-700">{inv.nombre}</p>
-                              <p className="text-[10px] text-slate-400">{inv.relacion}</p>
-                            </div>
-                            {yaAsignado && <span className="ml-auto flex items-center gap-1 text-[9px] font-bold text-emerald-500"><CheckCircle size={11} /> Asignado</span>}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+        {/* Mensajes de feedback */}
+        {mensaje.texto && (
+          <div className={`mt-4 flex items-center justify-between rounded-2xl p-4 text-xs font-bold ${mensaje.tipo === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : mensaje.tipo === 'info' ? 'bg-sky-50 text-sky-800 border border-sky-200' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'}`}>
+            <span>{mensaje.texto}</span>
+            <button onClick={() => setMensaje({ tipo: '', texto: '' })} className="text-xs opacity-70 hover:opacity-100">✕</button>
           </div>
         )}
 
-        {/* ═══════ PESTAÑA: CREDENCIAL ═══════ */}
-        {pestana === 'credencial' && (
-          <div className="flex flex-col items-center">
-            <div className="w-full max-w-lg">
-              <div className="mb-4 rounded-2xl border border-sky-100 bg-sky-50 px-4 py-3 text-sm font-semibold text-sky-900">
-                <p>{estadoButacas === 'PENDIENTE_REVISION' ? 'Tu propuesta' : 'Tu ubicación'}: <strong>{graduado.asiento_id || graduado.asiento_solicitado_id || 'aún sin asignar'}</strong></p>
-                {invitados.some(inv => inv.asiento_id || inv.asiento_solicitado_id) && <p className="mt-1 text-xs text-sky-700">Acompañantes: {invitados.filter(inv => inv.asiento_id || inv.asiento_solicitado_id).map(inv => `${inv.nombre} (${inv.asiento_id || inv.asiento_solicitado_id})`).join(' · ')}</p>}
+        {/* Resumen Compacto de Ceremonia */}
+        <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4">
+            <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Fecha</p>
+            <p className="mt-1 flex items-center gap-1.5 text-xs font-bold text-slate-700">
+              <CalendarDays size={14} className="text-sky-500" /> {fechaCeremonia}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-4">
+            <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Lugar</p>
+            <p className="mt-1 flex items-center gap-1.5 text-xs font-bold text-slate-700 truncate">
+              <MapPin size={14} className="text-indigo-500" /> {lugarCeremonia}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-4">
+            <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Butacas</p>
+            <p className="mt-1 flex items-center gap-1.5 text-xs font-bold text-slate-700">
+              <Armchair size={14} className={estadoButacas === 'CONFIRMADA' ? 'text-emerald-500' : 'text-amber-500'} />
+              {estadoButacas === 'CONFIRMADA' ? 'Aprobadas' : estadoButacas === 'PENDIENTE_REVISION' ? 'En revisión' : 'Pendiente'}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-4">
+            <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Padrinos</p>
+            <p className="mt-1 flex items-center gap-1.5 text-xs font-bold text-slate-700">
+              <GraduationCap size={14} className="text-purple-500" /> {entregadores.length}/3 asignados
+            </p>
+          </div>
+        </section>
+
+        {/* Pestañas de Navegación */}
+        <nav className="mt-6 flex border-b border-slate-200">
+          <button
+            onClick={() => { setPestana('invitados'); limpiarForm(); }}
+            className={`flex items-center gap-2 border-b-2 px-5 py-3 text-xs font-black transition ${pestana === 'invitados' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-400 hover:text-slate-700'}`}
+          >
+            <Users size={16} /> Acompañantes ({invitados.length})
+          </button>
+          <button
+            onClick={() => setPestana('entregadores')}
+            className={`flex items-center gap-2 border-b-2 px-5 py-3 text-xs font-black transition ${pestana === 'entregadores' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-400 hover:text-slate-700'}`}
+          >
+            <GraduationCap size={16} /> Padrinos ({entregadores.length})
+          </button>
+          <button
+            onClick={() => setPestana('credencial')}
+            className={`flex items-center gap-2 border-b-2 px-5 py-3 text-xs font-black transition ${pestana === 'credencial' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-400 hover:text-slate-700'}`}
+          >
+            <QrCode size={16} /> Credencial Digital
+          </button>
+        </nav>
+
+        {/* Contenido de Pestañas */}
+        <section className="mt-6">
+          {pestana === 'invitados' && (
+            mostrarForm ? (
+              <div className="space-y-4">
+                <button
+                  onClick={limpiarForm}
+                  className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-slate-800"
+                >
+                  <ArrowLeft size={14} /> Volver a acompañantes
+                </button>
+                <FormularioAcompanante
+                  datosForm={datosForm}
+                  setDatosForm={setDatosForm}
+                  editandoId={editandoId}
+                  procesando={procesando}
+                  onSubmit={guardarInvitado}
+                  onCancelar={limpiarForm}
+                />
               </div>
-              <ModalCredencial 
-                egresado={{...graduado, asientos: todosLosAsientos, invitados}} 
-                onCerrar={() => setPestana('invitados')} 
+            ) : (
+              <ListaAcompanantes
+                invitados={invitados}
+                maxInvitados={maxInvitados}
+                cuposRestantes={cuposRestantes}
+                perfilCompleto={perfilCompleto}
+                graduadoEstado={graduado.estado}
+                finalizandoInscripcion={finalizandoInscripcion}
+                onAgregar={() => { limpiarForm(); setMostrarForm(true); }}
+                onEditar={iniciarEdicion}
+                onEliminar={manejarEliminarInvitado}
+                onFinalizar={finalizarInscripcion}
+                onContinuarButacas={() => setMostrarButacas(true)}
               />
+            )
+          )}
+
+          {pestana === 'entregadores' && (
+            <SeccionPadrinos
+              entregadores={entregadores}
+              profesores={profesores}
+              invitados={invitados}
+              procesando={procesando}
+              mostrarSelector={mostrarSelectorEntregador}
+              setMostrarSelector={setMostrarSelectorEntregador}
+              onAgregar={manejarAgregarEntregador}
+              onEliminar={manejarEliminarEntregador}
+            />
+          )}
+
+          {pestana === 'credencial' && (
+            <div className="flex flex-col items-center">
+              <div className="w-full max-w-lg">
+                <div className="mb-4 rounded-2xl border border-sky-100 bg-sky-50 px-4 py-3 text-sm font-semibold text-sky-900">
+                  <p>
+                    {estadoButacas === 'PENDIENTE_REVISION' ? 'Tu propuesta' : 'Tu ubicación'}: <strong>{graduado.asiento_id || graduado.asiento_solicitado_id || 'aún sin asignar'}</strong>
+                  </p>
+                  {invitados.some(inv => inv.asiento_id || inv.asiento_solicitado_id) && (
+                    <p className="mt-1 text-xs text-sky-700">
+                      Acompañantes: {invitados.filter(inv => inv.asiento_id || inv.asiento_solicitado_id).map(inv => `${inv.nombre} (${inv.asiento_id || inv.asiento_solicitado_id})`).join(' · ')}
+                    </p>
+                  )}
+                </div>
+                <ModalCredencial 
+                  egresado={{ ...graduado, asientos: todosLosAsientos, invitados }} 
+                  onCerrar={() => setPestana('invitados')} 
+                />
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </section>
       </main>
+
+      {/* Modal de Asignación / Visualización de Butacas */}
       {mostrarButacas && (
         <ModalAsignarAsientos
           graduado={graduado}
@@ -562,8 +510,12 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
           ceremoniaId={graduado.ceremonia_id}
           todosLosGraduados={[graduado]}
           todosLosInvitados={invitados}
-          modo="propuesta"
+          modo={estadoButacas === 'CONFIRMADA' ? 'lectura' : 'propuesta'}
           onCerrar={() => setMostrarButacas(false)}
+          onVerCredencial={() => {
+            setMostrarButacas(false)
+            setPestana('credencial')
+          }}
           onAsignado={(resultado) => {
             setGraduado(actual => ({ ...actual, ...resultado.graduado }))
             setInvitados(actuales => actuales.map(invitado => {

@@ -256,7 +256,7 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
 
           <button
             type="button"
-            onClick={() => setRevelado(true)}
+            onClick={onSeleccionarAdmin}
             className="group mt-8 flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 py-3.5 text-sm font-black text-white shadow-lg shadow-slate-900/15 transition-all hover:-translate-y-0.5 hover:bg-cyan-600 hover:shadow-cyan-600/20 active:translate-y-0 active:scale-[0.98] focus-visible:outline focus-visible:outline-4 focus-visible:outline-cyan-300"
           >
             <LogIn size={18} aria-hidden="true" className="transition-transform group-hover:translate-x-0.5" />

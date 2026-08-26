@@ -1,56 +1,24 @@
-import { useEffect, useState } from 'react'
-
-const ETAPAS = [
-  'Conectando con el entorno operativo',
-  'Verificando configuración de ceremonia',
-  'Sincronizando accesos y credenciales',
-  'Preparando el espacio de trabajo',
-]
-
-export function PantallaCargaInicial() {
-  const [progress, setProgress] = useState(0)
-  const [etapa, setEtapa] = useState(0)
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setProgress(value => {
-        const siguiente = value >= 94 ? 94 : Math.min(value + Math.floor(Math.random() * 5) + 2, 94)
-        setEtapa(Math.min(ETAPAS.length - 1, Math.floor(siguiente / 25)))
-        return siguiente
-      })
-    }, 220)
-    return () => clearInterval(timer)
-  }, [])
-
+export function PantallaCargaInicial({ saliendo = false }) {
   return (
-    <main className="sigic-boot-screen sigic-boot-console">
+    <main className={`sigic-boot-screen sigic-boot-console sigic-welcome${saliendo ? ' is-leaving' : ''}`}>
       <div className="sigic-boot-noise" aria-hidden="true" />
-
-      <section className="sigic-boot-center" aria-live="polite" aria-label="Iniciando SiGIC">
-        <div className="sigic-boot-mark">
-          <span className="sigic-boot-mark-orbit" aria-hidden="true" />
-          <img src="/logo.png" alt="SiGIC" className="sigic-boot-logo" />
+      <section className="sigic-welcome-content" aria-live="polite" aria-label="Bienvenido a SiGIC">
+        <div className="sigic-welcome-mark">
+          <span aria-hidden="true" />
+          <img src="/logo.png" alt="SiGIC" />
         </div>
-
-        <div className="sigic-boot-title">
-          <strong>SiGIC</strong>
-          <span>Sistema integral de gestión institucional</span>
-        </div>
-
-        <div className="sigic-boot-terminal">
-          <p className="sigic-boot-terminal-title">[ INICIANDO PLATAFORMA SIGIC ]</p>
-          <div className="sigic-boot-progress" aria-hidden="true">
-            <span style={{ width: `${progress}%` }} />
-          </div>
-          <p className="sigic-boot-terminal-line">&gt; {ETAPAS[etapa]}<i /></p>
-          <p className="sigic-boot-terminal-line is-muted">&gt; Entorno seguro disponible</p>
-          <p className="sigic-boot-terminal-line is-muted">&gt; Acceso administrativo protegido</p>
-        </div>
+        <p>Gestión institucional</p>
+        <h1>SiGIC</h1>
+        <strong>Tu ceremonia comienza acá</strong>
+        <div className="sigic-welcome-line" aria-hidden="true"><i /></div>
+        <small><b /> Acceso seguro habilitado</small>
       </section>
-
+      <aside className="sigic-welcome-panel" aria-hidden="true">
+        <i /><strong /><span /><span /><button />
+      </aside>
       <footer className="sigic-boot-footer">
-        <span>SiGIC · Entorno de demostración</span>
-        <span>Inicialización segura</span>
+        <span>Instituto Tecnológico Beltrán</span>
+        <span>Conexión segura</span>
       </footer>
     </main>
   )

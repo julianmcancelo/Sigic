@@ -11,6 +11,7 @@ import {
   obtenerInvitados, 
   corroborarGraduado, actualizarGraduado, buscarHistorialGraduados
 } from '../../servicios/api'
+import { useSincronizacion, emitirCambioSync } from '../../lib/sync'
 
 import { ModalLinkRegistro } from '../../componentes/ModalLinkRegistro'
 import { ModalCredencial } from '../../componentes/ModalCredencial'
@@ -103,8 +104,13 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
     }
   }, [busqueda])
 
-  async function cargarDatos(ceremoniaId = ceremoniaMostrada?.id || ceremoniaActiva?.id) {
-    setCargando(true)
+  // Escuchar cambios en vivo emitidos desde el portal del graduado, otras pestañas u otros usuarios
+  useSincronizacion(['BUTACAS', 'EGRESADOS', 'INVITADOS', 'CEREMONIAS'], () => {
+    cargarDatos(undefined, false)
+  })
+
+  async function cargarDatos(ceremoniaId = ceremoniaMostrada?.id || ceremoniaActiva?.id, mostrarSpinner = true) {
+    if (mostrarSpinner) setCargando(true)
     setError('')
     try {
       const [listaGrad, listaInv] = await Promise.all([
@@ -117,7 +123,7 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
     } catch {
       setError('Error de conexión al servidor')
     } finally {
-      setCargando(false)
+      if (mostrarSpinner) setCargando(false)
     }
   }
 
@@ -136,7 +142,9 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
     if (!confirm('¿Estás seguro de que deseas eliminar este graduado y todos sus datos asociados?')) return
     try {
       await eliminarGraduado(id)
-      cargarDatos()
+      emitirCambioSync('EGRESADOS', { id })
+      emitirCambioSync('BUTACAS')
+      cargarDatos(undefined, false)
     } catch (err) {
       alert(err.message)
     }
@@ -147,7 +155,9 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
     if (!confirm('Esta acción no se puede deshacer. Se perderán todos los datos.')) return
     try {
       await vaciarGraduados()
-      cargarDatos()
+      emitirCambioSync('EGRESADOS')
+      emitirCambioSync('BUTACAS')
+      cargarDatos(undefined, false)
     } catch (err) {
       alert(err.message)
     }
@@ -197,6 +207,7 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
       setGraduados(actuales => actuales.map(item => item.id === grad.id ? {
         ...item, identidad_corrobada_en: respuesta.graduado.identidad_corrobada_en
       } : item))
+      emitirCambioSync('EGRESADOS', { id: grad.id })
     } catch (err) {
       alert(err.message)
     } finally {
@@ -209,13 +220,16 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
     setGraduados(actuales => actuales.map(item => item.id === actualizado.id ? { ...item, ...actualizado } : item))
     setGraduadoEditar(null)
     setAltaExitosa(`Datos de ${actualizado.nombre} actualizados.`)
+    emitirCambioSync('EGRESADOS', { id: actualizado.id })
     setTimeout(() => setAltaExitosa(''), 4000)
   }
 
   function siguientePaso(grad) {
-    if (grad.estado_flujo === 'RECHAZADO') return 'Participación rechazada'
+    if (grad.estado_flujo === 'RECHAZADO' || grad.estado === 'RECHAZADO') return 'Participación rechazada'
     if (!grad.invitacion_enviada) return 'Enviar invitación'
     if (grad.estado !== 'ACEPTADO') return 'Esperar respuesta'
+    if (grad.estado_asignacion_butacas === 'CONFIRMADA') return 'Butacas confirmadas'
+    if (grad.estado_asignacion_butacas === 'PENDIENTE_REVISION') return 'Revisar propuesta de butacas'
     if (grad.estado_flujo === 'COMPLETO') return 'Asignar butacas'
     return 'Completar grupo'
   }

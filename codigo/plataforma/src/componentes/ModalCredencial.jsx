@@ -2,11 +2,14 @@ import React, { useEffect, useState } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import {
   X, Printer, Download, MapPin, Calendar, CheckCircle2,
-  Armchair, Ticket, ShieldCheck
+  Armchair, Ticket, ShieldCheck, Wallet, Loader2, Info, AlertTriangle
 } from 'lucide-react'
+import { obtenerGoogleWalletPass } from '../servicios/api'
 
 export function ModalCredencial({ egresado, onCerrar }) {
   const [falloLogo, setFalloLogo] = useState(false)
+  const [cargandoWallet, setCargandoWallet] = useState(false)
+  const [walletMensaje, setWalletMensaje] = useState({ tipo: '', texto: '' })
 
   useEffect(() => {
     const cerrarConEscape = (evento) => {
@@ -42,6 +45,27 @@ export function ModalCredencial({ egresado, onCerrar }) {
     window.addEventListener('afterprint', restaurar)
     window.print()
     setTimeout(restaurar, 1500)
+  }
+
+  const guardarEnGoogleWallet = async () => {
+    if (egresado.google_wallet_url) {
+      window.open(egresado.google_wallet_url, '_blank')
+      return
+    }
+    setCargandoWallet(true)
+    setWalletMensaje({ tipo: '', texto: '' })
+    try {
+      const res = await obtenerGoogleWalletPass(egresado.id)
+      if (res.url) {
+        window.open(res.url, '_blank')
+      } else if (res.noConfigurado) {
+        setWalletMensaje({ tipo: 'info', texto: 'Google Wallet no se encuentra configurado en este entorno de desarrollo.' })
+      }
+    } catch (err) {
+      setWalletMensaje({ tipo: 'error', texto: err.message || 'No se pudo generar el pase para Google Wallet.' })
+    } finally {
+      setCargandoWallet(false)
+    }
   }
 
   return (
@@ -155,12 +179,22 @@ export function ModalCredencial({ egresado, onCerrar }) {
             </article>
           </div>
 
+          {walletMensaje.texto && (
+            <div className={`mx-auto mt-4 max-w-[680px] flex items-center gap-2.5 rounded-xl border p-3 text-xs font-semibold ${walletMensaje.tipo === 'error' ? 'border-red-200 bg-red-50 text-red-700' : 'border-sky-200 bg-sky-50 text-sky-800'}`}>
+              {walletMensaje.tipo === 'error' ? <AlertTriangle size={16} /> : <Info size={16} />}
+              <span>{walletMensaje.texto}</span>
+            </div>
+          )}
+
           <p className="mx-auto mt-5 max-w-lg text-center text-[11px] leading-relaxed text-slate-500">
             Guardá esta credencial en tu teléfono o imprimila. El QR debe verse completo y sin pliegues para que portería pueda leerlo.
           </p>
         </div>
 
-        <footer className="grid grid-cols-1 gap-2.5 border-t border-slate-100 bg-white p-4 sm:grid-cols-3 sm:p-5">
+        <footer className="grid grid-cols-1 gap-2.5 border-t border-slate-100 bg-white p-4 sm:grid-cols-4 sm:p-5">
+          <button type="button" onClick={guardarEnGoogleWallet} disabled={cargandoWallet} className="flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-3 text-[10px] font-black uppercase tracking-wider text-white transition hover:bg-slate-800 active:scale-[0.98] disabled:opacity-60">
+            {cargandoWallet ? <Loader2 size={16} className="animate-spin text-sky-400" /> : <Wallet size={16} className="text-sky-400" />} Google Wallet
+          </button>
           <button type="button" onClick={imprimir} className="flex items-center justify-center gap-2 rounded-xl bg-[#0056b3] px-4 py-3 text-[10px] font-black uppercase tracking-wider text-white transition hover:bg-[#087fbd] active:scale-[0.98]">
             <Download size={16} /> Exportar PDF
           </button>

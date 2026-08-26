@@ -4,6 +4,7 @@ import {
   Armchair, X, Maximize, Minimize, ChevronLeft, ChevronRight, UserCheck, RotateCcw, HelpCircle, Layers, Info
 } from 'lucide-react';
 import { BASE, obtenerGraduados, obtenerInvitados, cabeceras } from '../../servicios/api';
+import { useSincronizacion, emitirCambioSync } from '../../lib/sync';
 import { SeleccionAsientos } from '../SeleccionAsientos';
 
 const ACCENT = '#0EA5E9';
@@ -41,6 +42,11 @@ export function EditorAnfiteatro({ ceremoniaId, onVolver, sinHeader }) {
       cargarOcupacion();
     }
   }, [ceremoniaId]);
+
+  // Sincronización en vivo del mapa de butacas
+  useSincronizacion(['BUTACAS', 'EGRESADOS', 'INVITADOS'], () => {
+    cargarOcupacion();
+  });
 
   async function cargarOcupacion() {
     try {

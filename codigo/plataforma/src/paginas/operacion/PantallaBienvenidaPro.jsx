@@ -5,6 +5,7 @@ import {
   XCircle, LayoutGrid, HelpCircle, Map, BarChart3, Award, UserCheck, TrendingUp, Shield, Server
 } from 'lucide-react'
 import { BASE, cabeceras } from '../../servicios/api'
+import { useSincronizacion, emitirCambioSync } from '../../lib/sync'
 import { obtenerDetalleClima } from '../../utilidades/clima'
 import { CloudSun } from 'lucide-react'
 
@@ -123,13 +124,16 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
   useEffect(() => {
     cargarDatos()
     cargarPronostico()
-    const int = setInterval(cargarDatos, 30000)
-    return () => clearInterval(int)
   }, [])
 
-  async function cargarDatos() {
+  // Sincronización en vivo del Dashboard
+  useSincronizacion(['EGRESADOS', 'INVITADOS', 'BUTACAS', 'CEREMONIAS'], () => {
+    cargarDatos(false)
+  })
+
+  async function cargarDatos(mostrarSpinner = true) {
     try {
-      setCargando(true)
+      if (mostrarSpinner) setCargando(true)
       // 1. Stats
       const resStats = await fetch(`${BASE}/stats`, { headers: cabeceras() })
       if (resStats.ok) setStats(await resStats.json())
@@ -144,7 +148,7 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
     } catch (err) {
       console.error('Error cargando datos:', err)
     } finally {
-      setCargando(false)
+      if (mostrarSpinner) setCargando(false)
     }
   }
 
@@ -163,6 +167,7 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
       await new Promise(resolve => setTimeout(resolve, delay))
 
       await cargarDatos()
+      emitirCambioSync('CEREMONIAS', { id })
       if (onCambioCeremonia) onCambioCeremonia()
     } catch (err) {
       console.error('Error al cambiar de ceremonia:', err)

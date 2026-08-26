@@ -60,10 +60,28 @@ export async function iniciarSesionAdmin(email: string, password: string) {
   return json;
 }
 
+export async function cerrarSesionServidor() {
+  await fetch(`${BASE_LOCAL}/auth/logout`, {
+    method: 'POST',
+    credentials: 'same-origin',
+    headers: { 'Content-Type': 'application/json' }
+  }).catch(() => null);
+}
+
 export async function validarSesionLocal() {
   const res = await fetch(`${BASE_LOCAL}/auth/sesion`, { headers: cabeceras() });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'Sesión inválida o expirada');
+  return json;
+}
+
+export async function obtenerGoogleWalletPass(egresadoId: string | number) {
+  const res = await fetch(`${BASE_CLASSIC}/egresados/${egresadoId}/wallet`, {
+    method: 'POST',
+    headers: cabeceras()
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo generar el pase para Google Wallet');
   return json;
 }
 
@@ -81,6 +99,12 @@ export async function obtenerGraduados(ceremoniaId: string | number | null = nul
   return ceremoniaId
     ? graduados.filter((graduado: any) => String(graduado.ceremonia_id) === String(ceremoniaId))
     : graduados;
+}
+
+export async function obtenerGraduadoPorId(id: string | number) {
+  const res = await fetch(`${BASE_CLASSIC}/egresados/${id}`, { headers: cabeceras() });
+  if (!res.ok) throw new Error('No se pudo obtener la información del graduado');
+  return res.json();
 }
 
 export async function crearGraduado(datos: any) {

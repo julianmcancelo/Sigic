@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { MapaAsientos } from '@jcancelo/mapa-asientos-sigic';
-import '@jcancelo/mapa-asientos-sigic/dist/style.css';
 import { BASE, obtenerCeremoniaActiva } from '../servicios/api';
 
 const LEYENDA = [

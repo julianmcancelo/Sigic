@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { X, Armchair, CheckCircle2, User, RefreshCw, AlertTriangle, LockKeyhole, Users, ChevronRight, RotateCcw } from 'lucide-react'
 import { SeleccionAsientos } from '../paginas/SeleccionAsientos'
 import { BASE, asignarAsientos, obtenerAjustes } from '../servicios/api'
+import { emitirCambioSync } from '../lib/sync'
 
 export function ModalAsignarAsientos({
   graduado,
@@ -11,11 +12,11 @@ export function ModalAsignarAsientos({
   todosLosInvitados,
   modo = 'confirmacion',
   onCerrar,
-  onAsignado
+  onAsignado,
+  onVerCredencial
 }) {
-  const asientoInicial = (persona) => modo === 'propuesta'
-    ? persona.asiento_solicitado_id
-    : (persona.asiento_id || persona.asiento_solicitado_id)
+  const esSoloLectura = modo === 'lectura' || modo === 'aprobado' || (graduado.estado_asignacion_butacas === 'CONFIRMADA' && modo !== 'confirmacion')
+  const asientoInicial = (persona) => persona.asiento_id || persona.asiento_solicitado_id || null
   const [procesando, setProcesando] = useState(false)
   const [error, setError] = useState('')
   const [estructura, setEstructura] = useState(null)
@@ -157,6 +158,8 @@ export function ModalAsignarAsientos({
 
   // Al hacer clic en un asiento del mapa
   const manejarAsientoClick = (asientoId) => {
+    if (esSoloLectura) return
+
     // 1. Si el asiento ya está ocupado por otra persona de este grupo, removerlo de esa persona
     let nuevasAsignaciones = {
       ...asignaciones,
@@ -219,6 +222,7 @@ export function ModalAsignarAsientos({
   }
 
   const limpiarPersonaActiva = () => {
+    if (esSoloLectura) return
     setAsignaciones(actual => {
       if (personaActiva.tipo === 'egresado') {
         return { ...actual, egresadoAsiento: null }
@@ -233,6 +237,7 @@ export function ModalAsignarAsientos({
 
   // Limpiar toda la selección actual
   const limpiarSeleccion = () => {
+    if (esSoloLectura) return
     if (asientosGrupoActual.length > 0 && !window.confirm('Se quitarán todas las butacas de este grupo. Podés cancelar para conservar los cambios.')) return
     const invAsientos = {}
     invitados.forEach(inv => { invAsientos[inv.id] = null })
@@ -245,6 +250,7 @@ export function ModalAsignarAsientos({
 
   // Guardar asignación final
   const guardar = async () => {
+    if (esSoloLectura) return
     if (!asignacionCompleta) {
       setError('Asigná una butaca a cada integrante antes de guardar.')
       return
@@ -256,6 +262,8 @@ export function ModalAsignarAsientos({
         egresadoAsiento: asignaciones.egresadoAsiento,
         invitadosAsientos: asignaciones.invitadosAsientos
       })
+      emitirCambioSync('BUTACAS', { ceremoniaId, egresadoId: graduado.id })
+      emitirCambioSync('EGRESADOS', { ceremoniaId, egresadoId: graduado.id })
       await onAsignado(resultado)
     } catch (err) {
       setError(err.message || 'Error al guardar la asignación')
@@ -271,7 +279,10 @@ export function ModalAsignarAsientos({
           <div className="min-w-0 flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-sky-500/15 text-sky-400 flex items-center justify-center shrink-0"><Armchair size={19} /></div>
             <div className="min-w-0">
-              <h2 className="text-base sm:text-lg font-black">{modo === 'propuesta' ? 'Proponer butacas del grupo' : 'Confirmar butacas del grupo'}</h2>
+              <h2 className="text-base sm:text-lg font-black flex items-center gap-2">
+                {esSoloLectura ? 'Ubicaciones aprobadas del grupo' : modo === 'propuesta' ? 'Proponer butacas del grupo' : 'Confirmar butacas del grupo'}
+                {esSoloLectura && <span className="rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 text-[9px] font-black uppercase">Aprobado</span>}
+              </h2>
               <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold truncate">{graduado.nombre} · {personasGrupo.length} integrantes</p>
             </div>
           </div>
@@ -289,7 +300,7 @@ export function ModalAsignarAsientos({
             <div className="px-3 py-2.5 border-b border-slate-100 flex items-center justify-between">
               <div>
                 <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-500">Integrantes</h3>
-                <p className="text-[9px] text-slate-400 mt-0.5">Elegí una persona para editar.</p>
+                <p className="text-[9px] text-slate-400 mt-0.5">{esSoloLectura ? 'Distribución confirmada por la institución.' : 'Elegí una persona para editar.'}</p>
               </div>
               <span className="flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-black text-slate-600"><Users size={13} /> {personasGrupo.length}</span>
             </div>
@@ -312,21 +323,27 @@ export function ModalAsignarAsientos({
               })}
             </div>
 
-            <div className="p-2 border-t border-slate-100">
-              <button onClick={limpiarSeleccion} className="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-dashed border-red-200 text-red-500 text-[9px] font-black uppercase tracking-widest hover:bg-red-50 transition-colors"><RotateCcw size={13} /> Reiniciar grupo</button>
-            </div>
+            {!esSoloLectura && (
+              <div className="p-2 border-t border-slate-100">
+                <button onClick={limpiarSeleccion} className="w-full flex items-center justify-center gap-2 py-2 rounded-lg border border-dashed border-red-200 text-red-500 text-[9px] font-black uppercase tracking-widest hover:bg-red-50 transition-colors"><RotateCcw size={13} /> Reiniciar grupo</button>
+              </div>
+            )}
           </aside>
 
           <section className="min-h-0 p-2.5 sm:p-3 bg-[radial-gradient(circle_at_top,_#e0f2fe,_#f8fafc_42%)] flex flex-col gap-2 overflow-hidden">
             <div className="shrink-0 bg-white/90 border border-sky-100 rounded-xl px-3 py-2 flex items-center gap-2.5 shadow-sm">
               <div className="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center"><User size={16} /></div>
               <div className="min-w-0 flex-1">
-                <p className="text-[8px] uppercase tracking-[0.16em] font-black text-sky-600">{grupoEnRevision ? 'Revisión del grupo' : `Paso ${pasoActivo + 1} de ${personasGrupo.length}`}</p>
-                <p className="text-xs font-black text-slate-800 truncate">{grupoEnRevision ? `Revisando: ${personaActivaDatos.nombre}` : `Asignando a ${personaActivaDatos.nombre}`}</p>
+                <p className="text-[8px] uppercase tracking-[0.16em] font-black text-sky-600">
+                  {esSoloLectura ? 'Ubicación confirmada' : grupoEnRevision ? 'Revisión del grupo' : `Paso ${pasoActivo + 1} de ${personasGrupo.length}`}
+                </p>
+                <p className="text-xs font-black text-slate-800 truncate">
+                  {esSoloLectura ? `${personaActivaDatos.nombre} · Butaca ${personaActivaDatos.asiento || 'S/A'}` : grupoEnRevision ? `Revisando: ${personaActivaDatos.nombre}` : `Asignando a ${personaActivaDatos.nombre}`}
+                </p>
               </div>
-              {personaActivaDatos.asiento ? (
+              {!esSoloLectura && personaActivaDatos.asiento ? (
                 <button onClick={limpiarPersonaActiva} className="shrink-0 px-2.5 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-[9px] font-black uppercase tracking-wider text-amber-700 hover:bg-amber-100 transition-colors">Liberar {personaActivaDatos.asiento}</button>
-              ) : <ChevronRight className="text-sky-400 shrink-0" size={22} />}
+              ) : !esSoloLectura ? <ChevronRight className="text-sky-400 shrink-0" size={22} /> : null}
             </div>
 
             <div className="shrink-0 flex items-center gap-2 px-1 text-[9px] text-slate-500"><LockKeyhole size={13} className="text-slate-400" /> Reservadas, autoridades y ocupadas: bloqueadas.</div>
@@ -343,11 +360,28 @@ export function ModalAsignarAsientos({
 
         <footer className="px-4 py-2.5 sm:px-5 bg-white border-t border-slate-200 flex items-center justify-between gap-4">
           <div className="min-w-0">
-            {error ? <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-red-500"><AlertTriangle size={14} /> {error}</p> : <p className={`text-[11px] font-bold ${asignacionCompleta ? 'text-emerald-600' : 'text-slate-500'}`}>{asignacionCompleta ? (modo === 'propuesta' ? 'Grupo completo. La propuesta quedará pendiente de revisión.' : 'Grupo completo. La asignación está lista para confirmar.') : `${faltantes} integrante${faltantes === 1 ? '' : 's'} sin butaca.`}</p>}
+            {error ? (
+              <p className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-red-500"><AlertTriangle size={14} /> {error}</p>
+            ) : esSoloLectura ? (
+              <p className="text-[11px] font-bold text-emerald-600 flex items-center gap-1.5"><CheckCircle2 size={15} /> Todas las butacas de tu grupo fueron confirmadas por la institución.</p>
+            ) : (
+              <p className={`text-[11px] font-bold ${asignacionCompleta ? 'text-emerald-600' : 'text-slate-500'}`}>{asignacionCompleta ? (modo === 'propuesta' ? 'Grupo completo. La propuesta quedará pendiente de revisión.' : 'Grupo completo. La asignación está lista para confirmar.') : `${faltantes} integrante${faltantes === 1 ? '' : 's'} sin butaca.`}</p>
+            )}
           </div>
           <div className="shrink-0 flex items-center gap-3">
-            <button onClick={onCerrar} className="px-3 sm:px-5 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-red-500 transition-colors">Cancelar</button>
-            <button onClick={guardar} disabled={procesando || !asignacionCompleta} className="bg-slate-900 text-white font-black uppercase tracking-widest text-[9px] py-2.5 px-4 sm:px-5 rounded-lg shadow-lg shadow-slate-900/20 hover:bg-slate-800 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed">{procesando ? 'Guardando...' : modo === 'propuesta' ? 'Guardar propuesta' : 'Confirmar y enviar credencial'}</button>
+            {esSoloLectura ? (
+              <>
+                {onVerCredencial && (
+                  <button onClick={onVerCredencial} className="bg-sky-600 text-white font-black uppercase tracking-widest text-[9px] py-2.5 px-4 sm:px-5 rounded-lg shadow-lg shadow-sky-600/20 hover:bg-sky-500 active:scale-95 transition-all">Ver credencial digital</button>
+                )}
+                <button onClick={onCerrar} className="bg-slate-900 text-white font-black uppercase tracking-widest text-[9px] py-2.5 px-4 sm:px-5 rounded-lg hover:bg-slate-800 active:scale-95 transition-all">Cerrar</button>
+              </>
+            ) : (
+              <>
+                <button onClick={onCerrar} className="px-3 sm:px-5 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-red-500 transition-colors">Cancelar</button>
+                <button onClick={guardar} disabled={procesando || !asignacionCompleta} className="bg-slate-900 text-white font-black uppercase tracking-widest text-[9px] py-2.5 px-4 sm:px-5 rounded-lg shadow-lg shadow-slate-900/20 hover:bg-slate-800 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed">{procesando ? 'Guardando...' : modo === 'propuesta' ? 'Guardar propuesta' : 'Confirmar y enviar credencial'}</button>
+              </>
+            )}
           </div>
         </footer>
       </div>
