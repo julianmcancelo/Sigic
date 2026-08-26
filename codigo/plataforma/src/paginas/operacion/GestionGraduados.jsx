@@ -264,52 +264,52 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
 
   return (
     <div className="font-sans">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
-        <div>
-          <h2 className="text-lg font-black tracking-tight" style={{ color: DARK }}>Padrón de Graduados</h2>
-          <p className="mt-0.5 text-xs text-slate-400">
-            {ceremoniaMostrada ? `Ceremonia activa: ${ceremoniaMostrada.nombre} · ` : ''}
-            <strong className="text-slate-700">{graduados.length}</strong> estudiantes registrados · <strong className="text-slate-700">{invitados.length}</strong> acompañantes
-          </p>
+      {/* CABECERA COMPACTA */}
+      <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2">
+        <div className="flex items-center gap-2">
+          <h2 className="text-sm font-black tracking-tight text-slate-800">Padrón de Graduados</h2>
+          <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
+            {ceremoniaMostrada ? ceremoniaMostrada.nombre : 'Ceremonia activa'} · <strong className="text-slate-900">{graduados.length}</strong> alumnos {invitados.length > 0 ? `· ${invitados.length} acomp.` : ''}
+          </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <button
             onClick={() => setMostrarImportar(true)}
-            className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-2 text-[10.5px] font-black text-white shadow-sm hover:bg-emerald-500 transition active:scale-95 cursor-pointer"
+            className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-2.5 py-1.5 text-[10.5px] font-black text-white shadow-xs hover:bg-emerald-500 transition active:scale-95 cursor-pointer"
           >
-            <FileSpreadsheet size={15} /> Importar Excel / CSV
+            <FileSpreadsheet size={13} /> Importar Excel / CSV
           </button>
 
           <button
             onClick={() => setMostrarForm(!mostrarForm)}
-            className="flex items-center gap-1.5 rounded-xl bg-sky-600 px-3.5 py-2 text-[10.5px] font-black text-white shadow-sm hover:bg-sky-500 transition active:scale-95 cursor-pointer"
+            className="flex items-center gap-1.5 rounded-lg bg-sky-600 px-2.5 py-1.5 text-[10.5px] font-black text-white shadow-xs hover:bg-sky-500 transition active:scale-95 cursor-pointer"
           >
-            {mostrarForm ? <X size={15} /> : <UserPlus size={15} />} {mostrarForm ? 'Cerrar' : 'Nuevo Alumno'}
+            {mostrarForm ? <X size={13} /> : <UserPlus size={13} />} {mostrarForm ? 'Cerrar' : 'Nuevo Alumno'}
           </button>
 
           <button
             onClick={descargarPlantillaExcel}
             title="Descargar plantilla Excel modelo"
-            className="hidden sm:flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 px-3 py-2 text-[10px] font-bold text-slate-600 transition cursor-pointer"
+            className="hidden sm:flex items-center gap-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 px-2 py-1.5 text-[10px] font-bold text-slate-600 transition cursor-pointer"
           >
-            <Download size={13} /> Plantilla
+            <Download size={12} /> Plantilla
           </button>
 
           <details className="group relative">
-            <summary className="flex cursor-pointer list-none items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-[10px] font-bold text-slate-600 hover:bg-slate-50">
-              <MoreHorizontal size={15} />
+            <summary className="flex cursor-pointer list-none items-center rounded-lg border border-slate-200 bg-white p-1.5 text-slate-600 hover:bg-slate-50">
+              <MoreHorizontal size={14} />
             </summary>
-            <div className="absolute right-0 z-30 mt-2 w-52 overflow-hidden rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl">
-              <button onClick={descargarPlantillaExcel} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer">
-                <Download size={14} /> Descargar plantilla Excel
+            <div className="absolute right-0 z-30 mt-1 w-48 overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-xl">
+              <button onClick={descargarPlantillaExcel} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer">
+                <Download size={13} /> Descargar plantilla Excel
               </button>
-              <button onClick={() => setMostrarImportar(true)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer">
-                <Upload size={14} /> Importar archivo
+              <button onClick={() => setMostrarImportar(true)} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer">
+                <Upload size={13} /> Importar archivo
               </button>
               {graduados.length > 0 && (
-                <button onClick={manejarVaciar} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50 cursor-pointer">
-                  <Trash2 size={14} /> Vaciar padrón
+                <button onClick={manejarVaciar} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs font-semibold text-rose-600 hover:bg-rose-50 cursor-pointer">
+                  <Trash2 size={13} /> Vaciar padrón
                 </button>
               )}
             </div>
@@ -317,94 +317,97 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
         </div>
       </div>
 
-      {/* BANNER DE CONTINUIDAD AL PASO 2 */}
+      {/* BANNER DE CONTINUIDAD AL PASO 2 (SOLO CON ALUMNOS) */}
       {graduados.length > 0 && onNavegar && (
-        <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-2xl border border-sky-100 bg-gradient-to-r from-sky-50 to-blue-50 p-4 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 rounded-xl bg-sky-500 text-white flex items-center justify-center font-black text-sm shrink-0 shadow-sm shadow-sky-500/30">
+        <div className="mb-2.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 rounded-xl border border-sky-100 bg-gradient-to-r from-sky-50 to-blue-50 px-3 py-2 shadow-xs">
+          <div className="flex items-center gap-2.5">
+            <div className="h-6 w-6 rounded-lg bg-sky-500 text-white flex items-center justify-center font-black text-xs shrink-0 shadow-xs">
               ✓
             </div>
             <div>
-              <p className="text-xs font-black text-slate-900">Padrón cargado ({graduados.length} alumnos registrados)</p>
-              <p className="text-[10px] text-slate-500 font-medium">¿Listo para continuar? Configurá las butacas del auditorio y aplicá Auto-Seating.</p>
+              <p className="text-[11px] font-black text-slate-900 leading-tight">Padrón cargado ({graduados.length} alumnos registrados)</p>
+              <p className="text-[9.5px] text-slate-500 font-medium">¿Listo para continuar? Configurá las butacas y ejecutá Auto-Seating.</p>
             </div>
           </div>
           <button
             onClick={() => onNavegar('preparacion-ceremonia')}
-            className="flex items-center gap-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white px-4 py-2 text-[10px] font-black uppercase tracking-wider shadow-sm transition active:scale-95 cursor-pointer shrink-0"
+            className="flex items-center gap-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white px-2.5 py-1.5 text-[9.5px] font-black uppercase tracking-wider shadow-xs transition active:scale-95 cursor-pointer shrink-0"
           >
-            Paso 2: Configurar Butacas <ArrowRight size={13} />
+            Paso 2: Butacas <ArrowRight size={11} />
           </button>
         </div>
       )}
 
-      <div className="mb-4 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-[10px] font-semibold text-slate-500">
-        <span><strong className="text-slate-800">{graduados.length - sinCorroborar.length}</strong> verificados</span>
-        <span><strong className="text-slate-800">{contadores.COMPLETO}</strong> listos para ubicar</span>
-        {sinCorreo.length > 0 && <span className="text-amber-700"><strong>{sinCorreo.length}</strong> sin correo</span>}
-      </div>
-
-      {/* FILTROS PILLS */}
-      <div className="flex gap-1.5 overflow-x-auto pb-1 mb-3 [scrollbar-width:thin]">
-        {[
-          { clave: 'TODOS', etiqueta: 'Todos', color: 'bg-slate-900 text-white' },
-          { clave: 'SIN_INVITAR', etiqueta: 'Sin invitar', color: 'bg-slate-400 text-white' },
-          { clave: 'PENDIENTE', etiqueta: 'Pendientes', color: 'bg-amber-500 text-white' },
-          { clave: 'CARGA_INCOMPLETA', etiqueta: 'Incompletos', color: 'bg-orange-500 text-white' },
-          { clave: 'COMPLETO', etiqueta: 'Completos', color: 'bg-emerald-500 text-white' },
-          { clave: 'RECHAZADO', etiqueta: 'Rechazados', color: 'bg-rose-500 text-white' },
-        ].map(f => (
-          <button
-            key={f.clave}
-            onClick={() => setFiltroEstado(f.clave)}
-            className={`shrink-0 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider transition-all ${
-              filtroEstado === f.clave 
-                ? f.color + ' shadow-sm' 
-                : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-300'
-            }`}
-          >
-            {f.etiqueta} ({contadores[f.clave] || 0})
-          </button>
-        ))}
-      </div>
-
-      {/* BUSCADOR */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 mb-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={15} />
-          <input
-            type="text"
-            placeholder="Buscar en el padrón e historial: nombre, DNI, legajo o correo..."
-            value={busqueda}
-            onChange={e => setBusqueda(e.target.value)}
-            className="w-full bg-white border border-slate-200 rounded-lg py-2 pl-10 pr-4 text-xs font-semibold focus:outline-none focus:border-sky-500 transition-all shadow-sm placeholder-slate-400"
-          />
-        </div>
-      </div>
-
-      {busqueda.trim().length >= 2 && (
-        <section className="mb-4 overflow-hidden rounded-xl border border-sky-100 bg-sky-50/60">
-          <div className="flex items-center justify-between gap-3 border-b border-sky-100 bg-white/80 px-4 py-2.5">
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-wider text-sky-700">Historial institucional</p>
-              <p className="mt-0.5 text-[10px] text-slate-500">Participaciones anteriores. No modifica la ceremonia activa.</p>
+      {/* BUSCADOR Y FILTROS INTEGRADOS (SOLO CUANDO HAY ALUMNOS O SE BUSCA) */}
+      {(graduados.length > 0 || busqueda.trim().length > 0) && (
+        <div className="mb-2.5 space-y-1.5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={13} />
+              <input
+                type="text"
+                placeholder="Buscar en el padrón: nombre, DNI, legajo o correo..."
+                value={busqueda}
+                onChange={e => setBusqueda(e.target.value)}
+                className="w-full bg-white border border-slate-200 rounded-lg py-1 pl-8 pr-3 text-[11px] font-semibold focus:outline-none focus:border-sky-500 transition shadow-xs placeholder-slate-400"
+              />
             </div>
-            <span className="rounded-full bg-sky-100 px-2 py-1 text-[9px] font-black text-sky-700">
+            <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500 shrink-0">
+              <span className="bg-slate-50 px-2 py-0.5 rounded border border-slate-100"><strong>{graduados.length - sinCorroborar.length}</strong> verif.</span>
+              <span className="bg-slate-50 px-2 py-0.5 rounded border border-slate-100"><strong>{contadores.COMPLETO}</strong> listos</span>
+              {sinCorreo.length > 0 && <span className="bg-amber-50 text-amber-700 px-2 py-0.5 rounded border border-amber-100"><strong>{sinCorreo.length}</strong> sin mail</span>}
+            </div>
+          </div>
+
+          <div className="flex gap-1 overflow-x-auto pb-0.5 [scrollbar-width:none]">
+            {[
+              { clave: 'TODOS', etiqueta: 'Todos', color: 'bg-slate-900 text-white' },
+              { clave: 'SIN_INVITAR', etiqueta: 'Sin invitar', color: 'bg-slate-400 text-white' },
+              { clave: 'PENDIENTE', etiqueta: 'Pendientes', color: 'bg-amber-500 text-white' },
+              { clave: 'CARGA_INCOMPLETA', etiqueta: 'Incompletos', color: 'bg-orange-500 text-white' },
+              { clave: 'COMPLETO', etiqueta: 'Completos', color: 'bg-emerald-500 text-white' },
+              { clave: 'RECHAZADO', etiqueta: 'Rechazados', color: 'bg-rose-500 text-white' },
+            ].map(f => (
+              <button
+                key={f.clave}
+                onClick={() => setFiltroEstado(f.clave)}
+                className={`shrink-0 px-2.5 py-1 rounded-full text-[8.5px] font-black uppercase tracking-wider transition-all ${
+                  filtroEstado === f.clave 
+                    ? f.color + ' shadow-xs' 
+                    : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-300'
+                }`}
+              >
+                {f.etiqueta} ({contadores[f.clave] || 0})
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* HISTORIAL GLOBAL EN BUSCADOR */}
+      {busqueda.trim().length >= 2 && (
+        <section className="mb-2.5 overflow-hidden rounded-xl border border-sky-100 bg-sky-50/60">
+          <div className="flex items-center justify-between gap-3 border-b border-sky-100 bg-white/80 px-3 py-2">
+            <div>
+              <p className="text-[9.5px] font-black uppercase tracking-wider text-sky-700">Historial institucional</p>
+              <p className="mt-0.5 text-[9.5px] text-slate-500">Participaciones anteriores.</p>
+            </div>
+            <span className="rounded-full bg-sky-100 px-2 py-0.5 text-[8.5px] font-black text-sky-700">
               {buscandoHistorial ? 'Buscando...' : `${historialAgrupado.length} persona${historialAgrupado.length === 1 ? '' : 's'}`}
             </span>
           </div>
           {!buscandoHistorial && historialAgrupado.length > 0 && (
             <div className="divide-y divide-sky-100/80">
               {historialAgrupado.map(persona => (
-                <div key={persona.clave} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                <div key={persona.clave} className="flex flex-col gap-1.5 px-3 py-2 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">
                     <p className="truncate text-xs font-black text-slate-800">{persona.nombre}</p>
-                    <p className="mt-0.5 text-[10px] font-medium text-slate-500">{persona.dni ? `DNI ${persona.dni}` : persona.correo || 'Sin identificador disponible'}</p>
+                    <p className="text-[9.5px] font-medium text-slate-500">{persona.dni ? `DNI ${persona.dni}` : persona.correo || 'Sin identificador'}</p>
                   </div>
-                  <div className="flex flex-wrap gap-1.5">
+                  <div className="flex flex-wrap gap-1">
                     {persona.participaciones.map(participacion => (
-                      <span key={participacion.id} className={`rounded-md px-2 py-1 text-[9px] font-bold ${participacion.ceremonia_activa ? 'bg-emerald-100 text-emerald-700' : 'bg-white text-slate-600 ring-1 ring-slate-200'}`}>
-                        {participacion.ceremonia_nombre || 'Ceremonia sin nombre'}{participacion.ceremonia_fecha ? ` · ${new Date(`${participacion.ceremonia_fecha}T12:00:00`).toLocaleDateString('es-AR')}` : ''}
+                      <span key={participacion.id} className={`rounded px-1.5 py-0.5 text-[8.5px] font-bold ${participacion.ceremonia_activa ? 'bg-emerald-100 text-emerald-700' : 'bg-white text-slate-600 ring-1 ring-slate-200'}`}>
+                        {participacion.ceremonia_nombre || 'Ceremonia'}{participacion.ceremonia_fecha ? ` · ${new Date(`${participacion.ceremonia_fecha}T12:00:00`).toLocaleDateString('es-AR')}` : ''}
                       </span>
                     ))}
                   </div>
@@ -412,7 +415,7 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
               ))}
             </div>
           )}
-          {!buscandoHistorial && historialAgrupado.length === 0 && <p className="px-4 py-3 text-[11px] font-medium text-slate-500">No hay participaciones históricas para esta búsqueda.</p>}
+          {!buscandoHistorial && historialAgrupado.length === 0 && <p className="px-3 py-2 text-[10px] font-medium text-slate-500">No hay participaciones históricas para esta búsqueda.</p>}
         </section>
       )}
 
@@ -431,114 +434,114 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
       )}
 
       {altaExitosa && (
-        <div role="status" aria-live="polite" className="mb-6 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-emerald-800 shadow-sm">
-          <CheckCircle2 size={18} className="shrink-0" />
-          <p className="text-sm font-bold">{altaExitosa}</p>
+        <div role="status" aria-live="polite" className="mb-3 flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-emerald-800 shadow-xs">
+          <CheckCircle2 size={15} className="shrink-0" />
+          <p className="text-xs font-bold">{altaExitosa}</p>
         </div>
       )}
 
       {/* ERROR */}
       {error && (
-        <div className="flex items-center gap-2 bg-red-50 border border-red-100 text-red-700 px-4 py-2.5 rounded-xl text-xs mb-6 font-bold">
-          <AlertCircle size={14} /> {error}
+        <div className="flex items-center gap-2 bg-red-50 border border-red-100 text-red-700 px-3.5 py-2 rounded-xl text-xs mb-3 font-bold">
+          <AlertCircle size={13} /> {error}
         </div>
       )}
 
       {/* LISTA O EMPTY STATE GUIADO */}
       {cargando ? (
-        <div className="flex flex-col items-center justify-center py-20 select-none">
-          <div className="relative w-14 h-14 flex items-center justify-center mb-4">
-            <div className="absolute inset-0 rounded-full border-3 border-t-[#0ea5e9] border-r-transparent border-b-transparent border-l-transparent animate-spin" style={{ animationDuration: '0.8s' }} />
-            <div className="absolute inset-1 rounded-full border-3 border-b-indigo-500 border-t-transparent border-r-transparent border-l-transparent animate-spin" style={{ animationDuration: '1.2s', animationDirection: 'reverse' }} />
+        <div className="flex flex-col items-center justify-center py-12 select-none">
+          <div className="relative w-10 h-10 flex items-center justify-center mb-3">
+            <div className="absolute inset-0 rounded-full border-2 border-t-[#0ea5e9] border-r-transparent border-b-transparent border-l-transparent animate-spin" style={{ animationDuration: '0.8s' }} />
+            <div className="absolute inset-1 rounded-full border-2 border-b-indigo-500 border-t-transparent border-r-transparent border-l-transparent animate-spin" style={{ animationDuration: '1.2s', animationDirection: 'reverse' }} />
             <img 
               src="/logo-oficial.png" 
               alt="SiGIC" 
-              className="h-7 w-auto object-contain animate-pulse z-10 filter drop-shadow-[0_0_6px_rgba(14,165,233,0.5)]" 
+              className="h-5 w-auto object-contain animate-pulse z-10" 
             />
           </div>
           <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 animate-pulse">Cargando padrón...</p>
         </div>
       ) : graduadosFiltrados.length === 0 ? (
         graduados.length === 0 && !busqueda.trim() ? (
-          /* EMPTY STATE GUIADO ONBOARDING */
-          <div className="bg-white border border-slate-100 rounded-3xl p-6 sm:p-10 shadow-sm space-y-8 animate-in fade-in duration-300">
-            <div className="text-center max-w-xl mx-auto space-y-2">
-              <div className="inline-flex p-3 rounded-2xl bg-emerald-50 text-emerald-600 mb-1">
-                <Users size={32} />
+          /* EMPTY STATE GUIADO ONBOARDING ULTRA-COMPACTO */
+          <div className="bg-white border border-slate-100 rounded-2xl p-4 sm:p-5 shadow-xs space-y-3.5 animate-in fade-in duration-200">
+            <div className="text-center max-w-md mx-auto space-y-1">
+              <div className="inline-flex p-2 rounded-xl bg-emerald-50 text-emerald-600 mb-0.5">
+                <Users size={22} />
               </div>
-              <h3 className="text-lg font-black text-slate-800 tracking-tight">El padrón de graduados está vacío</h3>
-              <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                Para comenzar a organizar esta colación, necesitás cargar a los estudiantes que van a participar. Elegí la forma que más te convenga:
+              <h3 className="text-sm font-black text-slate-800 tracking-tight">El padrón de graduados está vacío</h3>
+              <p className="text-[11px] text-slate-500 font-medium leading-relaxed">
+                Cargá a los estudiantes de la colación para comenzar:
               </p>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-4 max-w-3xl mx-auto">
+            <div className="grid sm:grid-cols-2 gap-3 max-w-2xl mx-auto">
               {/* OPCIÓN 1: EXCEL */}
-              <div className="rounded-2xl border-2 border-emerald-500/30 bg-emerald-50/40 p-6 flex flex-col justify-between space-y-4 hover:border-emerald-500 transition">
-                <div className="space-y-2">
+              <div className="rounded-xl border-2 border-emerald-500/30 bg-emerald-50/40 p-3.5 flex flex-col justify-between space-y-2.5 hover:border-emerald-500 transition">
+                <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="p-2.5 rounded-xl bg-emerald-500 text-white inline-block shadow-sm shadow-emerald-500/30">
-                      <FileSpreadsheet size={20} />
+                    <span className="p-1.5 rounded-lg bg-emerald-500 text-white inline-block shadow-xs">
+                      <FileSpreadsheet size={15} />
                     </span>
-                    <span className="text-[9px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">Recomendado</span>
+                    <span className="text-[8.5px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">Recomendado</span>
                   </div>
-                  <h4 className="text-sm font-black text-slate-900">Carga Masiva con Excel (.xlsx / .csv)</h4>
-                  <p className="text-[11px] text-slate-600 font-medium leading-relaxed">
-                    Subí el listado institucional de egresados. El sistema asocia automáticamente nombres, DNI, legajos, correos y carreras en 1 segundo.
+                  <h4 className="text-xs font-black text-slate-900">Carga Masiva con Excel (.xlsx / .csv)</h4>
+                  <p className="text-[10px] text-slate-600 font-medium leading-normal">
+                    Importá el padrón con DNI, legajo, correo y carrera en 1 segundo.
                   </p>
                 </div>
                 
-                <div className="space-y-2 pt-2">
+                <div className="space-y-1 pt-1">
                   <button
                     onClick={() => setMostrarImportar(true)}
-                    className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl font-black text-xs uppercase tracking-wider shadow-md shadow-emerald-600/20 transition active:scale-95 cursor-pointer"
+                    className="w-full flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white py-2 rounded-lg font-black text-[10.5px] uppercase tracking-wider shadow-xs transition active:scale-95 cursor-pointer"
                   >
-                    <Upload size={15} /> Subir Archivo Excel
+                    <Upload size={13} /> Subir Archivo Excel
                   </button>
                   <button
                     onClick={descargarPlantillaExcel}
-                    className="w-full flex items-center justify-center gap-1.5 text-[10.5px] font-bold text-emerald-700 hover:text-emerald-800 py-1.5 transition cursor-pointer"
+                    className="w-full flex items-center justify-center gap-1 text-[9.5px] font-bold text-emerald-700 hover:text-emerald-800 py-0.5 transition cursor-pointer"
                   >
-                    <Download size={13} /> Descargar plantilla de ejemplo (.xlsx)
+                    <Download size={11} /> Descargar plantilla de ejemplo (.xlsx)
                   </button>
                 </div>
               </div>
 
               {/* OPCIÓN 2: MANUAL */}
-              <div className="rounded-2xl border-2 border-slate-200 bg-slate-50/50 p-6 flex flex-col justify-between space-y-4 hover:border-sky-400 transition">
-                <div className="space-y-2">
+              <div className="rounded-xl border-2 border-slate-200 bg-slate-50/50 p-3.5 flex flex-col justify-between space-y-2.5 hover:border-sky-400 transition">
+                <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="p-2.5 rounded-xl bg-sky-500 text-white inline-block shadow-sm shadow-sky-500/30">
-                      <UserPlus size={20} />
+                    <span className="p-1.5 rounded-lg bg-sky-500 text-white inline-block shadow-xs">
+                      <UserPlus size={15} />
                     </span>
-                    <span className="text-[9px] font-black uppercase tracking-wider bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full">Manual</span>
+                    <span className="text-[8.5px] font-black uppercase tracking-wider bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full">Manual</span>
                   </div>
-                  <h4 className="text-sm font-black text-slate-900">Carga Individual Uno a Uno</h4>
-                  <p className="text-[11px] text-slate-600 font-medium leading-relaxed">
-                    Completá el formulario para registrar un alumno puntualmente con sus datos de contacto y titulación.
+                  <h4 className="text-xs font-black text-slate-900">Carga Individual</h4>
+                  <p className="text-[10px] text-slate-600 font-medium leading-normal">
+                    Registrá un estudiante completando el formulario de alta.
                   </p>
                 </div>
 
-                <div className="pt-2">
+                <div className="pt-1">
                   <button
                     onClick={() => setMostrarForm(true)}
-                    className="w-full flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white py-3 rounded-xl font-black text-xs uppercase tracking-wider shadow-md transition active:scale-95 cursor-pointer"
+                    className="w-full flex items-center justify-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white py-2 rounded-lg font-black text-[10.5px] uppercase tracking-wider shadow-xs transition active:scale-95 cursor-pointer"
                   >
-                    <UserPlus size={15} /> Cargar Alumno Manualmente
+                    <UserPlus size={13} /> Cargar Alumno Manualmente
                   </button>
                 </div>
               </div>
             </div>
           </div>
         ) : (
-          <div className="py-20 text-center bg-white border border-slate-100 rounded-2xl">
-            <Users size={36} className="mx-auto mb-3 text-slate-200" />
-            <h3 className="text-sm font-black text-slate-400 mb-1">Sin coincidencias</h3>
-            <p className="text-xs text-slate-400">No se encontraron estudiantes en esta selección.</p>
+          <div className="py-12 text-center bg-white border border-slate-100 rounded-xl">
+            <Users size={28} className="mx-auto mb-2 text-slate-200" />
+            <h3 className="text-xs font-black text-slate-400 mb-0.5">Sin coincidencias</h3>
+            <p className="text-[11px] text-slate-400">No se encontraron estudiantes en esta selección.</p>
           </div>
         )
       ) : (
-        <div className="space-y-2.5">
+        <div className="space-y-2">
           {graduadosFiltrados.map(grad => {
             const estadoConfig = ESTADOS_FLUJO[grad.estado_flujo] || ESTADOS_FLUJO.SIN_INVITAR
             const misInvitados = invitadosDe(grad.id)
@@ -547,31 +550,38 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
             return (
               <div
                 key={grad.id}
-                className={`bg-white rounded-2xl border transition-all duration-200 overflow-hidden shadow-sm hover:shadow-md ${
+                className={`bg-white rounded-xl border transition-all duration-200 overflow-hidden shadow-xs hover:shadow-sm ${
                   esRechazado ? 'border-red-150 opacity-70 bg-red-50/10' : 'border-slate-100'
                 }`}
               >
-                <div className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-sm font-black text-white ${esRechazado ? 'bg-rose-400' : 'bg-sky-500'}`}>{grad.nombre?.charAt(0)?.toUpperCase() || '?'}</div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2"><h4 className="truncate text-sm font-black text-slate-800">{grad.nombre}</h4><span className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-[8px] font-black uppercase ${estadoConfig.color}`}>{obtenerIconoEstado(estadoConfig.iconKey, 9)}{estadoConfig.etiqueta}</span></div>
-                      <p className="mt-1 truncate text-[10px] text-slate-400">DNI {grad.dni} · {grad.legajo || 'Sin legajo'} · {grad.correo || 'Sin correo'}</p>
+                <div className="p-3">
+                  <div className="flex items-start gap-2.5">
+                    <div className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-black text-white ${esRechazado ? 'bg-rose-400' : 'bg-sky-500'}`}>
+                      {grad.nombre?.charAt(0)?.toUpperCase() || '?'}
                     </div>
-                    {!esRechazado && <span className="hidden text-[9px] font-bold text-slate-400 sm:block">{siguientePaso(grad)}</span>}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h4 className="truncate text-xs font-black text-slate-800">{grad.nombre}</h4>
+                        <span className={`flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[7.5px] font-black uppercase ${estadoConfig.color}`}>
+                          {obtenerIconoEstado(estadoConfig.iconKey, 8)}{estadoConfig.etiqueta}
+                        </span>
+                      </div>
+                      <p className="mt-0.5 truncate text-[9.5px] text-slate-400">DNI {grad.dni} · {grad.legajo || 'Sin legajo'} · {grad.correo || 'Sin correo'}</p>
+                    </div>
+                    {!esRechazado && <span className="hidden text-[8.5px] font-bold text-slate-400 sm:block">{siguientePaso(grad)}</span>}
                   </div>
 
-                  <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
-                    <button onClick={() => setGraduadoEditar(grad)} className="rounded-lg bg-slate-900 px-3 py-1.5 text-[9px] font-bold text-white cursor-pointer"><Edit3 size={12} className="mr-1 inline" />Editar</button>
-                    {!esRechazado && grad.estado === 'ACEPTADO' && <button onClick={() => abrirAsignacion(grad)} className="rounded-lg bg-slate-900 px-3 py-1.5 text-[9px] font-bold text-white cursor-pointer"><Armchair size={12} className="mr-1 inline" />Butacas</button>}
-                    {misInvitados.length > 0 && <span className="text-[9px] font-semibold text-slate-400">{misInvitados.length} acompañantes</span>}
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5 border-t border-slate-100 pt-2">
+                    <button onClick={() => setGraduadoEditar(grad)} className="rounded-md bg-slate-900 px-2.5 py-1 text-[8.5px] font-bold text-white cursor-pointer hover:bg-slate-800 transition"><Edit3 size={11} className="mr-1 inline" />Editar</button>
+                    {!esRechazado && grad.estado === 'ACEPTADO' && <button onClick={() => abrirAsignacion(grad)} className="rounded-md bg-slate-900 px-2.5 py-1 text-[8.5px] font-bold text-white cursor-pointer hover:bg-slate-800 transition"><Armchair size={11} className="mr-1 inline" />Butacas</button>}
+                    {misInvitados.length > 0 && <span className="text-[8.5px] font-semibold text-slate-400">{misInvitados.length} acomp.</span>}
                     <details className="relative ml-auto">
-                      <summary className="grid h-7 w-8 cursor-pointer list-none place-items-center rounded-lg text-slate-400 hover:bg-slate-100"><MoreHorizontal size={15} /></summary>
-                      <div className="absolute bottom-9 right-0 z-20 w-48 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl">
-                        {!esRechazado && !grad.identidad_corrobada_en && <button onClick={() => manejarCorroboracion(grad)} disabled={corroborandoId === grad.id} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-emerald-700 hover:bg-emerald-50 disabled:opacity-40 cursor-pointer"><BadgeCheck size={13} /> Verificar datos</button>}
-                        {!esRechazado && <button onClick={() => manejarLink(grad)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-slate-600 hover:bg-slate-50 cursor-pointer"><Link2 size={13} /> Enlace</button>}
-                        {!esRechazado && <button onClick={() => setGraduadoCredencial(grad)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-slate-600 hover:bg-slate-50 cursor-pointer"><CreditCard size={13} /> Ver credencial</button>}
-                        <button onClick={() => manejarEliminar(grad.id)} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-rose-600 hover:bg-rose-50 cursor-pointer"><Trash2 size={13} /> Eliminar</button>
+                      <summary className="grid h-6 w-7 cursor-pointer list-none place-items-center rounded text-slate-400 hover:bg-slate-100"><MoreHorizontal size={13} /></summary>
+                      <div className="absolute bottom-7 right-0 z-20 w-44 rounded-xl border border-slate-200 bg-white p-1 shadow-xl">
+                        {!esRechazado && !grad.identidad_corrobada_en && <button onClick={() => manejarCorroboracion(grad)} disabled={corroborandoId === grad.id} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs text-emerald-700 hover:bg-emerald-50 disabled:opacity-40 cursor-pointer"><BadgeCheck size={12} /> Verificar datos</button>}
+                        {!esRechazado && <button onClick={() => manejarLink(grad)} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs text-slate-600 hover:bg-slate-50 cursor-pointer"><Link2 size={12} /> Enlace</button>}
+                        {!esRechazado && <button onClick={() => setGraduadoCredencial(grad)} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs text-slate-600 hover:bg-slate-50 cursor-pointer"><CreditCard size={12} /> Ver credencial</button>}
+                        <button onClick={() => manejarEliminar(grad.id)} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-left text-xs text-rose-600 hover:bg-rose-50 cursor-pointer"><Trash2 size={12} /> Eliminar</button>
                       </div>
                     </details>
                   </div>
@@ -584,7 +594,7 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
 
       {/* CONTADOR */}
       {!cargando && graduados.length > 0 && (
-        <p className="text-center text-[10px] text-slate-400 mt-6 font-bold uppercase tracking-wider">
+        <p className="text-center text-[9px] text-slate-400 mt-4 font-bold uppercase tracking-wider">
           Mostrando {graduadosFiltrados.length} de {graduados.length} estudiantes
         </p>
       )}
