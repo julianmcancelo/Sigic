@@ -22,6 +22,29 @@ export function ModalActaCierre({ ceremonia, graduados = [], onCerrar }) {
     window.print()
   }
 
+  function descargarCsvLibroMatriz() {
+    const cabeceras = ['Orden', 'Apellido y Nombre', 'DNI', 'Legajo', 'Carrera', 'Formula Juramento', 'Entregador', 'Diploma Conferido']
+    const filas = egresadosAceptados.map((g, idx) => [
+      idx + 1,
+      `"${g.nombre || ''}"`,
+      g.dni || '',
+      g.legajo || '',
+      `"${g.carrera || 'Tecnicatura Superior'}"`,
+      `"${FORMULAS_JURAMENTO[g.formula_juramento]?.titulo || 'Por la Patria'}"`,
+      `"${g.entregador_nombre || 'Cuerpo Docente'}"`,
+      g.diploma_entregado ? 'SI' : 'NO'
+    ])
+
+    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [cabeceras.join(','), ...filas.map(e => e.join(','))].join('\n')
+    const encodedUri = encodeURI(csvContent)
+    const link = document.createElement('a')
+    link.setAttribute('href', encodedUri)
+    link.setAttribute('download', `Libro_Matriz_Colacion_${ceremonia?.id || '2026'}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm overflow-y-auto print:p-0 print:bg-white animate-in fade-in duration-200">
       <div className="w-full max-w-4xl rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh] print:max-h-none print:shadow-none print:border-none print:rounded-none">
@@ -39,6 +62,12 @@ export function ModalActaCierre({ ceremonia, graduados = [], onCerrar }) {
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              onClick={descargarCsvLibroMatriz}
+              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 border border-slate-700 transition cursor-pointer"
+            >
+              <Download size={14} /> Libro Matriz (CSV)
+            </button>
             <button
               onClick={imprimirActa}
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-black text-white shadow-md transition cursor-pointer"

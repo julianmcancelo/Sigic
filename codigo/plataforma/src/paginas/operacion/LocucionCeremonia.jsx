@@ -61,6 +61,9 @@ export function LocucionCeremonia({ onVolver, onNavegar }) {
       } else if (e.key === 'ArrowLeft') {
         e.preventDefault()
         retrocederAnterior()
+      } else if (e.key.toLowerCase() === 'a' || e.key === 'Delete') {
+        e.preventDefault()
+        saltearAusente()
       }
     }
     window.addEventListener('keydown', manejarTeclado)
@@ -88,6 +91,12 @@ export function LocucionCeremonia({ onVolver, onNavegar }) {
       }
     } finally {
       setProcesando(false)
+    }
+  }
+
+  function saltearAusente() {
+    if (indiceActual < graduados.length - 1) {
+      setIndiceActual(idx => idx + 1)
     }
   }
 
@@ -345,13 +354,27 @@ export function LocucionCeremonia({ onVolver, onNavegar }) {
       {/* FOOTER DE CONTROL / BOTONES GIGANTES DE NAVEGACIÓN */}
       <footer className="border-t border-slate-800 bg-slate-900/90 px-6 py-4 backdrop-blur-md">
         <div className="max-w-5xl mx-auto flex items-center justify-between gap-4">
-          <button
-            onClick={retrocederAnterior}
-            disabled={indiceActual === 0 || modo !== 'ESTRADO'}
-            className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
-          >
-            <ChevronLeft size={16} /> Alumno Anterior
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={retrocederAnterior}
+              disabled={indiceActual === 0 || modo !== 'ESTRADO'}
+              className="flex items-center gap-2 px-4 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-300 transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft size={16} /> Anterior
+            </button>
+
+            {modo === 'ESTRADO' && (
+              <button
+                onClick={saltearAusente}
+                disabled={indiceActual >= totalAlumnos - 1}
+                title="Atajo de teclado: tecla 'A' o 'Supr'"
+                className="flex items-center gap-1.5 px-3 py-3 rounded-2xl bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-xs font-bold text-amber-300 transition cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
+              >
+                <span>Saltear (Ausente)</span>
+                <span className="text-[9px] bg-amber-500/20 px-1.5 py-0.5 rounded font-mono text-amber-200">A</span>
+              </button>
+            )}
+          </div>
 
           {/* BARRA DE PROGRESO */}
           <div className="flex-1 max-w-xs hidden sm:block text-center">
