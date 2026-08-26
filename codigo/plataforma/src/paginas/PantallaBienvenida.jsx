@@ -9,7 +9,7 @@ import {
   CloudSun, LogOut, Users, MapPin, QrCode, ScanLine,
   GraduationCap, UserCheck, Clock, TrendingUp, Activity,
   ChevronRight, Wifi, WifiOff, FileImage, Settings, LayoutGrid,
-  Calendar, Server, Shield,
+  Calendar, Server, Shield, Sparkles, Send, ListChecks, Mic, BarChart3
 } from 'lucide-react'
 
 
@@ -45,10 +45,14 @@ function useContador(destino, duracion = 800) {
 
 function BienvenidaInstitucional({ usuario, onNavegar, onCerrarSesion }) {
   const accesos = [
-    { id: 'gestion-ceremonias', icono: Calendar, titulo: 'Ceremonias', texto: 'Organizá fechas, sedes y el evento activo.' },
-    { id: 'gestion-graduados', icono: GraduationCap, titulo: 'Graduados', texto: 'Administrá las personas que participan.' },
-    { id: 'control-ingreso', icono: ScanLine, titulo: 'Ingresos', texto: 'Acreditá invitados de forma rápida y segura.' },
-    { id: 'panel-reportes', icono: TrendingUp, titulo: 'Reportes', texto: 'Consultá el estado general del evento.' },
+    { id: 'gestion-ceremonias', icono: Sparkles, titulo: 'Inicializar Ceremonia', texto: 'Comenzá desde 0, configurá fecha, sede y cupos.' },
+    { id: 'gestion-graduados', icono: Users, titulo: 'Padrón de Graduados', texto: 'Cargá alumnos por Excel, juramentos y docentes.' },
+    { id: 'convocatoria', icono: Send, titulo: 'Convocatoria Masiva', texto: 'Enviá invitaciones seguras por correo con OTP.' },
+    { id: 'preparacion-ceremonia', icono: ListChecks, titulo: 'Preparación & Asientos', texto: 'Auto-Seating inteligente en 1 clic y distribución.' },
+    { id: 'locucion', icono: Mic, titulo: 'Locución & Estrado', texto: 'Teleprompter para autoridades y juramentos.' },
+    { id: 'control-ingreso', icono: ScanLine, titulo: 'Acreditación / Puerta', texto: 'Escaneo rápido de QRs y check-in con app móvil.' },
+    { id: 'estado-ceremonia', icono: Activity, titulo: 'Tablero en Vivo & Actas', texto: 'Métricas de presencia y generación de Acta Oficial PDF.' },
+    { id: 'panel-reportes', icono: BarChart3, titulo: 'Reportes & Libro Matriz', texto: 'Auditoría institucional y exportación a Excel.' },
   ]
   return (
     <div className="min-h-full bg-[#f5f8fa] text-slate-800">
