@@ -7,7 +7,7 @@ import {
   Search, Mail, Smartphone, CalendarDays, Eye, Cpu, 
   Check, XCircle, Users, Wifi, Globe, Trash2, PowerOff,
   Radio, Sparkles, Copy, CheckCheck, ExternalLink, KeyRound,
-  Info, Laptop, Tablet
+  Info, Laptop, Tablet, Clock, Activity, ShieldCheck, ChevronRight
 } from 'lucide-react'
 import { 
   obtenerUsuarios, 
@@ -27,7 +27,7 @@ import {
 import { QRCodeSVG } from 'qrcode.react'
 import { useSincronizacion, emitirCambioSync } from '../../lib/sync'
 
-const DARK = '#1E293B'
+const DARK = '#0F172A'
 
 export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
   // Pestaña activa: 'personal' o 'dispositivos'
@@ -369,112 +369,118 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
   const ceremoniaSeleccionada = ceremonias.find(c => String(c.id) === String(ceremoniaSeleccionadaId))
 
   return (
-    <div className="font-sans pb-10 max-w-7xl mx-auto w-full px-3 sm:px-6">
+    <div className="font-sans pb-12 max-w-7xl mx-auto w-full px-3 sm:px-6">
       
-      {/* HEADER DE LA SECCIÓN */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-5 border-b border-slate-200/80">
-        <div className="flex items-center gap-3.5">
-          {onVolver && (
-            <button 
-              onClick={onVolver}
-              className="flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200/90 hover:bg-slate-50 text-slate-700 transition active:scale-95 bg-white shadow-sm cursor-pointer"
-              title="Volver al panel"
-            >
-              <ArrowLeft size={19} />
-            </button>
-          )}
-          <div className="w-12 h-12 rounded-2xl bg-sky-50 text-sky-500 border border-sky-100 flex items-center justify-center shadow-sm">
-            <Shield size={24} />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-black text-slate-900 tracking-tight">Seguridad y Control de Accesos</h1>
-              <span className="px-2.5 py-0.5 rounded-full bg-slate-900 text-white text-[9px] font-black uppercase tracking-wider">
-                Portería
-              </span>
+      {/* ── HERO BANNER MODERNO CON GRADIENTE Y CONTRASTE ── */}
+      <div className="relative overflow-hidden rounded-[30px] bg-gradient-to-br from-slate-900 via-slate-850 to-[#0c182c] p-6 sm:p-8 text-white shadow-xl shadow-slate-900/10 mb-8 border border-white/10">
+        <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-sky-500/15 blur-[60px]" />
+        <div className="pointer-events-none absolute -left-12 -bottom-12 h-56 w-56 rounded-full bg-indigo-500/10 blur-[50px]" />
+
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex items-start sm:items-center gap-4">
+            {onVolver && (
+              <button 
+                onClick={onVolver}
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/10 hover:bg-white/20 text-white transition active:scale-95 border border-white/15 backdrop-blur-md cursor-pointer"
+                title="Volver al panel"
+              >
+                <ArrowLeft size={19} />
+              </button>
+            )}
+            <div className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-sky-500 to-sky-400 text-white shadow-lg shadow-sky-500/30 border border-sky-300/30">
+              <Shield size={26} />
             </div>
-            <p className="text-xs font-semibold text-slate-500 mt-0.5">
-              Gestión centralizada de personal de acreditación, permisos por ceremonia y terminales móviles en vivo.
-            </p>
+            <div>
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">Seguridad y Control de Accesos</h1>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-400/15 text-sky-300 border border-sky-400/25 text-[10px] font-black uppercase tracking-wider">
+                  <Activity size={12} className="text-sky-400 animate-pulse" />
+                  Módulo de Portería
+                </span>
+              </div>
+              <p className="text-xs font-semibold text-slate-300/80 mt-1 max-w-xl leading-relaxed">
+                Administrá operadores de acreditación, permisos dinámicos por ceremonia y terminales móviles en vivo.
+              </p>
+            </div>
           </div>
-        </div>
 
-        <div className="flex items-center gap-2.5">
-          <button 
-            onClick={refrescarTodo}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 font-bold text-xs bg-white transition active:scale-95 shadow-sm cursor-pointer"
-            title="Refrescar datos en vivo"
-          >
-            <RefreshCw size={14} className={cargando || cargandoDispositivos ? 'animate-spin text-sky-500' : ''} />
-            <span>Actualizar</span>
-          </button>
+          <div className="flex items-center gap-3 self-end md:self-center">
+            <button 
+              onClick={refrescarTodo}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/15 transition active:scale-95 backdrop-blur-sm cursor-pointer shadow-sm"
+              title="Refrescar datos en vivo"
+            >
+              <RefreshCw size={14} className={cargando || cargandoDispositivos ? 'animate-spin text-sky-300' : ''} />
+              <span>Actualizar</span>
+            </button>
 
-          <button 
-            onClick={() => setMostrarModalNuevo(true)} 
-            className="flex items-center gap-2 px-4.5 py-2.5 bg-slate-900 hover:bg-sky-500 text-white rounded-xl text-xs font-bold shadow-md shadow-slate-900/10 active:scale-95 transition-all cursor-pointer"
-          >
-            <UserPlus size={15} /> 
-            <span>Registrar Personal</span>
-          </button>
+            <button 
+              onClick={() => setMostrarModalNuevo(true)} 
+              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-sky-500 to-sky-400 hover:from-sky-400 hover:to-sky-300 text-white rounded-xl text-xs font-black shadow-lg shadow-sky-500/25 active:scale-95 transition-all cursor-pointer border border-sky-300/30"
+            >
+              <UserPlus size={15} /> 
+              <span>Registrar Personal</span>
+            </button>
+          </div>
         </div>
       </div>
 
       {/* ALERTAS GLOBALES */}
       {error && (
-        <div className="mb-5 p-4 rounded-2xl border bg-rose-50 border-rose-200/80 text-rose-800 text-xs font-bold flex items-center justify-between gap-3 animate-in fade-in duration-200 shadow-sm">
+        <div className="mb-6 p-4 rounded-2xl border bg-rose-50 border-rose-200 text-rose-800 text-xs font-bold flex items-center justify-between gap-3 animate-in fade-in duration-200 shadow-sm">
           <div className="flex items-center gap-2.5">
             <AlertCircle size={17} className="shrink-0 text-rose-600" />
             <span>{error}</span>
           </div>
-          <button onClick={() => setError(null)} className="p-1 hover:bg-rose-100 rounded-lg text-rose-500"><X size={14} /></button>
+          <button onClick={() => setError(null)} className="p-1 hover:bg-rose-100 rounded-lg text-rose-500 cursor-pointer"><X size={14} /></button>
         </div>
       )}
 
       {exito && (
-        <div className="mb-5 p-4 rounded-2xl border bg-emerald-50 border-emerald-200/80 text-emerald-800 text-xs font-bold flex items-center justify-between gap-3 animate-in fade-in duration-200 shadow-sm">
+        <div className="mb-6 p-4 rounded-2xl border bg-emerald-50 border-emerald-200 text-emerald-800 text-xs font-bold flex items-center justify-between gap-3 animate-in fade-in duration-200 shadow-sm">
           <div className="flex items-center gap-2.5">
             <CheckCircle2 size={17} className="shrink-0 text-emerald-600" />
             <span>{exito}</span>
           </div>
-          <button onClick={() => setExito(null)} className="p-1 hover:bg-emerald-100 rounded-lg text-emerald-500"><X size={14} /></button>
+          <button onClick={() => setExito(null)} className="p-1 hover:bg-emerald-100 rounded-lg text-emerald-500 cursor-pointer"><X size={14} /></button>
         </div>
       )}
 
-      {/* METRICAS BENTO GRID */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-6">
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm flex items-center justify-between">
-          <div>
-            <span className="block text-[10px] font-black uppercase text-slate-400 tracking-wider">Total Operadores</span>
-            <span className="text-2xl font-black text-slate-900 tabular-nums mt-0.5 block">{totalPorteros}</span>
-            <span className="block text-[10px] font-semibold text-slate-400 mt-0.5">Cuentas creadas</span>
+      {/* ── BENTO GRID DE MÉTRICAS CON MICRO-GLOW ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="relative overflow-hidden bg-white border border-slate-200/90 rounded-[24px] p-5 shadow-sm hover:shadow-md transition-all">
+          <div className="flex items-center justify-between">
+            <span className="block text-[10px] font-black uppercase text-slate-400 tracking-[0.16em]">Total Operadores</span>
+            <div className="h-10 w-10 rounded-2xl bg-slate-100/80 flex items-center justify-center text-slate-700 border border-slate-200/60"><Users size={19} /></div>
           </div>
-          <div className="h-11 w-11 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-600 border border-slate-150"><Users size={20} /></div>
+          <span className="text-3xl font-black text-slate-900 tabular-nums mt-2 block tracking-tight">{totalPorteros}</span>
+          <span className="block text-[11px] font-semibold text-slate-500 mt-1">Cuentas creadas</span>
         </div>
 
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm flex items-center justify-between">
-          <div>
-            <span className="block text-[10px] font-black uppercase text-slate-400 tracking-wider">Habilitados en Foco</span>
-            <span className="text-2xl font-black text-emerald-600 tabular-nums mt-0.5 block">{autorizadosActivos}</span>
-            <span className="block text-[10px] font-semibold text-slate-400 mt-0.5 truncate max-w-[140px]">
-              En {ceremoniaSeleccionada?.nombre || 'ceremonia'}
-            </span>
+        <div className="relative overflow-hidden bg-white border border-slate-200/90 rounded-[24px] p-5 shadow-sm hover:shadow-md transition-all">
+          <div className="flex items-center justify-between">
+            <span className="block text-[10px] font-black uppercase text-emerald-600 tracking-[0.16em]">Habilitados en Foco</span>
+            <div className="h-10 w-10 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center"><CheckCircle2 size={19} /></div>
           </div>
-          <div className="h-11 w-11 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center"><CheckCircle2 size={20} /></div>
+          <span className="text-3xl font-black text-emerald-600 tabular-nums mt-2 block tracking-tight">{autorizadosActivos}</span>
+          <span className="block text-[11px] font-semibold text-slate-500 mt-1 truncate">
+            En {ceremoniaSeleccionada?.nombre || 'ceremonia'}
+          </span>
         </div>
 
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm flex items-center justify-between">
-          <div>
-            <span className="block text-[10px] font-black uppercase text-slate-400 tracking-wider">Cuentas Operativas</span>
-            <span className="text-2xl font-black text-sky-500 tabular-nums mt-0.5 block">{porterosActivos}</span>
-            <span className="block text-[10px] font-semibold text-slate-400 mt-0.5">Sin bloqueo de acceso</span>
+        <div className="relative overflow-hidden bg-white border border-slate-200/90 rounded-[24px] p-5 shadow-sm hover:shadow-md transition-all">
+          <div className="flex items-center justify-between">
+            <span className="block text-[10px] font-black uppercase text-sky-600 tracking-[0.16em]">Cuentas Operativas</span>
+            <div className="h-10 w-10 rounded-2xl bg-sky-50 text-sky-500 border border-sky-100 flex items-center justify-center"><Unlock size={19} /></div>
           </div>
-          <div className="h-11 w-11 rounded-2xl bg-sky-50 text-sky-500 border border-sky-100 flex items-center justify-center"><Unlock size={20} /></div>
+          <span className="text-3xl font-black text-sky-500 tabular-nums mt-2 block tracking-tight">{porterosActivos}</span>
+          <span className="block text-[11px] font-semibold text-slate-500 mt-1">Sin bloqueo activo</span>
         </div>
 
-        <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-sm flex items-center justify-between">
-          <div>
+        <div className="relative overflow-hidden bg-white border border-slate-200/90 rounded-[24px] p-5 shadow-sm hover:shadow-md transition-all">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              <span className="block text-[10px] font-black uppercase text-slate-400 tracking-wider">Móviles en Línea</span>
+              <span className="block text-[10px] font-black uppercase text-indigo-600 tracking-[0.16em]">Móviles en Línea</span>
               {dispositivosEnLinea > 0 && (
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -482,41 +488,41 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                 </span>
               )}
             </div>
-            <span className="text-2xl font-black text-indigo-600 tabular-nums mt-0.5 block">{dispositivosEnLinea}</span>
-            <span className="block text-[10px] font-semibold text-slate-400 mt-0.5">De {dispositivosTotales} vinculados</span>
+            <div className="h-10 w-10 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center"><Smartphone size={19} /></div>
           </div>
-          <div className="h-11 w-11 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center"><Smartphone size={20} /></div>
+          <span className="text-3xl font-black text-indigo-600 tabular-nums mt-2 block tracking-tight">{dispositivosEnLinea}</span>
+          <span className="block text-[11px] font-semibold text-slate-500 mt-1">De {dispositivosTotales} vinculados</span>
         </div>
       </div>
 
-      {/* SISTEMA DE PESTAÑAS */}
-      <div className="flex items-center gap-2 mb-6 border-b border-slate-200 pb-2">
+      {/* ── SELECTOR DE PESTAÑAS TIPO CAPSULA PREMIUM ── */}
+      <div className="flex items-center gap-2 p-1.5 bg-slate-100/80 rounded-2xl border border-slate-200/80 mb-7 max-w-fit shadow-inner">
         <button
           onClick={() => setPestañaActiva('personal')}
-          className={`flex items-center gap-2.5 px-4.5 py-2.5 rounded-xl font-black text-xs transition cursor-pointer ${
+          className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl font-black text-xs transition-all cursor-pointer ${
             pestañaActiva === 'personal'
-              ? 'bg-slate-900 text-white shadow-md shadow-slate-900/10'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              ? 'bg-white text-slate-900 shadow-md shadow-slate-900/5'
+              : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <Users size={16} />
+          <Users size={16} className={pestañaActiva === 'personal' ? 'text-sky-500' : ''} />
           <span>Personal & Permisos por Ceremonia</span>
-          <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${pestañaActiva === 'personal' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'}`}>
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${pestañaActiva === 'personal' ? 'bg-slate-900 text-white' : 'bg-slate-200 text-slate-700'}`}>
             {totalPorteros}
           </span>
         </button>
 
         <button
           onClick={() => setPestañaActiva('dispositivos')}
-          className={`flex items-center gap-2.5 px-4.5 py-2.5 rounded-xl font-black text-xs transition cursor-pointer ${
+          className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl font-black text-xs transition-all cursor-pointer ${
             pestañaActiva === 'dispositivos'
-              ? 'bg-slate-900 text-white shadow-md shadow-slate-900/10'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              ? 'bg-white text-slate-900 shadow-md shadow-slate-900/5'
+              : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <Smartphone size={16} />
+          <Smartphone size={16} className={pestañaActiva === 'dispositivos' ? 'text-indigo-500' : ''} />
           <span>Dispositivos Móviles & Telemetría</span>
-          <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${dispositivosEnLinea > 0 ? 'bg-emerald-500 text-white' : pestañaActiva === 'dispositivos' ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'}`}>
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${dispositivosEnLinea > 0 ? 'bg-emerald-500 text-white' : pestañaActiva === 'dispositivos' ? 'bg-slate-900 text-white' : 'bg-slate-200 text-slate-700'}`}>
             {dispositivosTotales}
           </span>
         </button>
@@ -526,21 +532,21 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
       {/* PESTAÑA 1: PERSONAL & MATRIZ DE AUTORIZACIONES */}
       {/* ======================================================== */}
       {pestañaActiva === 'personal' && (
-        <div className="space-y-4">
+        <div className="space-y-5">
           
           {/* BARRA DE CONFIGURACIÓN Y ACCIONES EN LOTE POR CEREMONIA */}
-          <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-sky-500 border border-sky-100">
-                <Settings size={20} />
+          <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5">
+            <div className="flex items-center gap-3.5">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-sky-500 border border-sky-100">
+                <Settings size={22} />
               </div>
               <div>
-                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Ceremonia en Configuración:</span>
-                <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">Ceremonia en Configuración</span>
+                <div className="flex items-center gap-2 mt-1">
                   <select
                     value={ceremoniaSeleccionadaId}
                     onChange={e => setCeremoniaSeleccionadaId(e.target.value)}
-                    className="bg-slate-50 border border-slate-300 hover:border-sky-400 focus:border-sky-500 focus:bg-white text-xs font-black rounded-xl px-3.5 py-2 text-slate-800 outline-none transition cursor-pointer"
+                    className="bg-slate-50 border border-slate-250 hover:border-sky-400 focus:border-sky-500 focus:bg-white text-xs font-black rounded-xl px-4 py-2 text-slate-900 outline-none transition cursor-pointer shadow-sm"
                   >
                     {ceremonias.map(c => (
                       <option key={c.id} value={c.id}>
@@ -557,7 +563,7 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
               <button
                 onClick={handleAutorizarTodos}
                 disabled={procesandoLote || !ceremoniaSeleccionadaId}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold transition active:scale-95 disabled:opacity-50 cursor-pointer"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold transition active:scale-95 disabled:opacity-50 cursor-pointer shadow-sm"
                 title="Habilita a todos los operadores activos para escanear en esta ceremonia"
               >
                 <CheckCircle2 size={15} />
@@ -567,7 +573,7 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
               <button
                 onClick={handleDesautorizarTodos}
                 disabled={procesandoLote || !ceremoniaSeleccionadaId}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-xs font-bold transition active:scale-95 disabled:opacity-50 cursor-pointer"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-xs font-bold transition active:scale-95 disabled:opacity-50 cursor-pointer shadow-sm"
                 title="Revoca el acceso de todos los operadores en esta ceremonia"
               >
                 <XCircle size={15} />
@@ -577,7 +583,7 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
           </div>
 
           {/* FILTROS Y BÚSQUEDA */}
-          <div className="flex flex-col sm:flex-row gap-3 items-center justify-between bg-white border border-slate-200/80 rounded-2xl p-3.5 shadow-sm">
+          <div className="flex flex-col sm:flex-row gap-3.5 items-center justify-between bg-white border border-slate-200/90 rounded-2xl p-4 shadow-sm">
             <div className="relative w-full sm:w-80">
               <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
@@ -588,7 +594,7 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
               />
             </div>
 
-            <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="flex items-center gap-2.5 w-full sm:w-auto">
               <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 shrink-0">Filtrar:</span>
               <select
                 value={filtro}
@@ -605,18 +611,18 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
 
           {/* LISTADO DE TARJETAS DE PERSONAL */}
           {cargando ? (
-            <div className="bg-white rounded-3xl border border-slate-200/80 p-12 text-center">
-              <RefreshCw size={26} className="animate-spin text-sky-500 mx-auto mb-3" />
+            <div className="bg-white rounded-3xl border border-slate-200/80 p-14 text-center shadow-sm">
+              <RefreshCw size={28} className="animate-spin text-sky-500 mx-auto mb-3" />
               <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Cargando cuentas de seguridad...</p>
             </div>
           ) : personalVisible.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50/60 py-14 px-4 text-center">
-              <Shield size={36} className="mx-auto mb-3 text-slate-300" />
-              <p className="text-sm font-black text-slate-800">No se encontraron operadores</p>
-              <p className="text-xs font-semibold text-slate-400 mt-1">Registrá un operador o modificá los filtros de búsqueda.</p>
+            <div className="rounded-3xl border border-dashed border-slate-300 bg-white py-16 px-6 text-center shadow-sm">
+              <Shield size={40} className="mx-auto mb-3 text-slate-300" />
+              <p className="text-base font-black text-slate-900">No se encontraron operadores</p>
+              <p className="text-xs font-semibold text-slate-500 mt-1">Registrá un operador o modificá los filtros de búsqueda.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               {personalVisible.map(u => {
                 const autorizadoEnSeleccionada = !!autorizadosMap[String(u.id)]
                 const activo = u.activo === 1
@@ -625,30 +631,30 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                 return (
                   <article 
                     key={u.id} 
-                    className={`rounded-3xl border p-5 transition-all shadow-sm flex flex-col justify-between ${
+                    className={`rounded-[28px] border p-6 transition-all duration-200 shadow-sm flex flex-col justify-between hover:shadow-md ${
                       autorizadoEnSeleccionada && activo 
-                        ? 'border-sky-300/80 bg-gradient-to-br from-white via-white to-sky-50/40 ring-1 ring-sky-200' 
-                        : 'border-slate-200 bg-white'
+                        ? 'border-sky-300/80 bg-gradient-to-br from-white via-white to-sky-50/35 ring-1 ring-sky-200' 
+                        : 'border-slate-200/90 bg-white'
                     }`}
                   >
                     <div>
                       {/* ENCABEZADO DE LA TARJETA */}
-                      <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start justify-between gap-3.5 mb-4">
                         <div className="flex items-center gap-3.5 min-w-0">
-                          <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-base font-black ${
+                          <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-base font-black shadow-sm ${
                             activo ? 'bg-slate-900 text-white' : 'bg-slate-200 text-slate-400'
                           }`}>
                             {u.nombre?.charAt(0)?.toUpperCase() || 'S'}
                           </div>
                           <div className="min-w-0">
-                            <h3 className="truncate text-sm font-black text-slate-900">{u.nombre}</h3>
+                            <h3 className="truncate text-base font-black text-slate-900">{u.nombre}</h3>
                             <p className="mt-0.5 flex items-center gap-1.5 truncate text-xs font-semibold text-slate-500">
                               <Mail size={13} /> {u.email}
                             </p>
                           </div>
                         </div>
 
-                        <span className={`shrink-0 rounded-full px-2.5 py-1 text-[9px] font-black uppercase tracking-wider ${
+                        <span className={`shrink-0 rounded-full px-3 py-1 text-[9px] font-black uppercase tracking-wider ${
                           activo ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'
                         }`}>
                           {activo ? 'Activo' : 'Bloqueado'}
@@ -656,8 +662,8 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                       </div>
 
                       {/* MATRIZ / PÍLDORAS DE CEREMONIAS ASIGNADAS */}
-                      <div className="my-4 p-3 rounded-2xl bg-slate-50 border border-slate-200/80">
-                        <div className="flex items-center justify-between mb-2">
+                      <div className="my-4 p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
+                        <div className="flex items-center justify-between mb-2.5">
                           <span className="text-[10px] font-black uppercase tracking-wider text-slate-600">
                             Ceremonias asignadas ({authsList.length}):
                           </span>
@@ -691,7 +697,7 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                       </div>
 
                       {/* METADATOS COMPACTOS */}
-                      <div className="grid grid-cols-2 gap-2 mb-4 text-[10px]">
+                      <div className="grid grid-cols-2 gap-2.5 mb-4 text-[10px]">
                         <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-150">
                           <span className="text-slate-400 font-bold block uppercase text-[8px]">Último Acceso</span>
                           <strong className="text-slate-800 block truncate mt-0.5">
@@ -699,7 +705,7 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                           </strong>
                         </div>
                         <div className={`p-2.5 rounded-xl border ${
-                          autorizadoEnSeleccionada ? 'bg-emerald-50/70 border-emerald-200 text-emerald-800' : 'bg-amber-50/70 border-amber-200 text-amber-800'
+                          autorizadoEnSeleccionada ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900' : 'bg-amber-50/80 border-amber-200 text-amber-900'
                         }`}>
                           <span className="font-bold block uppercase text-[8px]">En ceremonia en foco</span>
                           <strong className="block truncate mt-0.5">
@@ -710,7 +716,7 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                     </div>
 
                     {/* BOTONES DE ACCIÓN */}
-                    <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-slate-100 mt-1">
+                    <div className="flex flex-wrap items-center gap-2 pt-3.5 border-t border-slate-100 mt-1">
                       <button
                         onClick={() => handleToggleAutorizacion(u.id)}
                         disabled={guardandoAutorizacion === u.id}
@@ -764,18 +770,18 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
       {/* PESTAÑA 2: DISPOSITIVOS MÓVILES & TELEMETRÍA EN VIVO */}
       {/* ======================================================== */}
       {pestañaActiva === 'dispositivos' && (
-        <div className="space-y-4">
+        <div className="space-y-5">
           
           {/* HEADER DE ESTADO DE DISPOSITIVOS */}
-          <div className="bg-slate-900 rounded-3xl p-5 sm:p-6 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-3.5">
-              <div className="h-12 w-12 rounded-2xl bg-white/10 text-sky-400 flex items-center justify-center border border-white/10">
-                <Smartphone size={24} />
+          <div className="bg-slate-900 rounded-3xl p-6 sm:p-7 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-5 border border-white/10">
+            <div className="flex items-center gap-4">
+              <div className="h-13 w-13 rounded-2xl bg-white/10 text-sky-400 flex items-center justify-center border border-white/10 shadow-inner">
+                <Smartphone size={26} />
               </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-base font-black">Escáneres y Terminales Vinculadas</h2>
-                  <span className="px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30 text-[9px] font-black uppercase tracking-wider">
+                <div className="flex items-center gap-2.5">
+                  <h2 className="text-lg font-black">Escáneres y Terminales Vinculadas</h2>
+                  <span className="px-2.5 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30 text-[9px] font-black uppercase tracking-wider">
                     Telemetría en Vivo
                   </span>
                 </div>
@@ -786,10 +792,10 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="px-4 py-2 rounded-2xl bg-white/5 border border-white/10 text-right">
+              <div className="px-5 py-2.5 rounded-2xl bg-white/5 border border-white/10 text-right">
                 <span className="block text-[9px] font-black uppercase tracking-wider text-slate-400">Estado</span>
-                <span className="text-xs font-black text-emerald-400 flex items-center gap-1.5 justify-end">
-                  <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span className="text-xs font-black text-emerald-400 flex items-center gap-2 justify-end mt-0.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
                   {dispositivosEnLinea} en línea · {dispositivosTotales} vinculados
                 </span>
               </div>
@@ -798,20 +804,20 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
 
           {/* LISTA DE DISPOSITIVOS */}
           {cargandoDispositivos ? (
-            <div className="bg-white rounded-3xl border border-slate-200/80 p-12 text-center">
-              <RefreshCw size={26} className="animate-spin text-sky-500 mx-auto mb-3" />
+            <div className="bg-white rounded-3xl border border-slate-200/80 p-14 text-center shadow-sm">
+              <RefreshCw size={28} className="animate-spin text-sky-500 mx-auto mb-3" />
               <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Consultando terminales móviles...</p>
             </div>
           ) : dispositivos.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-slate-300 bg-white py-14 px-6 text-center">
-              <Smartphone size={40} className="mx-auto mb-3 text-slate-300" />
-              <h3 className="text-sm font-black text-slate-800">Todavía no hay dispositivos móviles registrados</h3>
-              <p className="text-xs font-semibold text-slate-500 mt-1 max-w-md mx-auto">
+            <div className="rounded-3xl border border-dashed border-slate-300 bg-white py-16 px-6 text-center shadow-sm">
+              <Smartphone size={44} className="mx-auto mb-3 text-slate-300" />
+              <h3 className="text-base font-black text-slate-900">Todavía no hay dispositivos móviles registrados</h3>
+              <p className="text-xs font-semibold text-slate-500 mt-1 max-w-md mx-auto leading-relaxed">
                 Los dispositivos aparecerán automáticamente tan pronto como un operador abra la app móvil SiGIC Accesos o inicie sesión escaneando su Pase QR.
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {dispositivos.map(d => {
                 const enLinea = Boolean(d.enLinea)
                 const sesionActiva = d.sesionActiva === 1
@@ -819,25 +825,25 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                 return (
                   <article 
                     key={d.dispositivoId}
-                    className="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                    className="bg-white rounded-[28px] border border-slate-200/90 p-5.5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
                   >
                     <div>
                       {/* ESTADO SUPERIOR */}
-                      <div className="flex items-start justify-between gap-3 mb-3.5">
+                      <div className="flex items-start justify-between gap-3 mb-4">
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className={`relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl ${
+                          <div className={`relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl shadow-sm ${
                             enLinea ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-slate-100 text-slate-500'
                           }`}>
-                            <Smartphone size={20} />
-                            <span className={`absolute -right-1 -top-1 h-3 w-3 rounded-full border-2 border-white ${
+                            <Smartphone size={22} />
+                            <span className={`absolute -right-1 -top-1 h-3.5 w-3.5 rounded-full border-2 border-white ${
                               enLinea ? 'bg-emerald-500' : sesionActiva ? 'bg-amber-400' : 'bg-slate-400'
                             }`} />
                           </div>
                           <div className="min-w-0">
-                            <h4 className="truncate text-sm font-black text-slate-800">
+                            <h4 className="truncate text-sm font-black text-slate-900">
                               {d.nombreDispositivo || `${d.marca || 'Móvil'} ${d.modelo || ''}`}
                             </h4>
-                            <p className="truncate text-xs font-semibold text-slate-400 mt-0.5">
+                            <p className="truncate text-xs font-semibold text-slate-500 mt-0.5">
                               {d.usuarioNombre || 'Operador de portería'}
                             </p>
                           </div>
@@ -855,28 +861,28 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                       </div>
 
                       {/* DATOS DE TELEMETRÍA */}
-                      <div className="grid grid-cols-2 gap-2 my-3 text-[10px]">
+                      <div className="grid grid-cols-2 gap-2 my-3.5 text-[10px]">
                         <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                           <span className="text-slate-400 font-bold block uppercase text-[8px]">Sistema Operativo</span>
-                          <strong className="text-slate-700 block truncate mt-0.5">
+                          <strong className="text-slate-800 block truncate mt-0.5">
                             {d.sistema || 'Android'} {d.versionSistema?.slice(0, 10) || ''}
                           </strong>
                         </div>
                         <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                           <span className="text-slate-400 font-bold block uppercase text-[8px]">Versión App</span>
-                          <strong className="text-slate-700 block truncate mt-0.5">
+                          <strong className="text-slate-800 block truncate mt-0.5">
                             {d.versionApp || '1.0.5+6'}
                           </strong>
                         </div>
                         <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                           <span className="text-slate-400 font-bold block uppercase text-[8px]">IP Origen</span>
-                          <strong className="text-slate-700 block truncate mt-0.5 font-mono">
+                          <strong className="text-slate-800 block truncate mt-0.5 font-mono">
                             {d.ipUltimoAcceso || '127.0.0.1'}
                           </strong>
                         </div>
                         <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                           <span className="text-slate-400 font-bold block uppercase text-[8px]">Último Ping</span>
-                          <strong className="text-slate-700 block truncate mt-0.5">
+                          <strong className="text-slate-800 block truncate mt-0.5">
                             {d.ultimoAcceso ? new Date(d.ultimoAcceso).toLocaleTimeString('es-AR') : '—'}
                           </strong>
                         </div>
@@ -917,18 +923,18 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
       {/* MODAL: DETALLE DIAGNÓSTICO DEL DISPOSITIVO */}
       {/* ======================================================== */}
       {dispositivoSeleccionado && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="w-full max-w-lg overflow-hidden rounded-[28px] border border-white/10 bg-white shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="relative overflow-hidden bg-slate-900 p-6 text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="w-full max-w-lg overflow-hidden rounded-[32px] border border-white/10 bg-white shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="relative overflow-hidden bg-slate-900 p-7 text-white">
               <button 
                 onClick={() => setDispositivoSeleccionado(null)} 
-                className="absolute right-4 top-4 z-10 rounded-xl bg-white/10 p-2 text-slate-300 transition hover:bg-white/20 hover:text-white cursor-pointer"
+                className="absolute right-5 top-5 z-10 rounded-xl bg-white/10 p-2 text-slate-300 transition hover:bg-white/20 hover:text-white cursor-pointer"
               >
                 <X size={18} />
               </button>
               <div className="relative flex items-center gap-4 pr-10">
-                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-400/20 text-sky-300 border border-sky-300/20">
-                  <Smartphone size={24} />
+                <span className="flex h-13 w-13 items-center justify-center rounded-2xl bg-sky-400/20 text-sky-300 border border-sky-300/20 shadow-inner">
+                  <Smartphone size={26} />
                 </span>
                 <div>
                   <p className="text-[9px] font-black uppercase tracking-[0.2em] text-sky-400">Diagnóstico de Terminal</p>
@@ -938,7 +944,7 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
               </div>
             </div>
 
-            <div className="p-6">
+            <div className="p-7">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                 {[
                   ['Fabricante / Marca', dispositivoSeleccionado.fabricante || dispositivoSeleccionado.marca || 'No informado'],
@@ -962,7 +968,7 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                 <code className="mt-1 block break-all text-[11px] font-mono font-bold text-sky-950">{dispositivoSeleccionado.dispositivoId}</code>
               </div>
 
-              <div className="mt-5 flex gap-2.5">
+              <div className="mt-6 flex gap-3">
                 {dispositivoSeleccionado.sesionActiva === 1 && (
                   <button 
                     onClick={() => handleDesvincularDispositivo(dispositivoSeleccionado.dispositivoId)}
@@ -973,7 +979,7 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                 )}
                 <button 
                   onClick={() => setDispositivoSeleccionado(null)} 
-                  className="flex-1 rounded-xl bg-slate-900 py-3 text-xs font-bold text-white transition hover:bg-sky-500 cursor-pointer"
+                  className="flex-1 rounded-xl bg-slate-900 py-3 text-xs font-bold text-white transition hover:bg-sky-500 cursor-pointer shadow-md"
                 >
                   Cerrar
                 </button>
@@ -987,12 +993,12 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
       {/* MODAL: REGISTRAR NUEVO OPERADOR */}
       {/* ======================================================== */}
       {mostrarModalNuevo && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-[32px] p-7 sm:p-8 max-w-md w-full shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-sky-50 text-sky-500 border border-sky-100 flex items-center justify-center">
-                  <UserPlus size={20} />
+              <div className="flex items-center gap-3.5">
+                <div className="w-11 h-11 rounded-2xl bg-sky-50 text-sky-500 border border-sky-100 flex items-center justify-center shadow-sm">
+                  <UserPlus size={22} />
                 </div>
                 <div>
                   <h3 className="text-base font-black text-slate-900">Registrar Personal</h3>
@@ -1015,7 +1021,7 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                   value={nombre} 
                   onChange={e => setNombre(e.target.value)}
                   placeholder="Ej: Marcos Gómez"
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 outline-none transition"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none transition"
                   required
                 />
               </div>
@@ -1027,7 +1033,7 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                   value={email} 
                   onChange={e => setEmail(e.target.value)}
                   placeholder="porteria@sigic.com"
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 outline-none transition"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none transition"
                   required
                 />
               </div>
@@ -1039,7 +1045,7 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                   value={password} 
                   onChange={e => setPassword(e.target.value)}
                   placeholder="Mínimo 8 caracteres"
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl px-4 py-2.5 text-xs font-semibold text-slate-800 outline-none transition"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none transition"
                   required
                   minLength={8}
                 />
@@ -1057,7 +1063,7 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                 </span>
               </label>
 
-              <div className="pt-2 flex gap-3">
+              <div className="pt-3 flex gap-3">
                 <button 
                   type="button"
                   onClick={() => setMostrarModalNuevo(false)}
@@ -1079,65 +1085,67 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
       )}
 
       {/* ======================================================== */}
-      {/* MODAL: ENLAZAR ESCÁNER Y PASE QR (COMPLETO Y POLISHED) */}
+      {/* MODAL: ENLAZAR ESCÁNER Y PASE QR (DISEÑO ULTRA-POLISHED) */}
       {/* ======================================================== */}
       {mostrarModalQR && usuarioSeleccionado && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-[32px] p-6 sm:p-8 max-w-2xl w-full shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="bg-white rounded-[32px] overflow-hidden max-w-2xl w-full shadow-2xl border border-slate-100 animate-in zoom-in-95 duration-200">
             
-            {/* CABECERA DEL MODAL */}
-            <div className="flex items-start justify-between border-b border-slate-100 pb-4">
-              <div className="flex items-center gap-3.5">
-                <div className="w-11 h-11 rounded-2xl bg-sky-50 text-sky-500 border border-sky-100 flex items-center justify-center">
-                  <QrCode size={22} />
-                </div>
-                <div>
-                  <h3 className="text-base font-black text-slate-900">Enlazar Escáner Móvil</h3>
-                  <p className="text-xs font-semibold text-slate-500 mt-0.5">
-                    Operador: <strong className="text-slate-900">{usuarioSeleccionado.nombre}</strong> ({usuarioSeleccionado.email})
-                  </p>
-                </div>
-              </div>
+            {/* CABECERA CON CONTRASTE ELEGANTE */}
+            <div className="relative bg-slate-900 p-6 sm:p-7 text-white overflow-hidden">
+              <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-sky-500/20 blur-2xl" />
               <button 
                 onClick={() => setMostrarModalQR(false)} 
-                className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition cursor-pointer"
+                className="absolute right-5 top-5 z-10 rounded-xl bg-white/10 p-2 text-slate-300 transition hover:bg-white/20 hover:text-white cursor-pointer"
               >
                 <X size={19} />
               </button>
+              <div className="relative flex items-center gap-4 pr-8">
+                <div className="w-13 h-13 rounded-2xl bg-sky-400/20 text-sky-300 border border-sky-300/20 flex items-center justify-center shadow-inner">
+                  <QrCode size={26} />
+                </div>
+                <div>
+                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-sky-400">Acceso Rápido Móvil</span>
+                  <h3 className="mt-0.5 text-lg font-black text-white">Enlazar Escáner de Portería</h3>
+                  <p className="text-xs font-semibold text-slate-400 mt-0.5">
+                    Operador: <strong className="text-white">{usuarioSeleccionado.nombre}</strong> · {usuarioSeleccionado.email}
+                  </p>
+                </div>
+              </div>
             </div>
 
-            {/* PESTAÑAS DEL MODAL */}
-            <div className="flex items-center gap-2 my-4 border-b border-slate-150 pb-2">
-              <button
-                onClick={() => setPestañaModalQR('login')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer ${
-                  pestañaModalQR === 'login'
-                    ? 'bg-slate-900 text-white shadow-sm'
-                    : 'text-slate-600 hover:bg-slate-100'
-                }`}
-              >
-                <KeyRound size={14} />
-                <span>1. Iniciar Sesión Instantánea</span>
-              </button>
+            <div className="p-6 sm:p-8">
+              {/* SELECTOR DE PESTAÑAS DENTRO DEL MODAL */}
+              <div className="flex items-center gap-2 mb-6 p-1 bg-slate-100 rounded-xl border border-slate-200/60 max-w-fit">
+                <button
+                  onClick={() => setPestañaModalQR('login')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black transition cursor-pointer ${
+                    pestañaModalQR === 'login'
+                      ? 'bg-white text-slate-900 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <KeyRound size={14} className={pestañaModalQR === 'login' ? 'text-sky-500' : ''} />
+                  <span>Pase de Inicio de Sesión</span>
+                </button>
 
-              <button
-                onClick={() => setPestañaModalQR('servidor')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition cursor-pointer ${
-                  pestañaModalQR === 'servidor'
-                    ? 'bg-slate-900 text-white shadow-sm'
-                    : 'text-slate-600 hover:bg-slate-100'
-                }`}
-              >
-                <Globe size={14} />
-                <span>2. Configuración de Red API</span>
-              </button>
-            </div>
+                <button
+                  onClick={() => setPestañaModalQR('servidor')}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-black transition cursor-pointer ${
+                    pestañaModalQR === 'servidor'
+                      ? 'bg-white text-slate-900 shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Globe size={14} className={pestañaModalQR === 'servidor' ? 'text-amber-500' : ''} />
+                  <span>Configuración Servidor API</span>
+                </button>
+              </div>
 
-            {/* CONTENIDO PESTAÑA 1: LOGIN DIRECTO */}
-            {pestañaModalQR === 'login' && (
-              <div className="py-2">
+              {/* CONTENIDO PESTAÑA 1: LOGIN DIRECTO */}
+              {pestañaModalQR === 'login' && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
-                  <div className="flex flex-col items-center justify-center p-5 bg-slate-50 rounded-2xl border border-slate-200/90 shadow-inner">
+                  <div className="flex flex-col items-center justify-center p-6 bg-slate-50/80 rounded-2xl border border-slate-200 shadow-inner">
                     {tokenCargando ? (
                       <div className="w-44 h-44 flex items-center justify-center">
                         <RefreshCw size={28} className="animate-spin text-sky-500" />
@@ -1154,24 +1162,24 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                         No se pudo generar el token. Reintentar.
                       </div>
                     )}
-                    <span className="mt-3 text-[10px] font-black uppercase tracking-wider text-slate-400">
-                      Código QR Seguro
+                    <span className="mt-3.5 text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">
+                      Pase QR de Operador
                     </span>
                   </div>
 
-                  <div className="space-y-3.5">
+                  <div className="space-y-4">
                     <div className="p-4 rounded-2xl bg-sky-50/80 border border-sky-100">
-                      <div className="flex items-center gap-2 text-sky-800 font-bold text-xs">
+                      <div className="flex items-center gap-2 text-sky-900 font-bold text-xs">
                         <Sparkles size={16} className="text-sky-500 shrink-0" />
-                        <span>Acceso sin contraseña</span>
+                        <span>Inicio instantáneo con la cámara</span>
                       </div>
                       <p className="text-[11px] text-slate-600 font-medium leading-relaxed mt-1.5">
-                        Abrí la app móvil <strong>SiGIC Accesos</strong> y apuntá la cámara a este código para iniciar sesión como <strong>{usuarioSeleccionado.nombre}</strong> automáticamente.
+                        Abrí la app móvil <strong>SiGIC Accesos</strong> y apuntá la cámara a este código para iniciar sesión sin teclear usuario ni contraseña.
                       </p>
                     </div>
 
-                    <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
-                      <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Token de sesión directa:</span>
+                    <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                      <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Token de sesión segura:</span>
                       <div className="flex items-center justify-between gap-2">
                         <code className="text-xs font-mono font-bold text-slate-800 truncate">
                           {tokenUsuario ? `${tokenUsuario.slice(0, 24)}...` : 'Generando...'}
@@ -1179,9 +1187,9 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                         {tokenUsuario && (
                           <button
                             onClick={() => copiarAlPortapapeles(tokenUsuario, 'token')}
-                            className="flex items-center gap-1 px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-[10px] font-bold text-slate-700 transition active:scale-95 cursor-pointer shrink-0"
+                            className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-100 border border-slate-200 rounded-xl text-[10px] font-bold text-slate-700 transition active:scale-95 cursor-pointer shrink-0 shadow-sm"
                           >
-                            {copiadoToken ? <CheckCheck size={12} className="text-emerald-600" /> : <Copy size={12} />}
+                            {copiadoToken ? <CheckCheck size={13} className="text-emerald-600" /> : <Copy size={13} />}
                             <span>{copiadoToken ? 'Copiado' : 'Copiar'}</span>
                           </button>
                         )}
@@ -1189,44 +1197,42 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* CONTENIDO PESTAÑA 2: CONFIGURACIÓN DE SERVIDOR / RED */}
-            {pestañaModalQR === 'servidor' && (
-              <div className="py-2">
+              {/* CONTENIDO PESTAÑA 2: CONFIGURACIÓN DE SERVIDOR / RED */}
+              {pestañaModalQR === 'servidor' && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
-                  <div className="flex flex-col items-center justify-center p-5 bg-slate-50 rounded-2xl border border-slate-200/90 shadow-inner">
+                  <div className="flex flex-col items-center justify-center p-6 bg-slate-50/80 rounded-2xl border border-slate-200 shadow-inner">
                     <QRCodeSVG 
                       value={`sigic-config:${localIp}`} 
                       size={175} 
                       level="H" 
                       fgColor={DARK} 
                     />
-                    <span className="mt-3 text-[10px] font-black uppercase tracking-wider text-amber-700">
+                    <span className="mt-3.5 text-[10px] font-black uppercase tracking-[0.16em] text-amber-700">
                       QR de Enlace de Red
                     </span>
                   </div>
 
-                  <div className="space-y-3.5">
-                    <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200/80">
+                  <div className="space-y-4">
+                    <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200">
                       <div className="flex items-center gap-2 text-amber-900 font-bold text-xs">
                         <Globe size={16} className="text-amber-600 shrink-0" />
-                        <span>Enlace de Servidor</span>
+                        <span>Enlace de Servidor API</span>
                       </div>
                       <p className="text-[11px] text-slate-600 font-medium leading-relaxed mt-1.5">
-                        Si estás operando en una red local privada o con un túnel diferente, escaneá este código para que el teléfono conecte a la dirección indicada.
+                        Si el teléfono opera en una red Wi-Fi local o servidor privado, escaneá este código para enlazar la dirección API en un toque.
                       </p>
                     </div>
 
-                    <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                    <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">Dirección Base API:</span>
                         <button
                           onClick={() => copiarAlPortapapeles(localIp, 'url')}
-                          className="flex items-center gap-1 px-2 py-0.5 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-[9px] font-bold text-slate-700 transition active:scale-95 cursor-pointer"
+                          className="flex items-center gap-1.5 px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-lg text-[9px] font-bold text-slate-700 transition active:scale-95 cursor-pointer shadow-sm"
                         >
-                          {copiadoUrl ? <CheckCheck size={11} className="text-emerald-600" /> : <Copy size={11} />}
+                          {copiadoUrl ? <CheckCheck size={12} className="text-emerald-600" /> : <Copy size={12} />}
                           <span>{copiadoUrl ? 'Copiada' : 'Copiar'}</span>
                         </button>
                       </div>
@@ -1239,20 +1245,20 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* PIE DEL MODAL */}
-            <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
-              <span className="text-[10px] text-slate-400 font-medium hidden sm:inline">
-                SiGIC Accesos · Versión App 1.0.5+6
-              </span>
-              <button 
-                onClick={() => setMostrarModalQR(false)}
-                className="px-6 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-sky-500 transition active:scale-95 shadow-md cursor-pointer ml-auto"
-              >
-                Cerrar
-              </button>
+              {/* PIE DEL MODAL */}
+              <div className="mt-8 pt-4 border-t border-slate-100 flex items-center justify-between">
+                <span className="text-[11px] text-slate-400 font-semibold hidden sm:inline">
+                  SiGIC Accesos · App Flutter Oficial
+                </span>
+                <button 
+                  onClick={() => setMostrarModalQR(false)}
+                  className="px-6 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-sky-500 transition active:scale-95 shadow-md cursor-pointer ml-auto"
+                >
+                  Listo, Cerrar
+                </button>
+              </div>
             </div>
 
           </div>
