@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -27,6 +29,7 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
   int _revisionSesion = 0;
   bool _inicializandoSistema = true;
   String _estadoInicio = 'Verificando actualizaciones seguras...';
+  Timer? _timerHeartbeat;
 
   @override
   void initState() {
@@ -35,6 +38,19 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
     _servicioApi = ServicioApi(almacenamiento);
     _servicioShorebird = ServicioShorebird();
     _inicializarShorebird();
+    _iniciarHeartbeat();
+  }
+
+  @override
+  void dispose() {
+    _timerHeartbeat?.cancel();
+    super.dispose();
+  }
+
+  void _iniciarHeartbeat() {
+    _timerHeartbeat = Timer.periodic(const Duration(seconds: 45), (_) {
+      _servicioApi.pingDispositivo();
+    });
   }
 
   Future<void> _inicializarShorebird() async {
@@ -54,6 +70,7 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
       _estadoInicio = mensaje ?? 'Sistema verificado. Iniciando operaciones...';
       _inicializandoSistema = false;
     });
+    _servicioApi.registrarDispositivo();
     _avisarNuevaRelease();
   }
 

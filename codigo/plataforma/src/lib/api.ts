@@ -653,6 +653,37 @@ export async function actualizarAutorizacionCeremonia(ceremoniaId: string, usuar
   return json;
 }
 
+export async function autorizarTodosEnCeremonia(ceremoniaId: string) {
+  const res = await fetch(`${BASE_CLASSIC}/ceremonias/${ceremoniaId}/autorizar-todos`, {
+    method: 'POST',
+    headers: cabeceras(),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo autorizar al personal');
+  return json;
+}
+
+export async function desautorizarTodosEnCeremonia(ceremoniaId: string) {
+  const res = await fetch(`${BASE_CLASSIC}/ceremonias/${ceremoniaId}/desautorizar-todos`, {
+    method: 'POST',
+    headers: cabeceras(),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudieron revocar las autorizaciones');
+  return json;
+}
+
+export async function desvincularDispositivoAdmin(dispositivoId: string) {
+  const res = await fetch(`${BASE_CLASSIC}/dispositivos/desvincular-admin`, {
+    method: 'POST',
+    headers: cabeceras(),
+    body: JSON.stringify({ dispositivoId })
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo desvincular el dispositivo');
+  return json;
+}
+
 export async function exportarBaseDatos() {
   const res = await fetch(`${BASE_CLASSIC}/setup/export`, { headers: cabeceras() });
   const json = await res.json();

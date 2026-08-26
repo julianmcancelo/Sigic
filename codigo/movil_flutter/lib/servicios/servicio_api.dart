@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
@@ -31,6 +32,10 @@ class ServicioApi {
 
   Future<void> guardarApiUrl(String url) async {
     await _almacenamiento.guardarApiUrl(_normalizarApiUrl(url));
+  }
+
+  Future<UsuarioSesion?> obtenerUsuarioLocal() async {
+    return _almacenamiento.obtenerUsuario();
   }
 
   Future<void> usarEntornoDemo() => guardarApiUrl(urlBaseDemo);
@@ -113,6 +118,7 @@ class ServicioApi {
       );
     }
     await _almacenamiento.guardarUsuario(usuario);
+    await registrarDispositivo();
     return usuario;
   }
 
@@ -124,6 +130,40 @@ class ServicioApi {
     return _almacenamiento.obtenerToken();
   }
 
+  Future<void> registrarDispositivo() async {
+    final token = await _almacenamiento.obtenerToken();
+    if (token == null || token.isEmpty) return;
+
+    try {
+      final devId = await _almacenamiento.obtenerODispositivoId();
+      final sistema = Platform.isAndroid ? 'Android' : (Platform.isIOS ? 'iOS' : Platform.operatingSystem);
+      final versionSO = Platform.operatingSystemVersion;
+
+      await _request(
+        '/dispositivos/registrar',
+        metodo: 'POST',
+        cuerpo: {
+          'dispositivoId': devId,
+          'marca': Platform.isAndroid ? 'Android Device' : 'Apple Device',
+          'fabricante': Platform.isAndroid ? 'Google/Android' : 'Apple',
+          'modelo': versionSO.length > 60 ? versionSO.substring(0, 60) : versionSO,
+          'nombreDispositivo': 'SiGIC Accesos Mobile ($sistema)',
+          'sistema': sistema,
+          'versionSistema': versionSO,
+          'tipoDispositivo': 'Telefono',
+          'versionApp': '1.0.5+6',
+          'esDispositivoReal': true,
+        },
+      );
+    } catch (_) {
+      // Registrar silenciosamente en background
+    }
+  }
+
+  Future<void> pingDispositivo() async {
+    await registrarDispositivo();
+  }
+
   Future<void> cerrarSesion() async {
     await _almacenamiento.limpiarSesion();
   }
@@ -132,10 +172,11 @@ class ServicioApi {
     final token = await _almacenamiento.obtenerToken();
     if (token != null && token.isNotEmpty) {
       try {
+        final devId = await _almacenamiento.obtenerODispositivoId();
         await _request(
           '/dispositivos/desvincular',
           metodo: 'POST',
-          cuerpo: {'dispositivoId': 'flutter-sigic'},
+          cuerpo: {'dispositivoId': devId},
         );
       } catch (_) {
         // El cierre local debe continuar aunque el servidor no responda.

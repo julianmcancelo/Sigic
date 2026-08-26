@@ -477,9 +477,12 @@ export async function GET(
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
       const result = await query(
-        `SELECT id, nombre, email, rol, activo, ultimo_login, creado_en
-         FROM usuarios_sistema
-         ORDER BY creado_en DESC`
+        `SELECT u.id, u.nombre, u.email, u.rol, u.activo, u.ultimo_login, u.creado_en,
+                COALESCE(array_agg(cua.ceremonia_id) FILTER (WHERE cua.ceremonia_id IS NOT NULL), '{}') AS "ceremoniasAutorizadas"
+         FROM usuarios_sistema u
+         LEFT JOIN ceremonias_usuarios_autorizados cua ON cua.usuario_id::text = u.id::text
+         GROUP BY u.id, u.nombre, u.email, u.rol, u.activo, u.ultimo_login, u.creado_en
+         ORDER BY u.creado_en DESC`
       );
       return NextResponse.json(result.rows, { headers });
     }
@@ -934,6 +937,24 @@ export async function POST(
       return NextResponse.json({ ok: true }, { headers });
     }
 
+    if (path === 'dispositivos/desvincular-admin') {
+      const isPersonal = await esPersonalValido(req, ROLES_GESTION);
+      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+
+      const dispositivoId = String(body.dispositivoId || '').trim().slice(0, 100);
+      if (!dispositivoId) {
+        return NextResponse.json({ error: 'ID de dispositivo requerido' }, { status: 400, headers });
+      }
+
+      await query(
+        `UPDATE dispositivos_moviles
+         SET sesion_activa = 0, ultimo_acceso = CURRENT_TIMESTAMP
+         WHERE dispositivo_id = $1`,
+        [dispositivoId]
+      );
+      return NextResponse.json({ ok: true, mensaje: 'Dispositivo desconectado correctamente' }, { headers });
+    }
+
     // -------------------------------------------------------------
     // SETUP INITIALIZE
     // -------------------------------------------------------------
@@ -1209,6 +1230,32 @@ export async function POST(
       }
 
       return NextResponse.json({ ok: true, usuario: { id, nombre, email: email.toLowerCase(), rol: rolNormalizado, activo: 1 } }, { headers });
+    }
+
+    if (slug[0] === 'ceremonias' && slug[2] === 'autorizar-todos' && slug[1]) {
+      const isPersonal = await esPersonalValido(req, ROLES_GESTION);
+      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+
+      const ceremoniaId = slug[1];
+      await query(
+        `INSERT INTO ceremonias_usuarios_autorizados (ceremonia_id, usuario_id)
+         SELECT $1, id FROM usuarios_sistema WHERE rol = 'PORTERIA' AND activo = 1
+         ON CONFLICT (ceremonia_id, usuario_id) DO NOTHING`,
+        [ceremoniaId]
+      );
+      return NextResponse.json({ ok: true, mensaje: 'Todo el personal activo ha sido autorizado en esta ceremonia' }, { headers });
+    }
+
+    if (slug[0] === 'ceremonias' && slug[2] === 'desautorizar-todos' && slug[1]) {
+      const isPersonal = await esPersonalValido(req, ROLES_GESTION);
+      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+
+      const ceremoniaId = slug[1];
+      await query(
+        'DELETE FROM ceremonias_usuarios_autorizados WHERE ceremonia_id = $1',
+        [ceremoniaId]
+      );
+      return NextResponse.json({ ok: true, mensaje: 'Se revocaron los accesos de la ceremonia' }, { headers });
     }
 
     // -------------------------------------------------------------
