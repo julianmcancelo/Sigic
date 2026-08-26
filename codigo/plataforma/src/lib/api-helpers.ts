@@ -110,3 +110,80 @@ export async function esUltimoSuperAdmin(id: string) {
   );
   return parseInt(result.rows[0]?.total ?? '0', 10) === 0;
 }
+
+export interface ParametrosBusquedaAcreditacion {
+  codigoLimpio: string;
+  token?: string;
+  id?: string;
+  dni?: string;
+  legajo?: string;
+  esIndividual: boolean;
+  esGrupo: boolean;
+  formatoOriginal: string;
+}
+
+/**
+ * Decodificador universal de códigos QR, tokens de Wallet, URLs, JSON de credenciales y DNI.
+ */
+export function parsearCodigoAcreditacion(codigoRaw: string): ParametrosBusquedaAcreditacion {
+  let codigo = String(codigoRaw || '').trim();
+  const formatoOriginal = codigo;
+
+  // 1. Quitar prefijo de Google Wallet o escáneres con prefijo institucional
+  if (/^SIGIC:/i.test(codigo)) {
+    codigo = codigo.replace(/^SIGIC:/i, '').trim();
+  }
+
+  // 2. Si es una URL (ej: https://.../?token=XYZ o /egresado/token/XYZ)
+  if (/^https?:\/\//i.test(codigo) || codigo.includes('token=')) {
+    try {
+      const url = new URL(codigo.startsWith('http') ? codigo : `https://sigic.local/${codigo.replace(/^\//, '')}`);
+      const tokenParam = url.searchParams.get('token') || url.searchParams.get('t') || url.searchParams.get('codigo');
+      if (tokenParam) {
+        codigo = tokenParam.trim();
+      } else {
+        const matchTokenPath = url.pathname.match(/\/token\/([a-zA-Z0-9_-]+)/i);
+        if (matchTokenPath) {
+          codigo = matchTokenPath[1].trim();
+        }
+      }
+    } catch {
+      const matchToken = codigo.match(/[?&]token=([a-zA-Z0-9_-]+)/i);
+      if (matchToken) codigo = matchToken[1].trim();
+    }
+  }
+
+  // 3. Si es JSON serializado (Credencial digital Web)
+  if (codigo.startsWith('{') && codigo.endsWith('}')) {
+    try {
+      const parsed = JSON.parse(codigo);
+      return {
+        codigoLimpio: parsed.token || parsed.id || parsed.dni || codigo,
+        token: parsed.token ? String(parsed.token).trim() : undefined,
+        id: parsed.id ? String(parsed.id).trim() : undefined,
+        dni: parsed.dni ? String(parsed.dni).replace(/\D/g, '') : undefined,
+        esIndividual: false,
+        esGrupo: true,
+        formatoOriginal,
+      };
+    } catch (e) {
+      console.warn('Error parseando JSON de credencial:', e);
+    }
+  }
+
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  const esUUID = uuidRegex.test(codigo);
+  const esDNI = /^\d{7,10}$/.test(codigo);
+  const esLegajo = /^[A-Za-z0-9_-]{3,20}$/.test(codigo) && !esUUID;
+
+  return {
+    codigoLimpio: codigo,
+    token: !esDNI && !esUUID ? codigo : undefined,
+    id: esUUID ? codigo : undefined,
+    dni: esDNI ? codigo : undefined,
+    legajo: esLegajo ? codigo : undefined,
+    esIndividual: esUUID,
+    esGrupo: !esUUID,
+    formatoOriginal,
+  };
+}

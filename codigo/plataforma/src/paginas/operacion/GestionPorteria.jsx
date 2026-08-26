@@ -128,7 +128,7 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
       setUsuarios(datos.filter(u => u.rol === 'PORTERIA'))
     } catch (err) {
       console.error(err)
-      setError('Error al obtener la lista de usuarios. Asegurate de ser SUPER_ADMIN para gestionar usuarios.')
+      setError('Error al obtener la lista de personal de seguridad.')
     } finally {
       setCargando(false)
     }

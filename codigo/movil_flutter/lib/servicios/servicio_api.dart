@@ -168,6 +168,11 @@ class ServicioApi {
         .toList();
   }
 
+  Future<Map<String, dynamic>> activarCeremonia(String id) async {
+    final respuesta = await _request('/ceremonias/$id/activar', metodo: 'PUT');
+    return (respuesta as Map).cast<String, dynamic>();
+  }
+
   Future<EstadisticasAcceso> obtenerEstadisticas() async {
     final datos = await _request('/stats');
     return EstadisticasAcceso.desdeMapa(datos);
@@ -185,7 +190,8 @@ class ServicioApi {
   }
 
   Future<ResultadoEscaneo> buscarInvitadoOGrupo(String codigo) async {
-    final datos = await _request('/invitados/buscar/$codigo');
+    final codigoNormalizado = Uri.encodeComponent(codigo.trim());
+    final datos = await _request('/invitados/buscar/$codigoNormalizado');
     return ResultadoEscaneo.desdeMapa(datos);
   }
 

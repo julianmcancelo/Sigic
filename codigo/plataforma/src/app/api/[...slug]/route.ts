@@ -21,7 +21,8 @@ import {
   esAutorizadoPersonalOEgresado,
   esPersonalValido,
   registrarAuditoriaOTP,
-  esUltimoSuperAdmin
+  esUltimoSuperAdmin,
+  parsearCodigoAcreditacion
 } from '@/lib/api-helpers';
 
 async function inicializarTablasAdicionales() {
@@ -372,20 +373,34 @@ export async function GET(
       }
 
       const usuario = auth.datos!;
-      const esGestion = usuario.rol && ROLES_GESTION.includes(usuario.rol);
-      const result = esGestion
+      const esGestion = Boolean(usuario.rol && ROLES_GESTION.includes(usuario.rol));
+      if (esGestion) {
+        const result = await query(`
+          SELECT c.*, TRUE AS autorizado
+          FROM ceremonias c
+          ORDER BY c.activa DESC, c.fecha DESC
+        `);
+        return NextResponse.json(result.rows, { headers });
+      }
+
+      const restricciones = await query(
+        'SELECT 1 FROM ceremonias_usuarios_autorizados WHERE usuario_id = $1',
+        [usuario.id]
+      );
+
+      const result = restricciones.rowCount && restricciones.rowCount > 0
         ? await query(`
-            SELECT c.*, TRUE AS autorizado
-            FROM ceremonias c
-            ORDER BY c.activa DESC, c.fecha DESC
-          `)
-        : await query(`
             SELECT c.*, TRUE AS autorizado
             FROM ceremonias c
             INNER JOIN ceremonias_usuarios_autorizados cua ON cua.ceremonia_id = c.id
             WHERE cua.usuario_id = $1
             ORDER BY c.activa DESC, c.fecha DESC
-          `, [usuario.id]);
+          `, [usuario.id])
+        : await query(`
+            SELECT c.*, TRUE AS autorizado
+            FROM ceremonias c
+            ORDER BY c.activa DESC, c.fecha DESC
+          `);
 
       return NextResponse.json(result.rows, { headers });
     }
@@ -545,66 +560,116 @@ export async function GET(
 
     if (slug[0] === 'invitados' && slug[1] === 'buscar' && slug[2]) {
       const codigoRaw = slug[2];
-      const codigo = decodeURIComponent(codigoRaw);
+      const codigoDecodificado = decodeURIComponent(codigoRaw);
       const isPersonal = await esPersonalValido(req, ROLES_OPERACION);
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
-      // Verificar si es JSON (el QR de egresado contiene datos serializados)
-      let idBusqueda = codigo;
-      let tokenBusqueda = codigo;
-
-      if (codigo.trim().startsWith('{')) {
-        try {
-          const parsed = JSON.parse(codigo);
-          if (parsed.id) idBusqueda = parsed.id;
-          if (parsed.token) tokenBusqueda = parsed.token;
-        } catch (e) {
-          console.error("Error al parsear el código QR como JSON:", e);
-        }
-      }
-
+      const parsed = parsearCodigoAcreditacion(codigoDecodificado);
       const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-      // 1. Intentar como ID de invitado individual (sólo si es un UUID válido para evitar error de casteo en PostgreSQL)
-      if (uuidRegex.test(idBusqueda)) {
+      // 1. Si se detectó ID de invitado individual (UUID)
+      if (parsed.id && uuidRegex.test(parsed.id)) {
         const invRes = await query(`
-          SELECT i.*, e.nombre as "egresadoNombre" 
+          SELECT i.*, e.nombre as "egresadoNombre", e.dni as "egresadoDni", e.carrera as "egresadoCarrera",
+                 e.asiento_id as "egresadoAsiento",
+                 c.id as "ceremoniaId", c.nombre as "ceremoniaNombre", c.activa as "ceremoniaActiva"
           FROM invitados i 
           JOIN egresados e ON i.egresado_id = e.id 
           JOIN ceremonias c ON e.ceremonia_id = c.id
-          WHERE i.id = $1 AND c.activa = 1
-        `, [idBusqueda]);
+          WHERE i.id = $1
+        `, [parsed.id]);
 
         if (invRes.rows.length > 0) {
-          return NextResponse.json({ tipo: 'individual', datos: invRes.rows[0] }, { headers });
+          const inv = invRes.rows[0];
+          const egrRes = await query('SELECT * FROM egresados WHERE id = $1', [inv.egresado_id]);
+          const invsRes = await query('SELECT * FROM invitados WHERE egresado_id = $1 ORDER BY nombre ASC', [inv.egresado_id]);
+          return NextResponse.json({
+            tipo: 'individual',
+            invitado: inv,
+            egresado: egrRes.rows[0] || null,
+            invitadosGrupo: invsRes.rows,
+            ceremonia: { id: inv.ceremoniaId, nombre: inv.ceremoniaNombre, activa: inv.ceremoniaActiva }
+          }, { headers });
         }
       }
 
-      // 2. Intentar como Token o ID de egresado
-      let egrRes;
-      if (uuidRegex.test(idBusqueda)) {
-        egrRes = await query(`
-          SELECT e.* 
-          FROM egresados e 
-          JOIN ceremonias c ON e.ceremonia_id = c.id
-          WHERE (UPPER(e.token) = UPPER($1) OR e.id = $2) AND c.activa = 1
-        `, [tokenBusqueda, idBusqueda]);
-      } else {
-        egrRes = await query(`
-          SELECT e.* 
-          FROM egresados e 
-          JOIN ceremonias c ON e.ceremonia_id = c.id
-          WHERE UPPER(e.token) = UPPER($1) AND c.activa = 1
-        `, [tokenBusqueda]);
+      // 2. Búsqueda de egresado por Token, ID (UUID), DNI o Legajo
+      const condiciones = [];
+      const params = [];
+
+      if (parsed.token) {
+        params.push(parsed.token.toUpperCase());
+        condiciones.push(`UPPER(e.token) = $${params.length}`);
+      }
+      if (parsed.id && uuidRegex.test(parsed.id)) {
+        params.push(parsed.id);
+        condiciones.push(`e.id = $${params.length}`);
+      }
+      if (parsed.dni) {
+        params.push(parsed.dni);
+        condiciones.push(`e.dni = $${params.length}`);
+      }
+      if (parsed.legajo) {
+        params.push(parsed.legajo.toUpperCase());
+        condiciones.push(`UPPER(e.legajo) = $${params.length}`);
       }
 
-      if (egrRes.rows.length > 0) {
-        const egr = egrRes.rows[0];
-        const invs = await query('SELECT * FROM invitados WHERE egresado_id = $1', [egr.id]);
-        return NextResponse.json({ tipo: 'grupo', egresado: egr, invitados: invs.rows }, { headers });
+      if (condiciones.length > 0) {
+        const egrRes = await query(`
+          SELECT e.*, c.nombre as "ceremoniaNombre", c.activa as "ceremoniaActiva", c.fecha as "ceremoniaFecha", c.lugar as "ceremoniaLugar"
+          FROM egresados e
+          JOIN ceremonias c ON e.ceremonia_id = c.id
+          WHERE ${condiciones.join(' OR ')}
+          ORDER BY c.activa DESC, e.creado_en DESC
+          LIMIT 1
+        `, params);
+
+        if (egrRes.rows.length > 0) {
+          const egr = egrRes.rows[0];
+          const invs = await query('SELECT * FROM invitados WHERE egresado_id = $1 ORDER BY nombre ASC', [egr.id]);
+          return NextResponse.json({
+            tipo: 'grupo',
+            egresado: egr,
+            invitados: invs.rows,
+            ceremonia: {
+              id: egr.ceremonia_id,
+              nombre: egr.ceremoniaNombre,
+              activa: egr.ceremoniaActiva,
+              fecha: egr.ceremoniaFecha,
+              lugar: egr.ceremoniaLugar
+            }
+          }, { headers });
+        }
+
+        // 3. Si no se encontró como egresado, buscar si el DNI pertenece a un invitado registrado
+        if (parsed.dni) {
+          const invDniRes = await query(`
+            SELECT i.*, e.nombre as "egresadoNombre", e.dni as "egresadoDni", e.carrera as "egresadoCarrera",
+                   c.id as "ceremoniaId", c.nombre as "ceremoniaNombre", c.activa as "ceremoniaActiva"
+            FROM invitados i
+            JOIN egresados e ON i.egresado_id = e.id
+            JOIN ceremonias c ON e.ceremonia_id = c.id
+            WHERE i.dni = $1
+            ORDER BY c.activa DESC
+            LIMIT 1
+          `, [parsed.dni]);
+
+          if (invDniRes.rows.length > 0) {
+            const inv = invDniRes.rows[0];
+            const egr = await query('SELECT * FROM egresados WHERE id = $1', [inv.egresado_id]);
+            const invs = await query('SELECT * FROM invitados WHERE egresado_id = $1 ORDER BY nombre ASC', [inv.egresado_id]);
+            return NextResponse.json({
+              tipo: 'individual',
+              invitado: inv,
+              egresado: egr.rows[0] || null,
+              invitadosGrupo: invs.rows,
+              ceremonia: { id: inv.ceremoniaId, nombre: inv.ceremoniaNombre, activa: inv.ceremoniaActiva }
+            }, { headers });
+          }
+        }
       }
 
-      return NextResponse.json({ error: 'Código no válido para esta ceremonia' }, { status: 404, headers });
+      return NextResponse.json({ error: 'Credencial o código no encontrado para esta ceremonia' }, { status: 404, headers });
     }
 
     if (slug[0] === 'invitados' && slug[1] === 'egresado' && slug[2]) {
@@ -1748,8 +1813,29 @@ export async function PUT(
     // -------------------------------------------------------------
     if (slug[0] === 'ceremonias' && slug[2] === 'activar' && slug[1]) {
       const id = slug[1];
-      const isPersonal = await esPersonalValido(req, ROLES_GESTION);
-      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+      const auth = obtenerUsuarioAutenticado(req, ROLES_OPERACION);
+      if (!auth.valido || !auth.datos) {
+        return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+      }
+
+      const usuario = auth.datos;
+      const esGestion = usuario.rol && ROLES_GESTION.includes(usuario.rol);
+      if (!esGestion) {
+        // Si no es de gestión administrativa, verificar si el usuario tiene restricciones asignadas
+        const restricciones = await query(
+          'SELECT 1 FROM ceremonias_usuarios_autorizados WHERE usuario_id = $1',
+          [usuario.id]
+        );
+        if (restricciones.rowCount && restricciones.rowCount > 0) {
+          const autoCheck = await query(
+            'SELECT 1 FROM ceremonias_usuarios_autorizados WHERE ceremonia_id = $1 AND usuario_id = $2',
+            [id, usuario.id]
+          );
+          if (autoCheck.rowCount === 0) {
+            return NextResponse.json({ error: 'No tenés autorización para activar esta ceremonia' }, { status: 403, headers });
+          }
+        }
+      }
 
       const client = await pool.connect();
       try {
@@ -1916,6 +2002,53 @@ export async function PUT(
 
       await query('UPDATE usuarios_sistema SET activo = $1 WHERE id = $2', [activo, id]);
       return NextResponse.json({ ok: true }, { headers });
+    }
+
+    // -------------------------------------------------------------
+    // ACREDITACIÓN DE GRUPO (EGRESADO + ACOMPAÑANTES)
+    // -------------------------------------------------------------
+    if (slug[0] === 'egresados' && slug[2] === 'presente-grupo' && slug[1]) {
+      const egresadoId = slug[1];
+      const isPersonal = await esPersonalValido(req, ROLES_OPERACION);
+      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+
+      const { acreditarEgresado = true, invitadoIds = [] } = body || {};
+
+      if (acreditarEgresado) {
+        await query(
+          'UPDATE egresados SET presente = TRUE, fecha_presente = COALESCE(fecha_presente, CURRENT_TIMESTAMP) WHERE id = $1',
+          [egresadoId]
+        );
+      }
+
+      let invitadosAcreditados = 0;
+      if (Array.isArray(invitadoIds) && invitadoIds.length > 0) {
+        const placeholders = invitadoIds.map((_, i) => `$${i + 2}`).join(',');
+        const resInvs = await query(
+          `UPDATE invitados SET presente = TRUE, fecha_presente = COALESCE(fecha_presente, CURRENT_TIMESTAMP) 
+           WHERE egresado_id = $1 AND id IN (${placeholders})`,
+          [egresadoId, ...invitadoIds]
+        );
+        invitadosAcreditados = resInvs.rowCount || 0;
+      } else {
+        const resInvs = await query(
+          'UPDATE invitados SET presente = TRUE, fecha_presente = COALESCE(fecha_presente, CURRENT_TIMESTAMP) WHERE egresado_id = $1',
+          [egresadoId]
+        );
+        invitadosAcreditados = resInvs.rowCount || 0;
+      }
+
+      const egrActual = await query('SELECT * FROM egresados WHERE id = $1', [egresadoId]);
+      const invsActual = await query('SELECT * FROM invitados WHERE egresado_id = $1 ORDER BY nombre ASC', [egresadoId]);
+
+      return NextResponse.json({
+        ok: true,
+        mensaje: 'Grupo acreditado exitosamente.',
+        egresado: egrActual.rows[0] || null,
+        invitados: invsActual.rows,
+        egresadoAcreditado: Boolean(acreditarEgresado),
+        invitadosAcreditados
+      }, { headers });
     }
 
     // -------------------------------------------------------------

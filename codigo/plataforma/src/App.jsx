@@ -106,6 +106,9 @@ function App() {
         if (u && u.correo && u.correo.toLowerCase() === 'soporte@ibeltran.com.ar') {
           return 'centro-control';
         }
+        if (u && (u.rol === 'PORTERIA' || u.rol === 'SEGURIDAD')) {
+          return 'control-ingreso';
+        }
       } catch (e) {
         // Ignorar
       }
@@ -431,6 +434,8 @@ function App() {
     }
     if (datosNormalizados && datosNormalizados.correo && datosNormalizados.correo.toLowerCase() === 'soporte@ibeltran.com.ar') {
       setPantallaAdmin('centro-control')
+    } else if (datosNormalizados && (datosNormalizados.rol === 'PORTERIA' || datosNormalizados.rol === 'SEGURIDAD')) {
+      setPantallaAdmin('control-ingreso')
     } else {
       setPantallaAdmin('bienvenida')
     }
@@ -638,11 +643,11 @@ function App() {
       contenido = <PreparacionCeremonia onNavegar={setPantallaAdmin} />
     } else if (pantallaAdmin === 'asistente-operativo') {
       contenido = <AsistenteOperativoCeremonia onNavegar={setPantallaAdmin} />
-    } else if (pantallaAdmin === 'control-ingreso') {
+    } else if (pantallaAdmin === 'control-ingreso' || adminUser?.rol === 'PORTERIA' || adminUser?.rol === 'SEGURIDAD') {
       contenido = (
         <ControlIngreso
           usuario={adminUser}
-          onVolver={() => setPantallaAdmin('bienvenida')}
+          onVolver={adminUser?.rol === 'PORTERIA' || adminUser?.rol === 'SEGURIDAD' ? null : () => setPantallaAdmin('bienvenida')}
           onCerrarSesion={cerrarSesionAdmin}
         />
       )

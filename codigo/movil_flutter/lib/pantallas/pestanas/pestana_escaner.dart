@@ -158,6 +158,195 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
     }
   }
 
+  Future<void> _cambiarCeremonia(CeremoniaAutorizada seleccionada) async {
+    if (seleccionada.activa) return;
+
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cambiar Ceremonia Activa'),
+        content: Text(
+          '¿Deseas activar y controlar los accesos de "${seleccionada.nombre}" en este dispositivo?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(
+              backgroundColor: TemaSigic.azulPrincipal,
+            ),
+            child: const Text('Activar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar != true) return;
+
+    setState(() {
+      _cargando = true;
+      _error = null;
+    });
+
+    try {
+      await widget.servicioApi.activarCeremonia(seleccionada.id);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Ceremonia activa: ${seleccionada.nombre}'),
+          backgroundColor: TemaSigic.exito,
+        ),
+      );
+      await _cargarPantalla();
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _cargando = false;
+      });
+      await _mostrarMensaje(
+        'Error al cambiar ceremonia',
+        error.toString().replaceFirst('Exception: ', ''),
+      );
+    }
+  }
+
+  void _mostrarSelectorCeremonias() {
+    if (_ceremoniasAutorizadas.isEmpty) return;
+
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        final formatterFecha = DateFormat('dd/MM/yyyy', 'es_AR');
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Seleccionar Ceremonia',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF0F172A),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Elegí la ceremonia que querés controlar en este dispositivo:',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: _ceremoniasAutorizadas.length,
+                  separatorBuilder: (_, index) => const SizedBox(height: 8),
+                  itemBuilder: (context, index) {
+                    final item = _ceremoniasAutorizadas[index];
+                    return InkWell(
+                      onTap: () {
+                        Navigator.pop(context);
+                        if (!item.activa) {
+                          _cambiarCeremonia(item);
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(14),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: item.activa
+                              ? TemaSigic.azulPrincipal.withValues(alpha: 0.08)
+                              : const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: item.activa
+                                ? TemaSigic.azulPrincipal
+                                : const Color(0xFFE2E8F0),
+                            width: item.activa ? 1.5 : 1,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              item.activa ? Icons.check_circle : Icons.school_outlined,
+                              color: item.activa ? TemaSigic.azulPrincipal : const Color(0xFF64748B),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    item.nombre,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 14.5,
+                                      color: item.activa
+                                          ? TemaSigic.azulPrincipal
+                                          : const Color(0xFF0F172A),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '${item.fecha == null ? 'Fecha a confirmar' : formatterFecha.format(item.fecha!)} · ${item.lugar}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (item.activa)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: const Text(
+                                  'ACTIVA',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                    color: Color(0xFF0A7F5F),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _procesarCodigo(String codigo) async {
     if (_escaneoBloqueado || _cargandoEscaneo || _resultado != null) {
       return;
@@ -588,15 +777,28 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
               estadisticas: _estadisticas!,
               formatterFecha: formatterFecha,
               textoActualizacion: _textoUltimaActualizacion,
+              puedeCambiar: _ceremoniasAutorizadas.length > 1,
+              onCambiarCeremonia: _mostrarSelectorCeremonias,
             )
           else if (_ceremonia != null)
             PanelTarjeta(
               contenido: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Ceremonia activa',
-                    style: TextStyle(fontWeight: FontWeight.w700),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Ceremonia activa',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      if (_ceremoniasAutorizadas.length > 1)
+                        TextButton.icon(
+                          onPressed: _mostrarSelectorCeremonias,
+                          icon: const Icon(Icons.swap_horiz, size: 16),
+                          label: const Text('Cambiar'),
+                        ),
+                    ],
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -609,6 +811,36 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
                   Text(formatterFecha.format(_ceremonia!.fecha)),
                   const SizedBox(height: 4),
                   Text(_ceremonia!.lugar),
+                ],
+              ),
+            )
+          else if (_ceremoniasAutorizadas.isNotEmpty)
+            PanelTarjeta(
+              contenido: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Ninguna ceremonia activa',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFFB4530A),
+                        ),
+                      ),
+                      FilledButton.tonalIcon(
+                        onPressed: _mostrarSelectorCeremonias,
+                        icon: const Icon(Icons.touch_app, size: 16),
+                        label: const Text('Elegir'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Tocá una de las ceremonias habilitadas abajo para activarla y comenzar a acreditar.',
+                    style: TextStyle(fontSize: 13),
+                  ),
                 ],
               ),
             ),
@@ -741,53 +973,70 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
             ..._ceremoniasAutorizadas.map(
               (ceremoniaAutorizada) => Padding(
                 padding: const EdgeInsets.only(bottom: 8),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: ceremoniaAutorizada.activa || _cargando
+                        ? null
+                        : () => _cambiarCeremonia(ceremoniaAutorizada),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: ceremoniaAutorizada.activa
-                          ? TemaSigic.azulPrincipal.withValues(alpha: 0.28)
-                          : const Color(0xFFE2EAF0),
-                    ),
-                  ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 13,
-                      vertical: 2,
-                    ),
-                    leading: Icon(
-                      Icons.school,
-                      color: ceremoniaAutorizada.activa
-                          ? TemaSigic.azulPrincipal
-                          : const Color(0xFF8496A6),
-                    ),
-                    title: Text(
-                      ceremoniaAutorizada.nombre,
-                      style: const TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                    subtitle: Text(
-                      '${ceremoniaAutorizada.fecha == null ? 'Fecha a confirmar' : DateFormat('dd/MM/yyyy', 'es_AR').format(ceremoniaAutorizada.fecha!)} · ${ceremoniaAutorizada.lugar}',
-                    ),
-                    trailing: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 9,
-                        vertical: 5,
-                      ),
+                    child: Ink(
                       decoration: BoxDecoration(
-                        color: ceremoniaAutorizada.activa
-                            ? const Color(0xFF10B981).withValues(alpha: 0.13)
-                            : const Color(0xFFEEF3F7),
-                        borderRadius: BorderRadius.circular(7),
-                      ),
-                      child: Text(
-                        ceremoniaAutorizada.activa ? 'ACTIVA' : 'HABILITADA',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 10.5,
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
                           color: ceremoniaAutorizada.activa
-                              ? const Color(0xFF0A7F5F)
-                              : const Color(0xFF5C7386),
+                              ? TemaSigic.azulPrincipal.withValues(alpha: 0.35)
+                              : const Color(0xFFE2EAF0),
+                          width: ceremoniaAutorizada.activa ? 1.5 : 1,
+                        ),
+                      ),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 13,
+                          vertical: 3,
+                        ),
+                        leading: Icon(
+                          ceremoniaAutorizada.activa
+                              ? Icons.check_circle
+                              : Icons.school_outlined,
+                          color: ceremoniaAutorizada.activa
+                              ? TemaSigic.azulPrincipal
+                              : const Color(0xFF8496A6),
+                        ),
+                        title: Text(
+                          ceremoniaAutorizada.nombre,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            color: ceremoniaAutorizada.activa
+                                ? TemaSigic.azulPrincipal
+                                : const Color(0xFF0F172A),
+                          ),
+                        ),
+                        subtitle: Text(
+                          '${ceremoniaAutorizada.fecha == null ? 'Fecha a confirmar' : DateFormat('dd/MM/yyyy', 'es_AR').format(ceremoniaAutorizada.fecha!)} · ${ceremoniaAutorizada.lugar}',
+                        ),
+                        trailing: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 9,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: ceremoniaAutorizada.activa
+                                ? const Color(0xFF10B981).withValues(alpha: 0.13)
+                                : TemaSigic.azulPrincipal.withValues(alpha: 0.09),
+                            borderRadius: BorderRadius.circular(7),
+                          ),
+                          child: Text(
+                            ceremoniaAutorizada.activa ? 'ACTIVA' : 'ELEGIR',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 10.5,
+                              color: ceremoniaAutorizada.activa
+                                  ? const Color(0xFF0A7F5F)
+                                  : TemaSigic.azulPrincipal,
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -1318,12 +1567,16 @@ class _TarjetaCeremoniaActiva extends StatelessWidget {
     required this.estadisticas,
     required this.formatterFecha,
     required this.textoActualizacion,
+    this.onCambiarCeremonia,
+    this.puedeCambiar = false,
   });
 
   final Ceremonia ceremonia;
   final EstadisticasAcceso estadisticas;
   final DateFormat formatterFecha;
   final String textoActualizacion;
+  final VoidCallback? onCambiarCeremonia;
+  final bool puedeCambiar;
 
   @override
   Widget build(BuildContext context) {
@@ -1362,6 +1615,36 @@ class _TarjetaCeremoniaActiva extends StatelessWidget {
                   letterSpacing: 1.1,
                 ),
               ),
+              const Spacer(),
+              if (puedeCambiar && onCambiarCeremonia != null)
+                InkWell(
+                  onTap: onCambiarCeremonia,
+                  borderRadius: BorderRadius.circular(10),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.16),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.white24),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.swap_horiz, size: 14, color: Colors.white),
+                        SizedBox(width: 4),
+                        Text(
+                          'CAMBIAR',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
             ],
           ),
           const SizedBox(height: 8),

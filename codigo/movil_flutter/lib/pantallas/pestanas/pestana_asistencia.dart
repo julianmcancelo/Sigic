@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
+import '../../modelos/ceremonia.dart';
+import '../../modelos/ceremonia_autorizada.dart';
 import '../../modelos/grupo_asistencia.dart';
 import '../../nucleo/tema/tema_sigic.dart';
 import '../../servicios/servicio_api.dart';
@@ -21,6 +24,8 @@ class PestanaAsistencia extends StatefulWidget {
 
 class _PestanaAsistenciaState extends State<PestanaAsistencia> {
   List<GrupoAsistencia> _grupos = const [];
+  Ceremonia? _ceremonia;
+  List<CeremoniaAutorizada> _ceremoniasAutorizadas = const [];
   bool _cargando = true;
   String? _error;
   String _filtro = 'todos';
@@ -48,23 +53,217 @@ class _PestanaAsistenciaState extends State<PestanaAsistencia> {
       });
     }
     try {
-      final grupos = await widget.servicioApi.obtenerAsistencia();
-      if (!mounted) {
-        return;
-      }
+      final gruposFuture = widget.servicioApi.obtenerAsistencia();
+      final cerActivaFuture = widget.servicioApi.obtenerCeremoniaActiva();
+      final cerAutorizadasFuture = widget.servicioApi.obtenerCeremoniasAutorizadas();
+
+      final resultados = await Future.wait([
+        gruposFuture,
+        cerActivaFuture,
+        cerAutorizadasFuture,
+      ]);
+
+      if (!mounted) return;
+
       setState(() {
-        _grupos = grupos;
+        _grupos = resultados[0] as List<GrupoAsistencia>;
+        _ceremonia = resultados[1] as Ceremonia?;
+        _ceremoniasAutorizadas = resultados[2] as List<CeremoniaAutorizada>;
         _cargando = false;
       });
     } catch (error) {
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
       setState(() {
         _error = error.toString().replaceFirst('Exception: ', '');
         _cargando = false;
       });
     }
+  }
+
+  Future<void> _cambiarCeremonia(CeremoniaAutorizada seleccionada) async {
+    if (seleccionada.activa) return;
+
+    final confirmar = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Cambiar Ceremonia'),
+        content: Text(
+          '¿Deseas activar y ver la asistencia de "${seleccionada.nombre}"?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: FilledButton.styleFrom(
+              backgroundColor: TemaSigic.azulPrincipal,
+            ),
+            child: const Text('Activar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmar != true) return;
+
+    setState(() {
+      _cargando = true;
+      _error = null;
+    });
+
+    try {
+      await widget.servicioApi.activarCeremonia(seleccionada.id);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Ceremonia activa: ${seleccionada.nombre}'),
+          backgroundColor: TemaSigic.exito,
+        ),
+      );
+      await _cargar();
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _cargando = false;
+      });
+      _mostrarError(error);
+    }
+  }
+
+  void _mostrarSelectorCeremonias() {
+    if (_ceremoniasAutorizadas.isEmpty) return;
+
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        final formatterFecha = DateFormat('dd/MM/yyyy', 'es_AR');
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Cambiar Ceremonia',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF0F172A),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Seleccioná la ceremonia para ver su listado de asistencia:',
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: _ceremoniasAutorizadas.length,
+                  separatorBuilder: (_, index) => const SizedBox(height: 8),
+                  itemBuilder: (context, index) {
+                    final item = _ceremoniasAutorizadas[index];
+                    return InkWell(
+                      onTap: () {
+                        Navigator.pop(context);
+                        if (!item.activa) {
+                          _cambiarCeremonia(item);
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(14),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                        decoration: BoxDecoration(
+                          color: item.activa
+                              ? TemaSigic.azulPrincipal.withValues(alpha: 0.08)
+                              : const Color(0xFFF8FAFC),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: item.activa
+                                ? TemaSigic.azulPrincipal
+                                : const Color(0xFFE2E8F0),
+                            width: item.activa ? 1.5 : 1,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              item.activa ? Icons.check_circle : Icons.school_outlined,
+                              color: item.activa ? TemaSigic.azulPrincipal : const Color(0xFF64748B),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    item.nombre,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 14.5,
+                                      color: item.activa
+                                          ? TemaSigic.azulPrincipal
+                                          : const Color(0xFF0F172A),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    '${item.fecha == null ? 'Fecha a confirmar' : formatterFecha.format(item.fecha!)} · ${item.lugar}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (item.activa)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: const Text(
+                                  'ACTIVA',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                    color: Color(0xFF0A7F5F),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _acreditarGraduado(String id) async {
@@ -164,12 +363,12 @@ class _PestanaAsistenciaState extends State<PestanaAsistencia> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Control de ingresos',
-                          style: TextStyle(
+                        Text(
+                          _ceremonia?.nombre ?? 'Control de ingresos',
+                          style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.w800,
-                            fontSize: 16,
+                            fontSize: 15.5,
                           ),
                         ),
                         const SizedBox(height: 3),
@@ -183,6 +382,42 @@ class _PestanaAsistenciaState extends State<PestanaAsistencia> {
                       ],
                     ),
                   ),
+                  if (_ceremoniasAutorizadas.length > 1)
+                    InkWell(
+                      onTap: _mostrarSelectorCeremonias,
+                      borderRadius: BorderRadius.circular(10),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.14),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.white24),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.swap_horiz,
+                              size: 14,
+                              color: Colors.white,
+                            ),
+                            SizedBox(width: 4),
+                            Text(
+                              'CAMBIAR',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),

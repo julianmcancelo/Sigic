@@ -669,3 +669,56 @@ export async function resetearSistema() {
   if (!res.ok) throw new Error(json.error || 'No se pudo resetear el sistema');
   return json;
 }
+
+// ============================================================
+// SERVICIOS DE ACREDITACIÓN Y CONTROL DE ACCESO (PORTERÍA)
+// ============================================================
+
+export async function buscarAcreditacion(codigo: string) {
+  const res = await fetch(`${BASE_CLASSIC}/invitados/buscar/${encodeURIComponent(codigo.trim())}`, {
+    headers: cabeceras()
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se encontró la credencial o el código ingresado.');
+  return json;
+}
+
+export async function acreditarEgresado(id: string | number) {
+  const res = await fetch(`${BASE_CLASSIC}/egresados/${id}/presente`, {
+    method: 'PUT',
+    headers: cabeceras()
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo registrar el ingreso del egresado.');
+  return json;
+}
+
+export async function acreditarInvitado(id: string | number) {
+  const res = await fetch(`${BASE_CLASSIC}/invitados/${id}/presente`, {
+    method: 'PUT',
+    headers: cabeceras()
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo registrar el ingreso del acompañante.');
+  return json;
+}
+
+export async function acreditarGrupo(egresadoId: string | number, invitadoIds: string[] = [], acreditarEgresado = true) {
+  const res = await fetch(`${BASE_CLASSIC}/egresados/${egresadoId}/presente-grupo`, {
+    method: 'PUT',
+    headers: cabeceras(),
+    body: JSON.stringify({ acreditarEgresado, invitadoIds })
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo acreditar el grupo.');
+  return json;
+}
+
+export async function obtenerAsistenciaOperativa() {
+  const res = await fetch(`${BASE_CLASSIC}/asistencia`, { headers: cabeceras() });
+  if (!res.ok) throw new Error('No se pudo obtener el estado de asistencia en sala.');
+  return res.json();
+}
+
+export const obtenerEstadisticasAcreditacion = obtenerAsistenciaOperativa;
+

@@ -34,7 +34,13 @@ export async function GET(req: NextRequest) {
         [usuario.id]
       );
       if (authCheck.rows.length === 0) {
-        return NextResponse.json({ error: 'Tu cuenta no tiene ceremonias asignadas.' }, { status: 403 });
+        const cerActiva = await query('SELECT id FROM ceremonias WHERE activa = 1 LIMIT 1');
+        if (cerActiva.rows.length > 0) {
+          await query(
+            'INSERT INTO ceremonias_usuarios_autorizados (ceremonia_id, usuario_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+            [cerActiva.rows[0].id, usuario.id]
+          );
+        }
       }
     }
 
