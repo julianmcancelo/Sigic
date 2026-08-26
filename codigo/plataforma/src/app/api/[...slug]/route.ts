@@ -76,9 +76,13 @@ async function inicializarTablasAdicionales() {
     `);
     await query('ALTER TABLE otp_historial ALTER COLUMN otp_hash TYPE VARCHAR(64)');
     await query('ALTER TABLE otp_historial ALTER COLUMN resultado TYPE VARCHAR(32)');
-    await query('ALTER TABLE egresados DROP CONSTRAINT IF EXISTS egresados_legajo_carrera_anio_key');
     await query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS entregador_asiento_id VARCHAR(100)');
     await query('ALTER TABLE entregadores ADD COLUMN IF NOT EXISTS asiento_id VARCHAR(100)');
+    await query("ALTER TABLE egresados ADD COLUMN IF NOT EXISTS formula_juramento VARCHAR(50) DEFAULT 'PATRIA'");
+    await query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS comentarios VARCHAR(500)');
+    await query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS diploma_entregado BOOLEAN DEFAULT FALSE');
+    await query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS menciones VARCHAR(200)');
+    await query('ALTER TABLE invitados ADD COLUMN IF NOT EXISTS menor_en_brazos BOOLEAN DEFAULT FALSE');
   } catch (e) {
     console.error('Error al inicializar tabla ceremonias_usuarios_autorizados:', e);
   }
@@ -1112,6 +1116,134 @@ export async function POST(
       return NextResponse.json({ mensaje: 'Configuración guardada con éxito en la base de datos' }, { headers });
     }
 
+    // AUTO-ASIGNACIÓN INTELIGENTE DE SALA
+    if (path === 'anfiteatro/auto-asignar') {
+      const isPersonal = await esPersonalValido(req, ROLES_GESTION);
+      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+
+      const ceremoniaRes = await query('SELECT id FROM ceremonias WHERE activa = 1 LIMIT 1');
+      const ceremoniaId = body?.ceremoniaId || ceremoniaRes.rows[0]?.id;
+      if (!ceremoniaId) return NextResponse.json({ error: 'No hay ceremonia activa' }, { status: 400, headers });
+
+      const planoRes = await query(
+        'SELECT estructura, mapa_roles FROM configuracion_anfiteatro WHERE ceremonia_id = $1 ORDER BY actualizado_en DESC LIMIT 1',
+        [ceremoniaId]
+      );
+      if (!planoRes.rows[0]) return NextResponse.json({ error: 'El plano del anfiteatro no está configurado' }, { status: 400, headers });
+
+      const estructura = typeof planoRes.rows[0].estructura === 'string' ? JSON.parse(planoRes.rows[0].estructura) : planoRes.rows[0].estructura;
+      const mapaRoles = typeof planoRes.rows[0].mapa_roles === 'string' ? JSON.parse(planoRes.rows[0].mapa_roles) : planoRes.rows[0].mapa_roles;
+
+      const egresadosRes = await query(
+        `SELECT e.id, e.nombre, e.carrera, e.formula_juramento,
+                (SELECT json_agg(json_build_object('id', i.id, 'nombre', i.nombre, 'discapacidad', i.discapacidad, 'menor_en_brazos', i.menor_en_brazos))
+                 FROM invitados i WHERE i.egresado_id = e.id) as invitados
+         FROM egresados e
+         WHERE e.ceremonia_id = $1 AND e.estado = 'ACEPTADO'
+         ORDER BY e.carrera ASC, e.nombre ASC`,
+        [ceremoniaId]
+      );
+
+      const egresados = egresadosRes.rows;
+      if (egresados.length === 0) {
+        return NextResponse.json({ error: 'No hay graduados en estado ACEPTADO para ubicar.' }, { status: 400, headers });
+      }
+
+      const asientosGraduados: string[] = [];
+      const asientosAccesibles: string[] = [];
+      const asientosGenerales: string[] = [];
+
+      const filas = estructura?.filas || [];
+      for (const fila of filas) {
+        const idFila = fila.id || fila.letra;
+        const columnas = fila.columnas || [];
+        for (let col = 1; col <= columnas.length; col++) {
+          const asientoId = `${idFila}-${col}`;
+          const rol = mapaRoles?.[asientoId];
+          if (['bloqueado', 'autoridad', 'reservado', 'pasillo'].includes(rol)) continue;
+          
+          if (rol === 'graduado') {
+            asientosGraduados.push(asientoId);
+          } else if (rol === 'accesible' || rol === 'discapacidad') {
+            asientosAccesibles.push(asientoId);
+          } else {
+            asientosGenerales.push(asientoId);
+          }
+        }
+      }
+
+      let poolGraduados = [...asientosGraduados];
+      let poolGenerales = [...asientosGenerales];
+      let poolAccesibles = [...asientosAccesibles];
+
+      if (poolGraduados.length === 0) {
+        poolGraduados = poolGenerales.splice(0, Math.min(egresados.length + 10, poolGenerales.length));
+      }
+
+      const client = await pool.connect();
+      let asignadosEgresados = 0;
+      let asignadosInvitados = 0;
+
+      try {
+        await client.query('BEGIN');
+
+        for (const eg of egresados) {
+          let asientoEg: string | null = null;
+          if (poolGraduados.length > 0) {
+            asientoEg = poolGraduados.shift()!;
+          } else if (poolGenerales.length > 0) {
+            asientoEg = poolGenerales.shift()!;
+          }
+
+          if (asientoEg) {
+            await client.query(
+              `UPDATE egresados SET asiento_id = $1, estado_asignacion_butacas = 'CONFIRMADA', asiento_solicitado_id = NULL WHERE id = $2`,
+              [asientoEg, eg.id]
+            );
+            asignadosEgresados++;
+          }
+
+          const invs = eg.invitados || [];
+          for (const inv of invs) {
+            if (inv.menor_en_brazos) {
+              await client.query(`UPDATE invitados SET asiento_id = NULL, asiento_solicitado_id = NULL WHERE id = $1`, [inv.id]);
+              continue;
+            }
+
+            let asientoInv: string | null = null;
+            if (inv.discapacidad && poolAccesibles.length > 0) {
+              asientoInv = poolAccesibles.shift()!;
+            } else if (poolGenerales.length > 0) {
+              asientoInv = poolGenerales.shift()!;
+            } else if (poolGraduados.length > 0) {
+              asientoInv = poolGraduados.shift()!;
+            }
+
+            if (asientoInv) {
+              await client.query(
+                `UPDATE invitados SET asiento_id = $1, asiento_solicitado_id = NULL WHERE id = $2`,
+                [asientoInv, inv.id]
+              );
+              asignadosInvitados++;
+            }
+          }
+        }
+
+        await client.query('COMMIT');
+        return NextResponse.json({
+          ok: true,
+          mensaje: `Distribución inteligente completada: ${asignadosEgresados} graduados y ${asignadosInvitados} acompañantes ubicados en el auditorio.`,
+          asignadosEgresados,
+          asignadosInvitados
+        }, { headers });
+      } catch (err: any) {
+        await client.query('ROLLBACK');
+        return NextResponse.json({ error: 'Error al ejecutar la distribución de butacas', detalle: err.message }, { status: 500, headers });
+      } finally {
+        client.release();
+      }
+    }
+
     // -------------------------------------------------------------
     // CEREMONIAS
     // -------------------------------------------------------------
@@ -1927,13 +2059,34 @@ export async function PUT(
   try {
     if (slug[0] === 'egresados' && slug[1] && !slug[2]) {
       const isPersonal = await esPersonalValido(req, ROLES_GESTION);
-      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+      const isEgresadoPropio = await esAutorizadoPersonalOEgresado(req, slug[1], ROLES_GESTION);
+      if (!isPersonal && !isEgresadoPropio) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+
+      const campos: string[] = [];
+      const valores: any[] = [];
+      let i = 1;
+
+      if (body.nombre !== undefined) { campos.push(`nombre = $${i++}`); valores.push(body.nombre.trim()); }
+      if (body.dni !== undefined) { campos.push(`dni = $${i++}`); valores.push(body.dni.replace(/\D/g, '')); }
+      if (body.legajo !== undefined) { campos.push(`legajo = $${i++}`); valores.push(body.legajo?.trim() || null); }
+      if (body.correo !== undefined) { campos.push(`correo = $${i++}`); valores.push(body.correo?.trim() || null); }
+      if (body.carrera !== undefined) { campos.push(`carrera = $${i++}`); valores.push(body.carrera?.trim() || null); }
+      if (body.anio_inscripcion !== undefined) { campos.push(`anio_inscripcion = $${i++}`); valores.push(body.anio_inscripcion || null); }
+      if (body.promedio !== undefined) { campos.push(`promedio = $${i++}`); valores.push(body.promedio || null); }
+      if (body.formula_juramento !== undefined) { campos.push(`formula_juramento = $${i++}`); valores.push(body.formula_juramento); }
+      if (body.formulaJuramento !== undefined) { campos.push(`formula_juramento = $${i++}`); valores.push(body.formulaJuramento); }
+      if (body.comentarios !== undefined) { campos.push(`comentarios = $${i++}`); valores.push(body.comentarios); }
+      if (body.diploma_entregado !== undefined) { campos.push(`diploma_entregado = $${i++}`); valores.push(Boolean(body.diploma_entregado)); }
+      if (body.menciones !== undefined) { campos.push(`menciones = $${i++}`); valores.push(body.menciones); }
+
+      if (campos.length === 0) {
+        return NextResponse.json({ error: 'No se enviaron campos para actualizar' }, { status: 400, headers });
+      }
+
+      valores.push(slug[1]);
       const actualizado = await query(
-        `UPDATE egresados SET nombre = $1, dni = $2, legajo = $3, correo = $4, carrera = $5,
-          anio_inscripcion = $6, promedio = $7 WHERE id = $8
-         RETURNING id, nombre, dni, legajo, correo, carrera, anio_inscripcion, promedio`,
-        [body.nombre?.trim(), body.dni?.replace(/\D/g, ''), body.legajo?.trim(), body.correo?.trim() || null,
-          body.carrera?.trim() || null, body.anio_inscripcion || null, body.promedio || null, slug[1]]
+        `UPDATE egresados SET ${campos.join(', ')} WHERE id = $${i} RETURNING *`,
+        valores
       );
       if (!actualizado.rows[0]) return NextResponse.json({ error: 'Graduado no encontrado' }, { status: 404, headers });
       return NextResponse.json({ ok: true, graduado: actualizado.rows[0] }, { headers });
@@ -2539,9 +2692,16 @@ export async function PUT(
           );
         } else {
           // Si confirma
+          const formulaJura = body.formulaJuramento || body.formula_juramento;
+          const comentariosTxt = body.comentarios;
           await client.query(
-            "UPDATE egresados SET estado = 'ACEPTADO', asiento_id = $1 WHERE id = $2",
-            [asientoId || null, id]
+            `UPDATE egresados 
+             SET estado = 'ACEPTADO', 
+                 asiento_id = COALESCE($1, asiento_id),
+                 formula_juramento = COALESCE($3, formula_juramento, 'PATRIA'),
+                 comentarios = COALESCE($4, comentarios)
+             WHERE id = $2`,
+            [asientoId || null, id, formulaJura || null, comentariosTxt || null]
           );
 
           if (Array.isArray(acompañantes)) {
@@ -2552,9 +2712,9 @@ export async function PUT(
             for (const ac of acompañantes) {
               const dniLimpio = String(ac.dni).replace(/\s/g, '');
               await client.query(
-                `INSERT INTO invitados (egresado_id, nombre, dni, telefono, correo, relacion) 
-                 VALUES ($1, $2, $3, $4, $5, $6)`,
-                [id, ac.nombre.trim(), dniLimpio, String(ac.telefono || '').trim() || null, (ac.correo || '').trim() || null, ac.relacion]
+                `INSERT INTO invitados (egresado_id, nombre, dni, telefono, correo, relacion, menor_en_brazos, discapacidad) 
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+                [id, ac.nombre.trim(), dniLimpio, String(ac.telefono || '').trim() || null, (ac.correo || '').trim() || null, ac.relacion, Boolean(ac.menor_en_brazos || ac.menorEnBrazos), Boolean(ac.discapacidad)]
               );
             }
           }

@@ -580,6 +580,39 @@ export async function responderInvitacion(graduadoId: string | number, respuesta
   return json;
 }
 
+export async function actualizarJuramentoGraduado(graduadoId: string | number, formulaJuramento: string, comentarios?: string) {
+  const res = await fetch(`${BASE_CLASSIC}/egresados/${graduadoId}`, {
+    method: 'PUT',
+    headers: cabeceras(),
+    body: JSON.stringify({ formulaJuramento, comentarios })
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo guardar la fórmula de juramento');
+  return json;
+}
+
+export async function autoAsignarButacas(ceremoniaId?: string | number) {
+  const res = await fetch(`${BASE_CLASSIC}/anfiteatro/auto-asignar`, {
+    method: 'POST',
+    headers: cabeceras(),
+    body: JSON.stringify({ ceremoniaId })
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo realizar la distribución automática de butacas');
+  return json;
+}
+
+export async function marcarDiplomaEntregado(graduadoId: string | number, diploma_entregado: boolean) {
+  const res = await fetch(`${BASE_CLASSIC}/egresados/${graduadoId}`, {
+    method: 'PUT',
+    headers: cabeceras(),
+    body: JSON.stringify({ diploma_entregado })
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo actualizar el estado del diploma');
+  return json;
+}
+
 export async function finalizarInscripcionGraduado(graduadoId: string | number) {
   const res = await fetch(`${BASE_CLASSIC}/egresados/${graduadoId}/finalizar-inscripcion`, {
     method: 'PUT',

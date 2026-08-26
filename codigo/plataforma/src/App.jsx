@@ -9,7 +9,7 @@
  * 3. Si rechaza → Inhabilitado, se cierra sesión automáticamente
  */
 import { useState, useEffect, useRef } from 'react'
-import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, RefreshCw, Shield, Server, Search, Power, Bell, Wifi, Volume2, ChevronRight, ChevronUp, ArrowRight, LayoutGrid, X, Minus, Maximize2, Sun, Moon, MousePointer2, Lock, ClipboardCheck, Activity, Send, ListChecks } from 'lucide-react'
+import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, RefreshCw, Shield, Server, Search, Power, Bell, Wifi, Volume2, ChevronRight, ChevronUp, ArrowRight, LayoutGrid, X, Minus, Maximize2, Sun, Moon, MousePointer2, Lock, ClipboardCheck, Activity, Send, ListChecks, Mic, ScrollText } from 'lucide-react'
 
 // Importación de Páginas
 import { PaginaInicioSesion } from './paginas/PaginaInicioSesion'
@@ -35,6 +35,7 @@ import { EditorAnfiteatro } from './paginas/operacion/EditorAnfiteatro'
 import { GestionProfesores } from './paginas/operacion/GestionProfesores'
 import { CentroOperacionesDemo } from './paginas/operacion/CentroOperacionesDemo'
 import { EstadoCeremonia } from './paginas/operacion/EstadoCeremonia'
+import { LocucionCeremonia } from './paginas/operacion/LocucionCeremonia'
 
 
 // Componentes Globales
@@ -641,6 +642,8 @@ function App() {
       contenido = <GestionConvocatoria onNavegar={setPantallaAdmin} />
     } else if (pantallaAdmin === 'preparacion-ceremonia') {
       contenido = <PreparacionCeremonia onNavegar={setPantallaAdmin} />
+    } else if (pantallaAdmin === 'locucion' || pantallaAdmin === 'teleprompter') {
+      contenido = <LocucionCeremonia onVolver={() => setPantallaAdmin('bienvenida')} onNavegar={setPantallaAdmin} />
     } else if (pantallaAdmin === 'asistente-operativo') {
       contenido = <AsistenteOperativoCeremonia onNavegar={setPantallaAdmin} />
     } else if (pantallaAdmin === 'control-ingreso' || adminUser?.rol === 'PORTERIA' || adminUser?.rol === 'SEGURIDAD') {
@@ -859,6 +862,7 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
     { id: 'gestion-graduados', titulo: 'Graduados', icono: Users, color: 'bg-emerald-500', escritorio: true },
     { id: 'convocatoria', titulo: 'Convocatoria', icono: Send, color: 'bg-sky-500', escritorio: true },
     { id: 'preparacion-ceremonia', titulo: 'Preparación', icono: ListChecks, color: 'bg-cyan-600', escritorio: true },
+    { id: 'locucion', titulo: 'Locución', icono: Mic, color: 'bg-red-500', escritorio: true },
     { id: 'asistente-operativo', titulo: 'Asistente', icono: ClipboardCheck, color: 'bg-sky-500', escritorio: true },
     { id: 'control-ingreso', titulo: 'Escáner', icono: ScanLine, color: 'bg-amber-500', escritorio: true },
     { id: 'panel-reportes', titulo: 'Reportes', icono: BarChart3, color: 'bg-rose-500', escritorio: true },

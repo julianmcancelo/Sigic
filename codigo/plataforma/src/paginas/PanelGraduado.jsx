@@ -1,6 +1,6 @@
 /**
  * PanelGraduado - Panel principal que ve el graduado al iniciar sesión.
- * Contiene 3 pestañas: Acompañantes, Padrinos y Credencial.
+ * Contiene 4 pestañas: Juramento, Acompañantes, Padrinos y Credencial.
  * El graduado propone las butacas del grupo y administración confirma la asignación final.
  */
 import { useState, useEffect } from 'react'
@@ -8,7 +8,7 @@ import Image from 'next/image'
 import {
   Users, LogOut, QrCode,
   GraduationCap, Armchair,
-  CalendarDays, MapPin, Check, ArrowLeft
+  CalendarDays, MapPin, Check, ArrowLeft, ScrollText
 } from 'lucide-react'
 import { 
   obtenerInvitadosDeEgresado, eliminarInvitado, actualizarInvitado, 
@@ -23,6 +23,7 @@ import { ListaHistorialGraduado } from './HistorialGraduado'
 import { FormularioAcompanante } from '../componentes/graduado/FormularioAcompanante'
 import { ListaAcompanantes } from '../componentes/graduado/ListaAcompanantes'
 import { SeccionPadrinos } from '../componentes/graduado/SeccionPadrinos'
+import { SeccionJuramento, FORMULAS_JURAMENTO } from '../componentes/graduado/SeccionJuramento'
 import { useConfirmacion } from '../componentes/ModalConfirmacion'
 
 function formatearFechaCeremonia(valor) {
@@ -41,21 +42,12 @@ function formatearFechaCeremonia(valor) {
   })
 }
 
-function obtenerIniciales(nombre = '') {
-  return nombre
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map(parte => parte.charAt(0).toUpperCase())
-    .join('') || 'G'
-}
-
 export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
   const { confirmar, dialogoConfirmacion } = useConfirmacion()
   const [graduado, setGraduado] = useState(graduadoSesion)
   const [invitados, setInvitados] = useState([])
   const [cargando, setCargando] = useState(true)
-  const [pestana, setPestana] = useState('invitados') // 'invitados' | 'entregadores' | 'credencial'
+  const [pestana, setPestana] = useState('juramento') // 'juramento' | 'invitados' | 'entregadores' | 'credencial'
   const [maxInvitados, setMaxInvitados] = useState(4)
 
   // Formulario de invitados
@@ -323,7 +315,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
           </div>
           <button
             onClick={onCerrarSesion}
-            className="inline-flex h-9 items-center gap-2 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+            className="inline-flex h-9 items-center gap-2 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-600 transition hover:border-red-200 hover:bg-red-50 hover:text-red-600 cursor-pointer"
           >
             <LogOut size={14} /> <span className="hidden sm:inline">Cerrar sesión</span>
           </button>
@@ -361,7 +353,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
               <p className="mt-1 text-xs text-white/75 leading-relaxed">{accionSiguiente.detalle}</p>
               <button
                 onClick={accionSiguiente.accion}
-                className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-sky-500 px-4 text-xs font-black text-white shadow-lg shadow-sky-500/25 transition hover:bg-sky-400"
+                className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-sky-500 px-4 text-xs font-black text-white shadow-lg shadow-sky-500/25 transition hover:bg-sky-400 cursor-pointer"
               >
                 {accionSiguiente.etiqueta}
               </button>
@@ -389,7 +381,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
         {mensaje.texto && (
           <div className={`mt-4 flex items-center justify-between rounded-2xl p-4 text-xs font-bold ${mensaje.tipo === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : mensaje.tipo === 'info' ? 'bg-sky-50 text-sky-800 border border-sky-200' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'}`}>
             <span>{mensaje.texto}</span>
-            <button onClick={() => setMensaje({ tipo: '', texto: '' })} className="text-xs opacity-70 hover:opacity-100">✕</button>
+            <button onClick={() => setMensaje({ tipo: '', texto: '' })} className="text-xs opacity-70 hover:opacity-100 cursor-pointer">✕</button>
           </div>
         )}
 
@@ -415,30 +407,37 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
             </p>
           </div>
           <div className="rounded-2xl border border-slate-200 bg-white p-4">
-            <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Padrinos</p>
-            <p className="mt-1 flex items-center gap-1.5 text-xs font-bold text-slate-700">
-              <GraduationCap size={14} className="text-purple-500" /> {entregadores.length}/3 asignados
+            <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Juramento</p>
+            <p className="mt-1 flex items-center gap-1.5 text-xs font-bold text-slate-700 truncate">
+              <ScrollText size={14} className="text-sky-500" />
+              {FORMULAS_JURAMENTO[graduado?.formula_juramento]?.etiquetaCorta || 'Por la Patria'}
             </p>
           </div>
         </section>
 
         {/* Pestañas de Navegación */}
-        <nav className="mt-6 flex border-b border-slate-200">
+        <nav className="mt-6 flex border-b border-slate-200 overflow-x-auto">
+          <button
+            onClick={() => { setPestana('juramento'); limpiarForm(); }}
+            className={`flex items-center gap-2 border-b-2 px-4 py-3 text-xs font-black transition shrink-0 cursor-pointer ${pestana === 'juramento' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-400 hover:text-slate-700'}`}
+          >
+            <ScrollText size={16} /> Juramento ({FORMULAS_JURAMENTO[graduado?.formula_juramento]?.etiquetaCorta || 'Por la Patria'})
+          </button>
           <button
             onClick={() => { setPestana('invitados'); limpiarForm(); }}
-            className={`flex items-center gap-2 border-b-2 px-5 py-3 text-xs font-black transition ${pestana === 'invitados' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-400 hover:text-slate-700'}`}
+            className={`flex items-center gap-2 border-b-2 px-4 py-3 text-xs font-black transition shrink-0 cursor-pointer ${pestana === 'invitados' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-400 hover:text-slate-700'}`}
           >
             <Users size={16} /> Acompañantes ({invitados.length})
           </button>
           <button
             onClick={() => setPestana('entregadores')}
-            className={`flex items-center gap-2 border-b-2 px-5 py-3 text-xs font-black transition ${pestana === 'entregadores' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-400 hover:text-slate-700'}`}
+            className={`flex items-center gap-2 border-b-2 px-4 py-3 text-xs font-black transition shrink-0 cursor-pointer ${pestana === 'entregadores' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-400 hover:text-slate-700'}`}
           >
-            <GraduationCap size={16} /> Padrinos ({entregadores.length})
+            <GraduationCap size={16} /> Padrinos ({entregadores.length}/3)
           </button>
           <button
             onClick={() => setPestana('credencial')}
-            className={`flex items-center gap-2 border-b-2 px-5 py-3 text-xs font-black transition ${pestana === 'credencial' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-400 hover:text-slate-700'}`}
+            className={`flex items-center gap-2 border-b-2 px-4 py-3 text-xs font-black transition shrink-0 cursor-pointer ${pestana === 'credencial' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-400 hover:text-slate-700'}`}
           >
             <QrCode size={16} /> Credencial Digital
           </button>
@@ -446,12 +445,21 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
 
         {/* Contenido de Pestañas */}
         <section className="mt-6">
+          {pestana === 'juramento' && (
+            <SeccionJuramento
+              graduado={graduado}
+              onActualizar={(nuevosDatos) => {
+                setGraduado(prev => ({ ...prev, ...nuevosDatos }))
+              }}
+            />
+          )}
+
           {pestana === 'invitados' && (
             mostrarForm ? (
               <div className="space-y-4">
                 <button
                   onClick={limpiarForm}
-                  className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-slate-800"
+                  className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
                 >
                   <ArrowLeft size={14} /> Volver a acompañantes
                 </button>
