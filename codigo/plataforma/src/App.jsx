@@ -8,6 +8,7 @@
  * 2. Si acepta → PanelGraduado (cargar invitados, elegir entregadores)
  * 3. Si rechaza → Inhabilitado, se cierra sesión automáticamente
  */
+import React, { useState, useEffect, useRef } from 'react'
 import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, CalendarPlus, RefreshCw, Shield, Server, Search, Power, Bell, Wifi, Volume2, ChevronRight, ChevronUp, ArrowRight, LayoutGrid, X, Minus, Maximize2, Sun, Moon, MousePointer2, Lock, ClipboardCheck, Activity, Send, ListChecks, Mic, ScrollText, Sparkles, Armchair, Award, QrCode } from 'lucide-react'
 
 // Importación de Páginas
