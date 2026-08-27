@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo } from 'react'
 import {
   AlertCircle, Check, CheckCircle2, Clock3, Copy, CreditCard, Edit3, ExternalLink,
-  Mail, MessageSquare, RefreshCw, Send, UserCheck, UserPlus, Users, X, Sparkles, PhoneCall,
-  ArrowRight, Armchair
+  Mail, MessageSquare, RefreshCw, Send, UserCheck, UserPlus, Users, X, Sparkles,
+  PhoneCall, ArrowRight, Armchair, Search, Filter, CheckSquare, Square, Eye,
+  FileSpreadsheet, MessageCircle, ChevronDown, CheckCheck
 } from 'lucide-react'
 import {
   enviarCredencialCeremonia,
@@ -13,27 +14,36 @@ import {
   actualizarGraduado
 } from '../../servicios/api'
 import { useConfirmacion } from '../../componentes/ModalConfirmacion'
+import { ModalPreviewCorreo } from '../../componentes/ModalPreviewCorreo'
+import { ModalDespachoMasivo } from '../../componentes/ModalDespachoMasivo'
 
-const FILTROS = [
-  { id: 'PENDIENTES', etiqueta: 'Por invitar' },
-  { id: 'RESPUESTAS', etiqueta: 'Esperando respuesta' },
-  { id: 'GRUPOS', etiqueta: 'Completando grupo' },
-  { id: 'CREDENCIALES', etiqueta: 'Credenciales listas' },
-  { id: 'SIN_CORREO', etiqueta: 'Requieren correo' },
+const PESTANAS = [
+  { id: 'TODOS', etiqueta: 'Todos' },
+  { id: 'PENDIENTES', etiqueta: 'Por Invitar' },
+  { id: 'RESPUESTAS', etiqueta: 'Sin Respuesta' },
+  { id: 'ACEPTADOS', etiqueta: 'Confirmados' },
+  { id: 'GRUPOS', etiqueta: 'Completando Grupo' },
+  { id: 'CREDENCIALES', etiqueta: 'Credenciales Listas' },
+  { id: 'SIN_CORREO', etiqueta: 'Sin Correo' },
 ]
 
-export function GestionConvocatoria({ onNavegar }) {
+export function GestionConvocatoria({ onNavegar, usuario }) {
   const { confirmar, dialogoConfirmacion } = useConfirmacion()
   const [ceremonia, setCeremonia] = useState(null)
   const [graduados, setGraduados] = useState([])
   const [cargando, setCargando] = useState(true)
   const [procesando, setProcesando] = useState(null)
-  const [filtro, setFiltro] = useState('PENDIENTES')
+  const [pestaña, setPestaña] = useState('PENDIENTES')
+  const [busqueda, setBusqueda] = useState('')
+  const [carreraSeleccionada, setCarreraSeleccionada] = useState('TODAS')
+  const [seleccionados, setSeleccionados] = useState([])
   const [aviso, setAviso] = useState('')
   const [error, setError] = useState('')
   const [copiadoId, setCopiadoId] = useState(null)
 
-  // Modal para edición inline de correo
+  // Modales
+  const [modalPreviewAbierto, setModalPreviewAbierto] = useState(false)
+  const [modalDespachoConfig, setModalDespachoConfig] = useState(null) // { graduados: [], tipo: 'invitacion' }
   const [editandoCorreo, setEditandoCorreo] = useState(null)
   const [nuevoCorreo, setNuevoCorreo] = useState('')
   const [guardandoCorreo, setGuardandoCorreo] = useState(false)
@@ -45,22 +55,7 @@ export function GestionConvocatoria({ onNavegar }) {
       const cerActiva = await obtenerCeremoniaActiva().catch(() => null)
       setCeremonia(cerActiva)
       const data = await obtenerGraduados(cerActiva?.id)
-      setGraduados(data)
-
-      // Selección inteligente de pestaña si la actual está vacía
-      const p = data.filter(item => !item.invitacion_enviada && item.estado_flujo !== 'RECHAZADO' && item.correo)
-      const r = data.filter(item => item.invitacion_enviada && (item.estado_flujo === 'PENDIENTE' || !item.estado || item.estado === 'PENDIENTE'))
-      const c = data.filter(item => item.estado === 'ACEPTADO' && item.estado_asignacion_butacas === 'CONFIRMADA' && item.asiento_id && !item.credencial_enviada_en)
-      const g = data.filter(item => item.estado === 'ACEPTADO' && item.estado_flujo !== 'COMPLETO')
-      const s = data.filter(item => !item.correo && item.estado_flujo !== 'RECHAZADO')
-
-      setFiltro(actual => {
-        if (actual === 'PENDIENTES' && p.length === 0 && r.length > 0) return 'RESPUESTAS'
-        if (actual === 'PENDIENTES' && p.length === 0 && r.length === 0 && g.length > 0) return 'GRUPOS'
-        if (actual === 'PENDIENTES' && p.length === 0 && r.length === 0 && c.length > 0) return 'CREDENCIALES'
-        if (actual === 'PENDIENTES' && p.length === 0 && r.length === 0 && s.length > 0) return 'SIN_CORREO'
-        return actual
-      })
+      setGraduados(data || [])
     } catch (err) {
       setError(err.message || 'No se pudo cargar la convocatoria.')
     } finally {
@@ -72,130 +67,86 @@ export function GestionConvocatoria({ onNavegar }) {
     cargar()
   }, [])
 
-  const pendientes = graduados.filter(item => !item.invitacion_enviada && item.estado_flujo !== 'RECHAZADO' && item.correo)
-  const sinCorreo = graduados.filter(item => !item.correo && item.estado_flujo !== 'RECHAZADO')
-  const esperandoRespuesta = graduados.filter(item => item.invitacion_enviada && (item.estado_flujo === 'PENDIENTE' || !item.estado || item.estado === 'PENDIENTE'))
-  const completandoGrupo = graduados.filter(item => item.estado === 'ACEPTADO' && item.estado_flujo !== 'COMPLETO')
-  const credencialesListas = graduados.filter(item => item.estado === 'ACEPTADO' && item.estado_asignacion_butacas === 'CONFIRMADA' && item.asiento_id && !item.credencial_enviada_en)
+  // Carreras únicas para el filtro
+  const carrerasDisponibles = useMemo(() => {
+    const setCarreras = new Set()
+    graduados.forEach(g => {
+      if (g.carrera && g.carrera.trim()) setCarreras.add(g.carrera.trim())
+    })
+    return Array.from(setCarreras).sort()
+  }, [graduados])
 
-  const listados = {
-    PENDIENTES: pendientes,
-    RESPUESTAS: esperandoRespuesta,
-    GRUPOS: completandoGrupo,
-    CREDENCIALES: credencialesListas,
-    SIN_CORREO: sinCorreo,
+  // Segmentaciones del padrón
+  const pendientes = useMemo(() => graduados.filter(item => !item.invitacion_enviada && item.estado_flujo !== 'RECHAZADO' && item.correo), [graduados])
+  const esperandoRespuesta = useMemo(() => graduados.filter(item => item.invitacion_enviada && (item.estado_flujo === 'PENDIENTE' || !item.estado || item.estado === 'PENDIENTE')), [graduados])
+  const aceptados = useMemo(() => graduados.filter(item => item.estado === 'ACEPTADO'), [graduados])
+  const completandoGrupo = useMemo(() => graduados.filter(item => item.estado === 'ACEPTADO' && item.estado_flujo !== 'COMPLETO'), [graduados])
+  const credencialesListas = useMemo(() => graduados.filter(item => item.estado === 'ACEPTADO' && item.estado_asignacion_butacas === 'CONFIRMADA' && item.asiento_id && !item.credencial_enviada_en), [graduados])
+  const sinCorreo = useMemo(() => graduados.filter(item => !item.correo && item.estado_flujo !== 'RECHAZADO'), [graduados])
+
+  // Filtrado reactivo combinado (Pestaña + Búsqueda + Carrera)
+  const listaFiltrada = useMemo(() => {
+    let base = graduados
+    if (pestaña === 'PENDIENTES') base = pendientes
+    else if (pestaña === 'RESPUESTAS') base = esperandoRespuesta
+    else if (pestaña === 'ACEPTADOS') base = aceptados
+    else if (pestaña === 'GRUPOS') base = completandoGrupo
+    else if (pestaña === 'CREDENCIALES') base = credencialesListas
+    else if (pestaña === 'SIN_CORREO') base = sinCorreo
+
+    if (carreraSeleccionada !== 'TODAS') {
+      base = base.filter(g => g.carrera === carreraSeleccionada)
+    }
+
+    if (busqueda.trim()) {
+      const q = busqueda.toLowerCase().trim()
+      base = base.filter(g => 
+        (g.nombre && g.nombre.toLowerCase().includes(q)) ||
+        (g.dni && String(g.dni).includes(q)) ||
+        (g.correo && g.correo.toLowerCase().includes(q)) ||
+        (g.carrera && g.carrera.toLowerCase().includes(q))
+      )
+    }
+
+    return base
+  }, [graduados, pestaña, carreraSeleccionada, busqueda, pendientes, esperandoRespuesta, aceptados, completandoGrupo, credencialesListas, sinCorreo])
+
+  // Selección múltiple
+  const todosSeleccionados = listaFiltrada.length > 0 && listaFiltrada.every(g => seleccionados.includes(g.id))
+  
+  const toggleSeleccionarTodos = () => {
+    if (todosSeleccionados) {
+      setSeleccionados([])
+    } else {
+      setSeleccionados(listaFiltrada.map(g => g.id))
+    }
   }
-  const lista = listados[filtro] || []
 
-  // ─── ACCIONES OPERATIVAS ────────────────────────────────────────
+  const toggleSeleccionarUno = (id) => {
+    setSeleccionados(prev => 
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    )
+  }
 
-  async function enviarInvitacionIndividual(graduado, esReenvio = false) {
+  // ─── ACCIONES OPERATIVAS INDIVIDUALES & LOTE ───────────────────
+
+  async function enviarIndividual(graduado, esReenvio = false) {
     setProcesando(`invitacion-${graduado.id}`)
     setAviso('')
     try {
       await enviarInvitacion(graduado.id)
       setAviso(esReenvio 
-        ? `Recordatorio de invitación reenviado a ${graduado.nombre} (${graduado.correo}).`
-        : `Invitación enviada a ${graduado.nombre}.`)
+        ? `Recordatorio reenviado a ${graduado.nombre} (${graduado.correo}).`
+        : `Invitación oficial enviada a ${graduado.nombre}.`)
       await cargar()
     } catch (err) {
-      setError(err.message || 'No se pudo enviar la invitación.')
+      setError(err.message || 'No se pudo enviar el correo.')
     } finally {
       setProcesando(null)
     }
   }
 
-  async function enviarPendientes() {
-    if (!pendientes.length) return
-    const confirmado = await confirmar({
-      titulo: 'Enviar invitaciones pendientes',
-      descripcion: `Se despacharán ${pendientes.length} invitaciones formales por correo electrónico.`,
-      textoConfirmar: 'Enviar invitaciones',
-      tipo: 'info',
-    })
-    if (!confirmado) return
-    setProcesando('lote-invitaciones')
-    setAviso('')
-    let enviados = 0
-    let fallidos = 0
-    for (const graduado of pendientes) {
-      try {
-        await enviarInvitacion(graduado.id)
-        enviados += 1
-      } catch {
-        fallidos += 1
-      }
-    }
-    setProcesando(null)
-    setAviso(fallidos 
-      ? `${enviados} invitaciones enviadas y ${fallidos} pendientes para reintentar.` 
-      : `${enviados} invitaciones enviadas correctamente.`)
-    await cargar()
-  }
-
-  async function reenviarRecordatorioTodos() {
-    if (!esperandoRespuesta.length) return
-    const confirmado = await confirmar({
-      titulo: 'Reenviar recordatorio a graduados sin respuesta',
-      descripcion: `Se volverá a enviar el correo de invitación a los ${esperandoRespuesta.length} graduados que aún no confirmaron ni rechazaron.`,
-      textoConfirmar: `Reenviar recordatorios (${esperandoRespuesta.length})`,
-      tipo: 'info',
-    })
-    if (!confirmado) return
-    setProcesando('lote-recordatorios')
-    setAviso('')
-    let enviados = 0
-    let fallidos = 0
-    for (const graduado of esperandoRespuesta) {
-      try {
-        await enviarInvitacion(graduado.id)
-        enviados += 1
-      } catch {
-        fallidos += 1
-      }
-    }
-    setProcesando(null)
-    setAviso(`${enviados} recordatorios despachados exitosamente.`)
-    await cargar()
-  }
-
-  async function confirmarAsistenciaManual(graduado) {
-    const confirmado = await confirmar({
-      titulo: 'Confirmar asistencia por ventanilla / teléfono',
-      descripcion: `¿Deseás registrar formalmente la asistencia de ${graduado.nombre}? El graduado pasará al estado ACEPTADO y podrá continuar con la carga de acompañantes.`,
-      textoConfirmar: 'Confirmar asistencia',
-      tipo: 'exito',
-    })
-    if (!confirmado) return
-
-    setProcesando(`confirmar-${graduado.id}`)
-    setAviso('')
-    try {
-      await responderInvitacion(graduado.id, 'ACEPTADO')
-      setAviso(`Asistencia de ${graduado.nombre} confirmada manualmente. Pasó a la etapa de carga de acompañantes.`)
-      await cargar()
-    } catch (err) {
-      setError(err.message || 'No se pudo confirmar la asistencia.')
-    } finally {
-      setProcesando(null)
-    }
-  }
-
-  function copiarEnlaceWhatsApp(graduado) {
-    const host = typeof window !== 'undefined' ? window.location.origin : ''
-    const url = `${host}/?token=${graduado.token}`
-    navigator.clipboard.writeText(url)
-    setCopiadoId(graduado.id)
-    setAviso(`Enlace de acceso copiado para ${graduado.nombre}. Podés pegarlo directamente en WhatsApp Web o chat.`)
-    setTimeout(() => setCopiadoId(null), 3000)
-  }
-
-  function abrirPortalEgresado(graduado) {
-    const host = typeof window !== 'undefined' ? window.location.origin : ''
-    window.open(`${host}/?token=${graduado.token}`, '_blank')
-  }
-
-  async function enviarCredencial(graduado) {
+  async function enviarCredencialIndividual(graduado) {
     setProcesando(`credencial-${graduado.id}`)
     setAviso('')
     try {
@@ -211,44 +162,110 @@ export function GestionConvocatoria({ onNavegar }) {
     }
   }
 
-  async function enviarTodasLasCredenciales() {
-    if (!credencialesListas.length) return
+  async function confirmarManual(graduado) {
     const confirmado = await confirmar({
-      titulo: 'Enviar credenciales digitales',
-      descripcion: `Se despacharán ${credencialesListas.length} credenciales con código QR y pase de Google Wallet a los graduados confirmados.`,
-      textoConfirmar: 'Enviar todas las credenciales',
+      titulo: 'Confirmar asistencia por ventanilla / teléfono',
+      descripcion: `¿Deseás registrar formalmente la asistencia de ${graduado.nombre}? El egresado pasará al estado ACEPTADO.`,
+      textoConfirmar: 'Confirmar asistencia',
       tipo: 'exito',
     })
     if (!confirmado) return
-    setProcesando('lote-credenciales')
+
+    setProcesando(`confirmar-${graduado.id}`)
     setAviso('')
-    let enviados = 0
-    let fallidos = 0
-    for (const graduado of credencialesListas) {
-      try {
-        await enviarCredencialCeremonia(graduado.id)
-        enviados += 1
-      } catch {
-        fallidos += 1
-      }
+    try {
+      await responderInvitacion(graduado.id, 'ACEPTADO')
+      setAviso(`Asistencia de ${graduado.nombre} confirmada manualmente.`)
+      await cargar()
+    } catch (err) {
+      setError(err.message || 'No se pudo registrar la confirmación.')
+    } finally {
+      setProcesando(null)
     }
-    setProcesando(null)
-    setAviso(`${enviados} credenciales digitales enviadas exitosamente.`)
-    await cargar()
   }
 
-  async function guardarYEnviarCorreo(evento) {
-    evento.preventDefault()
+  function copiarLinkAcceso(graduado) {
+    const host = typeof window !== 'undefined' ? window.location.origin : ''
+    const url = `${host}/?token=${graduado.token}`
+    navigator.clipboard.writeText(url)
+    setCopiadoId(graduado.id)
+    setAviso(`Enlace de acceso copiado para ${graduado.nombre}.`)
+    setTimeout(() => setCopiadoId(null), 3000)
+  }
+
+  function abrirWhatsApp(graduado) {
+    const host = typeof window !== 'undefined' ? window.location.origin : ''
+    const url = `${host}/?token=${graduado.token}`
+    const fechaTexto = ceremonia?.fecha 
+      ? new Date(`${ceremonia.fecha}T12:00:00`).toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })
+      : 'próximamente'
+
+    const mensajeWhatsApp = `Hola ${graduado.nombre}, te escribimos desde el Instituto Tecnológico Beltrán. Te convocamos formalmente a la Ceremonia de Graduación (${fechaTexto}). Podés confirmar tu asistencia y cargar a tus acompañantes desde este enlace oficial: ${url}`
+    
+    window.open(`https://wa.me/?text=${encodeURIComponent(mensajeWhatsApp)}`, '_blank')
+  }
+
+  function abrirPortalEgresado(graduado) {
+    const host = typeof window !== 'undefined' ? window.location.origin : ''
+    window.open(`${host}/?token=${graduado.token}`, '_blank')
+  }
+
+  // Despacho masivo mediante Modal con barra de progreso
+  function iniciarDespachoLote(tipo = 'invitacion') {
+    let listaAEnviar = []
+    if (seleccionados.length > 0) {
+      listaAEnviar = graduados.filter(g => seleccionados.includes(g.id) && g.correo)
+    } else {
+      if (tipo === 'invitacion') listaAEnviar = pendientes
+      else if (tipo === 'recordatorio') listaAEnviar = esperandoRespuesta
+      else if (tipo === 'credencial') listaAEnviar = credencialesListas
+    }
+
+    if (listaAEnviar.length === 0) {
+      setError('No hay destinatarios válidos con correo electrónico para despachar.')
+      return
+    }
+
+    setModalDespachoConfig({ graduados: listaAEnviar, tipo })
+  }
+
+  // Exportar a CSV
+  function exportarCSV() {
+    if (listaFiltrada.length === 0) return
+    const encabezados = ['ID', 'Nombre', 'DNI', 'Carrera', 'Correo', 'Estado', 'Invitacion Enviada', 'Envíos Realizados', 'Asiento']
+    const filas = listaFiltrada.map(g => [
+      g.id,
+      `"${g.nombre || ''}"`,
+      g.dni || '',
+      `"${g.carrera || ''}"`,
+      g.correo || '',
+      g.estado || 'PENDIENTE',
+      g.invitacion_enviada ? 'SI' : 'NO',
+      g.invitacion_envios_count || 0,
+      g.asiento_id || ''
+    ])
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [encabezados.join(','), ...filas.map(e => e.join(','))].join('\n')
+    const encodedUri = encodeURI(csvContent)
+    const link = document.createElement('a')
+    link.setAttribute('href', encodedUri)
+    link.setAttribute('download', `SiGIC_Convocatoria_${pestaña}_${Date.now()}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
+  // Guardar correo editado
+  async function handleGuardarCorreo(e) {
+    e.preventDefault()
     if (!editandoCorreo || !nuevoCorreo.trim() || !nuevoCorreo.includes('@')) {
       setError('Ingresá un correo electrónico válido.')
       return
     }
     setGuardandoCorreo(true)
-    setError('')
     try {
       await actualizarGraduado(editandoCorreo.id, { correo: nuevoCorreo.trim() })
-      await enviarInvitacion(editandoCorreo.id)
-      setAviso(`Correo guardado e invitación enviada a ${editandoCorreo.nombre} (${nuevoCorreo.trim()}).`)
+      setAviso(`Correo actualizado correctamente para ${editandoCorreo.nombre}.`)
       setEditandoCorreo(null)
       setNuevoCorreo('')
       await cargar()
@@ -259,462 +276,511 @@ export function GestionConvocatoria({ onNavegar }) {
     }
   }
 
-  const metricas = [
-    { id: 'PENDIENTES', etiqueta: 'Por invitar', valor: pendientes.length, icono: Send, color: 'text-sky-600 bg-sky-50 border-sky-100' },
-    { id: 'RESPUESTAS', etiqueta: 'Sin respuesta', valor: esperandoRespuesta.length, icono: Clock3, color: 'text-amber-600 bg-amber-50 border-amber-100' },
-    { id: 'GRUPOS', etiqueta: 'Completando grupo', valor: completandoGrupo.length, icono: Users, color: 'text-violet-600 bg-violet-50 border-violet-100' },
-    { id: 'CREDENCIALES', etiqueta: 'Credenciales listas', valor: credencialesListas.length, icono: CreditCard, color: 'text-indigo-600 bg-indigo-50 border-indigo-100' },
-    { id: 'SIN_CORREO', etiqueta: 'Requieren correo', valor: sinCorreo.length, icono: AlertCircle, color: 'text-rose-600 bg-rose-50 border-rose-100' },
-  ]
-
   return (
     <>
-      <section className="mx-auto w-full max-w-5xl font-sans space-y-5">
-        {/* HEADER PRINCIPAL */}
-        <header className="flex flex-col gap-4 border-b border-slate-150 pb-5 sm:flex-row sm:items-end sm:justify-between">
-          <div>
+      <section className="mx-auto w-full max-w-6xl font-sans space-y-4">
+        
+        {/* HEADER MINIMALISTA & ACCIONES RÁPIDAS */}
+        <header className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[9px] font-black uppercase tracking-wider">
+              <span className="px-2.5 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200/80 text-[9px] font-black uppercase tracking-wider">
                 Fase 3 · Convocatoria Masiva
               </span>
               {ceremonia && (
-                <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-md">
                   {ceremonia.nombre}
                 </span>
               )}
             </div>
-            <h2 className="mt-1 text-2xl font-black tracking-tight text-slate-900">Convocatoria & Comunicaciones</h2>
-            <p className="mt-1 max-w-xl text-xs font-medium text-slate-500">
-              Gestioná las invitaciones, seguí las respuestas en tiempo real y enviá recordatorios o accesos directos por WhatsApp.
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
+              Convocatoria & Comunicaciones
+            </h1>
+            <p className="text-xs font-medium text-slate-500 max-w-xl">
+              Despacho masivo por correo electrónico, seguimiento en tiempo real y contingencia por WhatsApp Web.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
             <button
-              onClick={() => onNavegar('gestion-graduados')}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-sm transition-all cursor-pointer"
+              type="button"
+              onClick={() => setModalPreviewAbierto(true)}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
+              title="Previsualizar plantillas de correo"
             >
-              <Users size={14} /> Ver padrón
+              <Eye size={14} /> Template Studio
             </button>
 
-            {filtro === 'PENDIENTES' && pendientes.length > 0 && (
-              <button
-                onClick={enviarPendientes}
-                disabled={Boolean(procesando)}
-                className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-black text-white hover:bg-sky-600 shadow-md transition-all cursor-pointer disabled:opacity-50"
-              >
-                <Send size={14} />
-                {procesando === 'lote-invitaciones' ? 'Enviando...' : `Enviar todas las pendientes (${pendientes.length})`}
-              </button>
-            )}
-
-            {filtro === 'RESPUESTAS' && esperandoRespuesta.length > 0 && (
-              <button
-                onClick={reenviarRecordatorioTodos}
-                disabled={Boolean(procesando)}
-                className="inline-flex items-center gap-2 rounded-xl bg-amber-600 px-4 py-2 text-xs font-black text-white hover:bg-amber-500 shadow-md transition-all cursor-pointer disabled:opacity-50"
-              >
-                <Mail size={14} />
-                {procesando === 'lote-recordatorios' ? 'Reenviando...' : `Reenviar recordatorio a todos (${esperandoRespuesta.length})`}
-              </button>
-            )}
-
-            {filtro === 'CREDENCIALES' && credencialesListas.length > 0 && (
-              <button
-                onClick={enviarTodasLasCredenciales}
-                disabled={Boolean(procesando)}
-                className="inline-flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-black text-white hover:bg-indigo-500 shadow-md transition-all cursor-pointer disabled:opacity-50"
-              >
-                <CreditCard size={14} />
-                {procesando === 'lote-credenciales' ? 'Enviando...' : `Enviar todas las credenciales (${credencialesListas.length})`}
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => onNavegar('gestion-graduados')}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
+            >
+              <Users size={14} /> Padrón
+            </button>
 
             <button
+              type="button"
               onClick={() => onNavegar('preparacion-ceremonia')}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-cyan-600 px-3.5 py-2 text-xs font-black text-white hover:bg-cyan-500 shadow-sm transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 hover:bg-sky-600 text-white text-xs font-black transition cursor-pointer shadow-sm"
             >
-              <Armchair size={14} /> Paso 4: Butacas & Sala <ArrowRight size={13} />
+              <Armchair size={14} /> Asignar Butacas <ArrowRight size={13} />
             </button>
           </div>
         </header>
 
-        {/* METRICAS Y TARJETAS INTERACTIVAS */}
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          {metricas.map(({ id, etiqueta, valor, icono: Icono, color }) => (
-            <button
-              key={id}
-              onClick={() => setFiltro(id)}
-              className={`rounded-2xl border p-4 text-left transition-all cursor-pointer shadow-sm relative group ${
-                filtro === id
-                  ? 'bg-white ring-2 ring-sky-500 border-sky-400 shadow-md scale-[1.02]'
-                  : 'bg-white border-slate-100 hover:border-slate-300 hover:bg-slate-50/50'
-              }`}
-            >
-              <div className="flex items-center justify-between">
-                <span className={`grid h-8 w-8 place-items-center rounded-xl border ${color}`}>
-                  <Icono size={16} />
+        {/* METRICAS COMPACTAS EN PASTILLAS */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+          {PESTANAS.map(item => {
+            let cant = 0
+            if (item.id === 'TODOS') cant = graduados.length
+            else if (item.id === 'PENDIENTES') cant = pendientes.length
+            else if (item.id === 'RESPUESTAS') cant = esperandoRespuesta.length
+            else if (item.id === 'ACEPTADOS') cant = aceptados.length
+            else if (item.id === 'GRUPOS') cant = completandoGrupo.length
+            else if (item.id === 'CREDENCIALES') cant = credencialesListas.length
+            else if (item.id === 'SIN_CORREO') cant = sinCorreo.length
+
+            const esActiva = pestaña === item.id
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => { setPestaña(item.id); setSeleccionados([]) }}
+                className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                  esActiva 
+                    ? 'bg-slate-900 border-slate-900 text-white shadow-md' 
+                    : 'bg-white border-slate-200/80 hover:border-slate-300 text-slate-700'
+                }`}
+              >
+                <span className={`text-[10px] font-bold uppercase tracking-wider block truncate ${esActiva ? 'text-slate-400' : 'text-slate-400'}`}>
+                  {item.etiqueta}
                 </span>
-                {filtro === id && (
-                  <span className="h-2 w-2 rounded-full bg-sky-500 ring-4 ring-sky-100" />
-                )}
-              </div>
-              <strong className="mt-3 block text-2xl font-black text-slate-900">{valor}</strong>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 group-hover:text-slate-600 transition-colors">
-                {etiqueta}
-              </span>
-            </button>
-          ))}
+                <strong className="text-xl font-black block mt-0.5">{cant}</strong>
+              </button>
+            )
+          })}
         </div>
 
-        {/* CONTENEDOR PRINCIPAL */}
-        <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-          {/* BARRA DE PESTAÑAS */}
-          <div className="flex flex-col gap-3 border-b border-slate-100 p-4 sm:flex-row sm:items-center sm:justify-between bg-slate-50/50">
-            <div className="flex gap-1.5 overflow-x-auto pb-1">
-              {FILTROS.map(item => (
-                <button
-                  key={item.id}
-                  onClick={() => setFiltro(item.id)}
-                  className={`shrink-0 rounded-full px-3.5 py-1.5 text-[11px] font-black transition cursor-pointer ${
-                    filtro === item.id
-                      ? 'bg-slate-900 text-white shadow-sm'
-                      : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
-                  }`}
-                >
-                  {item.etiqueta} ({listados[item.id].length})
-                </button>
-              ))}
-            </div>
-
-            <button
-              onClick={cargar}
-              disabled={cargando}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-sky-600 cursor-pointer"
-            >
-              <RefreshCw size={14} className={cargando ? 'animate-spin' : ''} /> Actualizar
-            </button>
+        {/* BARRA DE FILTROS & BÚSQUEDA */}
+        <div className="bg-white rounded-2xl p-3.5 border border-slate-200/80 shadow-sm flex flex-wrap items-center justify-between gap-3">
+          
+          {/* BUSCADOR */}
+          <div className="relative flex-1 min-w-[220px]">
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              type="text"
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              placeholder="Buscar por nombre, DNI, carrera o correo..."
+              className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 font-medium outline-none focus:border-sky-500 focus:bg-white transition"
+            />
+            {busqueda && (
+              <button
+                type="button"
+                onClick={() => setBusqueda('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              >
+                ×
+              </button>
+            )}
           </div>
 
-          {/* MENSAJES DE ESTADO */}
-          {aviso && (
-            <div role="status" className="m-4 flex items-center justify-between gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs font-semibold text-emerald-800 animate-in fade-in duration-200 shadow-xs">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
-                <span>{aviso}</span>
-              </div>
-              <button onClick={() => setAviso('')} className="opacity-70 hover:opacity-100 cursor-pointer">
-                <X size={14} />
-              </button>
+          {/* FILTRO POR CARRERA */}
+          {carrerasDisponibles.length > 0 && (
+            <div className="flex items-center gap-2 shrink-0">
+              <Filter size={14} className="text-slate-400" />
+              <select
+                value={carreraSeleccionada}
+                onChange={(e) => setCarreraSeleccionada(e.target.value)}
+                className="bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-xl px-3 py-2 outline-none cursor-pointer hover:bg-white transition max-w-[240px] truncate"
+              >
+                <option value="TODAS">Todas las Carreras ({graduados.length})</option>
+                {carrerasDisponibles.map(c => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
             </div>
           )}
 
-          {error && (
-            <div role="alert" className="m-4 flex items-center justify-between gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs font-semibold text-rose-800 animate-in fade-in duration-200 shadow-xs">
-              <div className="flex items-center gap-2">
-                <AlertCircle size={16} className="text-rose-600 shrink-0" />
-                <span>{error}</span>
-              </div>
-              <button onClick={() => setError('')} className="opacity-70 hover:opacity-100 cursor-pointer">
-                <X size={14} />
-              </button>
-            </div>
-          )}
+          {/* BOTONES DE ACCIÓN RÁPIDA DE LA BARRA */}
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={exportarCSV}
+              disabled={listaFiltrada.length === 0}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer disabled:opacity-40"
+              title="Exportar listado a Excel / CSV"
+            >
+              <FileSpreadsheet size={14} />
+              <span className="hidden sm:inline">Exportar CSV</span>
+            </button>
 
-          {/* BANNER EXPLICATIVO SEGÚN LA PESTAÑA */}
-          {filtro === 'RESPUESTAS' && esperandoRespuesta.length > 0 && (
-            <div className="mx-4 mt-4 p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-              <div className="flex items-center gap-2.5">
-                <Clock3 size={16} className="text-amber-600 shrink-0" />
-                <span>
-                  Hay <strong>{esperandoRespuesta.length} graduados</strong> que ya recibieron su invitación pero aún no ingresaron a confirmar su asistencia.
-                </span>
-              </div>
-              <span className="text-[11px] font-bold text-amber-700 bg-amber-100/80 px-2.5 py-1 rounded-lg shrink-0">
-                Podés mandarles el link por WhatsApp o confirmarlos por ventanilla
+            <button
+              type="button"
+              onClick={cargar}
+              disabled={cargando}
+              className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition cursor-pointer"
+              title="Actualizar listado"
+            >
+              <RefreshCw size={14} className={cargando ? 'animate-spin' : ''} />
+            </button>
+          </div>
+        </div>
+
+        {/* MENSAJES DE ESTADO */}
+        {aviso && (
+          <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center justify-between animate-in fade-in">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 size={16} className="text-emerald-600 shrink-0" />
+              <span>{aviso}</span>
+            </div>
+            <button onClick={() => setAviso('')} className="text-slate-400 hover:text-slate-700 cursor-pointer">×</button>
+          </div>
+        )}
+
+        {error && (
+          <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold flex items-center justify-between animate-in fade-in">
+            <div className="flex items-center gap-2">
+              <AlertCircle size={16} className="text-rose-600 shrink-0" />
+              <span>{error}</span>
+            </div>
+            <button onClick={() => setError('')} className="text-slate-400 hover:text-slate-700 cursor-pointer">×</button>
+          </div>
+        )}
+
+        {/* BARRA FLOTANTE DE ACCIONES POR LOTE (SI HAY SELECCIÓN) */}
+        {seleccionados.length > 0 && (
+          <div className="p-3.5 rounded-2xl bg-slate-900 text-white shadow-xl flex flex-wrap items-center justify-between gap-3 animate-in slide-in-from-bottom-2">
+            <div className="flex items-center gap-2 text-xs font-bold">
+              <span className="px-2.5 py-0.5 rounded-full bg-sky-500 text-slate-950 font-black text-[11px]">
+                {seleccionados.length}
               </span>
+              <span>graduados seleccionados</span>
             </div>
-          )}
 
-          {/* LISTADO DINÁMICO */}
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => iniciarDespachoLote('invitacion')}
+                className="px-3.5 py-1.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 text-xs font-black transition cursor-pointer"
+              >
+                Enviar Invitación ({seleccionados.length})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => iniciarDespachoLote('recordatorio')}
+                className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition cursor-pointer"
+              >
+                Reenviar Recordatorio ({seleccionados.length})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setSeleccionados([])}
+                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition cursor-pointer"
+              >
+                Deseleccionar
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* TABLA PRINCIPAL DE ALTA DENSIDAD */}
+        <div className="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
+          
+          {/* ENCABEZADO DE LA TABLA */}
+          <div className="px-5 py-3.5 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between text-[11px] font-black uppercase tracking-wider text-slate-500">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={toggleSeleccionarTodos}
+                className="text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                title={todosSeleccionados ? 'Deseleccionar todos' : 'Seleccionar todos'}
+              >
+                {todosSeleccionados ? <CheckSquare size={16} className="text-sky-600" /> : <Square size={16} />}
+              </button>
+              <span>Graduado ({listaFiltrada.length})</span>
+            </div>
+
+            {/* BOTÓN RÁPIDO DE DESPACHO TOTAL DE LA PESTAÑA */}
+            {pestaña === 'PENDIENTES' && pendientes.length > 0 && seleccionados.length === 0 && (
+              <button
+                type="button"
+                onClick={() => iniciarDespachoLote('invitacion')}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 text-xs font-black transition cursor-pointer shadow-sm"
+              >
+                <Send size={13} /> Despachar todas las pendientes ({pendientes.length})
+              </button>
+            )}
+
+            {pestaña === 'RESPUESTAS' && esperandoRespuesta.length > 0 && seleccionados.length === 0 && (
+              <button
+                type="button"
+                onClick={() => iniciarDespachoLote('recordatorio')}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition cursor-pointer shadow-sm"
+              >
+                <Clock3 size={13} /> Reenviar recordatorio a todos ({esperandoRespuesta.length})
+              </button>
+            )}
+
+            {pestaña === 'CREDENCIALES' && credencialesListas.length > 0 && seleccionados.length === 0 && (
+              <button
+                type="button"
+                onClick={() => iniciarDespachoLote('credencial')}
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black transition cursor-pointer shadow-sm"
+              >
+                <CreditCard size={13} /> Despachar todas las credenciales ({credencialesListas.length})
+              </button>
+            )}
+          </div>
+
+          {/* FILAS DE GRADUADOS */}
           {cargando ? (
-            <div className="flex min-h-56 items-center justify-center gap-2 text-xs font-semibold text-slate-400">
-              <RefreshCw size={16} className="animate-spin text-sky-500" /> Cargando estado de convocatoria...
+            <div className="py-20 text-center text-xs text-slate-400 font-bold flex items-center justify-center gap-2">
+              <RefreshCw size={16} className="animate-spin text-sky-500" /> Cargando convocatoria...
             </div>
-          ) : lista.length === 0 ? (
-            <div className="flex min-h-56 flex-col items-center justify-center px-5 py-8 text-center">
-              <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
-                <Mail size={24} />
-              </div>
-              <h3 className="text-sm font-black text-slate-800">
-                {filtro === 'PENDIENTES' ? 'No hay invitaciones pendientes por enviar' :
-                 filtro === 'RESPUESTAS' ? 'Todos los graduados invitados ya respondieron' :
-                 filtro === 'GRUPOS' ? 'No hay graduados completando grupo actualmente' :
-                 filtro === 'CREDENCIALES' ? 'No hay credenciales listas pendientes de envío' :
-                 'Todos los graduados tienen correo electrónico registrado'}
-              </h3>
-              <p className="mt-1 max-w-sm text-xs text-slate-400">
-                {filtro === 'PENDIENTES' && esperandoRespuesta.length > 0
-                  ? `Revisá la pestaña "Esperando respuesta (${esperandoRespuesta.length})" para hacer el seguimiento.`
-                  : 'Esta sección se actualiza automáticamente a medida que los egresados interactúan con el sistema.'}
+          ) : listaFiltrada.length === 0 ? (
+            <div className="py-16 text-center space-y-2">
+              <Mail size={36} className="mx-auto text-slate-300" />
+              <h3 className="text-sm font-black text-slate-700">No se encontraron egresados</h3>
+              <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                No hay registros que coincidan con la pestaña y los filtros seleccionados.
               </p>
-
-              {filtro === 'PENDIENTES' && esperandoRespuesta.length > 0 && (
-                <button
-                  onClick={() => setFiltro('RESPUESTAS')}
-                  className="mt-4 inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-sky-600 transition cursor-pointer"
-                >
-                  Ver graduados sin respuesta ({esperandoRespuesta.length})
-                </button>
-              )}
-
-              {filtro === 'SIN_CORREO' && (
-                <button
-                  onClick={() => onNavegar('gestion-graduados')}
-                  className="mt-4 inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-sky-600 transition cursor-pointer"
-                >
-                  <UserPlus size={14} /> Ir al padrón a cargar datos
-                </button>
-              )}
             </div>
           ) : (
-            <div className="divide-y divide-slate-100">
-              {lista.map(graduado => {
-                const ocupadoInvitacion = procesando === `invitacion-${graduado.id}`
-                const ocupadoCredencial = procesando === `credencial-${graduado.id}`
-                const ocupadoConfirmacion = procesando === `confirmar-${graduado.id}`
-                const esCopiado = copiadoId === graduado.id
+            <div className="divide-y divide-slate-100 max-h-[580px] overflow-y-auto">
+              {listaFiltrada.map((g) => {
+                const seleccionado = seleccionados.includes(g.id)
+                const ocupado = procesando === `invitacion-${g.id}` || procesando === `credencial-${g.id}` || procesando === `confirmar-${g.id}`
+                const esCopiado = copiadoId === g.id
 
                 return (
-                  <article
-                    key={graduado.id}
-                    className="flex flex-col gap-3.5 p-4 sm:flex-row sm:items-center justify-between hover:bg-slate-50/70 transition-colors"
+                  <div
+                    key={g.id}
+                    className={`p-3.5 sm:p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 transition-colors ${
+                      seleccionado ? 'bg-sky-50/50' : 'hover:bg-slate-50/70'
+                    }`}
                   >
-                    {/* INFO DEL GRADUADO */}
-                    <div className="flex items-center gap-3.5 min-w-0 flex-1">
-                      <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-tr from-sky-600 to-blue-500 text-sm font-black text-white shadow-sm">
-                        {graduado.nombre?.slice(0, 1)?.toUpperCase() || '?'}
+                    {/* CHECKBOX + DATOS DEL GRADUADO */}
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <button
+                        type="button"
+                        onClick={() => toggleSeleccionarUno(g.id)}
+                        className="text-slate-400 hover:text-slate-600 transition cursor-pointer shrink-0"
+                      >
+                        {seleccionado ? <CheckSquare size={16} className="text-sky-600" /> : <Square size={16} />}
+                      </button>
+
+                      <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 font-black text-xs flex items-center justify-center shrink-0 border border-slate-200">
+                        {g.nombre ? g.nombre.slice(0, 1).toUpperCase() : '?'}
                       </div>
-                      <div className="min-w-0 flex-1">
+
+                      <div className="min-w-0 flex-1 space-y-0.5">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="truncate text-sm font-black text-slate-900">{graduado.nombre}</h3>
-                          {graduado.carrera && (
-                            <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-semibold">
-                              {graduado.carrera}
+                          <strong className="text-xs sm:text-sm font-black text-slate-900 truncate">
+                            {g.nombre}
+                          </strong>
+                          {g.carrera && (
+                            <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-semibold truncate max-w-[200px]">
+                              {g.carrera}
                             </span>
                           )}
                         </div>
-                        <p className="mt-0.5 truncate text-xs text-slate-500">
-                          {graduado.correo ? (
-                            <span className="font-mono text-slate-600">{graduado.correo}</span>
-                          ) : (
-                            <span className="text-rose-500 font-semibold">Sin correo registrado</span>
-                          )}{' '}
-                          · DNI {graduado.dni}
-                        </p>
 
-                        {/* DETALLES DE ESTADO */}
-                        <div className="mt-1 flex items-center gap-3 text-[10px] font-bold text-slate-400">
-                          {filtro === 'RESPUESTAS' && (
-                            <span className="text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200/60">
-                              {graduado.invitacion_envios_count > 1 
-                                ? `Invitado ${graduado.invitacion_envios_count} veces` 
-                                : 'Invitación enviada'}
-                            </span>
-                          )}
-                          {filtro === 'GRUPOS' && (
-                            <span className="text-violet-700 bg-violet-50 px-2 py-0.5 rounded-md border border-violet-200/60">
-                              {graduado.cantidad_invitados || 0} acompañante(s) · {graduado.asiento_id ? `Butaca ${graduado.asiento_id}` : 'Sin butaca'}
-                            </span>
-                          )}
-                          {filtro === 'CREDENCIALES' && (
-                            <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200/60">
-                              Asiento {graduado.asiento_id} · Listo para QR
-                            </span>
+                        <div className="flex items-center gap-3 text-xs text-slate-500 font-medium flex-wrap">
+                          <span>DNI: <strong className="text-slate-700">{g.dni}</strong></span>
+                          <span>·</span>
+                          {g.correo ? (
+                            <div className="flex items-center gap-1 font-mono text-[11px] text-slate-600">
+                              <span>{g.correo}</span>
+                              <button
+                                type="button"
+                                onClick={() => { setEditandoCorreo(g); setNuevoCorreo(g.correo) }}
+                                className="text-slate-400 hover:text-sky-600 p-0.5 cursor-pointer"
+                                title="Modificar correo"
+                              >
+                                <Edit3 size={11} />
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => { setEditandoCorreo(g); setNuevoCorreo('') }}
+                              className="text-rose-500 hover:underline text-[11px] font-bold flex items-center gap-1 cursor-pointer"
+                            >
+                              <AlertCircle size={12} /> Cargar correo
+                            </button>
                           )}
                         </div>
                       </div>
                     </div>
 
-                    {/* BOTONES DE ACCIÓN DIRECTA */}
-                    <div className="flex flex-wrap items-center gap-2 shrink-0">
-                      {/* PESTAÑA: POR INVITAR */}
-                      {filtro === 'PENDIENTES' && (
-                        <>
-                          <button
-                            onClick={() => copiarEnlaceWhatsApp(graduado)}
-                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-xs font-bold text-slate-700 transition cursor-pointer"
-                            title="Copiar enlace de acceso"
-                          >
-                            {esCopiado ? <Check size={13} className="text-emerald-600" /> : <Copy size={13} />}
-                            <span>{esCopiado ? '¡Copiado!' : 'Copiar Link'}</span>
-                          </button>
-                          <button
-                            onClick={() => enviarInvitacionIndividual(graduado)}
-                            disabled={ocupadoInvitacion}
-                            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-sky-600 text-xs font-black text-white shadow-sm transition cursor-pointer disabled:opacity-50"
-                          >
-                            {ocupadoInvitacion ? <RefreshCw size={13} className="animate-spin" /> : <Send size={13} />}
-                            <span>{ocupadoInvitacion ? 'Enviando...' : 'Enviar invitación'}</span>
-                          </button>
-                        </>
-                      )}
+                    {/* ESTADO & ENLACES DE CONVOCATORIA */}
+                    <div className="flex items-center gap-3 justify-between md:justify-end shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100">
+                      
+                      {/* BADGE DE ESTADO */}
+                      <div className="text-left md:text-right space-y-0.5">
+                        {g.estado === 'ACEPTADO' ? (
+                          <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[9px] font-black uppercase tracking-wider block text-center">
+                            Confirmado
+                          </span>
+                        ) : g.estado === 'RECHAZADO' ? (
+                          <span className="px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 text-[9px] font-black uppercase tracking-wider block text-center">
+                            Inasistente
+                          </span>
+                        ) : g.invitacion_enviada ? (
+                          <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 text-[9px] font-black uppercase tracking-wider block text-center">
+                            {g.invitacion_envios_count > 1 ? `Invitado x${g.invitacion_envios_count}` : 'Invitado'}
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200 text-[9px] font-black uppercase tracking-wider block text-center">
+                            Por invitar
+                          </span>
+                        )}
 
-                      {/* PESTAÑA: ESPERANDO RESPUESTA */}
-                      {filtro === 'RESPUESTAS' && (
-                        <>
-                          <button
-                            onClick={() => copiarEnlaceWhatsApp(graduado)}
-                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 text-xs font-bold text-slate-700 transition cursor-pointer shadow-xs"
-                            title="Copiar link directo para enviar por WhatsApp"
-                          >
-                            {esCopiado ? <Check size={13} className="text-emerald-600" /> : <MessageSquare size={13} className="text-emerald-600" />}
-                            <span>{esCopiado ? '¡Copiado!' : 'WhatsApp'}</span>
-                          </button>
+                        <span className="text-[10px] text-slate-400 font-medium block">
+                          {g.asiento_id ? `Butaca ${g.asiento_id}` : 'Sin butaca'}
+                        </span>
+                      </div>
 
+                      {/* BOTONES DE ACCIÓN RÁPIDA */}
+                      <div className="flex items-center gap-1.5">
+                        
+                        {/* BOTÓN ENVIAR CORREO */}
+                        {g.correo && (
                           <button
-                            onClick={() => enviarInvitacionIndividual(graduado, true)}
-                            disabled={ocupadoInvitacion}
-                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-xs font-bold text-slate-700 transition cursor-pointer"
-                            title="Reenviar correo electrónico formal"
+                            type="button"
+                            onClick={() => enviarIndividual(g, g.invitacion_enviada)}
+                            disabled={ocupado}
+                            className="p-2 rounded-xl bg-slate-100 hover:bg-sky-500 hover:text-white text-slate-700 transition cursor-pointer disabled:opacity-40"
+                            title={g.invitacion_enviada ? 'Reenviar invitación por correo' : 'Enviar invitación por correo'}
                           >
-                            {ocupadoInvitacion ? <RefreshCw size={13} className="animate-spin text-sky-500" /> : <Mail size={13} />}
-                            <span>Reenviar mail</span>
+                            {ocupado ? <RefreshCw size={14} className="animate-spin" /> : <Send size={14} />}
                           </button>
+                        )}
 
-                          <button
-                            onClick={() => confirmarAsistenciaManual(graduado)}
-                            disabled={ocupadoConfirmacion}
-                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-black text-white shadow-sm transition cursor-pointer disabled:opacity-50"
-                            title="Confirmar asistencia presencial o telefónica"
-                          >
-                            {ocupadoConfirmacion ? <RefreshCw size={13} className="animate-spin" /> : <UserCheck size={13} />}
-                            <span>Confirmar</span>
-                          </button>
-
-                          <button
-                            onClick={() => abrirPortalEgresado(graduado)}
-                            className="p-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-500 hover:text-slate-900 transition cursor-pointer"
-                            title="Abrir portal del egresado en nueva pestaña"
-                          >
-                            <ExternalLink size={14} />
-                          </button>
-                        </>
-                      )}
-
-                      {/* PESTAÑA: COMPLETANDO GRUPO */}
-                      {filtro === 'GRUPOS' && (
-                        <>
-                          <button
-                            onClick={() => copiarEnlaceWhatsApp(graduado)}
-                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-xs font-bold text-slate-700 transition cursor-pointer"
-                          >
-                            {esCopiado ? <Check size={13} className="text-emerald-600" /> : <Copy size={13} />}
-                            <span>Copiar link</span>
-                          </button>
-                          <button
-                            onClick={() => abrirPortalEgresado(graduado)}
-                            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-xs font-bold text-white transition cursor-pointer"
-                          >
-                            <ExternalLink size={13} />
-                            <span>Abrir portal</span>
-                          </button>
-                        </>
-                      )}
-
-                      {/* PESTAÑA: CREDENCIALES LISTAS */}
-                      {filtro === 'CREDENCIALES' && (
+                        {/* BOTÓN WHATSAPP */}
                         <button
-                          onClick={() => enviarCredencial(graduado)}
-                          disabled={ocupadoCredencial}
-                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-black text-white shadow-sm transition cursor-pointer disabled:opacity-50"
+                          type="button"
+                          onClick={() => abrirWhatsApp(g)}
+                          className="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-500 hover:text-white text-emerald-600 transition cursor-pointer border border-emerald-100"
+                          title="Enviar enlace directo por WhatsApp Web"
                         >
-                          {ocupadoCredencial ? <RefreshCw size={13} className="animate-spin" /> : <CreditCard size={13} />}
-                          <span>{ocupadoCredencial ? 'Enviando...' : 'Enviar credencial QR'}</span>
+                          <MessageCircle size={14} />
                         </button>
-                      )}
 
-                      {/* PESTAÑA: REQUIEREN CORREO */}
-                      {filtro === 'SIN_CORREO' && (
+                        {/* BOTÓN COPIAR LINK */}
                         <button
-                          onClick={() => {
-                            setEditandoCorreo(graduado)
-                            setNuevoCorreo('')
-                            setError('')
-                          }}
-                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-sky-600 text-xs font-black text-white shadow-sm transition cursor-pointer"
+                          type="button"
+                          onClick={() => copiarLinkAcceso(g)}
+                          className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition cursor-pointer"
+                          title="Copiar link de acceso directo"
                         >
-                          <Edit3 size={13} />
-                          <span>Asignar correo</span>
+                          {esCopiado ? <CheckCheck size={14} className="text-emerald-600" /> : <Copy size={14} />}
                         </button>
-                      )}
+
+                        {/* BOTÓN VER PORTAL */}
+                        <button
+                          type="button"
+                          onClick={() => abrirPortalEgresado(g)}
+                          className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition cursor-pointer"
+                          title="Abrir portal del graduado en pestaña nueva"
+                        >
+                          <ExternalLink size={14} />
+                        </button>
+
+                        {/* BOTÓN CONFIRMAR MANUAL (SI NO CONFIRMÓ AÚN) */}
+                        {g.estado !== 'ACEPTADO' && g.estado !== 'RECHAZADO' && (
+                          <button
+                            type="button"
+                            onClick={() => confirmarManual(g)}
+                            disabled={ocupado}
+                            className="px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-700 text-[11px] font-black transition cursor-pointer border border-emerald-200"
+                            title="Confirmar asistencia manualmente por ventanilla"
+                          >
+                            Confirmar
+                          </button>
+                        )}
+                      </div>
+
                     </div>
-                  </article>
+                  </div>
                 )
               })}
             </div>
           )}
+
         </div>
+
       </section>
 
-      {/* MODAL PARA ASIGNAR CORREO DIRECTO */}
+      {/* MODAL DE EDICIÓN INLINE DE CORREO */}
       {editandoCorreo && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs animate-in fade-in duration-200">
-          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl border border-slate-200 space-y-5">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <div>
-                <h3 className="text-base font-black text-slate-900">Asignar correo electrónico</h3>
-                <p className="text-xs text-slate-500 mt-0.5">{editandoCorreo.nombre} · DNI {editandoCorreo.dni}</p>
-              </div>
-              <button
-                onClick={() => setEditandoCorreo(null)}
-                className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition cursor-pointer"
-              >
-                <X size={15} />
-              </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in">
+          <div className="w-full max-w-md bg-white rounded-3xl p-6 shadow-2xl space-y-4 border border-slate-200">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-black text-slate-900">Editar Correo Electrónico</h3>
+              <button onClick={() => setEditandoCorreo(null)} className="text-slate-400 hover:text-slate-600">×</button>
             </div>
+            <p className="text-xs text-slate-500 font-medium">
+              Graduado: <strong className="text-slate-800">{editandoCorreo.nombre}</strong> (DNI {editandoCorreo.dni})
+            </p>
 
-            <form onSubmit={guardarYEnviarCorreo} className="space-y-4">
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">Correo Electrónico</label>
-                <input
-                  type="email"
-                  autoFocus
-                  required
-                  value={nuevoCorreo}
-                  onChange={(e) => setNuevoCorreo(e.target.value)}
-                  placeholder="ejemplo@correo.com"
-                  className="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-xs text-slate-800 focus:border-sky-500 focus:outline-none font-medium"
-                />
-              </div>
-
-              <div className="p-3 rounded-xl bg-sky-50 border border-sky-100 text-xs text-sky-800 space-y-1">
-                <p className="font-bold text-sky-900">Acción automática:</p>
-                <p className="text-[11px] leading-relaxed">
-                  Al guardar, el sistema asignará el correo al padrón e inmediatamente despachará la invitación de acceso formal.
-                </p>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
+            <form onSubmit={handleGuardarCorreo} className="space-y-4">
+              <input
+                type="email"
+                required
+                value={nuevoCorreo}
+                onChange={(e) => setNuevoCorreo(e.target.value)}
+                placeholder="ejemplo@correo.com"
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold outline-none focus:border-sky-500 focus:bg-white"
+                autoFocus
+              />
+              <div className="flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setEditandoCorreo(null)}
-                  className="px-4 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={guardandoCorreo || !nuevoCorreo.trim()}
-                  className="px-5 py-2 rounded-xl bg-slate-900 hover:bg-sky-600 text-xs font-black text-white shadow-md transition cursor-pointer disabled:opacity-50 flex items-center gap-2"
+                  className="px-5 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 text-xs font-black transition disabled:opacity-50 cursor-pointer"
                 >
-                  {guardandoCorreo ? <RefreshCw size={13} className="animate-spin" /> : <Send size={13} />}
-                  <span>{guardandoCorreo ? 'Guardando...' : 'Guardar y Enviar'}</span>
+                  {guardandoCorreo ? 'Guardando...' : 'Guardar Correo'}
                 </button>
               </div>
             </form>
           </div>
         </div>
+      )}
+
+      {/* MODAL TEMPLATE STUDIO / PREVIEW */}
+      {modalPreviewAbierto && (
+        <ModalPreviewCorreo
+          graduadoEjemplo={graduados[0]}
+          ceremonia={ceremonia}
+          usuarioActual={usuario}
+          onCerrar={() => setModalPreviewAbierto(false)}
+        />
+      )}
+
+      {/* MODAL DESPACHO MASIVO CON PROGRESO EN VIVO */}
+      {modalDespachoConfig && (
+        <ModalDespachoMasivo
+          graduados={modalDespachoConfig.graduados}
+          tipo={modalDespachoConfig.tipo}
+          onCerrar={() => setModalDespachoConfig(null)}
+          onCompletado={() => {
+            setModalDespachoConfig(null)
+            setSeleccionados([])
+            cargar()
+          }}
+        />
       )}
 
       {dialogoConfirmacion}
