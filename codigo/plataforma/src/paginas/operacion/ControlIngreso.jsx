@@ -857,7 +857,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                   <span>Escáner de Cámara Web</span>
                 </h2>
                 <button
-                  onClick={toggleCamara}
+                  onClick={() => setCamaraActiva(!camaraActiva)}
                   className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
                     camaraActiva 
                       ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30' 
@@ -871,16 +871,19 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
 
               {/* Contenedor del video HTML5 QR Code */}
               <div className="relative rounded-2xl overflow-hidden bg-slate-950 border border-slate-750 min-h-[260px] flex items-center justify-center">
-                <div id="lector-qr-sigic" className={`w-full ${camaraActiva ? 'block' : 'hidden'}`} />
+                <div id="sigic-reader-container" className={`w-full ${camaraActiva ? 'block' : 'hidden'}`} />
 
                 {!camaraActiva && (
-                  <div className="text-center p-6 space-y-2">
+                  <div 
+                    onClick={() => setCamaraActiva(true)}
+                    className="text-center p-6 space-y-2 cursor-pointer hover:opacity-80 transition"
+                  >
                     <div className="w-12 h-12 rounded-2xl bg-slate-900 text-slate-500 flex items-center justify-center mx-auto border border-slate-800">
                       <CameraOff size={22} />
                     </div>
                     <p className="text-xs font-bold text-slate-400">Cámara en espera</p>
                     <p className="text-[11px] text-slate-500 max-w-xs">
-                      Presioná encender para usar la cámara integrada de la notebook o una webcam USB.
+                      Presioná para usar la cámara web de respaldo de la notebook o una webcam USB.
                     </p>
                   </div>
                 )}
@@ -892,12 +895,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                   <span className="text-[10px] font-bold text-slate-400 uppercase">Cámara:</span>
                   <select
                     value={camaraSeleccionadaId}
-                    onChange={(e) => {
-                      setCamaraSeleccionadaId(e.target.value)
-                      if (camaraActiva) {
-                        detenerCamara().then(() => iniciarCamara(e.target.value))
-                      }
-                    }}
+                    onChange={(e) => setCamaraSeleccionadaId(e.target.value)}
                     className="flex-1 bg-slate-900 border border-slate-700 text-xs rounded-xl px-2.5 py-1.5 text-slate-300 outline-none"
                   >
                     {camarasDisponibles.map((c) => (
