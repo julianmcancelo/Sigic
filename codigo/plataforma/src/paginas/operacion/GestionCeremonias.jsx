@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { 
   Plus, Calendar, MapPin, Users, Trash2, 
   CheckCircle2, X, PlusCircle, ArrowRight, LayoutTemplate, Send, Radio, Flag, ListChecks,
-  ClipboardList, UserPlus, Armchair, ScanLine, BarChart3, PlayCircle, LoaderCircle, Clock
+  ClipboardList, UserPlus, Armchair, ScanLine, BarChart3, PlayCircle, LoaderCircle, Clock, Mic
 } from 'lucide-react'
 import { obtenerCeremonias, crearCeremonia, activarCeremonia, eliminarCeremonia, actualizarEstadoCeremonia } from '../../lib/api'
 import { useConfirmacion } from '../../componentes/ModalConfirmacion'
