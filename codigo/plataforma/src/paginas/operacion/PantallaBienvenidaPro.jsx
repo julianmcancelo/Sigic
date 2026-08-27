@@ -124,6 +124,15 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
   const [cambiando, setCambiando] = useState(false)
   const [pronosticoClima, setPronosticoClima] = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [fondoId, setFondoId] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('sigic_fondo') || 'beltran' : 'beltran'))
+
+  useEffect(() => {
+    const handleFondo = (e) => {
+      if (e.detail) setFondoId(e.detail)
+    }
+    window.addEventListener('sigic-fondo-cambiado', handleFondo)
+    return () => window.removeEventListener('sigic-fondo-cambiado', handleFondo)
+  }, [])
 
   useEffect(() => {
     cargarDatos()
@@ -259,10 +268,8 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
 
   return (
     <div 
-      className="relative min-h-screen flex overflow-hidden font-sans"
+      className={`relative min-h-screen flex overflow-hidden font-sans sigic-wallpaper-${fondoId}`}
       style={{
-        background: BG,
-        color: DARK,
         fontFamily: 'Inter, system-ui, sans-serif'
       }}
     >

@@ -36,6 +36,7 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
   const handleCambiarFondo = (id) => {
     setFondoId(id)
     localStorage.setItem('sigic_fondo', id)
+    window.dispatchEvent(new CustomEvent('sigic-fondo-cambiado', { detail: id }))
     if (id === 'alabaster') {
       localStorage.setItem('sigic_tema', 'claro')
     } else {
@@ -50,6 +51,7 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
     const nuevo = !cuadriculaActiva
     setCuadriculaActiva(nuevo)
     localStorage.setItem('sigic_cuadricula', String(nuevo))
+    window.dispatchEvent(new CustomEvent('sigic-cuadricula-cambiada', { detail: nuevo }))
     setMensaje({ tipo: 'exito', texto: `Cuadrícula tecnológica ${nuevo ? 'activada' : 'desactivada'}` })
     setTimeout(() => setMensaje(null), 3000)
   }
@@ -58,6 +60,7 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
     const nuevo = !marcaAguaActiva
     setMarcaAguaActiva(nuevo)
     localStorage.setItem('sigic_marca_agua', String(nuevo))
+    window.dispatchEvent(new CustomEvent('sigic-marca-agua-cambiada', { detail: nuevo }))
     setMensaje({ tipo: 'exito', texto: `Marca de agua institucional ${nuevo ? 'activada' : 'desactivada'}` })
     setTimeout(() => setMensaje(null), 3000)
   }

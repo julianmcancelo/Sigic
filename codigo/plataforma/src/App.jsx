@@ -916,22 +916,47 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
   const cambiarFondo = (nuevoFondo) => {
     setFondoId(nuevoFondo)
     localStorage.setItem('sigic_fondo', nuevoFondo)
+    window.dispatchEvent(new CustomEvent('sigic-fondo-cambiado', { detail: nuevoFondo }))
     if (nuevoFondo === 'alabaster') {
       setTema('claro')
+      localStorage.setItem('sigic_tema', 'claro')
     } else {
       setTema('oscuro')
+      localStorage.setItem('sigic_tema', 'oscuro')
     }
   }
 
   const cambiarCuadricula = (valor) => {
     setCuadriculaActiva(valor)
     localStorage.setItem('sigic_cuadricula', String(valor))
+    window.dispatchEvent(new CustomEvent('sigic-cuadricula-cambiada', { detail: valor }))
   }
 
   const cambiarMarcaAgua = (valor) => {
     setMarcaAguaActiva(valor)
     localStorage.setItem('sigic_marca_agua', String(valor))
+    window.dispatchEvent(new CustomEvent('sigic-marca-agua-cambiada', { detail: valor }))
   }
+
+  useEffect(() => {
+    const handleFondoEvento = (e) => {
+      if (e.detail) setFondoId(e.detail)
+    }
+    const handleCuadriculaEvento = (e) => {
+      if (typeof e.detail === 'boolean') setCuadriculaActiva(e.detail)
+    }
+    const handleMarcaAguaEvento = (e) => {
+      if (typeof e.detail === 'boolean') setMarcaAguaActiva(e.detail)
+    }
+    window.addEventListener('sigic-fondo-cambiado', handleFondoEvento)
+    window.addEventListener('sigic-cuadricula-cambiada', handleCuadriculaEvento)
+    window.addEventListener('sigic-marca-agua-cambiada', handleMarcaAguaEvento)
+    return () => {
+      window.removeEventListener('sigic-fondo-cambiado', handleFondoEvento)
+      window.removeEventListener('sigic-cuadricula-cambiada', handleCuadriculaEvento)
+      window.removeEventListener('sigic-marca-agua-cambiada', handleMarcaAguaEvento)
+    }
+  }, [])
 
   const [menuContextual, setMenuContextual] = useState(null)
   const [mostrarEquipo, setMostrarEquipo] = useState(false)
