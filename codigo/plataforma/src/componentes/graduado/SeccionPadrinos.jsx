@@ -24,7 +24,7 @@ export function SeccionPadrinos({
       {/* Slots de entregadores (1°, 2°, 3°) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {[1, 2, 3].map(orden => {
-          const entregadorActual = entregadores.find(e => e.orden === orden)
+          const entregadorActual = entregadores.find(e => Number(e.orden) === Number(orden))
 
           return (
             <div

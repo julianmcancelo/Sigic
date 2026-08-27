@@ -220,7 +220,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
   async function manejarAgregarEntregador(tipo, referencia) {
     setProcesando(true)
     try {
-      const ordenLibre = [1, 2, 3].find(o => !entregadores.some(e => e.orden === o)) || (entregadores.length + 1)
+      const ordenLibre = [1, 2, 3].find(o => !entregadores.some(e => Number(e.orden) === Number(o))) || (entregadores.length + 1)
       const datos = {
         egresado_id: graduadoSesion.id,
         tipo: tipo,

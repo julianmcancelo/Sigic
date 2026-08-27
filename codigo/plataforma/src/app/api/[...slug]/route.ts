@@ -1318,25 +1318,44 @@ export async function POST(
       }
 
       const maxEntregadores = limiteRes.rows[0].max_entregadores || 3;
-      const conteoRes = await query('SELECT COUNT(*) as total FROM entregadores WHERE egresado_id = $1', [egresado_id]);
-      const totalActual = parseInt(conteoRes.rows[0].total || '0', 10);
+      const entregadoresRes = await query('SELECT id, orden, profesor_id, invitado_id FROM entregadores WHERE egresado_id = $1 ORDER BY orden ASC', [egresado_id]);
+      const entregadoresExistentes = entregadoresRes.rows;
 
-      if (totalActual >= maxEntregadores) {
+      if (entregadoresExistentes.length >= maxEntregadores) {
         return NextResponse.json({ error: `El graduado ya tiene el máximo de entregadores permitidos (${maxEntregadores})` }, { status: 400, headers });
       }
+
+      if (profesor_id && entregadoresExistentes.some((e: any) => e.profesor_id === profesor_id)) {
+        return NextResponse.json({ error: 'Este profesor ya fue seleccionado como padrino' }, { status: 400, headers });
+      }
+      if (invitado_id && entregadoresExistentes.some((e: any) => e.invitado_id === invitado_id)) {
+        return NextResponse.json({ error: 'Este acompañante ya fue seleccionado como padrino' }, { status: 400, headers });
+      }
+
+      const ordenesOcupados = new Set(entregadoresExistentes.map((e: any) => Number(e.orden)));
+      let ordenFinal: number | null = orden ? Number(orden) : null;
+      if (!ordenFinal || ordenesOcupados.has(ordenFinal)) {
+        for (let i = 1; i <= maxEntregadores + 5; i++) {
+          if (!ordenesOcupados.has(i)) {
+            ordenFinal = i;
+            break;
+          }
+        }
+      }
+      if (!ordenFinal) ordenFinal = (Math.max(0, ...Array.from(ordenesOcupados)) + 1);
 
       try {
         const result = await query(
           `INSERT INTO entregadores (egresado_id, tipo, profesor_id, invitado_id, nombre, orden) 
-           VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-          [egresado_id, tipo, profesor_id || null, invitado_id || null, nombre.trim(), orden || (totalActual + 1)]
+           VALUES ($1, $2, $3, $4, $5, $6) 
+           ON CONFLICT (egresado_id, orden) DO UPDATE 
+           SET tipo = EXCLUDED.tipo, profesor_id = EXCLUDED.profesor_id, invitado_id = EXCLUDED.invitado_id, nombre = EXCLUDED.nombre
+           RETURNING *`,
+          [egresado_id, tipo, profesor_id || null, invitado_id || null, nombre.trim(), ordenFinal]
         );
         return NextResponse.json(result.rows[0], { status: 201, headers });
       } catch (error: any) {
-        if (error.message && error.message.includes('UNIQUE')) {
-          return NextResponse.json({ error: 'Ya existe un entregador con ese orden para este graduado' }, { status: 409, headers });
-        }
-        throw error;
+        return NextResponse.json({ error: error.message || 'Error al guardar entregador/padrino' }, { status: 500, headers });
       }
     }
 
