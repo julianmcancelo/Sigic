@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { GraduationCap, Info, LogOut, Settings, Shield, X } from 'lucide-react'
+import { GraduationCap, Info, LogOut, Settings, Shield, X, Sparkles } from 'lucide-react'
 
 export const ADMIN_DEMO = { nombre: 'Administración SiGIC · Demo', correo: 'admin@demo.com', rol: 'ADMIN' }
 export const EGRESADA_DEMO = {
