@@ -4,7 +4,9 @@ import React, { useState, useEffect, useRef } from 'react'
 import { 
   Camera, CameraOff, QrCode, Search, CheckCircle2, AlertTriangle, XCircle, 
   Users, GraduationCap, Armchair, Clock, UserCheck, RefreshCw, Volume2, 
-  VolumeX, ShieldCheck, ArrowRight, Sparkles, Check, Accessibility, CalendarDays
+  VolumeX, ShieldCheck, ArrowRight, Sparkles, Check, Accessibility, CalendarDays,
+  Smartphone, Download, Radio, Shield, Copy, CheckCheck, Globe, Wifi, KeyRound,
+  ExternalLink, Layers
 } from 'lucide-react'
 import { 
   buscarAcreditacion, 
@@ -16,7 +18,9 @@ import {
   activarCeremonia,
   obtenerAsistenciaOperativa,
   descargarManifiestoAcreditacion,
-  sincronizarLoteAcreditacion
+  sincronizarLoteAcreditacion,
+  obtenerDispositivosMoviles,
+  desvincularDispositivoAdmin
 } from '../../servicios/api'
 import { 
   guardarManifiestoOffline, 
@@ -27,6 +31,7 @@ import {
   limpiarColaAcreditacionOffline 
 } from '../../lib/offline-sync'
 import { useSincronizacion, emitirCambioSync } from '../../lib/sync'
+import { QRCodeSVG } from 'qrcode.react'
 
 // Helper para reproducir sonidos con Web Audio API sin dependencias de audio externas
 function reproducirSonido(tipo = 'exito') {
@@ -127,10 +132,54 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
   const [stats, setStats] = useState(null)
   const [historialIngresos, setHistorialIngresos] = useState([])
 
+  // Modalidad de Acreditación: 'flutter' (por defecto) o 'respaldo_web'
+  const [modalidad, setModalidad] = useState('flutter')
+  const [dispositivosMoviles, setDispositivosMoviles] = useState([])
+  const [cargandoDispositivos, setCargandoDispositivos] = useState(false)
+  const [copiadoApk, setCopiadoApk] = useState(false)
+  const [copiadoServidor, setCopiadoServidor] = useState(false)
+  const [urlApk, setUrlApk] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return `${window.location.origin}/descargas/SIGIC-Porteria-1.0.4.apk`
+    }
+    return 'https://sigic.com.ar/descargas/SIGIC-Porteria-1.0.4.apk'
+  })
+  const [urlServidor, setUrlServidor] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return `${window.location.origin}/api`
+    }
+    return 'https://sigic.com.ar/api'
+  })
+
   const html5QrCodeRef = useRef(null)
   const inputBusquedaRef = useRef(null)
   const bufferTecladoRef = useRef('')
   const ultimoKeyTimeRef = useRef(0)
+
+  async function cargarDispositivos() {
+    setCargandoDispositivos(true)
+    try {
+      const data = await obtenerDispositivosMoviles()
+      if (Array.isArray(data)) setDispositivosMoviles(data)
+    } catch (err) {
+      console.warn('Dispositivos móviles no disponibles:', err)
+    } finally {
+      setCargandoDispositivos(false)
+    }
+  }
+
+  function copiarTexto(texto, tipo) {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(texto)
+      if (tipo === 'apk') {
+        setCopiadoApk(true)
+        setTimeout(() => setCopiadoApk(false), 2000)
+      } else {
+        setCopiadoServidor(true)
+        setTimeout(() => setCopiadoServidor(false), 2000)
+      }
+    }
+  }
 
   // Sincronizar cola offline acumulada
   async function sincronizarPendientes() {
@@ -694,327 +743,520 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
         </div>
       </section>
 
-      {/* ÁREA DE TRABAJO PRINCIPAL */}
-      <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        
-        {/* COLUMNA IZQUIERDA: CÁMARA Y ENTRADA MANUAL (5 COLUMNAS) */}
-        <div className="lg:col-span-5 space-y-4">
-          
-          {/* BARRA DE ENTRADA MANUAL Y LECTOR */}
-          <div className="bg-slate-800/80 border border-slate-700/80 rounded-3xl p-4 sm:p-5 shadow-xl">
-            <h2 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-3 flex items-center justify-between">
-              <span>Búsqueda Rápida / Pistola USB</span>
-              <span className="text-[9px] px-2 py-0.5 rounded-md bg-slate-700 text-sky-300 font-bold">Autodetect</span>
-            </h2>
-
-            <form 
-              onSubmit={(e) => {
-                e.preventDefault()
-                ejecutarBusqueda(busquedaManual)
-              }}
-              className="flex gap-2"
-            >
-              <div className="relative flex-1">
-                <input
-                  ref={inputBusquedaRef}
-                  type="text"
-                  value={busquedaManual}
-                  onChange={(e) => setBusquedaManual(e.target.value)}
-                  placeholder="Escanear QR, DNI o Token..."
-                  className="w-full bg-slate-900 border border-slate-700 rounded-2xl px-4 py-3 text-sm text-white placeholder-slate-500 font-bold outline-none focus:border-sky-500 transition"
-                  autoFocus
-                />
-                {busquedaManual && (
-                  <button
-                    type="button"
-                    onClick={() => setBusquedaManual('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white"
-                  >
-                    ×
-                  </button>
-                )}
-              </div>
-              <button
-                type="submit"
-                disabled={cargandoBusqueda || !busquedaManual.trim()}
-                className="px-5 py-3 rounded-2xl bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-slate-950 font-black text-sm transition active:scale-95 flex items-center gap-1.5 cursor-pointer"
-              >
-                {cargandoBusqueda ? <RefreshCw size={18} className="animate-spin" /> : <Search size={18} />}
-              </button>
-            </form>
-
-            <p className="text-[10px] text-slate-400 font-medium mt-2 leading-relaxed">
-              Podés escanear con <strong>lector USB</strong>, pegar un código de <strong>Google Wallet</strong> o ingresar el <strong>DNI</strong>.
-            </p>
-          </div>
-
-          {/* VISOR DE CÁMARA QR */}
-          <div className="bg-slate-800/80 border border-slate-700/80 rounded-3xl p-4 sm:p-5 shadow-xl">
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-2">
-                <Camera size={14} className="text-sky-400" />
-                <span>Cámara del Dispositivo</span>
-              </h2>
-              <button
-                onClick={() => setCamaraActiva(!camaraActiva)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
-                  camaraActiva 
-                    ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' 
-                    : 'bg-sky-500/20 text-sky-300 border border-sky-500/30 hover:bg-sky-500/30'
-                }`}
-              >
-                {camaraActiva ? <CameraOff size={14} /> : <Camera size={14} />}
-                {camaraActiva ? 'Apagar Cámara' : 'Encender Cámara'}
-              </button>
-            </div>
-
-            {camaraActiva ? (
-              <div className="space-y-3">
-                <div 
-                  id="sigic-reader-container" 
-                  className="overflow-hidden rounded-2xl border-2 border-dashed border-sky-500/40 bg-slate-950 aspect-square max-h-[300px] w-full flex items-center justify-center"
-                />
-                {camarasDisponibles.length > 1 && (
-                  <select
-                    value={camaraSeleccionadaId}
-                    onChange={(e) => setCamaraSeleccionadaId(e.target.value)}
-                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-300 font-bold outline-none"
-                  >
-                    {camarasDisponibles.map((c) => (
-                      <option key={c.id} value={c.id}>{c.label || `Cámara ${c.id}`}</option>
-                    ))}
-                  </select>
-                )}
-              </div>
-            ) : (
-              <div 
-                onClick={() => setCamaraActiva(true)}
-                className="rounded-2xl border border-slate-700 bg-slate-900/60 p-8 text-center cursor-pointer hover:border-sky-500/50 transition group"
-              >
-                <div className="w-12 h-12 rounded-2xl bg-slate-800 group-hover:bg-sky-500/20 text-slate-400 group-hover:text-sky-400 mx-auto flex items-center justify-center transition">
-                  <QrCode size={24} />
-                </div>
-                <p className="text-xs font-bold text-slate-300 mt-3">Hacé clic para activar el lector QR con cámara</p>
-                <p className="text-[10px] text-slate-500 mt-1">Compatible con celulares, tablets y laptops</p>
-              </div>
-            )}
-          </div>
-
-          {/* HISTORIAL RECIENTE DE ACCESOS */}
-          <div className="bg-slate-800/80 border border-slate-700/80 rounded-3xl p-4 sm:p-5 shadow-xl">
-            <h2 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
-              <Clock size={14} className="text-violet-400" />
-              <span>Últimos Ingresos Acreditados</span>
-            </h2>
-            {historialIngresos.length > 0 ? (
-              <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                {historialIngresos.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between bg-slate-900/70 border border-slate-750 p-2.5 rounded-xl text-xs">
-                    <div>
-                      <strong className="block text-slate-200">{item.nombre}</strong>
-                      <span className="text-[10px] text-slate-400 font-medium">{item.rol} · Butaca: <strong className="text-sky-400">{item.asiento}</strong></span>
-                    </div>
-                    <span className="text-[10px] font-black text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md">
-                      {item.hora}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-xs text-slate-500 font-medium py-3 text-center">Todavía no hay ingresos registrados en esta sesión.</p>
-            )}
-          </div>
-
+      {/* SELECTOR DE MODALIDAD FLUTTER / RESPALDO */}
+      <div className="max-w-7xl mx-auto my-4 flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-2 bg-slate-800/90 p-1.5 rounded-2xl border border-slate-700/80 shadow-md">
+          <button
+            onClick={() => setModalidad('flutter')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+              modalidad === 'flutter' 
+                ? 'bg-sky-500 text-white shadow-md' 
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Smartphone size={15} /> Terminal Móvil Flutter (Recomendado)
+          </button>
+          <button
+            onClick={() => setModalidad('respaldo_web')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+              modalidad === 'respaldo_web' 
+                ? 'bg-sky-500 text-white shadow-md' 
+                : 'text-slate-400 hover:text-white'
+            }`}
+          >
+            <Camera size={15} /> Respaldo Web / Escáner de Emergencia
+          </button>
         </div>
 
-        {/* COLUMNA DERECHA: FICHA DE ACREDITACIÓN DEL GRUPO (7 COLUMNAS) */}
-        <div className="lg:col-span-7">
+        <div className="flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-emerald-400" />
+          <span className="text-[11px] text-slate-300 font-bold">
+            {dispositivosMoviles.length} terminal(es) Flutter vinculada(s)
+          </span>
+        </div>
+      </div>
+
+      {/* VISTA 1: TERMINAL MÓVIL FLUTTER (PRINCIPAL) */}
+      {modalidad === 'flutter' && (
+        <main className="max-w-7xl mx-auto space-y-6">
           
-          {errorBusqueda && (
-            <div className="bg-rose-500/15 border border-rose-500/30 rounded-3xl p-6 text-center space-y-3 animate-in fade-in">
-              <XCircle size={40} className="text-rose-400 mx-auto" />
-              <h3 className="text-base font-black text-rose-200">Credencial no encontrada</h3>
-              <p className="text-xs text-rose-300/90 font-medium max-w-md mx-auto">{errorBusqueda}</p>
-              <button
-                onClick={limpiarResultado}
-                className="px-5 py-2.5 rounded-xl bg-rose-500 hover:bg-rose-400 text-slate-950 font-black text-xs transition cursor-pointer"
-              >
-                Volver a intentar
-              </button>
-            </div>
-          )}
-
-          {mensajeAccion && (
-            <div className={`p-4 rounded-2xl mb-4 border flex items-center gap-3 animate-in fade-in ${
-              mensajeAccion.tipo === 'exito' 
-                ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300' 
-                : 'bg-rose-500/15 border-rose-500/30 text-rose-300'
-            }`}>
-              {mensajeAccion.tipo === 'exito' ? <CheckCircle2 size={20} /> : <AlertTriangle size={20} />}
-              <span className="text-xs font-bold">{mensajeAccion.texto}</span>
-            </div>
-          )}
-
-          {resultado ? (
-            <div className="bg-slate-800/90 border border-slate-700 rounded-3xl p-5 sm:p-7 shadow-2xl space-y-6 animate-in zoom-in-95 duration-200">
-              
-              {/* CABECERA DEL RESULTADO CON BADGE GIGANTE */}
-              <div className="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-slate-700">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-500/30">
-                      {resultado.tipo === 'individual' ? 'Acreditación Individual' : 'Pase Grupal'}
-                    </span>
-                    {todosAcreditados ? (
-                      <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1">
-                        <Check size={14} /> Ya Ingresado
-                      </span>
-                    ) : (
-                      <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
-                        <Sparkles size={14} /> Acceso Habilitado
-                      </span>
-                    )}
-                  </div>
-                  <h2 className="text-2xl sm:text-3xl font-black text-white mt-2">
-                    {egresadoActual?.nombre || 'Graduado'}
-                  </h2>
-                  <p className="text-xs font-bold text-slate-400 mt-0.5">
-                    DNI: <strong className="text-slate-200">{egresadoActual?.dni}</strong> · Carrera: <strong className="text-sky-300">{egresadoActual?.carrera || 'Carrera Beltrán'}</strong>
-                  </p>
-                </div>
-
-                <button
-                  onClick={limpiarResultado}
-                  className="px-4 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-xs font-bold text-slate-200 transition cursor-pointer"
-                >
-                  Siguiente Escaneo
-                </button>
-              </div>
-
-              {/* BOTÓN GIGANTE: ACREDITAR TODO EL GRUPO */}
-              {!todosAcreditados && (
-                <button
-                  onClick={manejarAcreditarGrupo}
-                  disabled={procesandoAcreditacion}
-                  className="w-full py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-base sm:text-lg flex items-center justify-center gap-3 shadow-lg shadow-emerald-500/20 transition active:scale-[0.98] cursor-pointer"
-                >
-                  {procesandoAcreditacion ? (
-                    <RefreshCw size={22} className="animate-spin" />
-                  ) : (
-                    <>
-                      <UserCheck size={22} />
-                      Acreditar Todo el Grupo ({1 + listaInvitados.length} Personas)
-                    </>
-                  )}
-                </button>
-              )}
-
-              {/* TARJETA DEL EGRESADO */}
-              <div className="bg-slate-900/80 border border-slate-750 rounded-2xl p-4 flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3.5 min-w-0">
-                  <div className="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0">
-                    <GraduationCap size={20} />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <strong className="text-sm font-black text-white truncate">{egresadoActual?.nombre}</strong>
-                      <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-sky-500/15 text-sky-300 border border-sky-500/30">Graduado</span>
+          {/* TARJETAS QR PARA FLUTTER: DESCARGA DE APK Y EMPAREJAMIENTO */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            {/* TARJETA 1: DESCARGAR APK FLUTTER */}
+            <div className="bg-slate-800/80 border border-slate-700/80 rounded-3xl p-6 shadow-xl flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between pb-4 border-b border-slate-700/60 mb-5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold">
+                      <Download size={18} />
                     </div>
-                    <p className="text-xs text-slate-400 font-semibold flex items-center gap-1.5 mt-0.5">
-                      <Armchair size={13} className="text-amber-400" />
-                      Butaca: <strong className="text-amber-300">{egresadoActual?.asiento_id || egresadoActual?.asiento_solicitado_id || 'Sin asignar'}</strong>
-                    </p>
+                    <div>
+                      <h3 className="text-sm font-black text-white">1. Descargar App Flutter (APK)</h3>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Instalación en dispositivos Android</p>
+                    </div>
                   </div>
+                  <span className="text-[9px] px-2.5 py-1 rounded-lg bg-sky-500/20 text-sky-300 font-black border border-sky-500/30 uppercase tracking-widest">
+                    v1.0.4+5
+                  </span>
                 </div>
 
-                <div>
-                  {egresadoActual?.presente ? (
-                    <span className="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-black flex items-center gap-1.5">
-                      <CheckCircle2 size={14} /> Presente
-                    </span>
-                  ) : (
-                    <button
-                      onClick={manejarAcreditarEgresado}
-                      disabled={procesandoAcreditacion}
-                      className="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-black text-xs transition cursor-pointer"
-                    >
-                      Acreditar
-                    </button>
-                  )}
+                <div className="flex flex-col sm:flex-row items-center gap-6">
+                  <div className="p-4 bg-white rounded-2xl shadow-md shrink-0">
+                    <QRCodeSVG value={urlApk} size={140} level="M" />
+                  </div>
+
+                  <div className="space-y-3 text-xs text-slate-300">
+                    <p className="font-medium leading-relaxed">
+                      Escaneá este código QR desde el teléfono de portería para descargar directamente el instalador oficial de la aplicación móvil Flutter.
+                    </p>
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      <a
+                        href="/descargas/SIGIC-Porteria-1.0.4.apk"
+                        download="SIGIC-Porteria-1.0.4.apk"
+                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-white text-xs font-black transition active:scale-95 shadow-md shadow-sky-500/20 cursor-pointer"
+                      >
+                        <Download size={14} /> Descargar APK
+                      </a>
+                      <button
+                        onClick={() => copiarTexto(urlApk, 'apk')}
+                        className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-slate-700/80 hover:bg-slate-700 text-slate-200 text-xs font-bold transition active:scale-95 cursor-pointer"
+                      >
+                        {copiadoApk ? <CheckCheck size={14} className="text-emerald-400" /> : <Copy size={14} />}
+                        <span>{copiadoApk ? 'Enlace copiado' : 'Copiar enlace'}</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* LISTA DE ACOMPAÑANTES */}
-              <div className="space-y-3">
-                <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-2">
-                  <Users size={15} className="text-violet-400" />
-                  <span>Acompañantes Registrados ({listaInvitados.length})</span>
-                </h3>
+              <div className="mt-5 pt-4 border-t border-slate-700/60 flex items-center justify-between text-[10px] font-bold text-slate-400">
+                <span>Archivo: SIGIC-Porteria-1.0.4.apk</span>
+                <span className="text-emerald-400 font-bold">Producción Oficial</span>
+              </div>
+            </div>
 
-                {listaInvitados.length > 0 ? (
-                  <div className="space-y-2.5">
-                    {listaInvitados.map((inv) => (
-                      <div key={inv.id} className="bg-slate-900/60 border border-slate-750 p-3.5 rounded-2xl flex items-center justify-between gap-3">
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-2">
-                            <strong className="text-xs sm:text-sm font-bold text-slate-200 truncate">{inv.nombre}</strong>
-                            <span className="text-[9px] font-bold text-slate-400 uppercase bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
-                              {inv.relacion || 'Acompañante'}
-                            </span>
-                            {Boolean(inv.discapacidad) && (
-                              <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 flex items-center gap-1">
-                                <Accessibility size={12} /> Accesibilidad
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-[11px] text-slate-400 font-medium flex items-center gap-2 mt-0.5">
-                            <span>DNI: <strong className="text-slate-300">{inv.dni}</strong></span>
-                            <span>·</span>
-                            <span>Butaca: <strong className="text-amber-300">{inv.asiento_id || inv.asiento_solicitado_id || 'Sin asignar'}</strong></span>
-                          </p>
+            {/* TARJETA 2: VINCULAR TELÉFONO FLUTTER (LOGIN INSTANTÁNEO) */}
+            <div className="bg-slate-800/80 border border-slate-700/80 rounded-3xl p-6 shadow-xl flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between pb-4 border-b border-slate-700/60 mb-5">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
+                      <Smartphone size={18} />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-white">2. Vincular Terminal Móvil</h3>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Emparejamiento y login por cámara</p>
+                    </div>
+                  </div>
+                  <span className="text-[9px] px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 font-black border border-emerald-500/30 uppercase tracking-widest">
+                    Sin Contraseña
+                  </span>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-6">
+                  <div className="p-4 bg-white rounded-2xl shadow-md shrink-0">
+                    <QRCodeSVG value={`sigic-config:${urlServidor}`} size={140} level="H" />
+                  </div>
+
+                  <div className="space-y-3 text-xs text-slate-300">
+                    <p className="font-medium leading-relaxed">
+                      Abrí la app Flutter en el dispositivo de seguridad y seleccioná <strong>Escanear QR de Conexión</strong> para autenticarte y enlazar la ceremonia activa automáticamente.
+                    </p>
+                    <div className="p-3 bg-slate-900/60 rounded-xl border border-slate-700/60 space-y-1">
+                      <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Servidor API:</span>
+                      <code className="text-[11px] font-mono text-cyan-300 font-bold block truncate">{urlServidor}</code>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-5 pt-4 border-t border-slate-700/60 flex items-center justify-between text-[10px] font-bold text-slate-400">
+                <span>Protocolo: TLS / WebSocket Sync</span>
+                <span className="text-sky-400 font-bold">Ceremonia: {ceremonia?.nombre || 'Activa'}</span>
+              </div>
+            </div>
+
+          </div>
+
+          {/* DISPOSITIVOS FLUTTER CONECTADOS Y FEED DE INGRESOS EN VIVO */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            {/* COLUMNA IZQUIERDA: TERMINALES ACTIVAS (5 COLS) */}
+            <div className="lg:col-span-5 bg-slate-800/80 border border-slate-700/80 rounded-3xl p-5 shadow-xl space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-700/60">
+                <div className="flex items-center gap-2">
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <h3 className="text-xs font-black uppercase tracking-wider text-white">Terminales Móviles en Puerta</h3>
+                </div>
+                <button
+                  onClick={cargarDispositivos}
+                  className="p-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white transition cursor-pointer"
+                  title="Refrescar dispositivos"
+                >
+                  <RefreshCw size={13} className={cargandoDispositivos ? 'animate-spin' : ''} />
+                </button>
+              </div>
+
+              {dispositivosMoviles.length === 0 ? (
+                <div className="p-8 text-center rounded-2xl bg-slate-900/40 border border-slate-700/40 space-y-2">
+                  <Smartphone size={32} className="mx-auto text-slate-600" />
+                  <h4 className="text-xs font-bold text-slate-300">Esperando conexión de terminales</h4>
+                  <p className="text-[11px] text-slate-400 leading-relaxed">Escaneá el código QR superior desde la app Flutter para iniciar el puesto de portería.</p>
+                </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {dispositivosMoviles.map((disp) => (
+                    <div key={disp.dispositivoId} className="p-3.5 rounded-2xl bg-slate-900/50 border border-slate-700/60 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center font-bold">
+                          <Smartphone size={16} />
                         </div>
-
                         <div>
-                          {inv.presente ? (
-                            <span className="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-black flex items-center gap-1">
-                              <CheckCircle2 size={13} /> Presente
-                            </span>
-                          ) : (
-                            <button
-                              onClick={() => manejarAcreditarInvitado(inv.id, inv.nombre, inv.asiento_id)}
-                              disabled={procesandoAcreditacion}
-                              className="px-3.5 py-1.5 rounded-xl bg-slate-700 hover:bg-sky-500 hover:text-slate-950 text-slate-200 font-bold text-xs transition cursor-pointer"
-                            >
-                              Acreditar
-                            </button>
-                          )}
+                          <h4 className="text-xs font-bold text-white">{disp.nombreDispositivo || disp.modelo || 'Terminal Android'}</h4>
+                          <p className="text-[10px] text-slate-400">{disp.marca || 'Flutter App'} · IP: {disp.ipUltimoAcceso || '127.0.0.1'}</p>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="p-4 rounded-2xl bg-slate-900/40 border border-slate-800 text-center">
-                    <p className="text-xs text-slate-500 font-medium">Este graduado no registró acompañantes.</p>
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[9px] font-black uppercase">
+                        En Línea
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* COLUMNA DERECHA: FEED DE ACREDITACIONES EN VIVO (7 COLS) */}
+            <div className="lg:col-span-7 bg-slate-800/80 border border-slate-700/80 rounded-3xl p-5 shadow-xl space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-700/60">
+                <div className="flex items-center gap-2">
+                  <Radio size={14} className="text-red-400 animate-pulse" />
+                  <h3 className="text-xs font-black uppercase tracking-wider text-white">Ingresos Registrados en Tiempo Real</h3>
+                </div>
+                <span className="text-[10px] font-bold text-slate-400">
+                  {historialIngresos.length} accesos recientes
+                </span>
+              </div>
+
+              {historialIngresos.length === 0 ? (
+                <div className="p-8 text-center rounded-2xl bg-slate-900/40 border border-slate-700/40 space-y-2">
+                  <Clock size={32} className="mx-auto text-slate-600" />
+                  <h4 className="text-xs font-bold text-slate-300">Sin ingresos en este turno todavía</h4>
+                  <p className="text-[11px] text-slate-400 leading-relaxed">A medida que los guardias escaneen los pases QR con la app Flutter, los ingresos aparecerán aquí en vivo.</p>
+                </div>
+              ) : (
+                <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                  {historialIngresos.map((item) => (
+                    <div key={item.id} className="p-3 rounded-xl bg-slate-900/50 border border-slate-700/60 flex items-center justify-between gap-3 text-xs animate-in fade-in">
+                      <div className="flex items-center gap-3">
+                        <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />
+                        <div>
+                          <strong className="text-white font-bold block">{item.nombre}</strong>
+                          <span className="text-[10px] text-slate-400">{item.rol} · Butaca: {item.asiento}</span>
+                        </div>
+                      </div>
+                      <span className="font-mono text-[11px] font-bold text-emerald-400">{item.hora}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+          </div>
+
+        </main>
+      )}
+
+      {/* VISTA 2: RESPALDO DE EMERGENCIA WEB (CÁMARA / BÚSQUEDA MANUAL) */}
+      {modalidad === 'respaldo_web' && (
+        <main className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          
+          {/* COLUMNA IZQUIERDA: CÁMARA Y ENTRADA MANUAL (5 COLUMNAS) */}
+          <div className="lg:col-span-5 space-y-4">
+            
+            {/* BARRA DE ENTRADA MANUAL Y LECTOR */}
+            <div className="bg-slate-800/80 border border-slate-700/80 rounded-3xl p-4 sm:p-5 shadow-xl">
+              <h2 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-3 flex items-center justify-between">
+                <span>Búsqueda Rápida / Pistola USB</span>
+                <span className="text-[9px] px-2 py-0.5 rounded-md bg-slate-700 text-sky-300 font-bold">Autodetect</span>
+              </h2>
+
+              <form 
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  ejecutarBusqueda(busquedaManual)
+                }}
+                className="flex gap-2"
+              >
+                <div className="relative flex-1">
+                  <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+                  <input
+                    ref={inputBusquedaRef}
+                    type="text"
+                    value={busquedaManual}
+                    onChange={(e) => setBusquedaManual(e.target.value)}
+                    placeholder="DNI, Token o código escaneado..."
+                    className="w-full bg-slate-900/90 border border-slate-700 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-400 font-medium transition"
+                    autoFocus
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={cargandoBusqueda || !busquedaManual.trim()}
+                  className="px-4 py-2.5 rounded-2xl bg-sky-500 hover:bg-sky-400 disabled:opacity-40 text-slate-950 font-black text-xs transition active:scale-95 cursor-pointer shadow-md shadow-sky-500/20"
+                >
+                  {cargandoBusqueda ? <RefreshCw size={14} className="animate-spin" /> : 'Buscar'}
+                </button>
+              </form>
+            </div>
+
+            {/* VISOR DE CÁMARA QR */}
+            <div className="bg-slate-800/80 border border-slate-700/80 rounded-3xl p-4 sm:p-5 shadow-xl space-y-3">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                  <Camera size={15} className="text-sky-400" />
+                  <span>Escáner de Cámara Web</span>
+                </h2>
+                <button
+                  onClick={toggleCamara}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer ${
+                    camaraActiva 
+                      ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30' 
+                      : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30'
+                  }`}
+                >
+                  {camaraActiva ? <CameraOff size={14} /> : <Camera size={14} />}
+                  <span>{camaraActiva ? 'Apagar Cámara' : 'Encender Cámara'}</span>
+                </button>
+              </div>
+
+              {/* Contenedor del video HTML5 QR Code */}
+              <div className="relative rounded-2xl overflow-hidden bg-slate-950 border border-slate-750 min-h-[260px] flex items-center justify-center">
+                <div id="lector-qr-sigic" className={`w-full ${camaraActiva ? 'block' : 'hidden'}`} />
+
+                {!camaraActiva && (
+                  <div className="text-center p-6 space-y-2">
+                    <div className="w-12 h-12 rounded-2xl bg-slate-900 text-slate-500 flex items-center justify-center mx-auto border border-slate-800">
+                      <CameraOff size={22} />
+                    </div>
+                    <p className="text-xs font-bold text-slate-400">Cámara en espera</p>
+                    <p className="text-[11px] text-slate-500 max-w-xs">
+                      Presioná encender para usar la cámara integrada de la notebook o una webcam USB.
+                    </p>
                   </div>
                 )}
               </div>
 
+              {/* Selector de cámara si hay más de 1 */}
+              {camarasDisponibles.length > 1 && (
+                <div className="flex items-center gap-2 pt-1">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase">Cámara:</span>
+                  <select
+                    value={camaraSeleccionadaId}
+                    onChange={(e) => {
+                      setCamaraSeleccionadaId(e.target.value)
+                      if (camaraActiva) {
+                        detenerCamara().then(() => iniciarCamara(e.target.value))
+                      }
+                    }}
+                    className="flex-1 bg-slate-900 border border-slate-700 text-xs rounded-xl px-2.5 py-1.5 text-slate-300 outline-none"
+                  >
+                    {camarasDisponibles.map((c) => (
+                      <option key={c.id} value={c.id}>{c.label || `Cámara ${c.id.slice(0, 5)}`}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
-          ) : !errorBusqueda && (
-            <div className="bg-slate-800/40 border-2 border-dashed border-slate-750 rounded-3xl p-10 text-center space-y-3">
-              <div className="w-16 h-16 rounded-2xl bg-slate-800 text-sky-400 mx-auto flex items-center justify-center shadow-inner">
-                <QrCode size={32} />
+
+          </div>
+
+          {/* COLUMNA DERECHA: RESULTADO DE ACREDITACIÓN / DETALLE (7 COLUMNAS) */}
+          <div className="lg:col-span-7 space-y-4">
+            
+            {/* MENSAJES DE ACCION */}
+            {mensajeAccion && (
+              <div className={`p-4 rounded-2xl border flex items-center gap-3 animate-in fade-in ${
+                mensajeAccion.tipo === 'exito' 
+                  ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300' 
+                  : mensajeAccion.tipo === 'error'
+                  ? 'bg-rose-500/15 border-rose-500/30 text-rose-300'
+                  : 'bg-amber-500/15 border-amber-500/30 text-amber-300'
+              }`}>
+                {mensajeAccion.tipo === 'exito' && <CheckCircle2 size={20} className="shrink-0 text-emerald-400" />}
+                {mensajeAccion.tipo === 'error' && <XCircle size={20} className="shrink-0 text-rose-400" />}
+                {mensajeAccion.tipo === 'advertencia' && <AlertTriangle size={20} className="shrink-0 text-amber-400" />}
+                <span className="text-xs font-bold">{mensajeAccion.texto}</span>
               </div>
-              <h3 className="text-base font-black text-slate-300">Esperando escaneo o búsqueda</h3>
-              <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
-                Escaneá la credencial con la cámara, utilizá la pistola de código de barras o buscá manualmente por DNI para registrar el ingreso.
-              </p>
-            </div>
-          )}
+            )}
 
-        </div>
+            {/* ERROR DE BÚSQUEDA */}
+            {errorBusqueda && (
+              <div className="bg-rose-500/10 border border-rose-500/30 rounded-3xl p-6 text-center space-y-3">
+                <div className="w-12 h-12 rounded-2xl bg-rose-500/20 text-rose-400 mx-auto flex items-center justify-center">
+                  <XCircle size={24} />
+                </div>
+                <h3 className="text-sm font-black text-rose-300">{errorBusqueda}</h3>
+                <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                  Verificá que el código QR corresponda a la ceremonia actual o intentá buscar por número de documento del graduado o invitado.
+                </p>
+                <button
+                  onClick={limpiarResultado}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition cursor-pointer"
+                >
+                  Nueva Búsqueda
+                </button>
+              </div>
+            )}
 
-      </main>
+            {/* FICHA DE RESULTADO */}
+            {resultado && !errorBusqueda ? (
+              <div className="bg-slate-800/80 border border-slate-700/80 rounded-3xl p-5 sm:p-6 shadow-xl space-y-5">
+                
+                {/* CABECERA DEL GRUPO */}
+                <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-700">
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-sky-400">
+                      {resultado.tipo === 'grupo' ? 'Acreditación Grupal' : 'Pase Individual'}
+                    </span>
+                    <h2 className="text-lg sm:text-xl font-black text-white mt-0.5">
+                      {egresadoActual?.nombre || 'Graduado'}
+                    </h2>
+                    <p className="text-xs text-slate-400 font-medium mt-0.5">
+                      {egresadoActual?.carrera || 'Carrera no especificada'} · DNI: <strong className="text-slate-300">{egresadoActual?.dni}</strong>
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {resultado.tipo === 'grupo' && !todosAcreditados && (
+                      <button
+                        onClick={manejarAcreditarGrupo}
+                        disabled={procesandoAcreditacion}
+                        className="px-4 py-2.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 text-slate-950 font-black text-xs transition active:scale-95 cursor-pointer shadow-lg shadow-emerald-500/20 flex items-center gap-1.5"
+                      >
+                        <UserCheck size={16} />
+                        <span>Acreditar Todo el Grupo</span>
+                      </button>
+                    )}
+                    <button
+                      onClick={limpiarResultado}
+                      className="p-2.5 rounded-2xl bg-slate-700 hover:bg-slate-600 text-slate-300 transition cursor-pointer"
+                      title="Limpiar y escanear siguiente"
+                    >
+                      <RefreshCw size={15} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* TARJETA DEL GRADUADO */}
+                <div className="bg-slate-900/60 border border-slate-750 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold">
+                      <GraduationCap size={20} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <strong className="text-sm font-bold text-white">{egresadoActual?.nombre}</strong>
+                        <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 border border-sky-500/30">
+                          Graduado
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-400 mt-0.5 flex items-center gap-2">
+                        <Armchair size={13} className="text-amber-400" />
+                        <span>Butaca asignada: <strong className="text-amber-300">{egresadoActual?.asiento_id || egresadoActual?.asiento || 'Sin asignar'}</strong></span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div>
+                    {egresadoActual?.presente ? (
+                      <span className="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-black flex items-center gap-1.5">
+                        <CheckCircle2 size={14} /> Presente
+                      </span>
+                    ) : (
+                      <button
+                        onClick={manejarAcreditarEgresado}
+                        disabled={procesandoAcreditacion}
+                        className="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-black text-xs transition cursor-pointer"
+                      >
+                        Acreditar
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* LISTA DE ACOMPAÑANTES */}
+                <div className="space-y-3">
+                  <h3 className="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                    <Users size={15} className="text-violet-400" />
+                    <span>Acompañantes Registrados ({listaInvitados.length})</span>
+                  </h3>
+
+                  {listaInvitados.length > 0 ? (
+                    <div className="space-y-2.5">
+                      {listaInvitados.map((inv) => (
+                        <div key={inv.id} className="bg-slate-900/60 border border-slate-750 p-3.5 rounded-2xl flex items-center justify-between gap-3">
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                              <strong className="text-xs sm:text-sm font-bold text-slate-200 truncate">{inv.nombre}</strong>
+                              <span className="text-[9px] font-bold text-slate-400 uppercase bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
+                                {inv.relacion || 'Acompañante'}
+                              </span>
+                              {Boolean(inv.discapacidad) && (
+                                <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/30 flex items-center gap-1">
+                                  <Accessibility size={12} /> Accesibilidad
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-slate-400 font-medium flex items-center gap-2 mt-0.5">
+                              <span>DNI: <strong className="text-slate-300">{inv.dni}</strong></span>
+                              <span>·</span>
+                              <span>Butaca: <strong className="text-amber-300">{inv.asiento_id || inv.asiento_solicitado_id || 'Sin asignar'}</strong></span>
+                            </p>
+                          </div>
+
+                          <div>
+                            {inv.presente ? (
+                              <span className="px-3 py-1.5 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-black flex items-center gap-1">
+                                <CheckCircle2 size={13} /> Presente
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => manejarAcreditarInvitado(inv.id, inv.nombre, inv.asiento_id)}
+                                disabled={procesandoAcreditacion}
+                                className="px-3.5 py-1.5 rounded-xl bg-slate-700 hover:bg-sky-500 hover:text-slate-950 text-slate-200 font-bold text-xs transition cursor-pointer"
+                              >
+                                Acreditar
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-4 rounded-2xl bg-slate-900/40 border border-slate-800 text-center">
+                      <p className="text-xs text-slate-500 font-medium">Este graduado no registró acompañantes.</p>
+                    </div>
+                  )}
+                </div>
+
+              </div>
+            ) : !errorBusqueda && (
+              <div className="bg-slate-800/40 border-2 border-dashed border-slate-750 rounded-3xl p-10 text-center space-y-3">
+                <div className="w-16 h-16 rounded-2xl bg-slate-800 text-sky-400 mx-auto flex items-center justify-center shadow-inner">
+                  <QrCode size={32} />
+                </div>
+                <h3 className="text-base font-black text-slate-300">Esperando escaneo o búsqueda</h3>
+                <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
+                  Escaneá la credencial con la cámara, utilizá la pistola de código de barras o buscá manualmente por DNI para registrar el ingreso.
+                </p>
+              </div>
+            )}
+
+          </div>
+
+        </main>
+      )}
     </div>
   )
 }
