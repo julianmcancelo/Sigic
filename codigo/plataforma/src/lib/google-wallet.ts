@@ -109,28 +109,25 @@ function imagen(uri: string, descripcion: string) {
   };
 }
 
-function convertirAFechaIso(fecha?: string | null): string {
-  if (!fecha) {
-    return '2026-08-27T18:00:00Z';
-  }
+function obtenerFechaYMD(fecha?: string | null): string {
+  if (!fecha) return '2026-08-27';
+  const fechaTrim = String(fecha).trim();
+  const match = fechaTrim.match(/^(\d{4}-\d{2}-\d{2})/);
+  if (match) return match[1];
   try {
-    const fechaTrim = String(fecha).trim();
-    if (/^\d{4}-\d{2}-\d{2}$/.test(fechaTrim)) {
-      return `${fechaTrim}T18:00:00Z`;
-    }
     const d = new Date(fechaTrim);
     if (!isNaN(d.getTime())) {
-      const anio = d.getUTCFullYear();
-      const mes = String(d.getUTCMonth() + 1).padStart(2, '0');
-      const dia = String(d.getUTCDate()).padStart(2, '0');
-      return `${anio}-${mes}-${dia}T18:00:00Z`;
+      const anio = d.getFullYear();
+      const mes = String(d.getMonth() + 1).padStart(2, '0');
+      const dia = String(d.getDate()).padStart(2, '0');
+      return `${anio}-${mes}-${dia}`;
     }
   } catch {}
-  return '2026-08-27T18:00:00Z';
+  return '2026-08-27';
 }
 
 function formatearFechaEspanol(fecha?: string | null): string {
-  if (!fecha) return 'Agosto 2026';
+  if (!fecha) return '27 de agosto de 2026';
   try {
     const raw = String(fecha).includes('T') ? String(fecha) : `${String(fecha).trim()}T12:00:00`;
     const d = new Date(raw);
@@ -162,7 +159,10 @@ export async function generarPaseGoogleWallet(pase: PaseCeremonia) {
     ...(enlaceMapa ? [{ uri: enlaceMapa, description: 'Cómo llegar a la ceremonia', id: 'mapa-ceremonia' }] : []),
   ];
 
-  const fechaIso = convertirAFechaIso(pase.fecha);
+  const fechaYMD = obtenerFechaYMD(pase.fecha);
+  const doorsOpenIso = `${fechaYMD}T17:00:00-03:00`;
+  const startIso = `${fechaYMD}T18:00:00-03:00`;
+  const endIso = `${fechaYMD}T21:00:00-03:00`;
   const fechaLegible = formatearFechaEspanol(pase.fecha);
 
   const objeto = {
@@ -186,8 +186,8 @@ export async function generarPaseGoogleWallet(pase: PaseCeremonia) {
       },
       {
         id: 'datos-ceremonia',
-        header: pase.ceremonia || 'Acto Solemne de Colación',
-        body: [fechaLegible, pase.lugar || 'Auditorio Central Beltrán'].filter(Boolean).join(' · '),
+        header: pase.ceremonia || 'Ceremonia de Graduación SiGIC 2026',
+        body: [fechaLegible, pase.lugar || 'Auditorio Instituto Beltrán'].filter(Boolean).join(' · '),
       },
     ],
     linksModuleData: { uris: enlaces },
@@ -197,24 +197,30 @@ export async function generarPaseGoogleWallet(pase: PaseCeremonia) {
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
   try {
-    await fetch(`${BASE_URL}/eventTicketClass/${encodeURIComponent(classId)}`, {
+    const resClase = await fetch(`${BASE_URL}/eventTicketClass/${encodeURIComponent(classId)}`, {
       method: 'PATCH',
       headers,
       body: JSON.stringify({
-        eventName: textoLocalizado(pase.ceremonia || 'Acto Solemne de Colación'),
+        reviewStatus: 'UNDER_REVIEW',
+        eventName: textoLocalizado(pase.ceremonia || 'Ceremonia de Graduación SiGIC 2026'),
         issuerName: 'Instituto Tecnológico Beltrán',
         dateTime: {
-          start: fechaIso,
+          doorsOpen: doorsOpenIso,
+          start: startIso,
+          end: endIso,
         },
         venue: {
-          name: textoLocalizado(pase.lugar || 'Auditorio Central Beltrán'),
-          address: textoLocalizado(pase.lugar || 'Av. Manuel Belgrano 1191, Avellaneda, Buenos Aires'),
+          name: textoLocalizado(pase.lugar || 'Auditorio Instituto Tecnológico Beltrán'),
+          address: textoLocalizado(pase.lugar || 'Av. Manuel Belgrano 1191, Avellaneda, Buenos Aires, Argentina'),
         },
         hexBackgroundColor: '#071b34',
       }),
     });
+    if (!resClase.ok) {
+      console.warn('Aviso al actualizar clase de Google Wallet:', await resClase.text());
+    }
   } catch (errClase) {
-    console.warn('Aviso: no se pudo actualizar la clase de Google Wallet, continuando con el objeto:', errClase);
+    console.warn('Aviso: no se pudo actualizar la clase de Google Wallet:', errClase);
   }
 
   const existente = await fetch(`${BASE_URL}/eventTicketObject/${encodeURIComponent(objectId)}`, { headers });
