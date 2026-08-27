@@ -8,8 +8,7 @@
  * 2. Si acepta → PanelGraduado (cargar invitados, elegir entregadores)
  * 3. Si rechaza → Inhabilitado, se cierra sesión automáticamente
  */
-import { useState, useEffect, useRef } from 'react'
-import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, RefreshCw, Shield, Server, Search, Power, Bell, Wifi, Volume2, ChevronRight, ChevronUp, ArrowRight, LayoutGrid, X, Minus, Maximize2, Sun, Moon, MousePointer2, Lock, ClipboardCheck, Activity, Send, ListChecks, Mic, ScrollText, Sparkles } from 'lucide-react'
+import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, CalendarPlus, RefreshCw, Shield, Server, Search, Power, Bell, Wifi, Volume2, ChevronRight, ChevronUp, ArrowRight, LayoutGrid, X, Minus, Maximize2, Sun, Moon, MousePointer2, Lock, ClipboardCheck, Activity, Send, ListChecks, Mic, ScrollText, Sparkles, Armchair, Award, QrCode } from 'lucide-react'
 
 // Importación de Páginas
 import { PaginaInicioSesion } from './paginas/PaginaInicioSesion'
@@ -926,17 +925,17 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
   const esSuperAdmin = usuario?.rol === 'SUPER_ADMIN'
   const aplicaciones = [
     { id: 'bienvenida', titulo: 'Inicio', icono: Home, color: 'bg-sky-500', escritorio: true },
-    { id: 'gestion-ceremonias', titulo: 'Inicializar', icono: Sparkles, color: 'bg-indigo-500', escritorio: true },
-    { id: 'gestion-graduados', titulo: 'Graduados', icono: Users, color: 'bg-emerald-500', escritorio: true },
+    { id: 'gestion-ceremonias', titulo: 'Inicializar', icono: CalendarPlus, color: 'bg-indigo-500', escritorio: true },
+    { id: 'gestion-graduados', titulo: 'Graduados', icono: GraduationCap, color: 'bg-emerald-500', escritorio: true },
     { id: 'convocatoria', titulo: 'Convocatoria', icono: Send, color: 'bg-blue-500', escritorio: true },
-    { id: 'preparacion-ceremonia', titulo: 'Preparación', icono: ListChecks, color: 'bg-cyan-600', escritorio: true },
+    { id: 'preparacion-ceremonia', titulo: 'Preparación', icono: Armchair, color: 'bg-cyan-600', escritorio: true },
     { id: 'locucion', titulo: 'Locución', icono: Mic, color: 'bg-rose-500', escritorio: true },
     { id: 'control-ingreso', titulo: 'Acreditación', icono: ScanLine, color: 'bg-amber-500', escritorio: true },
     { id: 'estado-ceremonia', titulo: 'En vivo', icono: Activity, color: 'bg-teal-500', escritorio: true },
     { id: 'panel-reportes', titulo: 'Reportes', icono: BarChart3, color: 'bg-purple-500', escritorio: true },
+    { id: 'gestion-profesores', titulo: 'Docentes', icono: Award, color: 'bg-indigo-500', escritorio: false },
     { id: 'gestion-porteria', titulo: 'Seguridad', icono: Shield, color: 'bg-violet-500', escritorio: false },
     { id: 'ajustes', titulo: 'Ajustes', icono: Settings, color: 'bg-slate-500', escritorio: esSuperAdmin },
-    { id: 'gestion-profesores', titulo: 'Docentes', icono: GraduationCap, color: 'bg-indigo-500', escritorio: false },
     { id: 'seleccion-asientos', titulo: 'Anfiteatro', icono: MapPin, color: 'bg-orange-500', escritorio: false },
     ...(modoDemo ? [{ id: 'operaciones-demo', titulo: 'Operaciones', icono: ClipboardCheck, color: 'bg-slate-500', escritorio: false }] : []),
   ]
