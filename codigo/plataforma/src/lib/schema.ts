@@ -288,8 +288,8 @@ async function sembrarDemo(client: any) {
   );
   await client.query(
     `INSERT INTO ceremonias (id,nombre,fecha,lugar,max_invitados,max_entregadores,activa)
-     VALUES ($1,'Ceremonia Demo SiGIC 2026','2026-12-01','Auditorio Instituto Beltrán',4,3,1)
-     ON CONFLICT (id) DO UPDATE SET activa=1`,
+     VALUES ($1,'Ceremonia Demo SiGIC 2026','2026-08-27','Auditorio Instituto Beltrán',4,3,1)
+     ON CONFLICT (id) DO UPDATE SET activa=1, fecha='2026-08-27'`,
     [CEREMONIA_DEMO_ID]
   );
   await client.query(
@@ -325,7 +325,7 @@ async function sembrarDemo(client: any) {
     `INSERT INTO configuracion_sistema (clave,valor,descripcion) VALUES
       ('setup_inicial_completado','1','Demo inicializada'),
       ('nombre_evento','Ceremonia Demo SiGIC 2026','Nombre visible'),
-      ('fecha_evento','2026-12-01','Fecha visible'),
+      ('fecha_evento','2026-08-27','Fecha visible'),
       ('lugar_evento','Auditorio Instituto Beltrán','Lugar visible'),
       ('mostrar_presentacion_inicial','true','Presentación institucional')
      ON CONFLICT (clave) DO UPDATE SET valor=EXCLUDED.valor, actualizado_en=CURRENT_TIMESTAMP`

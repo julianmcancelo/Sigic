@@ -109,6 +109,42 @@ function imagen(uri: string, descripcion: string) {
   };
 }
 
+function convertirAFechaIso(fecha?: string | null): string {
+  if (!fecha) {
+    const ahora = new Date();
+    ahora.setHours(18, 0, 0, 0);
+    return ahora.toISOString();
+  }
+  try {
+    const fechaTrim = String(fecha).trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(fechaTrim)) {
+      return `${fechaTrim}T18:00:00-03:00`;
+    }
+    const d = new Date(fechaTrim);
+    if (!isNaN(d.getTime())) {
+      return d.toISOString();
+    }
+  } catch {}
+  return new Date().toISOString();
+}
+
+function formatearFechaEspanol(fecha?: string | null): string {
+  if (!fecha) return 'Fecha a confirmar';
+  try {
+    const raw = String(fecha).includes('T') ? String(fecha) : `${String(fecha).trim()}T12:00:00`;
+    const d = new Date(raw);
+    if (!isNaN(d.getTime())) {
+      return new Intl.DateTimeFormat('es-AR', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      }).format(d);
+    }
+  } catch {}
+  return String(fecha);
+}
+
 /** Crea o actualiza un Event Ticket y devuelve una URL firmada para Google Wallet. */
 export async function generarPaseGoogleWallet(pase: PaseCeremonia) {
   const configuracion = obtenerConfiguracion();
@@ -124,6 +160,10 @@ export async function generarPaseGoogleWallet(pase: PaseCeremonia) {
     { uri: pase.acceso, description: 'Abrir mi credencial SiGIC', id: 'portal-sigic' },
     ...(enlaceMapa ? [{ uri: enlaceMapa, description: 'Cómo llegar a la ceremonia', id: 'mapa-ceremonia' }] : []),
   ];
+
+  const fechaIso = convertirAFechaIso(pase.fecha);
+  const fechaLegible = formatearFechaEspanol(pase.fecha);
+
   const objeto = {
     id: objectId,
     classId,
@@ -145,8 +185,8 @@ export async function generarPaseGoogleWallet(pase: PaseCeremonia) {
       },
       {
         id: 'datos-ceremonia',
-        header: pase.ceremonia,
-        body: [pase.fecha, pase.lugar].filter(Boolean).join(' · ') || 'Consultá el portal para ver la información actualizada.',
+        header: pase.ceremonia || 'Acto Solemne de Colación',
+        body: [fechaLegible, pase.lugar || 'Auditorio Central Beltrán'].filter(Boolean).join(' · '),
       },
     ],
     linksModuleData: { uris: enlaces },
@@ -154,6 +194,28 @@ export async function generarPaseGoogleWallet(pase: PaseCeremonia) {
 
   const token = await obtenerToken(cuenta);
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+  try {
+    await fetch(`${BASE_URL}/eventTicketClass/${encodeURIComponent(classId)}`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({
+        eventName: textoLocalizado(pase.ceremonia || 'Acto Solemne de Colación'),
+        issuerName: 'Instituto Tecnológico Beltrán',
+        dateTime: {
+          start: fechaIso,
+        },
+        venue: {
+          name: textoLocalizado(pase.lugar || 'Auditorio Central Beltrán'),
+          address: textoLocalizado(pase.lugar || 'Av. Manuel Belgrano 1191, Avellaneda, Buenos Aires'),
+        },
+        hexBackgroundColor: '#071b34',
+      }),
+    });
+  } catch (errClase) {
+    console.warn('Aviso: no se pudo actualizar la clase de Google Wallet, continuando con el objeto:', errClase);
+  }
+
   const existente = await fetch(`${BASE_URL}/eventTicketObject/${encodeURIComponent(objectId)}`, { headers });
   const respuesta = existente.status === 404
     ? await fetch(`${BASE_URL}/eventTicketObject`, { method: 'POST', headers, body: JSON.stringify(objeto) })

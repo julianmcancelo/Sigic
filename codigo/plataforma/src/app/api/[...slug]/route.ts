@@ -1214,8 +1214,8 @@ export async function POST(
         email,
         password,
         nombreEvento = 'Ceremonia de Colación',
-        fechaEvento = '2026-12-01',
-        lugarEvento = 'Sede Beltrán',
+        fechaEvento = '2026-08-27',
+        lugarEvento = 'Auditorio Central Beltrán',
       } = body;
 
       if (!nombre || !email || !password) {
