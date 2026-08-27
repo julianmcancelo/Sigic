@@ -715,253 +715,92 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
         )}
       </div>
 
-      {/* METRICAS RAPIDAS DE PUERTA */}
-      <section className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-3 my-5">
-        <div className="bg-slate-800/60 border border-slate-750 p-4 rounded-2xl">
-          <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Acreditados Totales</span>
-          <p className="text-2xl sm:text-3xl font-black text-emerald-400 mt-1">
-            {stats?.presentes || 0} <span className="text-xs text-slate-400 font-semibold">/ {stats?.totalInvitados ? (stats.totalInvitados + (stats.totalEgresados || 0)) : '—'}</span>
-          </p>
-        </div>
-        <div className="bg-slate-800/60 border border-slate-750 p-4 rounded-2xl">
-          <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Graduados en Sala</span>
-          <p className="text-2xl sm:text-3xl font-black text-sky-400 mt-1">
-            {stats?.egresadosPresentes || 0} <span className="text-xs text-slate-400 font-semibold">/ {stats?.totalEgresados || 0}</span>
-          </p>
-        </div>
-        <div className="bg-slate-800/60 border border-slate-750 p-4 rounded-2xl">
-          <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Acompañantes en Sala</span>
-          <p className="text-2xl sm:text-3xl font-black text-violet-400 mt-1">
-            {stats?.invitadosPresentes || 0} <span className="text-xs text-slate-400 font-semibold">/ {stats?.totalInvitados || 0}</span>
-          </p>
-        </div>
-        <div className="bg-slate-800/60 border border-slate-750 p-4 rounded-2xl">
-          <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Porcentaje de Asistencia</span>
-          <p className="text-2xl sm:text-3xl font-black text-amber-400 mt-1">
-            {stats?.porcentajeAsistencia || 0}%
-          </p>
-        </div>
-      </section>
-
-      {/* SELECTOR DE MODALIDAD FLUTTER / RESPALDO */}
-      <div className="max-w-7xl mx-auto my-4 flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-2 bg-slate-800/90 p-1.5 rounded-2xl border border-slate-700/80 shadow-md">
-          <button
-            onClick={() => setModalidad('flutter')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
-              modalidad === 'flutter' 
-                ? 'bg-sky-500 text-white shadow-md' 
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <Smartphone size={15} /> Terminal Móvil Flutter (Recomendado)
-          </button>
-          <button
-            onClick={() => setModalidad('respaldo_web')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
-              modalidad === 'respaldo_web' 
-                ? 'bg-sky-500 text-white shadow-md' 
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <Camera size={15} /> Respaldo Web / Escáner de Emergencia
-          </button>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-emerald-400" />
-          <span className="text-[11px] text-slate-300 font-bold">
-            {dispositivosMoviles.length} terminal(es) Flutter vinculada(s)
-          </span>
-        </div>
-      </div>
-
-      {/* VISTA 1: TERMINAL MÓVIL FLUTTER (PRINCIPAL) */}
+      {/* VISTA FLUTTER: SIMPLE, LIMPIA Y AMIGABLE */}
       {modalidad === 'flutter' && (
-        <main className="max-w-7xl mx-auto space-y-6">
+        <main className="max-w-5xl mx-auto space-y-6 my-6">
           
-          {/* TARJETAS QR PARA FLUTTER: DESCARGA DE APK Y EMPAREJAMIENTO */}
+          {/* ENCABEZADO AMIGABLE */}
+          <div className="text-center space-y-2 max-w-xl mx-auto">
+            <h2 className="text-xl sm:text-2xl font-black text-white">
+              Acreditación Móvil en Puerta
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-400 font-medium">
+              Todo el control de ingreso se realiza desde la aplicación Flutter instalada en los celulares de portería.
+            </p>
+          </div>
+
+          {/* 2 PASOS VISUALES GRANDES Y CLAROS */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
-            {/* TARJETA 1: DESCARGAR APK FLUTTER */}
-            <div className="bg-slate-800/80 border border-slate-700/80 rounded-3xl p-6 shadow-xl flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between pb-4 border-b border-slate-700/60 mb-5">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold">
-                      <Download size={18} />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-black text-white">1. Descargar App Flutter (APK)</h3>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Instalación en dispositivos Android</p>
-                    </div>
-                  </div>
-                  <span className="text-[9px] px-2.5 py-1 rounded-lg bg-sky-500/20 text-sky-300 font-black border border-sky-500/30 uppercase tracking-widest">
-                    v1.0.4+5
-                  </span>
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-center gap-6">
-                  <div className="p-4 bg-white rounded-2xl shadow-md shrink-0">
-                    <QRCodeSVG value={urlApk} size={140} level="M" />
-                  </div>
-
-                  <div className="space-y-3 text-xs text-slate-300">
-                    <p className="font-medium leading-relaxed">
-                      Escaneá este código QR desde el teléfono de portería para descargar directamente el instalador oficial de la aplicación móvil Flutter.
-                    </p>
-                    <div className="flex flex-wrap gap-2 pt-1">
-                      <a
-                        href="/descargas/SIGIC-Porteria-1.0.4.apk"
-                        download="SIGIC-Porteria-1.0.4.apk"
-                        className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-white text-xs font-black transition active:scale-95 shadow-md shadow-sky-500/20 cursor-pointer"
-                      >
-                        <Download size={14} /> Descargar APK
-                      </a>
-                      <button
-                        onClick={() => copiarTexto(urlApk, 'apk')}
-                        className="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-slate-700/80 hover:bg-slate-700 text-slate-200 text-xs font-bold transition active:scale-95 cursor-pointer"
-                      >
-                        {copiadoApk ? <CheckCheck size={14} className="text-emerald-400" /> : <Copy size={14} />}
-                        <span>{copiadoApk ? 'Enlace copiado' : 'Copiar enlace'}</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
+            {/* PASO 1: DESCARGA */}
+            <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col items-center text-center space-y-5">
+              <div className="flex items-center gap-2">
+                <span className="w-6 h-6 rounded-full bg-sky-500 text-slate-950 font-black text-xs flex items-center justify-center">1</span>
+                <h3 className="text-base font-black text-white">Descargar Aplicación</h3>
               </div>
 
-              <div className="mt-5 pt-4 border-t border-slate-700/60 flex items-center justify-between text-[10px] font-bold text-slate-400">
-                <span>Archivo: SIGIC-Porteria-1.0.4.apk</span>
-                <span className="text-emerald-400 font-bold">Producción Oficial</span>
+              <div className="p-4 bg-white rounded-2xl shadow-lg border border-slate-200">
+                <QRCodeSVG value={urlApk} size={160} level="M" />
               </div>
+
+              <p className="text-xs text-slate-300 font-medium leading-relaxed max-w-xs">
+                Escaneá este código con la cámara del celular Android para descargar el archivo APK oficial.
+              </p>
+
+              <a
+                href="/descargas/SIGIC-Porteria-1.0.4.apk"
+                download="SIGIC-Porteria-1.0.4.apk"
+                className="w-full py-3 px-4 rounded-2xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-black text-xs transition active:scale-95 shadow-md shadow-sky-500/20 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Download size={16} /> Descargar APK Directo
+              </a>
             </div>
 
-            {/* TARJETA 2: VINCULAR TELÉFONO FLUTTER (LOGIN INSTANTÁNEO) */}
-            <div className="bg-slate-800/80 border border-slate-700/80 rounded-3xl p-6 shadow-xl flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between pb-4 border-b border-slate-700/60 mb-5">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
-                      <Smartphone size={18} />
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-black text-white">2. Vincular Terminal Móvil</h3>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Emparejamiento y login por cámara</p>
-                    </div>
-                  </div>
-                  <span className="text-[9px] px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 font-black border border-emerald-500/30 uppercase tracking-widest">
-                    Sin Contraseña
-                  </span>
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-center gap-6">
-                  <div className="p-4 bg-white rounded-2xl shadow-md shrink-0">
-                    <QRCodeSVG value={`sigic-config:${urlServidor}`} size={140} level="H" />
-                  </div>
-
-                  <div className="space-y-3 text-xs text-slate-300">
-                    <p className="font-medium leading-relaxed">
-                      Abrí la app Flutter en el dispositivo de seguridad y seleccioná <strong>Escanear QR de Conexión</strong> para autenticarte y enlazar la ceremonia activa automáticamente.
-                    </p>
-                    <div className="p-3 bg-slate-900/60 rounded-xl border border-slate-700/60 space-y-1">
-                      <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 block">Servidor API:</span>
-                      <code className="text-[11px] font-mono text-cyan-300 font-bold block truncate">{urlServidor}</code>
-                    </div>
-                  </div>
-                </div>
+            {/* PASO 2: CONEXIÓN */}
+            <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col items-center text-center space-y-5">
+              <div className="flex items-center gap-2">
+                <span className="w-6 h-6 rounded-full bg-emerald-400 text-slate-950 font-black text-xs flex items-center justify-center">2</span>
+                <h3 className="text-base font-black text-white">Conectar e Iniciar</h3>
               </div>
 
-              <div className="mt-5 pt-4 border-t border-slate-700/60 flex items-center justify-between text-[10px] font-bold text-slate-400">
-                <span>Protocolo: TLS / WebSocket Sync</span>
-                <span className="text-sky-400 font-bold">Ceremonia: {ceremonia?.nombre || 'Activa'}</span>
+              <div className="p-4 bg-white rounded-2xl shadow-lg border border-slate-200">
+                <QRCodeSVG value={`sigic-config:${urlServidor}`} size={160} level="H" />
+              </div>
+
+              <p className="text-xs text-slate-300 font-medium leading-relaxed max-w-xs">
+                Abrí la app en el celular y apuntá la cámara a este código para conectar la ceremonia sin contraseñas.
+              </p>
+
+              <div className="w-full py-3 px-4 rounded-2xl bg-slate-900/80 border border-slate-700 text-cyan-300 font-mono text-[11px] font-bold truncate">
+                {urlServidor}
               </div>
             </div>
 
           </div>
 
-          {/* DISPOSITIVOS FLUTTER CONECTADOS Y FEED DE INGRESOS EN VIVO */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            
-            {/* COLUMNA IZQUIERDA: TERMINALES ACTIVAS (5 COLS) */}
-            <div className="lg:col-span-5 bg-slate-800/80 border border-slate-700/80 rounded-3xl p-5 shadow-xl space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-700/60">
-                <div className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
-                  <h3 className="text-xs font-black uppercase tracking-wider text-white">Terminales Móviles en Puerta</h3>
-                </div>
-                <button
-                  onClick={cargarDispositivos}
-                  className="p-1.5 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white transition cursor-pointer"
-                  title="Refrescar dispositivos"
-                >
-                  <RefreshCw size={13} className={cargandoDispositivos ? 'animate-spin' : ''} />
-                </button>
-              </div>
-
-              {dispositivosMoviles.length === 0 ? (
-                <div className="p-8 text-center rounded-2xl bg-slate-900/40 border border-slate-700/40 space-y-2">
-                  <Smartphone size={32} className="mx-auto text-slate-600" />
-                  <h4 className="text-xs font-bold text-slate-300">Esperando conexión de terminales</h4>
-                  <p className="text-[11px] text-slate-400 leading-relaxed">Escaneá el código QR superior desde la app Flutter para iniciar el puesto de portería.</p>
-                </div>
-              ) : (
-                <div className="space-y-2.5">
-                  {dispositivosMoviles.map((disp) => (
-                    <div key={disp.dispositivoId} className="p-3.5 rounded-2xl bg-slate-900/50 border border-slate-700/60 flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center font-bold">
-                          <Smartphone size={16} />
-                        </div>
-                        <div>
-                          <h4 className="text-xs font-bold text-white">{disp.nombreDispositivo || disp.modelo || 'Terminal Android'}</h4>
-                          <p className="text-[10px] text-slate-400">{disp.marca || 'Flutter App'} · IP: {disp.ipUltimoAcceso || '127.0.0.1'}</p>
-                        </div>
-                      </div>
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[9px] font-black uppercase">
-                        En Línea
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
+          {/* BARRA INFERIOR DE ESTADO Y MÉTRICAS */}
+          <div className="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 text-xs">
+            <div className="flex items-center gap-3">
+              <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="font-bold text-slate-200">
+                {dispositivosMoviles.length > 0 
+                  ? `${dispositivosMoviles.length} celular(es) acreditando en vivo` 
+                  : 'Esperando conexión de celulares de portería'}
+              </span>
             </div>
 
-            {/* COLUMNA DERECHA: FEED DE ACREDITACIONES EN VIVO (7 COLS) */}
-            <div className="lg:col-span-7 bg-slate-800/80 border border-slate-700/80 rounded-3xl p-5 shadow-xl space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-700/60">
-                <div className="flex items-center gap-2">
-                  <Radio size={14} className="text-red-400 animate-pulse" />
-                  <h3 className="text-xs font-black uppercase tracking-wider text-white">Ingresos Registrados en Tiempo Real</h3>
-                </div>
-                <span className="text-[10px] font-bold text-slate-400">
-                  {historialIngresos.length} accesos recientes
-                </span>
-              </div>
-
-              {historialIngresos.length === 0 ? (
-                <div className="p-8 text-center rounded-2xl bg-slate-900/40 border border-slate-700/40 space-y-2">
-                  <Clock size={32} className="mx-auto text-slate-600" />
-                  <h4 className="text-xs font-bold text-slate-300">Sin ingresos en este turno todavía</h4>
-                  <p className="text-[11px] text-slate-400 leading-relaxed">A medida que los guardias escaneen los pases QR con la app Flutter, los ingresos aparecerán aquí en vivo.</p>
-                </div>
-              ) : (
-                <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-                  {historialIngresos.map((item) => (
-                    <div key={item.id} className="p-3 rounded-xl bg-slate-900/50 border border-slate-700/60 flex items-center justify-between gap-3 text-xs animate-in fade-in">
-                      <div className="flex items-center gap-3">
-                        <CheckCircle2 size={16} className="text-emerald-400 shrink-0" />
-                        <div>
-                          <strong className="text-white font-bold block">{item.nombre}</strong>
-                          <span className="text-[10px] text-slate-400">{item.rol} · Butaca: {item.asiento}</span>
-                        </div>
-                      </div>
-                      <span className="font-mono text-[11px] font-bold text-emerald-400">{item.hora}</span>
-                    </div>
-                  ))}
-                </div>
-              )}
+            <div className="flex items-center gap-4 text-slate-400 font-semibold">
+              <span>
+                Ingresados: <strong className="text-emerald-400 font-bold">{stats?.presentes || 0}</strong> de {stats?.totalInvitados ? (stats.totalInvitados + (stats.totalEgresados || 0)) : '—'}
+              </span>
+              <span>·</span>
+              <button
+                onClick={() => setModalidad('respaldo_web')}
+                className="text-sky-400 hover:text-sky-300 underline cursor-pointer text-xs"
+              >
+                Abrir escáner web de respaldo
+              </button>
             </div>
-
           </div>
 
         </main>
