@@ -867,6 +867,7 @@ function App() {
       onNavegar={setPantallaAdmin}
       usuario={adminUser}
       onCerrarSesion={cerrarSesionAdmin}
+      modoDemo={modoDemoActivo}
     >
       {contenido}
     </EscritorioSIGIC>
@@ -898,7 +899,7 @@ function App() {
   )
 }
 
-function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerrarSesion }) {
+function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerrarSesion, modoDemo }) {
   // La versión instalada ya tiene ventana y controles nativos: no replicamos un navegador dentro de ella.
   const esAplicacionNativa = typeof window !== 'undefined' && Boolean(window.__TAURI_INTERNALS__)
   const [inicioAbierto, setInicioAbierto] = useState(false)
@@ -937,7 +938,7 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
     { id: 'ajustes', titulo: 'Ajustes', icono: Settings, color: 'bg-slate-500', escritorio: esSuperAdmin },
     { id: 'gestion-profesores', titulo: 'Docentes', icono: GraduationCap, color: 'bg-indigo-500', escritorio: false },
     { id: 'seleccion-asientos', titulo: 'Anfiteatro', icono: MapPin, color: 'bg-orange-500', escritorio: false },
-    ...(modoDemoActivo ? [{ id: 'operaciones-demo', titulo: 'Operaciones', icono: ClipboardCheck, color: 'bg-slate-500', escritorio: false }] : []),
+    ...(modoDemo ? [{ id: 'operaciones-demo', titulo: 'Operaciones', icono: ClipboardCheck, color: 'bg-slate-500', escritorio: false }] : []),
   ]
   const accesos = aplicaciones.filter(app => app.escritorio)
   const disenoInicial = (indice = 0) => ({ posicion: { x: indice * 26, y: indice * 20 }, maximizada: false, ajuste: null })
