@@ -14,8 +14,18 @@ import {
   obtenerCeremoniaActiva,
   obtenerCeremonias,
   activarCeremonia,
-  obtenerAsistenciaOperativa
+  obtenerAsistenciaOperativa,
+  descargarManifiestoAcreditacion,
+  sincronizarLoteAcreditacion
 } from '../../servicios/api'
+import { 
+  guardarManifiestoOffline, 
+  obtenerManifiestoOffline, 
+  buscarEnManifiestoOffline, 
+  encolarAcreditacionOffline, 
+  obtenerColaAcreditacionOffline, 
+  limpiarColaAcreditacionOffline 
+} from '../../lib/offline-sync'
 import { useSincronizacion, emitirCambioSync } from '../../lib/sync'
 
 // Helper para reproducir sonidos con Web Audio API sin dependencias de audio externas
@@ -61,7 +71,7 @@ function reproducirSonido(tipo = 'exito') {
       gain.gain.setValueAtTime(0.15, ctx.currentTime)
       gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25)
 
-      osc.connect(gain)
+      osc1.connect(gain)
       gain.connect(ctx.destination)
 
       osc.start()
@@ -97,6 +107,12 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
   const [mensajeAccion, setMensajeAccion] = useState(null)
   const [procesandoAcreditacion, setProcesandoAcreditacion] = useState(false)
 
+  // Estado de conexión y modo offline
+  const [estaOnline, setEstaOnline] = useState(() => typeof navigator !== 'undefined' ? navigator.onLine : true)
+  const [pendientesOffline, setPendientesOffline] = useState(() => obtenerColaAcreditacionOffline().length)
+  const [sincronizandoLote, setSincronizandoLote] = useState(false)
+  const [manifiestoDescargado, setManifiestoDescargado] = useState(() => Boolean(obtenerManifiestoOffline()))
+
   // Estado de la cámara y hardware
   const [camaraActiva, setCamaraActiva] = useState(false)
   const [camarasDisponibles, setCamarasDisponibles] = useState([])
@@ -116,6 +132,41 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
   const bufferTecladoRef = useRef('')
   const ultimoKeyTimeRef = useRef(0)
 
+  // Sincronizar cola offline acumulada
+  async function sincronizarPendientes() {
+    const cola = obtenerColaAcreditacionOffline()
+    if (!cola || cola.length === 0) {
+      setPendientesOffline(0)
+      return
+    }
+    setSincronizandoLote(true)
+    try {
+      await sincronizarLoteAcreditacion(cola)
+      limpiarColaAcreditacionOffline()
+      setPendientesOffline(0)
+      setMensajeAccion({ tipo: 'exito', texto: `Se sincronizaron ${cola.length} ingreso(s) registrados sin conexión.` })
+      if (sonidoHabilitado) reproducirSonido('exito')
+      await cargarEntorno()
+    } catch (err) {
+      console.error('Error al sincronizar cola offline:', err)
+      setMensajeAccion({ tipo: 'advertencia', texto: 'No se pudo sincronizar el lote offline. Reintentará automáticamente al recuperar conexión.' })
+    } finally {
+      setSincronizandoLote(false)
+    }
+  }
+
+  // Precargar manifiesto offline
+  async function precargarManifiesto(cerId) {
+    try {
+      const data = await descargarManifiestoAcreditacion(cerId)
+      if (data && data.egresados) {
+        guardarManifiestoOffline(data)
+      }
+    } catch (e) {
+      console.warn('Manifiesto no disponible online, usando local:', e)
+    }
+  }
+
   // 1. Cargar ceremonia y estadísticas
   async function cargarEntorno() {
     try {
@@ -124,7 +175,10 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
         obtenerAsistenciaOperativa(),
         obtenerCeremonias()
       ])
-      if (cerActiva.status === 'fulfilled') setCeremonia(cerActiva.value)
+      if (cerActiva.status === 'fulfilled' && cerActiva.value?.id) {
+        setCeremonia(cerActiva.value)
+        precargarManifiesto(cerActiva.value.id)
+      }
       if (statsData.status === 'fulfilled') setStats(statsData.value)
       if (listaCer.status === 'fulfilled' && Array.isArray(listaCer.value)) {
         setCeremoniasDisponibles(listaCer.value)
@@ -141,6 +195,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
       await activarCeremonia(nuevaId)
       emitirCambioSync('CEREMONIAS', { id: nuevaId })
       await cargarEntorno()
+      precargarManifiesto(nuevaId)
       limpiarResultado()
       reproducirSonido('exito')
     } catch (err) {
@@ -153,6 +208,22 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
 
   useEffect(() => {
     cargarEntorno()
+
+    const handleOnline = () => {
+      setEstaOnline(true)
+      sincronizarPendientes()
+    }
+    const handleOffline = () => {
+      setEstaOnline(false)
+    }
+
+    window.addEventListener('online', handleOnline)
+    window.addEventListener('offline', handleOffline)
+
+    return () => {
+      window.removeEventListener('online', handleOnline)
+      window.removeEventListener('offline', handleOffline)
+    }
   }, [])
 
   // Sincronización en vivo de métricas
@@ -263,7 +334,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
     }
   }, [camaraActiva, camaraSeleccionadaId])
 
-  // 4. Ejecutar búsqueda y análisis del código
+  // 4. Ejecutar búsqueda y análisis del código con soporte offline
   async function ejecutarBusqueda(codigo) {
     if (!codigo || !codigo.trim()) return
     setCargandoBusqueda(true)
@@ -271,7 +342,20 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
     setMensajeAccion(null)
 
     try {
-      const data = await buscarAcreditacion(codigo.trim())
+      let data = null
+      if (estaOnline) {
+        try {
+          data = await buscarAcreditacion(codigo.trim())
+        } catch (fetchErr) {
+          // Si falló por desconexión en vuelo, intentar búsqueda offline
+          data = buscarEnManifiestoOffline(codigo.trim())
+          if (!data) throw fetchErr
+        }
+      } else {
+        data = buscarEnManifiestoOffline(codigo.trim())
+        if (!data) throw new Error('Código no encontrado en el padrón local descargado.')
+      }
+
       setResultado(data)
 
       const esEgresadoAcreditado = data.egresado?.presente === true
@@ -297,10 +381,28 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
     }
   }
 
-  // 5. Acreditar todo el grupo
+  // 5. Acreditar todo el grupo (con soporte offline)
   async function manejarAcreditarGrupo() {
     if (!resultado?.egresado?.id) return
     setProcesandoAcreditacion(true)
+
+    const invIds = resultado.invitados?.map((i) => i.id) || []
+
+    if (!estaOnline) {
+      encolarAcreditacionOffline(resultado.egresado.id, invIds, true, usuario?.nombre)
+      setPendientesOffline(obtenerColaAcreditacionOffline().length)
+      setResultado((prev) => ({
+        ...prev,
+        egresado: { ...prev.egresado, presente: true, fecha_presente: new Date().toISOString() },
+        invitados: prev.invitados?.map((i) => ({ ...i, presente: true, fecha_presente: new Date().toISOString() }))
+      }))
+      setMensajeAccion({ tipo: 'exito', texto: '¡Grupo acreditado localmente! (Se sincronizará al volver la red)' })
+      if (sonidoHabilitado) reproducirSonido('exito')
+      agregarAlHistorial(resultado.egresado.nombre, 'Graduado y grupo (Offline)', resultado.egresado.asiento_id)
+      setProcesandoAcreditacion(false)
+      return
+    }
+
     try {
       const resp = await acreditarGrupo(resultado.egresado.id)
       setResultado((prev) => ({
@@ -318,17 +420,41 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
       emitirCambioSync('INVITADOS', { egresadoId: resultado.egresado.id })
       cargarEntorno()
     } catch (err) {
-      setMensajeAccion({ tipo: 'error', texto: err.message || 'Error al acreditar grupo.' })
-      if (sonidoHabilitado) reproducirSonido('error')
+      // Fallback a offline si falló la conexión
+      encolarAcreditacionOffline(resultado.egresado.id, invIds, true, usuario?.nombre)
+      setPendientesOffline(obtenerColaAcreditacionOffline().length)
+      setResultado((prev) => ({
+        ...prev,
+        egresado: { ...prev.egresado, presente: true, fecha_presente: new Date().toISOString() },
+        invitados: prev.invitados?.map((i) => ({ ...i, presente: true, fecha_presente: new Date().toISOString() }))
+      }))
+      setMensajeAccion({ tipo: 'exito', texto: '¡Acreditado localmente por corte de red!' })
+      if (sonidoHabilitado) reproducirSonido('exito')
+      agregarAlHistorial(resultado.egresado.nombre, 'Graduado y grupo (Offline)', resultado.egresado.asiento_id)
     } finally {
       setProcesandoAcreditacion(false)
     }
   }
 
-  // 6. Acreditar egresado individual
+  // 6. Acreditar egresado individual (con soporte offline)
   async function manejarAcreditarEgresado() {
     if (!resultado?.egresado?.id) return
     setProcesandoAcreditacion(true)
+
+    if (!estaOnline) {
+      encolarAcreditacionOffline(resultado.egresado.id, [], true, usuario?.nombre)
+      setPendientesOffline(obtenerColaAcreditacionOffline().length)
+      setResultado((prev) => ({
+        ...prev,
+        egresado: { ...prev.egresado, presente: true, fecha_presente: new Date().toISOString() }
+      }))
+      setMensajeAccion({ tipo: 'exito', texto: `Ingreso local para ${resultado.egresado.nombre} (Offline)` })
+      if (sonidoHabilitado) reproducirSonido('exito')
+      agregarAlHistorial(resultado.egresado.nombre, 'Graduado (Offline)', resultado.egresado.asiento_id)
+      setProcesandoAcreditacion(false)
+      return
+    }
+
     try {
       const resp = await acreditarEgresado(resultado.egresado.id)
       setResultado((prev) => ({
@@ -342,16 +468,40 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
       emitirCambioSync('EGRESADOS', { id: resultado.egresado.id })
       cargarEntorno()
     } catch (err) {
-      setMensajeAccion({ tipo: 'error', texto: err.message || 'Error al acreditar graduado.' })
-      if (sonidoHabilitado) reproducirSonido('error')
+      encolarAcreditacionOffline(resultado.egresado.id, [], true, usuario?.nombre)
+      setPendientesOffline(obtenerColaAcreditacionOffline().length)
+      setResultado((prev) => ({
+        ...prev,
+        egresado: { ...prev.egresado, presente: true, fecha_presente: new Date().toISOString() }
+      }))
+      setMensajeAccion({ tipo: 'exito', texto: `Ingreso guardado localmente (Offline)` })
+      if (sonidoHabilitado) reproducirSonido('exito')
+      agregarAlHistorial(resultado.egresado.nombre, 'Graduado (Offline)', resultado.egresado.asiento_id)
     } finally {
       setProcesandoAcreditacion(false)
     }
   }
 
-  // 7. Acreditar invitado individual
+  // 7. Acreditar invitado individual (con soporte offline)
   async function manejarAcreditarInvitado(invitadoId, nombre, asientoId) {
+    if (!resultado?.egresado?.id) return
     setProcesandoAcreditacion(true)
+
+    if (!estaOnline) {
+      encolarAcreditacionOffline(resultado.egresado.id, [invitadoId], false, usuario?.nombre)
+      setPendientesOffline(obtenerColaAcreditacionOffline().length)
+      setResultado((prev) => ({
+        ...prev,
+        invitados: prev.invitados?.map((i) => i.id === invitadoId ? { ...i, presente: true, fecha_presente: new Date().toISOString() } : i),
+        invitado: prev.invitado?.id === invitadoId ? { ...prev.invitado, presente: true, fecha_presente: new Date().toISOString() } : prev.invitado
+      }))
+      setMensajeAccion({ tipo: 'exito', texto: `Ingreso local para ${nombre} (Offline)` })
+      if (sonidoHabilitado) reproducirSonido('exito')
+      agregarAlHistorial(nombre, 'Acompañante (Offline)', asientoId)
+      setProcesandoAcreditacion(false)
+      return
+    }
+
     try {
       const resp = await acreditarInvitado(invitadoId)
       setResultado((prev) => {
@@ -373,8 +523,16 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
       emitirCambioSync('INVITADOS', { id: invitadoId })
       cargarEntorno()
     } catch (err) {
-      setMensajeAccion({ tipo: 'error', texto: err.message || 'Error al acreditar invitado.' })
-      if (sonidoHabilitado) reproducirSonido('error')
+      encolarAcreditacionOffline(resultado.egresado.id, [invitadoId], false, usuario?.nombre)
+      setPendientesOffline(obtenerColaAcreditacionOffline().length)
+      setResultado((prev) => ({
+        ...prev,
+        invitados: prev.invitados?.map((i) => i.id === invitadoId ? { ...i, presente: true, fecha_presente: new Date().toISOString() } : i),
+        invitado: prev.invitado?.id === invitadoId ? { ...prev.invitado, presente: true, fecha_presente: new Date().toISOString() } : prev.invitado
+      }))
+      setMensajeAccion({ tipo: 'exito', texto: `Ingreso guardado localmente (Offline)` })
+      if (sonidoHabilitado) reproducirSonido('exito')
+      agregarAlHistorial(nombre, 'Acompañante (Offline)', asientoId)
     } finally {
       setProcesandoAcreditacion(false)
     }
@@ -477,6 +635,36 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
           )}
         </div>
       </header>
+
+      {/* BANNER DE ESTADO DE CONEXIÓN Y SINCRONIZACIÓN OFFLINE */}
+      <div className="max-w-7xl mx-auto mt-4 px-4 py-2.5 rounded-2xl bg-slate-800/70 border border-slate-700/80 flex flex-wrap items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2.5">
+          <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${estaOnline ? 'bg-emerald-400 shadow-sm shadow-emerald-400/50' : 'bg-amber-400 animate-pulse'}`} />
+          <span className="font-bold text-slate-200">
+            {estaOnline ? 'Terminal conectada · Validación en tiempo real' : 'Modo sin conexión · Validando con padrón local'}
+          </span>
+          {manifiestoDescargado && (
+            <span className="hidden sm:inline-block px-2 py-0.5 rounded-md bg-slate-700 text-slate-300 text-[10px] font-medium">
+              Padrón local listo
+            </span>
+          )}
+        </div>
+
+        {pendientesOffline > 0 ? (
+          <button
+            onClick={sincronizarPendientes}
+            disabled={sincronizandoLote || !estaOnline}
+            className="flex items-center gap-1.5 px-3 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-xl font-bold hover:bg-amber-500/30 disabled:opacity-50 transition active:scale-95 cursor-pointer"
+          >
+            <RefreshCw size={13} className={sincronizandoLote ? 'animate-spin' : ''} />
+            <span>{sincronizandoLote ? 'Sincronizando...' : `Sincronizar ${pendientesOffline} ingreso(s)`}</span>
+          </button>
+        ) : (
+          <span className="text-[11px] text-slate-400 font-medium">
+            Todos los ingresos sincronizados con la base de datos
+          </span>
+        )}
+      </div>
 
       {/* METRICAS RAPIDAS DE PUERTA */}
       <section className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-3 my-5">

@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import {
   ArrowLeft, ArrowRight, Award, CheckCircle2, ChevronLeft, ChevronRight,
-  Flag, GraduationCap, Mic, RefreshCw, ScrollText, Sparkles, UserCheck, Users, Volume2, FileText
+  Flag, GraduationCap, Mic, RefreshCw, ScrollText, Sparkles, UserCheck, Users, Volume2, FileText, Tv
 } from 'lucide-react'
-import { obtenerCeremoniaActiva, obtenerGraduados, marcarDiplomaEntregado } from '../../servicios/api'
+import { obtenerCeremoniaActiva, obtenerGraduados, marcarDiplomaEntregado, actualizarGraduadoEnEstrado } from '../../servicios/api'
 import { FORMULAS_JURAMENTO } from '../../componentes/graduado/SeccionJuramento'
 import { ModalActaCierre } from '../../componentes/ModalActaCierre'
 
@@ -51,6 +51,17 @@ export function LocucionCeremonia({ onVolver, onNavegar }) {
     cargar()
   }, [])
 
+  const alumnoActual = graduados[indiceActual]
+
+  // Transmisión en tiempo real al proyector / pantalla gigante del escenario
+  useEffect(() => {
+    if (modo === 'ESTRADO' && alumnoActual) {
+      actualizarGraduadoEnEstrado(ceremonia?.id || 'activa', alumnoActual).catch(() => {})
+    } else if (modo === 'JURAMENTO') {
+      actualizarGraduadoEnEstrado(ceremonia?.id || 'activa', null).catch(() => {})
+    }
+  }, [modo, alumnoActual, ceremonia?.id])
+
   // Control por teclado para agilidad en estrado
   useEffect(() => {
     function manejarTeclado(e) {
@@ -73,7 +84,6 @@ export function LocucionCeremonia({ onVolver, onNavegar }) {
   const graduadosDiosYPatria = graduados.filter(g => g.formula_juramento === 'DIOS_Y_PATRIA')
   const graduadosPatria = graduados.filter(g => g.formula_juramento !== 'DIOS_Y_PATRIA')
 
-  const alumnoActual = graduados[indiceActual]
   const entregadosCount = graduados.filter(g => g.diploma_entregado).length
   const totalAlumnos = graduados.length
   const porcentaje = totalAlumnos ? Math.round((entregadosCount / totalAlumnos) * 100) : 0
@@ -158,6 +168,16 @@ export function LocucionCeremonia({ onVolver, onNavegar }) {
         </div>
 
         <div className="flex items-center gap-3">
+          <a
+            href="/proyeccion"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-cyan-300 transition cursor-pointer shadow-sm"
+            title="Abrir pantalla gigante de escenario en una nueva pestaña o proyector"
+          >
+            <Tv size={14} /> Pantalla de Escenario
+          </a>
+
           <button
             onClick={() => setMostrarActa(true)}
             className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-black text-white shadow-sm transition cursor-pointer"

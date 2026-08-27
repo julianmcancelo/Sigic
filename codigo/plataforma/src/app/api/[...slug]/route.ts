@@ -10,6 +10,7 @@ import crypto from 'crypto';
 import { inicializarBaseDatos } from '@/lib/schema';
 import { generarPaseGoogleWallet } from '@/lib/google-wallet';
 import { obtenerCache, guardarCache, invalidarCache } from '@/lib/cache';
+import { registrarAuditoria } from '@/lib/auditoria';
 
 import {
   RONDAS_BCRYPT,
@@ -47,6 +48,22 @@ async function inicializarTablasAdicionales() {
         PRIMARY KEY (ceremonia_id, usuario_id)
       )
     `);
+    await query(`
+      CREATE TABLE IF NOT EXISTS auditoria_sistema (
+        id VARCHAR(50) PRIMARY KEY,
+        usuario_id VARCHAR(100),
+        usuario_correo VARCHAR(200),
+        rol VARCHAR(50),
+        accion VARCHAR(100) NOT NULL,
+        entidad VARCHAR(100) NOT NULL,
+        entidad_id VARCHAR(100),
+        detalles JSONB,
+        ip VARCHAR(120),
+        creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+    await query('CREATE INDEX IF NOT EXISTS idx_auditoria_entidad_creado ON auditoria_sistema (entidad, creado_en DESC)');
+    await query('CREATE INDEX IF NOT EXISTS idx_auditoria_usuario ON auditoria_sistema (usuario_id, creado_en DESC)');
     await query(`
       CREATE TABLE IF NOT EXISTS dispositivos_moviles (
         dispositivo_id VARCHAR(100) PRIMARY KEY,
@@ -575,6 +592,101 @@ export async function GET(
       return NextResponse.json(result.rows, { headers });
     }
 
+    // -------------------------------------------------------------
+    // MANIFIESTO OFFLINE PARA PORTERÍA
+    // -------------------------------------------------------------
+    if (slug[0] === 'acreditacion' && slug[1] === 'manifiesto') {
+      const isPersonal = await esPersonalValido(req, ROLES_OPERACION);
+      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+
+      const cerIdParam = slug[2];
+      let ceremonia: any = null;
+      if (cerIdParam) {
+        const cRes = await query('SELECT id, nombre, fecha, lugar, activa FROM ceremonias WHERE id = $1', [cerIdParam]);
+        ceremonia = cRes.rows[0];
+      } else {
+        const cRes = await query('SELECT id, nombre, fecha, lugar, activa FROM ceremonias WHERE activa = 1 LIMIT 1');
+        ceremonia = cRes.rows[0];
+      }
+
+      if (!ceremonia) {
+        return NextResponse.json({ error: 'No se encontró la ceremonia' }, { status: 404, headers });
+      }
+
+      const egresadosRes = await query(`
+        SELECT id, nombre, dni, legajo, carrera, token, asiento_id, presente, fecha_presente, estado
+        FROM egresados
+        WHERE ceremonia_id = $1 AND estado = 'ACEPTADO'
+        ORDER BY nombre ASC
+      `, [ceremonia.id]);
+
+      const invitadosRes = await query(`
+        SELECT i.id, i.egresado_id, i.nombre, i.dni, i.asiento_id, i.presente, i.fecha_presente, i.menor_en_brazos
+        FROM invitados i
+        JOIN egresados e ON e.id = i.egresado_id
+        WHERE e.ceremonia_id = $1 AND e.estado = 'ACEPTADO'
+        ORDER BY i.nombre ASC
+      `, [ceremonia.id]);
+
+      const invitadosPorEgresado = new Map<string, any[]>();
+      invitadosRes.rows.forEach(inv => {
+        if (!invitadosPorEgresado.has(inv.egresado_id)) {
+          invitadosPorEgresado.set(inv.egresado_id, []);
+        }
+        invitadosPorEgresado.get(inv.egresado_id)!.push(inv);
+      });
+
+      const egresadosConInvitados = egresadosRes.rows.map(egr => ({
+        ...egr,
+        invitados: invitadosPorEgresado.get(egr.id) || []
+      }));
+
+      return NextResponse.json({
+        ceremoniaId: ceremonia.id,
+        ceremoniaNombre: ceremonia.nombre,
+        fechaDescarga: new Date().toISOString(),
+        egresados: egresadosConInvitados
+      }, { headers });
+    }
+
+    // -------------------------------------------------------------
+    // EN ESTRADO (PROYECCIÓN EN VIVO)
+    // -------------------------------------------------------------
+    if (slug[0] === 'ceremonias' && slug[1] === 'en-estrado') {
+      const cerId = slug[2] || 'activa';
+      const enEstradoKey = `en_estrado:${cerId}`;
+      const data = obtenerCache(enEstradoKey);
+      return NextResponse.json(data || { enEstrado: null, timestamp: new Date().toISOString() }, { headers });
+    }
+
+    // -------------------------------------------------------------
+    // REGISTRO DE AUDITORÍA (AUDIT LOG)
+    // -------------------------------------------------------------
+    if (path === 'auditoria') {
+      const isPersonal = await esPersonalValido(req, ROLES_GESTION);
+      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+
+      const url = new URL(req.url);
+      const entidad = url.searchParams.get('entidad');
+      const limite = Math.min(Number(url.searchParams.get('limite')) || 100, 500);
+
+      let querySql = `
+        SELECT id, usuario_id, usuario_correo, rol, accion, entidad, entidad_id, detalles, ip, creado_en
+        FROM auditoria_sistema
+      `;
+      const paramsSql: any[] = [];
+
+      if (entidad) {
+        paramsSql.push(entidad);
+        querySql += ` WHERE entidad = $${paramsSql.length}`;
+      }
+
+      querySql += ` ORDER BY creado_en DESC LIMIT ${limite}`;
+
+      const resAudit = await query(querySql, paramsSql);
+      return NextResponse.json(resAudit.rows, { headers });
+    }
+
     if (path === 'dispositivos') {
       const isPersonal = await esPersonalValido(req, ROLES_GESTION);
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
@@ -999,6 +1111,52 @@ export async function POST(
       ]);
 
       return NextResponse.json({ ok: true, dispositivoId, registrado: true }, { headers });
+    }
+
+    // -------------------------------------------------------------
+    // SINCRONIZACIÓN EN LOTE (OFFLINE ACREDITACIÓN)
+    // -------------------------------------------------------------
+    if (path === 'acreditacion/sincronizar-lote') {
+      const isPersonal = await esPersonalValido(req, ROLES_OPERACION);
+      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+
+      const items = Array.isArray(body.items) ? body.items : [];
+      let procesados = 0;
+
+      for (const item of items) {
+        const { egresadoId, invitadoIds, acreditarEgresado, timestamp } = item;
+        const fechaValida = timestamp || new Date().toISOString();
+
+        if (acreditarEgresado && egresadoId) {
+          await query(
+            'UPDATE egresados SET presente = TRUE, fecha_presente = COALESCE(fecha_presente, $1) WHERE id = $2',
+            [fechaValida, egresadoId]
+          );
+        }
+
+        if (Array.isArray(invitadoIds) && invitadoIds.length > 0) {
+          await query(
+            'UPDATE invitados SET presente = TRUE, fecha_presente = COALESCE(fecha_presente, $1) WHERE id = ANY($2::text[])',
+            [fechaValida, invitadoIds]
+          );
+        }
+        procesados++;
+      }
+
+      return NextResponse.json({ ok: true, procesados, mensaje: `${procesados} acreditaciones sincronizadas` }, { headers });
+    }
+
+    // -------------------------------------------------------------
+    // ACTUALIZAR GRADUADO EN ESTRADO (PROYECCIÓN EN VIVO)
+    // -------------------------------------------------------------
+    if (path === 'ceremonias/en-estrado') {
+      const isPersonal = await esPersonalValido(req, ROLES_OPERACION);
+      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+
+      const { ceremoniaId, graduado } = body;
+      const enEstradoKey = `en_estrado:${ceremoniaId || 'activa'}`;
+      guardarCache(enEstradoKey, { enEstrado: graduado || null, timestamp: new Date().toISOString() }, 3600);
+      return NextResponse.json({ ok: true, graduado }, { headers });
     }
 
     if (path === 'dispositivos/desvincular') {

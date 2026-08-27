@@ -786,3 +786,55 @@ export async function obtenerAsistenciaOperativa() {
 
 export const obtenerEstadisticasAcreditacion = obtenerAsistenciaOperativa;
 
+export async function descargarManifiestoAcreditacion(ceremoniaId?: string) {
+  const url = ceremoniaId 
+    ? `${BASE_CLASSIC}/acreditacion/manifiesto/${ceremoniaId}` 
+    : `${BASE_CLASSIC}/acreditacion/manifiesto`;
+  const res = await fetch(url, { headers: cabeceras() });
+  if (!res.ok) throw new Error('No se pudo descargar el manifiesto de acreditación.');
+  return res.json();
+}
+
+export async function sincronizarLoteAcreditacion(items: any[]) {
+  const res = await fetch(`${BASE_CLASSIC}/acreditacion/sincronizar-lote`, {
+    method: 'POST',
+    headers: cabeceras(),
+    body: JSON.stringify({ items })
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo sincronizar el lote de acreditaciones.');
+  return json;
+}
+
+export async function obtenerGraduadoEnEstrado(ceremoniaId?: string) {
+  const url = ceremoniaId 
+    ? `${BASE_CLASSIC}/ceremonias/en-estrado/${ceremoniaId}` 
+    : `${BASE_CLASSIC}/ceremonias/en-estrado`;
+  const res = await fetch(url, { headers: cabeceras() });
+  if (!res.ok) return { enEstrado: null };
+  return res.json();
+}
+
+export async function actualizarGraduadoEnEstrado(ceremoniaId: string, graduado: any) {
+  const res = await fetch(`${BASE_CLASSIC}/ceremonias/en-estrado`, {
+    method: 'POST',
+    headers: cabeceras(),
+    body: JSON.stringify({ ceremoniaId, graduado })
+  });
+  return res.json();
+}
+
+export async function obtenerRegistrosAuditoria(entidad?: string, limite = 100) {
+  const params = new URLSearchParams()
+  if (entidad) params.append('entidad', entidad)
+  if (limite) params.append('limite', String(limite))
+
+  const res = await fetch(`${BASE_CLASSIC}/auditoria?${params.toString()}`, {
+    headers: cabeceras()
+  });
+  if (!res.ok) throw new Error('No se pudo obtener el historial de auditoría.');
+  return res.json();
+}
+
+
+
