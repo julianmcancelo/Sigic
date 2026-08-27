@@ -1879,7 +1879,6 @@ export async function POST(
       const graduado = datos.rows[0];
       if (!graduado) return NextResponse.json({ error: 'Graduado no encontrado' }, { status: 404, headers });
       if (graduado.estado !== 'ACEPTADO') return NextResponse.json({ error: 'La credencial se genera cuando el graduado confirma su participación' }, { status: 409, headers });
-      if (graduado.estado_asignacion_butacas !== 'CONFIRMADA') return NextResponse.json({ error: 'Confirmá las butacas del grupo antes de generar el pase de Google Wallet' }, { status: 409, headers });
 
       const hostBase = obtenerOrigenPublico(req);
       const acceso = `${hostBase}/?token=${graduado.token}`;
