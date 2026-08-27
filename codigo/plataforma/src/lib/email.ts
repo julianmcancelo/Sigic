@@ -52,92 +52,130 @@ export async function enviarCorreo(destinatario: string, asunto: string, cuerpoH
 }
 
 /**
- * PLANTILLA: Invitación / Registro de Invitados
+ * PLANTILLA: Invitación / Registro de Graduados
  */
 export function generarPlantillaInvitacion(nombreEgresado: string, linkRegistro: string, hostBase: string) {
-  const linkLogo = `${hostBase}/logo-oficial.png`;
+  const linkLogo = 'https://raw.githubusercontent.com/julianmcancelo/Sigic/master/codigo/plataforma/public/logo-oficial.png';
   return `
-    <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#f0f4f8">
-      <tr>
-        <td align="center" style="padding: 40px 10px;">
-          <table width="600" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff" style="max-width: 600px; border-radius: 24px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
-            
-            <!-- HEADER -->
-            <tr>
-              <td align="center" bgcolor="#2A3448" style="padding: 40px; border-bottom: 4px solid #29ABE2;">
-                <!-- Logo desde URL absoluta -->
-                <img src="${linkLogo}" alt="SiGIC" width="120" style="display: block; margin-bottom: 20px; outline: none; border: none; text-decoration: none;">
-                <h1 style="color: #ffffff; margin: 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">Portal del Graduado</h1>
-                <p style="color: #94a3b8; margin: 8px 0 0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 11px; text-transform: uppercase; letter-spacing: 2px; font-weight: bold;">Instituto Tecnológico Beltrán</p>
-              </td>
-            </tr>
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Invitación Oficial a la Ceremonia de Colación</title>
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#f1f5f9">
+        <tr>
+          <td align="center" style="padding: 40px 15px;">
+            <table width="600" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff" style="max-width: 600px; width: 100%; border-radius: 28px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);">
+              
+              <!-- HEADER INSTITUCIONAL -->
+              <tr>
+                <td align="center" bgcolor="#071b34" style="padding: 45px 30px; background: linear-gradient(135deg, #071b34 0%, #0c2d54 100%); border-bottom: 4px solid #0284c7;">
+                  <img src="${linkLogo}" alt="Instituto Tecnológico Beltrán" width="90" height="90" style="display: block; margin-bottom: 20px; outline: none; border: none; border-radius: 16px; background: #ffffff; padding: 6px;">
+                  <span style="display: inline-block; padding: 4px 14px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 20px; color: #38bdf8; font-size: 10px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px;">Convocatoria Oficial</span>
+                  <h1 style="color: #ffffff; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2;">Ceremonia de Graduación</h1>
+                  <p style="color: #94a3b8; margin: 8px 0 0; font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;">Instituto Tecnológico Beltrán · SiGIC</p>
+                </td>
+              </tr>
 
-            <!-- CUERPO -->
-            <tr>
-              <td style="padding: 50px 40px; text-align: center; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;">
-                <h2 style="color: #1e293b; font-size: 24px; margin-top: 0; font-weight: 800;">¡Felicidades, ${nombreEgresado}!</h2>
-                <p style="color: #475569; font-size: 16px; line-height: 1.6; margin-bottom: 35px;">
-                  Es un gran honor para nosotros invitarte a formalizar tu participación y la de tus seres queridos en la <strong>Ceremonia de Graduación 2026</strong>. 
-                  <br><br>
-                  Tu esfuerzo y dedicación han rendido frutos, y queremos celebrarlo a lo grande.
-                </p>
+              <!-- CUERPO PRINCIPAL -->
+              <tr>
+                <td style="padding: 45px 35px 35px;">
+                  <h2 style="color: #0f172a; font-size: 22px; margin: 0 0 16px; font-weight: 800; letter-spacing: -0.3px;">
+                    ¡Felicitaciones, ${escaparHTML(nombreEgresado)}!
+                  </h2>
+                  <p style="color: #475569; font-size: 15px; line-height: 1.65; margin: 0 0 28px;">
+                    Nos complace invitarte formalmente a la <strong>Ceremonia de Colación</strong>. Tu esfuerzo, constancia y dedicación académica culminan en este momento solemne, y es un honor para toda la comunidad celebrarlo junto a vos y tus seres queridos.
+                  </p>
 
-                <!-- CAJA DE PASOS -->
-                <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#f8fafc" style="border: 1px solid #e2e8f0; border-radius: 16px; margin-bottom: 40px;">
-                  <tr>
-                    <td style="padding: 30px; text-align: left;">
-                      <p style="color: #0f172a; font-size: 14px; font-weight: 800; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">Instrucciones para tu registro:</p>
-                      <table border="0" cellspacing="0" cellpadding="0" style="color: #475569; font-size: 14px; line-height: 1.6;">
-                        <tr>
-                          <td valign="top" style="padding-bottom: 12px; color: #29ABE2; font-weight: bold; padding-right: 10px;">1.</td>
-                          <td style="padding-bottom: 12px;">Haz clic en el botón <strong>"Confirmar Asistencia"</strong> que aparece a continuación.</td>
-                        </tr>
-                        <tr>
-                          <td valign="top" style="padding-bottom: 12px; color: #29ABE2; font-weight: bold; padding-right: 10px;">2.</td>
-                          <td style="padding-bottom: 12px;">Valida tu identidad de forma segura con el código de 6 dígitos (OTP) que recibirás en tu correo.</td>
-                        </tr>
-                        <tr>
-                          <td valign="top" style="padding-bottom: 0; color: #29ABE2; font-weight: bold; padding-right: 10px;">3.</td>
-                          <td style="padding-bottom: 0;"><strong>Acepta o rechaza</strong> tu invitación formal. Si aceptas, podrás registrar a tus acompañantes y elegir tus asientos.</td>
-                        </tr>
-                      </table>
-                    </td>
-                  </tr>
-                </table>
+                  <!-- CAJA DESTACADA DE PASOS -->
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#f8fafc" style="border: 1px solid #e2e8f0; border-radius: 20px; margin-bottom: 35px;">
+                    <tr>
+                      <td style="padding: 26px 28px;">
+                        <p style="color: #0f172a; font-size: 12px; font-weight: 800; margin: 0 0 16px; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px;">
+                          Pasos para autogestionar tu participación:
+                        </p>
+                        
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-size: 14px; line-height: 1.55; color: #334155;">
+                          <tr>
+                            <td width="32" valign="top" style="padding-bottom: 14px;">
+                              <span style="display: inline-block; width: 22px; height: 22px; line-height: 22px; text-align: center; border-radius: 50%; background: #0284c7; color: #ffffff; font-size: 11px; font-weight: 800;">1</span>
+                            </td>
+                            <td style="padding-bottom: 14px;">
+                              <strong style="color: #0f172a;">Confirmá tu asistencia:</strong> Validá tu identidad y elegí tu fórmula de juramento académico.
+                            </td>
+                          </tr>
+                          <tr>
+                            <td width="32" valign="top" style="padding-bottom: 14px;">
+                              <span style="display: inline-block; width: 22px; height: 22px; line-height: 22px; text-align: center; border-radius: 50%; background: #0284c7; color: #ffffff; font-size: 11px; font-weight: 800;">2</span>
+                            </td>
+                            <td style="padding-bottom: 14px;">
+                              <strong style="color: #0f172a;">Registrá tu grupo:</strong> Añadí a tus acompañantes y asigná a tu padrino o docente entregador.
+                            </td>
+                          </tr>
+                          <tr>
+                            <td width="32" valign="top" style="padding-bottom: 0;">
+                              <span style="display: inline-block; width: 22px; height: 22px; line-height: 22px; text-align: center; border-radius: 50%; background: #0284c7; color: #ffffff; font-size: 11px; font-weight: 800;">3</span>
+                            </td>
+                            <td style="padding-bottom: 0;">
+                              <strong style="color: #0f172a;">Obtené tu credencial:</strong> Descargá el pase grupal QR y guardalo directamente en <strong>Google Wallet</strong>.
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
 
-                <!-- BOTON -->
-                <table border="0" cellspacing="0" cellpadding="0" align="center">
-                  <tr>
-                    <td align="center" bgcolor="#29ABE2" style="border-radius: 12px; box-shadow: 0 4px 6px rgba(41, 171, 226, 0.25);">
-                      <a href="${linkRegistro}" target="_blank" style="font-size: 16px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #ffffff; text-decoration: none; border-radius: 12px; padding: 18px 45px; display: inline-block; font-weight: bold; letter-spacing: 0.5px;">
-                        Confirmar Asistencia
-                      </a>
-                    </td>
-                  </tr>
-                </table>
+                  <!-- BOTON DE LLAMADA A LA ACCIÓN (CTA) -->
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 30px;">
+                    <tr>
+                      <td align="center">
+                        <table border="0" cellspacing="0" cellpadding="0">
+                          <tr>
+                            <td align="center" bgcolor="#0284c7" style="border-radius: 14px; box-shadow: 0 8px 16px rgba(2, 132, 199, 0.25);">
+                              <a href="${linkRegistro}" target="_blank" style="font-size: 15px; font-weight: 800; color: #ffffff; text-decoration: none; padding: 18px 40px; display: inline-block; letter-spacing: 0.5px; border-radius: 14px;">
+                                Ingresar al Portal del Graduado &rarr;
+                              </a>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
 
-                <p style="color: #94a3b8; font-size: 12px; margin-top: 40px; line-height: 1.5;">
-                  ¿Problemas con el botón? Copia y pega este enlace en tu navegador de preferencia:<br>
-                  <a href="${linkRegistro}" style="color: #29ABE2; text-decoration: underline; word-break: break-all;">${linkRegistro}</a>
-                </p>
-              </td>
-            </tr>
+                  <!-- ENLACE DE CONTINGENCIA -->
+                  <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 14px 18px; text-align: center;">
+                    <p style="margin: 0 0 6px; color: #64748b; font-size: 11px; font-weight: 600;">
+                      ¿No podés abrir el botón? Copiá y pegá este enlace seguro en tu navegador:
+                    </p>
+                    <a href="${linkRegistro}" style="color: #0284c7; font-size: 11px; word-break: break-all; text-decoration: underline; font-weight: 700;">${linkRegistro}</a>
+                  </div>
+                </td>
+              </tr>
 
-            <!-- FOOTER -->
-            <tr>
-              <td align="center" bgcolor="#1e293b" style="padding: 30px; border-top: 1px solid #334155;">
-                <p style="color: #94a3b8; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 11px; margin: 0; text-transform: uppercase; letter-spacing: 1px;">
-                  © 2026 Instituto Tecnológico Beltrán
-                </p>
-                <p style="color: #64748b; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; font-size: 10px; margin: 10px 0 0 0;">
-                  Sistema de Gestión de Invitados y Ceremonias (SiGIC)
-                </p>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
+              <!-- FOOTER INSTITUCIONAL -->
+              <tr>
+                <td align="center" bgcolor="#0f172a" style="padding: 30px 25px; border-top: 1px solid #1e293b; color: #94a3b8; font-size: 11px; line-height: 1.6;">
+                  <p style="margin: 0 0 6px; font-weight: 700; color: #cbd5e1; text-transform: uppercase; letter-spacing: 1px;">
+                    Instituto Tecnológico Beltrán
+                  </p>
+                  <p style="margin: 0 0 10px; color: #64748b; font-size: 10px;">
+                    Av. Manuel Belgrano 1191, Avellaneda, Buenos Aires · Sede Central
+                  </p>
+                  <p style="margin: 0; color: #475569; font-size: 10px;">
+                    SiGIC © 2026 · Sistema Institucional de Gestión de Colaciones
+                  </p>
+                </td>
+              </tr>
+
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
   `;
 }
 
@@ -145,112 +183,248 @@ export function generarPlantillaInvitacion(nombreEgresado: string, linkRegistro:
  * PLANTILLA: Código de Verificación (OTP)
  */
 export function generarPlantillaOTP(codigo: string, hostBase: string) {
-  const linkLogo = `${hostBase}/logo-oficial.png`;
+  const linkLogo = 'https://raw.githubusercontent.com/julianmcancelo/Sigic/master/codigo/plataforma/public/logo-oficial.png';
   return `
-    <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#f0f4f8">
-      <tr>
-        <td align="center" style="padding: 40px 10px;">
-          <table width="500" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff" style="max-width: 500px; border-radius: 24px; overflow: hidden; border: 1px solid #e2e8f0;">
-            <tr>
-              <td align="center" bgcolor="#2A3448" style="padding: 35px;">
-                <img src="${linkLogo}" alt="SiGIC" width="100">
-              </td>
-            </tr>
-            <tr>
-              <td style="padding: 50px 40px; text-align: center; font-family: Arial, sans-serif;">
-                <h2 style="color: #2A3448; font-size: 20px; margin-top: 0; font-weight: bold;">Código de Verificación</h2>
-                <p style="color: #64748b; font-size: 15px; line-height: 1.5; margin-bottom: 30px;">
-                  Utiliza el siguiente código para completar tu inicio de sesión:
-                </p>
-                
-                <table align="center" border="0" cellspacing="0" cellpadding="0" bgcolor="#f1f5f9" style="border: 2px dashed #cbd5e1; border-radius: 16px;">
-                  <tr>
-                    <td style="padding: 20px 40px; font-family: Courier, monospace; font-size: 40px; font-weight: bold; color: #2A3448; letter-spacing: 10px;">
-                      ${codigo}
-                    </td>
-                  </tr>
-                </table>
-                
-                <p style="color: #f43f5e; font-size: 12px; font-weight: bold; margin-top: 30px;">Expira en 10 minutos.</p>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Código de Seguridad</title>
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#f1f5f9">
+        <tr>
+          <td align="center" style="padding: 40px 15px;">
+            <table width="500" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff" style="max-width: 500px; width: 100%; border-radius: 28px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);">
+              
+              <!-- HEADER -->
+              <tr>
+                <td align="center" bgcolor="#071b34" style="padding: 35px 25px; border-bottom: 4px solid #0284c7;">
+                  <img src="${linkLogo}" alt="SiGIC" width="70" height="70" style="display: block; margin-bottom: 12px; border-radius: 12px; background: #ffffff; padding: 4px;">
+                  <span style="color: #38bdf8; font-size: 10px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;">Autenticación Segura</span>
+                  <h1 style="color: #ffffff; margin: 4px 0 0; font-size: 20px; font-weight: 800;">Código de Verificación</h1>
+                </td>
+              </tr>
+
+              <!-- CUERPO -->
+              <tr>
+                <td style="padding: 40px 30px; text-align: center;">
+                  <p style="color: #475569; font-size: 15px; line-height: 1.5; margin: 0 0 26px;">
+                    Ingresá el siguiente código de 6 dígitos en el portal para validar tu identidad:
+                  </p>
+                  
+                  <!-- BLOQUE OTP -->
+                  <table align="center" border="0" cellspacing="0" cellpadding="0" bgcolor="#f8fafc" style="border: 2px dashed #0284c7; border-radius: 18px; margin: 0 auto 26px;">
+                    <tr>
+                      <td style="padding: 18px 36px; font-family: 'Courier New', Courier, monospace; font-size: 38px; font-weight: 800; color: #071b34; letter-spacing: 12px;">
+                        ${codigo}
+                      </td>
+                    </tr>
+                  </table>
+                  
+                  <div style="display: inline-block; background: #fff1f2; border: 1px solid #fecdd3; border-radius: 20px; padding: 6px 18px; color: #e11d48; font-size: 12px; font-weight: 700;">
+                    Válido durante los próximos 10 minutos
+                  </div>
+
+                  <p style="color: #94a3b8; font-size: 12px; margin: 26px 0 0; line-height: 1.5;">
+                    Si no solicitaste este código, podés desestimar este mensaje con total seguridad.
+                  </p>
+                </td>
+              </tr>
+
+              <!-- FOOTER -->
+              <tr>
+                <td align="center" bgcolor="#0f172a" style="padding: 20px; border-top: 1px solid #1e293b; color: #64748b; font-size: 10px;">
+                  Instituto Tecnológico Beltrán · SiGIC
+                </td>
+              </tr>
+
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
   `;
 }
 
 export function generarPlantillaRecuperacionContrasena(nombre: string, enlace: string, hostBase: string) {
-  const logo = `${hostBase}/logo.png`;
+  const logo = 'https://raw.githubusercontent.com/julianmcancelo/Sigic/master/codigo/plataforma/public/logo-oficial.png';
   return `
-    <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#edf4f6" style="font-family:Arial,sans-serif;">
-      <tr><td align="center" style="padding:34px 14px;">
-        <table width="560" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="max-width:560px;border:1px solid #d9e8eb;border-radius:18px;overflow:hidden;">
-          <tr><td bgcolor="#061321" style="padding:28px 34px;text-align:center;">
-            <img src="${logo}" alt="SiGIC" width="54" height="54" style="display:inline-block;border-radius:13px;background:#ffffff;" />
-            <p style="margin:16px 0 0;color:#62e5e9;font-size:10px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;">Acceso institucional</p>
-            <h1 style="margin:8px 0 0;color:#ffffff;font-size:25px;letter-spacing:4px;">SiGIC</h1>
-          </td></tr>
-          <tr><td style="padding:34px;color:#173044;">
-            <h2 style="margin:0 0 14px;font-size:21px;">Restablecer contraseña</h2>
-            <p style="margin:0;color:#52687a;font-size:15px;line-height:1.6;">Hola, ${escaparHTML(nombre)}. Recibimos una solicitud para actualizar la contraseña de tu cuenta administrativa.</p>
-            <p style="margin:18px 0 24px;color:#52687a;font-size:14px;line-height:1.6;">Usá el siguiente enlace para elegir una contraseña nueva. Es personal, tiene un único uso y vence en 30 minutos.</p>
-            <table cellspacing="0" cellpadding="0" border="0" align="center"><tr><td bgcolor="#087f9d" style="border-radius:9px;"><a href="${enlace}" style="display:inline-block;padding:14px 22px;color:#ffffff;font-size:13px;font-weight:bold;text-decoration:none;">Restablecer contraseña</a></td></tr></table>
-            <p style="margin:26px 0 0;padding-top:18px;border-top:1px solid #e4ecef;color:#78909c;font-size:12px;line-height:1.55;">Si no solicitaste este cambio, podés ignorar este correo. Tu contraseña actual no será modificada.</p>
-          </td></tr>
-          <tr><td bgcolor="#f6fafb" style="padding:16px 26px;text-align:center;color:#91a4ae;font-size:10px;letter-spacing:.4px;">Instituto Tecnológico Beltrán · SiGIC</td></tr>
-        </table>
-      </td></tr>
-    </table>`;
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <title>Restablecer Contraseña</title>
+    </head>
+    <body style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+      <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#f1f5f9">
+        <tr><td align="center" style="padding:40px 15px;">
+          <table width="560" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="max-width:560px;border:1px solid #e2e8f0;border-radius:24px;overflow:hidden;box-shadow:0 15px 30px rgba(0,0,0,0.06);">
+            <tr><td bgcolor="#071b34" style="padding:35px;text-align:center;border-bottom:4px solid #0284c7;">
+              <img src="${logo}" alt="SiGIC" width="60" height="60" style="display:inline-block;border-radius:12px;background:#ffffff;padding:4px;" />
+              <p style="margin:12px 0 0;color:#38bdf8;font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;">Acceso Institucional</p>
+              <h1 style="margin:4px 0 0;color:#ffffff;font-size:22px;font-weight:800;">Restablecer Contraseña</h1>
+            </td></tr>
+            <tr><td style="padding:40px 35px;color:#1e293b;">
+              <h2 style="margin:0 0 14px;font-size:18px;font-weight:800;">Hola, ${escaparHTML(nombre)}</h2>
+              <p style="margin:0 0 20px;color:#475569;font-size:15px;line-height:1.6;">Recibimos una solicitud para restablecer la contraseña de acceso a tu cuenta administrativa en SiGIC.</p>
+              <p style="margin:0 0 30px;color:#475569;font-size:14px;line-height:1.6;">Hacé clic en el siguiente botón para generar una nueva clave. Este enlace es de un solo uso y expira en 30 minutos.</p>
+              <table cellspacing="0" cellpadding="0" border="0" align="center">
+                <tr><td bgcolor="#0284c7" style="border-radius:12px;box-shadow:0 6px 14px rgba(2,132,199,0.25);">
+                  <a href="${enlace}" style="display:inline-block;padding:16px 36px;color:#ffffff;font-size:14px;font-weight:800;text-decoration:none;letter-spacing:.3px;">Crear Nueva Contraseña &rarr;</a>
+                </td></tr>
+              </table>
+              <p style="margin:35px 0 0;padding-top:20px;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:12px;line-height:1.55;text-align:center;">Si no solicitaste este cambio, podés ignorar este correo sin que tu contraseña actual se vea afectada.</p>
+            </td></tr>
+            <tr><td bgcolor="#0f172a" style="padding:18px;text-align:center;color:#64748b;font-size:10px;">Instituto Tecnológico Beltrán · SiGIC</td></tr>
+          </table>
+        </td></tr>
+      </table>
+    </body>
+    </html>`;
 }
 
 /** Aviso único tras finalizar la autogestión; el graduado conserva acceso para corregir datos. */
 export function generarPlantillaCierreInscripcion(nombre: string, hostBase: string) {
   const acceso = `${hostBase}/`;
+  const logo = 'https://raw.githubusercontent.com/julianmcancelo/Sigic/master/codigo/plataforma/public/logo-oficial.png';
   return `
-    <div style="max-width:560px;margin:0 auto;padding:32px;background:#f1f5f9;font-family:Arial,sans-serif;color:#1e293b">
-      <div style="overflow:hidden;border-radius:20px;background:#ffffff;border:1px solid #e2e8f0">
-        <div style="padding:28px 32px;background:#0d1b2e;color:#ffffff">
-          <p style="margin:0;color:#67e8f9;font-size:11px;font-weight:bold;letter-spacing:1.4px;text-transform:uppercase">SiGIC · inscripción guardada</p>
-          <h1 style="margin:10px 0 0;font-size:24px">Hola, ${nombre}</h1>
-        </div>
-        <div style="padding:30px 32px;font-size:15px;line-height:1.6">
-          <p>Tu información quedó guardada correctamente. Podés volver cuando lo necesites para completar, corregir o modificar tus datos y acompañantes.</p>
-          <p>Ingresá al portal con tu <strong>DNI o correo electrónico</strong>; recibirás un código de acceso seguro.</p>
-          <p style="margin:26px 0;text-align:center"><a href="${acceso}" style="display:inline-block;padding:13px 22px;border-radius:10px;background:#0ea5e9;color:#ffffff;text-decoration:none;font-weight:bold">Volver a mi inscripción</a></p>
-          <p style="margin:0;color:#64748b;font-size:12px">Este aviso se envía una sola vez. Tus cambios posteriores seguirán disponibles desde el mismo acceso.</p>
-        </div>
-      </div>
-    </div>`;
+    <!DOCTYPE html>
+    <html lang="es">
+    <head><meta charset="UTF-8"><title>Inscripción Confirmada</title></head>
+    <body style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+      <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#f1f5f9">
+        <tr><td align="center" style="padding:40px 15px;">
+          <table width="560" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="max-width:560px;border:1px solid #e2e8f0;border-radius:24px;overflow:hidden;box-shadow:0 15px 30px rgba(0,0,0,0.06);">
+            <tr><td bgcolor="#071b34" style="padding:32px;text-align:center;border-bottom:4px solid #0284c7;">
+              <img src="${logo}" alt="SiGIC" width="60" height="60" style="display:inline-block;border-radius:12px;background:#ffffff;padding:4px;" />
+              <p style="margin:10px 0 0;color:#38bdf8;font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;">Datos Guardados</p>
+              <h1 style="margin:4px 0 0;color:#ffffff;font-size:22px;font-weight:800;">Hola, ${escaparHTML(nombre)}</h1>
+            </td></tr>
+            <tr><td style="padding:35px;font-size:15px;line-height:1.65;color:#334155;">
+              <p style="margin:0 0 16px;">Tus datos de participación, fórmula de juramento y registro de acompañantes quedaron guardados correctamente en el sistema.</p>
+              <p style="margin:0 0 28px;">Podés reingresar en cualquier momento antes de la fecha límite para consultar tus butacas o actualizar información.</p>
+              <table cellspacing="0" cellpadding="0" border="0" align="center">
+                <tr><td bgcolor="#0284c7" style="border-radius:12px;">
+                  <a href="${acceso}" style="display:inline-block;padding:15px 32px;background:#0284c7;color:#ffffff;text-decoration:none;font-weight:800;font-size:14px;border-radius:12px;">Revisar Mi Inscripción</a>
+                </td></tr>
+              </table>
+            </td></tr>
+            <tr><td bgcolor="#0f172a" style="padding:18px;text-align:center;color:#64748b;font-size:10px;">Instituto Tecnológico Beltrán · SiGIC</td></tr>
+          </table>
+        </td></tr>
+      </table>
+    </body>
+    </html>`;
 }
 
 /** Comunicación final con el pase digital y la información operativa de la ceremonia. */
 export function generarPlantillaCredencialCeremonia({ nombre, ceremonia, fecha, lugar, asiento, acceso, googleWalletUrl }: { nombre: string; ceremonia: string; fecha: string; lugar: string; asiento?: string | null; acceso: string; googleWalletUrl?: string | null }) {
+  const logo = 'https://raw.githubusercontent.com/julianmcancelo/Sigic/master/codigo/plataforma/public/logo-oficial.png';
   return `
-    <div style="margin:0;padding:32px 14px;background:#edf3f7;font-family:'Helvetica Neue',Helvetica,sans-serif;color:#172033">
-      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px;margin:0 auto;border-collapse:separate;border-spacing:0;overflow:hidden;background:#ffffff;border:1px solid #d7e2ea;border-radius:24px;box-shadow:0 14px 40px rgba(7,27,52,.12)">
-        <tr><td style="padding:13px 34px;background:#071b34;color:#a5f3fc;font-size:10px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase">SiGIC · Pase digital de ceremonia</td></tr>
-        <tr><td style="padding:30px 34px 22px;background:linear-gradient(135deg,#071b34,#123f5b);color:#ffffff">
-          <p style="margin:0 0 9px;color:#67e8f9;font-size:11px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase">Credencial confirmada</p>
-          <h1 style="margin:0;font-size:28px;line-height:1.15;letter-spacing:-.5px">Todo listo para tu ceremonia</h1>
-          <p style="margin:12px 0 0;color:#dbeafe;font-size:15px;line-height:1.55">Hola, <strong>${nombre}</strong>. Tu grupo tiene ubicaciones confirmadas.</p>
-        </td></tr>
-        <tr><td style="padding:26px 34px 10px">
-          <p style="margin:0;color:#516276;font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase">Ceremonia</p>
-          <p style="margin:6px 0 20px;color:#172033;font-size:20px;font-weight:800">${ceremonia}</p>
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:separate;border-spacing:0;background:#f4f9fc;border:1px solid #d9ebf5;border-radius:16px">
-            <tr><td style="padding:16px 18px;width:50%;border-right:1px solid #d9ebf5"><span style="display:block;color:#64748b;font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase">Fecha</span><strong style="display:block;margin-top:5px;color:#0f2740;font-size:14px">${fecha || 'A confirmar'}</strong></td><td style="padding:16px 18px"><span style="display:block;color:#64748b;font-size:10px;font-weight:800;letter-spacing:.8px;text-transform:uppercase">Ubicación</span><strong style="display:block;margin-top:5px;color:#0f2740;font-size:14px">${asiento || 'Consultar en el portal'}</strong></td></tr>
-          </table>
-          <p style="margin:16px 0 0;color:#516276;font-size:14px;line-height:1.55"><strong style="color:#172033">Lugar:</strong> ${lugar || 'A confirmar'}. Presentate con anticipación y exhibí el QR de tu credencial en portería.</p>
-        </td></tr>
-        <tr><td style="padding:22px 34px 30px;text-align:center">
-          <a href="${acceso}" style="display:inline-block;margin:0 0 12px;padding:14px 24px;border-radius:10px;background:#0ea5e9;color:#ffffff;text-decoration:none;font-size:14px;font-weight:800">Abrir mi credencial y QR</a><br>
-          ${googleWalletUrl ? `<a href="${googleWalletUrl}" style="display:inline-block;padding:12px 20px;border:1px solid #123f5b;border-radius:10px;background:#ffffff;color:#071b34;text-decoration:none;font-size:13px;font-weight:800">Guardar en Google Wallet</a><br>` : ''}
-          <p style="margin:16px 0 0;color:#7b8b9d;font-size:11px;line-height:1.45">Este acceso es personal. Conservá este correo para consultar tu grupo y tus ubicaciones.</p>
-        </td></tr>
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Tu Credencial Oficial de Ceremonia</title>
+    </head>
+    <body style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+      <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#f1f5f9">
+        <tr>
+          <td align="center" style="padding:40px 15px;">
+            <table width="600" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="max-width:600px;width:100%;border-radius:28px;overflow:hidden;border:1px solid #e2e8f0;box-shadow:0 20px 40px rgba(15,23,42,0.08);">
+              
+              <!-- HEADER -->
+              <tr>
+                <td bgcolor="#071b34" style="padding:40px 30px;text-align:center;background:linear-gradient(135deg,#071b34,#0c2d54);border-bottom:4px solid #0284c7;">
+                  <img src="${logo}" alt="SiGIC" width="80" height="80" style="display:inline-block;margin-bottom:14px;border-radius:14px;background:#ffffff;padding:5px;" />
+                  <span style="display:inline-block;padding:4px 14px;background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.3);border-radius:20px;color:#38bdf8;font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Pase Grupal Habilitado</span>
+                  <h1 style="color:#ffffff;margin:0;font-size:25px;font-weight:800;letter-spacing:-.4px;">Todo Listo Para Tu Ceremonia</h1>
+                  <p style="color:#94a3b8;margin:6px 0 0;font-size:12px;font-weight:600;">Hola, <strong>${escaparHTML(nombre)}</strong>. Tus ubicaciones están confirmadas.</p>
+                </td>
+              </tr>
+
+              <!-- CUERPO DE DATOS OPERATIVOS -->
+              <tr>
+                <td style="padding:40px 35px 30px;">
+                  <p style="margin:0 0 4px;color:#64748b;font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;">Ceremonia Oficial</p>
+                  <h2 style="margin:0 0 22px;color:#0f172a;font-size:20px;font-weight:800;">${escaparHTML(ceremonia)}</h2>
+
+                  <!-- TABLA DE DETALLES (FECHA Y BUTACA) -->
+                  <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#f8fafc" style="border:1px solid #e2e8f0;border-radius:18px;margin-bottom:24px;">
+                    <tr>
+                      <td width="50%" style="padding:18px 22px;border-right:1px solid #e2e8f0;">
+                        <span style="display:block;color:#64748b;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;">Fecha & Horario</span>
+                        <strong style="display:block;margin-top:4px;color:#071b34;font-size:15px;">${fecha || '27 de Agosto de 2026'}</strong>
+                      </td>
+                      <td width="50%" style="padding:18px 22px;">
+                        <span style="display:block;color:#64748b;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;">Butaca del Graduado</span>
+                        <strong style="display:block;margin-top:4px;color:#0284c7;font-size:15px;">${asiento ? `Butaca ${asiento}` : 'Ubicación General'}</strong>
+                      </td>
+                    </tr>
+                  </table>
+
+                  <p style="margin:0 0 30px;color:#475569;font-size:14px;line-height:1.6;">
+                    <strong style="color:#0f172a;">Sede del Acto:</strong> ${escaparHTML(lugar || 'Auditorio Central · Instituto Tecnológico Beltrán')}.<br>
+                    Presentate con 30 minutos de anticipación y mostrá el código QR de tu credencial al personal de portería para ingresar junto a tus acompañantes.
+                  </p>
+
+                  <!-- BOTONES DE ACCIÓN (PORTAL Y GOOGLE WALLET) -->
+                  <table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:24px;">
+                    <tr>
+                      <td align="center" style="padding-bottom:12px;">
+                        <table border="0" cellspacing="0" cellpadding="0">
+                          <tr>
+                            <td bgcolor="#0284c7" style="border-radius:14px;box-shadow:0 6px 16px rgba(2,132,199,0.25);">
+                              <a href="${acceso}" target="_blank" style="display:inline-block;padding:16px 36px;color:#ffffff;font-size:14px;font-weight:800;text-decoration:none;letter-spacing:.3px;">
+                                Ver Mi Credencial & Código QR &rarr;
+                              </a>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                    ${googleWalletUrl ? `
+                    <tr>
+                      <td align="center">
+                        <table border="0" cellspacing="0" cellpadding="0">
+                          <tr>
+                            <td bgcolor="#071b34" style="border-radius:12px;border:1px solid #1e293b;">
+                              <a href="${googleWalletUrl}" target="_blank" style="display:inline-block;padding:12px 28px;color:#ffffff;font-size:13px;font-weight:700;text-decoration:none;">
+                                Guardar en Google Wallet
+                              </a>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>` : ''}
+                  </table>
+
+                  <!-- NOTA DE ADJUNTO PDF -->
+                  <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:14px;padding:12px 18px;text-align:center;">
+                    <p style="margin:0;color:#166534;font-size:12px;font-weight:700;">
+                      Tu credencial oficial también se encuentra adjunta a este correo en formato PDF.
+                    </p>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- FOOTER -->
+              <tr>
+                <td align="center" bgcolor="#0f172a" style="padding:25px;border-top:1px solid #1e293b;color:#64748b;font-size:10px;">
+                  Instituto Tecnológico Beltrán · SiGIC © 2026
+                </td>
+              </tr>
+
+            </table>
+          </td>
+        </tr>
       </table>
-    </div>`;
+    </body>
+    </html>`;
 }
 
 /** Credencial PDF diseñada para descargar, imprimir o presentar en portería. */
