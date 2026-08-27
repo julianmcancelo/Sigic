@@ -111,25 +111,26 @@ function imagen(uri: string, descripcion: string) {
 
 function convertirAFechaIso(fecha?: string | null): string {
   if (!fecha) {
-    const ahora = new Date();
-    ahora.setHours(18, 0, 0, 0);
-    return ahora.toISOString();
+    return '2026-08-27T18:00:00Z';
   }
   try {
     const fechaTrim = String(fecha).trim();
     if (/^\d{4}-\d{2}-\d{2}$/.test(fechaTrim)) {
-      return `${fechaTrim}T18:00:00-03:00`;
+      return `${fechaTrim}T18:00:00Z`;
     }
     const d = new Date(fechaTrim);
     if (!isNaN(d.getTime())) {
-      return d.toISOString();
+      const anio = d.getUTCFullYear();
+      const mes = String(d.getUTCMonth() + 1).padStart(2, '0');
+      const dia = String(d.getUTCDate()).padStart(2, '0');
+      return `${anio}-${mes}-${dia}T18:00:00Z`;
     }
   } catch {}
-  return new Date().toISOString();
+  return '2026-08-27T18:00:00Z';
 }
 
 function formatearFechaEspanol(fecha?: string | null): string {
-  if (!fecha) return 'Fecha a confirmar';
+  if (!fecha) return 'Agosto 2026';
   try {
     const raw = String(fecha).includes('T') ? String(fecha) : `${String(fecha).trim()}T12:00:00`;
     const d = new Date(raw);

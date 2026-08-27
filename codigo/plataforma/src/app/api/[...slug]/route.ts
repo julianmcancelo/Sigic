@@ -2034,8 +2034,11 @@ export async function POST(
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
       const datos = await query(
-        `SELECT e.*, c.nombre AS ceremonia_nombre, c.fecha AS ceremonia_fecha, c.lugar AS ceremonia_lugar
-         FROM egresados e JOIN ceremonias c ON c.id = e.ceremonia_id WHERE e.id = $1`,
+        `SELECT e.*, 
+                COALESCE(c.nombre, (SELECT nombre FROM ceremonias WHERE activa = 1 LIMIT 1), 'Ceremonia de Colación') AS ceremonia_nombre,
+                COALESCE(c.fecha, (SELECT fecha FROM ceremonias WHERE activa = 1 LIMIT 1), '2026-08-27') AS ceremonia_fecha,
+                COALESCE(c.lugar, (SELECT lugar FROM ceremonias WHERE activa = 1 LIMIT 1), 'Sede Beltrán') AS ceremonia_lugar
+         FROM egresados e LEFT JOIN ceremonias c ON c.id = e.ceremonia_id WHERE e.id = $1`,
         [slug[1]]
       );
       const graduado = datos.rows[0];
@@ -2054,7 +2057,7 @@ export async function POST(
           graduadoId: graduado.id,
           token: graduado.token,
           nombre: graduado.nombre,
-          ceremoniaId: graduado.ceremonia_id,
+          ceremoniaId: graduado.ceremonia_id || 'cer-activa',
           ceremonia: graduado.ceremonia_nombre,
           fecha: graduado.ceremonia_fecha,
           lugar: graduado.ceremonia_lugar,
@@ -2096,8 +2099,11 @@ export async function POST(
       if (!esAutorizado) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
       const datos = await query(
-        `SELECT e.*, c.nombre AS ceremonia_nombre, c.fecha AS ceremonia_fecha, c.lugar AS ceremonia_lugar
-         FROM egresados e JOIN ceremonias c ON c.id = e.ceremonia_id WHERE e.id = $1`,
+        `SELECT e.*, 
+                COALESCE(c.nombre, (SELECT nombre FROM ceremonias WHERE activa = 1 LIMIT 1), 'Ceremonia de Colación') AS ceremonia_nombre,
+                COALESCE(c.fecha, (SELECT fecha FROM ceremonias WHERE activa = 1 LIMIT 1), '2026-08-27') AS ceremonia_fecha,
+                COALESCE(c.lugar, (SELECT lugar FROM ceremonias WHERE activa = 1 LIMIT 1), 'Sede Beltrán') AS ceremonia_lugar
+         FROM egresados e LEFT JOIN ceremonias c ON c.id = e.ceremonia_id WHERE e.id = $1`,
         [id]
       );
       const graduado = datos.rows[0];
@@ -2111,7 +2117,7 @@ export async function POST(
           graduadoId: graduado.id,
           token: graduado.token,
           nombre: graduado.nombre,
-          ceremoniaId: graduado.ceremonia_id,
+          ceremoniaId: graduado.ceremonia_id || 'cer-activa',
           ceremonia: graduado.ceremonia_nombre,
           fecha: graduado.ceremonia_fecha,
           lugar: graduado.ceremonia_lugar,
