@@ -41,13 +41,19 @@ function formatearFechaCeremonia(valor) {
   })
 }
 
-export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
+export function PanelGraduado({ graduadoSesion, onCerrarSesion, pestanaForzada }) {
   const { confirmar, dialogoConfirmacion } = useConfirmacion()
   const [graduado, setGraduado] = useState(graduadoSesion)
   const [invitados, setInvitados] = useState([])
   const [cargando, setCargando] = useState(true)
-  const [pestana, setPestana] = useState('juramento') // 'juramento' | 'invitados' | 'entregadores' | 'credencial'
+  const [pestana, setPestana] = useState(pestanaForzada || 'juramento') // 'juramento' | 'invitados' | 'entregadores' | 'credencial'
   const [maxInvitados, setMaxInvitados] = useState(4)
+
+  useEffect(() => {
+    if (pestanaForzada) {
+      setPestana(pestanaForzada)
+    }
+  }, [pestanaForzada])
 
   // Formulario de invitados
   const [mostrarForm, setMostrarForm] = useState(false)

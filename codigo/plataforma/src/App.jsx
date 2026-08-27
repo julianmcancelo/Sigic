@@ -40,13 +40,14 @@ import { LocucionCeremonia } from './paginas/operacion/LocucionCeremonia'
 
 // Componentes Globales
 import { ADMIN_DEMO, ControlExpositor, EGRESADA_DEMO, MarcaAguaDemo } from './componentes/ControlExpositor'
+import { GuiaDemostracionAutomatica } from './componentes/GuiaDemostracionAutomatica'
 import { PantallaCargaInicial } from './componentes/PantallaCargaInicial'
 import { AsistenteOperativoCeremonia } from './componentes/AsistenteOperativoCeremonia'
 
 // Servicios
 import { validarToken, obtenerCeremoniaActiva, obtenerEstadoSetup, responderInvitacion, limpiarTokenSesion, guardarTokenSesion, obtenerTokenSesion, obtenerAjustes, actualizarAjuste } from './servicios/api'
 
-const MODO_DEMO = process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
+const MODO_DEMO = process.env.NEXT_PUBLIC_DEMO_MODE === 'true' || process.env.NODE_ENV !== 'production'
 
 function normalizarCorreoInstitucional(correo) {
   return typeof correo === 'string'
@@ -148,6 +149,36 @@ function App() {
     return ceremonia
   }
   
+  // ─── 3.1 MODO DEMOSTRACIÓN AUTOMÁTICA GUIADA (PILOTO AUTOMÁTICO) ───
+  const [demoAutomaticaActiva, setDemoAutomaticaActiva] = useState(false)
+  const [pestanaGraduadoDemo, setPestanaGraduadoDemo] = useState('juramento')
+
+  const iniciarDemostracionCompleta = () => {
+    setDemoAutomaticaActiva(true)
+  }
+
+  const finalizarDemostracionCompleta = () => {
+    setDemoAutomaticaActiva(false)
+    limpiarTodo()
+  }
+
+  const aplicarPasoDemo = (paso) => {
+    if (paso.tipoUsuario === 'admin') {
+      setGraduadoActivo(false)
+      setGraduadoUsuario(null)
+      setAdminActivo(true)
+      setAdminUser(ADMIN_DEMO)
+      setPantallaAdmin(paso.vistaAdmin || 'gestion-ceremonias')
+    } else if (paso.tipoUsuario === 'graduado') {
+      setAdminActivo(false)
+      setGraduadoActivo(true)
+      setGraduadoUsuario(EGRESADA_DEMO)
+      if (paso.pestanaGraduado) {
+        setPestanaGraduadoDemo(paso.pestanaGraduado)
+      }
+    }
+  }
+
   // ─── 3.0 ESTADO DE CONFIGURACIÓN INICIAL (SETUP) ───
   const [requiereSetup, setRequiereSetup] = useState(null)
   const [cargandoSetup, setCargandoSetup] = useState(true)
@@ -605,7 +636,7 @@ function App() {
     }
     // Subcase B.2: Estado ACEPTADO → Panel completo del graduado
     else if (graduadoUsuario.estado === 'ACEPTADO' && ceremoniaSeleccionadaActiva) {
-      contenido = <PanelGraduado graduadoSesion={graduadoUsuario} onCerrarSesion={cerrarSesionGraduado} />
+      contenido = <PanelGraduado graduadoSesion={graduadoUsuario} onCerrarSesion={cerrarSesionGraduado} pestanaForzada={pestanaGraduadoDemo} />
     }
     // Rechazadas y ceremonias anteriores: consulta histórica protegida.
     else {
@@ -825,6 +856,15 @@ function App() {
           onSimularAdmin={manejarLoginAdminExitoso}
           onSimularEgresado={manejarLoginGraduadoExitoso}
           onLimpiar={limpiarTodo}
+          onIniciarDemo={iniciarDemostracionCompleta}
+        />
+      )}
+
+      {/* Orquestador de Piloto Automático y Showcase en Vivo */}
+      {demoAutomaticaActiva && (
+        <GuiaDemostracionAutomatica
+          onAplicarPaso={aplicarPasoDemo}
+          onFinalizarDemo={finalizarDemostracionCompleta}
         />
       )}
     </>
