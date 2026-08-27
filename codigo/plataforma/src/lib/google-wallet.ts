@@ -202,8 +202,20 @@ export async function generarPaseGoogleWallet(pase: PaseCeremonia) {
     const payloadClase = {
       id: classId,
       reviewStatus: 'UNDER_REVIEW',
-      eventName: textoLocalizado(pase.ceremonia || 'Ceremonia de Graduación SiGIC 2026'),
+      eventName: textoLocalizado(pase.ceremonia || 'Ceremonia de Graduación 2026'),
       issuerName: 'Instituto Tecnológico Beltrán',
+      logo: {
+        sourceUri: {
+          uri: 'https://raw.githubusercontent.com/julianmcancelo/Sigic/master/codigo/plataforma/public/logo-oficial.png',
+        },
+        contentDescription: textoLocalizado('Logo Instituto Tecnológico Beltrán'),
+      },
+      heroImage: {
+        sourceUri: {
+          uri: 'https://raw.githubusercontent.com/julianmcancelo/Sigic/master/codigo/plataforma/public/google-wallet-hero-credencial.jpg',
+        },
+        contentDescription: textoLocalizado('Banner SiGIC'),
+      },
       dateTime: {
         doorsOpen: doorsOpenIso,
         start: startIso,
