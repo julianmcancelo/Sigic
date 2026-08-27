@@ -985,11 +985,24 @@ export async function GET(
       const condicionCeremonia = ceremoniaId ? 'c.id = $1' : 'c.activa = 1';
 
       const queryStr = `
-        SELECT e.*, c.nombre as "ceremoniaNombre", c.max_entregadores,
-          (SELECT COUNT(*)::int FROM invitados i WHERE i.egresado_id = e.id) AS cantidad_invitados,
-          (SELECT COUNT(*)::int FROM entregadores p WHERE p.egresado_id = e.id) AS cantidad_entregadores
+        SELECT 
+          e.*, 
+          c.nombre as "ceremoniaNombre", 
+          c.max_entregadores,
+          COALESCE(inv.total_invitados, 0)::int AS cantidad_invitados,
+          COALESCE(ent.total_entregadores, 0)::int AS cantidad_entregadores
         FROM egresados e
         LEFT JOIN ceremonias c ON e.ceremonia_id = c.id
+        LEFT JOIN (
+          SELECT egresado_id, COUNT(*)::int AS total_invitados 
+          FROM invitados 
+          GROUP BY egresado_id
+        ) inv ON inv.egresado_id = e.id
+        LEFT JOIN (
+          SELECT egresado_id, COUNT(*)::int AS total_entregadores 
+          FROM entregadores 
+          GROUP BY egresado_id
+        ) ent ON ent.egresado_id = e.id
         WHERE ${condicionCeremonia}
         ORDER BY e.nombre
       `;

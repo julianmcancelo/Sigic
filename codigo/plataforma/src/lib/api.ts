@@ -36,6 +36,31 @@ export function obtenerTokenSesion() {
   return tokenAnterior;
 }
 
+const peticionesEnVuelo = new Map<string, Promise<Response>>();
+
+/**
+ * Realiza peticiones HTTP deduplicando llamadas GET concurrentes
+ * hacia la misma URL y con el mismo token.
+ */
+export async function fetchDeduplicado(url: string, opciones?: RequestInit): Promise<Response> {
+  const metodo = opciones?.method ? opciones.method.toUpperCase() : 'GET';
+  if (metodo !== 'GET') {
+    return fetch(url, opciones);
+  }
+
+  const clave = `${url}_${obtenerTokenSesion()}`;
+  if (peticionesEnVuelo.has(clave)) {
+    return peticionesEnVuelo.get(clave)!.then(res => res.clone());
+  }
+
+  const promesa = fetch(url, opciones).finally(() => {
+    peticionesEnVuelo.delete(clave);
+  });
+
+  peticionesEnVuelo.set(clave, promesa);
+  return promesa.then(res => res.clone());
+}
+
 export function cabeceras() {
   const token = obtenerTokenSesion();
   return {
@@ -113,7 +138,7 @@ export async function obtenerGoogleWalletPass(egresadoId: string | number) {
 
 export async function obtenerGraduados(ceremoniaId: string | number | null = null) {
   const params = ceremoniaId ? `?ceremoniaId=${encodeURIComponent(String(ceremoniaId))}` : '';
-  const res = await fetch(`${BASE_CLASSIC}/egresados${params}`, { headers: cabeceras() });
+  const res = await fetchDeduplicado(`${BASE_CLASSIC}/egresados${params}`, { headers: cabeceras() });
   if (!res.ok) throw new Error('No se pudo establecer conexión con el servidor de graduados');
   const graduados = await res.json();
   // Compatibilidad con entornos que aún no aplican el parámetro en el backend.
@@ -338,13 +363,13 @@ export async function actualizarInvitado(id: string | number, datos: any) {
 }
 
 export async function obtenerAjustes() {
-  const res = await fetch(`${BASE_CLASSIC}/configuracion`, { headers: cabeceras() });
+  const res = await fetchDeduplicado(`${BASE_CLASSIC}/configuracion`, { headers: cabeceras() });
   if (!res.ok) throw new Error('No se pudo cargar la configuración del sistema');
   return res.json();
 }
 
 export async function obtenerDispositivosMoviles() {
-  const res = await fetch(`${BASE_CLASSIC}/dispositivos`, { headers: cabeceras() });
+  const res = await fetchDeduplicado(`${BASE_CLASSIC}/dispositivos`, { headers: cabeceras() });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'No se pudieron cargar los dispositivos móviles');
   return json;
@@ -362,7 +387,7 @@ export async function actualizarAjuste(clave: string, valor: string | number | b
 }
 
 export async function obtenerCeremonias() {
-  const res = await fetch(`${BASE_CLASSIC}/ceremonias`, { headers: cabeceras() });
+  const res = await fetchDeduplicado(`${BASE_CLASSIC}/ceremonias`, { headers: cabeceras() });
   // El escritorio puede abrirse aunque la base esté temporalmente fuera de línea.
   // El módulo mostrará estado vacío y permitirá reintentar sin romper la sesión.
   if (!res.ok) {
@@ -373,7 +398,7 @@ export async function obtenerCeremonias() {
 }
 
 export async function obtenerCeremoniaActiva() {
-  const res = await fetch(`${BASE_CLASSIC}/ceremonias/activa`, { headers: cabeceras() });
+  const res = await fetchDeduplicado(`${BASE_CLASSIC}/ceremonias/activa`, { headers: cabeceras() });
   if (!res.ok) {
     if (res.status === 404 || res.status === 500 || res.status === 503) return null;
     throw new Error('Error al obtener la ceremonia activa');
@@ -490,7 +515,7 @@ export async function eliminarCeremonia(id: string | number) {
 }
 
 export async function obtenerEstadoSetup() {
-  const res = await fetch(`${BASE_CLASSIC}/setup/status`, { headers: cabeceras() });
+  const res = await fetchDeduplicado(`${BASE_CLASSIC}/setup/status`, { headers: cabeceras() });
   if (!res.ok) throw new Error('No se pudo verificar el estado del sistema');
   return res.json();
 }
@@ -507,7 +532,7 @@ export async function inicializarSistema(datos: any) {
 }
 
 export async function obtenerProfesores() {
-  const res = await fetch(`${BASE_CLASSIC}/profesores`, { headers: cabeceras() });
+  const res = await fetchDeduplicado(`${BASE_CLASSIC}/profesores`, { headers: cabeceras() });
   if (!res.ok) throw new Error('No se pudo cargar la lista de profesores');
   return res.json();
 }
