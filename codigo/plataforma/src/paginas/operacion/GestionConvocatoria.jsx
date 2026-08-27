@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import {
   AlertCircle, Check, CheckCircle2, Clock3, Copy, CreditCard, Edit3, ExternalLink,
-  Mail, MessageSquare, RefreshCw, Send, UserCheck, UserPlus, Users, X, Sparkles, PhoneCall
+  Mail, MessageSquare, RefreshCw, Send, UserCheck, UserPlus, Users, X, Sparkles, PhoneCall,
+  ArrowRight, Armchair
 } from 'lucide-react'
 import {
   enviarCredencialCeremonia,
   enviarInvitacion,
   obtenerGraduados,
+  obtenerCeremoniaActiva,
   responderInvitacion,
   actualizarGraduado
 } from '../../servicios/api'
@@ -22,6 +24,7 @@ const FILTROS = [
 
 export function GestionConvocatoria({ onNavegar }) {
   const { confirmar, dialogoConfirmacion } = useConfirmacion()
+  const [ceremonia, setCeremonia] = useState(null)
   const [graduados, setGraduados] = useState([])
   const [cargando, setCargando] = useState(true)
   const [procesando, setProcesando] = useState(null)
@@ -39,7 +42,9 @@ export function GestionConvocatoria({ onNavegar }) {
     setCargando(true)
     setError('')
     try {
-      const data = await obtenerGraduados()
+      const cerActiva = await obtenerCeremoniaActiva().catch(() => null)
+      setCeremonia(cerActiva)
+      const data = await obtenerGraduados(cerActiva?.id)
       setGraduados(data)
 
       // Selección inteligente de pestaña si la actual está vacía
@@ -269,9 +274,14 @@ export function GestionConvocatoria({ onNavegar }) {
         <header className="flex flex-col gap-4 border-b border-slate-150 pb-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200 text-[9px] font-black uppercase tracking-wider">
-                Ceremonia Activa
+              <span className="px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 text-[9px] font-black uppercase tracking-wider">
+                Fase 3 · Convocatoria Masiva
               </span>
+              {ceremonia && (
+                <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                  {ceremonia.nombre}
+                </span>
+              )}
             </div>
             <h2 className="mt-1 text-2xl font-black tracking-tight text-slate-900">Convocatoria & Comunicaciones</h2>
             <p className="mt-1 max-w-xl text-xs font-medium text-slate-500">
@@ -284,7 +294,7 @@ export function GestionConvocatoria({ onNavegar }) {
               onClick={() => onNavegar('gestion-graduados')}
               className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-sm transition-all cursor-pointer"
             >
-              <Users size={14} /> Ver padrón completo
+              <Users size={14} /> Ver padrón
             </button>
 
             {filtro === 'PENDIENTES' && pendientes.length > 0 && (
@@ -319,6 +329,13 @@ export function GestionConvocatoria({ onNavegar }) {
                 {procesando === 'lote-credenciales' ? 'Enviando...' : `Enviar todas las credenciales (${credencialesListas.length})`}
               </button>
             )}
+
+            <button
+              onClick={() => onNavegar('preparacion-ceremonia')}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-cyan-600 px-3.5 py-2 text-xs font-black text-white hover:bg-cyan-500 shadow-sm transition-all cursor-pointer"
+            >
+              <Armchair size={14} /> Paso 4: Butacas & Sala <ArrowRight size={13} />
+            </button>
           </div>
         </header>
 

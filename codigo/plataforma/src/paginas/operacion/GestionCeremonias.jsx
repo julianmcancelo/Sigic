@@ -243,9 +243,9 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
                   const invitaciones = Number(c.invitaciones_enviadas || 0)
 
                   const tareas = [
-                    { ok: graduados > 0, texto: graduados ? `${graduados} graduados cargados` : 'Cargar padrón de graduados', destino: 'gestion-graduados', paso: 'Paso 1' },
-                    { ok: plano, texto: plano ? 'Plano y butacas listos' : 'Configurar butacas y sala', destino: 'preparacion-ceremonia', paso: 'Paso 2' },
+                    { ok: graduados > 0, texto: graduados ? `${graduados} graduados cargados` : 'Cargar padrón de graduados', destino: 'gestion-graduados', paso: 'Paso 2' },
                     { ok: invitaciones >= graduados && graduados > 0, texto: graduados > 0 && invitaciones >= graduados ? `${invitaciones}/${graduados} invitaciones enviadas` : 'Enviar invitaciones por correo', destino: 'convocatoria', paso: 'Paso 3' },
+                    { ok: plano, texto: plano ? 'Plano y butacas listos' : 'Configurar butacas y sala', destino: 'preparacion-ceremonia', paso: 'Paso 4' },
                   ]
 
                   return (
@@ -306,18 +306,7 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
                           onClick={() => onNavegar?.('gestion-graduados')}
                           className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md shadow-emerald-600/20 transition active:scale-98 cursor-pointer"
                         >
-                          <UserPlus size={15} /> Paso 1: Cargar Graduados (Excel) <ArrowRight size={13} />
-                        </button>
-                      )
-                    }
-
-                    if (!plano) {
-                      return (
-                        <button
-                          onClick={() => onNavegar?.('preparacion-ceremonia')}
-                          className="w-full flex items-center justify-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md shadow-cyan-600/20 transition active:scale-98 cursor-pointer"
-                        >
-                          <Armchair size={15} /> Paso 2: Configurar Butacas & Sala <ArrowRight size={13} />
+                          <UserPlus size={15} /> Paso 2: Cargar Graduados (Excel) <ArrowRight size={13} />
                         </button>
                       )
                     }
@@ -333,12 +322,23 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
                       )
                     }
 
+                    if (!plano) {
+                      return (
+                        <button
+                          onClick={() => onNavegar?.('preparacion-ceremonia')}
+                          className="w-full flex items-center justify-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md shadow-cyan-600/20 transition active:scale-98 cursor-pointer"
+                        >
+                          <Armchair size={15} /> Paso 4: Preparación & Auto-Seating <ArrowRight size={13} />
+                        </button>
+                      )
+                    }
+
                     return (
                       <button
                         onClick={() => onNavegar?.('locucion')}
-                        className="w-full flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-500 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md shadow-purple-600/20 transition active:scale-98 cursor-pointer"
+                        className="w-full flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-500 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md shadow-rose-600/20 transition active:scale-98 cursor-pointer"
                       >
-                        <Mic size={15} /> Paso 4: Abrir Modo Locución <ArrowRight size={13} />
+                        <Mic size={15} /> Paso 5: Abrir Modo Locución <ArrowRight size={13} />
                       </button>
                     )
                   })()}

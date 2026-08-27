@@ -116,7 +116,7 @@ export function PreparacionCeremonia({ onNavegar }) {
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full bg-cyan-400/10 border border-cyan-400/30 text-cyan-300 text-[9px] font-black uppercase tracking-wider">
-              Etapa 7 · Preparación Final
+              Fase 4 · Preparación & Auto-Seating
             </span>
           </div>
           <h2 className="mt-1 text-2xl font-black tracking-tight">Revisión y Logística de Ceremonia</h2>

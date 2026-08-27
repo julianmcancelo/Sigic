@@ -317,7 +317,7 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
         </div>
       </div>
 
-      {/* BANNER DE CONTINUIDAD AL PASO 2 (SOLO CON ALUMNOS) */}
+      {/* BANNER DE CONTINUIDAD AL PASO 3 (SOLO CON ALUMNOS) */}
       {graduados.length > 0 && onNavegar && (
         <div className="mb-2.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 rounded-xl border border-sky-100 bg-gradient-to-r from-sky-50 to-blue-50 px-3 py-2 shadow-xs">
           <div className="flex items-center gap-2.5">
@@ -326,14 +326,14 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
             </div>
             <div>
               <p className="text-[11px] font-black text-slate-900 leading-tight">Padrón cargado ({graduados.length} alumnos registrados)</p>
-              <p className="text-[9.5px] text-slate-500 font-medium">¿Listo para continuar? Configurá las butacas y ejecutá Auto-Seating.</p>
+              <p className="text-[9.5px] text-slate-500 font-medium">¿Listo para continuar? Despachá las invitaciones con tokens OTP por correo.</p>
             </div>
           </div>
           <button
-            onClick={() => onNavegar('preparacion-ceremonia')}
+            onClick={() => onNavegar('convocatoria')}
             className="flex items-center gap-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white px-2.5 py-1.5 text-[9.5px] font-black uppercase tracking-wider shadow-xs transition active:scale-95 cursor-pointer shrink-0"
           >
-            Paso 2: Butacas <ArrowRight size={11} />
+            Paso 3: Convocatoria <ArrowRight size={11} />
           </button>
         </div>
       )}
