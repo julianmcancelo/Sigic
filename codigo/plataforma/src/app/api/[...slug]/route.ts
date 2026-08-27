@@ -9,6 +9,7 @@ import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { inicializarBaseDatos } from '@/lib/schema';
 import { generarPaseGoogleWallet } from '@/lib/google-wallet';
+import { obtenerCache, guardarCache, invalidarCache } from '@/lib/cache';
 
 import {
   RONDAS_BCRYPT,
@@ -24,6 +25,8 @@ import {
   esUltimoSuperAdmin,
   parsearCodigoAcreditacion
 } from '@/lib/api-helpers';
+
+let inicializacionPromise: Promise<void> | null = null;
 
 async function inicializarTablasAdicionales() {
   try {
@@ -87,9 +90,29 @@ async function inicializarTablasAdicionales() {
     await query('ALTER TABLE ceremonias ADD COLUMN IF NOT EXISTS fecha_limite_respuesta TIMESTAMP');
     await query('ALTER TABLE ceremonias ADD COLUMN IF NOT EXISTS fecha_limite_grupo TIMESTAMP');
     await query('ALTER TABLE ceremonias ADD COLUMN IF NOT EXISTS fecha_cierre_butacas TIMESTAMP');
+
+    // Índices compuestos de alto rendimiento para consultas concurrentes
+    await query('CREATE INDEX IF NOT EXISTS idx_egresados_ceremonia_estado ON egresados (ceremonia_id, estado)');
+    await query('CREATE INDEX IF NOT EXISTS idx_invitados_egresado_id ON invitados (egresado_id)');
+    await query('CREATE INDEX IF NOT EXISTS idx_codigos_otp_egresado ON codigos_otp (egresado_id, codigo)');
+    await query('CREATE INDEX IF NOT EXISTS idx_butacas_ceremonia_sector ON butacas (ceremonia_id, sector, estado)');
+    await query('CREATE INDEX IF NOT EXISTS idx_entregadores_egresado ON entregadores (egresado_id)');
   } catch (e) {
-    console.error('Error al inicializar tabla ceremonias_usuarios_autorizados:', e);
+    console.error('Error al inicializar tablas e índices adicionales:', e);
   }
+}
+
+async function asegurarInicializacion() {
+  if (!inicializacionPromise) {
+    inicializacionPromise = (async () => {
+      await inicializarBaseDatos();
+      await inicializarTablasAdicionales();
+    })().catch((err) => {
+      inicializacionPromise = null;
+      throw err;
+    });
+  }
+  return inicializacionPromise;
 }
 
 // Tauri y los navegadores externos requieren responder el preflight antes de
@@ -105,8 +128,7 @@ export async function GET(
 ) {
   const headers = corsHeaders(req);
   try {
-    await inicializarBaseDatos();
-    await inicializarTablasAdicionales();
+    await asegurarInicializacion();
   } catch (error: any) {
     console.error('Error al inicializar la base de datos:', error);
     return NextResponse.json({ error: error?.message || 'No se pudo inicializar la base de datos' }, { status: 500, headers });
@@ -119,6 +141,9 @@ export async function GET(
     // SETUP STATUS
     // -------------------------------------------------------------
     if (path === 'setup/status') {
+      const cached = obtenerCache('setup:status');
+      if (cached) return NextResponse.json(cached, { headers });
+
       const usuarios = await query('SELECT COUNT(*)::int AS total FROM usuarios_sistema');
       const ceremonias = await query('SELECT COUNT(*)::int AS total FROM ceremonias');
       const egresados = await query('SELECT COUNT(*)::int AS total FROM egresados');
@@ -130,7 +155,7 @@ export async function GET(
       );
       const setupCompleto = flagSetup.rows[0]?.valor === '1';
 
-      return NextResponse.json({
+      const respuesta = {
         requiereConfiguracionInicial: totalUsuarios === 0 || !setupCompleto,
         metricas: {
           usuarios: totalUsuarios,
@@ -139,7 +164,9 @@ export async function GET(
           invitados: invitados.rows[0]?.total ?? 0,
         },
         setupCompleto,
-      }, { headers });
+      };
+      guardarCache('setup:status', respuesta, 15);
+      return NextResponse.json(respuesta, { headers });
     }
 
     // -------------------------------------------------------------
@@ -294,6 +321,9 @@ export async function GET(
     // CONFIGURACIÓN
     // -------------------------------------------------------------
     if (path === 'configuracion') {
+      const cached = obtenerCache('configuracion:global');
+      if (cached) return NextResponse.json(cached, { headers });
+
       const resGlobal = await query(
         'SELECT clave, valor, descripcion, actualizado_en FROM configuracion_sistema ORDER BY clave'
       );
@@ -316,12 +346,17 @@ export async function GET(
         ajustes['lugar_evento']  = { valor: c.lugar, descripcion: 'Ubicación física del evento' };
       }
 
+      guardarCache('configuracion:global', ajustes, 60);
       return NextResponse.json(ajustes, { headers });
     }
 
     // CONFIG ANFITEATRO ESTRUCTURA POR CEREMONIA
     if (slug[0] === 'configuracion' && slug[1] === 'anfiteatro' && slug[2] === 'estructura' && slug[3]) {
       const ceremoniaId = slug[3];
+      const cacheKey = `anfiteatro:estructura:${ceremoniaId}`;
+      const cached = obtenerCache(cacheKey);
+      if (cached) return NextResponse.json(cached, { headers });
+
       const result = await query(
         'SELECT * FROM configuracion_anfiteatro WHERE ceremonia_id = $1 ORDER BY actualizado_en DESC LIMIT 1',
         [ceremoniaId]
@@ -340,25 +375,32 @@ export async function GET(
           }
         });
 
-        return NextResponse.json({
+        const defaultRes = {
           estructura: { 
             baja: { filas: 7, asientos: 20 },
             alta: { filas: 5, asientos: 22 }
           },
           mapaRoles: defaultRoles
-        }, { headers });
+        };
+        guardarCache(cacheKey, defaultRes, 60);
+        return NextResponse.json(defaultRes, { headers });
       }
       const data = result.rows[0];
-      return NextResponse.json({
+      const resData = {
         estructura: typeof data.estructura === 'string' ? JSON.parse(data.estructura) : data.estructura,
         mapaRoles: typeof data.mapa_roles === 'string' ? JSON.parse(data.mapa_roles) : data.mapa_roles
-      }, { headers });
+      };
+      guardarCache(cacheKey, resData, 60);
+      return NextResponse.json(resData, { headers });
     }
 
     // -------------------------------------------------------------
     // ANFITEATRO CONFIG
     // -------------------------------------------------------------
     if (path === 'anfiteatro/config') {
+      const cached = obtenerCache('anfiteatro:config:activa');
+      if (cached) return NextResponse.json(cached, { headers });
+
       const ceremoniaActiva = await query('SELECT id FROM ceremonias WHERE activa = 1 LIMIT 1');
       const ceremoniaId = ceremoniaActiva.rows[0]?.id;
       if (!ceremoniaId) return NextResponse.json({ error: 'No hay una ceremonia activa' }, { status: 404, headers });
@@ -381,17 +423,21 @@ export async function GET(
           }
         });
 
-        return NextResponse.json({
+        const defaultRes = {
           estructura: { baja: { filas: 7, asientos: 20 }, alta: { filas: 5, asientos: 22 } },
           mapaRoles: defaultRoles
-        }, { headers });
+        };
+        guardarCache('anfiteatro:config:activa', defaultRes, 60);
+        return NextResponse.json(defaultRes, { headers });
       }
 
       const { estructura, mapa_roles } = result.rows[0];
-      return NextResponse.json({
+      const resData = {
         estructura: typeof estructura === 'string' ? JSON.parse(estructura) : estructura,
         mapaRoles: typeof mapa_roles === 'string' ? JSON.parse(mapa_roles) : mapa_roles
-      }, { headers });
+      };
+      guardarCache('anfiteatro:config:activa', resData, 60);
+      return NextResponse.json(resData, { headers });
     }
 
     // -------------------------------------------------------------
@@ -461,10 +507,14 @@ export async function GET(
     }
 
     if (path === 'ceremonias/activa') {
+      const cached = obtenerCache('ceremonias:activa');
+      if (cached) return NextResponse.json(cached, { headers });
+
       const result = await query('SELECT * FROM ceremonias WHERE activa = 1 LIMIT 1');
       if (result.rows.length === 0) {
         return NextResponse.json({ error: 'No hay ninguna ceremonia activa' }, { status: 404, headers });
       }
+      guardarCache('ceremonias:activa', result.rows[0], 30);
       return NextResponse.json(result.rows[0], { headers });
     }
 
@@ -484,7 +534,11 @@ export async function GET(
     // PROFESORES
     // -------------------------------------------------------------
     if (path === 'profesores') {
+      const cached = obtenerCache('profesores:activos');
+      if (cached) return NextResponse.json(cached, { headers });
+
       const result = await query('SELECT * FROM profesores WHERE activo = 1 ORDER BY nombre');
+      guardarCache('profesores:activos', result.rows, 60);
       return NextResponse.json(result.rows, { headers });
     }
 
@@ -889,8 +943,7 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string[] }> }
 ) {
-  await inicializarBaseDatos();
-  await inicializarTablasAdicionales();
+  await asegurarInicializacion();
   const { slug } = await params;
   const headers = corsHeaders(req);
   const path = slug.join('/');
@@ -2071,8 +2124,7 @@ export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string[] }> }
 ) {
-  await inicializarBaseDatos();
-  await inicializarTablasAdicionales();
+  await asegurarInicializacion();
   const { slug } = await params;
   const headers = corsHeaders(req);
   const path = slug.join('/');
@@ -2142,6 +2194,8 @@ export async function PUT(
         };
         
         await query(`UPDATE ceremonias SET ${mapeo[clave]} = $1 WHERE activa = 1`, [valor]);
+        invalidarCache('configuracion');
+        invalidarCache('ceremonias');
         return NextResponse.json({ ok: true, mensaje: `Hábitat actualizado (${clave})` }, { headers });
       }
 
@@ -2154,6 +2208,8 @@ export async function PUT(
         [clave, String(valor)]
       );
 
+      invalidarCache('configuracion');
+      invalidarCache('setup:status');
       return NextResponse.json({ ok: true, ajuste: result.rows[0] }, { headers });
     }
 
@@ -2171,17 +2227,17 @@ export async function PUT(
       const esGestion = usuario.rol && ROLES_GESTION.includes(usuario.rol);
       if (!esGestion) {
         // Si no es de gestión administrativa, verificar si el usuario tiene restricciones asignadas
-        const restricciones = await query(
+        const tieneAsignaciones = await query(
           'SELECT 1 FROM ceremonias_usuarios_autorizados WHERE usuario_id = $1',
           [usuario.id]
         );
-        if (restricciones.rowCount && restricciones.rowCount > 0) {
-          const autoCheck = await query(
+        if (tieneAsignaciones.rowCount && tieneAsignaciones.rowCount > 0) {
+          const asignado = await query(
             'SELECT 1 FROM ceremonias_usuarios_autorizados WHERE ceremonia_id = $1 AND usuario_id = $2',
             [id, usuario.id]
           );
-          if (autoCheck.rowCount === 0) {
-            return NextResponse.json({ error: 'No tenés autorización para activar esta ceremonia' }, { status: 403, headers });
+          if (!asignado.rowCount || asignado.rowCount === 0) {
+            return NextResponse.json({ error: 'No tenés permisos para activar esta ceremonia' }, { status: 403, headers });
           }
         }
       }
@@ -2202,6 +2258,10 @@ export async function PUT(
           return NextResponse.json({ error: 'Ceremonia no encontrada' }, { status: 404, headers });
         }
         await client.query('COMMIT');
+        invalidarCache('ceremonias');
+        invalidarCache('configuracion');
+        invalidarCache('anfiteatro');
+        invalidarCache('setup:status');
         return NextResponse.json({ ok: true, mensaje: 'Ceremonia activada correctamente' }, { headers });
       } catch (error) {
         await client.query('ROLLBACK');
@@ -2774,8 +2834,7 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ slug: string[] }> }
 ) {
-  await inicializarBaseDatos();
-  await inicializarTablasAdicionales();
+  await asegurarInicializacion();
   const { slug } = await params;
   const headers = corsHeaders(req);
   const path = slug.join('/');

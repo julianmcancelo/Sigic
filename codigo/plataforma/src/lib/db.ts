@@ -15,6 +15,10 @@ if (!global.pgPool) {
   const sslInseguro = process.env.DB_SSL_INSECURE === '1';
   global.pgPool = new Pool({
     connectionString: process.env.DATABASE_URL,
+    max: 20,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 5000,
+    allowExitOnIdle: true,
     ssl: process.env.DATABASE_URL?.includes('localhost') 
       ? false 
       : {
