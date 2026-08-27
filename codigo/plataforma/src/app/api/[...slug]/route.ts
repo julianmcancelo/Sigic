@@ -1325,10 +1325,14 @@ export async function POST(
         return NextResponse.json({ error: `El graduado ya tiene el máximo de entregadores permitidos (${maxEntregadores})` }, { status: 400, headers });
       }
 
-      if (profesor_id && entregadoresExistentes.some((e: any) => e.profesor_id === profesor_id)) {
+      const esUUID = (v: any) => typeof v === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+      const profId = esUUID(profesor_id) ? profesor_id : null;
+      const invId = esUUID(invitado_id) ? invitado_id : null;
+
+      if (profId && entregadoresExistentes.some((e: any) => e.profesor_id === profId)) {
         return NextResponse.json({ error: 'Este profesor ya fue seleccionado como padrino' }, { status: 400, headers });
       }
-      if (invitado_id && entregadoresExistentes.some((e: any) => e.invitado_id === invitado_id)) {
+      if (invId && entregadoresExistentes.some((e: any) => e.invitado_id === invId)) {
         return NextResponse.json({ error: 'Este acompañante ya fue seleccionado como padrino' }, { status: 400, headers });
       }
 
@@ -1345,16 +1349,17 @@ export async function POST(
       if (!ordenFinal) ordenFinal = (Math.max(0, ...Array.from(ordenesOcupados)) + 1);
 
       try {
+        // Eliminar cualquier colisión previa en ese slot de orden si existiese
+        await query('DELETE FROM entregadores WHERE egresado_id = $1 AND orden = $2', [egresado_id, ordenFinal]);
+
         const result = await query(
           `INSERT INTO entregadores (egresado_id, tipo, profesor_id, invitado_id, nombre, orden) 
-           VALUES ($1, $2, $3, $4, $5, $6) 
-           ON CONFLICT (egresado_id, orden) DO UPDATE 
-           SET tipo = EXCLUDED.tipo, profesor_id = EXCLUDED.profesor_id, invitado_id = EXCLUDED.invitado_id, nombre = EXCLUDED.nombre
-           RETURNING *`,
-          [egresado_id, tipo, profesor_id || null, invitado_id || null, nombre.trim(), ordenFinal]
+           VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+          [egresado_id, tipo, profId, invId, nombre.trim(), ordenFinal]
         );
         return NextResponse.json(result.rows[0], { status: 201, headers });
       } catch (error: any) {
+        console.error('Error insertando entregador:', error);
         return NextResponse.json({ error: error.message || 'Error al guardar entregador/padrino' }, { status: 500, headers });
       }
     }
