@@ -47,7 +47,33 @@ import { AsistenteOperativoCeremonia } from './componentes/AsistenteOperativoCer
 // Servicios
 import { validarToken, obtenerCeremoniaActiva, obtenerEstadoSetup, responderInvitacion, limpiarTokenSesion, guardarTokenSesion, obtenerTokenSesion, obtenerAjustes, actualizarAjuste } from './servicios/api'
 
-const MODO_DEMO = process.env.NEXT_PUBLIC_DEMO_MODE === 'true' || process.env.NODE_ENV !== 'production'
+function verificarModoDemo() {
+  if (typeof window === 'undefined') return false
+  
+  // 1. Parámetro explícito en la URL (?demo=1 o ?demo=true activa, ?demo=0 o ?demo=false desactiva)
+  const params = new URLSearchParams(window.location.search)
+  const demoParam = params.get('demo')
+  if (demoParam === '1' || demoParam === 'true') {
+    localStorage.setItem('sigic_modo_demo', 'true')
+    return true
+  }
+  if (demoParam === '0' || demoParam === 'false') {
+    localStorage.setItem('sigic_modo_demo', 'false')
+    return false
+  }
+
+  // 2. Preferencia en memoria local
+  const demoGuardado = localStorage.getItem('sigic_modo_demo')
+  if (demoGuardado === 'true') return true
+  if (demoGuardado === 'false') return false
+
+  // 3. Variable de entorno explícita
+  if (process.env.NEXT_PUBLIC_DEMO_MODE === 'true') return true
+  if (process.env.NEXT_PUBLIC_DEMO_MODE === 'false') return false
+
+  // 4. Por defecto en desarrollo (localhost)
+  return process.env.NODE_ENV !== 'production'
+}
 
 function normalizarCorreoInstitucional(correo) {
   return typeof correo === 'string'
@@ -56,6 +82,7 @@ function normalizarCorreoInstitucional(correo) {
 }
 
 function App() {
+  const [modoDemoActivo, setModoDemoActivo] = useState(() => verificarModoDemo())
   useEffect(() => {
     if (!window.__TAURI_INTERNALS__) return
     import('@tauri-apps/plugin-updater').then(async ({ check }) => {
@@ -656,7 +683,7 @@ function App() {
 
   // CASO C: El usuario es Administrador logueado
   else if (adminActivo) {
-    if (pantallaAdmin === 'operaciones-demo' && MODO_DEMO) {
+    if (pantallaAdmin === 'operaciones-demo' && modoDemoActivo) {
       contenido = <CentroOperacionesDemo onNavegar={setPantallaAdmin} />
     } else if (pantallaAdmin === 'estado-ceremonia') {
       contenido = <EstadoCeremonia onVolver={() => setPantallaAdmin('bienvenida')} onNavegar={setPantallaAdmin} />
@@ -824,11 +851,11 @@ function App() {
   else {
     contenido = (
       <PantallaSeleccionLogin 
-        modoDemo={MODO_DEMO}
+        modoDemo={modoDemoActivo}
         enMantenimiento={enMantenimiento}
         accesoOculto={accesoOculto}
-        onSeleccionarAdmin={() => MODO_DEMO ? manejarLoginAdminExitoso(ADMIN_DEMO) : setVistaLogin('admin')}
-        onSeleccionarEgresado={() => MODO_DEMO ? manejarLoginGraduadoExitoso(EGRESADA_DEMO) : setVistaLogin('graduado')}
+        onSeleccionarAdmin={() => modoDemoActivo ? manejarLoginAdminExitoso(ADMIN_DEMO) : setVistaLogin('admin')}
+        onSeleccionarEgresado={() => modoDemoActivo ? manejarLoginGraduadoExitoso(EGRESADA_DEMO) : setVistaLogin('graduado')}
         onSeleccionarManual={() => setVistaLogin('manual')}
       />
     )
@@ -848,10 +875,10 @@ function App() {
   return (
     <>
       {contenidoDeEscritorio}
-      {MODO_DEMO && <MarcaAguaDemo />}
+      {modoDemoActivo && <MarcaAguaDemo />}
       
-      {/* Herramienta para presentaciones, disponible solo en el entorno demo. */}
-      {MODO_DEMO && (
+      {/* Herramienta para presentaciones, disponible cuando el modo demo está activo. */}
+      {modoDemoActivo && (
         <ControlExpositor
           onSimularAdmin={manejarLoginAdminExitoso}
           onSimularEgresado={manejarLoginGraduadoExitoso}
@@ -910,7 +937,7 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
     { id: 'ajustes', titulo: 'Ajustes', icono: Settings, color: 'bg-slate-500', escritorio: esSuperAdmin },
     { id: 'gestion-profesores', titulo: 'Docentes', icono: GraduationCap, color: 'bg-indigo-500', escritorio: false },
     { id: 'seleccion-asientos', titulo: 'Anfiteatro', icono: MapPin, color: 'bg-orange-500', escritorio: false },
-    ...(MODO_DEMO ? [{ id: 'operaciones-demo', titulo: 'Operaciones', icono: ClipboardCheck, color: 'bg-slate-500', escritorio: false }] : []),
+    ...(modoDemoActivo ? [{ id: 'operaciones-demo', titulo: 'Operaciones', icono: ClipboardCheck, color: 'bg-slate-500', escritorio: false }] : []),
   ]
   const accesos = aplicaciones.filter(app => app.escritorio)
   const disenoInicial = (indice = 0) => ({ posicion: { x: indice * 26, y: indice * 20 }, maximizada: false, ajuste: null })
