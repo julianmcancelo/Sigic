@@ -148,8 +148,9 @@ export async function generarPaseGoogleWallet(pase: PaseCeremonia) {
   const configuracion = obtenerConfiguracion();
   if (!configuracion) return null;
 
-  const { cuenta, classId, issuerId } = configuracion;
-  const objectId = `${issuerId}.sigic-${idSeguro(pase.ceremoniaId)}-${idSeguro(pase.token)}`;
+  const { cuenta, issuerId } = configuracion;
+  const classId = `${issuerId}.sigic_class_${idSeguro(pase.ceremoniaId || 'agosto_2026')}`;
+  const objectId = `${issuerId}.sigic_${idSeguro(pase.ceremoniaId || 'agosto_2026')}_${idSeguro(pase.token)}`;
   const heroUrl = new URL('/google-wallet-hero-credencial.jpg', pase.acceso).toString();
   const enlaceMapa = pase.lugar
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(pase.lugar)}`
@@ -176,7 +177,7 @@ export async function generarPaseGoogleWallet(pase: PaseCeremonia) {
     ticketType: textoLocalizado('Graduado'),
     reservationInfo: { confirmationCode: pase.token },
     barcode: { type: 'QR_CODE', value: `SIGIC:${pase.token}`, alternateText: `Acceso ${pase.token}` },
-    groupingInfo: { groupingId: pase.ceremoniaId },
+    groupingInfo: { groupingId: pase.ceremoniaId || 'ceremonia-activa' },
     seatInfo: desglosarAsiento(pase.asiento),
     textModulesData: [
       {
@@ -197,30 +198,41 @@ export async function generarPaseGoogleWallet(pase: PaseCeremonia) {
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
 
   try {
-    const resClase = await fetch(`${BASE_URL}/eventTicketClass/${encodeURIComponent(classId)}`, {
-      method: 'PATCH',
-      headers,
-      body: JSON.stringify({
-        reviewStatus: 'UNDER_REVIEW',
-        eventName: textoLocalizado(pase.ceremonia || 'Ceremonia de Graduación SiGIC 2026'),
-        issuerName: 'Instituto Tecnológico Beltrán',
-        dateTime: {
-          doorsOpen: doorsOpenIso,
-          start: startIso,
-          end: endIso,
-        },
-        venue: {
-          name: textoLocalizado(pase.lugar || 'Auditorio Instituto Tecnológico Beltrán'),
-          address: textoLocalizado(pase.lugar || 'Av. Manuel Belgrano 1191, Avellaneda, Buenos Aires, Argentina'),
-        },
-        hexBackgroundColor: '#071b34',
-      }),
-    });
-    if (!resClase.ok) {
-      console.warn('Aviso al actualizar clase de Google Wallet:', await resClase.text());
+    const resGetClase = await fetch(`${BASE_URL}/eventTicketClass/${encodeURIComponent(classId)}`, { headers });
+    const payloadClase = {
+      id: classId,
+      reviewStatus: 'UNDER_REVIEW',
+      eventName: textoLocalizado(pase.ceremonia || 'Ceremonia de Graduación SiGIC 2026'),
+      issuerName: 'Instituto Tecnológico Beltrán',
+      dateTime: {
+        doorsOpen: doorsOpenIso,
+        start: startIso,
+        end: endIso,
+      },
+      venue: {
+        name: textoLocalizado(pase.lugar || 'Auditorio Instituto Tecnológico Beltrán'),
+        address: textoLocalizado(pase.lugar || 'Av. Manuel Belgrano 1191, Avellaneda, Buenos Aires, Argentina'),
+      },
+      hexBackgroundColor: '#071b34',
+    };
+
+    if (resGetClase.status === 404) {
+      const resPost = await fetch(`${BASE_URL}/eventTicketClass`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(payloadClase),
+      });
+      if (!resPost.ok) console.warn('Aviso al crear clase en Google Wallet:', await resPost.text());
+    } else {
+      const resPatch = await fetch(`${BASE_URL}/eventTicketClass/${encodeURIComponent(classId)}`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify(payloadClase),
+      });
+      if (!resPatch.ok) console.warn('Aviso al actualizar clase en Google Wallet:', await resPatch.text());
     }
   } catch (errClase) {
-    console.warn('Aviso: no se pudo actualizar la clase de Google Wallet:', errClase);
+    console.warn('Aviso: no se pudo sincronizar la clase de Google Wallet:', errClase);
   }
 
   const existente = await fetch(`${BASE_URL}/eventTicketObject/${encodeURIComponent(objectId)}`, { headers });
