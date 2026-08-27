@@ -161,21 +161,18 @@ export function ListaAcompanantes({
             </div>
           </div>
           {perfilCompleto ? (
-            graduadoEstado === 'ACEPTADO' && (
-              <button
-                onClick={onContinuarButacas}
-                className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 text-[10px] font-black uppercase tracking-wider text-white transition hover:bg-emerald-700"
-              >
-                Continuar a butacas <ChevronRight size={14} />
-              </button>
-            )
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-100/80 text-emerald-800 rounded-xl text-xs font-black">
+                <CircleCheck size={14} /> Grupo Confirmado
+              </span>
+            </div>
           ) : (
             <button
               onClick={onFinalizar}
               disabled={finalizandoInscripcion}
-              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-[#10243c] px-4 text-[10px] font-black uppercase tracking-wider text-white transition hover:bg-sky-600 disabled:cursor-wait disabled:opacity-60"
+              className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 text-[10px] font-black uppercase tracking-wider text-white transition hover:bg-sky-600 active:scale-95 disabled:opacity-60 cursor-pointer"
             >
-              {finalizandoInscripcion ? 'Guardando...' : 'Guardar y finalizar'} <ChevronRight size={14} />
+              {finalizandoInscripcion ? 'Guardando...' : 'Guardar y confirmar grupo'} <ChevronRight size={14} />
             </button>
           )}
         </div>

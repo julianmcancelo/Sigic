@@ -18,7 +18,6 @@ import {
 } from '../servicios/api'
 import { useSincronizacion, emitirCambioSync } from '../lib/sync'
 import { ModalCredencial } from '../componentes/ModalCredencial'
-import { ModalAsignarAsientos } from '../componentes/ModalAsignarAsientos'
 import { ListaHistorialGraduado } from './HistorialGraduado'
 import { FormularioAcompanante } from '../componentes/graduado/FormularioAcompanante'
 import { ListaAcompanantes } from '../componentes/graduado/ListaAcompanantes'
@@ -259,34 +258,56 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
     } catch (err) { alert(err.message) }
   }
 
-  // ─── Info de asientos (solo lectura) ───────────────────────
+  // ─── Info de estado del portal ─────────────────────────────
 
   const todosLosAsientos = [
     graduado.asiento_id || graduado.asiento_solicitado_id,
     graduado.entregador_asiento_id,
     ...invitados.map(i => i.asiento_id || i.asiento_solicitado_id)
   ].filter(Boolean)
-  const estadoButacas = graduado.estado_asignacion_butacas || 'SIN_SOLICITUD'
   const perfilCompleto = Boolean(graduado.perfil_finalizado_en)
-  const propuestaGuardada = estadoButacas === 'PENDIENTE_REVISION' || estadoButacas === 'CONFIRMADA'
-  const credencialDisponible = estadoButacas === 'CONFIRMADA'
+  const tieneJuramento = Boolean(graduado.formula_juramento)
+  const tienePadrinos = entregadores.length > 0
   const cuposRestantes = Math.max(maxInvitados - invitados.length, 0)
   const fechaCeremonia = formatearFechaCeremonia(graduado.ceremonia_fecha)
   const lugarCeremonia = graduado.ceremonia_lugar || 'Sede Beltrán'
   const nombreCeremonia = graduado.ceremonia_nombre || 'Ceremonia de colación'
+
   const etapasPortal = [
-    { etiqueta: 'Grupo', completada: perfilCompleto },
-    { etiqueta: 'Propuesta', completada: propuestaGuardada },
-    { etiqueta: 'Credencial', completada: credencialDisponible }
+    { etiqueta: 'Juramento', completada: tieneJuramento },
+    { etiqueta: 'Acompañantes', completada: perfilCompleto },
+    { etiqueta: 'Padrinos', completada: tienePadrinos },
+    { etiqueta: 'Credencial', completada: perfilCompleto }
   ]
   const pasosCompletados = etapasPortal.filter(etapa => etapa.completada).length
-  const accionSiguiente = estadoButacas === 'CONFIRMADA'
-    ? { titulo: 'Ubicaciones confirmadas', detalle: 'La institución aprobó tus butacas. Tu credencial ya está disponible para descargar, imprimir o guardar en Google Wallet.', etiqueta: 'Ver credencial digital', accion: () => setPestana('credencial') }
-    : estadoButacas === 'PENDIENTE_REVISION'
-      ? { titulo: 'Propuesta en revisión', detalle: 'Tus butacas fueron enviadas. Podés ver el mapa mientras administración realiza la confirmación oficial.', etiqueta: 'Ver propuesta', accion: () => setMostrarButacas(true) }
-      : perfilCompleto
-        ? { titulo: 'Elegí las butacas', detalle: 'Proponé las butacas del grupo para que administración confirme tus lugares en el anfiteatro.', etiqueta: 'Proponer butacas', accion: () => setMostrarButacas(true) }
-        : { titulo: 'Revisá tus acompañantes', detalle: 'Cargá tus invitados o continuá solo para habilitar la propuesta de butacas.', etiqueta: 'Cargar acompañante', accion: () => { setPestana('invitados'); setMostrarForm(true); } }
+
+  const accionSiguiente = !tieneJuramento
+    ? {
+        titulo: 'Elegí tu fórmula de juramento',
+        detalle: 'Seleccioná la fórmula de juramento protocolar para el acto de colación.',
+        etiqueta: 'Prestar juramento',
+        accion: () => setPestana('juramento')
+      }
+    : !perfilCompleto
+      ? {
+          titulo: 'Confirmá tus acompañantes',
+          detalle: 'Cargá los datos de tus invitados o confirmá tu asistencia individual.',
+          etiqueta: 'Gestionar acompañantes',
+          accion: () => { setPestana('invitados'); setMostrarForm(false); }
+        }
+      : !tienePadrinos
+        ? {
+            titulo: 'Elegí tus padrinos',
+            detalle: 'Seleccioná hasta 3 profesores o familiares para la entrega de diploma.',
+            etiqueta: 'Elegir padrinos',
+            accion: () => setPestana('entregadores')
+          }
+        : {
+            titulo: '¡Registro completado con éxito!',
+            detalle: 'Tus datos quedaron confirmados. La institución asignará las butacas automáticamente. Ya podés ver y descargar tu credencial digital.',
+            etiqueta: 'Ver credencial digital',
+            accion: () => setPestana('credencial')
+          }
 
   if (cargando) {
     return (
@@ -387,30 +408,30 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
 
         {/* Resumen Compacto de Ceremonia */}
         <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <div className="rounded-2xl border border-slate-200 bg-white p-4">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
             <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Fecha</p>
             <p className="mt-1 flex items-center gap-1.5 text-xs font-bold text-slate-700">
               <CalendarDays size={14} className="text-sky-500" /> {fechaCeremonia}
             </p>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-4">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
             <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Lugar</p>
             <p className="mt-1 flex items-center gap-1.5 text-xs font-bold text-slate-700 truncate">
               <MapPin size={14} className="text-indigo-500" /> {lugarCeremonia}
             </p>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-4">
-            <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Butacas</p>
-            <p className="mt-1 flex items-center gap-1.5 text-xs font-bold text-slate-700">
-              <Armchair size={14} className={estadoButacas === 'CONFIRMADA' ? 'text-emerald-500' : 'text-amber-500'} />
-              {estadoButacas === 'CONFIRMADA' ? 'Aprobadas' : estadoButacas === 'PENDIENTE_REVISION' ? 'En revisión' : 'Pendiente'}
-            </p>
-          </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-4">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
             <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Juramento</p>
             <p className="mt-1 flex items-center gap-1.5 text-xs font-bold text-slate-700 truncate">
               <ScrollText size={14} className="text-sky-500" />
               {FORMULAS_JURAMENTO[graduado?.formula_juramento]?.etiquetaCorta || 'Por la Patria'}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
+            <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Padrinos</p>
+            <p className="mt-1 flex items-center gap-1.5 text-xs font-bold text-slate-700">
+              <GraduationCap size={14} className="text-purple-500" />
+              {entregadores.length > 0 ? `${entregadores.length}/3 asignados` : 'Pendiente'}
             </p>
           </div>
         </section>
@@ -484,7 +505,6 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
                 onEditar={iniciarEdicion}
                 onEliminar={manejarEliminarInvitado}
                 onFinalizar={finalizarInscripcion}
-                onContinuarButacas={() => setMostrarButacas(true)}
               />
             )
           )}
@@ -505,16 +525,6 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
           {pestana === 'credencial' && (
             <div className="flex flex-col items-center">
               <div className="w-full max-w-lg">
-                <div className="mb-4 rounded-2xl border border-sky-100 bg-sky-50 px-4 py-3 text-sm font-semibold text-sky-900">
-                  <p>
-                    {estadoButacas === 'PENDIENTE_REVISION' ? 'Tu propuesta' : 'Tu ubicación'}: <strong>{graduado.asiento_id || graduado.asiento_solicitado_id || 'aún sin asignar'}</strong>
-                  </p>
-                  {invitados.some(inv => inv.asiento_id || inv.asiento_solicitado_id) && (
-                    <p className="mt-1 text-xs text-sky-700">
-                      Acompañantes: {invitados.filter(inv => inv.asiento_id || inv.asiento_solicitado_id).map(inv => `${inv.nombre} (${inv.asiento_id || inv.asiento_solicitado_id})`).join(' · ')}
-                    </p>
-                  )}
-                </div>
                 <ModalCredencial 
                   egresado={{ ...graduado, asientos: todosLosAsientos, invitados }} 
                   onCerrar={() => setPestana('invitados')} 
@@ -524,32 +534,6 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion }) {
           )}
         </section>
       </main>
-
-      {/* Modal de Asignación / Visualización de Butacas */}
-      {mostrarButacas && (
-        <ModalAsignarAsientos
-          graduado={graduado}
-          invitados={invitados}
-          ceremoniaId={graduado.ceremonia_id}
-          todosLosGraduados={[graduado]}
-          todosLosInvitados={invitados}
-          modo={estadoButacas === 'CONFIRMADA' ? 'lectura' : 'propuesta'}
-          onCerrar={() => setMostrarButacas(false)}
-          onVerCredencial={() => {
-            setMostrarButacas(false)
-            setPestana('credencial')
-          }}
-          onAsignado={(resultado) => {
-            setGraduado(actual => ({ ...actual, ...resultado.graduado }))
-            setInvitados(actuales => actuales.map(invitado => {
-              const guardado = resultado.invitados?.find(item => String(item.id) === String(invitado.id))
-              return guardado ? { ...invitado, ...guardado } : invitado
-            }))
-            setMensaje({ tipo: 'exito', texto: 'Propuesta guardada. Podés volver a verla mientras administración la revisa.' })
-            setMostrarButacas(false)
-          }}
-        />
-      )}
       {dialogoConfirmacion}
     </div>
   )
