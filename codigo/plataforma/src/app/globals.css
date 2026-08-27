@@ -95,8 +95,147 @@ button { cursor: pointer; }
 .sigic-ceremony-assistant { position: fixed; right: 18px; bottom: 62px; z-index: 18; width: min(340px, calc(100vw - 36px)); overflow: hidden; border: 1px solid rgba(106, 225, 229, .25); border-radius: 14px; background: rgba(8, 28, 45, .94); box-shadow: 0 20px 55px rgba(0,0,0,.36); backdrop-filter: blur(18px); color: white; }.sigic-ceremony-assistant-toggle { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 11px 13px; color: #e6fbff; font-size: 10px; font-weight: 800; }.sigic-ceremony-assistant-toggle span { display: flex; align-items: center; gap: 8px; }.sigic-ceremony-assistant-pulse { width: 7px; height: 7px; border-radius: 50%; background: #5de2db; box-shadow: 0 0 12px #5de2db; }.sigic-ceremony-assistant-body { display: grid; grid-template-columns: 34px 1fr; gap: 10px; padding: 0 13px 13px; }.sigic-ceremony-assistant-icon { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; background: rgba(88,218,220,.15); color: #69e5e7; }.sigic-ceremony-assistant-kicker { margin: 0 0 3px; color: #75dce0; font-size: 8px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }.sigic-ceremony-assistant-body strong { font-size: 12px; }.sigic-ceremony-assistant-body p:not(.sigic-ceremony-assistant-kicker) { margin: 4px 0 0; color: rgba(232,248,252,.6); font-size: 10px; line-height: 1.45; }.sigic-ceremony-assistant-progress { grid-column: 1 / -1; height: 3px; overflow: hidden; border-radius: 999px; background: rgba(255,255,255,.12); }.sigic-ceremony-assistant-progress span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg,#37cddd,#76e2a0); }.sigic-ceremony-assistant-action { grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; gap: 7px; padding: 9px; border-radius: 8px; background: #17a8c5; color: #fff; font-size: 10px; font-weight: 800; }.sigic-ceremony-assistant-action:hover { background: #27bad2; }
 .sigic-ceremony-assistant-stages { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }.sigic-ceremony-assistant-stages span { display: flex; align-items: center; gap: 4px; color: rgba(232,248,252,.38); font-size: 8px; font-weight: 700; }.sigic-ceremony-assistant-stages i { width: 8px; height: 8px; border: 1px solid rgba(232,248,252,.32); border-radius: 50%; }.sigic-ceremony-assistant-stages .is-current { color: #7ce6e4; }.sigic-ceremony-assistant-stages .is-current i { border-color: #7ce6e4; box-shadow: 0 0 8px #7ce6e4; }.sigic-ceremony-assistant-stages .is-done { color: #7fe1a5; }
 .sigic-ceremony-assistant-load { grid-column: 1 / -1; padding: 8px; border: 1px solid rgba(104,226,223,.17); border-radius: 9px; background: rgba(104,226,223,.07); }.sigic-ceremony-assistant-load p { margin: 0 !important; color: rgba(232,248,252,.68) !important; font-size: 9px !important; }.sigic-ceremony-assistant-load > div { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 7px; }.sigic-ceremony-assistant-load button { display: flex; align-items: center; justify-content: center; gap: 5px; padding: 7px 4px; border: 1px solid rgba(110,226,229,.2); border-radius: 7px; color: #a7f2ef; font-size: 8px; font-weight: 800; }.sigic-ceremony-assistant-load button:hover { background: rgba(91,222,217,.14); }.sigic-quick-graduate-overlay { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 18px; background: rgba(2,12,25,.7); backdrop-filter: blur(8px); }.sigic-quick-graduate-card { width: min(510px, 100%); overflow: hidden; border: 1px solid rgba(94,215,222,.3); border-radius: 16px; background: #f8fbfd; box-shadow: 0 28px 80px rgba(0,0,0,.45); color: #10283d; }.sigic-quick-graduate-card header { display: flex; align-items: start; justify-content: space-between; padding: 18px 20px; background: linear-gradient(135deg,#071a32,#0e4861); color: white; }.sigic-quick-graduate-card header span { color: #6ce0df; font-size: 8px; font-weight: 900; letter-spacing: .16em; text-transform: uppercase; }.sigic-quick-graduate-card header h2 { margin: 4px 0 0; font-size: 18px; }.sigic-quick-graduate-card header p { margin: 4px 0 0; color: rgba(255,255,255,.62); font-size: 10px; }.sigic-quick-graduate-card header button { padding: 5px; border-radius: 7px; color: rgba(255,255,255,.7); }.sigic-quick-graduate-card header button:hover { background: rgba(255,255,255,.12); color: white; }.sigic-quick-graduate-error { display: flex; align-items: center; gap: 7px; margin: 14px 18px 0; padding: 9px; border-radius: 8px; background: #fff0f0; color: #bd3030; font-size: 10px; font-weight: 700; }.sigic-quick-graduate-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 18px; }.sigic-quick-graduate-fields label { display: grid; gap: 5px; color: #587087; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }.sigic-quick-graduate-fields input { min-width: 0; padding: 10px; border: 1px solid #d7e2e9; border-radius: 8px; outline: none; color: #122a3f; font-size: 12px; text-transform: none; letter-spacing: normal; }.sigic-quick-graduate-fields input:focus { border-color: #20abc1; box-shadow: 0 0 0 3px rgba(32,171,193,.12); }.sigic-quick-graduate-field-wide { grid-column: 1 / -1; }.sigic-quick-graduate-card footer { display: flex; justify-content: flex-end; gap: 8px; padding: 13px 18px; border-top: 1px solid #e5edf2; background: #f1f6f8; }.sigic-quick-graduate-card footer button { display: inline-flex; align-items: center; gap: 6px; padding: 9px 12px; border-radius: 8px; font-size: 10px; font-weight: 800; }.sigic-quick-graduate-card footer button:first-child { color: #587087; }.sigic-quick-graduate-card footer button:last-child { background: #087f9d; color: white; }.sigic-quick-graduate-card footer button:last-child:hover { background: #066b85; }.sigic-quick-graduate-card footer button:disabled { cursor: wait; opacity: .6; }
-.sigic-theme-claro { background: #dbe8ee; color: #173044; }.sigic-theme-claro .sigic-os-grid { opacity: .42; background-image: linear-gradient(rgba(27,103,125,.12) 1px, transparent 1px), linear-gradient(90deg, rgba(27,103,125,.12) 1px, transparent 1px); }.sigic-theme-claro .sigic-os-topbar, .sigic-theme-claro .sigic-taskbar { background: rgba(244,250,252,.9); border-color: rgba(25,80,100,.15); }.sigic-theme-claro .sigic-brand, .sigic-theme-claro .sigic-os-topbar .text-white\/60, .sigic-theme-claro .sigic-taskbar .text-white\/65 { color: #173044; }.sigic-theme-claro .sigic-task-app, .sigic-theme-claro .sigic-start-button, .sigic-theme-claro .sigic-open-task { color: rgba(23,48,68,.72); }.sigic-theme-claro .sigic-start-button:hover, .sigic-theme-claro .sigic-start-button.is-active, .sigic-theme-claro .sigic-task-app:hover, .sigic-theme-claro .sigic-open-task:hover, .sigic-theme-claro .sigic-open-task.is-current { background: rgba(23,128,157,.12); color: #0d4f67; }.sigic-theme-claro .sigic-session-card { background: rgba(248,253,255,.8); border-color: rgba(25,80,100,.18); }.sigic-theme-claro .sigic-session-card strong { color: #173044; }.sigic-theme-claro .sigic-session-card div + div span { color: rgba(23,48,68,.55); }.sigic-theme-claro .sigic-context-menu { background: rgba(248,253,255,.98); border-color: rgba(25,80,100,.16); }.sigic-theme-claro .sigic-context-title { color: rgba(23,48,68,.5); }.sigic-theme-claro .sigic-context-menu button { color: rgba(23,48,68,.78); }.sigic-theme-claro .sigic-context-menu button:hover { background: rgba(23,128,157,.12); color: #0d4f67; }.sigic-theme-claro .sigic-context-separator { background: rgba(23,48,68,.1); }
-@media (max-width: 700px) { .sigic-session-card { right: 12px; bottom: 14px; min-width: 0; }.sigic-session-card div + div, .sigic-session-state { display: none; } }
+/* ─── TEMAS DE FONDO DE PANTALLA OFICIALES SIGIC ─── */
+.sigic-wallpaper-beltran {
+  background: radial-gradient(circle at 50% 30%, #0c2742 0%, #081624 70%, #040c14 100%) !important;
+  color: #e8f2f7;
+}
+.sigic-wallpaper-beltran:before {
+  background: radial-gradient(circle, rgba(0, 183, 211, 0.22), transparent 66%) !important;
+}
+
+.sigic-wallpaper-aurora {
+  background: radial-gradient(circle at 60% 20%, #0a3a3a 0%, #061d28 50%, #020c12 100%) !important;
+  color: #ecfdf5;
+}
+.sigic-wallpaper-aurora:before {
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.2), transparent 70%) !important;
+}
+.sigic-wallpaper-aurora .sigic-os-grid {
+  background-image: linear-gradient(rgba(16, 185, 129, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(16, 185, 129, 0.08) 1px, transparent 1px) !important;
+}
+
+.sigic-wallpaper-carbon {
+  background: radial-gradient(circle at 50% 40%, #171d26 0%, #0d1117 65%, #05070a 100%) !important;
+  color: #f1f5f9;
+}
+.sigic-wallpaper-carbon:before {
+  background: radial-gradient(circle, rgba(100, 116, 139, 0.15), transparent 60%) !important;
+}
+.sigic-wallpaper-carbon .sigic-os-grid {
+  opacity: 0.15 !important;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px) !important;
+}
+
+.sigic-wallpaper-ceremonial {
+  background: radial-gradient(circle at 45% 25%, #1e1b4b 0%, #0f172a 60%, #09090b 100%) !important;
+  color: #fef3c7;
+}
+.sigic-wallpaper-ceremonial:before {
+  background: radial-gradient(circle, rgba(245, 158, 11, 0.18), transparent 65%) !important;
+}
+.sigic-wallpaper-ceremonial .sigic-os-grid {
+  background-image: linear-gradient(rgba(245, 158, 11, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(245, 158, 11, 0.06) 1px, transparent 1px) !important;
+}
+
+.sigic-wallpaper-cybergrid {
+  background: linear-gradient(135deg, #031326 0%, #08213d 50%, #020b17 100%) !important;
+  color: #e0f2fe;
+}
+.sigic-wallpaper-cybergrid:before {
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.28), transparent 60%) !important;
+}
+.sigic-wallpaper-cybergrid .sigic-os-grid {
+  opacity: 0.45 !important;
+  background-size: 32px 32px !important;
+  background-image: linear-gradient(rgba(56, 189, 248, 0.14) 1px, transparent 1px), linear-gradient(90deg, rgba(56, 189, 248, 0.14) 1px, transparent 1px) !important;
+}
+
+.sigic-wallpaper-alabaster,
+.sigic-theme-claro {
+  background: linear-gradient(145deg, #e2e8f0 0%, #cbd5e1 50%, #f1f5f9 100%) !important;
+  color: #173044 !important;
+}
+.sigic-wallpaper-alabaster .sigic-os-grid,
+.sigic-theme-claro .sigic-os-grid {
+  opacity: 0.35 !important;
+  background-image: linear-gradient(rgba(27, 103, 125, 0.12) 1px, transparent 1px), linear-gradient(90deg, rgba(27, 103, 125, 0.12) 1px, transparent 1px) !important;
+}
+.sigic-wallpaper-alabaster:before,
+.sigic-theme-claro:before {
+  background: radial-gradient(circle, rgba(2, 132, 199, 0.14), transparent 66%) !important;
+}
+.sigic-wallpaper-alabaster .sigic-os-topbar,
+.sigic-wallpaper-alabaster .sigic-taskbar,
+.sigic-theme-claro .sigic-os-topbar,
+.sigic-theme-claro .sigic-taskbar {
+  background: rgba(244, 250, 252, 0.9) !important;
+  border-color: rgba(25, 80, 100, 0.15) !important;
+}
+.sigic-wallpaper-alabaster .sigic-brand,
+.sigic-wallpaper-alabaster .sigic-os-topbar .text-white\/60,
+.sigic-wallpaper-alabaster .sigic-taskbar .text-white\/65,
+.sigic-theme-claro .sigic-brand,
+.sigic-theme-claro .sigic-os-topbar .text-white\/60,
+.sigic-theme-claro .sigic-taskbar .text-white\/65 {
+  color: #173044 !important;
+}
+.sigic-wallpaper-alabaster .sigic-task-app,
+.sigic-wallpaper-alabaster .sigic-start-button,
+.sigic-wallpaper-alabaster .sigic-open-task,
+.sigic-theme-claro .sigic-task-app,
+.sigic-theme-claro .sigic-start-button,
+.sigic-theme-claro .sigic-open-task {
+  color: rgba(23, 48, 68, 0.72) !important;
+}
+.sigic-wallpaper-alabaster .sigic-start-button:hover,
+.sigic-wallpaper-alabaster .sigic-start-button.is-active,
+.sigic-wallpaper-alabaster .sigic-task-app:hover,
+.sigic-wallpaper-alabaster .sigic-open-task:hover,
+.sigic-wallpaper-alabaster .sigic-open-task.is-current,
+.sigic-theme-claro .sigic-start-button:hover,
+.sigic-theme-claro .sigic-start-button.is-active,
+.sigic-theme-claro .sigic-task-app:hover,
+.sigic-theme-claro .sigic-open-task:hover,
+.sigic-theme-claro .sigic-open-task.is-current {
+  background: rgba(23, 128, 157, 0.12) !important;
+  color: #0d4f67 !important;
+}
+.sigic-wallpaper-alabaster .sigic-session-card,
+.sigic-theme-claro .sigic-session-card {
+  background: rgba(248, 253, 255, 0.85) !important;
+  border-color: rgba(25, 80, 100, 0.18) !important;
+}
+.sigic-wallpaper-alabaster .sigic-session-card strong,
+.sigic-theme-claro .sigic-session-card strong {
+  color: #173044 !important;
+}
+.sigic-wallpaper-alabaster .sigic-session-card div + div span,
+.sigic-theme-claro .sigic-session-card div + div span {
+  color: rgba(23, 48, 68, 0.55) !important;
+}
+.sigic-wallpaper-alabaster .sigic-context-menu,
+.sigic-theme-claro .sigic-context-menu {
+  background: rgba(248, 253, 255, 0.98) !important;
+  border-color: rgba(25, 80, 100, 0.16) !important;
+}
+.sigic-wallpaper-alabaster .sigic-context-title,
+.sigic-theme-claro .sigic-context-title {
+  color: rgba(23, 48, 68, 0.5) !important;
+}
+.sigic-wallpaper-alabaster .sigic-context-menu button,
+.sigic-theme-claro .sigic-context-menu button {
+  color: rgba(23, 48, 68, 0.78) !important;
+}
+.sigic-wallpaper-alabaster .sigic-context-menu button:hover,
+.sigic-theme-claro .sigic-context-menu button:hover {
+  background: rgba(23, 128, 157, 0.12) !important;
+  color: #0d4f67 !important;
+}
+.sigic-wallpaper-alabaster .sigic-context-separator,
+.sigic-theme-claro .sigic-context-separator {
+  background: rgba(23, 48, 68, 0.1) !important;
+}
 
 /* Mobile first: el escritorio deja de simular una PC y prioriza superficie táctil real. */
 @media (max-width: 700px) {

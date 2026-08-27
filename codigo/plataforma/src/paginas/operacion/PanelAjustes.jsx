@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react'
 import { 
   Settings, Save, RefreshCw, Building2, Users, MapPin, 
   Globe, Shield, ChevronRight, LogOut, LayoutGrid, Monitor, SlidersHorizontal,
-  Fingerprint, CheckCircle2, Mail, Send, CircleCheck, CircleAlert
+  Fingerprint, CheckCircle2, Mail, Send, CircleCheck, CircleAlert,
+  Palette, Check, Grid, Layers, Sparkles
 } from 'lucide-react'
 import { obtenerAjustes, actualizarAjuste, enviarCorreoPrueba } from '../../servicios/api'
+import { FONDOS_DISPONIBLES } from '../../datos/fondos-pantalla'
 
 const ACCENT = '#0EA5E9'
 const DARK   = '#2A3448'
@@ -27,6 +29,38 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
   const [correoPrueba, setCorreoPrueba] = useState(usuario?.email || '')
   const [enviandoPrueba, setEnviandoPrueba] = useState(false)
   const [resultadoCorreo, setResultadoCorreo] = useState(null)
+  const [fondoId, setFondoId] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('sigic_fondo') || 'beltran' : 'beltran'))
+  const [cuadriculaActiva, setCuadriculaActiva] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('sigic_cuadricula') !== 'false' : true))
+  const [marcaAguaActiva, setMarcaAguaActiva] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('sigic_marca_agua') !== 'false' : true))
+
+  const handleCambiarFondo = (id) => {
+    setFondoId(id)
+    localStorage.setItem('sigic_fondo', id)
+    if (id === 'alabaster') {
+      localStorage.setItem('sigic_tema', 'claro')
+    } else {
+      localStorage.setItem('sigic_tema', 'oscuro')
+    }
+    actualizarAjuste('fondo_pantalla', id).catch(() => {})
+    setMensaje({ tipo: 'exito', texto: `Fondo de pantalla actualizado a ${FONDOS_DISPONIBLES.find(f => f.id === id)?.nombre || id}` })
+    setTimeout(() => setMensaje(null), 3000)
+  }
+
+  const handleToggleCuadricula = () => {
+    const nuevo = !cuadriculaActiva
+    setCuadriculaActiva(nuevo)
+    localStorage.setItem('sigic_cuadricula', String(nuevo))
+    setMensaje({ tipo: 'exito', texto: `Cuadrícula tecnológica ${nuevo ? 'activada' : 'desactivada'}` })
+    setTimeout(() => setMensaje(null), 3000)
+  }
+
+  const handleToggleMarcaAgua = () => {
+    const nuevo = !marcaAguaActiva
+    setMarcaAguaActiva(nuevo)
+    localStorage.setItem('sigic_marca_agua', String(nuevo))
+    setMensaje({ tipo: 'exito', texto: `Marca de agua institucional ${nuevo ? 'activada' : 'desactivada'}` })
+    setTimeout(() => setMensaje(null), 3000)
+  }
 
   useEffect(() => { cargar() }, [])
 
@@ -129,6 +163,7 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
 
   const secciones = [
     { id: 'plataforma', nombre: 'Plataforma', detalle: 'Acceso y comportamiento general', icono: SlidersHorizontal },
+    { id: 'apariencia', nombre: 'Fondo & Estilos', detalle: 'Fondo de pantalla y temas visuales', icono: Palette },
     { id: 'identidad', nombre: 'Identidad', detalle: 'Institución y presentación', icono: Building2 },
     { id: 'ceremonia', nombre: 'Ceremonia', detalle: 'Reglas del evento activo', icono: LayoutGrid },
     { id: 'correo', nombre: 'Correo', detalle: 'Comprobar envíos de la demo', icono: Mail },
@@ -261,6 +296,120 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
               {renderInterruptor('acceso_directo_admin', 'Ruta directa administrativo', <Shield size={18} />, 'Permite el acceso directo a la administración mediante la ruta /admin sin pasar por el Easter Egg.')}
             </div>
           </section>}
+
+          {seccionActiva === 'apariencia' && (
+            <section className="space-y-5">
+              <div className="flex items-center justify-between ml-1">
+                <div className="flex items-center gap-2">
+                  <div className="w-1 h-3 bg-sky-500 rounded-full" />
+                  <h2 className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Temas y Fondo de Pantalla Oficiales</h2>
+                </div>
+                <span className="text-[9px] font-black uppercase tracking-wider text-sky-600 bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-100">
+                  {FONDOS_DISPONIBLES.find(f => f.id === fondoId)?.nombre || 'Azul Beltrán'}
+                </span>
+              </div>
+
+              {/* GRILLA DE TEMAS VISUALES */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {FONDOS_DISPONIBLES.map((fondo) => {
+                  const esActivo = fondoId === fondo.id
+                  return (
+                    <button
+                      key={fondo.id}
+                      type="button"
+                      onClick={() => handleCambiarFondo(fondo.id)}
+                      className={`relative rounded-3xl p-5 text-left transition-all cursor-pointer flex flex-col justify-between h-44 border ${
+                        esActivo 
+                          ? 'border-sky-500 ring-4 ring-sky-500/20 shadow-xl shadow-sky-500/10 scale-[1.02]' 
+                          : 'border-slate-200 hover:border-slate-300 hover:shadow-md'
+                      }`}
+                      style={{
+                        background: `linear-gradient(135deg, ${fondo.colores[0]}, ${fondo.colores[1]})`
+                      }}
+                    >
+                      <div className="flex items-center justify-between w-full">
+                        <span 
+                          className="text-[9px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md border"
+                          style={{
+                            backgroundColor: `${fondo.colorPrincipal}30`,
+                            color: fondo.colorPrincipal,
+                            borderColor: `${fondo.colorPrincipal}50`
+                          }}
+                        >
+                          {fondo.badge}
+                        </span>
+
+                        {esActivo && (
+                          <span className="w-6 h-6 rounded-full bg-sky-400 text-slate-950 flex items-center justify-center shadow-md">
+                            <Check size={14} strokeWidth={3} />
+                          </span>
+                        )}
+                      </div>
+
+                      <div>
+                        <h4 className="text-sm font-black text-white">{fondo.nombre}</h4>
+                        <p className="text-[11px] text-slate-300/90 font-medium line-clamp-2 mt-1 leading-snug">
+                          {fondo.descripcion}
+                        </p>
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* EFECTOS Y CAPAS ADICIONALES */}
+              <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm space-y-4">
+                <div className="flex items-center gap-2">
+                  <Sparkles size={16} className="text-sky-500" />
+                  <h3 className="text-xs font-black text-slate-800">Efectos y Capas Visuales</h3>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-white border border-slate-200 text-slate-700">
+                        <Grid size={16} />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-black text-slate-800">Cuadrícula Tecnológica</h4>
+                        <p className="text-[10px] text-slate-500 font-medium">Patrón geométrico sutil en el escritorio</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleToggleCuadricula}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer ${
+                        cuadriculaActiva ? 'bg-sky-500 text-white shadow-sm' : 'bg-slate-200 text-slate-600'
+                      }`}
+                    >
+                      {cuadriculaActiva ? 'Activada' : 'Oculta'}
+                    </button>
+                  </div>
+
+                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-lg bg-white border border-slate-200 text-slate-700">
+                        <Layers size={16} />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-black text-slate-800">Marca de Agua Beltrán</h4>
+                        <p className="text-[10px] text-slate-500 font-medium">Isotipo institucional central con resplandor</p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleToggleMarcaAgua}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer ${
+                        marcaAguaActiva ? 'bg-sky-500 text-white shadow-sm' : 'bg-slate-200 text-slate-600'
+                      }`}
+                    >
+                      {marcaAguaActiva ? 'Activada' : 'Oculta'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
 
           {seccionActiva === 'identidad' && <section className="space-y-3">
             <div className="flex items-center gap-2 ml-1">

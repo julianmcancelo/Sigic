@@ -9,7 +9,10 @@
  * 3. Si rechaza → Inhabilitado, se cierra sesión automáticamente
  */
 import React, { useState, useEffect, useRef } from 'react'
-import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, CalendarPlus, RefreshCw, Shield, Server, Search, Power, Bell, Wifi, Volume2, ChevronRight, ChevronUp, ArrowRight, LayoutGrid, X, Minus, Maximize2, Sun, Moon, MousePointer2, Lock, ClipboardCheck, Activity, Send, ListChecks, Mic, ScrollText, Sparkles, Armchair, Award, QrCode } from 'lucide-react'
+import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, CalendarPlus, RefreshCw, Shield, Server, Search, Power, Bell, Wifi, Volume2, ChevronRight, ChevronUp, ArrowRight, LayoutGrid, X, Minus, Maximize2, Sun, Moon, MousePointer2, Lock, ClipboardCheck, Activity, Send, ListChecks, Mic, ScrollText, Sparkles, Armchair, Award, QrCode, Palette } from 'lucide-react'
+
+// Importación de Modal de Fondo
+import { ModalPersonalizarFondo } from './componentes/ModalPersonalizarFondo'
 
 // Importación de Páginas
 import { PaginaInicioSesion } from './paginas/PaginaInicioSesion'
@@ -905,6 +908,31 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
   const [inicioAbierto, setInicioAbierto] = useState(false)
   const [hora, setHora] = useState(new Date())
   const [tema, setTema] = useState(() => localStorage.getItem('sigic_tema') || 'oscuro')
+  const [fondoId, setFondoId] = useState(() => localStorage.getItem('sigic_fondo') || 'beltran')
+  const [cuadriculaActiva, setCuadriculaActiva] = useState(() => localStorage.getItem('sigic_cuadricula') !== 'false')
+  const [marcaAguaActiva, setMarcaAguaActiva] = useState(() => localStorage.getItem('sigic_marca_agua') !== 'false')
+  const [mostrarModalFondo, setMostrarModalFondo] = useState(false)
+
+  const cambiarFondo = (nuevoFondo) => {
+    setFondoId(nuevoFondo)
+    localStorage.setItem('sigic_fondo', nuevoFondo)
+    if (nuevoFondo === 'alabaster') {
+      setTema('claro')
+    } else {
+      setTema('oscuro')
+    }
+  }
+
+  const cambiarCuadricula = (valor) => {
+    setCuadriculaActiva(valor)
+    localStorage.setItem('sigic_cuadricula', String(valor))
+  }
+
+  const cambiarMarcaAgua = (valor) => {
+    setMarcaAguaActiva(valor)
+    localStorage.setItem('sigic_marca_agua', String(valor))
+  }
+
   const [menuContextual, setMenuContextual] = useState(null)
   const [mostrarEquipo, setMostrarEquipo] = useState(false)
   const [ceremoniaActiva, setCeremoniaActiva] = useState(null)
@@ -1180,9 +1208,15 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
   }
 
   return (
-    <main className={`sigic-os-shell ${esAplicacionNativa ? 'sigic-native-host' : ''} sigic-theme-${tema}`} onContextMenu={abrirMenuContextual} onClick={() => menuContextual && setMenuContextual(null)}>
-      <div className="sigic-os-grid" />
-      <div className="sigic-watermark" aria-hidden="true"><img src="/logo-oficial.png" alt="" /><span>SIGIC</span><small>Sistema Integral de Gestión Institucional</small></div>
+    <main className={`sigic-os-shell ${esAplicacionNativa ? 'sigic-native-host' : ''} sigic-theme-${tema} sigic-wallpaper-${fondoId}`} onContextMenu={abrirMenuContextual} onClick={() => menuContextual && setMenuContextual(null)}>
+      {cuadriculaActiva && <div className="sigic-os-grid" />}
+      {marcaAguaActiva && (
+        <div className="sigic-watermark" aria-hidden="true">
+          <img src="/logo-oficial.png" alt="" />
+          <span>SIGIC</span>
+          <small>Sistema Integral de Gestión Institucional</small>
+        </div>
+      )}
       <header className="sigic-os-topbar">
         <div className="flex items-center gap-3">
           <img src="/logo-oficial.png" alt="Logo de SIGIC" className="sigic-real-logo" />
@@ -1213,9 +1247,45 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
         <aside className="sigic-session-card"><div className="sigic-session-avatar">{(usuario?.nombre || 'A').slice(0, 1).toUpperCase()}</div><div><strong>{usuario?.nombre || 'Administrador'}</strong><span>{normalizarCorreoInstitucional(usuario?.correo) || 'Sesión administrativa'}</span></div><span className="sigic-session-state">En línea</span></aside>
       </section>
       {inicioAbierto && <div ref={inicioRef} className="sigic-start-menu" role="dialog" aria-modal="false" aria-label="Acciones de ceremonia"><div className="sigic-start-context"><span>Trabajo actual</span><strong>{ceremoniaActiva?.nombre || 'Sin ceremonia activa'}</strong><button onClick={() => abrirVentana('gestion-ceremonias')}>Cambiar</button></div><button onClick={() => abrirVentana('gestion-ceremonias')} className="sigic-start-continue"><Sparkles size={17} /><span><small>Punto de partida</small><strong>Inicializar o cambiar ceremonia</strong></span><ArrowRight size={15} /></button><div className="sigic-start-search"><Search size={15} /><input ref={buscadorInicioRef} value={busquedaInicio} onChange={evento => setBusquedaInicio(evento.target.value)} placeholder="Buscar otro módulo" /></div><div className="sigic-start-section-title"><span>{busquedaInicio.trim() ? 'Resultados' : 'Accesos de trabajo'}</span><small>{busquedaInicio.trim() ? `${aplicacionesInicio.length} encontrados` : 'Esenciales'}</small></div><div className="sigic-start-apps">{aplicacionesInicio.map(({ id, titulo, icono: Icono, color }) => <button key={id} onClick={() => abrirVentana(id)} className="sigic-start-app"><span className={`${color} sigic-start-app-icon`}><Icono size={17} /></span><span>{titulo}</span><ChevronRight size={14} /></button>)}</div>{aplicacionesInicio.length === 0 && <p className="sigic-start-empty">No se encontraron módulos.</p>}<div className="sigic-start-header"><div className="sigic-user-avatar">{(usuario?.nombre || 'A').slice(0, 1).toUpperCase()}</div><div><p className="text-xs font-bold text-white">{usuario?.nombre || 'Administrador'}</p><p className="text-[9px] text-white/45">Administración</p></div><button onClick={onCerrarSesion} className="ml-auto rounded-lg p-2 text-white/55 hover:bg-white/10 hover:text-white" aria-label="Cerrar sesión" title="Cerrar sesión"><Power size={16} /></button></div></div>}
-      <footer className="sigic-taskbar"><button ref={inicioBotonRef} onClick={() => setInicioAbierto(value => !value)} className={`sigic-start-button ${inicioAbierto ? 'is-active' : ''}`} aria-label="Abrir menú principal" aria-expanded={inicioAbierto} title="Menú principal"><img src="/logo-oficial.png" alt="" className="sigic-task-logo" /></button><div className="sigic-task-divider" /><button onClick={() => abrirVentana('bienvenida')} className="sigic-task-app" title="Escritorio SIGIC"><Home size={15} /><span>Escritorio SIGIC</span></button><div className="sigic-open-tasks">{ventanasAbiertas.map(id => { const app = aplicaciones.find(item => item.id === id); const IconoTarea = app?.icono || LayoutGrid; return <button key={id} onClick={() => manejarClickTarea(id)} className={`sigic-open-task ${id === pantallaActual && !ventanasMinimizadas.includes(id) ? 'is-current' : ''} ${ventanasMinimizadas.includes(id) ? 'is-minimized' : ''}`} title={`${app?.titulo || 'SIGIC'}${ventanasMinimizadas.includes(id) ? ' (minimizada)' : ''}`}><IconoTarea size={13} />{app?.titulo || 'SIGIC'}</button> })}</div><div className="ml-auto flex items-center gap-3 text-white/65"><button onClick={cambiarTema} className="sigic-theme-button" aria-label={`Cambiar a modo ${tema === 'oscuro' ? 'claro' : 'oscuro'}`}>{tema === 'oscuro' ? <Sun size={15} /> : <Moon size={15} />}</button><Bell size={15} /><Wifi size={15} /><Volume2 size={15} /><div className="sigic-clock"><strong>{hora.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}</strong><span>{hora.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span></div><ChevronUp size={15} /></div></footer>
-      {menuContextual && <div className="sigic-context-menu" style={{ left: menuContextual.x, top: menuContextual.y }} onClick={evento => evento.stopPropagation()}><p className="sigic-context-title"><MousePointer2 size={13} /> Acciones del escritorio</p><button onClick={() => abrirVentana('bienvenida')}><LayoutGrid size={14} /> Abrir escritorio SIGIC</button><button onClick={cambiarTema}>{tema === 'oscuro' ? <Sun size={14} /> : <Moon size={14} />} Cambiar a modo {tema === 'oscuro' ? 'claro' : 'oscuro'}</button><button onClick={() => setInicioAbierto(true)}><Search size={14} /> Buscar una aplicación</button><button onClick={() => setMostrarEquipo(true)}><Users size={14} /> Conocer al equipo</button><div className="sigic-context-separator" /><button onClick={() => window.location.reload()}><RefreshCw size={14} /> Actualizar escritorio</button></div>}
+      <footer className="sigic-taskbar">
+        <button ref={inicioBotonRef} onClick={() => setInicioAbierto(value => !value)} className={`sigic-start-button ${inicioAbierto ? 'is-active' : ''}`} aria-label="Abrir menú principal" aria-expanded={inicioAbierto} title="Menú principal"><img src="/logo-oficial.png" alt="" className="sigic-task-logo" /></button>
+        <div className="sigic-task-divider" />
+        <button onClick={() => abrirVentana('bienvenida')} className="sigic-task-app" title="Escritorio SIGIC"><Home size={15} /><span>Escritorio SIGIC</span></button>
+        <div className="sigic-open-tasks">{ventanasAbiertas.map(id => { const app = aplicaciones.find(item => item.id === id); const IconoTarea = app?.icono || LayoutGrid; return <button key={id} onClick={() => manejarClickTarea(id)} className={`sigic-open-task ${id === pantallaActual && !ventanasMinimizadas.includes(id) ? 'is-current' : ''} ${ventanasMinimizadas.includes(id) ? 'is-minimized' : ''}`} title={`${app?.titulo || 'SIGIC'}${ventanasMinimizadas.includes(id) ? ' (minimizada)' : ''}`}><IconoTarea size={13} />{app?.titulo || 'SIGIC'}</button> })}</div>
+        <div className="ml-auto flex items-center gap-3 text-white/65">
+          <button onClick={() => setMostrarModalFondo(true)} className="sigic-theme-button" title="Personalizar fondo de pantalla y estilos" aria-label="Personalizar fondo"><Palette size={15} /></button>
+          <button onClick={cambiarTema} className="sigic-theme-button" aria-label={`Cambiar a modo ${tema === 'oscuro' ? 'claro' : 'oscuro'}`}>{tema === 'oscuro' ? <Sun size={15} /> : <Moon size={15} />}</button>
+          <Bell size={15} />
+          <Wifi size={15} />
+          <Volume2 size={15} />
+          <div className="sigic-clock"><strong>{hora.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}</strong><span>{hora.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span></div>
+          <ChevronUp size={15} />
+        </div>
+      </footer>
+      {menuContextual && (
+        <div className="sigic-context-menu" style={{ left: menuContextual.x, top: menuContextual.y }} onClick={evento => evento.stopPropagation()}>
+          <p className="sigic-context-title"><MousePointer2 size={13} /> Acciones del escritorio</p>
+          <button onClick={() => abrirVentana('bienvenida')}><LayoutGrid size={14} /> Abrir escritorio SIGIC</button>
+          <button onClick={() => { setMenuContextual(null); setMostrarModalFondo(true) }}><Palette size={14} /> Cambiar fondo de pantalla...</button>
+          <button onClick={cambiarTema}>{tema === 'oscuro' ? <Sun size={14} /> : <Moon size={14} />} Cambiar a modo {tema === 'oscuro' ? 'claro' : 'oscuro'}</button>
+          <button onClick={() => setInicioAbierto(true)}><Search size={14} /> Buscar una aplicación</button>
+          <button onClick={() => setMostrarEquipo(true)}><Users size={14} /> Conocer al equipo</button>
+          <div className="sigic-context-separator" />
+          <button onClick={() => window.location.reload()}><RefreshCw size={14} /> Actualizar escritorio</button>
+        </div>
+      )}
       {mostrarEquipo && <div className="sigic-team-overlay" onClick={() => setMostrarEquipo(false)}><section className="sigic-team-card" onClick={evento => evento.stopPropagation()}><button className="sigic-team-close" onClick={() => setMostrarEquipo(false)} aria-label="Cerrar"><X size={16} /></button><img src="/logo-oficial.png" alt="Logo de SIGIC" className="sigic-team-logo" /><p className="sigic-team-kicker">Easter egg de SIGIC</p><h2>El equipo detrás del sistema</h2><p className="sigic-team-copy">Desarrollado en el marco de las Prácticas Profesionalizantes del Instituto Tecnológico Beltrán.</p><div className="sigic-team-grid">{['Cancelo Julian', 'Alfonso Alan Alexis', 'Contreras V. Sol', 'Frassia Matias', 'Santillan Luis G.'].map((nombre, indice) => <div key={nombre} className="sigic-team-person"><span>{String(indice + 1).padStart(2, '0')}</span><strong>{nombre}</strong></div>)}</div><a className="sigic-team-contact" href="mailto:soporte@ibeltran.com.ar">soporte@ibeltran.com.ar</a><small>Proyecto SIGIC · 2026</small></section></div>}
+      {mostrarModalFondo && (
+        <ModalPersonalizarFondo
+          fondoActual={fondoId}
+          alCambiarFondo={cambiarFondo}
+          cuadriculaActiva={cuadriculaActiva}
+          alCambiarCuadricula={cambiarCuadricula}
+          marcaAguaActiva={marcaAguaActiva}
+          alCambiarMarcaAgua={cambiarMarcaAgua}
+          onCerrar={() => setMostrarModalFondo(false)}
+        />
+      )}
     </main>
   )
 }
