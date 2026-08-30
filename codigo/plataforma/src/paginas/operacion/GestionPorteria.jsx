@@ -14,6 +14,7 @@ import {
   crearUsuario, 
   actualizarUsuarioEstado, 
   actualizarUsuarioRol,
+  eliminarUsuario,
   obtenerUsuarioToken,
   enviarInvitacionUsuario,
   obtenerCeremonias,
@@ -67,6 +68,7 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
   const [rolNuevo, setRolNuevo] = useState('ADMINISTRATIVO')
   const [enviarInvitacionCorreo, setEnviarInvitacionCorreo] = useState(true)
   const [enviandoInvitacionId, setEnviandoInvitacionId] = useState(null)
+  const [eliminandoId, setEliminandoId] = useState(null)
   const [autoAutorizarActiva, setAutoAutorizarActiva] = useState(true)
   const [creando, setCreando] = useState(false)
 
@@ -283,6 +285,27 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
       setTimeout(() => setExito(null), 3000)
     } catch (err) {
       setError(err.message || 'No se pudo actualizar el rol.')
+    }
+  }
+
+  // Eliminar usuario permanentemente
+  async function handleEliminarUsuario(userId, userNombre) {
+    if (!confirm(`¿Estás seguro de que deseas eliminar a "${userNombre || 'este usuario'}"? Esta acción borrará permanentemente sus accesos.`)) {
+      return
+    }
+    setEliminandoId(userId)
+    setError(null)
+    setExito(null)
+    try {
+      await eliminarUsuario(userId)
+      setUsuarios(prev => prev.filter(u => u.id !== userId))
+      setExito(`Usuario "${userNombre}" eliminado correctamente.`)
+      emitirCambioSync('USUARIOS', { id: userId })
+      setTimeout(() => setExito(null), 3500)
+    } catch (err) {
+      setError(err.message || 'No se pudo eliminar el usuario.')
+    } finally {
+      setEliminandoId(null)
     }
   }
 
@@ -854,6 +877,19 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                       >
                         <QrCode size={13} />
                         <span>Pase QR</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleEliminarUsuario(u.id, u.nombre)}
+                        disabled={eliminandoId === u.id}
+                        className="flex items-center justify-center p-2.5 rounded-xl bg-slate-50 hover:bg-rose-50 text-slate-400 hover:text-rose-600 border border-slate-200 hover:border-rose-200 transition active:scale-95 cursor-pointer"
+                        title="Eliminar usuario permanentemente"
+                      >
+                        {eliminandoId === u.id ? (
+                          <RefreshCw size={13} className="animate-spin text-rose-500" />
+                        ) : (
+                          <Trash2 size={13} />
+                        )}
                       </button>
                     </div>
                   </article>

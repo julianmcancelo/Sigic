@@ -3109,6 +3109,29 @@ export async function DELETE(
     }
 
     // -------------------------------------------------------------
+    // USUARIOS
+    // -------------------------------------------------------------
+    if (slug[0] === 'usuarios' && slug[1] && !slug[2]) {
+      const id = slug[1];
+      const isPersonal = await esPersonalValido(req, ROLES_GESTION);
+      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+
+      if (await esUltimoSuperAdmin(id)) {
+        return NextResponse.json({ error: 'No podés eliminar al último SUPER_ADMIN activo del sistema' }, { status: 409, headers });
+      }
+
+      await query('DELETE FROM ceremonias_usuarios_autorizados WHERE usuario_id = $1', [id]);
+      await query('DELETE FROM tokens_recuperacion_contrasena WHERE usuario_id = $1', [id]);
+      await query('DELETE FROM sesiones_porteria WHERE usuario_id = $1', [id]);
+      const result = await query('DELETE FROM usuarios_sistema WHERE id = $1', [id]);
+
+      if (result.rowCount === 0) {
+        return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404, headers });
+      }
+      return NextResponse.json({ ok: true, mensaje: 'Usuario eliminado con éxito' }, { headers });
+    }
+
+    // -------------------------------------------------------------
     // PROFESORES
     // -------------------------------------------------------------
     if (slug[0] === 'profesores' && slug[1] && !slug[2]) {

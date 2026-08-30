@@ -19,18 +19,44 @@ export async function POST(req: NextRequest) {
     const cliente = await pool.connect();
     try {
       await cliente.query('BEGIN');
-      const resultado = await cliente.query<{ id: string }>(
-        `SELECT u.id FROM tokens_recuperacion_contrasena t
+      const resultado = await cliente.query<{ id: string; usado_en: any; expira_en: any; activo: number }>(
+        `SELECT u.id, t.usado_en, t.expira_en, u.activo
+         FROM tokens_recuperacion_contrasena t
          JOIN usuarios_sistema u ON u.id = t.usuario_id
-         WHERE t.token_hash = $1 AND t.usado_en IS NULL AND t.expira_en > CURRENT_TIMESTAMP AND u.activo = 1
+         WHERE t.token_hash = $1
          FOR UPDATE`,
         [tokenHash]
       );
-      const usuario = resultado.rows[0];
-      if (!usuario) {
+      const tokenInfo = resultado.rows[0];
+      if (!tokenInfo) {
         await cliente.query('ROLLBACK');
-        return NextResponse.json({ error: 'El enlace venció, ya fue utilizado o no es válido.' }, { status: 400 });
+        return NextResponse.json({ 
+          error: 'El enlace no es válido o fue reemplazado por uno más reciente. Verificá el último correo recibido.' 
+        }, { status: 400 });
       }
+
+      if (tokenInfo.usado_en) {
+        await cliente.query('ROLLBACK');
+        return NextResponse.json({ 
+          error: 'Este enlace ya fue utilizado anteriormente. Si ya creaste tu contraseña, podés iniciar sesión directamente.' 
+        }, { status: 400 });
+      }
+
+      if (new Date(tokenInfo.expira_en) <= new Date()) {
+        await cliente.query('ROLLBACK');
+        return NextResponse.json({ 
+          error: 'Este enlace ha vencido (validez de 48 horas). Solicitá un nuevo enlace desde la plataforma.' 
+        }, { status: 400 });
+      }
+
+      if (tokenInfo.activo !== 1) {
+        await cliente.query('ROLLBACK');
+        return NextResponse.json({ 
+          error: 'La cuenta de usuario se encuentra temporalmente bloqueada.' 
+        }, { status: 400 });
+      }
+
+      const usuario = { id: tokenInfo.id };
 
       const hash = await bcrypt.hash(clave, 12);
       await cliente.query('UPDATE usuarios_sistema SET password_hash = $1 WHERE id = $2', [hash, usuario.id]);

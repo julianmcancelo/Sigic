@@ -704,6 +704,16 @@ export async function enviarInvitacionUsuario(id: string) {
   return json;
 }
 
+export async function eliminarUsuario(id: string) {
+  const res = await fetch(`${BASE_CLASSIC}/usuarios/${id}`, {
+    method: 'DELETE',
+    headers: cabeceras()
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo eliminar el usuario');
+  return json;
+}
+
 export async function obtenerAutorizacionesCeremonia(ceremoniaId: string) {
   const res = await fetch(`${BASE_CLASSIC}/ceremonias/${ceremoniaId}/autorizados`, { headers: cabeceras() });
   if (!res.ok) throw new Error('No se pudieron obtener las autorizaciones para esta ceremonia');
