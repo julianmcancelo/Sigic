@@ -13,6 +13,7 @@ import {
   obtenerUsuarios, 
   crearUsuario, 
   actualizarUsuarioEstado, 
+  actualizarUsuarioRol,
   obtenerUsuarioToken,
   enviarInvitacionUsuario,
   obtenerCeremonias,
@@ -63,6 +64,7 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [rolNuevo, setRolNuevo] = useState('ADMINISTRATIVO')
   const [enviarInvitacionCorreo, setEnviarInvitacionCorreo] = useState(true)
   const [enviandoInvitacionId, setEnviandoInvitacionId] = useState(null)
   const [autoAutorizarActiva, setAutoAutorizarActiva] = useState(true)
@@ -140,10 +142,10 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
     setError(null)
     try {
       const datos = await obtenerUsuarios()
-      setUsuarios(datos.filter(u => u.rol === 'PORTERIA'))
+      setUsuarios(Array.isArray(datos) ? datos : [])
     } catch (err) {
       console.error(err)
-      setError('Error al obtener la lista de personal de seguridad.')
+      setError('Error al obtener la lista de usuarios del equipo.')
     } finally {
       if (mostrarCargando) setCargando(false)
     }
@@ -269,7 +271,22 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
     }
   }
 
-  // Crear nuevo personal de seguridad
+  // Cambiar rol de un usuario existente
+  async function handleCambiarRol(userId, nuevoRol) {
+    setError(null)
+    setExito(null)
+    try {
+      await actualizarUsuarioRol(userId, nuevoRol)
+      setUsuarios(prev => prev.map(u => u.id === userId ? { ...u, rol: nuevoRol } : u))
+      setExito('Rol del usuario actualizado correctamente.')
+      emitirCambioSync('USUARIOS', { id: userId })
+      setTimeout(() => setExito(null), 3000)
+    } catch (err) {
+      setError(err.message || 'No se pudo actualizar el rol.')
+    }
+  }
+
+  // Crear o invitar nuevo usuario del equipo
   async function handleCrear(e) {
     e.preventDefault()
     if (!nombre || !email) {
@@ -288,7 +305,7 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
         nombre,
         email,
         password: enviarInvitacionCorreo ? '' : password,
-        rol: 'PORTERIA',
+        rol: rolNuevo,
         enviarInvitacion: enviarInvitacionCorreo
       })
       if (res?.usuario?.id && autoAutorizarActiva && ceremoniaSeleccionadaId) {
@@ -296,12 +313,13 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
       }
       setExito(
         enviarInvitacionCorreo
-          ? `Personal registrado. Se envió el correo de activación a ${email}.`
-          : 'Personal de seguridad registrado correctamente.'
+          ? `Usuario registrado como ${rolNuevo}. Se envió la invitación de activación a ${email}.`
+          : `Usuario registrado como ${rolNuevo} correctamente.`
       )
       setNombre('')
       setEmail('')
       setPassword('')
+      setRolNuevo('ADMINISTRATIVO')
       setMostrarModalNuevo(false)
       refrescarTodo()
       setTimeout(() => setExito(null), 4500)
@@ -390,9 +408,13 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
   const dispositivosTotales = dispositivos.length
 
   const personalVisible = usuarios.filter(u => {
-    const coincide = `${u.nombre} ${u.email}`.toLowerCase().includes(busqueda.trim().toLowerCase())
+    const coincide = `${u.nombre} ${u.email} ${u.rol}`.toLowerCase().includes(busqueda.trim().toLowerCase())
     if (!coincide) return false
     const estaAutorizado = !!autorizadosMap[String(u.id)]
+    if (filtro === 'administrativos') return u.rol === 'ADMINISTRATIVO'
+    if (filtro === 'porteria') return u.rol === 'PORTERIA'
+    if (filtro === 'auditores') return u.rol === 'AUDITOR'
+    if (filtro === 'superadmin') return u.rol === 'SUPER_ADMIN' || u.rol === 'ADMIN'
     if (filtro === 'autorizados') return estaAutorizado
     if (filtro === 'sin-acceso') return !estaAutorizado
     if (filtro === 'inactivos') return u.activo !== 1
@@ -634,7 +656,11 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                 onChange={e => setFiltro(e.target.value)}
                 className="w-full sm:w-auto rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-bold text-slate-800 outline-none focus:border-sky-400 cursor-pointer"
               >
-                <option value="todos">Todos los operadores ({usuarios.length})</option>
+                <option value="todos">Todo el personal ({usuarios.length})</option>
+                <option value="administrativos">Administrativos ({usuarios.filter(u => u.rol === 'ADMINISTRATIVO').length})</option>
+                <option value="porteria">Portería / Seguridad ({usuarios.filter(u => u.rol === 'PORTERIA').length})</option>
+                <option value="auditores">Auditores ({usuarios.filter(u => u.rol === 'AUDITOR').length})</option>
+                <option value="superadmin">Super Administradores ({usuarios.filter(u => u.rol === 'SUPER_ADMIN' || u.rol === 'ADMIN').length})</option>
                 <option value="autorizados">Autorizados en esta ceremonia ({autorizadosActivos})</option>
                 <option value="sin-acceso">Sin autorización en esta ceremonia ({totalPorteros - autorizadosActivos})</option>
                 <option value="inactivos">Cuentas bloqueadas</option>
@@ -646,13 +672,13 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
           {cargando ? (
             <div className="bg-white rounded-3xl border border-slate-200/80 p-14 text-center shadow-sm">
               <RefreshCw size={28} className="animate-spin text-sky-500 mx-auto mb-3" />
-              <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Cargando cuentas de seguridad...</p>
+              <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Cargando cuentas de seguridad y personal...</p>
             </div>
           ) : personalVisible.length === 0 ? (
             <div className="rounded-3xl border border-dashed border-slate-300 bg-white py-16 px-6 text-center shadow-sm">
               <Shield size={40} className="mx-auto mb-3 text-slate-300" />
-              <p className="text-base font-black text-slate-900">No se encontraron operadores</p>
-              <p className="text-xs font-semibold text-slate-500 mt-1">Registrá un operador o modificá los filtros de búsqueda.</p>
+              <p className="text-base font-black text-slate-900">No se encontraron usuarios</p>
+              <p className="text-xs font-semibold text-slate-500 mt-1">Registrá un nuevo miembro o modificá los filtros de búsqueda.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -687,11 +713,23 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                           </div>
                         </div>
 
-                        <span className={`shrink-0 rounded-full px-3 py-1 text-[9px] font-black uppercase tracking-wider ${
-                          activo ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'
-                        }`}>
-                          {activo ? 'Activo' : 'Bloqueado'}
-                        </span>
+                        <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
+                          <span className={`rounded-full px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider border ${
+                            u.rol === 'ADMINISTRATIVO' ? 'bg-sky-50 text-sky-700 border-sky-200' :
+                            u.rol === 'PORTERIA' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                            u.rol === 'AUDITOR' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                            'bg-rose-50 text-rose-700 border-rose-200'
+                          }`}>
+                            {u.rol === 'ADMINISTRATIVO' ? 'Administrativo' :
+                             u.rol === 'PORTERIA' ? 'Portería' :
+                             u.rol === 'AUDITOR' ? 'Auditor' : 'Super Admin'}
+                          </span>
+                          <span className={`rounded-full px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider border ${
+                            activo ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'
+                          }`}>
+                            {activo ? 'Activo' : 'Bloqueado'}
+                          </span>
+                        </div>
                       </div>
 
                       {/* MATRIZ / PÍLDORAS DE CEREMONIAS ASIGNADAS */}
@@ -729,11 +767,24 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                         </div>
                       </div>
 
-                      {/* METADATOS COMPACTOS */}
-                      <div className="grid grid-cols-2 gap-2.5 mb-4 text-[10px]">
+                      {/* METADATOS COMPACTOS CON SELECTOR DE ROL */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-4 text-[10px]">
+                        <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-150">
+                          <span className="text-slate-400 font-bold block uppercase text-[8px]">Rol en Sistema</span>
+                          <select
+                            value={u.rol || 'ADMINISTRATIVO'}
+                            onChange={e => handleCambiarRol(u.id, e.target.value)}
+                            className="w-full bg-white border border-slate-200 rounded-lg px-1.5 py-1 text-[10px] font-bold text-slate-800 outline-none focus:border-sky-400 cursor-pointer mt-1"
+                          >
+                            <option value="ADMINISTRATIVO">Administrativo</option>
+                            <option value="PORTERIA">Portería</option>
+                            <option value="AUDITOR">Auditor</option>
+                            <option value="SUPER_ADMIN">Super Admin</option>
+                          </select>
+                        </div>
                         <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-150">
                           <span className="text-slate-400 font-bold block uppercase text-[8px]">Último Acceso</span>
-                          <strong className="text-slate-800 block truncate mt-0.5">
+                          <strong className="text-slate-800 block truncate mt-1">
                             {u.ultimo_login ? new Date(u.ultimo_login).toLocaleString('es-AR') : 'Nunca'}
                           </strong>
                         </div>
@@ -741,7 +792,7 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                           autorizadoEnSeleccionada ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900' : 'bg-amber-50/80 border-amber-200 text-amber-900'
                         }`}>
                           <span className="font-bold block uppercase text-[8px]">En ceremonia en foco</span>
-                          <strong className="block truncate mt-0.5">
+                          <strong className="block truncate mt-1">
                             {autorizadoEnSeleccionada ? '✓ Habilitado' : '✗ Sin permiso'}
                           </strong>
                         </div>
@@ -1048,8 +1099,8 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                   <UserPlus size={22} />
                 </div>
                 <div>
-                  <h3 className="text-base font-black text-slate-900">Registrar Personal</h3>
-                  <p className="text-xs font-semibold text-slate-400 mt-0.5">Crear credenciales de acceso para portería</p>
+                  <h3 className="text-base font-black text-slate-900">Registrar / Invitar Personal</h3>
+                  <p className="text-xs font-semibold text-slate-400 mt-0.5">Crear cuenta institucional para el equipo</p>
                 </div>
               </div>
               <button 
@@ -1079,10 +1130,53 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                   type="email" 
                   value={email} 
                   onChange={e => setEmail(e.target.value)} 
-                  placeholder="porteria@sigic.com"
+                  placeholder="usuario@sigic.com"
                   className="w-full bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none transition"
                   required
                 />
+              </div>
+
+              {/* SELECTOR DE ROL */}
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-2">
+                  Rol Asignado
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { id: 'ADMINISTRATIVO', nombre: 'Administrativo', desc: 'Gestión y edición general' },
+                    { id: 'PORTERIA', nombre: 'Portería', desc: 'Escaneo y control de accesos' },
+                    { id: 'AUDITOR', nombre: 'Auditor', desc: 'Reportes y estadísticas' },
+                    { id: 'SUPER_ADMIN', nombre: 'Super Admin', desc: 'Control total del sistema' }
+                  ].map(r => {
+                    const seleccionado = rolNuevo === r.id
+                    return (
+                      <button
+                        key={r.id}
+                        type="button"
+                        onClick={() => setRolNuevo(r.id)}
+                        className={`p-2.5 rounded-xl border text-left transition active:scale-95 cursor-pointer flex flex-col justify-between ${
+                          seleccionado
+                            ? 'bg-sky-50/80 border-sky-400 ring-2 ring-sky-400/20 shadow-sm'
+                            : 'bg-white border-slate-200 hover:border-slate-300'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-1 mb-0.5">
+                          <span className={`text-[11px] font-black ${seleccionado ? 'text-sky-950' : 'text-slate-800'}`}>
+                            {r.nombre}
+                          </span>
+                          <span className={`w-3 h-3 rounded-full border flex items-center justify-center ${
+                            seleccionado ? 'border-sky-500 bg-sky-500' : 'border-slate-300 bg-white'
+                          }`}>
+                            {seleccionado && <span className="w-1 h-1 rounded-full bg-white" />}
+                          </span>
+                        </div>
+                        <span className="text-[9px] font-semibold text-slate-500 leading-tight">
+                          {r.desc}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
               </div>
 
               <label className="flex items-start gap-3 p-3.5 rounded-2xl bg-sky-50/80 border border-sky-200/80 cursor-pointer transition hover:bg-sky-50">
@@ -1097,7 +1191,7 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                     Enviar enlace de activación por correo electrónico
                   </span>
                   <span className="block text-[11px] font-medium text-sky-700 mt-0.5">
-                    El operador recibirá un correo para definir su propia contraseña privada.
+                    El usuario recibirá un correo institucional para definir su propia contraseña privada.
                   </span>
                 </div>
               </label>
@@ -1142,7 +1236,7 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                   disabled={creando}
                   className="flex-1 py-3 bg-slate-900 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition active:scale-95 flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
                 >
-                  {creando ? <RefreshCw size={15} className="animate-spin" /> : 'Crear Operador'}
+                  {creando ? <RefreshCw size={15} className="animate-spin" /> : 'Guardar e Invitar'}
                 </button>
               </div>
             </form>
