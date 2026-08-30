@@ -4,7 +4,7 @@ import { query, pool } from '@/lib/db';
 import { firmar } from '@/lib/tokens';
 import { obtenerUsuarioAutenticado, ROLES_GESTION, ROLES_OPERACION, ROLES_LECTURA } from '@/lib/auth-middleware';
 import * as GestorOTP from '@/lib/otp';
-import { enviarCorreo, generarPdfCredencial, generarPlantillaCierreInscripcion, generarPlantillaCredencialCeremonia, generarPlantillaInvitacion, generarPlantillaOTP } from '@/lib/email';
+import { enviarCorreo, generarPdfCredencial, generarPlantillaCierreInscripcion, generarPlantillaCredencialCeremonia, generarPlantillaInvitacion, generarPlantillaInvitacionEquipo, generarPlantillaOTP } from '@/lib/email';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { inicializarBaseDatos } from '@/lib/schema';
@@ -1595,16 +1595,18 @@ export async function POST(
       const isPersonal = await esPersonalValido(req, ROLES_GESTION);
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
-      const { nombre, email, password, rol } = body;
+      const { nombre, email, password, rol, enviarInvitacion } = body;
       const rolNormalizado = (rol || '').toString().toUpperCase();
 
-      if (!nombre || !email || !password || !rolNormalizado) {
-        return NextResponse.json({ error: 'Nombre, email, password y rol son obligatorios' }, { status: 400, headers });
+      if (!nombre || !email || !rolNormalizado) {
+        return NextResponse.json({ error: 'Nombre, email y rol son obligatorios' }, { status: 400, headers });
       }
       if (!ROLES_VALIDOS.includes(rolNormalizado)) {
         return NextResponse.json({ error: 'Rol inválido' }, { status: 400, headers });
       }
-      if (String(password).length < LARGO_MINIMO_PASSWORD) {
+
+      const claveFinal = password ? String(password) : crypto.randomBytes(24).toString('hex');
+      if (password && String(password).length < LARGO_MINIMO_PASSWORD) {
         return NextResponse.json({ error: `La contraseña debe tener al menos ${LARGO_MINIMO_PASSWORD} caracteres` }, { status: 400, headers });
       }
 
@@ -1613,7 +1615,7 @@ export async function POST(
         return NextResponse.json({ error: 'Ya existe un usuario con ese email' }, { status: 409, headers });
       }
 
-      const hash = await bcrypt.hash(password, RONDAS_BCRYPT);
+      const hash = await bcrypt.hash(claveFinal, RONDAS_BCRYPT);
       const id = crypto.randomUUID();
 
       await query(
@@ -1632,7 +1634,81 @@ export async function POST(
         }
       }
 
-      return NextResponse.json({ ok: true, usuario: { id, nombre, email: email.toLowerCase(), rol: rolNormalizado, activo: 1 } }, { headers });
+      let invitacionEnviada = false;
+      if (enviarInvitacion || !password) {
+        try {
+          const token = crypto.randomBytes(32).toString('hex');
+          const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+          const ip = (req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'desconocida').split(',')[0].trim();
+          await query(
+            `INSERT INTO tokens_recuperacion_contrasena (usuario_id, token_hash, expira_en, solicitado_ip)
+             VALUES ($1, $2, CURRENT_TIMESTAMP + INTERVAL '48 hours', $3)`,
+            [id, tokenHash, ip]
+          );
+          const origen = obtenerOrigenPublico(req);
+          const enlace = `${origen}/restablecer-contrasena?token=${token}`;
+          await enviarCorreo(
+            email.toLowerCase(),
+            'Bienvenido/a al equipo SiGIC · Activá tu cuenta institucional',
+            generarPlantillaInvitacionEquipo({
+              nombre,
+              email: email.toLowerCase(),
+              rol: rolNormalizado,
+              enlace,
+              hostBase: origen
+            })
+          );
+          invitacionEnviada = true;
+        } catch (errEmail) {
+          console.error('No se pudo enviar la invitación por correo:', errEmail);
+        }
+      }
+
+      return NextResponse.json({ 
+        ok: true, 
+        invitacionEnviada,
+        usuario: { id, nombre, email: email.toLowerCase(), rol: rolNormalizado, activo: 1 } 
+      }, { headers });
+    }
+
+    if (slug[0] === 'usuarios' && slug[2] === 'enviar-invitacion' && slug[1]) {
+      const isPersonal = await esPersonalValido(req, ROLES_GESTION);
+      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+
+      const id = slug[1];
+      const userRes = await query<{ id: string; nombre: string; email: string; rol: string }>(
+        'SELECT id, nombre, email, rol FROM usuarios_sistema WHERE id = $1',
+        [id]
+      );
+      const targetUser = userRes.rows[0];
+      if (!targetUser) return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404, headers });
+
+      const token = crypto.randomBytes(32).toString('hex');
+      const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+      const ip = (req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'desconocida').split(',')[0].trim();
+      
+      await query('DELETE FROM tokens_recuperacion_contrasena WHERE usuario_id = $1 OR expira_en < CURRENT_TIMESTAMP', [targetUser.id]);
+      await query(
+        `INSERT INTO tokens_recuperacion_contrasena (usuario_id, token_hash, expira_en, solicitado_ip)
+         VALUES ($1, $2, CURRENT_TIMESTAMP + INTERVAL '48 hours', $3)`,
+        [targetUser.id, tokenHash, ip]
+      );
+
+      const origen = obtenerOrigenPublico(req);
+      const enlace = `${origen}/restablecer-contrasena?token=${token}`;
+      await enviarCorreo(
+        targetUser.email,
+        'Bienvenido/a al equipo SiGIC · Activá tu cuenta institucional',
+        generarPlantillaInvitacionEquipo({
+          nombre: targetUser.nombre,
+          email: targetUser.email,
+          rol: targetUser.rol,
+          enlace,
+          hostBase: origen
+        })
+      );
+
+      return NextResponse.json({ ok: true, mensaje: `Enlace de activación enviado a ${targetUser.email}` }, { headers });
     }
 
     if (slug[0] === 'ceremonias' && slug[2] === 'autorizar-todos' && slug[1]) {

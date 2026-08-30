@@ -14,6 +14,7 @@ import {
   crearUsuario, 
   actualizarUsuarioEstado, 
   obtenerUsuarioToken,
+  enviarInvitacionUsuario,
   obtenerCeremonias,
   obtenerCeremoniaActiva,
   obtenerAutorizacionesCeremonia,
@@ -62,6 +63,8 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
   const [nombre, setNombre] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [enviarInvitacionCorreo, setEnviarInvitacionCorreo] = useState(true)
+  const [enviandoInvitacionId, setEnviandoInvitacionId] = useState(null)
   const [autoAutorizarActiva, setAutoAutorizarActiva] = useState(true)
   const [creando, setCreando] = useState(false)
 
@@ -250,28 +253,58 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
     }
   }
 
+  // Enviar invitación de activación a un usuario existente
+  async function handleEnviarInvitacion(userId, userEmail) {
+    setEnviandoInvitacionId(userId)
+    setError(null)
+    setExito(null)
+    try {
+      await enviarInvitacionUsuario(userId)
+      setExito(`Enlace de activación enviado por correo a ${userEmail}`)
+      setTimeout(() => setExito(null), 4500)
+    } catch (err) {
+      setError(err.message || 'No se pudo enviar la invitación por correo.')
+    } finally {
+      setEnviandoInvitacionId(null)
+    }
+  }
+
   // Crear nuevo personal de seguridad
   async function handleCrear(e) {
     e.preventDefault()
-    if (!nombre || !email || !password) {
-      setError('Todos los campos son obligatorios.')
+    if (!nombre || !email) {
+      setError('El nombre y el correo electrónico son obligatorios.')
+      return
+    }
+    if (!enviarInvitacionCorreo && !password) {
+      setError('Ingresá una contraseña o tildá el envío de invitación por correo.')
       return
     }
     setCreando(true)
     setError(null)
     setExito(null)
     try {
-      const res = await crearUsuario({ nombre, email, password, rol: 'PORTERIA' })
+      const res = await crearUsuario({
+        nombre,
+        email,
+        password: enviarInvitacionCorreo ? '' : password,
+        rol: 'PORTERIA',
+        enviarInvitacion: enviarInvitacionCorreo
+      })
       if (res?.usuario?.id && autoAutorizarActiva && ceremoniaSeleccionadaId) {
         await actualizarAutorizacionCeremonia(ceremoniaSeleccionadaId, res.usuario.id, true)
       }
-      setExito('Personal de seguridad registrado correctamente.')
+      setExito(
+        enviarInvitacionCorreo
+          ? `Personal registrado. Se envió el correo de activación a ${email}.`
+          : 'Personal de seguridad registrado correctamente.'
+      )
       setNombre('')
       setEmail('')
       setPassword('')
       setMostrarModalNuevo(false)
       refrescarTodo()
-      setTimeout(() => setExito(null), 3500)
+      setTimeout(() => setExito(null), 4500)
     } catch (err) {
       setError(err.message || 'Error al intentar registrar el usuario.')
     } finally {
@@ -749,6 +782,20 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                       </button>
 
                       <button
+                        onClick={() => handleEnviarInvitacion(u.id, u.email)}
+                        disabled={enviandoInvitacionId === u.id || !activo}
+                        className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-slate-50 hover:bg-sky-50 text-slate-700 hover:text-sky-700 border border-slate-200 hover:border-sky-200 text-[10px] font-black uppercase tracking-wider transition active:scale-95 cursor-pointer disabled:opacity-40"
+                        title="Enviar por correo electrónico el enlace para crear o cambiar su contraseña privada"
+                      >
+                        {enviandoInvitacionId === u.id ? (
+                          <RefreshCw size={13} className="animate-spin text-sky-500" />
+                        ) : (
+                          <Mail size={13} className="text-sky-600" />
+                        )}
+                        <span>{enviandoInvitacionId === u.id ? 'Enviando...' : 'Invitar'}</span>
+                      </button>
+
+                      <button
                         onClick={() => handleGenerarQR(u)}
                         disabled={!activo}
                         className="flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl bg-sky-50 hover:bg-sky-500 text-sky-600 hover:text-white border border-sky-200 text-[10px] font-black uppercase tracking-wider transition active:scale-95 cursor-pointer disabled:opacity-40"
@@ -1019,7 +1066,7 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                 <input 
                   type="text" 
                   value={nombre} 
-                  onChange={e => setNombre(e.target.value)}
+                  onChange={e => setNombre(e.target.value)} 
                   placeholder="Ej: Marcos Gómez"
                   className="w-full bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none transition"
                   required
@@ -1031,34 +1078,53 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                 <input 
                   type="email" 
                   value={email} 
-                  onChange={e => setEmail(e.target.value)}
+                  onChange={e => setEmail(e.target.value)} 
                   placeholder="porteria@sigic.com"
                   className="w-full bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none transition"
                   required
                 />
               </div>
 
-              <div>
-                <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1.5">Contraseña Inicial</label>
-                <input 
-                  type="password" 
-                  value={password} 
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="Mínimo 8 caracteres"
-                  className="w-full bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none transition"
-                  required
-                  minLength={8}
+              <label className="flex items-start gap-3 p-3.5 rounded-2xl bg-sky-50/80 border border-sky-200/80 cursor-pointer transition hover:bg-sky-50">
+                <input
+                  type="checkbox"
+                  checked={enviarInvitacionCorreo}
+                  onChange={e => setEnviarInvitacionCorreo(e.target.checked)}
+                  className="mt-0.5 rounded text-sky-500 focus:ring-sky-400 w-4 h-4 cursor-pointer"
                 />
-              </div>
+                <div>
+                  <span className="block text-xs font-bold text-sky-950 leading-tight">
+                    Enviar enlace de activación por correo electrónico
+                  </span>
+                  <span className="block text-[11px] font-medium text-sky-700 mt-0.5">
+                    El operador recibirá un correo para definir su propia contraseña privada.
+                  </span>
+                </div>
+              </label>
 
-              <label className="flex items-center gap-3 p-3.5 rounded-2xl bg-sky-50/80 border border-sky-100 cursor-pointer">
+              {!enviarInvitacionCorreo && (
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1.5">Contraseña Manual</label>
+                  <input 
+                    type="password" 
+                    value={password} 
+                    onChange={e => setPassword(e.target.value)} 
+                    placeholder="Mínimo 8 caracteres"
+                    className="w-full bg-slate-50 border border-slate-200 focus:border-sky-500 focus:bg-white rounded-xl px-4 py-3 text-xs font-semibold text-slate-800 outline-none transition"
+                    required={!enviarInvitacionCorreo}
+                    minLength={8}
+                  />
+                </div>
+              )}
+
+              <label className="flex items-center gap-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={autoAutorizarActiva}
                   onChange={e => setAutoAutorizarActiva(e.target.checked)}
                   className="rounded text-sky-500 focus:ring-sky-400 w-4 h-4 cursor-pointer"
                 />
-                <span className="text-xs font-bold text-sky-900 leading-snug">
+                <span className="text-xs font-bold text-slate-700 leading-snug">
                   Habilitar automáticamente en la ceremonia en foco
                 </span>
               </label>

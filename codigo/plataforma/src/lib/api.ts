@@ -694,6 +694,16 @@ export async function obtenerUsuarioToken(id: string) {
   return json;
 }
 
+export async function enviarInvitacionUsuario(id: string) {
+  const res = await fetch(`${BASE_CLASSIC}/usuarios/${id}/enviar-invitacion`, {
+    method: 'POST',
+    headers: cabeceras()
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo enviar la invitación por correo');
+  return json;
+}
+
 export async function obtenerAutorizacionesCeremonia(ceremoniaId: string) {
   const res = await fetch(`${BASE_CLASSIC}/ceremonias/${ceremoniaId}/autorizados`, { headers: cabeceras() });
   if (!res.ok) throw new Error('No se pudieron obtener las autorizaciones para esta ceremonia');

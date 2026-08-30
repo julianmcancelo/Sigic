@@ -249,6 +249,167 @@ export function generarPlantillaOTP(codigo: string, hostBase: string) {
   `;
 }
 
+/**
+ * PLANTILLA: Invitación y Activación de Cuenta para Personal del Equipo
+ */
+export function generarPlantillaInvitacionEquipo({
+  nombre,
+  email,
+  rol,
+  enlace,
+  hostBase
+}: {
+  nombre: string;
+  email: string;
+  rol: string;
+  enlace: string;
+  hostBase?: string;
+}) {
+  const logo = 'https://raw.githubusercontent.com/julianmcancelo/Sigic/master/codigo/plataforma/public/logo-oficial.png';
+  
+  const descripcionesRol: Record<string, { titulo: string; desc: string }> = {
+    SUPER_ADMIN: {
+      titulo: 'Super Administrador',
+      desc: 'Control total de la plataforma, configuración global, ceremonias, padrones y seguridad.'
+    },
+    ADMINISTRATIVO: {
+      titulo: 'Personal Administrativo',
+      desc: 'Gestión y edición de ceremonias, graduados, anfiteatro y despacho de convocatorias.'
+    },
+    AUDITOR: {
+      titulo: 'Auditor Institucional',
+      desc: 'Supervisión en tiempo real, consulta de reportes, métricas y estado del padrón.'
+    },
+    PORTERIA: {
+      titulo: 'Personal de Acreditación y Portería',
+      desc: 'Escaneo y validación de credenciales QR y control de accesos el día del evento.'
+    }
+  };
+
+  const infoRol = descripcionesRol[rol] || {
+    titulo: rol || 'Operador de Sistema',
+    desc: 'Acceso a las herramientas operativas de SiGIC según los permisos asignados.'
+  };
+
+  return `
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Bienvenido al equipo de SiGIC</title>
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+      <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#f1f5f9">
+        <tr>
+          <td align="center" style="padding: 40px 15px;">
+            <table width="600" border="0" cellspacing="0" cellpadding="0" bgcolor="#ffffff" style="max-width: 600px; width: 100%; border-radius: 28px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);">
+              
+              <!-- HEADER INSTITUCIONAL -->
+              <tr>
+                <td align="center" bgcolor="#071b34" style="padding: 45px 30px; background: linear-gradient(135deg, #071b34 0%, #0c2d54 100%); border-bottom: 4px solid #0284c7;">
+                  <img src="${logo}" alt="Instituto Tecnológico Beltrán" width="90" height="90" style="display: block; margin-bottom: 20px; outline: none; border: none; border-radius: 16px; background: #ffffff; padding: 6px;">
+                  <span style="display: inline-block; padding: 4px 14px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 20px; color: #38bdf8; font-size: 10px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px;">Acceso Institucional</span>
+                  <h1 style="color: #ffffff; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2;">Bienvenido/a al Equipo</h1>
+                  <p style="color: #94a3b8; margin: 8px 0 0; font-size: 12px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;">Instituto Tecnológico Beltrán · SiGIC</p>
+                </td>
+              </tr>
+
+              <!-- CUERPO PRINCIPAL -->
+              <tr>
+                <td style="padding: 45px 35px 35px;">
+                  <h2 style="color: #0f172a; font-size: 22px; margin: 0 0 16px; font-weight: 800; letter-spacing: -0.3px;">
+                    Hola, ${escaparHTML(nombre)}
+                  </h2>
+                  <p style="color: #475569; font-size: 15px; line-height: 1.65; margin: 0 0 28px;">
+                    Se ha generado tu cuenta institucional en <strong>SiGIC (Sistema de Gestión Integral de Colaciones)</strong> para colaborar en la organización y operación de las ceremonias de graduación.
+                  </p>
+
+                  <!-- CAJA DE DETALLES DE LA CUENTA -->
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" bgcolor="#f8fafc" style="border: 1px solid #e2e8f0; border-radius: 20px; margin-bottom: 32px;">
+                    <tr>
+                      <td style="padding: 24px 28px;">
+                        <p style="color: #0f172a; font-size: 11px; font-weight: 800; margin: 0 0 14px; text-transform: uppercase; letter-spacing: 1.5px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
+                          Detalles de tu cuenta de acceso:
+                        </p>
+                        
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-size: 14px; color: #334155;">
+                          <tr>
+                            <td style="padding: 6px 0; color: #64748b; width: 140px; font-weight: 600;">Usuario / Email:</td>
+                            <td style="padding: 6px 0; font-weight: 800; color: #0f172a; font-family: monospace;">${escaparHTML(email)}</td>
+                          </tr>
+                          <tr>
+                            <td style="padding: 6px 0; color: #64748b; font-weight: 600;">Rol Asignado:</td>
+                            <td style="padding: 6px 0;">
+                              <span style="display: inline-block; padding: 3px 10px; border-radius: 8px; background: #e0f2fe; color: #0369a1; font-size: 11px; font-weight: 800; text-transform: uppercase;">
+                                ${infoRol.titulo}
+                              </span>
+                            </td>
+                          </tr>
+                        </table>
+
+                        <p style="margin: 14px 0 0; padding-top: 12px; border-top: 1px dashed #e2e8f0; font-size: 12px; color: #64748b; line-height: 1.5;">
+                          ${infoRol.desc}
+                        </p>
+                      </td>
+                    </tr>
+                  </table>
+
+                  <!-- BOTÓN DE ACCIÓN (CTA) -->
+                  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="margin-bottom: 30px;">
+                    <tr>
+                      <td align="center">
+                        <table border="0" cellspacing="0" cellpadding="0">
+                          <tr>
+                            <td align="center" bgcolor="#0284c7" style="border-radius: 14px; box-shadow: 0 8px 16px rgba(2, 132, 199, 0.25);">
+                              <a href="${enlace}" target="_blank" style="font-size: 15px; font-weight: 800; color: #ffffff; text-decoration: none; padding: 18px 40px; display: inline-block; letter-spacing: 0.5px; border-radius: 14px;">
+                                Activar Cuenta y Crear Mi Contraseña &rarr;
+                              </a>
+                            </td>
+                          </tr>
+                        </table>
+                      </td>
+                    </tr>
+                  </table>
+
+                  <!-- ENLACE DE CONTINGENCIA -->
+                  <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 14px 18px; text-align: center;">
+                    <p style="margin: 0 0 6px; color: #64748b; font-size: 11px; font-weight: 600;">
+                      ¿No podés hacer clic en el botón? Copiá y pegá este enlace seguro en tu navegador:
+                    </p>
+                    <a href="${enlace}" style="color: #0284c7; font-size: 11px; word-break: break-all; text-decoration: underline; font-weight: 700;">${enlace}</a>
+                  </div>
+
+                  <p style="color: #94a3b8; font-size: 12px; margin: 26px 0 0; line-height: 1.5; text-align: center;">
+                    Este enlace de activación es personal, de un solo uso y tiene una validez de <strong>48 horas</strong>.
+                  </p>
+                </td>
+              </tr>
+
+              <!-- FOOTER INSTITUCIONAL -->
+              <tr>
+                <td align="center" bgcolor="#0f172a" style="padding: 30px 25px; border-top: 1px solid #1e293b; color: #94a3b8; font-size: 11px; line-height: 1.6;">
+                  <p style="margin: 0 0 6px; font-weight: 700; color: #cbd5e1; text-transform: uppercase; letter-spacing: 1px;">
+                    Instituto Tecnológico Beltrán
+                  </p>
+                  <p style="margin: 0 0 10px; color: #64748b; font-size: 10px;">
+                    Av. Manuel Belgrano 1191, Avellaneda, Buenos Aires · Sede Central
+                  </p>
+                  <p style="margin: 0; color: #475569; font-size: 10px;">
+                    SiGIC © 2026 · Sistema Institucional de Gestión de Colaciones
+                  </p>
+                </td>
+              </tr>
+
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+}
+
 export function generarPlantillaRecuperacionContrasena(nombre: string, enlace: string, hostBase: string) {
   const logo = 'https://raw.githubusercontent.com/julianmcancelo/Sigic/master/codigo/plataforma/public/logo-oficial.png';
   return `
