@@ -202,6 +202,11 @@ function App() {
   const [pestanaGraduadoDemo, setPestanaGraduadoDemo] = useState('juramento')
 
   const iniciarDemostracionCompleta = () => {
+    guardarTokenSesion('bypass-admin-token')
+    localStorage.setItem('sesion_admin', 'true')
+    localStorage.setItem('admin_user', JSON.stringify(ADMIN_DEMO))
+    setAdminActivo(true)
+    setAdminUser(ADMIN_DEMO)
     setDemoAutomaticaActiva(true)
   }
 
@@ -214,6 +219,9 @@ function App() {
     if (paso.tipoUsuario === 'admin') {
       setGraduadoActivo(false)
       setGraduadoUsuario(null)
+      guardarTokenSesion('bypass-admin-token')
+      localStorage.setItem('sesion_admin', 'true')
+      localStorage.setItem('admin_user', JSON.stringify(ADMIN_DEMO))
       setAdminActivo(true)
       setAdminUser(ADMIN_DEMO)
       setPantallaAdmin(paso.vistaAdmin || 'gestion-ceremonias')
@@ -221,6 +229,7 @@ function App() {
       setAdminActivo(false)
       setGraduadoActivo(true)
       setGraduadoUsuario(EGRESADA_DEMO)
+      guardarTokenSesion(`bypass-egresado-${EGRESADA_DEMO.id}`)
       if (paso.pestanaGraduado) {
         setPestanaGraduadoDemo(paso.pestanaGraduado)
       }
@@ -424,6 +433,10 @@ function App() {
     }
 
     const manejarDesautorizado = () => {
+      if (demoAutomaticaActiva) {
+        console.warn('Interceptor 401/403 ignorado durante la demostración automática.')
+        return
+      }
       console.warn('La sesión expiró o ya no tiene autorización. Cerrando el acceso actual...')
       if (adminActivoRef.current) cerrarSesionAdmin()
       if (graduadoActivoRef.current) cerrarSesionGraduado()
