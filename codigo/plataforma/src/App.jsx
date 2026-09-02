@@ -96,18 +96,26 @@ function App() {
   }, [])
   // ─── 0. DETECCIÓN DE CONTEXTO (URL) ───
   const [tokenURL, setTokenURL] = useState(
-    () => new URLSearchParams(window.location.search).get('token')
+    () => typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('token') : null
   )
+  const [esModoPreview, setEsModoPreview] = useState(() => {
+    if (typeof window === 'undefined') return false
+    const params = new URLSearchParams(window.location.search)
+    return params.get('vista') === 'preview' || 
+           params.get('admin_preview') === '1' ||
+           Boolean(sessionStorage.getItem('sigic_admin_preview'))
+  })
   const [datosToken, setDatosToken] = useState(null)
   const [errorToken, setErrorToken] = useState(null)
   const [validandoToken, setValidandoToken] = useState(!!tokenURL)
 
   // ─── 1. SESIÓN DE ADMINISTRADOR ───
   const [adminActivo, setAdminActivo] = useState(
-    () => localStorage.getItem('sesion_admin') === 'true',
+    () => typeof window !== 'undefined' && localStorage.getItem('sesion_admin') === 'true',
   )
   const [adminUser, setAdminUser] = useState(
     () => {
+      if (typeof window === 'undefined') return { nombre: '', correo: '' }
       const usuario = JSON.parse(localStorage.getItem('admin_user') || 'null')
       if (usuario?.correo) {
         const actualizado = { ...usuario, correo: normalizarCorreoInstitucional(usuario.correo) }
@@ -120,10 +128,20 @@ function App() {
 
   // ─── 2. SESIÓN DE GRADUADO (OTP) ───
   const [graduadoActivo, setGraduadoActivo] = useState(
-    () => localStorage.getItem('sesion_graduado') === 'true',
+    () => {
+      if (typeof window === 'undefined') return false
+      return localStorage.getItem('sesion_graduado') === 'true' || Boolean(sessionStorage.getItem('preview_graduado_usuario'))
+    }
   )
   const [graduadoUsuario, setGraduadoUsuario] = useState(
-    () => JSON.parse(localStorage.getItem('graduado_usuario') || 'null'),
+    () => {
+      if (typeof window === 'undefined') return null
+      const preview = sessionStorage.getItem('preview_graduado_usuario')
+      if (preview) {
+        try { return JSON.parse(preview) } catch (_) {}
+      }
+      return JSON.parse(localStorage.getItem('graduado_usuario') || 'null')
+    }
   )
 
   // ─── 3. ESTADO DE NAVEGACIÓN ───
@@ -271,6 +289,10 @@ function App() {
         if (!nuevoEstado) setAdminUser({ nombre: '', correo: '' })
       }
       if (e.key === 'sesion_graduado') {
+        // Si esta pestaña tiene una sesión de admin activa, ignoramos para no cerrarle la sesión al admin
+        if (adminActivoRef.current || localStorage.getItem('sesion_admin') === 'true') {
+          return
+        }
         const nuevoEstado = e.newValue === 'true'
         setGraduadoActivo(nuevoEstado)
         if (!nuevoEstado) setGraduadoUsuario(null)
@@ -279,6 +301,10 @@ function App() {
         setAdminUser(e.newValue ? JSON.parse(e.newValue) : { nombre: '', correo: '' })
       }
       if (e.key === 'graduado_usuario') {
+        // Si esta pestaña tiene sesión de admin activa, ignoramos
+        if (adminActivoRef.current || localStorage.getItem('sesion_admin') === 'true') {
+          return
+        }
         setGraduadoUsuario(e.newValue ? JSON.parse(e.newValue) : null)
       }
       if (e.key === 'mostrar_presentacion_inicial') {
@@ -421,21 +447,33 @@ function App() {
   // Limpiar cualquier sesión previa si ingresamos por URL con un token
   useEffect(() => {
     if (tokenURL) {
-      console.log("Detectado token de acceso en URL. Limpiando sesiones previas para evitar conflictos...")
+      const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
+      const esAdmin = typeof window !== 'undefined' && localStorage.getItem('sesion_admin') === 'true'
+      const esPreview = params?.get('vista') === 'preview' || 
+                        params?.get('admin_preview') === '1' || 
+                        esAdmin || 
+                        esModoPreview
+
+      if (esPreview) {
+        setEsModoPreview(true)
+        if (typeof window !== 'undefined') {
+          sessionStorage.setItem('sigic_admin_preview', '1')
+        }
+        console.log("Acceso a token en modo vista previa de administración: preservando sesión de admin.")
+      } else {
+        console.log("Detectado token de acceso en URL. Limpiando sesiones previas para evitar conflictos...")
+        localStorage.removeItem('sesion_admin')
+        localStorage.removeItem('admin_user')
+        setAdminActivo(false)
+        setAdminUser({ nombre: '', correo: '' })
+        limpiarTokenSesion()
+      }
       
-      localStorage.removeItem('sesion_admin')
-      localStorage.removeItem('admin_user')
-      setAdminActivo(false)
-      setAdminUser({ nombre: '', correo: '' })
-      
-      localStorage.removeItem('sesion_graduado')
-      localStorage.removeItem('graduado_usuario')
+      // Siempre aislamos el estado previo del graduado
       setGraduadoActivo(false)
       setGraduadoUsuario(null)
-      
-      limpiarTokenSesion()
     }
-  }, [tokenURL])
+  }, [tokenURL, esModoPreview])
 
   // ─── 3.1 VALIDACIÓN DE TOKEN ───
   useEffect(() => {
@@ -516,26 +554,38 @@ function App() {
 
   // ─── 5. LÓGICA DE GRADUADO ───
   function manejarLoginGraduadoExitoso(datos) {
-    // Limpiar sesión de administrador previa para disparar la sincronización en otras pestañas
-    localStorage.removeItem('sesion_admin')
-    localStorage.removeItem('admin_user')
-    setAdminActivo(false)
-    setAdminUser({ nombre: '', correo: '' })
+    const esAdmin = typeof window !== 'undefined' && localStorage.getItem('sesion_admin') === 'true'
+    const esPreview = esModoPreview || esAdmin
 
-    setGraduadoUsuario(datos)
-    setGraduadoActivo(true)
-    localStorage.setItem('sesion_graduado', 'true')
-    localStorage.setItem('graduado_usuario', JSON.stringify(datos))
+    if (!esPreview) {
+      // Limpiar sesión de administrador previa para disparar la sincronización en otras pestañas
+      localStorage.removeItem('sesion_admin')
+      localStorage.removeItem('admin_user')
+      setAdminActivo(false)
+      setAdminUser({ nombre: '', correo: '' })
+
+      setGraduadoUsuario(datos)
+      setGraduadoActivo(true)
+      localStorage.setItem('sesion_graduado', 'true')
+      localStorage.setItem('graduado_usuario', JSON.stringify(datos))
+    } else {
+      // Modo vista previa de administración: aislamiento total en sessionStorage
+      setGraduadoUsuario(datos)
+      setGraduadoActivo(true)
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('preview_graduado_usuario', JSON.stringify(datos))
+      }
+    }
     
-    // Si es una simulación del expositor (no hay token real guardado), guardamos el token de bypass correspondiente
+    // Si es una simulación del expositor o preview, guardamos el token de bypass correspondiente
     const tokenActual = obtenerTokenSesion()
-    if (!tokenActual || tokenActual.startsWith('bypass-')) {
+    if (!tokenActual || tokenActual.startsWith('bypass-') || esPreview) {
       guardarTokenSesion(`bypass-egresado-${datos.id}`)
     }
     
     setVistaLogin(null)
     setTokenURL(null)
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && !esPreview) {
       window.history.replaceState({}, document.title, "/")
     }
   }
@@ -543,11 +593,26 @@ function App() {
   function cerrarSesionGraduado() {
     setGraduadoUsuario(null)
     setGraduadoActivo(false)
-    localStorage.removeItem('sesion_graduado')
-    localStorage.removeItem('graduado_usuario')
-    limpiarTokenSesion()
+
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('preview_graduado_usuario')
+      sessionStorage.removeItem('sigic_admin_preview')
+    }
+
+    if (!esModoPreview) {
+      localStorage.removeItem('sesion_graduado')
+      localStorage.removeItem('graduado_usuario')
+      limpiarTokenSesion()
+    }
+
     setTokenURL(null)
-    window.history.replaceState({}, document.title, "/")
+    setEsModoPreview(false)
+
+    if (esModoPreview && typeof window !== 'undefined' && window.opener) {
+      window.close()
+    } else if (typeof window !== 'undefined') {
+      window.history.replaceState({}, document.title, "/")
+    }
   }
 
   // ─── 5.1 FLUJO DE ACEPTACIÓN/RECHAZO ───
@@ -558,7 +623,11 @@ function App() {
     )
     const actualizado = { ...graduadoUsuario, estado: 'ACEPTADO', historial }
     setGraduadoUsuario(actualizado)
-    localStorage.setItem('graduado_usuario', JSON.stringify(actualizado))
+    if (!esModoPreview) {
+      localStorage.setItem('graduado_usuario', JSON.stringify(actualizado))
+    } else if (typeof window !== 'undefined') {
+      sessionStorage.setItem('preview_graduado_usuario', JSON.stringify(actualizado))
+    }
   }
 
   async function manejarRechazarInvitacion() {
@@ -568,10 +637,22 @@ function App() {
     )
     const actualizado = { ...graduadoUsuario, estado: 'RECHAZADO', historial }
     setGraduadoUsuario(actualizado)
-    localStorage.setItem('graduado_usuario', JSON.stringify(actualizado))
+    if (!esModoPreview) {
+      localStorage.setItem('graduado_usuario', JSON.stringify(actualizado))
+    } else if (typeof window !== 'undefined') {
+      sessionStorage.setItem('preview_graduado_usuario', JSON.stringify(actualizado))
+    }
   }
 
   function limpiarTodo() {
+    if (esModoPreview) {
+      if (typeof window !== 'undefined' && window.opener) {
+        window.close()
+      } else {
+        cerrarSesionGraduado()
+      }
+      return
+    }
     localStorage.clear()
     window.location.href = '/'
   }
@@ -682,6 +763,34 @@ function App() {
       )
     }
 
+    if (esModoPreview) {
+      contenido = (
+        <div className="min-h-screen flex flex-col bg-[#F0F4F8]">
+          <div className="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-md text-white px-4 sm:px-6 py-2.5 flex items-center justify-between border-b border-sky-500/40 shadow-lg">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <span className="flex h-2.5 w-2.5 shrink-0 rounded-full bg-sky-400 animate-pulse" />
+              <span className="bg-sky-500/20 text-sky-300 px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border border-sky-500/30 shrink-0">
+                Vista Previa Admin
+              </span>
+              <span className="text-slate-400 text-xs font-bold hidden sm:inline">|</span>
+              <span className="text-xs font-bold text-slate-200 truncate">
+                Visualizando portal de {graduadoUsuario.nombre} {graduadoUsuario.dni ? `(${graduadoUsuario.dni})` : ''}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={cerrarSesionGraduado}
+              className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-rose-600 text-white text-[11px] font-bold transition-all cursor-pointer border border-white/10 shrink-0 ml-3"
+            >
+              Cerrar Vista Previa
+            </button>
+          </div>
+          <div className="flex-1">
+            {contenido}
+          </div>
+        </div>
+      )
+    }
   }
 
   // CASO C: El usuario es Administrador logueado

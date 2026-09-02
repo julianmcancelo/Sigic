@@ -207,7 +207,7 @@ export function GestionConvocatoria({ onNavegar, usuario }) {
 
   function abrirPortalEgresado(graduado) {
     const host = typeof window !== 'undefined' ? window.location.origin : ''
-    window.open(`${host}/?token=${graduado.token}`, '_blank')
+    window.open(`${host}/?token=${graduado.token}&vista=preview`, '_blank', 'noopener,noreferrer')
   }
 
   // Despacho masivo mediante Modal con barra de progreso
@@ -681,15 +681,17 @@ export function GestionConvocatoria({ onNavegar, usuario }) {
                           {esCopiado ? <CheckCheck size={14} className="text-emerald-600" /> : <Copy size={14} />}
                         </button>
 
-                        {/* BOTÓN VER PORTAL */}
-                        <button
-                          type="button"
-                          onClick={() => abrirPortalEgresado(g)}
-                          className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 transition cursor-pointer"
-                          title="Abrir portal del graduado en pestaña nueva"
+                        {/* BOTÓN VER PORTAL (EN PESTAÑA APARTE SIN CERRAR SESIÓN ADMIN) */}
+                        <a
+                          href={`${typeof window !== 'undefined' ? window.location.origin : ''}/?token=${g.token}&vista=preview`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="p-2 rounded-xl bg-slate-100 hover:bg-sky-50 text-slate-600 hover:text-sky-600 transition cursor-pointer flex items-center justify-center"
+                          title="Abrir portal del graduado en pestaña aparte (sin cerrar sesión de admin)"
                         >
                           <ExternalLink size={14} />
-                        </button>
+                        </a>
 
                         {/* BOTÓN CONFIRMAR MANUAL (SI NO CONFIRMÓ AÚN) */}
                         {g.estado !== 'ACEPTADO' && g.estado !== 'RECHAZADO' && (
