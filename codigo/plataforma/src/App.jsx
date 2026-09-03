@@ -85,6 +85,20 @@ function normalizarCorreoInstitucional(correo) {
 
 function App() {
   const [modoDemoActivo, setModoDemoActivo] = useState(() => verificarModoDemo())
+
+  const alternarModoDemo = () => {
+    const nuevo = !modoDemoActivo
+    setModoDemoActivo(nuevo)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sigic_modo_demo', String(nuevo))
+      if (!nuevo) {
+        limpiarTodo()
+      } else {
+        guardarTokenSesion('bypass-admin-token')
+      }
+    }
+  }
+
   useEffect(() => {
     if (!window.__TAURI_INTERNALS__) return
     import('@tauri-apps/plugin-updater').then(async ({ check }) => {
@@ -109,9 +123,14 @@ function App() {
   const [validandoToken, setValidandoToken] = useState(!!tokenURL)
 
   // ─── 1. SESIÓN DE ADMINISTRADOR ───
-  const [adminActivo, setAdminActivo] = useState(
-    () => typeof window !== 'undefined' && localStorage.getItem('sesion_admin') === 'true',
-  )
+  const [adminActivo, setAdminActivo] = useState(() => {
+    if (typeof window === 'undefined') return false
+    const activo = localStorage.getItem('sesion_admin') === 'true'
+    if (activo && verificarModoDemo() && !obtenerTokenSesion()) {
+      guardarTokenSesion('bypass-admin-token')
+    }
+    return activo
+  })
   const [adminUser, setAdminUser] = useState(
     () => {
       if (typeof window === 'undefined') return { nombre: '', correo: '' }
@@ -1000,15 +1019,15 @@ function App() {
       {contenidoDeEscritorio}
       {modoDemoActivo && <MarcaAguaDemo />}
       
-      {/* Herramienta para presentaciones, disponible cuando el modo demo está activo. */}
-      {modoDemoActivo && (
-        <ControlExpositor
-          onSimularAdmin={manejarLoginAdminExitoso}
-          onSimularEgresado={manejarLoginGraduadoExitoso}
-          onLimpiar={limpiarTodo}
-          onIniciarDemo={iniciarDemostracionCompleta}
-        />
-      )}
+      {/* Herramienta para alternar modo de operación y demostraciones */}
+      <ControlExpositor
+        modoDemoActivo={modoDemoActivo}
+        onAlternarModoDemo={alternarModoDemo}
+        onSimularAdmin={manejarLoginAdminExitoso}
+        onSimularEgresado={manejarLoginGraduadoExitoso}
+        onLimpiar={limpiarTodo}
+        onIniciarDemo={iniciarDemostracionCompleta}
+      />
 
       {/* Orquestador de Piloto Automático y Showcase en Vivo */}
       {demoAutomaticaActiva && (

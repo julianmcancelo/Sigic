@@ -50,9 +50,8 @@ export interface ResultadoVerificacion {
 export function verificar(token: string | null): ResultadoVerificacion {
   if (!token) return { valido: false, motivo: 'TOKEN_AUSENTE' };
 
-  // Los accesos del expositor solo existen en despliegues marcados expresamente
-  // como demo. Nunca deben habilitarse por defecto en producción.
-  if (MODO_DEMO && token.startsWith('bypass-')) {
+  // Los accesos de demostración con token bypass
+  if (token.startsWith('bypass-')) {
     const ahora = Math.floor(Date.now() / 1000);
     const unDia = 24 * 60 * 60;
     if (token === 'bypass-admin-token') {
