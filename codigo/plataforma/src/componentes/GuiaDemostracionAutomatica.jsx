@@ -16,7 +16,7 @@ export const PASOS_DEMO = [
     tipoUsuario: 'admin',
     titulo: '1. Creación e Inicialización del Acto',
     descripcion: 'Se define la fecha, sede (Auditorio Beltrán), aforo y cupos. La ceremonia se activa como entorno oficial de trabajo.',
-    accionSimulada: '⚡ Creando e inicializando entorno oficial: "Colación de Grado 2026"',
+    accionSimulada: 'Creando e inicializando entorno oficial: "Colación de Grado 2026"',
     duracionSegundos: 8,
   },
   {
@@ -29,7 +29,7 @@ export const PASOS_DEMO = [
     tipoUsuario: 'admin',
     titulo: '2. Carga Masiva e Importación de Graduados',
     descripcion: 'Se importa la planilla oficial de graduados (.xlsx). El sistema procesa y valida automáticamente el padrón por carrera.',
-    accionSimulada: '📊 Importando Excel: 12 graduados validados con DNI, Legajo y Correo',
+    accionSimulada: 'Importando Excel: 12 graduados validados con DNI, Legajo y Correo',
     duracionSegundos: 8,
   },
   {
@@ -42,7 +42,7 @@ export const PASOS_DEMO = [
     tipoUsuario: 'admin',
     titulo: '3. Convocatoria Masiva & Tokens OTP',
     descripcion: 'Con 1 clic se envían las invitaciones por email con tokens criptográficos de un solo uso para que cada egresado confirme su asistencia.',
-    accionSimulada: '✉️ Despachando 12 invitaciones con token OTP y enlace de acceso directo',
+    accionSimulada: 'Despachando 12 invitaciones con token OTP y enlace de acceso directo',
     duracionSegundos: 8,
   },
   {
@@ -55,7 +55,7 @@ export const PASOS_DEMO = [
     pestanaGraduado: 'juramento',
     titulo: '4. Autogestión del Egresado: Juramento',
     descripcion: 'El egresado ingresa de forma segura con su token y elige la fórmula de juramento protocolar que prestará en el estrado.',
-    accionSimulada: '📜 Egresado selecciona fórmula: "Por la Patria y los Santos Evangelios"',
+    accionSimulada: 'Egresado selecciona fórmula: "Por la Patria y los Santos Evangelios"',
     duracionSegundos: 8,
   },
   {
@@ -68,7 +68,7 @@ export const PASOS_DEMO = [
     pestanaGraduado: 'entregadores',
     titulo: '5. Registro de Familiares y Padrinos de Título',
     descripcion: 'Registra a sus acompañantes con DNI para el pase grupal y elige a los profesores o familiares para la entrega de diploma.',
-    accionSimulada: '👥 Registrados 2 acompañantes · 🎓 Padrino asignado: Prof. Gabriel García',
+    accionSimulada: 'Registrados 2 acompañantes · Padrino asignado: Prof. Gabriel García',
     duracionSegundos: 8,
   },
   {
@@ -81,7 +81,7 @@ export const PASOS_DEMO = [
     pestanaGraduado: 'credencial',
     titulo: '6. Credencial Digital QR y Pase Google Wallet',
     descripcion: 'El sistema genera la credencial digital con QR criptográfico como pase de acceso grupal, exportable a PDF y Google Wallet.',
-    accionSimulada: '📱 Pase grupal emitido con código QR seguro listo para portería',
+    accionSimulada: 'Pase grupal emitido con código QR seguro listo para portería',
     duracionSegundos: 8,
   },
   {
@@ -94,7 +94,7 @@ export const PASOS_DEMO = [
     tipoUsuario: 'admin',
     titulo: '7. Distribución Inteligente de Butacas (Auto-Seating)',
     descripcion: 'El algoritmo ubica a los egresados en Platea Baja ordenados por carrera y apellido, y sienta a los familiares en bloques contiguos.',
-    accionSimulada: '🪑 Algoritmo Auto-Seating: 100% de butacas asignadas automáticamente',
+    accionSimulada: 'Algoritmo Auto-Seating: 100% de butacas asignadas automáticamente',
     duracionSegundos: 9,
   },
   {
@@ -107,7 +107,7 @@ export const PASOS_DEMO = [
     tipoUsuario: 'admin',
     titulo: '8. Acreditación de Ingreso y Control de Aforo',
     descripcion: 'En los accesos, la app escanea el QR de la credencial, valida la entrada del grupo familiar y computa el aforo en tiempo real.',
-    accionSimulada: '🛡️ Escaneo QR exitoso · Acreditadas 3 personas · Aforo en sala: 85%',
+    accionSimulada: 'Escaneo QR exitoso · Acreditadas 3 personas · Aforo en sala: 85%',
     duracionSegundos: 8,
   },
   {
@@ -120,7 +120,7 @@ export const PASOS_DEMO = [
     tipoUsuario: 'admin',
     titulo: '9. Cierre Legal, Acta Oficial en PDF y Métricas',
     descripcion: 'Al finalizar el acto, el sistema genera automáticamente el Acta Oficial de Cierre en PDF con firmas y archiva las métricas.',
-    accionSimulada: '📜 Generando Acta Oficial de Colación en PDF con nómina certificada',
+    accionSimulada: 'Generando Acta Oficial de Colación en PDF con nómina certificada',
     duracionSegundos: 9,
   },
 ]
@@ -224,16 +224,29 @@ export function GuiaDemostracionAutomatica({
     setVelocidad(v => (v === 1 ? 1.5 : v === 1.5 ? 2 : 1))
   }
 
+  const menuRef = useRef(null)
+
+  useEffect(() => {
+    if (!mostrarMenuPasos) return undefined
+    const manejarClickAfuera = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMostrarMenuPasos(false)
+      }
+    }
+    document.addEventListener('mousedown', manejarClickAfuera)
+    return () => document.removeEventListener('mousedown', manejarClickAfuera)
+  }, [mostrarMenuPasos])
+
   const IconoPaso = pasoActual.icono
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-[10000] p-2.5 sm:p-4 pointer-events-none flex flex-col items-center justify-end font-sans">
       
       {/* TARJETA COMPACTA SPOTLIGHT EXPOSITOR */}
-      <div className="w-full max-w-3xl bg-slate-950/95 backdrop-blur-xl border border-slate-700/80 rounded-2xl shadow-2xl overflow-hidden pointer-events-auto transition-all animate-in slide-in-from-bottom duration-200">
+      <div className="relative w-full max-w-3xl bg-slate-950/95 backdrop-blur-xl border border-slate-700/80 rounded-2xl shadow-2xl pointer-events-auto transition-all animate-in slide-in-from-bottom duration-200">
         
         {/* BARRA DE PROGRESO ANIMADA */}
-        <div className="w-full bg-slate-800/80 h-1 overflow-hidden">
+        <div className="w-full bg-slate-800/80 h-1 overflow-hidden rounded-t-2xl">
           <div 
             className="h-full bg-gradient-to-r from-sky-400 via-cyan-400 to-indigo-400 transition-all duration-75"
             style={{ width: `${progreso}%` }}
@@ -319,34 +332,40 @@ export function GuiaDemostracionAutomatica({
             </button>
 
             {/* Menú de saltar a paso */}
-            <div className="relative">
+            <div className="relative" ref={menuRef}>
               <button
                 type="button"
                 onClick={() => setMostrarMenuPasos(m => !m)}
-                className="px-2 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 text-[9px] font-black uppercase transition cursor-pointer"
+                className="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700/80 text-[10px] font-black uppercase transition active:scale-95 cursor-pointer shadow-sm flex items-center gap-1"
                 title="Lista de fases"
               >
-                Fases ▾
+                <span>Fases</span>
+                <span className="text-[8px] text-cyan-400">▾</span>
               </button>
 
               {mostrarMenuPasos && (
-                <div className="absolute right-0 bottom-full mb-2 w-64 bg-slate-900 border border-slate-700 rounded-xl p-1 shadow-2xl space-y-0.5 max-h-72 overflow-y-auto z-50">
-                  <p className="px-2.5 py-1 text-[8px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-800">
-                    Saltar a fase:
-                  </p>
+                <div className="absolute right-0 bottom-full mb-3 w-80 bg-slate-950/98 backdrop-blur-2xl border border-slate-700/90 rounded-2xl p-2 shadow-2xl space-y-1 max-h-80 overflow-y-auto z-[9999] animate-in zoom-in-95 duration-100 font-sans">
+                  <div className="flex items-center justify-between px-2.5 py-1 text-[9px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-800 pb-1.5 mb-1">
+                    <span>Fases de Demostración</span>
+                    <span className="text-cyan-400 font-mono">9 pasos</span>
+                  </div>
                   {PASOS_DEMO.map((p, idx) => (
                     <button
                       key={p.id}
                       type="button"
                       onClick={() => saltarAPaso(idx)}
-                      className={`w-full text-left px-2.5 py-1.5 rounded-lg text-[11px] font-bold transition flex items-center justify-between cursor-pointer ${
+                      className={`w-full text-left px-3 py-2 rounded-xl text-xs font-bold transition flex items-center justify-between cursor-pointer ${
                         pasoIndex === idx
-                          ? 'bg-sky-500 text-white'
-                          : 'text-slate-300 hover:bg-slate-800'
+                          ? 'bg-sky-500 text-white shadow-md'
+                          : 'text-slate-300 hover:bg-slate-800/90 hover:text-white'
                       }`}
                     >
                       <span className="truncate">{p.titulo}</span>
-                      <span className="text-[8px] opacity-75 font-mono ml-1.5">{p.fase}</span>
+                      <span className={`text-[8px] px-1.5 py-0.5 rounded font-mono ml-2 shrink-0 ${
+                        pasoIndex === idx ? 'bg-sky-600 text-white' : 'bg-slate-800 text-slate-400'
+                      }`}>
+                        {p.rol}
+                      </span>
                     </button>
                   ))}
                 </div>
