@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { 
   Plus, Calendar, MapPin, Users, Trash2, 
   CheckCircle2, X, PlusCircle, ArrowRight, LayoutTemplate, Send, Radio, Flag, ListChecks,
-  ClipboardList, UserPlus, Armchair, ScanLine, BarChart3, PlayCircle, LoaderCircle, Clock, Mic
+  ClipboardList, UserPlus, Armchair, ScanLine, BarChart3, PlayCircle, LoaderCircle, Clock
 } from 'lucide-react'
 import { obtenerCeremonias, crearCeremonia, activarCeremonia, eliminarCeremonia, actualizarEstadoCeremonia } from '../../lib/api'
 import { useConfirmacion } from '../../componentes/ModalConfirmacion'
@@ -335,10 +335,10 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
 
                     return (
                       <button
-                        onClick={() => onNavegar?.('locucion')}
-                        className="w-full flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-500 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md shadow-rose-600/20 transition active:scale-98 cursor-pointer"
+                        onClick={() => onNavegar?.('control-ingreso')}
+                        className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md shadow-emerald-600/20 transition active:scale-98 cursor-pointer"
                       >
-                        <Mic size={15} /> Paso 5: Abrir Modo Locución <ArrowRight size={13} />
+                        <ScanLine size={15} /> Paso 5: Control de Ingreso & Acreditación <ArrowRight size={13} />
                       </button>
                     )
                   })()}

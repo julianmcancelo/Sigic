@@ -9,7 +9,7 @@
  * 3. Si rechaza → Inhabilitado, se cierra sesión automáticamente
  */
 import React, { useState, useEffect, useRef } from 'react'
-import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, CalendarPlus, RefreshCw, Shield, Server, Search, Power, Bell, Wifi, Volume2, ChevronRight, ChevronUp, ArrowRight, LayoutGrid, X, Minus, Maximize2, Sun, Moon, MousePointer2, Lock, ClipboardCheck, Activity, Send, ListChecks, Mic, ScrollText, Sparkles, Armchair, Award, QrCode, Palette } from 'lucide-react'
+import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, CalendarPlus, RefreshCw, Shield, Server, Search, Power, Bell, Wifi, Volume2, ChevronRight, ChevronUp, ArrowRight, LayoutGrid, X, Minus, Maximize2, Sun, Moon, MousePointer2, Lock, ClipboardCheck, Activity, Send, ListChecks, ScrollText, Sparkles, Armchair, Award, QrCode, Palette } from 'lucide-react'
 
 // Importación de Modal de Fondo
 import { ModalPersonalizarFondo } from './componentes/ModalPersonalizarFondo'
@@ -38,7 +38,6 @@ import { EditorAnfiteatro } from './paginas/operacion/EditorAnfiteatro'
 import { GestionProfesores } from './paginas/operacion/GestionProfesores'
 import { CentroOperacionesDemo } from './paginas/operacion/CentroOperacionesDemo'
 import { EstadoCeremonia } from './paginas/operacion/EstadoCeremonia'
-import { LocucionCeremonia } from './paginas/operacion/LocucionCeremonia'
 
 
 // Componentes Globales
@@ -826,8 +825,6 @@ function App() {
       contenido = <GestionConvocatoria onNavegar={setPantallaAdmin} />
     } else if (pantallaAdmin === 'preparacion-ceremonia') {
       contenido = <PreparacionCeremonia onNavegar={setPantallaAdmin} />
-    } else if (pantallaAdmin === 'locucion' || pantallaAdmin === 'teleprompter') {
-      contenido = <LocucionCeremonia onVolver={() => setPantallaAdmin('bienvenida')} onNavegar={setPantallaAdmin} />
     } else if (pantallaAdmin === 'asistente-operativo') {
       contenido = <AsistenteOperativoCeremonia onNavegar={setPantallaAdmin} />
     } else if (pantallaAdmin === 'control-ingreso' || adminUser?.rol === 'PORTERIA' || adminUser?.rol === 'SEGURIDAD') {
@@ -1105,7 +1102,6 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
     { id: 'gestion-graduados', titulo: 'Graduados', icono: GraduationCap, color: 'bg-emerald-500', escritorio: true },
     { id: 'convocatoria', titulo: 'Convocatoria', icono: Send, color: 'bg-blue-500', escritorio: true },
     { id: 'preparacion-ceremonia', titulo: 'Preparación', icono: Armchair, color: 'bg-cyan-600', escritorio: true },
-    { id: 'locucion', titulo: 'Locución', icono: Mic, color: 'bg-rose-500', escritorio: true },
     { id: 'control-ingreso', titulo: 'Acreditación', icono: ScanLine, color: 'bg-amber-500', escritorio: true },
     { id: 'estado-ceremonia', titulo: 'En vivo', icono: Activity, color: 'bg-teal-500', escritorio: true },
     { id: 'panel-reportes', titulo: 'Reportes', icono: BarChart3, color: 'bg-purple-500', escritorio: true },
@@ -1340,7 +1336,7 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
   }
 
   const aplicacionesFiltradas = aplicaciones.filter(app => app.titulo.toLowerCase().includes(busquedaInicio.trim().toLowerCase()))
-  const modulosPrioritarios = ['gestion-ceremonias', 'gestion-graduados', 'convocatoria', 'preparacion-ceremonia', 'locucion', 'control-ingreso', 'estado-ceremonia', 'panel-reportes']
+  const modulosPrioritarios = ['gestion-ceremonias', 'gestion-graduados', 'convocatoria', 'preparacion-ceremonia', 'control-ingreso', 'estado-ceremonia', 'panel-reportes']
   const aplicacionesInicio = busquedaInicio.trim()
     ? aplicacionesFiltradas
     : aplicaciones.filter(app => modulosPrioritarios.includes(app.id))
@@ -1447,7 +1443,6 @@ function AdminDock({ pantallaActual, onNavegar, posicion, setPosicion, usuario }
     { id: 'gestion-graduados', titulo: 'Graduados', icono: Users },
     { id: 'convocatoria', titulo: 'Convocatoria', icono: Send },
     { id: 'preparacion-ceremonia', titulo: 'Preparación', icono: ListChecks },
-    { id: 'locucion', titulo: 'Locución', icono: Mic },
     { id: 'control-ingreso', titulo: 'Acreditación', icono: ScanLine },
     { id: 'estado-ceremonia', titulo: 'En vivo', icono: Activity },
     { id: 'panel-reportes', titulo: 'Reportes', icono: BarChart3 },

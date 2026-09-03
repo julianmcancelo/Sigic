@@ -57,7 +57,7 @@ export function ControlExpositor({ onSimularAdmin, onSimularEgresado, onLimpiar,
               <Sparkles size={14} className="animate-spin-slow shrink-0 text-cyan-200" aria-hidden="true" />
               <div className="min-w-0">
                 <strong className="block text-[11px] font-black leading-tight truncate">🎬 Demostración Automática</strong>
-                <span className="block text-[8px] text-white/80 leading-none truncate">10 fases guiadas</span>
+                <span className="block text-[8px] text-white/80 leading-none truncate">9 fases guiadas</span>
               </div>
             </button>
 

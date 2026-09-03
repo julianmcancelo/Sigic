@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import {
   Play, Pause, ChevronRight, ChevronLeft, X, Sparkles,
   Users, Send, ScrollText, GraduationCap, QrCode, Armchair,
-  Mic, ScanLine, FileText, CheckCircle2, Zap
+  ScanLine, FileText, CheckCircle2, Zap
 } from 'lucide-react'
 
 export const PASOS_DEMO = [
@@ -98,40 +98,27 @@ export const PASOS_DEMO = [
     duracionSegundos: 9,
   },
   {
-    id: 'fase-8-locucion',
+    id: 'fase-8-porteria',
     fase: 8,
-    rol: 'ESTRADO & LOCUCIÓN',
-    colorRol: 'bg-rose-600 text-white',
-    icono: Mic,
-    vistaAdmin: 'locucion',
-    tipoUsuario: 'admin',
-    titulo: '8. Teleprompter y Asistencia al Locutor en Vivo',
-    descripcion: 'En la pantalla del estrado, el locutor visualiza en tiempo real el orden exacto de diplomas, juramentos y padrinos convocados.',
-    accionSimulada: '🎙️ Teleprompter en vivo · Convocando al estrado: Julieta Pérez',
-    duracionSegundos: 8,
-  },
-  {
-    id: 'fase-9-porteria',
-    fase: 9,
     rol: 'PORTERÍA & SEGURIDAD',
     colorRol: 'bg-amber-600 text-white',
     icono: ScanLine,
     vistaAdmin: 'control-ingreso',
     tipoUsuario: 'admin',
-    titulo: '9. Acreditación de Ingreso y Control de Aforo',
+    titulo: '8. Acreditación de Ingreso y Control de Aforo',
     descripcion: 'En los accesos, la app escanea el QR de la credencial, valida la entrada del grupo familiar y computa el aforo en tiempo real.',
     accionSimulada: '🛡️ Escaneo QR exitoso · Acreditadas 3 personas · Aforo en sala: 85%',
     duracionSegundos: 8,
   },
   {
-    id: 'fase-10-cierre',
-    fase: 10,
+    id: 'fase-9-cierre',
+    fase: 9,
     rol: 'AUDITORÍA & CIERRE',
     colorRol: 'bg-slate-900 text-white',
     icono: FileText,
     vistaAdmin: 'estado-ceremonia',
     tipoUsuario: 'admin',
-    titulo: '10. Cierre Legal, Acta Oficial en PDF y Métricas',
+    titulo: '9. Cierre Legal, Acta Oficial en PDF y Métricas',
     descripcion: 'Al finalizar el acto, el sistema genera automáticamente el Acta Oficial de Cierre en PDF con firmas y archiva las métricas.',
     accionSimulada: '📜 Generando Acta Oficial de Colación en PDF con nómina certificada',
     duracionSegundos: 9,
@@ -262,7 +249,7 @@ export function GuiaDemostracionAutomatica({
                 {pasoActual.rol}
               </span>
               <span className="text-[9px] font-black uppercase tracking-wider text-cyan-400 bg-cyan-950/80 border border-cyan-800/60 px-1.5 py-0.5 rounded-md">
-                Fase {pasoActual.fase}/10
+                Fase {pasoActual.fase}/{PASOS_DEMO.length}
               </span>
               <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-800/60 px-2 py-0.5 rounded-md flex items-center gap-1">
                 <Zap size={11} className="text-emerald-400" />

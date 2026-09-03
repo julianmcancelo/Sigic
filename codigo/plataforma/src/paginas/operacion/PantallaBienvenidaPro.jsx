@@ -3,7 +3,7 @@ import {
   GraduationCap, Calendar, CalendarPlus, Users, FileSpreadsheet, Settings, 
   LogOut, Search, Bell, Eye, Edit3, CheckCircle2, AlertTriangle, 
   XCircle, LayoutGrid, HelpCircle, Map, BarChart3, Award, UserCheck, TrendingUp, 
-  Shield, Server, Send, Armchair, Mic, Activity, QrCode, ScanLine, ArrowRight, ChevronRight
+  Shield, Server, Send, Armchair, Activity, QrCode, ScanLine, ArrowRight, ChevronRight
 } from 'lucide-react'
 import { BASE, cabeceras } from '../../servicios/api'
 import { useSincronizacion, emitirCambioSync } from '../../lib/sync'
@@ -17,7 +17,6 @@ import { GestionConvocatoria } from './GestionConvocatoria'
 import { GestionProfesores } from './GestionProfesores'
 import { ControlIngreso } from './ControlIngreso'
 import { EditorAnfiteatro } from './EditorAnfiteatro'
-import { LocucionCeremonia } from './LocucionCeremonia'
 import { EstadoCeremonia } from './EstadoCeremonia'
 import { PanelAjustes } from './PanelAjustes'
 import { PanelReportes } from './PanelReportes'
@@ -330,8 +329,7 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
               {renderMenuItem(Send, '3. Convocatoria', 'convocatoria')}
               {renderMenuItem(Armchair, '4. Butacas', 'butacas')}
               {renderMenuItem(ScanLine, '5. Acreditación', 'acreditacion')}
-              {renderMenuItem(Mic, '6. Locución', 'locucion')}
-              {renderMenuItem(Activity, '7. En Vivo', 'envivo')}
+              {renderMenuItem(Activity, '6. En Vivo', 'envivo')}
             </>
           )}
 
@@ -872,13 +870,7 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
             />
           )}
 
-          {/* VISTA LOCUCION */}
-          {vistaActiva === 'locucion' && (
-            <LocucionCeremonia
-              onVolver={() => setVistaActiva('dashboard')}
-              onNavegar={setVistaActiva}
-            />
-          )}
+
 
           {/* VISTA EN VIVO */}
           {vistaActiva === 'envivo' && (
