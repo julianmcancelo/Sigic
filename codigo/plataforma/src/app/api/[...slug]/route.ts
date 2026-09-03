@@ -1986,6 +1986,26 @@ export async function POST(
         return NextResponse.json({ error: 'Esta persona ya tiene una inscripción en la ceremonia activa. Podés editar su registro existente.' }, { status: 409, headers });
       }
 
+      // Validar que no se haya graduado ni registrado previamente en esa misma carrera
+      if (carrera?.trim()) {
+        const graduacionPreviaEnCarrera = await query(
+          `SELECT e.id, e.carrera, c.nombre as ceremonia_nombre
+           FROM egresados e
+           LEFT JOIN ceremonias c ON c.id = e.ceremonia_id
+           WHERE REGEXP_REPLACE(COALESCE(e.dni, ''), '[^0-9]', '', 'g') = $1
+             AND UPPER(TRIM(COALESCE(e.carrera, ''))) = UPPER(TRIM(COALESCE($2, '')))
+             AND e.estado != 'RECHAZADO'
+           LIMIT 1`,
+          [dniLimpio, carrera.trim()]
+        );
+        if (graduacionPreviaEnCarrera.rows.length > 0) {
+          const prev = graduacionPreviaEnCarrera.rows[0];
+          return NextResponse.json({
+            error: `Esta persona ya registra una graduación o inscripción previa en la carrera "${carrera}"${prev.ceremonia_nombre ? ` (${prev.ceremonia_nombre})` : ''}. No es posible registrar dos veces a un egresado en la misma carrera.`
+          }, { status: 409, headers });
+        }
+      }
+
       const token = crypto.randomBytes(4).toString('hex').toUpperCase(); // 8-char código seguro
 
       const result = await query(

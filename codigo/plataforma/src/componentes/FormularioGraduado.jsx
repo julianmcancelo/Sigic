@@ -4,6 +4,24 @@ import { Users, CheckCircle2, Mail, GraduationCap, Calendar, Award, Search, Shie
 import { buscarGraduadoPorDNI, crearGraduado, obtenerAjustes, obtenerCeremoniaActiva } from '../servicios/api'
 import { InputCampo } from './InputCampo'
 
+const CARRERAS_OFICIALES = [
+  { id: 'Analista de Sistemas', nombre: 'Analista de Sistemas', iniciales: 'TSA / TSAS' },
+  { id: 'Desarrollo de Software', nombre: 'Desarrollo de Software', iniciales: 'TSDS' },
+  { id: 'Automatización y Robótica', nombre: 'Automatización y Robótica', iniciales: 'TSAR' },
+  { id: 'Redes e Infraestructura', nombre: 'Redes e Infraestructura', iniciales: 'TSRI' },
+  { id: 'Diseño y Desarrollo Web', nombre: 'Diseño y Desarrollo Web', iniciales: 'TSDW' },
+  { id: 'Higiene y Seguridad en el Trabajo', nombre: 'Higiene y Seguridad en el Trabajo', iniciales: 'TSHST' },
+]
+
+function normalizarTexto(txt) {
+  if (!txt) return ''
+  return String(txt)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+}
+
 /**
  * Formulario para crear un nuevo Graduado en el sistema.
  * @param {Function} onCreado - Callback ejecutado tras crear exitosamente el graduado.
@@ -19,6 +37,7 @@ export function FormularioGraduado({ onCreado, onCancelar, enModal = false }) {
     anio_inscripcion: '',
     promedio: ''
   })
+  const [esOtraCarrera, setEsOtraCarrera] = useState(false)
   const [cargando, setCargando] = useState(false)
   const [error, setError] = useState('')
   const [buscandoDni, setBuscandoDni] = useState(false)
@@ -33,6 +52,23 @@ export function FormularioGraduado({ onCreado, onCancelar, enModal = false }) {
     formato_identificador: '{CARRERA}-{LEGAJO}-{AÑO}',
     campos_identificador: 'carrera,legajo,anio_inscripcion'
   })
+
+  // Función para comprobar si este DNI ya tiene graduación o inscripción previa en esa carrera
+  const graduacionPreviaEnCarrera = (carreraNombre) => {
+    if (!carreraNombre || !coincidencias.length) return null
+    const normBuscada = normalizarTexto(carreraNombre)
+    return coincidencias.find(reg => {
+      if (reg.estado === 'RECHAZADO') return false
+      const normReg = normalizarTexto(reg.carrera)
+      if (!normReg) return false
+      return normReg === normBuscada || 
+        (normReg.length >= 3 && normBuscada.length >= 3 && (normReg.includes(normBuscada) || normBuscada.includes(normReg)))
+    })
+  }
+
+  const carreraDuplicada = useMemo(() => {
+    return graduacionPreviaEnCarrera(form.carrera)
+  }, [form.carrera, coincidencias])
 
   // Cargar configuración de identificación
   useEffect(() => {
@@ -114,6 +150,11 @@ export function FormularioGraduado({ onCreado, onCancelar, enModal = false }) {
 
     if (coincidenciaEnCeremoniaActiva) {
       setError('Esta persona ya está inscripta en la ceremonia activa. Cerrá este formulario y usá Editar en su registro existente.')
+      return
+    }
+
+    if (carreraDuplicada) {
+      setError(`Esta persona ya se encuentra graduada o registrada en "${form.carrera}" (${carreraDuplicada.ceremonia_nombre || 'ceremonia previa'}). No es posible registrar dos veces a un egresado en la misma carrera.`)
       return
     }
 
@@ -240,13 +281,93 @@ export function FormularioGraduado({ onCreado, onCancelar, enModal = false }) {
           )}
 
           {esCampoActivo('carrera') && (
-            <InputCampo
-              label="Iniciales de Carrera"
-              valor={form.carrera}
-              onChange={(v) => setForm((p) => ({ ...p, carrera: v }))}
-              placeholder="ISI"
-              icon={GraduationCap}
-            />
+            <div className="flex flex-col gap-1.5 w-full group">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1 transition-colors group-focus-within:text-sky-600 flex items-center justify-between">
+                <span>Carrera de Graduación</span>
+                {form.carrera && !carreraDuplicada && (
+                  <span className="text-[9px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md flex items-center gap-1">
+                    <CheckCircle2 size={10} /> {form.carrera}
+                  </span>
+                )}
+              </label>
+
+              <div className="relative">
+                <div className={`absolute left-4 top-1/2 -translate-y-1/2 transition-all duration-300 pointer-events-none ${carreraDuplicada ? 'text-rose-500' : 'text-slate-400 group-focus-within:text-sky-500'}`}>
+                  <GraduationCap size={18} />
+                </div>
+
+                <select
+                  value={esOtraCarrera ? '__OTRA__' : form.carrera}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    if (val === '__OTRA__') {
+                      setEsOtraCarrera(true)
+                      setForm(p => ({ ...p, carrera: '' }))
+                    } else {
+                      setEsOtraCarrera(false)
+                      setForm(p => ({ ...p, carrera: val }))
+                    }
+                  }}
+                  className={`
+                    w-full bg-white border-2 rounded-2xl py-3.5 text-sm font-semibold
+                    transition-all duration-300 ease-out outline-none pl-12 pr-10 cursor-pointer appearance-none
+                    ${carreraDuplicada 
+                      ? 'border-rose-400 bg-rose-50/50 text-rose-900 focus:border-rose-500' 
+                      : 'border-slate-100 text-slate-700 focus:border-sky-500/50 focus:ring-4 focus:ring-sky-500/5 focus:shadow-xl'
+                    }
+                  `}
+                >
+                  <option value="">-- Seleccionar Carrera Oficial --</option>
+                  {CARRERAS_OFICIALES.map(c => {
+                    const previa = graduacionPreviaEnCarrera(c.nombre) || (c.iniciales ? graduacionPreviaEnCarrera(c.iniciales) : null)
+                    return (
+                      <option 
+                        key={c.id} 
+                        value={c.nombre}
+                        disabled={Boolean(previa)}
+                        className={previa ? 'text-slate-400 bg-slate-100 font-normal' : 'text-slate-800 font-bold'}
+                      >
+                        {c.nombre} {c.iniciales ? `(${c.iniciales})` : ''} {previa ? `· [Ya graduado/registrado en ${previa.ceremonia_nombre || 'acto anterior'}]` : ''}
+                      </option>
+                    )
+                  })}
+                  <option value="__OTRA__">+ Otra carrera (ingresar manualmente)...</option>
+                </select>
+
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs">
+                  ▼
+                </div>
+              </div>
+
+              {/* Si eligió ingresar manualmente otra carrera */}
+              {esOtraCarrera && (
+                <div className="mt-2 animate-in fade-in slide-in-from-top-1">
+                  <InputCampo
+                    label="Nombre de la Carrera (Manual)"
+                    valor={form.carrera}
+                    onChange={(v) => setForm(p => ({ ...p, carrera: v }))}
+                    placeholder="Ej: Tecnicatura Superior en Logística"
+                    icon={GraduationCap}
+                  />
+                </div>
+              )}
+
+              {/* ALERTA DE BLOQUEO SI YA SE GRADUÓ O REGISTRÓ EN ESTA CARRERA */}
+              {carreraDuplicada && (
+                <div className="mt-1.5 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold flex items-start gap-2.5 animate-in fade-in">
+                  <AlertTriangle size={16} className="text-rose-600 shrink-0 mt-0.5" />
+                  <div className="space-y-0.5">
+                    <strong className="block text-rose-900">Inscripción no permitida en esta carrera:</strong>
+                    <p className="font-normal text-rose-700">
+                      Esta persona (DNI {form.dni}) ya registra una graduación o inscripción activa en <strong>{form.carrera}</strong> ({carreraDuplicada.ceremonia_nombre || 'ceremonia previa'}).
+                    </p>
+                    <span className="block text-[10px] text-rose-600 font-bold">
+                      Un egresado solo puede inscribirse en una carrera diferente a las ya cursadas.
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
           )}
 
           {esCampoActivo('anio_inscripcion') && (
@@ -307,7 +428,7 @@ export function FormularioGraduado({ onCreado, onCancelar, enModal = false }) {
         <div className="flex flex-col-reverse gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-end">
           <button
             type="submit"
-            disabled={cargando || !ceremoniaActiva || (coincidencias.length > 0 && !identidadConfirmada)}
+            disabled={cargando || !ceremoniaActiva || (coincidencias.length > 0 && !identidadConfirmada) || Boolean(carreraDuplicada)}
             className="group relative overflow-hidden rounded-xl bg-slate-900 px-6 py-3.5 text-white shadow-lg shadow-slate-900/15 transition-all hover:bg-sky-600 active:scale-95 disabled:opacity-50"
           >
             <span className="relative z-10 flex items-center gap-3 text-xs font-black uppercase tracking-widest">
@@ -315,9 +436,11 @@ export function FormularioGraduado({ onCreado, onCancelar, enModal = false }) {
                 ? 'Registrando...'
                 : !ceremoniaActiva
                   ? 'Activá una ceremonia'
-                  : coincidencias.length > 0 && !identidadConfirmada
-                    ? 'Confirmá la identidad'
-                    : 'Crear Graduado'}
+                  : carreraDuplicada
+                    ? 'Carrera ya cursada'
+                    : coincidencias.length > 0 && !identidadConfirmada
+                      ? 'Confirmá la identidad'
+                      : 'Crear Graduado'}
               {!cargando && <CheckCircle2 size={16} className="transition-transform group-hover:rotate-12" />}
             </span>
           </button>
