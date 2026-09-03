@@ -64,16 +64,28 @@ function verificarModoDemo() {
     return false
   }
 
-  // 2. Preferencia en memoria local
+  // 2. Detección automática por subdominio (demo.sigic.com.ar activa demo por defecto)
+  const host = window.location.hostname.toLowerCase()
+  if (host === 'demo.sigic.com.ar' || host.startsWith('demo.') || host.includes('-demo.')) {
+    return true
+  }
+  if (host === 'app.sigic.com.ar') {
+    // En producción institucional real, desactivado por defecto salvo preferencia manual en localStorage
+    const demoGuardado = localStorage.getItem('sigic_modo_demo')
+    if (demoGuardado === 'true') return true
+    return false
+  }
+
+  // 3. Preferencia en memoria local
   const demoGuardado = localStorage.getItem('sigic_modo_demo')
   if (demoGuardado === 'true') return true
   if (demoGuardado === 'false') return false
 
-  // 3. Variable de entorno explícita
+  // 4. Variable de entorno explícita
   if (process.env.NEXT_PUBLIC_DEMO_MODE === 'true') return true
   if (process.env.NEXT_PUBLIC_DEMO_MODE === 'false') return false
 
-  // 4. Por defecto en desarrollo (localhost)
+  // 5. Por defecto en desarrollo (localhost)
   return process.env.NODE_ENV !== 'production'
 }
 
