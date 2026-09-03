@@ -847,7 +847,9 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
           {/* VISTA CONVOCATORIA */}
           {vistaActiva === 'convocatoria' && (
             <GestionConvocatoria
+              ceremoniaActiva={ceremonias.find(c => c.id === ceremoniaSeleccionada) || ceremonias.find(c => c.activa === 1)}
               onVolver={() => setVistaActiva('dashboard')}
+              onNavegar={(pantalla) => setVistaActiva(pantalla)}
             />
           )}
 

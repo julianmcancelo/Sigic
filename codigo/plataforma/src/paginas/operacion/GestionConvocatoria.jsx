@@ -13,6 +13,7 @@ import {
   responderInvitacion,
   actualizarGraduado
 } from '../../servicios/api'
+import { useSincronizacion } from '../../lib/sync'
 import { useConfirmacion } from '../../componentes/ModalConfirmacion'
 import { ModalPreviewCorreo } from '../../componentes/ModalPreviewCorreo'
 import { ModalDespachoMasivo } from '../../componentes/ModalDespachoMasivo'
@@ -27,9 +28,9 @@ const PESTANAS = [
   { id: 'SIN_CORREO', etiqueta: 'Sin Correo' },
 ]
 
-export function GestionConvocatoria({ onNavegar, usuario }) {
+export function GestionConvocatoria({ onNavegar, usuario, ceremoniaActiva: ceremoniaProp }) {
   const { confirmar, dialogoConfirmacion } = useConfirmacion()
-  const [ceremonia, setCeremonia] = useState(null)
+  const [ceremonia, setCeremonia] = useState(ceremoniaProp || null)
   const [graduados, setGraduados] = useState([])
   const [cargando, setCargando] = useState(true)
   const [procesando, setProcesando] = useState(null)
@@ -52,10 +53,16 @@ export function GestionConvocatoria({ onNavegar, usuario }) {
     setCargando(true)
     setError('')
     try {
-      const cerActiva = await obtenerCeremoniaActiva().catch(() => null)
+      const cerActiva = ceremoniaProp || await obtenerCeremoniaActiva().catch(() => null)
       setCeremonia(cerActiva)
-      const data = await obtenerGraduados(cerActiva?.id)
-      setGraduados(data || [])
+      if (!cerActiva?.id) {
+        setGraduados([])
+        return
+      }
+      const data = await obtenerGraduados(cerActiva.id)
+      // Filtrar estrictamente solo los egresados registrados en esta ceremonia activa
+      const padronCeremonia = (data || []).filter(g => String(g.ceremonia_id) === String(cerActiva.id))
+      setGraduados(padronCeremonia)
     } catch (err) {
       setError(err.message || 'No se pudo cargar la convocatoria.')
     } finally {
@@ -65,7 +72,12 @@ export function GestionConvocatoria({ onNavegar, usuario }) {
 
   useEffect(() => {
     cargar()
-  }, [])
+  }, [ceremoniaProp?.id])
+
+  // Sincronización en vivo
+  useSincronizacion(['EGRESADOS', 'INVITADOS', 'CEREMONIAS'], () => {
+    cargar()
+  })
 
   // Carreras únicas para el filtro
   const carrerasDisponibles = useMemo(() => {
@@ -76,13 +88,64 @@ export function GestionConvocatoria({ onNavegar, usuario }) {
     return Array.from(setCarreras).sort()
   }, [graduados])
 
-  // Segmentaciones del padrón
-  const pendientes = useMemo(() => graduados.filter(item => !item.invitacion_enviada && item.estado_flujo !== 'RECHAZADO' && item.correo), [graduados])
-  const esperandoRespuesta = useMemo(() => graduados.filter(item => item.invitacion_enviada && (item.estado_flujo === 'PENDIENTE' || !item.estado || item.estado === 'PENDIENTE')), [graduados])
-  const aceptados = useMemo(() => graduados.filter(item => item.estado === 'ACEPTADO'), [graduados])
-  const completandoGrupo = useMemo(() => graduados.filter(item => item.estado === 'ACEPTADO' && item.estado_flujo !== 'COMPLETO'), [graduados])
-  const credencialesListas = useMemo(() => graduados.filter(item => item.estado === 'ACEPTADO' && item.estado_asignacion_butacas === 'CONFIRMADA' && item.asiento_id && !item.credencial_enviada_en), [graduados])
-  const sinCorreo = useMemo(() => graduados.filter(item => !item.correo && item.estado_flujo !== 'RECHAZADO'), [graduados])
+  // Helper para estado confirmado / aceptado
+  const esConfirmado = (item) => item.estado === 'ACEPTADO' || item.estado === 'CONFIRMADO'
+
+  // Segmentaciones del padrón de la ceremonia activa
+  // 1. Confirmados: ya aceptaron / confirmaron asistencia formalmente
+  const aceptados = useMemo(() => 
+    graduados.filter(item => esConfirmado(item)), 
+    [graduados]
+  )
+
+  // 2. Por invitar: NO se les envió invitación aún Y NO están confirmados ni rechazados
+  const pendientes = useMemo(() => 
+    graduados.filter(item => 
+      !item.invitacion_enviada && 
+      !esConfirmado(item) && 
+      item.estado !== 'RECHAZADO' && 
+      Boolean(item.correo)
+    ), 
+    [graduados]
+  )
+
+  // 3. Sin respuesta: se les despachó invitación pero aún no confirmaron ni rechazaron
+  const esperandoRespuesta = useMemo(() => 
+    graduados.filter(item => 
+      item.invitacion_enviada && 
+      !esConfirmado(item) && 
+      item.estado !== 'RECHAZADO'
+    ), 
+    [graduados]
+  )
+
+  // 4. Completando grupo: confirmados que aún no completaron acompañantes o entregadores
+  const completandoGrupo = useMemo(() => 
+    graduados.filter(item => 
+      esConfirmado(item) && 
+      item.estado_flujo !== 'COMPLETO'
+    ), 
+    [graduados]
+  )
+
+  // 5. Credenciales listas: confirmados con butaca asignada cuya credencial no se envió aún
+  const credencialesListas = useMemo(() => 
+    graduados.filter(item => 
+      esConfirmado(item) && 
+      item.asiento_id && 
+      !item.credencial_enviada_en
+    ), 
+    [graduados]
+  )
+
+  // 6. Sin correo: egresados sin dirección de correo registrada
+  const sinCorreo = useMemo(() => 
+    graduados.filter(item => 
+      !item.correo && 
+      item.estado !== 'RECHAZADO'
+    ), 
+    [graduados]
+  )
 
   // Filtrado reactivo combinado (Pestaña + Búsqueda + Carrera)
   const listaFiltrada = useMemo(() => {
@@ -283,13 +346,18 @@ export function GestionConvocatoria({ onNavegar, usuario }) {
         {/* HEADER MINIMALISTA & ACCIONES RÁPIDAS */}
         <header className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/80 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <span className="px-2.5 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200/80 text-[9px] font-black uppercase tracking-wider">
                 Fase 3 · Convocatoria Masiva
               </span>
-              {ceremonia && (
-                <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-md">
-                  {ceremonia.nombre}
+              {ceremonia ? (
+                <span className="text-[10px] font-bold text-slate-700 bg-slate-100 border border-slate-200/80 px-2.5 py-0.5 rounded-md flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Ceremonia Activa: <strong>{ceremonia.nombre}</strong>
+                </span>
+              ) : (
+                <span className="text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2.5 py-0.5 rounded-md">
+                  Sin ceremonia activa
                 </span>
               )}
             </div>
@@ -297,7 +365,7 @@ export function GestionConvocatoria({ onNavegar, usuario }) {
               Convocatoria & Comunicaciones
             </h1>
             <p className="text-xs font-medium text-slate-500 max-w-xl">
-              Despacho masivo por correo electrónico, seguimiento en tiempo real y contingencia por WhatsApp Web.
+              Despacho de invitaciones y seguimiento en tiempo real exclusivamente para la nómina de graduados de la ceremonia oficial activa.
             </p>
           </div>
 
@@ -311,23 +379,46 @@ export function GestionConvocatoria({ onNavegar, usuario }) {
               <Eye size={14} /> Template Studio
             </button>
 
-            <button
-              type="button"
-              onClick={() => onNavegar('gestion-graduados')}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
-            >
-              <Users size={14} /> Padrón
-            </button>
+            {onNavegar && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => onNavegar('gestion-graduados')}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
+                >
+                  <Users size={14} /> Padrón
+                </button>
 
-            <button
-              type="button"
-              onClick={() => onNavegar('preparacion-ceremonia')}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 hover:bg-sky-600 text-white text-xs font-black transition cursor-pointer shadow-sm"
-            >
-              <Armchair size={14} /> Asignar Butacas <ArrowRight size={13} />
-            </button>
+                <button
+                  type="button"
+                  onClick={() => onNavegar('preparacion-ceremonia')}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-slate-900 hover:bg-sky-600 text-white text-xs font-black transition cursor-pointer shadow-sm"
+                >
+                  <Armchair size={14} /> Asignar Butacas <ArrowRight size={13} />
+                </button>
+              </>
+            )}
           </div>
         </header>
+
+        {/* ALERTA SI NO HAY CEREMONIA ACTIVA */}
+        {!ceremonia && !cargando && (
+          <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in">
+            <div className="flex items-center gap-2">
+              <AlertCircle size={16} className="text-amber-600 shrink-0" />
+              <span>No hay ninguna ceremonia activa en este momento. Los graduados se gestionan exclusivamente vinculados a la ceremonia oficial activa.</span>
+            </div>
+            {onNavegar && (
+              <button
+                type="button"
+                onClick={() => onNavegar('gestion-ceremonias')}
+                className="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-black transition cursor-pointer shrink-0"
+              >
+                Activar ceremonia
+              </button>
+            )}
+          </div>
+        )}
 
         {/* METRICAS COMPACTAS EN PASTILLAS */}
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
