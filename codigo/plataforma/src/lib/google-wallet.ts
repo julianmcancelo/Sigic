@@ -1,6 +1,6 @@
-import crypto from 'crypto';
+import { BilleteraGoogle } from '@jcancelo/google-wallet';
 
-type PaseCeremonia = {
+export type PaseCeremonia = {
   graduadoId: string;
   token: string;
   nombre: string;
@@ -17,68 +17,8 @@ type CuentaServicio = {
   private_key: string;
 };
 
-const BASE_URL = 'https://walletobjects.googleapis.com/walletobjects/v1';
-const TOKEN_URL = 'https://oauth2.googleapis.com/token';
-const SCOPE = 'https://www.googleapis.com/auth/wallet_object.issuer';
-
-function codificarBase64Url(valor: string | Buffer) {
-  return Buffer.from(valor).toString('base64url');
-}
-
-function obtenerConfiguracion() {
-  const credenciales = process.env.GOOGLE_WALLET_SERVICE_ACCOUNT_JSON;
-  const classId = process.env.GOOGLE_WALLET_CLASS_ID;
-  const issuerId = process.env.GOOGLE_WALLET_ISSUER_ID;
-
-  if (!credenciales || !classId || !issuerId) return null;
-
-  try {
-    const cuenta = JSON.parse(credenciales) as CuentaServicio;
-    if (!cuenta.client_email || !cuenta.private_key) return null;
-    return { cuenta, classId, issuerId };
-  } catch {
-    console.error('GOOGLE_WALLET_SERVICE_ACCOUNT_JSON no contiene JSON válido.');
-    return null;
-  }
-}
-
-function firmarJwt(cuenta: CuentaServicio, payload: Record<string, unknown>) {
-  const cabecera = codificarBase64Url(JSON.stringify({ alg: 'RS256', typ: 'JWT' }));
-  const cuerpo = codificarBase64Url(JSON.stringify(payload));
-  const contenido = `${cabecera}.${cuerpo}`;
-  const firma = crypto.createSign('RSA-SHA256').update(contenido).end().sign(cuenta.private_key).toString('base64url');
-  return `${contenido}.${firma}`;
-}
-
-async function obtenerToken(cuenta: CuentaServicio) {
-  const ahora = Math.floor(Date.now() / 1000);
-  const assertion = firmarJwt(cuenta, {
-    iss: cuenta.client_email,
-    scope: SCOPE,
-    aud: TOKEN_URL,
-    iat: ahora,
-    exp: ahora + 3600,
-  });
-  const respuesta = await fetch(TOKEN_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-      assertion,
-    }),
-  });
-  if (!respuesta.ok) throw new Error(`Google OAuth rechazó la cuenta de servicio (${respuesta.status}).`);
-  const datos = await respuesta.json() as { access_token?: string };
-  if (!datos.access_token) throw new Error('Google OAuth no devolvió un token de acceso.');
-  return datos.access_token;
-}
-
 function idSeguro(valor: string) {
   return valor.toLowerCase().replace(/[^a-z0-9._-]/g, '-').slice(0, 100);
-}
-
-function textoLocalizado(valor: string) {
-  return { defaultValue: { language: 'es-419', value: valor } };
 }
 
 function capitalizar(valor: string) {
@@ -90,22 +30,17 @@ function desglosarAsiento(valor?: string | null) {
   if (!valor) return undefined;
 
   const partes = valor.split('-').map(parte => parte.trim()).filter(Boolean);
-  if (partes.length < 3) return { seat: textoLocalizado(valor) };
+  if (partes.length < 3) {
+    return { asiento: valor };
+  }
 
   const seat = partes.pop()!;
   const row = partes.pop()!;
   const section = partes.map(capitalizar).join(' ');
   return {
-    section: textoLocalizado(section),
-    row: textoLocalizado(row.toUpperCase()),
-    seat: textoLocalizado(seat),
-  };
-}
-
-function imagen(uri: string, descripcion: string) {
-  return {
-    sourceUri: { uri },
-    contentDescription: textoLocalizado(descripcion),
+    sector: section,
+    fila: row.toUpperCase(),
+    asiento: seat,
   };
 }
 
@@ -143,131 +78,101 @@ function formatearFechaEspanol(fecha?: string | null): string {
   return String(fecha);
 }
 
-/** Crea o actualiza un Event Ticket y devuelve una URL firmada para Google Wallet. */
-export async function generarPaseGoogleWallet(pase: PaseCeremonia) {
-  const configuracion = obtenerConfiguracion();
-  if (!configuracion) return null;
+function obtenerBilletera(origen?: string) {
+  const credenciales = process.env.GOOGLE_WALLET_SERVICE_ACCOUNT_JSON;
+  const issuerId = process.env.GOOGLE_WALLET_ISSUER_ID;
+  const clientEmail = process.env.GOOGLE_WALLET_CLIENT_EMAIL;
+  const privateKey = process.env.GOOGLE_WALLET_PRIVATE_KEY;
 
-  const { cuenta, issuerId } = configuracion;
-  const classId = `${issuerId}.sigic_class_${idSeguro(pase.ceremoniaId || 'agosto_2026')}`;
-  const objectId = `${issuerId}.sigic_${idSeguro(pase.ceremoniaId || 'agosto_2026')}_${idSeguro(pase.token)}`;
+  let correoCliente = clientEmail;
+  let clavePrivada = privateKey;
+
+  if (credenciales) {
+    try {
+      const cuenta = JSON.parse(credenciales) as CuentaServicio;
+      correoCliente = cuenta.client_email || correoCliente;
+      clavePrivada = cuenta.private_key || clavePrivada;
+    } catch {
+      console.error('GOOGLE_WALLET_SERVICE_ACCOUNT_JSON no contiene un JSON válido.');
+    }
+  }
+
+  if (!issuerId || !correoCliente || !clavePrivada) {
+    return null;
+  }
+
+  const origenes = origen ? [new URL(origen).origin] : undefined;
+
+  return new BilleteraGoogle({
+    emisorId: issuerId,
+    correoCliente,
+    clavePrivada,
+    origenesPermitidos: origenes,
+    idioma: 'es-419',
+  });
+}
+
+/**
+ * Crea un Event Ticket y devuelve la URL firmada para Google Wallet
+ * utilizando la librería oficial @jcancelo/google-wallet.
+ */
+export async function generarPaseGoogleWallet(pase: PaseCeremonia) {
+  const wallet = obtenerBilletera(pase.acceso);
+  if (!wallet) return null;
+
+  const classIdCorto = `sigic_class_${idSeguro(pase.ceremoniaId || 'agosto_2026')}`;
+  const objectIdCorto = `sigic_${idSeguro(pase.ceremoniaId || 'agosto_2026')}_${idSeguro(pase.token)}`;
   const heroUrl = new URL('/google-wallet-hero-credencial.jpg', pase.acceso).toString();
   const enlaceMapa = pase.lugar
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(pase.lugar)}`
     : null;
-  const enlaces = [
-    { uri: pase.acceso, description: 'Abrir mi credencial SiGIC', id: 'portal-sigic' },
-    ...(enlaceMapa ? [{ uri: enlaceMapa, description: 'Cómo llegar a la ceremonia', id: 'mapa-ceremonia' }] : []),
-  ];
 
   const fechaYMD = obtenerFechaYMD(pase.fecha);
   const doorsOpenIso = `${fechaYMD}T17:00:00-03:00`;
-  const startIso = `${fechaYMD}T18:00:00-03:00`;
-  const endIso = `${fechaYMD}T21:00:00-03:00`;
   const fechaLegible = formatearFechaEspanol(pase.fecha);
 
-  const objeto = {
-    id: objectId,
-    classId,
-    state: 'ACTIVE',
-    hexBackgroundColor: '#071b34',
-    heroImage: imagen(heroUrl, 'Identidad visual de la ceremonia SiGIC'),
-    ticketHolderName: pase.nombre,
-    ticketNumber: pase.token,
-    ticketType: textoLocalizado('Graduado'),
-    reservationInfo: { confirmationCode: pase.token },
-    barcode: { type: 'QR_CODE', value: `SIGIC:${pase.token}`, alternateText: `Acceso ${pase.token}` },
-    groupingInfo: { groupingId: pase.ceremoniaId || 'ceremonia-activa' },
-    seatInfo: desglosarAsiento(pase.asiento),
-    textModulesData: [
-      {
-        id: 'indicaciones-acceso',
-        header: 'Ingreso a la ceremonia',
-        body: 'Presentá el código QR al personal de acreditación. Esta credencial es personal.',
+  const resultado = wallet.crearPaseEvento({
+    clase: {
+      id: classIdCorto,
+      nombreEvento: pase.ceremonia || 'Ceremonia de Graduación 2026',
+      nombreOrganizador: 'Instituto Tecnológico Beltrán',
+      logoUrl: 'https://raw.githubusercontent.com/julianmcancelo/Sigic/master/codigo/plataforma/public/logo-oficial.png',
+      bannerUrl: heroUrl || 'https://raw.githubusercontent.com/julianmcancelo/Sigic/master/codigo/plataforma/public/google-wallet-hero-credencial.jpg',
+      colorFondoHex: '#071b34',
+      fechaInicio: doorsOpenIso,
+      nombreLugar: pase.lugar || 'Auditorio Instituto Tecnológico Beltrán',
+      direccionLugar: pase.lugar || 'Av. Manuel Belgrano 1191, Avellaneda, Buenos Aires, Argentina',
+    },
+    pase: {
+      idObjeto: objectIdCorto,
+      nombreTitular: pase.nombre,
+      codigoBarras: {
+        tipo: 'QR_CODE',
+        valor: `SIGIC:${pase.token}`,
+        textoAlternativo: `Acceso ${pase.token}`,
       },
-      {
-        id: 'datos-ceremonia',
-        header: pase.ceremonia || 'Ceremonia de Graduación SiGIC 2026',
-        body: [fechaLegible, pase.lugar || 'Auditorio Instituto Beltrán'].filter(Boolean).join(' · '),
-      },
-    ],
-    linksModuleData: { uris: enlaces },
-  };
-
-  const token = await obtenerToken(cuenta);
-  const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
-
-  try {
-    const resGetClase = await fetch(`${BASE_URL}/eventTicketClass/${encodeURIComponent(classId)}`, { headers });
-    const payloadClase = {
-      id: classId,
-      reviewStatus: 'UNDER_REVIEW',
-      eventName: textoLocalizado(pase.ceremonia || 'Ceremonia de Graduación 2026'),
-      issuerName: 'Instituto Tecnológico Beltrán',
-      logo: {
-        sourceUri: {
-          uri: 'https://raw.githubusercontent.com/julianmcancelo/Sigic/master/codigo/plataforma/public/logo-oficial.png',
+      ubicacion: desglosarAsiento(pase.asiento),
+      campos: [
+        {
+          clave: 'indicaciones-acceso',
+          etiqueta: 'Ingreso a la ceremonia',
+          valor: 'Presentá el código QR al personal de acreditación. Esta credencial es personal.',
         },
-        contentDescription: textoLocalizado('Logo Instituto Tecnológico Beltrán'),
-      },
-      heroImage: {
-        sourceUri: {
-          uri: 'https://raw.githubusercontent.com/julianmcancelo/Sigic/master/codigo/plataforma/public/google-wallet-hero-credencial.jpg',
+        {
+          clave: 'datos-ceremonia',
+          etiqueta: pase.ceremonia || 'Ceremonia de Graduación SiGIC 2026',
+          valor: [fechaLegible, pase.lugar || 'Auditorio Instituto Beltrán'].filter(Boolean).join(' · '),
         },
-        contentDescription: textoLocalizado('Banner SiGIC'),
-      },
-      dateTime: {
-        doorsOpen: doorsOpenIso,
-        start: startIso,
-        end: endIso,
-      },
-      venue: {
-        name: textoLocalizado(pase.lugar || 'Auditorio Instituto Tecnológico Beltrán'),
-        address: textoLocalizado(pase.lugar || 'Av. Manuel Belgrano 1191, Avellaneda, Buenos Aires, Argentina'),
-      },
-      hexBackgroundColor: '#071b34',
-    };
-
-    if (resGetClase.status === 404) {
-      const resPost = await fetch(`${BASE_URL}/eventTicketClass`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(payloadClase),
-      });
-      if (!resPost.ok) console.warn('Aviso al crear clase en Google Wallet:', await resPost.text());
-    } else {
-      const resPatch = await fetch(`${BASE_URL}/eventTicketClass/${encodeURIComponent(classId)}`, {
-        method: 'PATCH',
-        headers,
-        body: JSON.stringify(payloadClase),
-      });
-      if (!resPatch.ok) console.warn('Aviso al actualizar clase en Google Wallet:', await resPatch.text());
-    }
-  } catch (errClase) {
-    console.warn('Aviso: no se pudo sincronizar la clase de Google Wallet:', errClase);
-  }
-
-  const existente = await fetch(`${BASE_URL}/eventTicketObject/${encodeURIComponent(objectId)}`, { headers });
-  const respuesta = existente.status === 404
-    ? await fetch(`${BASE_URL}/eventTicketObject`, { method: 'POST', headers, body: JSON.stringify(objeto) })
-    : await fetch(`${BASE_URL}/eventTicketObject/${encodeURIComponent(objectId)}`, { method: 'PATCH', headers, body: JSON.stringify(objeto) });
-
-  if (!respuesta.ok) {
-    const detalle = await respuesta.text();
-    throw new Error(`Google Wallet no pudo emitir el pase (${respuesta.status}): ${detalle.slice(0, 280)}`);
-  }
-
-  const ahora = Math.floor(Date.now() / 1000);
-  const jwtGuardar = firmarJwt(cuenta, {
-    iss: cuenta.client_email,
-    aud: 'google',
-    typ: 'savetowallet',
-    iat: ahora,
-    origins: [new URL(pase.acceso).origin],
-    payload: { eventTicketObjects: [objeto] },
+      ],
+      enlaces: [
+        { url: pase.acceso, texto: 'Abrir mi credencial SiGIC' },
+        ...(enlaceMapa ? [{ url: enlaceMapa, texto: 'Cómo llegar a la ceremonia' }] : []),
+      ],
+    },
   });
+
   return {
-    objectId,
-    url: `https://pay.google.com/gp/v/save/${jwtGuardar}`,
+    objectId: resultado.idObjetoCompleto,
+    url: resultado.urlGuardar,
   };
 }

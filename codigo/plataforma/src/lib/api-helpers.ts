@@ -1,6 +1,7 @@
 import { NextRequest } from 'next/server';
 import { query } from '@/lib/db';
 import { obtenerUsuarioAutenticado, ROLES_GESTION, ROLES_LECTURA } from '@/lib/auth-middleware';
+import { decodificarCodigoGoogleWallet } from '@jcancelo/google-wallet';
 
 export const RONDAS_BCRYPT = 12;
 export const LARGO_MINIMO_PASSWORD = 8;
@@ -129,30 +130,20 @@ export function parsearCodigoAcreditacion(codigoRaw: string): ParametrosBusqueda
   let codigo = String(codigoRaw || '').trim();
   const formatoOriginal = codigo;
 
-  // 1. Decodificar JWT de Google Wallet (si se escaneó la URL de Save to Wallet: https://pay.google.com/gp/v/save/...)
-  if (codigo.includes('pay.google.com') || codigo.includes('/save/')) {
-    try {
-      const matchJwt = codigo.match(/\/save\/([A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)/);
-      if (matchJwt) {
-        const payloadBase64 = matchJwt[1].split('.')[1];
-        const payloadJson = Buffer.from(payloadBase64, 'base64url').toString('utf-8');
-        const payload = JSON.parse(payloadJson);
-        const eventTicket = payload?.payload?.eventTicketObjects?.[0] || payload?.eventTicketObjects?.[0];
-        if (eventTicket?.ticketNumber) {
-          codigo = String(eventTicket.ticketNumber).trim();
-        } else if (eventTicket?.barcode?.value) {
-          codigo = String(eventTicket.barcode.value).replace(/^SIGIC:/i, '').trim();
-        } else if (eventTicket?.reservationInfo?.confirmationCode) {
-          codigo = String(eventTicket.reservationInfo.confirmationCode).trim();
-        }
-      }
-    } catch (e) {
-      console.warn('Error decodificando JWT de Google Wallet:', e);
+  // 1. Decodificar mediante @jcancelo/google-wallet (JWT de Google Wallet, Object ID o prefijo SIGIC)
+  try {
+    const decodificado = decodificarCodigoGoogleWallet(codigo);
+    if (decodificado.tokenOriginal && decodificado.formato !== 'directo') {
+      codigo = decodificado.tokenOriginal;
+    } else if (decodificado.codigoLimpio && decodificado.formato !== 'directo') {
+      codigo = decodificado.codigoLimpio;
     }
+  } catch (e) {
+    console.warn('Aviso en decodificación de Google Wallet:', e);
   }
 
-  // 2. Extraer token si es un Google Wallet Object ID: issuer.sigic-ceremonia-token
-  const matchObjId = codigo.match(/\.sigic-[^-]+-(.+)$/i);
+  // 2. Extraer token si es un Google Wallet Object ID remanente: issuer.sigic-ceremonia-token
+  const matchObjId = codigo.match(/\.sigic[_-][^_-]+[_-](.+)$/i);
   if (matchObjId) {
     codigo = matchObjId[1].trim();
   }
