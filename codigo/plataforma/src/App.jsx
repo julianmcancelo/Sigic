@@ -48,6 +48,8 @@ import { AsistenteOperativoCeremonia } from './componentes/AsistenteOperativoCer
 
 // Servicios
 import { validarToken, obtenerCeremoniaActiva, obtenerEstadoSetup, responderInvitacion, limpiarTokenSesion, guardarTokenSesion, obtenerTokenSesion, obtenerAjustes, actualizarAjuste } from './servicios/api'
+import { generarDatosDemoAleatorios, obtenerDatosDemoActuales, limpiarDatosDemo } from './lib/generador-datos-demo'
+import { demoSandbox } from './lib/demo-sandbox'
 
 function verificarModoDemo() {
   if (typeof window === 'undefined') return false
@@ -232,6 +234,13 @@ function App() {
   const [pestanaGraduadoDemo, setPestanaGraduadoDemo] = useState('juramento')
 
   const iniciarDemostracionCompleta = async () => {
+    // Generar un conjunto aleatorio y realista nuevo para esta demostración
+    const datasetAleatorio = generarDatosDemoAleatorios()
+    demoSandbox.iniciar(datasetAleatorio)
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('sigic_demo_activa', 'true')
+    }
+
     guardarTokenSesion('bypass-admin-token')
     localStorage.setItem('sesion_admin', 'true')
     localStorage.setItem('admin_user', JSON.stringify(ADMIN_DEMO))
@@ -240,27 +249,25 @@ function App() {
     setPantallaAdmin('gestion-ceremonias')
     setDemoAutomaticaActiva(true)
 
-    try {
-      const c = await sincronizarEntornoCeremonia()
-      if (!c) {
-        setCeremoniaActiva({
-          id: '22222222-2222-4222-8222-222222222222',
-          nombre: 'Colación Oficial Beltrán 2026',
-          fecha: '2026-11-20',
-          lugar: 'Auditorio Instituto Tecnológico Beltrán',
-          max_invitados: 4,
-          activa: true
-        })
-      }
-    } catch {}
+    setCeremoniaActiva(datasetAleatorio.ceremonia)
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('sigic-ceremonia-cambiada', { detail: datasetAleatorio.ceremonia }))
+    }
   }
 
   const finalizarDemostracionCompleta = () => {
     setDemoAutomaticaActiva(false)
+    demoSandbox.limpiar()
+    limpiarDatosDemo()
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('sigic_demo_activa')
+    }
     limpiarTodo()
   }
 
   const aplicarPasoDemo = (paso) => {
+    const dataset = obtenerDatosDemoActuales()
+
     if (paso.tipoUsuario === 'admin') {
       setGraduadoActivo(false)
       setGraduadoUsuario(null)
@@ -271,21 +278,15 @@ function App() {
       setAdminUser(ADMIN_DEMO)
       setPantallaAdmin(paso.vistaAdmin || 'gestion-ceremonias')
 
-      if (!ceremoniaActiva) {
-        setCeremoniaActiva({
-          id: '22222222-2222-4222-8222-222222222222',
-          nombre: 'Colación Oficial Beltrán 2026',
-          fecha: '2026-11-20',
-          lugar: 'Auditorio Instituto Tecnológico Beltrán',
-          max_invitados: 4,
-          activa: true
-        })
+      if (dataset?.ceremonia) {
+        setCeremoniaActiva(dataset.ceremonia)
       }
     } else if (paso.tipoUsuario === 'graduado') {
+      const graduado = dataset?.graduado || EGRESADA_DEMO
       setAdminActivo(false)
       setGraduadoActivo(true)
-      setGraduadoUsuario(EGRESADA_DEMO)
-      guardarTokenSesion(`bypass-egresado-${EGRESADA_DEMO.id}`)
+      setGraduadoUsuario(graduado)
+      guardarTokenSesion(`bypass-egresado-${graduado.id}`)
       if (paso.pestanaGraduado) {
         setPestanaGraduadoDemo(paso.pestanaGraduado)
       }
@@ -469,6 +470,18 @@ function App() {
           url = urlParam
         } else if (urlParam && typeof urlParam === 'object') {
           url = urlParam.url || ''
+        }
+
+        // Salvaguarda demo: Si el sandbox de demostración debe interceptar esta llamada para no tocar la BD
+        if (demoSandbox.esPeticionDemo(url, args[1])) {
+          try {
+            const respuestaSimulada = await demoSandbox.manejarPeticion(url, args[1])
+            if (respuestaSimulada) {
+              return respuestaSimulada
+            }
+          } catch (errSandbox) {
+            console.warn('Error en interceptor demoSandbox, pasando a red:', errSandbox)
+          }
         }
 
         const response = await originalFetch(...args)
@@ -721,6 +734,11 @@ function App() {
         cerrarSesionGraduado()
       }
       return
+    }
+    demoSandbox.limpiar()
+    limpiarDatosDemo()
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('sigic_demo_activa')
     }
     localStorage.clear()
     window.location.href = '/'
@@ -1238,11 +1256,16 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
     if (esAplicacionNativa) actualizarDiseno(pantallaActual, { maximizada: true, ajuste: null })
   }, [pantallaActual, esAplicacionNativa])
 
+  const ultimoChildrenRef = useRef(children)
+  useEffect(() => {
+    ultimoChildrenRef.current = children
+  })
+
   useEffect(() => {
     if (!pantallaActual || pantallaActual === 'bienvenida') return
     // Conserva cada módulo montado al abrir otra ventana para no perder su estado.
-    setContenidoVentanas(contenidos => ({ ...contenidos, [pantallaActual]: children }))
-  }, [children, pantallaActual])
+    setContenidoVentanas(contenidos => ({ ...contenidos, [pantallaActual]: ultimoChildrenRef.current }))
+  }, [pantallaActual])
 
   useEffect(() => {
     if (!inicioAbierto) return

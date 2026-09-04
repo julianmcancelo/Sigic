@@ -132,6 +132,17 @@ async function asegurarInicializacion() {
   return inicializacionPromise;
 }
 
+function esPeticionDemoBackend(req: NextRequest): boolean {
+  if (req.headers.get('x-sigic-demo') === '1' || req.headers.get('x-sigic-demo') === 'true') {
+    return true;
+  }
+  const auth = req.headers.get('authorization') || '';
+  if (auth.includes('bypass-')) {
+    return true;
+  }
+  return false;
+}
+
 // Tauri y los navegadores externos requieren responder el preflight antes de
 // realizar solicitudes autenticadas a la API.
 export async function OPTIONS(req: NextRequest) {
@@ -1081,6 +1092,25 @@ export async function POST(
   }
 
   try {
+    if (esPeticionDemoBackend(req)) {
+      if (path === 'ceremonias') {
+        return NextResponse.json({ ok: true, mensaje: 'Ceremonia creada con exito (Modo Demo)', id: `demo-cer-${Date.now()}` }, { status: 201, headers });
+      }
+      if (path === 'egresados') {
+        return NextResponse.json({ ok: true, mensaje: 'Graduado creado con exito (Modo Demo)', egresado: { id: `demo-egr-${Date.now()}`, ...(body || {}) } }, { status: 201, headers });
+      }
+      if (path === 'egresados/enviar-invitaciones') {
+        return NextResponse.json({ ok: true, count: 12, mensaje: 'Invitaciones despachadas exitosamente (Modo Demo)' }, { status: 200, headers });
+      }
+      if (path === 'entregadores') {
+        return NextResponse.json({ ok: true, mensaje: 'Padrino asignado con exito (Modo Demo)', id: `demo-ent-${Date.now()}` }, { status: 201, headers });
+      }
+      if (path === 'butacas/auto-asignar') {
+        return NextResponse.json({ ok: true, mensaje: 'Auto-seating completado con exito (Modo Demo)' }, { status: 200, headers });
+      }
+      return NextResponse.json({ ok: true, simulado: true, mensaje: 'Operacion simulada en modo demo (sin persistencia en base de datos)', id: `demo-${Date.now()}` }, { status: 200, headers });
+    }
+
     if (path === 'dispositivos/registrar') {
       const auth = obtenerUsuarioAutenticado(req, ROLES_LECTURA);
       if (!auth.valido || auth.datos?.tipo !== 'personal') {
@@ -2410,6 +2440,10 @@ export async function PUT(
   }
 
   try {
+    if (esPeticionDemoBackend(req)) {
+      return NextResponse.json({ ok: true, simulado: true, mensaje: 'Actualizacion simulada en modo demo (sin persistencia en base de datos)' }, { status: 200, headers });
+    }
+
     if (slug[0] === 'egresados' && slug[1] && !slug[2]) {
       const isPersonal = await esPersonalValido(req, ROLES_GESTION);
       const isEgresadoPropio = await esAutorizadoPersonalOEgresado(req, slug[1], ROLES_GESTION);
@@ -3113,6 +3147,10 @@ export async function DELETE(
   const path = slug.join('/');
 
   try {
+    if (esPeticionDemoBackend(req)) {
+      return NextResponse.json({ ok: true, simulado: true, mensaje: 'Eliminacion simulada en modo demo (sin persistencia en base de datos)' }, { status: 200, headers });
+    }
+
     // -------------------------------------------------------------
     // CEREMONIAS
     // -------------------------------------------------------------

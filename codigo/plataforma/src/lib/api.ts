@@ -63,9 +63,16 @@ export async function fetchDeduplicado(url: string, opciones?: RequestInit): Pro
 
 export function cabeceras() {
   const token = obtenerTokenSesion();
+  const esDemo = (typeof window !== 'undefined') && (
+    token.startsWith('bypass-') ||
+    sessionStorage.getItem('sigic_demo_activa') === 'true' ||
+    sessionStorage.getItem('sigic_demo_sandbox_activo') === 'true' ||
+    localStorage.getItem('sigic_modo_demo') === 'true'
+  );
   return {
     'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {})
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(esDemo ? { 'X-Sigic-Demo': '1' } : {})
   };
 }
 

@@ -1,8 +1,127 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import rutinasOficiales from '../datos/rutinas-demo-oficiales.json'
+import { obtenerDatosDemoActuales } from '../lib/generador-datos-demo'
 
 /**
- * Puntero virtual animado y simulador de acciones guiadas para las 9 fases de la demostración.
+ * Adapta dinamicamente las acciones de tipeo, botones y etiquetas con los datos aleatorios
+ * del dataset activo de la demostracion para garantizar realismo y diversidad.
+ */
+function dinamizarSecuenciaConDatosAleatorios(acciones, fase) {
+  if (!Array.isArray(acciones) || acciones.length === 0) return acciones
+  const datos = obtenerDatosDemoActuales()
+  if (!datos || !datos.ceremonia || !datos.graduado) return acciones
+
+  return acciones.map(accion => {
+    if (accion.tipo !== 'tipear') {
+      // Si busca por texto al egresado anterior
+      if (accion.textoBoton === 'Julian Prueba' || accion.textoBoton === 'Julieta') {
+        return {
+          ...accion,
+          textoBoton: datos.graduado.nombre_pila || datos.graduado.nombre
+        }
+      }
+      return accion
+    }
+
+    const sel = (accion.selector || '').toLowerCase()
+
+    // FASE 1: Datos de Ceremonia
+    if (sel.includes('input-nombre-ceremonia')) {
+      return {
+        ...accion,
+        texto: datos.ceremonia.nombre,
+        etiqueta: `Escribir: "${datos.ceremonia.nombre}"`
+      }
+    }
+    if (sel.includes('input-fecha-ceremonia')) {
+      return {
+        ...accion,
+        texto: datos.ceremonia.fecha,
+        etiqueta: `Escribir: "${datos.ceremonia.fecha}"`
+      }
+    }
+    if (sel.includes('input-max-invitados-ceremonia')) {
+      return {
+        ...accion,
+        texto: String(datos.ceremonia.max_invitados),
+        etiqueta: `Escribir: "${datos.ceremonia.max_invitados}"`
+      }
+    }
+    if (sel.includes('input-lugar-ceremonia')) {
+      return {
+        ...accion,
+        texto: datos.ceremonia.lugar,
+        etiqueta: `Escribir: "${datos.ceremonia.lugar}"`
+      }
+    }
+    if (sel.includes('input-limite-ceremonia')) {
+      return {
+        ...accion,
+        texto: datos.ceremonia.fecha_limite_confirmacion,
+        etiqueta: `Escribir: "${datos.ceremonia.fecha_limite_confirmacion}"`
+      }
+    }
+
+    // FASE 2: Datos del Graduado
+    if (sel.includes('35230531') || sel.includes('dni')) {
+      return {
+        ...accion,
+        texto: datos.graduado.dni,
+        etiqueta: `Escribir: "${datos.graduado.dni}"`
+      }
+    }
+    if (sel.includes('cancelo') || sel.includes('nombre')) {
+      return {
+        ...accion,
+        texto: datos.graduado.nombre,
+        etiqueta: `Escribir: "${datos.graduado.nombre}"`
+      }
+    }
+    if (sel.includes('227067') || sel.includes('legajo')) {
+      return {
+        ...accion,
+        texto: datos.graduado.legajo,
+        etiqueta: `Escribir: "${datos.graduado.legajo}"`
+      }
+    }
+    if (sel.includes('select') || sel.includes('carrera')) {
+      return {
+        ...accion,
+        texto: datos.graduado.carrera,
+        etiqueta: `Escribir: "${datos.graduado.carrera}"`
+      }
+    }
+    if (sel.includes('2022') || sel.includes('anio')) {
+      return {
+        ...accion,
+        texto: String(datos.graduado.anio_inscripcion),
+        etiqueta: `Escribir: "${datos.graduado.anio_inscripcion}"`
+      }
+    }
+    if (sel.includes('buscador-graduados') || sel.includes('buscar')) {
+      const termino = datos.graduado.nombre_pila || datos.graduado.nombre.split(' ')[0]
+      return {
+        ...accion,
+        texto: termino,
+        etiqueta: `Filtrando egresado por: "${termino}"`
+      }
+    }
+
+    // FASE 4: Juramento
+    if (sel.includes('juramento') || sel.includes('textarea')) {
+      return {
+        ...accion,
+        texto: datos.juramento.comentarios,
+        etiqueta: `Escribir: "${datos.juramento.comentarios}"`
+      }
+    }
+
+    return accion
+  })
+}
+
+/**
+ * Puntero virtual animado y simulador de acciones guiadas para las fases de la demostración.
  * Mueve un cursor de mouse realista por la pantalla, tipea texto en campos de búsqueda/formularios
  * y genera ondas de clic sobre los botones clave de cada etapa.
  */
@@ -163,6 +282,28 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
       if (intervaloTipeoRef.current) clearInterval(intervaloTipeoRef.current)
       let idx = 0
       setTextoTipeado('')
+
+      // Si es un campo select, seleccionar la opción correspondiente y disparar eventos
+      if (elemento && elemento.tagName === 'SELECT') {
+        try {
+          elemento.focus()
+          const options = Array.from(elemento.options)
+          const matchedOption = options.find(opt => 
+            opt.value === texto || 
+            opt.text.toLowerCase().includes(texto.toLowerCase()) ||
+            texto.toLowerCase().includes(opt.text.toLowerCase())
+          )
+          if (matchedOption) {
+            elemento.value = matchedOption.value
+          }
+          elemento.dispatchEvent(new Event('input', { bubbles: true }))
+          elemento.dispatchEvent(new Event('change', { bubbles: true }))
+          setTextoTipeado(matchedOption ? matchedOption.text : texto)
+        } catch {}
+        const tSel = setTimeout(resolve, Math.max(150, 400 / velocidad))
+        timeoutsRef.current.push(tSel)
+        return
+      }
 
       // Si es un campo date o datetime-local, inyectar el valor valido de forma directa
       if (elemento && (elemento.type === 'date' || elemento.type === 'datetime-local')) {
@@ -880,7 +1021,7 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
     setVisible(true)
 
     const fase = pasoActual.fase || 1
-    const acciones = obtenerSecuenciaFase(fase)
+    const acciones = dinamizarSecuenciaConDatosAleatorios(obtenerSecuenciaFase(fase), fase)
 
     const correrSecuencia = async () => {
       // Pequeña pausa inicial de 250ms para permitir que la vista monte sus componentes
