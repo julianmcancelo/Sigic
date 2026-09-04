@@ -304,6 +304,7 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
                     if (graduados === 0) {
                       return (
                         <button
+                          id="btn-paso2-cargar-graduados"
                           onClick={() => onNavegar?.('gestion-graduados')}
                           className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md shadow-emerald-600/20 transition active:scale-98 cursor-pointer"
                         >
@@ -315,6 +316,7 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
                     if (invitaciones < graduados) {
                       return (
                         <button
+                          id="btn-paso3-convocatoria"
                           onClick={() => onNavegar?.('convocatoria')}
                           className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md shadow-blue-600/20 transition active:scale-98 cursor-pointer"
                         >
@@ -326,6 +328,7 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
                     if (!plano) {
                       return (
                         <button
+                          id="btn-paso4-preparacion"
                           onClick={() => onNavegar?.('preparacion-ceremonia')}
                           className="w-full flex items-center justify-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md shadow-cyan-600/20 transition active:scale-98 cursor-pointer"
                         >
@@ -336,6 +339,7 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
 
                     return (
                       <button
+                        id="btn-paso-control-ingreso"
                         onClick={() => onNavegar?.('control-ingreso')}
                         className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md shadow-emerald-600/20 transition active:scale-98 cursor-pointer"
                       >

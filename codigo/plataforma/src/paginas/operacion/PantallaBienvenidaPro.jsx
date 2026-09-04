@@ -831,6 +831,11 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
               sinHeader={true} 
               onVolver={() => setVistaActiva('dashboard')} 
               onCambioCeremonia={cargarDatos}
+              onNavegar={(destino) => {
+                if (destino === 'gestion-graduados') setVistaActiva('estudiantes')
+                else if (destino === 'convocatoria') setVistaActiva('convocatoria')
+                else if (typeof onNavegar === 'function') onNavegar(destino)
+              }}
             />
           )}
 
@@ -841,6 +846,7 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
               sinHeader={true} 
               onVolver={() => setVistaActiva('dashboard')}
               onCerrarSesion={onCerrarSesion}
+              onNavegar={onNavegar}
             />
           )}
 

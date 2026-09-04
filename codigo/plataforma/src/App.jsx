@@ -1228,8 +1228,13 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
     const anterior = pantallaAnteriorRef.current
     pantallaAnteriorRef.current = pantallaActual
     if (!pantallaActual || pantallaActual === 'bienvenida' || pantallaActual === anterior) return
-    setVentanasAbiertas(ventanas => ventanas.includes(pantallaActual) ? ventanas : [...ventanas, pantallaActual])
+    setVentanasAbiertas(ventanas => [...ventanas.filter(item => item !== pantallaActual), pantallaActual])
+    setVentanasMinimizadas(ventanas => ventanas.filter(item => item !== pantallaActual))
     setVentanasCerrandose(ventanas => ventanas.filter(item => item !== pantallaActual))
+    setDisenoVentanas(ventanas => {
+      if (ventanas[pantallaActual]) return ventanas
+      return { ...ventanas, [pantallaActual]: disenoInicial(ventanasAbiertas.length) }
+    })
     if (esAplicacionNativa) actualizarDiseno(pantallaActual, { maximizada: true, ajuste: null })
   }, [pantallaActual, esAplicacionNativa])
 
@@ -1413,21 +1418,21 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
   const cerrarVentana = (id) => {
     if (!ventanasAbiertas.includes(id) || ventanasCerrandose.includes(id)) return
     const restantes = ventanasAbiertas.filter(item => item !== id)
-    setVentanasCerrandose(ventanas => [...ventanas, id])
+    const siguiente = restantes.at(-1) || 'bienvenida'
+
+    if (id === pantallaActual) {
+      pantallaAnteriorRef.current = siguiente
+      onNavegar(siguiente)
+    }
+
+    setVentanasAbiertas(ventanas => ventanas.filter(item => item !== id))
     setVentanasMinimizadas(ventanas => ventanas.filter(item => item !== id))
+    setVentanasCerrandose(ventanas => [...ventanas, id])
+
     window.setTimeout(() => {
-      setVentanasAbiertas(ventanas => ventanas.filter(item => item !== id))
       setVentanasCerrandose(ventanas => ventanas.filter(item => item !== id))
       setDisenoVentanas(ventanas => { const { [id]: cerrada, ...restantesDisenos } = ventanas; return restantesDisenos })
       setContenidoVentanas(contenidos => { const { [id]: cerrada, ...restantesContenidos } = contenidos; return restantesContenidos })
-      if (id === pantallaActual) {
-        const siguiente = restantes.at(-1)
-        if (siguiente) {
-          onNavegar(siguiente)
-        } else {
-          onNavegar('bienvenida')
-        }
-      }
     }, 180)
   }
 

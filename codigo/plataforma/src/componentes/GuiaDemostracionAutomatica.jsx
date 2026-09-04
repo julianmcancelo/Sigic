@@ -352,6 +352,26 @@ export function GuiaDemostracionAutomatica({
   const progresoRef = useRef(null)
   const tiempoInicioRef = useRef(Date.now())
 
+  // Control de avance automático entre fases de la demostración
+  useEffect(() => {
+    if (pausado || modoGrabacion) {
+      if (timerRef.current) clearTimeout(timerRef.current)
+      return undefined
+    }
+
+    timerRef.current = setTimeout(() => {
+      if (pasoIndex < PASOS_DEMO.length - 1) {
+        setPasoIndex((prev) => prev + 1)
+      } else {
+        setPausado(true)
+      }
+    }, duracionMs)
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [pasoIndex, pausado, modoGrabacion, duracionMs])
+
   const formatearTiempo = (seg) => {
     const m = Math.floor(seg / 60).toString().padStart(2, '0')
     const s = (seg % 60).toString().padStart(2, '0')
@@ -773,6 +793,29 @@ export function GuiaDemostracionAutomatica({
   const cambiarVelocidad = () => {
     setVelocidad((v) => (v === 1 ? 1.5 : v === 1.5 ? 2 : 1))
   }
+
+  useEffect(() => {
+    const manejarTeclado = (e) => {
+      if (modoGrabacion) return
+      if (e.target?.tagName === 'INPUT' || e.target?.tagName === 'TEXTAREA') return
+      if (e.key === ' ' || e.code === 'Space') {
+        e.preventDefault()
+        setPausado((p) => !p)
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault()
+        siguientePaso()
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault()
+        anteriorPaso()
+      } else if (e.key === 'Escape') {
+        e.preventDefault()
+        if (typeof onFinalizarDemo === 'function') onFinalizarDemo()
+      }
+    }
+
+    window.addEventListener('keydown', manejarTeclado)
+    return () => window.removeEventListener('keydown', manejarTeclado)
+  }, [pasoIndex, modoGrabacion, onFinalizarDemo])
 
   const menuRef = useRef(null)
 

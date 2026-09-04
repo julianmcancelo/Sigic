@@ -80,7 +80,12 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
         return rect.width > 0 && rect.height > 0
       })
 
-      if (encontrado) return encontrado
+      if (encontrado) {
+        const interactivo = encontrado.closest('button, a, [role="button"], [role="tab"], input, label') ||
+          encontrado.querySelector('button, a, [role="button"], [role="tab"], input, label') ||
+          encontrado
+        return interactivo
+      }
     }
 
     // 3. Buscar por selectores CSS generales
@@ -128,7 +133,7 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
       try {
         const r = el.getBoundingClientRect()
         if (r.top < 60 || r.bottom > h - 60) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          el.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'nearest' })
         }
       } catch {}
 
@@ -222,19 +227,33 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
 
     if (elemento) {
       try {
-        elemento.classList.add('ring-2', 'ring-sky-400', 'ring-offset-2')
+        const interactivo = elemento.closest('button, a, [role="button"], [role="tab"], input, label') || elemento
+        interactivo.classList.add('ring-2', 'ring-sky-400', 'ring-offset-2')
         const tRing = setTimeout(() => {
-          elemento.classList.remove('ring-2', 'ring-sky-400', 'ring-offset-2')
+          interactivo.classList.remove('ring-2', 'ring-sky-400', 'ring-offset-2')
         }, 500)
         timeoutsRef.current.push(tRing)
 
         // Ejecutar click y focus real en el elemento del DOM si no es solo visual
         if (!soloVisual) {
-          if (typeof elemento.focus === 'function') {
-            elemento.focus()
+          if (typeof interactivo.focus === 'function') {
+            interactivo.focus()
           }
-          if (typeof elemento.click === 'function') {
-            elemento.click()
+
+          const eventoProps = { bubbles: true, cancelable: true, view: window }
+          try {
+            interactivo.dispatchEvent(new PointerEvent('pointerdown', eventoProps))
+            interactivo.dispatchEvent(new MouseEvent('mousedown', eventoProps))
+            interactivo.dispatchEvent(new PointerEvent('pointerup', eventoProps))
+            interactivo.dispatchEvent(new MouseEvent('mouseup', eventoProps))
+          } catch {}
+
+          if (typeof interactivo.click === 'function') {
+            interactivo.click()
+          } else {
+            try {
+              interactivo.dispatchEvent(new MouseEvent('click', eventoProps))
+            } catch {}
           }
         }
       } catch {}
