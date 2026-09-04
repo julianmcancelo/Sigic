@@ -161,6 +161,7 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
   const intervaloTipeoRef = useRef(null)
   const canceladoRef = useRef(false)
   const secuenciaIdRef = useRef(0)
+  const tipoPasoActivoRef = useRef('')
 
   // Limpiar todos los temporizadores e interrumpir cualquier secuencia activa
   const limpiarTimers = useCallback(() => {
@@ -1342,12 +1343,23 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
     const acciones = dinamizarSecuenciaConDatosAleatorios(obtenerSecuenciaFase(fase), fase)
 
     const correrSecuencia = async () => {
+      setTextoTipeado('')
+      setTextoAccion('')
+      tipoPasoActivoRef.current = ''
+
       // Pequeña pausa inicial de 250ms para permitir que la vista monte sus componentes
       await esperarMs(250)
       if (canceladoRef.current || secuenciaIdRef.current !== secId) return
 
       for (const paso of acciones) {
         if (canceladoRef.current || secuenciaIdRef.current !== secId) break
+
+        tipoPasoActivoRef.current = paso.tipo || 'mover'
+
+        // Si la accion no es de tipeo, asegurar que cualquier texto previo quede borrado
+        if (paso.tipo !== 'tipear') {
+          setTextoTipeado('')
+        }
 
         // 1. Notificar etiqueta contextual
         if (paso.etiqueta) {
@@ -1393,6 +1405,7 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
           setPosicion({ x: targetX, y: targetY })
           await simularEscritura(targetElem, paso.texto || '')
           await esperarMs(paso.pausaDespues || 1000)
+          setTextoTipeado('') // Limpiar inmediatamente tras concluir la pausa de tipeo
         } else if (paso.tipo === 'mover') {
           await esperarMs(paso.pausaDespues || 850)
         }
@@ -1478,13 +1491,13 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
                 flipY ? 'bottom-full mb-2' : '-top-1'
               }`}
             >
-              <div className="flex items-center gap-2 bg-slate-950/95 text-slate-100 border border-sky-500/40 rounded-full px-3 py-1 shadow-2xl backdrop-blur-md">
+              <div className="flex items-center gap-2 bg-slate-950/95 text-slate-100 border border-sky-500/40 rounded-full px-3 py-1 shadow-2xl backdrop-blur-md max-w-sm">
                 <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse shrink-0" />
-                <span className="text-[11px] font-semibold tracking-wide whitespace-nowrap">
+                <span className="text-[11px] font-semibold tracking-wide truncate max-w-[260px]">
                   {textoAccion}
                 </span>
-                {textoTipeado && (
-                  <span className="text-[11px] font-mono text-amber-300 bg-amber-950/40 border border-amber-500/30 px-1.5 py-0.5 rounded">
+                {tipoPasoActivoRef.current === 'tipear' && textoTipeado && (
+                  <span className="text-[10.5px] font-mono text-amber-300 bg-amber-950/40 border border-amber-500/30 px-1.5 py-0.5 rounded truncate max-w-[160px]">
                     "{textoTipeado}"
                   </span>
                 )}
