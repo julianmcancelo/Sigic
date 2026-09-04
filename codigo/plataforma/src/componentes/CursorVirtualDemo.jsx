@@ -265,10 +265,24 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
             continue
           }
 
+          // Si el selector es puramente un tag HTML generico sin clases ni atributos, no capturar a ciegas
+          const esTagGenerico = /^(button|div|span|p|a|input|select|textarea|header|main|form|tr|td)$/i.test(sel)
+          if (esTagGenerico && !config.textoBoton) {
+            continue
+          }
+
           for (const contenedor of contenedores) {
             try {
               const elementos = Array.from(contenedor.querySelectorAll(sel))
-              const valido = elementos.find((el) => esVisible(el))
+              const valido = elementos.find((el) => {
+                if (!esVisible(el)) return false
+                if (config.textoBoton) {
+                  const t = normalizarCadena(el.textContent || el.value || '')
+                  const b = normalizarCadena(config.textoBoton)
+                  return t.includes(b) || b.includes(t)
+                }
+                return true
+              })
               if (valido) return valido
             } catch {}
           }
@@ -590,8 +604,16 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
         const personalizada = localStorage.getItem(`sigic_demo_secuencia_${fase}`)
         if (personalizada) {
           const parsed = JSON.parse(personalizada)
-          if (Array.isArray(parsed) && parsed.length > 0) {
+          const esInvalida = !Array.isArray(parsed) || parsed.length === 0 || parsed.some(p =>
+            p.textoBoton === 'Inicializar' ||
+            p.textoBoton === 'NUEVO ENTORNO' ||
+            p.selector === 'form' ||
+            p.selector === 'main'
+          )
+          if (!esInvalida) {
             return parsed
+          } else {
+            localStorage.removeItem(`sigic_demo_secuencia_${fase}`)
           }
         }
       } catch {}
@@ -607,101 +629,135 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
         return [
           {
             tipo: 'mover',
-            selector: '#btn-nueva-ceremonia, button.bg-sky-500, button',
+            selector: '#btn-nueva-ceremonia',
             textoBoton: 'Nueva Ceremonia',
             rx: 0.88, ry: 0.12,
             etiqueta: 'Configurando acto oficial de colación...',
-            pausaDespues: 600
+            pausaDespues: 600,
+            esperarElemento: true
           },
           {
             tipo: 'click',
-            selector: '#btn-nueva-ceremonia, button.bg-sky-500, button',
+            selector: '#btn-nueva-ceremonia',
             textoBoton: 'Nueva Ceremonia',
+            rx: 0.88, ry: 0.12,
             etiqueta: 'Abriendo inicializador de hábitat de grado...',
-            pausaDespues: 500
+            pausaDespues: 600,
+            esperarElemento: true
           },
           {
             tipo: 'mover',
-            selector: '#input-nombre-ceremonia, input[name="nombre"], input',
-            esperarElemento: true,
+            selector: '#input-nombre-ceremonia',
             rx: 0.50, ry: 0.28,
             etiqueta: 'Ingresando denominación institucional...',
-            pausaDespues: 350
+            pausaDespues: 350,
+            esperarElemento: true
+          },
+          {
+            tipo: 'click',
+            selector: '#input-nombre-ceremonia',
+            rx: 0.50, ry: 0.28,
+            etiqueta: 'Campo de denominación enfocado',
+            pausaDespues: 300,
+            esperarElemento: true
           },
           {
             tipo: 'tipear',
-            selector: '#input-nombre-ceremonia, input[name="nombre"], input',
-            texto: 'Colación Oficial Beltrán 2026',
-            etiqueta: 'Nombre: "Colación Oficial Beltrán 2026"',
-            pausaDespues: 650
+            selector: '#input-nombre-ceremonia',
+            texto: 'LXIV Ceremonia Solemne Beltrán 2026',
+            etiqueta: 'Nombre: "LXIV Ceremonia Solemne Beltrán 2026"',
+            pausaDespues: 650,
+            esperarElemento: true
           },
           {
             tipo: 'mover',
-            selector: '#input-fecha-ceremonia, input[type="date"]',
-            esperarElemento: true,
+            selector: '#input-fecha-ceremonia',
             rx: 0.35, ry: 0.42,
             etiqueta: 'Programando fecha oficial del acto...',
-            pausaDespues: 350
+            pausaDespues: 350,
+            esperarElemento: true
+          },
+          {
+            tipo: 'click',
+            selector: '#input-fecha-ceremonia',
+            rx: 0.35, ry: 0.42,
+            etiqueta: 'Campo de fecha enfocado',
+            pausaDespues: 300,
+            esperarElemento: true
           },
           {
             tipo: 'tipear',
-            selector: '#input-fecha-ceremonia, input[type="date"]',
+            selector: '#input-fecha-ceremonia',
             texto: '2026-11-20',
             etiqueta: 'Fecha: 20/11/2026',
-            pausaDespues: 550
+            pausaDespues: 550,
+            esperarElemento: true
           },
           {
             tipo: 'mover',
-            selector: '#input-max-invitados-ceremonia, input[type="number"]',
-            esperarElemento: true,
+            selector: '#input-max-invitados-ceremonia',
             rx: 0.65, ry: 0.42,
             etiqueta: 'Configurando cupo de invitados por graduado...',
-            pausaDespues: 300
+            pausaDespues: 300,
+            esperarElemento: true
+          },
+          {
+            tipo: 'click',
+            selector: '#input-max-invitados-ceremonia',
+            rx: 0.65, ry: 0.42,
+            etiqueta: 'Campo cupo de invitados enfocado',
+            pausaDespues: 300,
+            esperarElemento: true
           },
           {
             tipo: 'tipear',
-            selector: '#input-max-invitados-ceremonia, input[type="number"]',
+            selector: '#input-max-invitados-ceremonia',
             texto: '4',
             etiqueta: 'Máximo invitados: 4 por egresado',
-            pausaDespues: 450
+            pausaDespues: 450,
+            esperarElemento: true
           },
           {
             tipo: 'mover',
-            selector: '#input-lugar-ceremonia, input[value*="Beltrán" i]',
-            esperarElemento: true,
+            selector: '#input-lugar-ceremonia',
             rx: 0.50, ry: 0.55,
             etiqueta: 'Validando sede y auditorio...',
-            pausaDespues: 350
+            pausaDespues: 350,
+            esperarElemento: true
+          },
+          {
+            tipo: 'click',
+            selector: '#input-lugar-ceremonia',
+            rx: 0.50, ry: 0.55,
+            etiqueta: 'Campo de sede enfocado',
+            pausaDespues: 300,
+            esperarElemento: true
           },
           {
             tipo: 'tipear',
-            selector: '#input-lugar-ceremonia, input[value*="Beltrán" i]',
+            selector: '#input-lugar-ceremonia',
             texto: 'Sede Beltrán Avellaneda',
             etiqueta: 'Sede: Sede Beltrán Avellaneda',
-            pausaDespues: 550
+            pausaDespues: 550,
+            esperarElemento: true
           },
           {
             tipo: 'mover',
-            selector: '#btn-crear-submit-ceremonia, button[type="submit"]',
+            selector: '#btn-crear-submit-ceremonia',
             textoBoton: 'Crear',
             rx: 0.70, ry: 0.90,
             etiqueta: 'Confirmando e inicializando hábitat...',
-            pausaDespues: 450
+            pausaDespues: 450,
+            esperarElemento: true
           },
           {
             tipo: 'click',
-            selector: '#btn-crear-submit-ceremonia, button[type="submit"]',
+            selector: '#btn-crear-submit-ceremonia',
             textoBoton: 'Crear',
+            rx: 0.70, ry: 0.90,
             etiqueta: 'Ceremonia creada y activada con éxito',
-            pausaDespues: 850
-          },
-          {
-            tipo: 'mover',
-            selector: '[class*="border-sky-500"], h3',
-            textoBoton: 'Entorno Activo',
-            rx: 0.28, ry: 0.36,
-            etiqueta: 'Ceremonia activa confirmada: Auditorio Beltrán',
-            pausaDespues: 900
+            pausaDespues: 850,
+            esperarElemento: true
           }
         ]
 
@@ -1217,20 +1273,22 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
         if (paso.tipo === 'click') {
           await esperarMs(120)
           if (canceladoRef.current || secuenciaIdRef.current !== secId) break
-          if (!elemento) {
-            const recheck = obtenerCoordenadas(paso)
-            elemento = recheck.elemento
-          }
-          ejecutarClic(coords.x, coords.y, elemento, Boolean(paso.soloVisual))
+          const recheck = obtenerCoordenadas(paso)
+          const targetElem = recheck.elemento || elemento
+          const targetX = recheck.elemento ? recheck.x : coords.x
+          const targetY = recheck.elemento ? recheck.y : coords.y
+          setPosicion({ x: targetX, y: targetY })
+          ejecutarClic(targetX, targetY, targetElem, Boolean(paso.soloVisual))
           await esperarMs(paso.pausaDespues || 600)
         } else if (paso.tipo === 'tipear') {
           await esperarMs(150)
           if (canceladoRef.current || secuenciaIdRef.current !== secId) break
-          if (!elemento) {
-            const recheck = obtenerCoordenadas(paso)
-            elemento = recheck.elemento
-          }
-          await simularEscritura(elemento, paso.texto || '')
+          const recheck = obtenerCoordenadas(paso)
+          const targetElem = recheck.elemento || elemento
+          const targetX = recheck.elemento ? recheck.x : coords.x
+          const targetY = recheck.elemento ? recheck.y : coords.y
+          setPosicion({ x: targetX, y: targetY })
+          await simularEscritura(targetElem, paso.texto || '')
           await esperarMs(paso.pausaDespues || 800)
         } else if (paso.tipo === 'mover') {
           await esperarMs(paso.pausaDespues || 650)

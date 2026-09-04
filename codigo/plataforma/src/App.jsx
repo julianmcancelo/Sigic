@@ -239,6 +239,15 @@ function App() {
     demoSandbox.iniciar(datasetAleatorio)
     if (typeof window !== 'undefined') {
       sessionStorage.setItem('sigic_demo_activa', 'true')
+      for (let f = 1; f <= 7; f++) {
+        try {
+          const key = `sigic_demo_secuencia_${f}`
+          const raw = localStorage.getItem(key)
+          if (raw && (raw.includes('Inicializar') || raw.includes('NUEVO ENTORNO') || raw.includes('FECHA LÍMITE') || raw.includes('"selector":"form"') || raw.includes('"selector":"main"'))) {
+            localStorage.removeItem(key)
+          }
+        } catch {}
+      }
     }
 
     guardarTokenSesion('bypass-admin-token')
@@ -1158,7 +1167,9 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
   const [mostrarEquipo, setMostrarEquipo] = useState(false)
   const [ceremoniaActiva, setCeremoniaActiva] = useState(null)
 
-  const [ventanasAbiertas, setVentanasAbiertas] = useState([])
+  const [ventanasAbiertas, setVentanasAbiertas] = useState(() => {
+    return (!pantallaActual || pantallaActual === 'bienvenida') ? [] : [pantallaActual]
+  })
   const [contenidoVentanas, setContenidoVentanas] = useState({})
   const [ventanasMinimizadas, setVentanasMinimizadas] = useState([])
   const [ventanasCerrandose, setVentanasCerrandose] = useState([])
@@ -1173,7 +1184,7 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
   const inicioRef = useRef(null)
   const inicioBotonRef = useRef(null)
   const buscadorInicioRef = useRef(null)
-  const pantallaAnteriorRef = useRef(pantallaActual)
+  const pantallaAnteriorRef = useRef(null)
   const esSuperAdmin = usuario?.rol === 'SUPER_ADMIN'
   const aplicaciones = [
     { id: 'bienvenida', titulo: 'Inicio', icono: Home, color: 'bg-sky-500', escritorio: true },
@@ -1247,8 +1258,8 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
   useEffect(() => {
     const anterior = pantallaAnteriorRef.current
     pantallaAnteriorRef.current = pantallaActual
-    if (!pantallaActual || pantallaActual === 'bienvenida' || pantallaActual === anterior) return
-    setVentanasAbiertas(ventanas => [...ventanas.filter(item => item !== pantallaActual), pantallaActual])
+    if (!pantallaActual || pantallaActual === 'bienvenida') return
+    setVentanasAbiertas(ventanas => ventanas.includes(pantallaActual) ? ventanas : [...ventanas, pantallaActual])
     setVentanasMinimizadas(ventanas => ventanas.filter(item => item !== pantallaActual))
     setVentanasCerrandose(ventanas => ventanas.filter(item => item !== pantallaActual))
     setDisenoVentanas(ventanas => {

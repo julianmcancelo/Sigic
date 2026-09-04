@@ -2,7 +2,7 @@
   "1": [
     {
       "tipo": "mover",
-      "selector": "#btn-nueva-ceremonia, button",
+      "selector": "#btn-nueva-ceremonia",
       "textoBoton": "Nueva Ceremonia",
       "rx": 0.88,
       "ry": 0.12,
@@ -12,7 +12,7 @@
     },
     {
       "tipo": "click",
-      "selector": "#btn-nueva-ceremonia, button",
+      "selector": "#btn-nueva-ceremonia",
       "textoBoton": "Nueva Ceremonia",
       "rx": 0.88,
       "ry": 0.12,
@@ -22,33 +22,51 @@
     },
     {
       "tipo": "mover",
-      "selector": "#input-nombre-ceremonia, input[name=\"nombre\"], input",
-      "rx": 0.5,
+      "selector": "#input-nombre-ceremonia",
+      "rx": 0.50,
       "ry": 0.28,
       "etiqueta": "Ingresando denominación institucional...",
-      "pausaDespues": 400,
+      "pausaDespues": 350,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#input-nombre-ceremonia",
+      "rx": 0.50,
+      "ry": 0.28,
+      "etiqueta": "Campo de denominación enfocado",
+      "pausaDespues": 300,
       "esperarElemento": true
     },
     {
       "tipo": "tipear",
-      "selector": "#input-nombre-ceremonia, input[name=\"nombre\"], input",
-      "texto": "Colación Oficial Beltrán 2026",
-      "etiqueta": "Nombre: \"Colación Oficial Beltrán 2026\"",
+      "selector": "#input-nombre-ceremonia",
+      "texto": "LXIV Ceremonia Solemne Beltrán 2026",
+      "etiqueta": "Nombre: \"LXIV Ceremonia Solemne Beltrán 2026\"",
       "pausaDespues": 650,
       "esperarElemento": true
     },
     {
       "tipo": "mover",
-      "selector": "#input-fecha-ceremonia, input[type=\"date\"]",
+      "selector": "#input-fecha-ceremonia",
       "rx": 0.35,
       "ry": 0.42,
       "etiqueta": "Programando fecha oficial del acto...",
-      "pausaDespues": 400,
+      "pausaDespues": 350,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#input-fecha-ceremonia",
+      "rx": 0.35,
+      "ry": 0.42,
+      "etiqueta": "Campo de fecha enfocado",
+      "pausaDespues": 300,
       "esperarElemento": true
     },
     {
       "tipo": "tipear",
-      "selector": "#input-fecha-ceremonia, input[type=\"date\"]",
+      "selector": "#input-fecha-ceremonia",
       "texto": "2026-11-20",
       "etiqueta": "Fecha: 20/11/2026",
       "pausaDespues": 550,
@@ -56,16 +74,25 @@
     },
     {
       "tipo": "mover",
-      "selector": "#input-max-invitados-ceremonia, input[type=\"number\"]",
+      "selector": "#input-max-invitados-ceremonia",
       "rx": 0.65,
       "ry": 0.42,
       "etiqueta": "Configurando cupo de invitados por graduado...",
-      "pausaDespues": 350,
+      "pausaDespues": 300,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#input-max-invitados-ceremonia",
+      "rx": 0.65,
+      "ry": 0.42,
+      "etiqueta": "Campo cupo de invitados enfocado",
+      "pausaDespues": 300,
       "esperarElemento": true
     },
     {
       "tipo": "tipear",
-      "selector": "#input-max-invitados-ceremonia, input[type=\"number\"]",
+      "selector": "#input-max-invitados-ceremonia",
       "texto": "4",
       "etiqueta": "Máximo invitados: 4 por egresado",
       "pausaDespues": 450,
@@ -73,16 +100,25 @@
     },
     {
       "tipo": "mover",
-      "selector": "#input-lugar-ceremonia, input[name=\"lugar\"], input",
-      "rx": 0.5,
+      "selector": "#input-lugar-ceremonia",
+      "rx": 0.50,
       "ry": 0.55,
       "etiqueta": "Validando sede y auditorio...",
-      "pausaDespues": 400,
+      "pausaDespues": 350,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#input-lugar-ceremonia",
+      "rx": 0.50,
+      "ry": 0.55,
+      "etiqueta": "Campo de sede enfocado",
+      "pausaDespues": 300,
       "esperarElemento": true
     },
     {
       "tipo": "tipear",
-      "selector": "#input-lugar-ceremonia, input[name=\"lugar\"], input",
+      "selector": "#input-lugar-ceremonia",
       "texto": "Sede Beltrán Avellaneda",
       "etiqueta": "Sede: Sede Beltrán Avellaneda",
       "pausaDespues": 550,
@@ -90,32 +126,22 @@
     },
     {
       "tipo": "mover",
-      "selector": "#btn-crear-submit-ceremonia, button[type=\"submit\"]",
+      "selector": "#btn-crear-submit-ceremonia",
       "textoBoton": "Crear",
-      "rx": 0.7,
-      "ry": 0.9,
+      "rx": 0.70,
+      "ry": 0.90,
       "etiqueta": "Confirmando e inicializando hábitat...",
       "pausaDespues": 450,
       "esperarElemento": true
     },
     {
       "tipo": "click",
-      "selector": "#btn-crear-submit-ceremonia, button[type=\"submit\"]",
+      "selector": "#btn-crear-submit-ceremonia",
       "textoBoton": "Crear",
-      "rx": 0.7,
-      "ry": 0.9,
+      "rx": 0.70,
+      "ry": 0.90,
       "etiqueta": "Ceremonia creada y activada con éxito",
       "pausaDespues": 850,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "mover",
-      "selector": "[class*=\"border-sky-500\"], h3, div",
-      "textoBoton": "Entorno Activo",
-      "rx": 0.28,
-      "ry": 0.36,
-      "etiqueta": "Ceremonia activa confirmada: Auditorio Beltrán",
-      "pausaDespues": 900,
       "esperarElemento": true
     }
   ],
