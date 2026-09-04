@@ -111,7 +111,7 @@ async function inicializarTablasAdicionales() {
     // Índices compuestos de alto rendimiento para consultas concurrentes
     await query('CREATE INDEX IF NOT EXISTS idx_egresados_ceremonia_estado ON egresados (ceremonia_id, estado)');
     await query('CREATE INDEX IF NOT EXISTS idx_invitados_egresado_id ON invitados (egresado_id)');
-    await query('CREATE INDEX IF NOT EXISTS idx_codigos_otp_egresado ON codigos_otp (egresado_id, codigo)');
+    await query('CREATE INDEX IF NOT EXISTS idx_otp_historial_egresado ON otp_historial (egresado_id)');
     await query('CREATE INDEX IF NOT EXISTS idx_entregadores_egresado ON entregadores (egresado_id)');
 
     // Asignar cualquier egresado huérfano a la ceremonia activa para evitar registros invisibles
@@ -1100,36 +1100,13 @@ export async function POST(
   }
 
   try {
-    if (esPeticionDemoBackend(req) && path !== 'ceremonias') {
-      if (path === 'egresados') {
-        return NextResponse.json({ ok: true, mensaje: 'Graduado creado con exito (Modo Demo)', egresado: { id: `demo-egr-${Date.now()}`, ...(body || {}) } }, { status: 201, headers });
-      }
-      if (path === 'egresados/enviar-invitaciones') {
-        return NextResponse.json({ ok: true, count: 12, mensaje: 'Invitaciones despachadas exitosamente (Modo Demo)' }, { status: 200, headers });
-      }
-      if (path === 'entregadores') {
-        return NextResponse.json({ ok: true, mensaje: 'Padrino asignado con exito (Modo Demo)', id: `demo-ent-${Date.now()}` }, { status: 201, headers });
-      }
-      if (path === 'egresados/bulk' || path === 'egresados/importar') {
-        const lista = Array.isArray(body?.egresados) ? body.egresados : (Array.isArray(body) ? body : []);
-        return NextResponse.json({
-          ok: true,
-          importados: lista.length,
-          exitosos: lista.map((e: any, i: number) => ({
-            id: `demo-egr-${Date.now()}-${i}`,
-            nombre: e.nombre,
-            dni: e.dni,
-            legajo: e.legajo,
-            correo: e.correo,
-            carrera: e.carrera,
-            anio_inscripcion: e.anio_inscripcion || 2024,
-            estado: 'PENDIENTE'
-          })),
-          conflictos: [],
-          errores: 0,
-          mensaje: `${lista.length} egresados importados en memoria (Modo Demo)`
-        }, { headers });
-      }
+    if (
+      esPeticionDemoBackend(req) &&
+      path !== 'ceremonias' &&
+      !path.startsWith('egresados') &&
+      !path.startsWith('invitados') &&
+      !path.startsWith('entregadores')
+    ) {
       return NextResponse.json({ ok: true, simulado: true, mensaje: 'Operacion simulada en modo demo (sin persistencia en base de datos)', id: `demo-${Date.now()}` }, { status: 200, headers });
     }
 
@@ -2001,6 +1978,12 @@ export async function POST(
       }
 
       let ceremoniaIdFinal = ceremonia_id;
+      if (ceremoniaIdFinal) {
+        const existeCer = await query('SELECT id FROM ceremonias WHERE id = $1 LIMIT 1', [ceremoniaIdFinal]);
+        if (existeCer.rows.length === 0) {
+          ceremoniaIdFinal = null;
+        }
+      }
       if (!ceremoniaIdFinal) {
         const ceremoniaActiva = await query(
           'SELECT id FROM ceremonias WHERE activa = 1 ORDER BY fecha DESC, id DESC LIMIT 1'
@@ -2072,11 +2055,17 @@ export async function POST(
         }
       }
 
-      const token = crypto.randomBytes(4).toString('hex').toUpperCase(); // 8-char código seguro
+      const anioNum = (anio_inscripcion && !isNaN(parseInt(String(anio_inscripcion), 10))) ? parseInt(String(anio_inscripcion), 10) : null;
+      const promNum = (promedio && !isNaN(parseFloat(String(promedio).replace(',', '.')))) ? parseFloat(String(promedio).replace(',', '.')) : null;
+      const token = body.token || crypto.randomBytes(4).toString('hex').toUpperCase();
 
       const result = await query(
-        `INSERT INTO egresados (nombre, legajo, dni, correo, token, ceremonia_id, carrera, anio_inscripcion, promedio, identidad_corrobada_en)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP) RETURNING *`,
+        `INSERT INTO egresados (
+           nombre, legajo, dni, correo, token, ceremonia_id, carrera, anio_inscripcion, promedio,
+           identidad_corrobada_en, estado, estado_flujo
+         ) VALUES (
+           $1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP, 'PENDIENTE', 'SIN_INVITAR'
+         ) RETURNING *`,
         [
           nombre.trim(), 
           legajo?.trim() || '',
@@ -2085,10 +2074,12 @@ export async function POST(
           token, 
           ceremoniaIdFinal,
           carrera ? carrera.trim() : null, 
-          anio_inscripcion ? parseInt(anio_inscripcion) : null, 
-          promedio ? parseFloat(promedio) : null
+          anioNum, 
+          promNum
         ]
       );
+      invalidarCache('setup:status');
+      invalidarCache('egresados:*');
       return NextResponse.json(result.rows[0], { status: 201, headers });
     }
 
@@ -2563,7 +2554,13 @@ export async function PUT(
   }
 
   try {
-    if (esPeticionDemoBackend(req) && !(slug[0] === 'ceremonias')) {
+    if (
+      esPeticionDemoBackend(req) &&
+      !(slug[0] === 'ceremonias') &&
+      !(slug[0] === 'egresados') &&
+      !(slug[0] === 'invitados') &&
+      !(slug[0] === 'entregadores')
+    ) {
       return NextResponse.json({ ok: true, simulado: true, mensaje: 'Actualizacion simulada en modo demo (sin persistencia en base de datos)' }, { status: 200, headers });
     }
 
@@ -3270,7 +3267,13 @@ export async function DELETE(
   const path = slug.join('/');
 
   try {
-    if (esPeticionDemoBackend(req) && !(slug[0] === 'ceremonias')) {
+    if (
+      esPeticionDemoBackend(req) &&
+      !(slug[0] === 'ceremonias') &&
+      !(slug[0] === 'egresados') &&
+      !(slug[0] === 'invitados') &&
+      !(slug[0] === 'entregadores')
+    ) {
       return NextResponse.json({ ok: true, simulado: true, mensaje: 'Eliminacion simulada en modo demo (sin persistencia en base de datos)' }, { status: 200, headers });
     }
 
