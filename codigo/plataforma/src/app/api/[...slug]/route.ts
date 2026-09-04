@@ -112,8 +112,14 @@ async function inicializarTablasAdicionales() {
     await query('CREATE INDEX IF NOT EXISTS idx_egresados_ceremonia_estado ON egresados (ceremonia_id, estado)');
     await query('CREATE INDEX IF NOT EXISTS idx_invitados_egresado_id ON invitados (egresado_id)');
     await query('CREATE INDEX IF NOT EXISTS idx_codigos_otp_egresado ON codigos_otp (egresado_id, codigo)');
-    await query('CREATE INDEX IF NOT EXISTS idx_butacas_ceremonia_sector ON butacas (ceremonia_id, sector, estado)');
     await query('CREATE INDEX IF NOT EXISTS idx_entregadores_egresado ON entregadores (egresado_id)');
+
+    // Asignar cualquier egresado huérfano a la ceremonia activa para evitar registros invisibles
+    await query(`
+      UPDATE egresados
+      SET ceremonia_id = (SELECT id FROM ceremonias WHERE activa = 1 ORDER BY fecha DESC, id DESC LIMIT 1)
+      WHERE ceremonia_id IS NULL AND EXISTS (SELECT 1 FROM ceremonias WHERE activa = 1)
+    `).catch(() => {});
   } catch (e) {
     console.error('Error al inicializar tablas e índices adicionales:', e);
   }
@@ -993,7 +999,9 @@ export async function GET(
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
       const ceremoniaId = req.nextUrl.searchParams.get('ceremoniaId');
-      const condicionCeremonia = ceremoniaId ? 'c.id = $1' : 'c.activa = 1';
+      const condicionCeremonia = ceremoniaId 
+        ? '(e.ceremonia_id = $1)' 
+        : '(c.activa = 1 OR e.ceremonia_id IS NULL OR e.ceremonia_id = (SELECT id FROM ceremonias WHERE activa = 1 ORDER BY fecha DESC, id DESC LIMIT 1))';
 
       const queryStr = `
         SELECT 
@@ -1105,8 +1113,25 @@ export async function POST(
       if (path === 'entregadores') {
         return NextResponse.json({ ok: true, mensaje: 'Padrino asignado con exito (Modo Demo)', id: `demo-ent-${Date.now()}` }, { status: 201, headers });
       }
-      if (path === 'butacas/auto-asignar') {
-        return NextResponse.json({ ok: true, mensaje: 'Auto-seating completado con exito (Modo Demo)' }, { status: 200, headers });
+      if (path === 'egresados/bulk' || path === 'egresados/importar') {
+        const lista = Array.isArray(body?.egresados) ? body.egresados : (Array.isArray(body) ? body : []);
+        return NextResponse.json({
+          ok: true,
+          importados: lista.length,
+          exitosos: lista.map((e: any, i: number) => ({
+            id: `demo-egr-${Date.now()}-${i}`,
+            nombre: e.nombre,
+            dni: e.dni,
+            legajo: e.legajo,
+            correo: e.correo,
+            carrera: e.carrera,
+            anio_inscripcion: e.anio_inscripcion || 2024,
+            estado: 'PENDIENTE'
+          })),
+          conflictos: [],
+          errores: 0,
+          mensaje: `${lista.length} egresados importados en memoria (Modo Demo)`
+        }, { headers });
       }
       return NextResponse.json({ ok: true, simulado: true, mensaje: 'Operacion simulada en modo demo (sin persistencia en base de datos)', id: `demo-${Date.now()}` }, { status: 200, headers });
     }
@@ -2056,53 +2081,140 @@ export async function POST(
       return NextResponse.json(result.rows[0], { status: 201, headers });
     }
 
-    if (path === 'egresados/bulk') {
+    if (path === 'egresados/bulk' || path === 'egresados/importar') {
       const isPersonal = await esPersonalValido(req, ROLES_GESTION);
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
-      const { egresados } = body;
-      if (!Array.isArray(egresados) || egresados.length === 0) {
-        return NextResponse.json({ error: 'Se requiere una lista de egresados' }, { status: 400, headers });
+      const egresadosLista = Array.isArray(body?.egresados)
+        ? body.egresados
+        : (Array.isArray(body?.graduados) ? body.graduados : (Array.isArray(body) ? body : []));
+
+      if (egresadosLista.length === 0) {
+        return NextResponse.json({ error: 'Se requiere una lista de egresados para importar' }, { status: 400, headers });
       }
 
       const client = await pool.connect();
       try {
         await client.query('BEGIN');
+
+        // Determinar ceremonia de destino: asignada en body o la ceremonia activa oficial
+        let ceremoniaIdDestino = body?.ceremonia_id;
+        if (!ceremoniaIdDestino) {
+          const resActiva = await client.query(
+            'SELECT id FROM ceremonias WHERE activa = 1 ORDER BY fecha DESC, id DESC LIMIT 1'
+          );
+          ceremoniaIdDestino = resActiva.rows[0]?.id;
+        }
+
+        if (!ceremoniaIdDestino) {
+          await client.query('ROLLBACK');
+          return NextResponse.json({
+            error: 'No hay una ceremonia activa configurada en el sistema. Active una ceremonia antes de importar graduados.'
+          }, { status: 409, headers });
+        }
+
+        // Consultar padron preexistente en la ceremonia para deteccion de duplicados
+        const resExistentes = await client.query(
+          'SELECT id, nombre, dni, legajo, correo FROM egresados WHERE ceremonia_id = $1 OR ceremonia_id IS NULL',
+          [ceremoniaIdDestino]
+        );
+        const dnisRegistrados = new Set(
+          resExistentes.rows.map(r => String(r.dni || '').replace(/\D/g, '')).filter(Boolean)
+        );
+        const legajosRegistrados = new Set(
+          resExistentes.rows.map(r => String(r.legajo || '').trim().toUpperCase()).filter(Boolean)
+        );
+
         const exitosos: any[] = [];
         const conflictos: any[] = [];
-        
-        for (const e of egresados) {
-          const token = crypto.randomBytes(4).toString('hex').toUpperCase(); // 8-char código seguro
-          const result = await client.query(
-            `INSERT INTO egresados (nombre, legajo, dni, correo, token, ceremonia_id, carrera, anio_inscripcion, promedio, identidad_corrobada_en)
-             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP)
-             ON CONFLICT DO NOTHING
-             RETURNING *`,
+
+        for (const e of egresadosLista) {
+          const nombreLimpio = String(e.nombre || '').trim();
+          const dniLimpio = String(e.dni || '').replace(/\D/g, '');
+          const legajoLimpio = String(e.legajo || '').trim().toUpperCase();
+          const correoLimpio = e.correo ? String(e.correo).trim().toLowerCase() : null;
+
+          if (!nombreLimpio || (!dniLimpio && !legajoLimpio)) {
+            conflictos.push({
+              egresado: nombreLimpio || 'Sin nombre',
+              dni: e.dni || '-',
+              legajo: e.legajo || '-',
+              motivo: 'Registro incompleto: se requiere nombre y DNI o Legajo'
+            });
+            continue;
+          }
+
+          // Deteccion rigurosa de alumno ya cargado previamente en la base de datos
+          const yaExistePorDni = Boolean(dniLimpio && dnisRegistrados.has(dniLimpio));
+          const yaExistePorLegajo = Boolean(legajoLimpio && legajosRegistrados.has(legajoLimpio));
+
+          if (yaExistePorDni || yaExistePorLegajo) {
+            conflictos.push({
+              egresado: nombreLimpio,
+              dni: e.dni,
+              legajo: e.legajo,
+              motivo: yaExistePorDni
+                ? 'El alumno ya se encuentra registrado previamente en esta ceremonia (DNI duplicado)'
+                : 'El alumno ya se encuentra registrado previamente en esta ceremonia (Legajo duplicado)'
+            });
+            continue;
+          }
+
+          const token = crypto.randomBytes(4).toString('hex').toUpperCase();
+          const insertResult = await client.query(
+            `INSERT INTO egresados (
+               nombre, legajo, dni, correo, token, ceremonia_id, carrera, anio_inscripcion, promedio,
+               identidad_corrobada_en, estado, estado_flujo
+             ) VALUES (
+               $1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP, 'PENDIENTE', 'SIN_INVITAR'
+             ) RETURNING *`,
             [
-              e.nombre.trim(), 
-              e.legajo?.trim() || '', 
-              String(e.dni).replace(/\s/g, ''), 
-              e.correo ? e.correo.trim().toLowerCase() : null, 
-              token, 
-              e.ceremonia_id,
-              e.carrera ? e.carrera.trim() : null, 
-              e.anio_inscripcion ? parseInt(e.anio_inscripcion) : null, 
-              e.promedio ? parseFloat(e.promedio) : null
+              nombreLimpio,
+              e.legajo ? String(e.legajo).trim() : '',
+              dniLimpio,
+              correoLimpio,
+              token,
+              e.ceremonia_id || ceremoniaIdDestino,
+              e.carrera ? String(e.carrera).trim() : null,
+              e.anio_inscripcion ? parseInt(String(e.anio_inscripcion), 10) : null,
+              e.promedio ? parseFloat(String(e.promedio)) : null
             ]
           );
-          if (result.rows.length > 0) {
-            exitosos.push(result.rows[0]);
+
+          if (insertResult.rows.length > 0) {
+            const nuevoEgr = insertResult.rows[0];
+            exitosos.push(nuevoEgr);
+            if (dniLimpio) dnisRegistrados.add(dniLimpio);
+            if (legajoLimpio) legajosRegistrados.add(legajoLimpio);
           } else {
-            conflictos.push({ egresado: e.nombre, dni: e.dni, legajo: e.legajo, motivo: 'Inscripción duplicada en la misma ceremonia y carrera' });
+            conflictos.push({
+              egresado: nombreLimpio,
+              dni: e.dni,
+              legajo: e.legajo,
+              motivo: 'Inscripción duplicada detectada por restricción única en base de datos'
+            });
           }
         }
-        
+
         await client.query('COMMIT');
-        return NextResponse.json({ ok: true, importados: exitosos.length, exitosos, conflictos, errores: 0 }, { headers });
+        invalidarCache('egresados:*');
+
+        return NextResponse.json({
+          ok: true,
+          importados: exitosos.length,
+          exitosos,
+          conflictos,
+          errores: 0,
+          total: egresadosLista.length,
+          mensaje: `Importación completada: ${exitosos.length} registrados con éxito en la base de datos${conflictos.length > 0 ? `, ${conflictos.length} alumnos ya existían previamente.` : '.'}`
+        }, { headers });
       } catch (error: any) {
         await client.query('ROLLBACK');
-        console.error('Error importación masiva:', error);
-        return NextResponse.json({ error: 'Error durante la importación masiva', detalle: error.message }, { status: 500, headers });
+        console.error('Error durante la importación masiva:', error);
+        return NextResponse.json({
+          error: 'Error durante la importación masiva en base de datos',
+          detalle: error.message
+        }, { status: 500, headers });
       } finally {
         client.release();
       }

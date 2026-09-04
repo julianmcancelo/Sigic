@@ -608,6 +608,11 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
       {mostrarImportar && (
         <ModalImportar 
           onCerrar={() => setMostrarImportar(false)} 
+          graduadosExistentes={graduados}
+          onActualizarPadron={() => {
+            cargarDatos()
+            emitirCambioSync('EGRESADOS')
+          }}
           onCompletado={() => {
             setMostrarImportar(false)
             cargarDatos()

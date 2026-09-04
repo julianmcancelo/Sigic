@@ -172,7 +172,16 @@ export function AsistenteOperativoCeremonia({ onNavegar }) {
         <footer><button type="button" onClick={() => setMostrarCargaRapida(false)}>Cancelar</button><button type="submit" disabled={guardando || (coincidenciasDni.length > 0 && !identidadConfirmada)}>{guardando ? <LoaderCircle size={15} className="animate-spin" /> : <Plus size={15} />}{guardando ? 'Guardando...' : coincidenciasDni.length > 0 && !identidadConfirmada ? 'Confirmá la identidad' : 'Agregar al padrón'}</button></footer>
       </form>
     </div>}
-    {mostrarImportar && <ModalImportar onCerrar={() => setMostrarImportar(false)} onCompletado={async () => { await actualizarCeremonia(); setMostrarImportar(false) }} />}
+    {mostrarImportar && (
+      <ModalImportar 
+        onCerrar={() => setMostrarImportar(false)} 
+        onActualizarPadron={async () => { await actualizarCeremonia() }}
+        onCompletado={async () => { 
+          await actualizarCeremonia()
+          setMostrarImportar(false) 
+        }} 
+      />
+    )}
     {mostrarPlazos && <div className="sigic-quick-graduate-overlay" role="dialog" aria-modal="true"><form className="sigic-quick-graduate-card" onSubmit={guardarPlazos}><header><div><span>Control operativo</span><h2>Plazos de la ceremonia</h2><p>Son opcionales y no afectan cambios administrativos.</p></div><button type="button" onClick={() => setMostrarPlazos(false)} aria-label="Cerrar"><X size={18} /></button></header><div className="sigic-quick-graduate-fields"><label>Responder invitación<input type="datetime-local" value={plazos.fecha_limite_respuesta} onChange={evento => setPlazos(valor => ({ ...valor, fecha_limite_respuesta: evento.target.value }))} /></label><label>Completar grupo<input type="datetime-local" value={plazos.fecha_limite_grupo} onChange={evento => setPlazos(valor => ({ ...valor, fecha_limite_grupo: evento.target.value }))} /></label><label className="sigic-quick-graduate-field-wide">Cierre de butacas<input type="datetime-local" value={plazos.fecha_cierre_butacas} onChange={evento => setPlazos(valor => ({ ...valor, fecha_cierre_butacas: evento.target.value }))} /></label></div><footer><button type="button" onClick={() => setMostrarPlazos(false)}>Cancelar</button><button type="submit">Guardar plazos</button></footer></form></div>}
   </section>
 }

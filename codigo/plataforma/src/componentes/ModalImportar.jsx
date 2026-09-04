@@ -4,34 +4,37 @@ import * as XLSX from 'xlsx'
 import { importarGraduadosMasivo } from '../servicios/api'
 import { obtenerDatosDemoActuales } from '../lib/generador-datos-demo'
 
-export function ModalImportar({ onCerrar, onCompletado }) {
+export function ModalImportar({ onCerrar, onCompletado, onActualizarPadron, graduadosExistentes = [] }) {
   const [archivo, setArchivo] = useState(null)
   const [previsualizacion, setPrevisualizacion] = useState([])
   const [procesando, setProcesando] = useState(false)
   const [resultado, setResultado] = useState(null)
 
-  const cargarPadronDemo = () => {
-    const datos = obtenerDatosDemoActuales()
-    const cohorte = Array.isArray(datos?.graduados) && datos.graduados.length > 0
-      ? datos.graduados
-      : [
-          { nombre: 'García Juan Manuel', dni: '40123456', legajo: 'BEL-2024-001', correo: 'juan.garcia@sigic.demo.ar', carrera: 'Desarrollo de Software', anio_inscripcion: 2024, promedio: 8.9 },
-          { nombre: 'Martínez Lucía Belén', dni: '41234567', legajo: 'BEL-2024-002', correo: 'lucia.martinez@sigic.demo.ar', carrera: 'Automatización y Robótica', anio_inscripcion: 2024, promedio: 9.4 },
-          { nombre: 'Rodríguez Matías', dni: '39987654', legajo: 'BEL-2024-003', correo: 'matias.rodriguez@sigic.demo.ar', carrera: 'Redes e Infraestructura', anio_inscripcion: 2024, promedio: 8.7 }
-        ]
+  const dnisExistentes = new Set(
+    (graduadosExistentes || []).map(g => String(g.dni || '').replace(/\D/g, '')).filter(Boolean)
+  )
+  const legajosExistentes = new Set(
+    (graduadosExistentes || []).map(g => String(g.legajo || '').trim().toUpperCase()).filter(Boolean)
+  )
 
-    const mapeado = cohorte.map(g => ({
-      nombre: g.nombre,
-      dni: String(g.dni),
-      legajo: String(g.legajo),
-      correo: g.correo,
-      promedio: g.promedio || 8.5,
-      carrera: g.carrera,
-      anio_inscripcion: g.anio_inscripcion || 2023
-    }))
+  const cargarPadronDemo = () => {
+    const cohorteModelo = [
+      { nombre: 'García Juan Manuel', dni: '42123456', legajo: 'BEL-2024-101', correo: 'juan.garcia@sigic.demo.ar', carrera: 'Tecnicatura Superior en Desarrollo de Software', anio_inscripcion: 2024, promedio: 9.1 },
+      { nombre: 'Martínez Lucía Belén', dni: '43234567', legajo: 'BEL-2024-102', correo: 'lucia.martinez@sigic.demo.ar', carrera: 'Tecnicatura Superior en Automatización y Robótica', anio_inscripcion: 2024, promedio: 9.4 },
+      { nombre: 'Rodríguez Matías Alejandro', dni: '41987654', legajo: 'BEL-2024-103', correo: 'matias.rodriguez@sigic.demo.ar', carrera: 'Tecnicatura Superior en Redes e Infraestructura', anio_inscripcion: 2024, promedio: 8.7 },
+      { nombre: 'Fernández Camila Soledad', dni: '44567890', legajo: 'BEL-2024-104', correo: 'camila.fernandez@sigic.demo.ar', carrera: 'Tecnicatura Superior en Ciencia de Datos e IA', anio_inscripcion: 2024, promedio: 9.6 },
+      { nombre: 'López Tomás Ignacio', dni: '42876543', legajo: 'BEL-2024-105', correo: 'tomas.lopez@sigic.demo.ar', carrera: 'Tecnicatura Superior en Ciberseguridad', anio_inscripcion: 2024, promedio: 8.9 },
+      { nombre: 'González Valentina Rocío', dni: '43654321', legajo: 'BEL-2024-106', correo: 'valentina.gonzalez@sigic.demo.ar', carrera: 'Tecnicatura Superior en Diseño y Desarrollo Web', anio_inscripcion: 2024, promedio: 9.3 },
+      { nombre: 'Díaz Agustín Ezequiel', dni: '42345678', legajo: 'BEL-2024-107', correo: 'agustin.diaz@sigic.demo.ar', carrera: 'Tecnicatura Superior en Desarrollo de Software', anio_inscripcion: 2024, promedio: 8.5 },
+      { nombre: 'Pérez Sofía Ailén', dni: '44123789', legajo: 'BEL-2024-108', correo: 'sofia.perez@sigic.demo.ar', carrera: 'Tecnicatura Superior en Automatización y Robótica', anio_inscripcion: 2024, promedio: 9.0 },
+      { nombre: 'Romero Franco Damián', dni: '43987123', legajo: 'BEL-2024-109', correo: 'franco.romero@sigic.demo.ar', carrera: 'Tecnicatura Superior en Redes e Infraestructura', anio_inscripcion: 2024, promedio: 8.8 },
+      { nombre: 'Torres Florencia Denise', dni: '41765432', legajo: 'BEL-2024-110', correo: 'florencia.torres@sigic.demo.ar', carrera: 'Tecnicatura Superior en Ciencia de Datos e IA', anio_inscripcion: 2024, promedio: 9.5 },
+      { nombre: 'Acosta Lucas Gabriel', dni: '42567123', legajo: 'BEL-2024-111', correo: 'lucas.acosta@sigic.demo.ar', carrera: 'Tecnicatura Superior en Ciberseguridad', anio_inscripcion: 2024, promedio: 8.6 },
+      { nombre: 'Benítez Micaela Paula', dni: '43876512', legajo: 'BEL-2024-112', correo: 'micaela.benitez@sigic.demo.ar', carrera: 'Tecnicatura Superior en Diseño y Desarrollo Web', anio_inscripcion: 2024, promedio: 9.2 }
+    ]
 
     setArchivo({ name: 'Padron_Oficial_Cohorte_Beltran.xlsx' })
-    setPrevisualizacion(mapeado)
+    setPrevisualizacion(cohorteModelo)
   }
 
   const manejarArchivo = (e) => {
@@ -73,7 +76,7 @@ export function ModalImportar({ onCerrar, onCompletado }) {
     try {
       const res = await importarGraduadosMasivo(previsualizacion)
       setResultado(res)
-      if (res.exitosos && res.exitosos.length > 0) onCompletado()
+      if (onActualizarPadron) onActualizarPadron()
     } catch (err) {
       alert(err.message || 'Error al procesar la importación masiva.')
     } finally {
@@ -93,6 +96,13 @@ export function ModalImportar({ onCerrar, onCompletado }) {
     XLSX.writeFile(wb, 'Plantilla_Padron_SiGIC.xlsx')
   }
 
+  const conteoExistentes = previsualizacion.filter(r => {
+    const d = String(r.dni || '').replace(/\D/g, '')
+    const l = String(r.legajo || '').trim().toUpperCase()
+    return (d && dnisExistentes.has(d)) || (l && legajosExistentes.has(l))
+  }).length
+  const conteoNuevos = previsualizacion.length - conteoExistentes
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-3 sm:p-4 animate-in fade-in duration-200">
       <div className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-slate-100">
@@ -108,7 +118,10 @@ export function ModalImportar({ onCerrar, onCompletado }) {
           </div>
           <button 
             id="btn-cerrar-modal-importar"
-            onClick={onCerrar} 
+            onClick={() => {
+              if (resultado?.exitosos?.length > 0) onCompletado()
+              else onCerrar()
+            }} 
             className="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition cursor-pointer"
           >
             <X size={18} />
@@ -203,13 +216,19 @@ export function ModalImportar({ onCerrar, onCompletado }) {
                     <h4 className="text-[10.5px] font-black uppercase tracking-wider text-slate-500">
                       Previsualización ({previsualizacion.length} estudiantes)
                     </h4>
-                    <span className="text-[10px] font-bold text-slate-400">Mostrando primeros 5</span>
+                    <div className="flex items-center gap-1.5 text-[10px] font-bold">
+                      <span className="text-emerald-700 font-black">{conteoNuevos} nuevos</span>
+                      {conteoExistentes > 0 && (
+                        <span className="text-amber-700 font-black">· {conteoExistentes} ya en BD</span>
+                      )}
+                    </div>
                   </div>
 
                   <div className="border border-slate-200 rounded-xl overflow-x-auto shadow-xs">
                     <table className="w-full text-left text-xs">
                       <thead className="bg-slate-50 text-slate-600 font-bold uppercase text-[9.5px] border-b border-slate-100">
                         <tr>
+                          <th className="py-2 px-3">Estado</th>
                           <th className="py-2 px-3">Nombre</th>
                           <th className="py-2 px-3">DNI</th>
                           <th className="py-2 px-3">Legajo</th>
@@ -219,21 +238,37 @@ export function ModalImportar({ onCerrar, onCompletado }) {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 text-[11px]">
-                        {previsualizacion.slice(0, 5).map((r, i) => (
-                          <tr key={i} className="hover:bg-slate-50/50">
-                            <td className="py-2 px-3 font-bold text-slate-800 whitespace-nowrap">{r.nombre}</td>
-                            <td className="py-2 px-3 text-slate-600 whitespace-nowrap">{r.dni || '-'}</td>
-                            <td className="py-2 px-3 text-slate-600 whitespace-nowrap">{r.legajo || '-'}</td>
-                            <td className="py-2 px-3 text-slate-600 whitespace-nowrap">{r.correo || <span className="text-amber-600 italic text-[10px]">Sin correo</span>}</td>
-                            <td className="py-2 px-3 text-slate-600 whitespace-nowrap">{r.carrera || '-'}</td>
-                            <td className="py-2 px-3 text-slate-600 whitespace-nowrap">{r.anio_inscripcion || '-'}</td>
-                          </tr>
-                        ))}
+                        {previsualizacion.slice(0, 6).map((r, i) => {
+                          const d = String(r.dni || '').replace(/\D/g, '')
+                          const l = String(r.legajo || '').trim().toUpperCase()
+                          const yaExiste = Boolean((d && dnisExistentes.has(d)) || (l && legajosExistentes.has(l)))
+                          return (
+                            <tr key={i} className="hover:bg-slate-50/50">
+                              <td className="py-2 px-3 whitespace-nowrap">
+                                {yaExiste ? (
+                                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[8.5px] font-black uppercase tracking-wider bg-amber-100 text-amber-800 border border-amber-200">
+                                    Ya en BD
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[8.5px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                    Nuevo
+                                  </span>
+                                )}
+                              </td>
+                              <td className="py-2 px-3 font-bold text-slate-800 whitespace-nowrap">{r.nombre}</td>
+                              <td className="py-2 px-3 text-slate-600 whitespace-nowrap">{r.dni || '-'}</td>
+                              <td className="py-2 px-3 text-slate-600 whitespace-nowrap">{r.legajo || '-'}</td>
+                              <td className="py-2 px-3 text-slate-600 whitespace-nowrap">{r.correo || <span className="text-amber-600 italic text-[10px]">Sin correo</span>}</td>
+                              <td className="py-2 px-3 text-slate-600 whitespace-nowrap">{r.carrera || '-'}</td>
+                              <td className="py-2 px-3 text-slate-600 whitespace-nowrap">{r.anio_inscripcion || '-'}</td>
+                            </tr>
+                          )
+                        })}
                       </tbody>
                     </table>
-                    {previsualizacion.length > 5 && (
+                    {previsualizacion.length > 6 && (
                       <div className="py-1.5 px-3 bg-slate-50 text-center text-[10px] font-bold text-slate-400">
-                        + {previsualizacion.length - 5} registros adicionales listos
+                        + {previsualizacion.length - 6} registros adicionales listos
                       </div>
                     )}
                   </div>
@@ -312,7 +347,10 @@ export function ModalImportar({ onCerrar, onCompletado }) {
             <button 
               id="btn-finalizar-importacion"
               type="button"
-              onClick={onCerrar}
+              onClick={() => {
+                if (resultado?.exitosos?.length > 0) onCompletado()
+                else onCerrar()
+              }}
               className="bg-slate-900 hover:bg-slate-800 text-white font-black text-xs py-2 px-5 rounded-xl shadow-xs transition active:scale-95 cursor-pointer"
             >
               Finalizar y Ver Padrón

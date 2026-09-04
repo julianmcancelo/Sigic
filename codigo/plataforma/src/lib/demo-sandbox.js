@@ -174,35 +174,81 @@ class DemoSandbox {
       return this._crearRespuesta({ ok: true, mensaje: 'Graduado creado con exito (Modo Demo)', egresado: nuevoEgresado, id: nuevoId }, 201)
     }
 
-    // 5.1 IMPORTAR EGRESADOS MASIVO (POST /api/egresados/importar)
-    if (metodo === 'POST' && urlStr.includes('/api/egresados/importar')) {
-      const lista = Array.isArray(body) ? body : (body?.graduados || body?.data || [])
-      const importados = lista.map((item, idx) => ({
-        id: item.id || `demo-egr-imp-${Date.now()}-${idx}`,
-        nombre: item.nombre || `Graduado ${idx + 1}`,
-        dni: String(item.dni || '').trim(),
-        legajo: String(item.legajo || '').trim(),
-        correo: String(item.correo || '').trim(),
-        carrera: item.carrera || 'Desarrollo de Software',
-        anio_inscripcion: item.anio_inscripcion || 2023,
-        ceremonia_id: datosDemo?.ceremonia?.id || 'demo-cer-1',
-        estado: 'PENDIENTE',
-        estado_flujo: 'SIN_INVITAR',
-        promedio: item.promedio || 8.5,
-        asiento_id: null,
-        invitados: []
-      }))
+    // 5.1 IMPORTAR EGRESADOS MASIVO (POST /api/egresados/importar o /api/egresados/bulk)
+    if (metodo === 'POST' && (urlStr.includes('/api/egresados/importar') || urlStr.includes('/api/egresados/bulk'))) {
+      const lista = Array.isArray(body?.egresados)
+        ? body.egresados
+        : (Array.isArray(body?.graduados) ? body.graduados : (Array.isArray(body) ? body : []))
 
-      const dnisActuales = new Set(this.egresados.map(e => String(e.dni).trim()))
-      const nuevos = importados.filter(e => !dnisActuales.has(String(e.dni).trim()))
-      this.egresados = [...this.egresados, ...nuevos]
+      const dnisActuales = new Set(this.egresados.map(e => String(e.dni || '').replace(/\D/g, '')).filter(Boolean))
+      const legajosActuales = new Set(this.egresados.map(e => String(e.legajo || '').trim().toUpperCase()).filter(Boolean))
+
+      const exitosos = []
+      const conflictos = []
+
+      for (let idx = 0; idx < lista.length; idx++) {
+        const item = lista[idx]
+        const dniLimpio = String(item.dni || '').replace(/\D/g, '')
+        const legajoLimpio = String(item.legajo || '').trim().toUpperCase()
+        const nombreLimpio = String(item.nombre || `Graduado ${idx + 1}`).trim()
+
+        if (!nombreLimpio || (!dniLimpio && !legajoLimpio)) {
+          conflictos.push({
+            egresado: nombreLimpio || 'Sin nombre',
+            dni: item.dni || '-',
+            legajo: item.legajo || '-',
+            motivo: 'Registro incompleto: se requiere nombre y DNI o Legajo'
+          })
+          continue
+        }
+
+        const yaExistePorDni = Boolean(dniLimpio && dnisActuales.has(dniLimpio))
+        const yaExistePorLegajo = Boolean(legajoLimpio && legajosActuales.has(legajoLimpio))
+
+        if (yaExistePorDni || yaExistePorLegajo) {
+          conflictos.push({
+            egresado: nombreLimpio,
+            dni: item.dni,
+            legajo: item.legajo,
+            motivo: yaExistePorDni
+              ? 'El alumno ya se encuentra registrado previamente en esta ceremonia (DNI duplicado)'
+              : 'El alumno ya se encuentra registrado previamente en esta ceremonia (Legajo duplicado)'
+          })
+          continue
+        }
+
+        const nuevo = {
+          id: item.id || `demo-egr-imp-${Date.now()}-${idx}`,
+          nombre: nombreLimpio,
+          dni: item.dni || dniLimpio,
+          legajo: item.legajo || legajoLimpio,
+          correo: String(item.correo || '').trim(),
+          carrera: item.carrera || 'Tecnicatura Superior en Desarrollo de Software',
+          anio_inscripcion: item.anio_inscripcion || 2024,
+          ceremonia_id: datosDemo?.ceremonia?.id || 'demo-cer-1',
+          estado: 'PENDIENTE',
+          estado_flujo: 'SIN_INVITAR',
+          promedio: item.promedio || 8.5,
+          asiento_id: null,
+          invitados: []
+        }
+
+        exitosos.push(nuevo)
+        if (dniLimpio) dnisActuales.add(dniLimpio)
+        if (legajoLimpio) legajosActuales.add(legajoLimpio)
+      }
+
+      this.egresados = [...this.egresados, ...exitosos]
 
       return this._crearRespuesta({
         ok: true,
-        mensaje: `Importacion completada: ${importados.length} procesados. (Modo Demo)`,
-        exitosos: importados,
-        total: importados.length,
-        fallidos: []
+        mensaje: `Importación completada: ${exitosos.length} registrados con éxito (Modo Demo)${conflictos.length > 0 ? `, ${conflictos.length} alumnos ya existían previamente.` : '.'}`,
+        importados: exitosos.length,
+        exitosos,
+        conflictos,
+        fallidos: [],
+        errores: 0,
+        total: lista.length
       }, 200)
     }
 
