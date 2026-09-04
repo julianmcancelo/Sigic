@@ -300,10 +300,12 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
           {onNavegar && (
             <button
               type="button"
-              onClick={() => onNavegar('control-ingreso')}
-              className="inline-flex items-center gap-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-2 text-xs font-black transition active:scale-95 cursor-pointer"
+              id="btn-finalizar-preparacion"
+              onClick={() => onNavegar('bienvenida')}
+              className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-500 px-3.5 py-2 text-xs font-black transition active:scale-95 cursor-pointer shadow-sm shadow-emerald-600/20"
             >
-              Paso 5: Acreditación <ArrowRight size={13} />
+              <CheckCircle2 size={13} />
+              <span>Finalizar Preparación</span>
             </button>
           )}
         </div>

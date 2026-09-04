@@ -99,33 +99,7 @@ export const PASOS_DEMO = [
     titulo: '7. Distribución Inteligente de Butacas (Auto-Seating)',
     descripcion: 'El algoritmo ubica a los egresados en Platea Baja ordenados por carrera y apellido, y sienta a los familiares en bloques contiguos.',
     accionSimulada: 'Algoritmo Auto-Seating: 100% de butacas asignadas automáticamente',
-    duracionSegundos: 11,
-  },
-  {
-    id: 'fase-8-porteria',
-    fase: 8,
-    rol: 'PORTERÍA & SEGURIDAD',
-    colorRol: 'bg-amber-600 text-white',
-    icono: ScanLine,
-    vistaAdmin: 'control-ingreso',
-    tipoUsuario: 'admin',
-    titulo: '8. Acreditación de Ingreso y Control de Aforo',
-    descripcion: 'En los accesos, la app escanea el QR de la credencial, valida la entrada del grupo familiar y computa el aforo en tiempo real.',
-    accionSimulada: 'Escaneo QR exitoso · Acreditadas 3 personas · Aforo en sala: 85%',
     duracionSegundos: 13,
-  },
-  {
-    id: 'fase-9-cierre',
-    fase: 9,
-    rol: 'AUDITORÍA & CIERRE',
-    colorRol: 'bg-slate-900 text-white',
-    icono: FileText,
-    vistaAdmin: 'estado-ceremonia',
-    tipoUsuario: 'admin',
-    titulo: '9. Cierre Legal, Acta Oficial en PDF y Métricas',
-    descripcion: 'Al finalizar el acto, el sistema genera automáticamente el Acta Oficial de Cierre en PDF con firmas y archiva las métricas.',
-    accionSimulada: 'Generando Acta Oficial de Colación en PDF con nómina certificada',
-    duracionSegundos: 12,
   },
 ]
 
@@ -661,7 +635,7 @@ export function GuiaDemostracionAutomatica({
         setModoGrabacion(true)
         setPausado(true)
       } else {
-        alert('Has completado y guardado la última fase (Fase 9). Demostración completa configurada.')
+        alert(`Has completado y guardado la última fase (Fase ${PASOS_DEMO.length}). Demostración completa configurada.`)
         setModoGrabacion(false)
         setPasoIndex(0)
         setPausado(false)
@@ -1140,11 +1114,15 @@ export function GuiaDemostracionAutomatica({
                         Rutina Propia
                       </span>
                     )}
-                    {pausado && !modoGrabacion && (
+                    {pasoIndex === PASOS_DEMO.length - 1 && pausado && !modoGrabacion ? (
+                      <span className="text-[8.5px] font-bold text-emerald-300 bg-emerald-950/80 border border-emerald-800/60 px-2 py-0.2 rounded flex items-center gap-1">
+                        <CheckCircle2 size={10} className="text-emerald-400" /> Demostración finalizada con éxito
+                      </span>
+                    ) : pausado && !modoGrabacion ? (
                       <span className="text-[8.5px] font-bold text-amber-400 bg-amber-950/60 border border-amber-800/50 px-1.5 py-0.2 rounded animate-pulse flex items-center gap-1">
                         <Pause size={9} fill="currentColor" /> Pausado
                       </span>
-                    )}
+                    ) : null}
                   </div>
 
                   <h3 className="text-xs font-black text-white flex items-center gap-1">

@@ -254,8 +254,8 @@
       "tipo": "mover",
       "selector": "#btn-importar-excel",
       "textoBoton": "Importar Excel / CSV",
-      "rx": 0.5,
-      "ry": 0.16,
+      "rx": 0.48,
+      "ry": 0.13,
       "etiqueta": "Mover hacia: Importar Excel / CSV",
       "pausaDespues": 500,
       "esperarElemento": true
@@ -264,8 +264,8 @@
       "tipo": "click",
       "selector": "#btn-importar-excel",
       "textoBoton": "Importar Excel / CSV",
-      "rx": 0.5,
-      "ry": 0.16,
+      "rx": 0.48,
+      "ry": 0.13,
       "etiqueta": "Clic en: Importar Excel / CSV",
       "pausaDespues": 700,
       "esperarElemento": true
@@ -273,47 +273,9 @@
     {
       "tipo": "mover",
       "selector": "button",
-      "textoBoton": "Plantilla .xlsx",
-      "rx": 0.52,
-      "ry": 0.36,
-      "etiqueta": "Mover hacia: Plantilla .xlsx",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "button",
-      "textoBoton": "Plantilla .xlsx",
-      "rx": 0.52,
-      "ry": 0.36,
-      "etiqueta": "Clic en: Plantilla .xlsx",
-      "pausaDespues": 700,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "mover",
-      "selector": "a",
-      "rx": 0.5,
-      "ry": 1,
-      "etiqueta": "Mover hacia: a",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "a",
-      "rx": 0.5,
-      "ry": 1,
-      "etiqueta": "Clic en: a",
-      "pausaDespues": 700,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "mover",
-      "selector": "button",
       "textoBoton": "Cancelar",
-      "rx": 0.41,
-      "ry": 0.61,
+      "rx": 0.39,
+      "ry": 0.58,
       "etiqueta": "Mover hacia: Cancelar",
       "pausaDespues": 500,
       "esperarElemento": true
@@ -322,8 +284,8 @@
       "tipo": "click",
       "selector": "button",
       "textoBoton": "Cancelar",
-      "rx": 0.41,
-      "ry": 0.61,
+      "rx": 0.39,
+      "ry": 0.58,
       "etiqueta": "Clic en: Cancelar",
       "pausaDespues": 700,
       "esperarElemento": true
@@ -331,98 +293,20 @@
     {
       "tipo": "mover",
       "selector": "button",
-      "textoBoton": "Descargar plantilla de ejemplo (.xl",
-      "rx": 0.28,
-      "ry": 0.51,
-      "etiqueta": "Mover hacia: Descargar plantilla de ejemplo (.xl",
+      "textoBoton": "Nuevo Alumno",
+      "rx": 0.56,
+      "ry": 0.13,
+      "etiqueta": "Mover hacia: Nuevo Alumno",
       "pausaDespues": 500,
       "esperarElemento": true
     },
     {
       "tipo": "click",
       "selector": "button",
-      "textoBoton": "Descargar plantilla de ejemplo (.xl",
-      "rx": 0.28,
-      "ry": 0.51,
-      "etiqueta": "Clic en: Descargar plantilla de ejemplo (.xl",
-      "pausaDespues": 700,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "mover",
-      "selector": "a",
-      "rx": 0.5,
-      "ry": 1,
-      "etiqueta": "Mover hacia: a",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "a",
-      "rx": 0.5,
-      "ry": 1,
-      "etiqueta": "Clic en: a",
-      "pausaDespues": 700,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "mover",
-      "selector": "button",
-      "textoBoton": "SUBIR ARCHIVO EXCEL",
-      "rx": 0.28,
-      "ry": 0.47,
-      "etiqueta": "Mover hacia: SUBIR ARCHIVO EXCEL",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "button",
-      "textoBoton": "SUBIR ARCHIVO EXCEL",
-      "rx": 0.28,
-      "ry": 0.47,
-      "etiqueta": "Clic en: SUBIR ARCHIVO EXCEL",
-      "pausaDespues": 700,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "mover",
-      "selector": "button",
-      "textoBoton": "Cancelar",
-      "rx": 0.41,
-      "ry": 0.61,
-      "etiqueta": "Mover hacia: Cancelar",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "button",
-      "textoBoton": "Cancelar",
-      "rx": 0.41,
-      "ry": 0.61,
-      "etiqueta": "Clic en: Cancelar",
-      "pausaDespues": 700,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "mover",
-      "selector": "button",
-      "textoBoton": "CARGAR ALUMNO MANUALMENTE",
-      "rx": 0.48,
-      "ry": 0.5,
-      "etiqueta": "Mover hacia: CARGAR ALUMNO MANUALMENTE",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "button",
-      "textoBoton": "CARGAR ALUMNO MANUALMENTE",
-      "rx": 0.48,
-      "ry": 0.5,
-      "etiqueta": "Clic en: CARGAR ALUMNO MANUALMENTE",
+      "textoBoton": "Nuevo Alumno",
+      "rx": 0.56,
+      "ry": 0.13,
+      "etiqueta": "Clic en: Nuevo Alumno",
       "pausaDespues": 700,
       "esperarElemento": true
     },
@@ -446,25 +330,109 @@
     },
     {
       "tipo": "tipear",
-      "selector": "input[placeholder*=\"juan@ejemplo.com\"]",
-      "texto": "jcancelo.dev",
-      "etiqueta": "Escribir: \"jcancelo.dev\"",
+      "selector": "input[placeholder*=\"35230531\"]",
+      "texto": "12345678",
+      "etiqueta": "Escribir: \"12345678\"",
       "pausaDespues": 800,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "input[placeholder*=\"Juan Cancelo\"]",
+      "rx": 0.33,
+      "ry": 0.4,
+      "etiqueta": "Mover hacia: Campo: Juan Cancelo",
+      "pausaDespues": 500,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "input[placeholder*=\"Juan Cancelo\"]",
+      "rx": 0.33,
+      "ry": 0.4,
+      "etiqueta": "Clic en: Campo: Juan Cancelo",
+      "pausaDespues": 700,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "tipear",
+      "selector": "input[placeholder*=\"Juan Cancelo\"]",
+      "texto": "Julian Prueba",
+      "etiqueta": "Escribir: \"Julian Prueba\"",
+      "pausaDespues": 800,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "div",
+      "textoBoton": "NOMBRE COMPLETO DNI CORREO (OPCIONA",
+      "rx": 0.5,
+      "ry": 0.49,
+      "etiqueta": "Mover hacia: NOMBRE COMPLETO DNI CORREO (OPCIONA",
+      "pausaDespues": 500,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "div",
+      "textoBoton": "NOMBRE COMPLETO DNI CORREO (OPCIONA",
+      "rx": 0.5,
+      "ry": 0.49,
+      "etiqueta": "Clic en: NOMBRE COMPLETO DNI CORREO (OPCIONA",
+      "pausaDespues": 700,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "input[placeholder*=\"juan@ejemplo.com\"]",
+      "rx": 0.67,
+      "ry": 0.4,
+      "etiqueta": "Mover hacia: Campo: juan@ejemplo.com",
+      "pausaDespues": 500,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "input[placeholder*=\"juan@ejemplo.com\"]",
+      "rx": 0.67,
+      "ry": 0.4,
+      "etiqueta": "Clic en: Campo: juan@ejemplo.com",
+      "pausaDespues": 700,
       "esperarElemento": true
     },
     {
       "tipo": "tipear",
       "selector": "input[placeholder*=\"227067\"]",
-      "texto": "227067",
-      "etiqueta": "Escribir: \"227067\"",
+      "texto": "123456",
+      "etiqueta": "Escribir: \"123456\"",
       "pausaDespues": 800,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "select",
+      "textoBoton": "-- Seleccionar Carrera Oficial -- A",
+      "rx": 0.5,
+      "ry": 0.5,
+      "etiqueta": "Mover hacia: -- Seleccionar Carrera Oficial -- A",
+      "pausaDespues": 500,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "select",
+      "textoBoton": "-- Seleccionar Carrera Oficial -- A",
+      "rx": 0.5,
+      "ry": 0.5,
+      "etiqueta": "Clic en: -- Seleccionar Carrera Oficial -- A",
+      "pausaDespues": 700,
       "esperarElemento": true
     },
     {
       "tipo": "tipear",
       "selector": "select",
-      "texto": "Analista de Sistemas",
-      "etiqueta": "Escribir: \"Analista de Sistemas\"",
+      "texto": "Redes e Infraestructura",
+      "etiqueta": "Escribir: \"Redes e Infraestructura\"",
       "pausaDespues": 800,
       "esperarElemento": true
     },
@@ -509,8 +477,8 @@
     {
       "tipo": "tipear",
       "selector": "input[placeholder*=\"2022\"]",
-      "texto": "2022",
-      "etiqueta": "Escribir: \"2022\"",
+      "texto": "2021",
+      "etiqueta": "Escribir: \"2021\"",
       "pausaDespues": 800,
       "esperarElemento": true
     },
@@ -538,8 +506,8 @@
       "tipo": "mover",
       "selector": "#btn-paso3-convocatoria",
       "textoBoton": "PASO 3: CONVOCATORIA",
-      "rx": 0.62,
-      "ry": 0.22,
+      "rx": 0.6,
+      "ry": 0.19,
       "etiqueta": "Mover hacia: PASO 3: CONVOCATORIA",
       "pausaDespues": 500,
       "esperarElemento": true
@@ -548,8 +516,8 @@
       "tipo": "click",
       "selector": "#btn-paso3-convocatoria",
       "textoBoton": "PASO 3: CONVOCATORIA",
-      "rx": 0.62,
-      "ry": 0.22,
+      "rx": 0.6,
+      "ry": 0.19,
       "etiqueta": "Clic en: PASO 3: CONVOCATORIA",
       "pausaDespues": 700,
       "esperarElemento": true
@@ -792,187 +760,243 @@
   "7": [
     {
       "tipo": "mover",
-      "selector": "header, h2",
-      "textoBoton": "Distribución y Asignación",
-      "rx": 0.35,
-      "ry": 0.12,
-      "etiqueta": "Analizando plano del auditorio: Platea Baja y Balcón...",
-      "pausaDespues": 700
-    },
-    {
-      "tipo": "mover",
-      "selector": "#btn-auto-asignar-butacas, button.bg-gradient-to-r, button:has(svg)",
-      "textoBoton": "Auto-Asignar Butacas",
-      "rx": 0.76,
-      "ry": 0.12,
-      "etiqueta": "Ejecutando algoritmo Auto-Seating por carrera...",
-      "pausaDespues": 650
+      "selector": "button",
+      "textoBoton": "Preparación",
+      "rx": 0.03,
+      "ry": 0.41,
+      "etiqueta": "Mover hacia: Preparación",
+      "pausaDespues": 500,
+      "esperarElemento": true
     },
     {
       "tipo": "click",
-      "selector": "#btn-auto-asignar-butacas, button.bg-gradient-to-r, button:has(svg)",
-      "soloVisual": true,
-      "etiqueta": "Calculando orden alfabético y bloques contiguos...",
-      "pausaDespues": 900
+      "selector": "button",
+      "textoBoton": "Preparación",
+      "rx": 0.03,
+      "ry": 0.41,
+      "etiqueta": "Clic en: Preparación",
+      "pausaDespues": 700,
+      "esperarElemento": true
     },
     {
       "tipo": "mover",
-      "selector": "button.bg-slate-900, button",
-      "textoBoton": "Platea Baja",
-      "rx": 0.78,
-      "ry": 0.28,
-      "etiqueta": "Graduados ubicados en Platea Baja por orden alfabético",
-      "pausaDespues": 850
+      "selector": "main",
+      "textoBoton": "SIGIC SISTEMA INTEGRAL DE GESTIÓN I",
+      "rx": 0.5,
+      "ry": 0.5,
+      "etiqueta": "Mover hacia: SIGIC SISTEMA INTEGRAL DE GESTIÓN I",
+      "pausaDespues": 500,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "main",
+      "textoBoton": "SIGIC SISTEMA INTEGRAL DE GESTIÓN I",
+      "rx": 0.5,
+      "ry": 0.5,
+      "etiqueta": "Clic en: SIGIC SISTEMA INTEGRAL DE GESTIÓN I",
+      "pausaDespues": 700,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "button[aria-label*=\"Asiento baja-C-12 — \"]",
+      "textoBoton": "12",
+      "rx": 0.41,
+      "ry": 0.66,
+      "etiqueta": "Mover hacia: 12",
+      "pausaDespues": 500,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "button[aria-label*=\"Asiento baja-C-12 — \"]",
+      "textoBoton": "12",
+      "rx": 0.41,
+      "ry": 0.66,
+      "etiqueta": "Clic en: 12",
+      "pausaDespues": 700,
+      "esperarElemento": true
     },
     {
       "tipo": "mover",
       "selector": "button",
-      "textoBoton": "Pullman",
-      "rx": 0.88,
-      "ry": 0.28,
-      "etiqueta": "Familiares y acompañantes ubicados en sectores contiguos",
-      "pausaDespues": 850
-    },
-    {
-      "tipo": "mover",
-      "selector": "header",
-      "rx": 0.5,
-      "ry": 0.22,
-      "etiqueta": "100% de butacas del auditorio asignadas automáticamente",
-      "pausaDespues": 1200
-    }
-  ],
-  "8": [
-    {
-      "tipo": "mover",
-      "selector": "#btn-abrir-escaner-respaldo, button.underline, button",
-      "textoBoton": "escáner web",
-      "rx": 0.25,
-      "ry": 0.78,
-      "etiqueta": "Iniciando terminal de acreditación de portería...",
-      "pausaDespues": 600
+      "textoBoton": "Padrón y Asignaciones (2)",
+      "rx": 0.26,
+      "ry": 0.25,
+      "etiqueta": "Mover hacia: Padrón y Asignaciones (2)",
+      "pausaDespues": 500,
+      "esperarElemento": true
     },
     {
       "tipo": "click",
-      "selector": "#btn-abrir-escaner-respaldo, button.underline, button",
-      "textoBoton": "escáner web",
-      "etiqueta": "Abriendo escáner de alta velocidad en vivo...",
-      "pausaDespues": 850
+      "selector": "button",
+      "textoBoton": "Padrón y Asignaciones (2)",
+      "rx": 0.26,
+      "ry": 0.25,
+      "etiqueta": "Clic en: Padrón y Asignaciones (2)",
+      "pausaDespues": 700,
+      "esperarElemento": true
     },
     {
       "tipo": "mover",
-      "selector": "#input-porteria-busqueda, input[placeholder*=\"DNI\" i], input[type=\"text\"]",
-      "esperarElemento": true,
-      "rx": 0.25,
-      "ry": 0.24,
-      "etiqueta": "Lector láser QR capturando credencial digital...",
-      "pausaDespues": 450
-    },
-    {
-      "tipo": "tipear",
-      "selector": "#input-porteria-busqueda, input[placeholder*=\"DNI\" i], input[type=\"text\"]",
-      "texto": "40111222",
-      "etiqueta": "Decodificando DNI de egresada...",
-      "pausaDespues": 750
-    },
-    {
-      "tipo": "mover",
-      "selector": "#btn-porteria-buscar, button.bg-sky-500, button[type=\"submit\"]",
-      "textoBoton": "Buscar",
-      "rx": 0.42,
-      "ry": 0.24,
-      "etiqueta": "Consultando credencial en base de datos oficial...",
-      "pausaDespues": 500
-    },
-    {
-      "tipo": "click",
-      "selector": "#btn-porteria-buscar, button.bg-sky-500, button[type=\"submit\"]",
-      "textoBoton": "Buscar",
-      "etiqueta": "Credencial encontrada: Julieta Pérez (Butaca baja-A-1)",
-      "pausaDespues": 950
-    },
-    {
-      "tipo": "mover",
-      "selector": "#btn-porteria-acreditar-grupo, button.bg-emerald-500, button",
-      "textoBoton": "Acreditar",
-      "rx": 0.72,
-      "ry": 0.54,
-      "etiqueta": "Validando ingreso formal de egresado y familiares...",
-      "pausaDespues": 650
-    },
-    {
-      "tipo": "click",
-      "selector": "#btn-porteria-acreditar-grupo, button.bg-emerald-500, button",
-      "soloVisual": true,
-      "etiqueta": "Ingreso confirmado: 3 personas · Aforo en sala: 85%",
-      "pausaDespues": 1200
-    }
-  ],
-  "9": [
-    {
-      "tipo": "mover",
-      "selector": "header h1, .stat",
-      "textoBoton": "Estado de la ceremonia",
-      "rx": 0.32,
-      "ry": 0.08,
-      "etiqueta": "Auditando métricas finales y quórum protocolar...",
-      "pausaDespues": 700
-    },
-    {
-      "tipo": "mover",
-      "selector": "#btn-abrir-acta-oficial, button.bg-emerald-600, button",
-      "textoBoton": "Acta Oficial",
+      "selector": "button",
+      "textoBoton": "Asignar Butaca",
       "rx": 0.74,
-      "ry": 0.08,
-      "etiqueta": "Generando Acta Notarial Oficial de Colación...",
-      "pausaDespues": 600
+      "ry": 0.53,
+      "etiqueta": "Mover hacia: Asignar Butaca",
+      "pausaDespues": 500,
+      "esperarElemento": true
     },
     {
       "tipo": "click",
-      "selector": "#btn-abrir-acta-oficial, button.bg-emerald-600, button",
-      "textoBoton": "Acta Oficial",
-      "etiqueta": "Abriendo Acta Oficial con firmas rectorales...",
-      "pausaDespues": 850
+      "selector": "button",
+      "textoBoton": "Asignar Butaca",
+      "rx": 0.74,
+      "ry": 0.53,
+      "etiqueta": "Clic en: Asignar Butaca",
+      "pausaDespues": 700,
+      "esperarElemento": true
     },
     {
       "tipo": "mover",
-      "selector": "#btn-acta-libro-matriz, button.bg-slate-800, button",
-      "esperarElemento": true,
-      "textoBoton": "Libro Matriz",
-      "rx": 0.62,
-      "ry": 0.14,
-      "etiqueta": "Libro matriz certificado para archivo ministerial...",
-      "pausaDespues": 800
-    },
-    {
-      "tipo": "mover",
-      "selector": "#btn-acta-imprimir, button.bg-emerald-600, button",
-      "textoBoton": "Imprimir",
-      "rx": 0.76,
-      "ry": 0.14,
-      "etiqueta": "Certificación notarial y archivo académico completo",
-      "pausaDespues": 600
+      "selector": "button[aria-label*=\"Asiento baja-B-6 — E\"]",
+      "textoBoton": "6",
+      "rx": 0.42,
+      "ry": 0.54,
+      "etiqueta": "Mover hacia: 6",
+      "pausaDespues": 500,
+      "esperarElemento": true
     },
     {
       "tipo": "click",
-      "selector": "#btn-acta-imprimir, button.bg-emerald-600, button",
-      "soloVisual": true,
-      "etiqueta": "Documento legal de colación finalizado",
-      "pausaDespues": 800
+      "selector": "button[aria-label*=\"Asiento baja-B-6 — E\"]",
+      "textoBoton": "6",
+      "rx": 0.42,
+      "ry": 0.54,
+      "etiqueta": "Clic en: 6",
+      "pausaDespues": 700,
+      "esperarElemento": true
     },
     {
       "tipo": "mover",
-      "selector": "#btn-cerrar-acta-modal, header button:has(svg), header button",
-      "rx": 0.86,
-      "ry": 0.14,
-      "etiqueta": "Ciclo completo de graduación finalizado con éxito",
-      "pausaDespues": 500
+      "selector": "button[aria-label*=\"Asiento baja-D-7 — D\"]",
+      "textoBoton": "7",
+      "rx": 0.43,
+      "ry": 0.62,
+      "etiqueta": "Mover hacia: 7",
+      "pausaDespues": 500,
+      "esperarElemento": true
     },
     {
       "tipo": "click",
-      "selector": "#btn-cerrar-acta-modal, header button:has(svg), header button",
-      "etiqueta": "Demostración de ciclo completo finalizada con éxito",
-      "pausaDespues": 1200
+      "selector": "button[aria-label*=\"Asiento baja-D-7 — D\"]",
+      "textoBoton": "7",
+      "rx": 0.43,
+      "ry": 0.62,
+      "etiqueta": "Clic en: 7",
+      "pausaDespues": 700,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "button[aria-label*=\"Asiento baja-B-6 — E\"]",
+      "textoBoton": "6",
+      "rx": 0.42,
+      "ry": 0.54,
+      "etiqueta": "Mover hacia: 6",
+      "pausaDespues": 500,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "button[aria-label*=\"Asiento baja-B-6 — E\"]",
+      "textoBoton": "6",
+      "rx": 0.42,
+      "ry": 0.54,
+      "etiqueta": "Clic en: 6",
+      "pausaDespues": 700,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "button[aria-label*=\"Asiento baja-C-11 — \"]",
+      "textoBoton": "11",
+      "rx": 0.5,
+      "ry": 0.58,
+      "etiqueta": "Mover hacia: 11",
+      "pausaDespues": 500,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "button[aria-label*=\"Asiento baja-C-11 — \"]",
+      "textoBoton": "11",
+      "rx": 0.5,
+      "ry": 0.58,
+      "etiqueta": "Clic en: 11",
+      "pausaDespues": 700,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "button[aria-label*=\"Asiento baja-E-14 — \"]",
+      "textoBoton": "14",
+      "rx": 0.55,
+      "ry": 0.66,
+      "etiqueta": "Mover hacia: 14",
+      "pausaDespues": 500,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "button[aria-label*=\"Asiento baja-E-14 — \"]",
+      "textoBoton": "14",
+      "rx": 0.55,
+      "ry": 0.66,
+      "etiqueta": "Clic en: 14",
+      "pausaDespues": 700,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "button",
+      "textoBoton": "CONFIRMAR Y ENVIAR CREDENCIAL",
+      "rx": 0.68,
+      "ry": 0.83,
+      "etiqueta": "Mover hacia: CONFIRMAR Y ENVIAR CREDENCIAL",
+      "pausaDespues": 500,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "button",
+      "textoBoton": "CONFIRMAR Y ENVIAR CREDENCIAL",
+      "rx": 0.68,
+      "ry": 0.83,
+      "etiqueta": "Clic en: CONFIRMAR Y ENVIAR CREDENCIAL",
+      "pausaDespues": 700,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "#btn-finalizar-preparacion, button",
+      "textoBoton": "Finalizar Preparación",
+      "rx": 0.72,
+      "ry": 0.17,
+      "etiqueta": "Mover hacia: Finalizar Preparación",
+      "pausaDespues": 500,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#btn-finalizar-preparacion, button",
+      "textoBoton": "Finalizar Preparación",
+      "rx": 0.72,
+      "ry": 0.17,
+      "etiqueta": "Demostración completada con éxito",
+      "pausaDespues": 1200,
+      "esperarElemento": true
     }
   ]
 }
