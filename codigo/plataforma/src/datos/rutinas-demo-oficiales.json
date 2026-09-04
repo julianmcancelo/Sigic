@@ -645,7 +645,7 @@
       "textoBoton": "Finalizar Demostración",
       "rx": 0.88,
       "ry": 0.92,
-      "etiqueta": "Agradecimiento institucional al Instituto Tecnológico Beltrán",
+      "etiqueta": "Agradecimiento del equipo al Instituto Tecnológico Beltrán",
       "pausaDespues": 900,
       "esperarElemento": true
     },
@@ -655,7 +655,7 @@
       "textoBoton": "Finalizar Demostración",
       "rx": 0.88,
       "ry": 0.92,
-      "etiqueta": "Demostración de ciclo completo finalizada con éxito",
+      "etiqueta": "Demostración finalizada · Muchas gracias",
       "pausaDespues": 1200,
       "esperarElemento": true
     }

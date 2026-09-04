@@ -1176,7 +1176,7 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
             selector: '#btn-cerrar-resumen-demo, button',
             textoBoton: 'Finalizar Demostración',
             rx: 0.88, ry: 0.92,
-            etiqueta: 'Agradecimiento institucional al Instituto Tecnológico Beltrán',
+            etiqueta: 'Agradecimiento del equipo al Instituto Tecnológico Beltrán',
             pausaDespues: 900,
             esperarElemento: true
           },
@@ -1185,7 +1185,7 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
             selector: '#btn-cerrar-resumen-demo, button',
             textoBoton: 'Finalizar Demostración',
             rx: 0.88, ry: 0.92,
-            etiqueta: 'Demostración de ciclo completo finalizada con éxito',
+            etiqueta: 'Demostración finalizada · Muchas gracias',
             pausaDespues: 1200,
             esperarElemento: true
           }
@@ -1466,22 +1466,32 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
           </svg>
         </div>
 
-        {/* BURBUJA CONTEXTUAL DE ACCIÓN FLOTANTE */}
-        {textoAccion && (
-          <div className="ml-1 -mt-1 pointer-events-none animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center gap-2 bg-slate-950/95 text-slate-100 border border-sky-500/40 rounded-full px-3 py-1 shadow-2xl backdrop-blur-md">
-              <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse shrink-0" />
-              <span className="text-[11px] font-semibold tracking-wide whitespace-nowrap">
-                {textoAccion}
-              </span>
-              {textoTipeado && (
-                <span className="text-[11px] font-mono text-amber-300 bg-amber-950/40 border border-amber-500/30 px-1.5 py-0.5 rounded">
-                  "{textoTipeado}"
+        {/* BURBUJA CONTEXTUAL DE ACCIÓN FLOTANTE ADAPTATIVA */}
+        {textoAccion && (() => {
+          const flipX = typeof window !== 'undefined' && posicion.x > window.innerWidth - 340
+          const flipY = typeof window !== 'undefined' && posicion.y > window.innerHeight - 80
+          return (
+            <div
+              className={`absolute pointer-events-none animate-in fade-in zoom-in-95 duration-200 ${
+                flipX ? 'right-full mr-2' : 'left-full ml-2'
+              } ${
+                flipY ? 'bottom-full mb-2' : '-top-1'
+              }`}
+            >
+              <div className="flex items-center gap-2 bg-slate-950/95 text-slate-100 border border-sky-500/40 rounded-full px-3 py-1 shadow-2xl backdrop-blur-md">
+                <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse shrink-0" />
+                <span className="text-[11px] font-semibold tracking-wide whitespace-nowrap">
+                  {textoAccion}
                 </span>
-              )}
+                {textoTipeado && (
+                  <span className="text-[11px] font-mono text-amber-300 bg-amber-950/40 border border-amber-500/30 px-1.5 py-0.5 rounded">
+                    "{textoTipeado}"
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
-        )}
+          )
+        })()}
       </div>
     </div>
   )
