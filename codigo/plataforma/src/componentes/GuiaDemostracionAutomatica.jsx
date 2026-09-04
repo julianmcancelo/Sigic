@@ -205,17 +205,27 @@ export function GuiaDemostracionAutomatica({
     accionesGrabadasRef.current = accionesGrabadas
   }, [accionesGrabadas])
 
-  const pasoActual = PASOS_DEMO[pasoIndex] || PASOS_DEMO[0]
+  const ultimoPasoEjecutadoRef = useRef(null)
+  const onAplicarPasoRef = useRef(onAplicarPaso)
+  const onCambiarPasoRef = useRef(onCambiarPaso)
+
+  useEffect(() => {
+    onAplicarPasoRef.current = onAplicarPaso
+    onCambiarPasoRef.current = onCambiarPaso
+  })
 
   // Sincronizar la vista y el entorno de la plataforma cada vez que cambia la fase activa
   useEffect(() => {
-    if (typeof onAplicarPaso === 'function' && pasoActual) {
-      onAplicarPaso(pasoActual)
+    if (ultimoPasoEjecutadoRef.current === pasoIndex) return
+    ultimoPasoEjecutadoRef.current = pasoIndex
+
+    if (typeof onAplicarPasoRef.current === 'function' && pasoActual) {
+      onAplicarPasoRef.current(pasoActual)
     }
-    if (typeof onCambiarPaso === 'function' && pasoActual) {
-      onCambiarPaso(pasoActual)
+    if (typeof onCambiarPasoRef.current === 'function' && pasoActual) {
+      onCambiarPasoRef.current(pasoActual)
     }
-  }, [pasoIndex, pasoActual, onAplicarPaso, onCambiarPaso])
+  }, [pasoIndex, pasoActual])
 
   // Cargar el mapa de fases con rutina personalizada grabada u oficial
   const actualizarMapaFasesGrabadas = useCallback(() => {

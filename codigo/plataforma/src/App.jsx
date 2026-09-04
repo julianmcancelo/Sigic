@@ -8,7 +8,7 @@
  * 2. Si acepta → PanelGraduado (cargar invitados, elegir entregadores)
  * 3. Si rechaza → Inhabilitado, se cierra sesión automáticamente
  */
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, CalendarPlus, RefreshCw, Shield, Server, Search, Power, Bell, Wifi, Volume2, ChevronRight, ChevronUp, ArrowRight, LayoutGrid, X, Minus, Maximize2, Square, Copy, Sun, Moon, MousePointer2, Lock, ClipboardCheck, Activity, Send, ListChecks, ScrollText, Sparkles, Armchair, Award, QrCode, Palette } from 'lucide-react'
 
 // Importación de Modal de Fondo
@@ -265,33 +265,35 @@ function App() {
     limpiarTodo()
   }
 
-  const aplicarPasoDemo = (paso) => {
+  const aplicarPasoDemo = useCallback((paso) => {
+    if (!paso) return
     const dataset = obtenerDatosDemoActuales()
 
     if (paso.tipoUsuario === 'admin') {
-      setGraduadoActivo(false)
-      setGraduadoUsuario(null)
+      setGraduadoActivo(prev => prev ? false : prev)
+      setGraduadoUsuario(prev => prev ? null : prev)
       guardarTokenSesion('bypass-admin-token')
       localStorage.setItem('sesion_admin', 'true')
       localStorage.setItem('admin_user', JSON.stringify(ADMIN_DEMO))
-      setAdminActivo(true)
-      setAdminUser(ADMIN_DEMO)
-      setPantallaAdmin(paso.vistaAdmin || 'gestion-ceremonias')
+      setAdminActivo(prev => !prev ? true : prev)
+      setAdminUser(prev => prev?.correo === ADMIN_DEMO.correo ? prev : ADMIN_DEMO)
+      const vistaDestino = paso.vistaAdmin || 'gestion-ceremonias'
+      setPantallaAdmin(prev => prev !== vistaDestino ? vistaDestino : prev)
 
       if (dataset?.ceremonia) {
-        setCeremoniaActiva(dataset.ceremonia)
+        setCeremoniaActiva(prev => prev?.id !== dataset.ceremonia.id ? dataset.ceremonia : prev)
       }
     } else if (paso.tipoUsuario === 'graduado') {
       const graduado = dataset?.graduado || EGRESADA_DEMO
-      setAdminActivo(false)
-      setGraduadoActivo(true)
-      setGraduadoUsuario(graduado)
+      setAdminActivo(prev => prev ? false : prev)
+      setGraduadoActivo(prev => !prev ? true : prev)
+      setGraduadoUsuario(prev => prev?.id !== graduado.id ? graduado : prev)
       guardarTokenSesion(`bypass-egresado-${graduado.id}`)
       if (paso.pestanaGraduado) {
-        setPestanaGraduadoDemo(paso.pestanaGraduado)
+        setPestanaGraduadoDemo(prev => prev !== paso.pestanaGraduado ? paso.pestanaGraduado : prev)
       }
     }
-  }
+  }, [])
 
   // ─── 3.0 ESTADO DE CONFIGURACIÓN INICIAL (SETUP) ───
   const [requiereSetup, setRequiereSetup] = useState(null)
