@@ -1100,10 +1100,7 @@ export async function POST(
   }
 
   try {
-    if (esPeticionDemoBackend(req)) {
-      if (path === 'ceremonias') {
-        return NextResponse.json({ ok: true, mensaje: 'Ceremonia creada con exito (Modo Demo)', id: `demo-cer-${Date.now()}` }, { status: 201, headers });
-      }
+    if (esPeticionDemoBackend(req) && path !== 'ceremonias') {
       if (path === 'egresados') {
         return NextResponse.json({ ok: true, mensaje: 'Graduado creado con exito (Modo Demo)', egresado: { id: `demo-egr-${Date.now()}`, ...(body || {}) } }, { status: 201, headers });
       }
@@ -1541,10 +1538,24 @@ export async function POST(
 
       const id = `cer-${Date.now()}`;
       const limite = fecha_limite_confirmacion || fecha_limite_respuesta || null;
+      const limiteSanitizado = (typeof limite === 'string' && limite.trim().length > 0) ? limite.trim() : null;
+
       await query(
         'INSERT INTO ceremonias (id, nombre, fecha, lugar, max_invitados, max_entregadores, fecha_limite_confirmacion, activa) VALUES ($1, $2, $3, $4, $5, $6, $7, 0)',
-        [id, nombre, fecha, lugar || 'Sede Beltrán', max_invitados || 4, max_entregadores || 3, limite]
+        [
+          id,
+          nombre.trim(),
+          fecha.trim(),
+          lugar?.trim() || 'Sede Beltrán',
+          max_invitados ? Number(max_invitados) : 4,
+          max_entregadores ? Number(max_entregadores) : 3,
+          limiteSanitizado
+        ]
       );
+
+      invalidarCache('ceremonias');
+      invalidarCache('ceremonias:activa');
+      invalidarCache('setup:status');
 
       return NextResponse.json({ ok: true, mensaje: 'Ceremonia creada con éxito', id }, { status: 201, headers });
     }
@@ -2552,7 +2563,7 @@ export async function PUT(
   }
 
   try {
-    if (esPeticionDemoBackend(req)) {
+    if (esPeticionDemoBackend(req) && !(slug[0] === 'ceremonias')) {
       return NextResponse.json({ ok: true, simulado: true, mensaje: 'Actualizacion simulada en modo demo (sin persistencia en base de datos)' }, { status: 200, headers });
     }
 
@@ -3259,7 +3270,7 @@ export async function DELETE(
   const path = slug.join('/');
 
   try {
-    if (esPeticionDemoBackend(req)) {
+    if (esPeticionDemoBackend(req) && !(slug[0] === 'ceremonias')) {
       return NextResponse.json({ ok: true, simulado: true, mensaje: 'Eliminacion simulada en modo demo (sin persistencia en base de datos)' }, { status: 200, headers });
     }
 

@@ -83,12 +83,18 @@ function verificarModoDemo() {
   if (demoGuardado === 'true') return true
   if (demoGuardado === 'false') return false
 
-  // 4. Variable de entorno explícita
+  // 4. Si hay una sesión activa con token JWT real, priorizar modo real
+  const token = sessionStorage.getItem('sigic_token')
+  if (token && !token.startsWith('bypass-')) {
+    return false
+  }
+
+  // 5. Variable de entorno explícita
   if (process.env.NEXT_PUBLIC_DEMO_MODE === 'true') return true
   if (process.env.NEXT_PUBLIC_DEMO_MODE === 'false') return false
 
-  // 5. Por defecto en desarrollo (localhost)
-  return process.env.NODE_ENV !== 'production'
+  // 6. Por defecto en SiGIC: Modo Real conectado a PostgreSQL
+  return false
 }
 
 function normalizarCorreoInstitucional(correo) {
@@ -617,10 +623,17 @@ function App() {
     localStorage.setItem('sesion_admin', 'true')
     localStorage.setItem('admin_user', JSON.stringify(datosNormalizados))
     
-    // Si es una simulación del expositor (no hay token real guardado), guardamos el token de bypass correspondiente
+    // Si ya existe un token real de base de datos, asegurar modo real y no inyectar bypass
     const tokenActual = obtenerTokenSesion()
-    if (!tokenActual || tokenActual.startsWith('bypass-')) {
-    const tokenBypass = (datosNormalizados && datosNormalizados.correo && datosNormalizados.correo.toLowerCase() === 'soporte@ibeltran.com.ar')
+    if (tokenActual && !tokenActual.startsWith('bypass-')) {
+      setModoDemoActivo(false)
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('sigic_modo_demo', 'false')
+        sessionStorage.removeItem('sigic_demo_activa')
+        sessionStorage.removeItem('sigic_demo_sandbox_activo')
+      }
+    } else if (datosNormalizados?.esDemo || modoDemoActivo) {
+      const tokenBypass = (datosNormalizados && datosNormalizados.correo && datosNormalizados.correo.toLowerCase() === 'soporte@ibeltran.com.ar')
         ? 'bypass-support-token'
         : 'bypass-admin-token'
       guardarTokenSesion(tokenBypass)

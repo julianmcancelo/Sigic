@@ -66,6 +66,12 @@ class DemoSandbox {
   esPeticionDemo(url, opciones = {}) {
     if (typeof window === 'undefined') return false
 
+    const urlStr = typeof url === 'string' ? url : (url?.url || '')
+    // Las operaciones de ceremonias SIEMPRE viajan a la base de datos real
+    if (urlStr.includes('/api/ceremonias')) {
+      return false
+    }
+
     const esDemoActiva = 
       sessionStorage.getItem('sigic_demo_sandbox_activo') === 'true' ||
       sessionStorage.getItem('sigic_demo_activa') === 'true' ||
@@ -87,7 +93,6 @@ class DemoSandbox {
       return false
     }
 
-    const urlStr = typeof url === 'string' ? url : (url?.url || '')
     return urlStr.includes('/api/')
   }
 
@@ -108,49 +113,6 @@ class DemoSandbox {
     }
 
     const datosDemo = obtenerDatosDemoActuales()
-
-    // 1. CREACION DE CEREMONIA (POST /api/ceremonias)
-    if (metodo === 'POST' && urlStr.match(/\/api\/ceremonias(\?|$)/)) {
-      const nuevaId = `demo-cer-${Date.now()}`
-      const nuevaCeremonia = {
-        id: nuevaId,
-        nombre: body?.nombre || datosDemo.ceremonia.nombre,
-        fecha: body?.fecha || datosDemo.ceremonia.fecha,
-        lugar: body?.lugar || datosDemo.ceremonia.lugar,
-        max_invitados: body?.max_invitados || datosDemo.ceremonia.max_invitados || 4,
-        max_entregadores: 3,
-        fecha_limite_confirmacion: body?.fecha_limite_confirmacion || datosDemo.ceremonia.fecha_limite_confirmacion,
-        activa: 1,
-        creado_en: new Date().toISOString()
-      }
-      this.ceremonias = [nuevaCeremonia, ...this.ceremonias]
-      return this._crearRespuesta({ ok: true, mensaje: 'Ceremonia creada con exito (Modo Demo)', id: nuevaId }, 201)
-    }
-
-    // 2. ACTIVAR CEREMONIA (PUT /api/ceremonias/:id/activar)
-    if (metodo === 'PUT' && urlStr.includes('/api/ceremonias/') && urlStr.endsWith('/activar')) {
-      const match = urlStr.match(/\/api\/ceremonias\/([^/]+)\/activar/)
-      const id = match ? match[1] : ''
-      this.ceremonias = this.ceremonias.map(c => ({
-        ...c,
-        activa: c.id === id ? 1 : 0
-      }))
-      return this._crearRespuesta({ ok: true, mensaje: 'Ceremonia activada con exito (Modo Demo)' }, 200)
-    }
-
-    // 3. CONSULTAR CEREMONIA ACTIVA (GET /api/ceremonias/activa)
-    if (metodo === 'GET' && urlStr.includes('/api/ceremonias/activa')) {
-      const activa = this.ceremonias.find(c => c.activa === 1) || this.ceremonias[0] || datosDemo.ceremonia
-      return this._crearRespuesta(activa, 200)
-    }
-
-    // 4. LISTAR CEREMONIAS (GET /api/ceremonias)
-    if (metodo === 'GET' && urlStr.match(/\/api\/ceremonias(\?|$)/)) {
-      if (this.ceremonias.length === 0) {
-        this.ceremonias = [{ ...datosDemo.ceremonia, activa: 1 }]
-      }
-      return this._crearRespuesta(this.ceremonias, 200)
-    }
 
     // 5. REGISTRAR EGRESADO (POST /api/egresados)
     if (metodo === 'POST' && urlStr.match(/\/api\/egresados(\?|$)/)) {

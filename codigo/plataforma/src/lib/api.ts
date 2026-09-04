@@ -108,9 +108,16 @@ export async function iniciarSesionAdmin(email: string, password: string) {
     }
     throw new Error(json.error || 'Credenciales inválidas');
   }
-  // El personal se autentica mediante una cookie HttpOnly. Quitamos cualquier
-  // bearer previo de graduado para que no compita con esa cookie.
-  limpiarTokenSesion();
+  if (json.token) {
+    guardarTokenSesion(json.token);
+  } else {
+    limpiarTokenSesion();
+  }
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('sigic_modo_demo', 'false');
+    sessionStorage.removeItem('sigic_demo_activa');
+    sessionStorage.removeItem('sigic_demo_sandbox_activo');
+  }
   return json;
 }
 

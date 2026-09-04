@@ -120,6 +120,7 @@ export async function POST(req: NextRequest) {
 
     const respuesta = NextResponse.json({
       ok: true,
+      token,
       usuario: {
         id: usuario.id,
         nombre: usuario.nombre,
