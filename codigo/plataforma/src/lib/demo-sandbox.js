@@ -33,13 +33,20 @@ class DemoSandbox {
       }
     ]
 
-    // Graduado inicial simulado
-    this.egresados = [
-      {
-        ...datos.graduado,
-        invitados: datos.invitados || []
-      }
-    ]
+    // Padrón de egresados completo simulado
+    if (Array.isArray(datos.graduados) && datos.graduados.length > 0) {
+      this.egresados = datos.graduados.map(g => ({
+        ...g,
+        invitados: g.id === datos.graduado.id ? (datos.invitados || []) : []
+      }))
+    } else {
+      this.egresados = [
+        {
+          ...datos.graduado,
+          invitados: datos.invitados || []
+        }
+      ]
+    }
 
     this.invitados = [...(datos.invitados || [])]
     this.entregadores = []
@@ -167,6 +174,38 @@ class DemoSandbox {
       return this._crearRespuesta({ ok: true, mensaje: 'Graduado creado con exito (Modo Demo)', egresado: nuevoEgresado, id: nuevoId }, 201)
     }
 
+    // 5.1 IMPORTAR EGRESADOS MASIVO (POST /api/egresados/importar)
+    if (metodo === 'POST' && urlStr.includes('/api/egresados/importar')) {
+      const lista = Array.isArray(body) ? body : (body?.graduados || body?.data || [])
+      const importados = lista.map((item, idx) => ({
+        id: item.id || `demo-egr-imp-${Date.now()}-${idx}`,
+        nombre: item.nombre || `Graduado ${idx + 1}`,
+        dni: String(item.dni || '').trim(),
+        legajo: String(item.legajo || '').trim(),
+        correo: String(item.correo || '').trim(),
+        carrera: item.carrera || 'Desarrollo de Software',
+        anio_inscripcion: item.anio_inscripcion || 2023,
+        ceremonia_id: datosDemo?.ceremonia?.id || 'demo-cer-1',
+        estado: 'PENDIENTE',
+        estado_flujo: 'SIN_INVITAR',
+        promedio: item.promedio || 8.5,
+        asiento_id: null,
+        invitados: []
+      }))
+
+      const dnisActuales = new Set(this.egresados.map(e => String(e.dni).trim()))
+      const nuevos = importados.filter(e => !dnisActuales.has(String(e.dni).trim()))
+      this.egresados = [...this.egresados, ...nuevos]
+
+      return this._crearRespuesta({
+        ok: true,
+        mensaje: `Importacion completada: ${importados.length} procesados. (Modo Demo)`,
+        exitosos: importados,
+        total: importados.length,
+        fallidos: []
+      }, 200)
+    }
+
     // 6. BUSCAR DNI (GET /api/egresados/dni/:dni)
     if (metodo === 'GET' && urlStr.includes('/api/egresados/dni/')) {
       const match = urlStr.match(/\/api\/egresados\/dni\/([^/?]+)/)
@@ -178,7 +217,9 @@ class DemoSandbox {
     // 7. LISTAR EGRESADOS (GET /api/egresados)
     if (metodo === 'GET' && urlStr.includes('/api/egresados')) {
       if (this.egresados.length === 0) {
-        this.egresados = [{ ...datosDemo.graduado, invitados: datosDemo.invitados || [] }]
+        this.egresados = Array.isArray(datosDemo?.graduados) && datosDemo.graduados.length > 0
+          ? datosDemo.graduados
+          : [{ ...datosDemo.graduado, invitados: datosDemo.invitados || [] }]
       }
       return this._crearRespuesta(this.egresados, 200)
     }

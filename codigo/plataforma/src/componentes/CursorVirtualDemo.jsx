@@ -427,7 +427,6 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
   const simularEscritura = useCallback((elemento, texto) => {
     return new Promise((resolve) => {
       if (intervaloTipeoRef.current) clearInterval(intervaloTipeoRef.current)
-      let idx = 0
       setTextoTipeado('')
 
       const targetInput = elemento?.tagName === 'INPUT' || elemento?.tagName === 'TEXTAREA' || elemento?.tagName === 'SELECT'
@@ -489,11 +488,10 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
         return
       }
 
-      // Texto estándar / Números / Textarea
-      intervaloTipeoRef.current = setInterval(() => {
+      // Texto estándar / Números / Textarea con cadencia humana orgánica
+      let idx = 0
+      const tipearSiguiente = () => {
         if (canceladoRef.current) {
-          clearInterval(intervaloTipeoRef.current)
-          intervaloTipeoRef.current = null
           resolve()
           return
         }
@@ -520,8 +518,6 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
         }
 
         if (idx >= texto.length) {
-          clearInterval(intervaloTipeoRef.current)
-          intervaloTipeoRef.current = null
           if (targetInput) {
             try {
               targetInput.dispatchEvent(new Event('change', { bubbles: true }))
@@ -529,8 +525,21 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
             } catch {}
           }
           resolve()
+          return
         }
-      }, Math.max(18, 45 / velocidad))
+
+        // Variacion de cadencia natural humana
+        const charActual = texto[idx] || ''
+        const esEspacio = charActual === ' '
+        const jitter = Math.floor(Math.random() * 35)
+        const baseMs = esEspacio ? 130 : 65
+        const delay = Math.max(25, (baseMs + jitter) / velocidad)
+
+        const timerId = setTimeout(tipearSiguiente, delay)
+        timeoutsRef.current.push(timerId)
+      }
+
+      tipearSiguiente()
     })
   }, [velocidad])
 
@@ -765,50 +774,99 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
         return [
           {
             tipo: 'mover',
-            selector: '#btn-importar-excel, button.bg-emerald-600, button',
-            textoBoton: 'Importar Excel',
+            selector: '#btn-importar-excel, button',
+            textoBoton: 'Importar Excel / CSV',
             rx: 0.68, ry: 0.14,
-            etiqueta: 'Validando planilla oficial .xlsx y padrón...',
-            pausaDespues: 600
+            etiqueta: 'Abriendo módulo de importación masiva...',
+            pausaDespues: 600,
+            esperarElemento: true
           },
           {
             tipo: 'click',
-            selector: '#btn-importar-excel, button.bg-emerald-600, button',
-            textoBoton: 'Importar Excel',
-            soloVisual: true,
-            etiqueta: 'Padrón verificado: 12 egresados listos',
-            pausaDespues: 650
+            selector: '#btn-importar-excel, button',
+            textoBoton: 'Importar Excel / CSV',
+            rx: 0.68, ry: 0.14,
+            etiqueta: 'Abriendo asistente de padrón institucional...',
+            pausaDespues: 800,
+            esperarElemento: true
           },
           {
             tipo: 'mover',
-            selector: '#buscador-graduados, input[placeholder*="Buscar" i], input[type="text"]',
-            esperarElemento: true,
+            selector: '#btn-cargar-planilla-modelo, button',
+            textoBoton: 'Cargar Padrón Modelo',
+            rx: 0.62, ry: 0.22,
+            etiqueta: 'Cargando cohorte oficial: 12 graduados en 6 carreras...',
+            pausaDespues: 700,
+            esperarElemento: true
+          },
+          {
+            tipo: 'click',
+            selector: '#btn-cargar-planilla-modelo, button',
+            textoBoton: 'Cargar Padrón Modelo',
+            rx: 0.62, ry: 0.22,
+            etiqueta: '12 egresados previsualizados con DNI, Legajo y Correo',
+            pausaDespues: 900,
+            esperarElemento: true
+          },
+          {
+            tipo: 'mover',
+            selector: '#btn-confirmar-importacion-masiva, button',
+            textoBoton: 'Comenzar Importación',
+            rx: 0.85, ry: 0.90,
+            etiqueta: 'Procesando importación masiva de la cohorte...',
+            pausaDespues: 600,
+            esperarElemento: true
+          },
+          {
+            tipo: 'click',
+            selector: '#btn-confirmar-importacion-masiva, button',
+            textoBoton: 'Comenzar Importación',
+            rx: 0.85, ry: 0.90,
+            etiqueta: 'Importación completada: 12 graduados registrados',
+            pausaDespues: 1000,
+            esperarElemento: true
+          },
+          {
+            tipo: 'mover',
+            selector: '#btn-finalizar-importacion, button',
+            textoBoton: 'Finalizar y Ver Padrón',
+            rx: 0.88, ry: 0.90,
+            etiqueta: 'Cerrando asistente e ingresando a nómina oficial...',
+            pausaDespues: 600,
+            esperarElemento: true
+          },
+          {
+            tipo: 'click',
+            selector: '#btn-finalizar-importacion, button',
+            textoBoton: 'Finalizar y Ver Padrón',
+            rx: 0.88, ry: 0.90,
+            etiqueta: 'Padrón institucional actualizado en tiempo real',
+            pausaDespues: 900,
+            esperarElemento: true
+          },
+          {
+            tipo: 'mover',
+            selector: '#buscador-graduados, input[placeholder*="Buscar" i], input',
             rx: 0.38, ry: 0.22,
             etiqueta: 'Buscando en nómina oficial...',
-            pausaDespues: 450
+            pausaDespues: 500,
+            esperarElemento: true
           },
           {
             tipo: 'tipear',
-            selector: '#buscador-graduados, input[placeholder*="Buscar" i], input[type="text"]',
-            texto: 'Julieta',
-            etiqueta: 'Filtrando egresada por nombre y DNI...',
-            pausaDespues: 1000
+            selector: '#buscador-graduados, input[placeholder*="Buscar" i], input',
+            texto: 'Julian',
+            etiqueta: 'Filtrando egresado por nombre y DNI...',
+            pausaDespues: 950,
+            esperarElemento: true
           },
           {
             tipo: 'mover',
-            selector: 'tr:has(td), td, div[class*="rounded"]',
-            textoBoton: 'Julieta',
+            selector: 'tr:has(td), div[class*="rounded"]:has(td), tr, td',
             rx: 0.38, ry: 0.42,
-            etiqueta: 'Egresada verificada: DNI, Legajo y Correo validados',
-            pausaDespues: 1000
-          },
-          {
-            tipo: 'mover',
-            selector: '#btn-paso3-convocatoria, button.bg-sky-600, button',
-            textoBoton: 'Paso 3',
-            rx: 0.88, ry: 0.18,
-            etiqueta: 'Continuando a convocatoria y despacho de tokens...',
-            pausaDespues: 1200
+            etiqueta: 'Egresado verificado: DNI, Legajo y Correo validados',
+            pausaDespues: 1100,
+            esperarElemento: true
           }
         ]
 
@@ -1042,34 +1100,40 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
         return [
           {
             tipo: 'mover',
-            selector: 'header, h2',
+            selector: 'header, h2, div',
             textoBoton: 'Distribución y Asignación',
             rx: 0.35, ry: 0.12,
-            etiqueta: 'Analizando plano del auditorio: Platea Baja y Balcón...',
-            pausaDespues: 700
+            etiqueta: 'Analizando plano del auditorio: Platea Baja y Pullman...',
+            pausaDespues: 700,
+            esperarElemento: true
           },
           {
             tipo: 'mover',
-            selector: '#btn-auto-asignar-butacas, button.bg-gradient-to-r, button:has(svg)',
+            selector: '#btn-auto-asignar-butacas, button',
             textoBoton: 'Auto-Asignar Butacas',
             rx: 0.76, ry: 0.12,
             etiqueta: 'Ejecutando algoritmo Auto-Seating por carrera...',
-            pausaDespues: 650
+            pausaDespues: 650,
+            esperarElemento: true
           },
           {
             tipo: 'click',
-            selector: '#btn-auto-asignar-butacas, button.bg-gradient-to-r, button:has(svg)',
-            soloVisual: true,
+            selector: '#btn-auto-asignar-butacas, button',
+            textoBoton: 'Auto-Asignar Butacas',
+            rx: 0.76, ry: 0.12,
+            soloVisual: false,
             etiqueta: 'Calculando orden alfabético y bloques contiguos...',
-            pausaDespues: 900
+            pausaDespues: 1000,
+            esperarElemento: true
           },
           {
             tipo: 'mover',
-            selector: 'button.bg-slate-900, button',
+            selector: 'button',
             textoBoton: 'Platea Baja',
             rx: 0.78, ry: 0.28,
             etiqueta: 'Graduados ubicados en Platea Baja por orden alfabético',
-            pausaDespues: 850
+            pausaDespues: 850,
+            esperarElemento: true
           },
           {
             tipo: 'mover',
@@ -1077,14 +1141,53 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
             textoBoton: 'Pullman',
             rx: 0.88, ry: 0.28,
             etiqueta: 'Familiares y acompañantes ubicados en sectores contiguos',
-            pausaDespues: 850
+            pausaDespues: 850,
+            esperarElemento: true
           },
           {
             tipo: 'mover',
-            selector: 'header',
-            rx: 0.50, ry: 0.22,
-            etiqueta: '100% de butacas del auditorio asignadas automáticamente',
-            pausaDespues: 1200
+            selector: '#btn-finalizar-preparacion, button',
+            textoBoton: 'Finalizar Preparación',
+            rx: 0.72, ry: 0.17,
+            etiqueta: 'Finalizando preparación oficial de colación...',
+            pausaDespues: 700,
+            esperarElemento: true
+          },
+          {
+            tipo: 'click',
+            selector: '#btn-finalizar-preparacion, button',
+            textoBoton: 'Finalizar Preparación',
+            rx: 0.72, ry: 0.17,
+            etiqueta: 'Generando balance y resumen ejecutivo del acto...',
+            pausaDespues: 1100,
+            esperarElemento: true
+          },
+          {
+            tipo: 'mover',
+            selector: '#btn-cerrar-modal-resumen-x, div[class*="bg-gradient-to-r"]',
+            textoBoton: 'Ciclo de Colación Concluido',
+            rx: 0.50, ry: 0.25,
+            etiqueta: 'Resumen ejecutivo: 12 graduados, 100% butacas asignadas',
+            pausaDespues: 1200,
+            esperarElemento: true
+          },
+          {
+            tipo: 'mover',
+            selector: '#btn-cerrar-resumen-demo, button',
+            textoBoton: 'Finalizar Demostración',
+            rx: 0.88, ry: 0.92,
+            etiqueta: 'Agradecimiento institucional al Instituto Tecnológico Beltrán',
+            pausaDespues: 900,
+            esperarElemento: true
+          },
+          {
+            tipo: 'click',
+            selector: '#btn-cerrar-resumen-demo, button',
+            textoBoton: 'Finalizar Demostración',
+            rx: 0.88, ry: 0.92,
+            etiqueta: 'Demostración de ciclo completo finalizada con éxito',
+            pausaDespues: 1200,
+            esperarElemento: true
           }
         ]
 
@@ -1264,34 +1367,34 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
         const coords = obtenerCoordenadas(paso)
         elemento = coords.elemento || elemento
 
-        // 4. Mover el cursor a la posición calculada
+        // 4. Mover el cursor a la posición calculada con velocidad pausada
         setPosicion({ x: coords.x, y: coords.y })
-        await esperarMs(580) // Tiempo de vuelo del cursor
+        await esperarMs(920) // Tiempo de vuelo pausado y natural
+        if (canceladoRef.current || secuenciaIdRef.current !== secId) break
+
+        // Pausa de fijación visual previa (mirar y apuntar antes de interactuar)
+        await esperarMs(320)
         if (canceladoRef.current || secuenciaIdRef.current !== secId) break
 
         // 5. Ejecutar la acción
         if (paso.tipo === 'click') {
-          await esperarMs(120)
-          if (canceladoRef.current || secuenciaIdRef.current !== secId) break
           const recheck = obtenerCoordenadas(paso)
           const targetElem = recheck.elemento || elemento
           const targetX = recheck.elemento ? recheck.x : coords.x
           const targetY = recheck.elemento ? recheck.y : coords.y
           setPosicion({ x: targetX, y: targetY })
           ejecutarClic(targetX, targetY, targetElem, Boolean(paso.soloVisual))
-          await esperarMs(paso.pausaDespues || 600)
+          await esperarMs(paso.pausaDespues || 950)
         } else if (paso.tipo === 'tipear') {
-          await esperarMs(150)
-          if (canceladoRef.current || secuenciaIdRef.current !== secId) break
           const recheck = obtenerCoordenadas(paso)
           const targetElem = recheck.elemento || elemento
           const targetX = recheck.elemento ? recheck.x : coords.x
           const targetY = recheck.elemento ? recheck.y : coords.y
           setPosicion({ x: targetX, y: targetY })
           await simularEscritura(targetElem, paso.texto || '')
-          await esperarMs(paso.pausaDespues || 800)
+          await esperarMs(paso.pausaDespues || 1000)
         } else if (paso.tipo === 'mover') {
-          await esperarMs(paso.pausaDespues || 650)
+          await esperarMs(paso.pausaDespues || 850)
         }
       }
     }
@@ -1322,10 +1425,11 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
 
       {/* CONTENEDOR DEL PUNTERO VIRTUAL Y BURBUJA DE ACCIÓN */}
       <div
-        className="absolute top-0 left-0 transition-transform ease-out will-change-transform flex items-start gap-2"
+        className="absolute top-0 left-0 transition-transform will-change-transform flex items-start gap-2"
         style={{
           transform: `translate3d(${posicion.x - 3}px, ${posicion.y - 2}px, 0)`,
-          transitionDuration: haciendoClic ? '75ms' : '580ms',
+          transitionDuration: haciendoClic ? '80ms' : '920ms',
+          transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
         }}
       >
         {/* ICONO DEL CURSOR DE MOUSE PROFESIONAL */}

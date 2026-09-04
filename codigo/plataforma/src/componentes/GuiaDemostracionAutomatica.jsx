@@ -21,7 +21,7 @@ export const PASOS_DEMO = [
     titulo: '1. Creación e Inicialización del Acto',
     descripcion: 'Se define la fecha, sede (Auditorio Beltrán), aforo y cupos. La ceremonia se activa como entorno oficial de trabajo.',
     accionSimulada: 'Creando e inicializando entorno oficial: "Colación de Grado 2026"',
-    duracionSegundos: 11,
+    duracionSegundos: 18,
   },
   {
     id: 'fase-2-graduados',
@@ -32,9 +32,9 @@ export const PASOS_DEMO = [
     vistaAdmin: 'gestion-graduados',
     tipoUsuario: 'admin',
     titulo: '2. Carga Masiva e Importación de Graduados',
-    descripcion: 'Se importa la planilla oficial de graduados (.xlsx). El sistema procesa y valida automáticamente el padrón por carrera.',
-    accionSimulada: 'Importando Excel: 12 graduados validados con DNI, Legajo y Correo',
-    duracionSegundos: 12,
+    descripcion: 'Se importa la planilla oficial de graduados (.xlsx). El sistema procesa y valida automáticamente la cohorte completa de 12 egresados.',
+    accionSimulada: 'Importando Excel: cohorte oficial de 12 graduados validados por carrera',
+    duracionSegundos: 20,
   },
   {
     id: 'fase-3-convocatoria',
@@ -47,7 +47,7 @@ export const PASOS_DEMO = [
     titulo: '3. Convocatoria Masiva & Tokens OTP',
     descripcion: 'Con 1 clic se envían las invitaciones por email con tokens criptográficos de un solo uso para que cada egresado confirme su asistencia.',
     accionSimulada: 'Despachando 12 invitaciones con token OTP y enlace de acceso directo',
-    duracionSegundos: 12,
+    duracionSegundos: 18,
   },
   {
     id: 'fase-4-juramento',
@@ -60,7 +60,7 @@ export const PASOS_DEMO = [
     titulo: '4. Autogestión del Egresado: Juramento',
     descripcion: 'El egresado ingresa de forma segura con su token y elige la fórmula de juramento protocolar que prestará en el estrado.',
     accionSimulada: 'Egresado selecciona fórmula: "Por la Patria y los Santos Evangelios"',
-    duracionSegundos: 12,
+    duracionSegundos: 18,
   },
   {
     id: 'fase-5-padrinos',
@@ -72,8 +72,8 @@ export const PASOS_DEMO = [
     pestanaGraduado: 'entregadores',
     titulo: '5. Registro de Familiares y Padrinos de Título',
     descripcion: 'Registra a sus acompañantes con DNI para el pase grupal y elige a los profesores o familiares para la entrega de diploma.',
-    accionSimulada: 'Registrados 2 acompañantes · Padrino asignado: Prof. Gabriel García',
-    duracionSegundos: 12,
+    accionSimulada: 'Registrados acompañantes y padrino docente de carrera',
+    duracionSegundos: 18,
   },
   {
     id: 'fase-6-credencial',
@@ -86,7 +86,7 @@ export const PASOS_DEMO = [
     titulo: '6. Credencial Digital QR y Pase Google Wallet',
     descripcion: 'El sistema genera la credencial digital con QR criptográfico como pase de acceso grupal, exportable a PDF y Google Wallet.',
     accionSimulada: 'Pase grupal emitido con código QR seguro listo para portería',
-    duracionSegundos: 11,
+    duracionSegundos: 17,
   },
   {
     id: 'fase-7-butacas',
@@ -97,9 +97,9 @@ export const PASOS_DEMO = [
     vistaAdmin: 'preparacion-ceremonia',
     tipoUsuario: 'admin',
     titulo: '7. Distribución Inteligente de Butacas (Auto-Seating)',
-    descripcion: 'El algoritmo ubica a los egresados en Platea Baja ordenados por carrera y apellido, y sienta a los familiares en bloques contiguos.',
-    accionSimulada: 'Algoritmo Auto-Seating: 100% de butacas asignadas automáticamente',
-    duracionSegundos: 13,
+    descripcion: 'El algoritmo ubica a los egresados en Platea Baja por carrera y sienta a sus familias contiguas en Pullman. Cierre y agradecimiento institucional.',
+    accionSimulada: 'Auto-Seating completado · Resumen ejecutivo y agradecimiento institucional',
+    duracionSegundos: 21,
   },
 ]
 

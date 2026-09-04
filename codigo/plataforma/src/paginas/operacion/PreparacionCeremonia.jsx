@@ -15,6 +15,7 @@ import {
 } from '../../servicios/api'
 import { SeleccionAsientos } from '../SeleccionAsientos'
 import { ModalAsignarAsientos } from '../../componentes/ModalAsignarAsientos'
+import { ModalResumenDemostracion } from '../../componentes/ModalResumenDemostracion'
 import { emitirCambioSync, useSincronizacion } from '../../lib/sync'
 
 export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp }) {
@@ -25,6 +26,7 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
   const [autoAsignando, setAutoAsignando] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [mensaje, setMensaje] = useState(null)
+  const [mostrarResumenFinal, setMostrarResumenFinal] = useState(false)
   
   // Pestañas
   const [pestana, setPestana] = useState('mapa') // 'mapa' | 'graduados' | 'estructura'
@@ -301,7 +303,7 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
             <button
               type="button"
               id="btn-finalizar-preparacion"
-              onClick={() => onNavegar('bienvenida')}
+              onClick={() => setMostrarResumenFinal(true)}
               className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-500 px-3.5 py-2 text-xs font-black transition active:scale-95 cursor-pointer shadow-sm shadow-emerald-600/20"
             >
               <CheckCircle2 size={13} />
@@ -777,6 +779,24 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
             setGraduadoParaAsignar(null)
             await cargarDatos()
             setMensaje({ tipo: 'exito', texto: 'Ubicación guardada con éxito.' })
+          }}
+        />
+      )}
+
+      {/* MODAL DE RESUMEN EJECUTIVO Y AGRADECIMIENTO */}
+      {mostrarResumenFinal && (
+        <ModalResumenDemostracion
+          ceremonia={ceremonia}
+          graduados={graduados}
+          invitados={invitados}
+          butacasAsignadas={graduadosConAsiento.length + invitadosConAsiento.length}
+          onCerrar={() => {
+            setMostrarResumenFinal(false)
+            if (onNavegar) onNavegar('bienvenida')
+          }}
+          onReiniciar={() => {
+            setMostrarResumenFinal(false)
+            window.location.reload()
           }}
         />
       )}

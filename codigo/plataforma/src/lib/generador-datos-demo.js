@@ -77,6 +77,53 @@ function normalizarParaCorreo(texto) {
     .replace(/[^a-z0-9]/g, '')
 }
 
+function generarCohorteGraduados(egresadoPrincipal, ceremoniaId, anioCeremonia) {
+  const nombresDisponibles = [...NOMBRES_ARGENTINOS].sort(() => Math.random() - 0.5)
+  const apellidosDisponibles = [...APELLIDOS_ARGENTINOS].sort(() => Math.random() - 0.5)
+
+  const lista = [egresadoPrincipal]
+  const cantidadTotal = 12
+
+  for (let i = 1; i < cantidadTotal; i++) {
+    const nombrePila = nombresDisponibles[i % nombresDisponibles.length]
+    const apellido = apellidosDisponibles[i % apellidosDisponibles.length]
+    const carreraObj = CARRERAS_OFICIALES[i % CARRERAS_OFICIALES.length]
+    const dni = String(numeroAleatorio(40100000 + i * 50000, 45900000 + i * 50000))
+    const legajo = `BEL-${22000 + i * 115}`
+    const anioInscripcion = anioCeremonia - (2 + (i % 3))
+    const promedio = Number((7.8 + ((i * 1.7) % 2.1)).toFixed(1))
+    const correo = `${normalizarParaCorreo(nombrePila)}.${normalizarParaCorreo(apellido)}@sigic.demo.ar`
+    const id = `demo-egr-${Date.now()}-${i}`
+
+    // Variacion equilibrada de estados para reflejar una cohorte real
+    const estados = ['COMPLETO', 'PENDIENTE', 'SIN_INVITAR', 'COMPLETO', 'PENDIENTE']
+    const estadoFlujo = estados[i % estados.length]
+    const estadoAsistencia = estadoFlujo === 'COMPLETO' ? 'ACEPTADO' : (estadoFlujo === 'PENDIENTE' ? 'INVITADO' : 'PENDIENTE')
+
+    lista.push({
+      id,
+      ceremonia_id: ceremoniaId,
+      ceremonia_activa: true,
+      nombre: `${nombrePila} ${apellido}`,
+      nombre_pila: nombrePila,
+      apellido: apellido,
+      legajo: legajo,
+      dni: dni,
+      correo: correo,
+      carrera: carreraObj.nombre,
+      carrera_codigo: carreraObj.codigo,
+      anio_inscripcion: anioInscripcion,
+      estado: estadoAsistencia,
+      estado_flujo: estadoFlujo,
+      promedio: promedio,
+      asiento_id: null,
+      invitados: []
+    })
+  }
+
+  return lista
+}
+
 /**
  * Genera un conjunto completo de datos coordinados para una corrida de demostracion.
  */
@@ -124,6 +171,29 @@ export function generarDatosDemoAleatorios() {
   const butacaFamiliar1Id = `baja-${filaElegida}-${butacaNumero + 1}`
   const butacaFamiliar2Id = `baja-${filaElegida}-${butacaNumero + 2}`
 
+  const egresadoPrincipal = {
+    id: graduadoId,
+    ceremonia_id: ceremoniaId,
+    ceremonia_activa: true,
+    nombre: nombreCompleto,
+    nombre_pila: nombrePila,
+    apellido: apellido,
+    legajo: legajo,
+    dni: dni,
+    correo: correo,
+    carrera: carrera,
+    carrera_codigo: carreraObj.codigo,
+    anio_inscripcion: anioInscripcion,
+    estado: 'ACEPTADO',
+    estado_flujo: 'COMPLETO',
+    promedio: promedio,
+    asiento_id: butacaEgresadoId,
+    formula_juramento: 'Por la Patria y los Santos Evangelios'
+  }
+
+  // Generar cohorte de 12 graduados diversos para representar el padron institucional
+  const cohorteGraduados = generarCohorteGraduados(egresadoPrincipal, ceremoniaId, anioCeremonia)
+
   const instancia = {
     generadoEn: Date.now(),
     ceremonia: {
@@ -136,24 +206,8 @@ export function generarDatosDemoAleatorios() {
       fecha_limite_confirmacion: fechaLimite,
       activa: 1
     },
-    graduado: {
-      id: graduadoId,
-      ceremonia_id: ceremoniaId,
-      ceremonia_activa: true,
-      nombre: nombreCompleto,
-      nombre_pila: nombrePila,
-      apellido: apellido,
-      legajo: legajo,
-      dni: dni,
-      correo: correo,
-      carrera: carrera,
-      carrera_codigo: carreraObj.codigo,
-      anio_inscripcion: anioInscripcion,
-      estado: 'ACEPTADO',
-      promedio: promedio,
-      asiento_id: butacaEgresadoId,
-      formula_juramento: 'Por la Patria y los Santos Evangelios'
-    },
+    graduado: egresadoPrincipal,
+    graduados: cohorteGraduados,
     juramento: {
       formula: 'Por la Patria y los Santos Evangelios',
       comentarios: elementoAleatorio(COMENTARIOS_JURAMENTO)

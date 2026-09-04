@@ -149,22 +149,81 @@
     {
       "tipo": "mover",
       "selector": "#btn-importar-excel, button",
-      "textoBoton": "Importar Excel",
+      "textoBoton": "Importar Excel / CSV",
       "rx": 0.68,
       "ry": 0.14,
-      "etiqueta": "Validando planilla oficial .xlsx y padrón...",
+      "etiqueta": "Abriendo módulo de importación masiva...",
       "pausaDespues": 600,
       "esperarElemento": true
     },
     {
       "tipo": "click",
       "selector": "#btn-importar-excel, button",
-      "textoBoton": "Importar Excel",
+      "textoBoton": "Importar Excel / CSV",
       "rx": 0.68,
       "ry": 0.14,
-      "soloVisual": true,
-      "etiqueta": "Padrón verificado: 12 egresados listos",
-      "pausaDespues": 650,
+      "etiqueta": "Abriendo asistente de padrón institucional...",
+      "pausaDespues": 800,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "#btn-cargar-planilla-modelo, button",
+      "textoBoton": "Cargar Padrón Modelo",
+      "rx": 0.62,
+      "ry": 0.22,
+      "etiqueta": "Cargando cohorte oficial: 12 graduados en 6 carreras...",
+      "pausaDespues": 700,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#btn-cargar-planilla-modelo, button",
+      "textoBoton": "Cargar Padrón Modelo",
+      "rx": 0.62,
+      "ry": 0.22,
+      "etiqueta": "12 egresados previsualizados con DNI, Legajo y Correo",
+      "pausaDespues": 900,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "#btn-confirmar-importacion-masiva, button",
+      "textoBoton": "Comenzar Importación",
+      "rx": 0.85,
+      "ry": 0.90,
+      "etiqueta": "Procesando importación masiva de la cohorte...",
+      "pausaDespues": 600,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#btn-confirmar-importacion-masiva, button",
+      "textoBoton": "Comenzar Importación",
+      "rx": 0.85,
+      "ry": 0.90,
+      "etiqueta": "Importación completada: 12 graduados registrados",
+      "pausaDespues": 1000,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "#btn-finalizar-importacion, button",
+      "textoBoton": "Finalizar y Ver Padrón",
+      "rx": 0.88,
+      "ry": 0.90,
+      "etiqueta": "Cerrando asistente e ingresando a nómina oficial...",
+      "pausaDespues": 600,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#btn-finalizar-importacion, button",
+      "textoBoton": "Finalizar y Ver Padrón",
+      "rx": 0.88,
+      "ry": 0.90,
+      "etiqueta": "Padrón institucional actualizado en tiempo real",
+      "pausaDespues": 900,
       "esperarElemento": true
     },
     {
@@ -173,7 +232,7 @@
       "rx": 0.38,
       "ry": 0.22,
       "etiqueta": "Buscando en nómina oficial...",
-      "pausaDespues": 450,
+      "pausaDespues": 500,
       "esperarElemento": true
     },
     {
@@ -181,7 +240,7 @@
       "selector": "#buscador-graduados, input[placeholder*=\"Buscar\" i], input",
       "texto": "Julian",
       "etiqueta": "Filtrando egresado por nombre y DNI...",
-      "pausaDespues": 1000,
+      "pausaDespues": 950,
       "esperarElemento": true
     },
     {
@@ -190,7 +249,7 @@
       "rx": 0.38,
       "ry": 0.42,
       "etiqueta": "Egresado verificado: DNI, Legajo y Correo validados",
-      "pausaDespues": 1000,
+      "pausaDespues": 950,
       "esperarElemento": true
     },
     {
@@ -200,7 +259,7 @@
       "rx": 0.88,
       "ry": 0.18,
       "etiqueta": "Continuando a convocatoria y despacho de tokens...",
-      "pausaDespues": 600,
+      "pausaDespues": 700,
       "esperarElemento": true
     },
     {
@@ -210,7 +269,7 @@
       "rx": 0.88,
       "ry": 0.18,
       "etiqueta": "Avanzando a despacho de tokens OTP...",
-      "pausaDespues": 800,
+      "pausaDespues": 900,
       "esperarElemento": true
     }
   ],
@@ -557,7 +616,7 @@
       "rx": 0.72,
       "ry": 0.17,
       "etiqueta": "Finalizando preparación oficial de colación...",
-      "pausaDespues": 600,
+      "pausaDespues": 700,
       "esperarElemento": true
     },
     {
@@ -566,6 +625,36 @@
       "textoBoton": "Finalizar Preparación",
       "rx": 0.72,
       "ry": 0.17,
+      "etiqueta": "Generando balance y resumen ejecutivo del acto...",
+      "pausaDespues": 1100,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "#btn-cerrar-modal-resumen-x, div[class*=\"bg-gradient-to-r\"]",
+      "textoBoton": "Ciclo de Colación Concluido",
+      "rx": 0.50,
+      "ry": 0.25,
+      "etiqueta": "Resumen ejecutivo: 12 graduados, 100% butacas asignadas",
+      "pausaDespues": 1200,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "#btn-cerrar-resumen-demo, button",
+      "textoBoton": "Finalizar Demostración",
+      "rx": 0.88,
+      "ry": 0.92,
+      "etiqueta": "Agradecimiento institucional al Instituto Tecnológico Beltrán",
+      "pausaDespues": 900,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#btn-cerrar-resumen-demo, button",
+      "textoBoton": "Finalizar Demostración",
+      "rx": 0.88,
+      "ry": 0.92,
       "etiqueta": "Demostración de ciclo completo finalizada con éxito",
       "pausaDespues": 1200,
       "esperarElemento": true

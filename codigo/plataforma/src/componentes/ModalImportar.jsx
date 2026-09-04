@@ -1,13 +1,38 @@
 import React, { useState } from 'react'
-import { X, FileSpreadsheet, Upload, AlertCircle, CheckCircle2, ShieldAlert, Download, Trash2, Check } from 'lucide-react'
+import { X, FileSpreadsheet, Upload, AlertCircle, CheckCircle2, ShieldAlert, Download, Trash2, Check, Sparkles } from 'lucide-react'
 import * as XLSX from 'xlsx'
 import { importarGraduadosMasivo } from '../servicios/api'
+import { obtenerDatosDemoActuales } from '../lib/generador-datos-demo'
 
 export function ModalImportar({ onCerrar, onCompletado }) {
   const [archivo, setArchivo] = useState(null)
   const [previsualizacion, setPrevisualizacion] = useState([])
   const [procesando, setProcesando] = useState(false)
   const [resultado, setResultado] = useState(null)
+
+  const cargarPadronDemo = () => {
+    const datos = obtenerDatosDemoActuales()
+    const cohorte = Array.isArray(datos?.graduados) && datos.graduados.length > 0
+      ? datos.graduados
+      : [
+          { nombre: 'García Juan Manuel', dni: '40123456', legajo: 'BEL-2024-001', correo: 'juan.garcia@sigic.demo.ar', carrera: 'Desarrollo de Software', anio_inscripcion: 2024, promedio: 8.9 },
+          { nombre: 'Martínez Lucía Belén', dni: '41234567', legajo: 'BEL-2024-002', correo: 'lucia.martinez@sigic.demo.ar', carrera: 'Automatización y Robótica', anio_inscripcion: 2024, promedio: 9.4 },
+          { nombre: 'Rodríguez Matías', dni: '39987654', legajo: 'BEL-2024-003', correo: 'matias.rodriguez@sigic.demo.ar', carrera: 'Redes e Infraestructura', anio_inscripcion: 2024, promedio: 8.7 }
+        ]
+
+    const mapeado = cohorte.map(g => ({
+      nombre: g.nombre,
+      dni: String(g.dni),
+      legajo: String(g.legajo),
+      correo: g.correo,
+      promedio: g.promedio || 8.5,
+      carrera: g.carrera,
+      anio_inscripcion: g.anio_inscripcion || 2023
+    }))
+
+    setArchivo({ name: 'Padron_Oficial_Cohorte_Beltran.xlsx' })
+    setPrevisualizacion(mapeado)
+  }
 
   const manejarArchivo = (e) => {
     const file = e.target.files[0]
@@ -82,6 +107,7 @@ export function ModalImportar({ onCerrar, onCompletado }) {
             <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold">Carga Masiva · Excel / CSV</p>
           </div>
           <button 
+            id="btn-cerrar-modal-importar"
             onClick={onCerrar} 
             className="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition cursor-pointer"
           >
@@ -94,18 +120,28 @@ export function ModalImportar({ onCerrar, onCompletado }) {
           {!resultado ? (
             <>
               {/* Barra de plantilla */}
-              <div className="flex items-center justify-between p-2.5 bg-sky-50 border border-sky-100 rounded-xl">
+              <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 bg-sky-50 border border-sky-100 rounded-xl">
                 <div>
-                  <p className="text-xs font-black text-sky-950">¿Necesitás el formato modelo?</p>
-                  <p className="text-[10px] text-sky-700 font-medium">Descargá la plantilla Excel con los encabezados exactos.</p>
+                  <p className="text-xs font-black text-sky-950">Padrón Oficial y Plantilla Modelo</p>
+                  <p className="text-[10px] text-sky-700 font-medium">Carga directa de cohorte o formato Excel con encabezados.</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={descargarPlantilla}
-                  className="flex items-center gap-1.5 bg-white hover:bg-sky-100 text-sky-700 border border-sky-200 px-2.5 py-1.5 rounded-lg text-[10.5px] font-black shadow-xs transition active:scale-95 cursor-pointer shrink-0"
-                >
-                  <Download size={12} /> Plantilla .xlsx
-                </button>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    id="btn-cargar-planilla-modelo"
+                    type="button"
+                    onClick={cargarPadronDemo}
+                    className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1.5 rounded-lg text-[10.5px] font-black shadow-xs transition active:scale-95 cursor-pointer"
+                  >
+                    <Sparkles size={12} /> Cargar Padrón Modelo (12 Alumnos)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={descargarPlantilla}
+                    className="flex items-center gap-1 bg-white hover:bg-sky-100 text-sky-700 border border-sky-200 px-2 py-1.5 rounded-lg text-[10px] font-bold shadow-xs transition active:scale-95 cursor-pointer"
+                  >
+                    <Download size={11} /> .xlsx
+                  </button>
+                </div>
               </div>
 
               {/* Upload Dropzone */}
@@ -257,6 +293,7 @@ export function ModalImportar({ onCerrar, onCompletado }) {
                 Cancelar
               </button>
               <button 
+                id="btn-confirmar-importacion-masiva"
                 type="button"
                 onClick={handleImportar}
                 disabled={procesando || previsualizacion.length === 0}
@@ -273,6 +310,7 @@ export function ModalImportar({ onCerrar, onCompletado }) {
             </>
           ) : (
             <button 
+              id="btn-finalizar-importacion"
               type="button"
               onClick={onCerrar}
               className="bg-slate-900 hover:bg-slate-800 text-white font-black text-xs py-2 px-5 rounded-xl shadow-xs transition active:scale-95 cursor-pointer"
