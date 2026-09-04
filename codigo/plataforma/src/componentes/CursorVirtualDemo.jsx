@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
+import rutinasOficiales from '../datos/rutinas-demo-oficiales.json'
 
 /**
  * Puntero virtual animado y simulador de acciones guiadas para las 9 fases de la demostración.
@@ -264,7 +265,7 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
 
   // Secuencias de acciones ordenadas cronológicamente para cada una de las 9 fases
   const obtenerSecuenciaFase = useCallback((fase) => {
-    // 1. Prioridad: Verificar si el usuario grabó una rutina personalizada para esta fase
+    // 1. Prioridad: Verificar si el usuario grabó una rutina personalizada para esta fase en este navegador
     if (typeof window !== 'undefined') {
       try {
         const personalizada = localStorage.getItem(`sigic_demo_secuencia_${fase}`)
@@ -275,6 +276,11 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
           }
         }
       } catch {}
+    }
+
+    // 2. Prioridad: Rutinas oficiales persistidas en el proyecto para el futuro
+    if (rutinasOficiales && Array.isArray(rutinasOficiales[String(fase)]) && rutinasOficiales[String(fase)].length > 0) {
+      return rutinasOficiales[String(fase)]
     }
 
     switch (fase) {

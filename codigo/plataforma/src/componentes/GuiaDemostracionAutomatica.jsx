@@ -4,8 +4,9 @@ import {
   Users, Send, ScrollText, GraduationCap, QrCode, Armchair,
   ScanLine, FileText, CheckCircle2, Zap, MousePointer, Video,
   RotateCcw, Trash2, Check, CircleDot, ChevronDown, Minimize2, Maximize2,
-  ArrowRight
+  ArrowRight, HardDrive
 } from 'lucide-react'
+import rutinasOficiales from '../datos/rutinas-demo-oficiales.json'
 import { CursorVirtualDemo } from './CursorVirtualDemo'
 
 export const PASOS_DEMO = [
@@ -242,23 +243,30 @@ export function GuiaDemostracionAutomatica({
     }
   }, [pasoIndex, pasoActual, onAplicarPaso, onCambiarPaso])
 
-  // Cargar el mapa de fases con rutina personalizada grabada
+  // Cargar el mapa de fases con rutina personalizada grabada u oficial
   const actualizarMapaFasesGrabadas = useCallback(() => {
-    if (typeof window !== 'undefined') {
-      const mapa = {}
-      PASOS_DEMO.forEach((p) => {
+    const mapa = {}
+    PASOS_DEMO.forEach((p) => {
+      let grabada = false
+      if (typeof window !== 'undefined') {
         try {
           const item = localStorage.getItem(`sigic_demo_secuencia_${p.fase}`)
           if (item) {
             const parsed = JSON.parse(item)
             if (Array.isArray(parsed) && parsed.length > 0) {
-              mapa[p.fase] = true
+              grabada = true
             }
           }
         } catch {}
-      })
-      setFasesGrabadas(mapa)
-    }
+      }
+      if (!grabada && rutinasOficiales && Array.isArray(rutinasOficiales[String(p.fase)]) && rutinasOficiales[String(p.fase)].length > 0) {
+        grabada = true
+      }
+      if (grabada) {
+        mapa[p.fase] = true
+      }
+    })
+    setFasesGrabadas(mapa)
   }, [])
 
   useEffect(() => {
@@ -268,52 +276,66 @@ export function GuiaDemostracionAutomatica({
     return () => window.removeEventListener('sigic-rutina-actualizada', onActualizar)
   }, [actualizarMapaFasesGrabadas])
 
-  // Obtener las acciones guardadas previamente de una fase
+  // Obtener las acciones guardadas previamente de una fase (local o persistida oficial)
   const cargarPasosDeFase = useCallback((fase) => {
     if (typeof window !== 'undefined') {
       try {
         const item = localStorage.getItem(`sigic_demo_secuencia_${fase}`)
         if (item) {
           const parsed = JSON.parse(item)
-          if (Array.isArray(parsed)) return parsed
+          if (Array.isArray(parsed) && parsed.length > 0) return parsed
         }
       } catch {}
+    }
+    if (rutinasOficiales && Array.isArray(rutinasOficiales[String(fase)]) && rutinasOficiales[String(fase)].length > 0) {
+      return rutinasOficiales[String(fase)]
     }
     return []
   }, [])
 
-  // Verificar si la fase actual tiene rutina personalizada guardada en localStorage
+  // Verificar si la fase actual tiene rutina guardada (en localStorage o persistida oficial)
   const verificarRutinaGuardada = useCallback(() => {
     if (typeof window !== 'undefined') {
       try {
         const guardada = localStorage.getItem(`sigic_demo_secuencia_${pasoActual.fase}`)
         if (guardada) {
           const parsed = JSON.parse(guardada)
-          setTieneRutinaGuardada(Array.isArray(parsed) && parsed.length > 0)
-          return
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setTieneRutinaGuardada(true)
+            return
+          }
         }
       } catch {}
-      setTieneRutinaGuardada(false)
     }
+    if (rutinasOficiales && Array.isArray(rutinasOficiales[String(pasoActual.fase)]) && rutinasOficiales[String(pasoActual.fase)].length > 0) {
+      setTieneRutinaGuardada(true)
+      return
+    }
+    setTieneRutinaGuardada(false)
   }, [pasoActual.fase])
 
   useEffect(() => {
     verificarRutinaGuardada()
   }, [verificarRutinaGuardada])
 
-  // Calcular duración estimada de la fase respetando si hay una macro grabada
+  // Calcular duración estimada de la fase respetando si hay una macro grabada u oficial
   const calcularDuracionMs = useCallback(() => {
+    let pasos = []
     if (typeof window !== 'undefined') {
       try {
         const guardada = localStorage.getItem(`sigic_demo_secuencia_${pasoActual.fase}`)
         if (guardada) {
           const parsed = JSON.parse(guardada)
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            const tiempoEstimado = parsed.reduce((acc, p) => acc + (p.pausaDespues || 600) + 600, 1200)
-            return Math.max(pasoActual.duracionSegundos * 1000, tiempoEstimado)
-          }
+          if (Array.isArray(parsed) && parsed.length > 0) pasos = parsed
         }
       } catch {}
+    }
+    if (pasos.length === 0 && rutinasOficiales && Array.isArray(rutinasOficiales[String(pasoActual.fase)])) {
+      pasos = rutinasOficiales[String(pasoActual.fase)]
+    }
+    if (pasos.length > 0) {
+      const tiempoEstimado = pasos.reduce((acc, p) => acc + (p.pausaDespues || 600) + 600, 1200)
+      return Math.max(pasoActual.duracionSegundos * 1000, tiempoEstimado)
     }
     return pasoActual.duracionSegundos * 1000
   }, [pasoActual])
@@ -525,7 +547,7 @@ export function GuiaDemostracionAutomatica({
     }
   }
 
-  // Guardar la rutina actual en localStorage y despachar evento de actualización
+  // Guardar la rutina actual en localStorage y persistirla permanentemente en el archivo del proyecto
   const guardarRutinaActual = useCallback((alTerminar) => {
     consolidarBufferTipeo()
     setTimeout(() => {
@@ -538,7 +560,15 @@ export function GuiaDemostracionAutomatica({
         localStorage.setItem(`sigic_demo_secuencia_${pasoActual.fase}`, JSON.stringify(lista))
         setTieneRutinaGuardada(true)
         actualizarMapaFasesGrabadas()
-        setMensajeGuardado(`Fase ${pasoActual.fase} guardada exitosamente`)
+        setMensajeGuardado(`Fase ${pasoActual.fase} guardada y persistida`)
+
+        // Persistencia permanente en el archivo oficial del proyecto
+        fetch('/api/demo/guardar-rutinas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fase: pasoActual.fase, secuencia: lista })
+        }).catch(() => {})
+
         setTimeout(() => {
           window.dispatchEvent(new CustomEvent('sigic-rutina-actualizada', { detail: { fase: pasoActual.fase } }))
         }, 10)
@@ -549,6 +579,48 @@ export function GuiaDemostracionAutomatica({
       }
     }, 80)
   }, [consolidarBufferTipeo, pasoActual.fase, actualizarMapaFasesGrabadas])
+
+  // Persistir todas las fases grabadas en el repositorio para que sobrevivan permanentemente
+  const persistirTodasLasFases = async () => {
+    if (typeof window === 'undefined') return
+    const todas = {}
+    PASOS_DEMO.forEach((p) => {
+      let lista = null
+      try {
+        const item = localStorage.getItem(`sigic_demo_secuencia_${p.fase}`)
+        if (item) {
+          const parsed = JSON.parse(item)
+          if (Array.isArray(parsed) && parsed.length > 0) lista = parsed
+        }
+      } catch {}
+      if (!lista && rutinasOficiales && Array.isArray(rutinasOficiales[String(p.fase)])) {
+        lista = rutinasOficiales[String(p.fase)]
+      }
+      if (lista && lista.length > 0) {
+        todas[String(p.fase)] = lista
+      }
+    })
+
+    if (accionesGrabadasRef.current && accionesGrabadasRef.current.length > 0) {
+      todas[String(pasoActual.fase)] = accionesGrabadasRef.current
+    }
+
+    try {
+      const res = await fetch('/api/demo/guardar-rutinas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ todasLasFases: todas })
+      })
+      const data = await res.json()
+      if (data.ok) {
+        setMensajeGuardado('Demostración guardada en el proyecto para el futuro')
+        setTimeout(() => setMensajeGuardado(''), 3000)
+      }
+    } catch {
+      setMensajeGuardado('Demostración respaldada localmente')
+      setTimeout(() => setMensajeGuardado(''), 2500)
+    }
+  }
 
   // Finalizar la grabación de la fase actual y salir del grabador
   const finalizarYGuardarFase = () => {
@@ -896,6 +968,16 @@ export function GuiaDemostracionAutomatica({
                     <Trash2 size={11} />
                   </button>
                 )}
+
+                <button
+                  type="button"
+                  onClick={persistirTodasLasFases}
+                  className="flex items-center gap-1 px-2 py-1 rounded-lg bg-sky-950/70 hover:bg-sky-900/80 text-sky-300 font-bold border border-sky-700/60 transition cursor-pointer text-[9px]"
+                  title="Persistir todas las fases grabadas permanentemente en el proyecto"
+                >
+                  <HardDrive size={10} className="text-sky-400" />
+                  <span>Persistir Todo</span>
+                </button>
               </div>
 
               <div className="flex items-center gap-1">
@@ -1142,8 +1224,9 @@ export function GuiaDemostracionAutomatica({
                         </div>
                         {PASOS_DEMO.map((p, idx) => {
                           const tieneMacro =
-                            typeof window !== 'undefined' &&
-                            Boolean(localStorage.getItem(`sigic_demo_secuencia_${p.fase}`))
+                            (typeof window !== 'undefined' &&
+                              Boolean(localStorage.getItem(`sigic_demo_secuencia_${p.fase}`))) ||
+                            Boolean(rutinasOficiales && rutinasOficiales[String(p.fase)]?.length > 0)
 
                           return (
                             <button
