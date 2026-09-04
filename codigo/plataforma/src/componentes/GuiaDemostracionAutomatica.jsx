@@ -205,6 +205,7 @@ export function GuiaDemostracionAutomatica({
     accionesGrabadasRef.current = accionesGrabadas
   }, [accionesGrabadas])
 
+  const pasoActual = PASOS_DEMO[pasoIndex] || PASOS_DEMO[0]
   const ultimoPasoEjecutadoRef = useRef(null)
   const onAplicarPasoRef = useRef(onAplicarPaso)
   const onCambiarPasoRef = useRef(onCambiarPaso)
