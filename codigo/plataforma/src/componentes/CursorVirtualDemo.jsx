@@ -3,6 +3,20 @@ import rutinasOficiales from '../datos/rutinas-demo-oficiales.json'
 import { obtenerDatosDemoActuales } from '../lib/generador-datos-demo'
 
 /**
+ * Normaliza una cadena removiendo tildes, caracteres especiales,
+ * espacios redundantes y convirtiendo a minusculas para busqueda difusa.
+ */
+function normalizarCadena(str) {
+  if (!str) return ''
+  return String(str)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+/**
  * Adapta dinamicamente las acciones de tipeo, botones y etiquetas con los datos aleatorios
  * del dataset activo de la demostracion para garantizar realismo y diversidad.
  */
@@ -14,7 +28,7 @@ function dinamizarSecuenciaConDatosAleatorios(acciones, fase) {
   return acciones.map(accion => {
     if (accion.tipo !== 'tipear') {
       // Si busca por texto al egresado anterior
-      if (accion.textoBoton === 'Julian Prueba' || accion.textoBoton === 'Julieta') {
+      if (accion.textoBoton === 'Julian Prueba' || accion.textoBoton === 'Julieta' || accion.textoBoton === 'Julian') {
         return {
           ...accion,
           textoBoton: datos.graduado.nombre_pila || datos.graduado.nombre
@@ -24,6 +38,16 @@ function dinamizarSecuenciaConDatosAleatorios(acciones, fase) {
     }
 
     const sel = (accion.selector || '').toLowerCase()
+    const txtOriginal = (accion.texto || '').toLowerCase()
+
+    if (txtOriginal === 'julian' || txtOriginal === 'julieta' || txtOriginal === 'julian prueba') {
+      const termino = datos.graduado.nombre_pila || datos.graduado.nombre.split(' ')[0]
+      return {
+        ...accion,
+        texto: termino,
+        etiqueta: `Filtrando egresado por: "${termino}"`
+      }
+    }
 
     // FASE 1: Datos de Ceremonia
     if (sel.includes('input-nombre-ceremonia')) {
@@ -159,68 +183,177 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
     })
   }, [velocidad])
 
-  // Helper para buscar elementos interactivos en el DOM con prioridad semántica y de ID
+  // Helper ultra-inteligente para buscar elementos interactivos en el DOM con prioridad contextual, semántica y rescate dinámico
   const buscarElementoDOM = useCallback((config) => {
-    if (typeof document === 'undefined') return null
+    if (typeof document === 'undefined' || !config) return null
 
-    // 1. Prioridad Máxima: Buscar por ID directo (#id) si está especificado
+    // 0. Detectar contenedor activo prioritario (modal abierto, diálogo o ventana superior)
+    const modalActivo = document.querySelector(
+      '[role="dialog"], .modal, div[class*="fixed"][class*="z-50"], div[class*="backdrop-blur"][class*="z-"]'
+    )
+    const contenedores = modalActivo ? [modalActivo, document.body] : [document.body]
+
+    const esVisible = (el) => {
+      if (!el) return false
+      if (el.closest('.z-\\[99999\\]') || el.closest('.z-\\[10000\\]')) return false
+      const rect = el.getBoundingClientRect()
+      return rect.width > 0 && rect.height > 0
+    }
+
+    // 1. Prioridad Máxima: Buscar por ID directo (#id)
     if (config.selector) {
       const selectores = config.selector.split(',').map((s) => s.trim())
       for (const sel of selectores) {
         if (sel.startsWith('#')) {
           try {
             const el = document.querySelector(sel)
-            if (el) {
-              if (el.closest('.z-\\[99999\\]') || el.closest('.z-\\[10000\\]')) continue
-              const rect = el.getBoundingClientRect()
-              if (rect.width > 0 && rect.height > 0) return el
-            }
+            if (el && esVisible(el)) return el
           } catch {}
         }
       }
     }
 
-    // 2. Prioridad: Buscar por coincidencia de texto visible en elementos interactivos
+    // 2. Prioridad: Coincidencia Semántica de Texto Normalizado
     if (config.textoBoton) {
-      const textoBuscado = config.textoBoton.toLowerCase().trim()
-      const candidatos = Array.from(
-        document.querySelectorAll(
-          'button, a, [role="button"], [role="tab"], [role="radio"], label, ' +
-          'input[type="submit"], input[type="button"], div[class*="cursor-pointer"], ' +
-          'h2, h3, article, .stat, tr, span'
+      const textoBuscado = normalizarCadena(config.textoBoton)
+      for (const contenedor of contenedores) {
+        const candidatos = Array.from(
+          contenedor.querySelectorAll(
+            'button, a, [role="button"], [role="tab"], [role="radio"], label, ' +
+            'input[type="submit"], input[type="button"], select, textarea, div[class*="cursor-pointer"], ' +
+            'h2, h3, article, td, tr, span, p'
+          )
         )
-      )
 
-      const encontrado = candidatos.find((el) => {
-        if (el.closest('.z-\\[99999\\]') || el.closest('.z-\\[10000\\]')) return false
-        const t = (el.textContent || el.innerText || el.value || '').toLowerCase()
-        if (!t.includes(textoBuscado)) return false
-        const rect = el.getBoundingClientRect()
-        return rect.width > 0 && rect.height > 0
-      })
+        const encontrado = candidatos.find((el) => {
+          if (!esVisible(el)) return false
+          const t = normalizarCadena(el.textContent || el.innerText || el.value || el.getAttribute('aria-label') || el.getAttribute('title') || '')
+          return t === textoBuscado || t.includes(textoBuscado) || (textoBuscado.length > 5 && textoBuscado.includes(t))
+        })
 
-      if (encontrado) {
-        const interactivo = encontrado.closest('button, a, [role="button"], [role="tab"], input, label') ||
-          encontrado.querySelector('button, a, [role="button"], [role="tab"], input, label') ||
-          encontrado
-        return interactivo
+        if (encontrado) {
+          // Si el elemento encontrado es una etiqueta label, buscar su campo input
+          if (encontrado.tagName === 'LABEL') {
+            const inputAsociado = (encontrado.htmlFor ? document.getElementById(encontrado.htmlFor) : null) ||
+              encontrado.querySelector('input, select, textarea') ||
+              encontrado.parentElement?.querySelector('input, select, textarea')
+            if (inputAsociado && esVisible(inputAsociado)) return inputAsociado
+          }
+
+          const interactivo = encontrado.closest('button, a, [role="button"], [role="tab"], input, select, textarea, label') ||
+            encontrado.querySelector('button, a, [role="button"], [role="tab"], input, select, textarea, label') ||
+            encontrado
+          if (esVisible(interactivo)) return interactivo
+        }
       }
     }
 
-    // 3. Buscar por selectores CSS generales
+    // 3. Prioridad: Selectores CSS generales (con soporte de :has-text simulado)
     if (config.selector) {
       const selectores = config.selector.split(',').map((s) => s.trim())
       for (const sel of selectores) {
         if (!sel.startsWith('#')) {
-          try {
-            const elementos = Array.from(document.querySelectorAll(sel))
-            const valido = elementos.find((el) => {
-              if (el.closest('.z-\\[99999\\]') || el.closest('.z-\\[10000\\]')) return false
-              const rect = el.getBoundingClientRect()
-              return rect.width > 0 && rect.height > 0
-            })
-            if (valido) return valido
-          } catch {}
+          const matchHasText = sel.match(/^([a-z0-9_-]+)?:has-text\("([^"]+)"\)$/i)
+          if (matchHasText) {
+            const tag = matchHasText[1] || '*'
+            const txt = normalizarCadena(matchHasText[2])
+            for (const contenedor of contenedores) {
+              const els = Array.from(contenedor.querySelectorAll(tag))
+              const match = els.find((el) => esVisible(el) && normalizarCadena(el.textContent).includes(txt))
+              if (match) return match
+            }
+            continue
+          }
+
+          for (const contenedor of contenedores) {
+            try {
+              const elementos = Array.from(contenedor.querySelectorAll(sel))
+              const valido = elementos.find((el) => esVisible(el))
+              if (valido) return valido
+            } catch {}
+          }
+        }
+      }
+    }
+
+    // 4. Prioridad: Heurística Inteligente para Campos de Formulario (Tipeo y selección)
+    if (config.tipo === 'tipear' || (config.selector && (config.selector.includes('input') || config.selector.includes('select') || config.selector.includes('textarea')))) {
+      const selNorm = normalizarCadena(`${config.selector || ''} ${config.etiqueta || ''}`)
+      const textoNorm = normalizarCadena(config.texto || '')
+
+      for (const contenedor of contenedores) {
+        // Campo Fecha
+        if (selNorm.includes('fecha') || selNorm.includes('date') || /^\d{4}-\d{2}-\d{2}/.test(config.texto || '')) {
+          const elDate = contenedor.querySelector('input[type="date"], input[type="datetime-local"], input[name*="fecha" i]')
+          if (elDate && esVisible(elDate)) return elDate
+        }
+
+        // Campo Cupo / Número
+        if (selNorm.includes('invitado') || selNorm.includes('max') || selNorm.includes('cupo') || selNorm.includes('number')) {
+          const elNum = contenedor.querySelector('input[type="number"], input[name*="invitado" i], input[id*="invitado" i]')
+          if (elNum && esVisible(elNum)) return elNum
+        }
+
+        // Campo DNI / Numérico
+        if (selNorm.includes('dni') || selNorm.includes('35230531') || /^\d{7,8}$/.test(config.texto || '')) {
+          const elDni = contenedor.querySelector('input[placeholder*="35230531"], input[name*="dni" i], input[inputmode="numeric"]')
+          if (elDni && esVisible(elDni)) return elDni
+        }
+
+        // Campo Nombre
+        if (selNorm.includes('nombre') || selNorm.includes('cancelo') || selNorm.includes('ceremonia')) {
+          const elNom = contenedor.querySelector('input[id*="nombre" i], input[name="nombre"], input[placeholder*="nombre" i], input[placeholder*="Cancelo" i], input[placeholder*="Colación" i]')
+          if (elNom && esVisible(elNom)) return elNom
+        }
+
+        // Campo Sede / Lugar
+        if (selNorm.includes('lugar') || selNorm.includes('sede') || textoNorm.includes('beltran') || textoNorm.includes('avellaneda')) {
+          const elLugar = contenedor.querySelector('input[id*="lugar" i], input[name="lugar"], input[placeholder*="sede" i], input[placeholder*="lugar" i]')
+          if (elLugar && esVisible(elLugar)) return elLugar
+        }
+
+        // Select de Carreras
+        if (selNorm.includes('carrera') || selNorm.includes('select')) {
+          const elSelect = contenedor.querySelector('select')
+          if (elSelect && esVisible(elSelect)) return elSelect
+        }
+
+        // Textarea de Juramento / Comentarios
+        if (selNorm.includes('juramento') || selNorm.includes('comentario') || selNorm.includes('textarea')) {
+          const elTextarea = contenedor.querySelector('textarea')
+          if (elTextarea && esVisible(elTextarea)) return elTextarea
+        }
+
+        // Buscador
+        if (selNorm.includes('buscar') || selNorm.includes('buscador')) {
+          const elSearch = contenedor.querySelector('input[placeholder*="buscar" i], input[type="search"], #buscador-graduados')
+          if (elSearch && esVisible(elSearch)) return elSearch
+        }
+
+        // Si es tipear y hay formulario en modal activo, buscar el primer campo visible
+        if (modalActivo) {
+          const inputs = Array.from(modalActivo.querySelectorAll('input:not([type="hidden"]), select, textarea'))
+          const primerInput = inputs.find(i => esVisible(i))
+          if (primerInput) return primerInput
+        }
+      }
+    }
+
+    // 5. Rescate Inteligente (Smart Recovery) para Clics
+    if (config.tipo === 'click') {
+      const txtNorm = normalizarCadena(`${config.textoBoton || ''} ${config.etiqueta || ''}`)
+      for (const contenedor of contenedores) {
+        if (txtNorm.includes('crear') || txtNorm.includes('guardar') || txtNorm.includes('confirmar') || txtNorm.includes('aceptar')) {
+          const btnSubmit = contenedor.querySelector('button[type="submit"], button.bg-sky-500, button.bg-slate-900, button.bg-emerald-600')
+          if (btnSubmit && esVisible(btnSubmit)) return btnSubmit
+        }
+        if (txtNorm.includes('cerrar') || txtNorm.includes('cancelar')) {
+          const btnCerrar = contenedor.querySelector('button:has(svg), header button, button[aria-label*="cerrar" i]')
+          if (btnCerrar && esVisible(btnCerrar)) return btnCerrar
+        }
+        if (txtNorm.includes('paso 3') || txtNorm.includes('convocatoria') || txtNorm.includes('siguiente') || txtNorm.includes('continuar')) {
+          const btnPaso = document.querySelector('#btn-paso3-convocatoria, button[class*="bg-sky"]')
+          if (btnPaso && esVisible(btnPaso)) return btnPaso
         }
       }
     }
@@ -229,18 +362,18 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
   }, [])
 
   // Esperar activamente a que un elemento aparezca en el DOM (para modales o vistas que cargan)
-  const esperarElemento = useCallback(async (config, maxEsperaMs = 2500) => {
+  const esperarElemento = useCallback(async (config, maxEsperaMs = 3500) => {
     const inicio = Date.now()
     while (Date.now() - inicio < maxEsperaMs) {
       if (canceladoRef.current) return null
       const el = buscarElementoDOM(config)
       if (el) return el
-      await esperarMs(70)
+      await esperarMs(50)
     }
     return null
   }, [buscarElementoDOM, esperarMs])
 
-  // Buscar coordenadas exactas con scroll suave automático si el elemento está fuera de pantalla
+  // Buscar coordenadas exactas con centrado instantáneo si el elemento está fuera de pantalla
   const obtenerCoordenadas = useCallback((config) => {
     if (typeof window === 'undefined') return { x: 0, y: 0, elemento: null }
 
@@ -251,8 +384,8 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
     if (el) {
       try {
         const r = el.getBoundingClientRect()
-        if (r.top < 60 || r.bottom > h - 60) {
-          el.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'nearest' })
+        if (r.top < 70 || r.bottom > h - 70 || r.left < 50 || r.right > w - 50) {
+          el.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'center' })
         }
       } catch {}
 
@@ -260,13 +393,13 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
       const esInput = el.tagName === 'INPUT' || el.tagName === 'TEXTAREA'
 
       return {
-        x: Math.round(esInput ? rect.left + Math.min(28, rect.width * 0.15) : rect.left + rect.width / 2),
+        x: Math.round(esInput ? Math.max(rect.left + 16, rect.left + Math.min(32, rect.width * 0.15)) : rect.left + rect.width / 2),
         y: Math.round(rect.top + rect.height / 2),
         elemento: el,
       }
     }
 
-    // Fallback calibrado a coordenadas porcentuales del viewport
+    // Fallback calibrado a coordenadas porcentuales del viewport SOLO si no se encuentra ningún elemento interactivo
     const rx = config.rx ?? 0.5
     const ry = config.ry ?? 0.4
     return {
@@ -283,21 +416,33 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
       let idx = 0
       setTextoTipeado('')
 
-      // Si es un campo select, seleccionar la opción correspondiente y disparar eventos
-      if (elemento && elemento.tagName === 'SELECT') {
+      const targetInput = elemento?.tagName === 'INPUT' || elemento?.tagName === 'TEXTAREA' || elemento?.tagName === 'SELECT'
+        ? elemento
+        : elemento?.querySelector?.('input, textarea, select') || elemento?.parentElement?.querySelector?.('input, textarea, select') || elemento
+
+      // Campo Select
+      if (targetInput && targetInput.tagName === 'SELECT') {
         try {
-          elemento.focus()
-          const options = Array.from(elemento.options)
-          const matchedOption = options.find(opt => 
-            opt.value === texto || 
-            opt.text.toLowerCase().includes(texto.toLowerCase()) ||
-            texto.toLowerCase().includes(opt.text.toLowerCase())
-          )
+          targetInput.focus()
+          const options = Array.from(targetInput.options)
+          const normTexto = normalizarCadena(texto)
+          const matchedOption = options.find((opt) => {
+            const optVal = normalizarCadena(opt.value)
+            const optText = normalizarCadena(opt.text)
+            return (
+              optVal === normTexto ||
+              optText.includes(normTexto) ||
+              normTexto.includes(optText) ||
+              (normTexto.length > 4 && optText.startsWith(normTexto.slice(0, 4)))
+            )
+          })
           if (matchedOption) {
-            elemento.value = matchedOption.value
+            targetInput.value = matchedOption.value
+          } else if (options.length > 1) {
+            targetInput.value = options[1].value
           }
-          elemento.dispatchEvent(new Event('input', { bubbles: true }))
-          elemento.dispatchEvent(new Event('change', { bubbles: true }))
+          targetInput.dispatchEvent(new Event('input', { bubbles: true }))
+          targetInput.dispatchEvent(new Event('change', { bubbles: true }))
           setTextoTipeado(matchedOption ? matchedOption.text : texto)
         } catch {}
         const tSel = setTimeout(resolve, Math.max(150, 400 / velocidad))
@@ -305,25 +450,32 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
         return
       }
 
-      // Si es un campo date o datetime-local, inyectar el valor valido de forma directa
-      if (elemento && (elemento.type === 'date' || elemento.type === 'datetime-local')) {
+      // Campo Fecha / Datetime
+      if (targetInput && (targetInput.type === 'date' || targetInput.type === 'datetime-local')) {
         try {
-          elemento.focus()
+          targetInput.focus()
+          let valorFormateado = texto
+          if (targetInput.type === 'datetime-local' && !valorFormateado.includes('T')) {
+            valorFormateado = `${valorFormateado}T10:00`
+          } else if (targetInput.type === 'date' && valorFormateado.includes('T')) {
+            valorFormateado = valorFormateado.split('T')[0]
+          }
           const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set
           if (nativeSetter) {
-            nativeSetter.call(elemento, texto)
+            nativeSetter.call(targetInput, valorFormateado)
           } else {
-            elemento.value = texto
+            targetInput.value = valorFormateado
           }
-          elemento.dispatchEvent(new Event('input', { bubbles: true }))
-          elemento.dispatchEvent(new Event('change', { bubbles: true }))
-          setTextoTipeado(texto)
+          targetInput.dispatchEvent(new Event('input', { bubbles: true }))
+          targetInput.dispatchEvent(new Event('change', { bubbles: true }))
+          setTextoTipeado(valorFormateado)
         } catch {}
         const tDate = setTimeout(resolve, Math.max(150, 400 / velocidad))
         timeoutsRef.current.push(tDate)
         return
       }
 
+      // Texto estándar / Números / Textarea
       intervaloTipeoRef.current = setInterval(() => {
         if (canceladoRef.current) {
           clearInterval(intervaloTipeoRef.current)
@@ -336,28 +488,35 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
         const sub = texto.slice(0, idx)
         setTextoTipeado(sub)
 
-        if (elemento) {
+        if (targetInput) {
           try {
-            elemento.focus()
-            const nativeSetter =
-              Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set ||
-              Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set
+            targetInput.focus()
+            const proto = targetInput.tagName === 'TEXTAREA'
+              ? window.HTMLTextAreaElement.prototype
+              : window.HTMLInputElement.prototype
+            const nativeSetter = Object.getOwnPropertyDescriptor(proto, 'value')?.set
             if (nativeSetter) {
-              nativeSetter.call(elemento, sub)
+              nativeSetter.call(targetInput, sub)
             } else {
-              elemento.value = sub
+              targetInput.value = sub
             }
-            elemento.dispatchEvent(new Event('input', { bubbles: true }))
-            elemento.dispatchEvent(new Event('change', { bubbles: true }))
+            targetInput.dispatchEvent(new Event('input', { bubbles: true }))
+            targetInput.dispatchEvent(new Event('change', { bubbles: true }))
           } catch {}
         }
 
         if (idx >= texto.length) {
           clearInterval(intervaloTipeoRef.current)
           intervaloTipeoRef.current = null
+          if (targetInput) {
+            try {
+              targetInput.dispatchEvent(new Event('change', { bubbles: true }))
+              targetInput.dispatchEvent(new Event('blur', { bubbles: true }))
+            } catch {}
+          }
           resolve()
         }
-      }, Math.max(20, 50 / velocidad))
+      }, Math.max(18, 45 / velocidad))
     })
   }, [velocidad])
 
@@ -368,7 +527,7 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
 
     if (elemento) {
       try {
-        const interactivo = elemento.closest('button, a, [role="button"], [role="tab"], input, label') || elemento
+        const interactivo = elemento.closest('button, a, [role="button"], [role="tab"], [role="radio"], input, select, textarea, label') || elemento
         interactivo.classList.add('ring-2', 'ring-sky-400', 'ring-offset-2')
         const tRing = setTimeout(() => {
           interactivo.classList.remove('ring-2', 'ring-sky-400', 'ring-offset-2')
@@ -1036,12 +1195,14 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
           setTextoAccion(paso.etiqueta)
         }
 
-        // 2. Si el paso requiere esperar a que el elemento monte en el DOM
+        // 2. Si el paso requiere esperar a que el elemento monte en el DOM (o sondeo adaptativo rápido)
         let elemento = null
         if (paso.esperarElemento) {
-          elemento = await esperarElemento(paso, 2000)
-          if (canceladoRef.current || secuenciaIdRef.current !== secId) break
+          elemento = await esperarElemento(paso, 3500)
+        } else {
+          elemento = await esperarElemento(paso, 800)
         }
+        if (canceladoRef.current || secuenciaIdRef.current !== secId) break
 
         // 3. Localizar coordenadas reales del elemento o fallback
         const coords = obtenerCoordenadas(paso)
@@ -1056,11 +1217,19 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
         if (paso.tipo === 'click') {
           await esperarMs(120)
           if (canceladoRef.current || secuenciaIdRef.current !== secId) break
+          if (!elemento) {
+            const recheck = obtenerCoordenadas(paso)
+            elemento = recheck.elemento
+          }
           ejecutarClic(coords.x, coords.y, elemento, Boolean(paso.soloVisual))
           await esperarMs(paso.pausaDespues || 600)
         } else if (paso.tipo === 'tipear') {
           await esperarMs(150)
           if (canceladoRef.current || secuenciaIdRef.current !== secId) break
+          if (!elemento) {
+            const recheck = obtenerCoordenadas(paso)
+            elemento = recheck.elemento
+          }
           await simularEscritura(elemento, paso.texto || '')
           await esperarMs(paso.pausaDespues || 800)
         } else if (paso.tipo === 'mover') {

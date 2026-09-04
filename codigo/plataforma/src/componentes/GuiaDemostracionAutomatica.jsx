@@ -109,20 +109,24 @@ export const PASOS_DEMO = [
 function obtenerInfoElemento(el) {
   if (!el) return { selector: '', textoBoton: undefined, rx: 0.5, ry: 0.5, etiqueta: 'Elemento', esInput: false }
 
+  // Detectar ancestro interactivo si el clic ocurrió en un nodo hijo (ej: span, svg, icon)
+  const interactivo = el.closest('button, a, [role="button"], [role="tab"], [role="radio"], input, select, textarea, label') || el
+  const target = interactivo
+
   let selector = ''
-  if (el.id && typeof el.id === 'string' && el.id.trim() && !el.id.startsWith(':r')) {
-    selector = `#${el.id.trim()}`
+  if (target.id && typeof target.id === 'string' && target.id.trim() && !target.id.startsWith(':r')) {
+    selector = `#${target.id.trim()}`
   }
 
-  const textoRaw = (el.innerText || el.textContent || el.value || '').trim()
+  const textoRaw = (target.innerText || target.textContent || target.value || '').trim()
   const textoLimpio = textoRaw.replace(/\s+/g, ' ').slice(0, 35)
 
-  const tagName = (el.tagName || '').toLowerCase()
-  const placeholder = el.getAttribute?.('placeholder')?.trim() || ''
-  const name = el.getAttribute?.('name')?.trim() || ''
-  const role = el.getAttribute?.('role')?.trim() || ''
-  const title = el.getAttribute?.('title')?.trim() || ''
-  const ariaLabel = el.getAttribute?.('aria-label')?.trim() || ''
+  const tagName = (target.tagName || '').toLowerCase()
+  const placeholder = target.getAttribute?.('placeholder')?.trim() || ''
+  const name = target.getAttribute?.('name')?.trim() || ''
+  const role = target.getAttribute?.('role')?.trim() || ''
+  const title = target.getAttribute?.('title')?.trim() || ''
+  const ariaLabel = target.getAttribute?.('aria-label')?.trim() || ''
 
   if (!selector) {
     if (placeholder) {
@@ -137,6 +141,8 @@ function obtenerInfoElemento(el) {
       selector = 'button'
     } else if (tagName === 'a') {
       selector = 'a'
+    } else if (tagName === 'select') {
+      selector = 'select'
     } else {
       selector = tagName || 'div'
     }
@@ -145,19 +151,19 @@ function obtenerInfoElemento(el) {
   let rx = 0.5
   let ry = 0.5
   try {
-    const rect = el.getBoundingClientRect()
+    const rect = target.getBoundingClientRect()
     const w = window.innerWidth || 1
     const h = window.innerHeight || 1
     rx = Math.round(((rect.left + rect.width / 2) / w) * 100) / 100
     ry = Math.round(((rect.top + rect.height / 2) / h) * 100) / 100
   } catch {}
 
-  const esInput = tagName === 'input' || tagName === 'textarea'
+  const esInput = tagName === 'input' || tagName === 'textarea' || tagName === 'select'
   let etiqueta = ''
   if (esInput) {
-    etiqueta = `Campo: ${placeholder || name || el.id || 'Texto'}`
+    etiqueta = `Campo: ${placeholder || name || target.id || 'Texto'}`
   } else {
-    etiqueta = textoLimpio || title || ariaLabel || el.id || tagName
+    etiqueta = textoLimpio || title || ariaLabel || target.id || tagName
   }
 
   return {
@@ -549,6 +555,24 @@ export function GuiaDemostracionAutomatica({
       }, 10)
       setMensajeGuardado(`Fase ${pasoActual.fase} restablecida a valores de fábrica`)
       setTimeout(() => setMensajeGuardado(''), 2500)
+    }
+  }
+
+  // Restablecer todas las fases a las rutinas oficiales inteligentes
+  const restablecerTodasLasRutinasFabrica = () => {
+    if (typeof window !== 'undefined') {
+      PASOS_DEMO.forEach((p) => {
+        localStorage.removeItem(`sigic_demo_secuencia_${p.fase}`)
+      })
+      setTieneRutinaGuardada(false)
+      setAccionesGrabadas([])
+      accionesGrabadasRef.current = []
+      actualizarMapaFasesGrabadas()
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('sigic-rutina-actualizada', { detail: { fase: pasoActual.fase } }))
+      }, 10)
+      setMensajeGuardado('Todas las fases restablecidas a rutinas oficiales inteligentes')
+      setTimeout(() => setMensajeGuardado(''), 3000)
     }
   }
 
@@ -986,7 +1010,7 @@ export function GuiaDemostracionAutomatica({
                   <span>Deshacer</span>
                 </button>
 
-                {tieneRutinaGuardada && (
+                {tieneRutinaGuardada ? (
                   <button
                     type="button"
                     onClick={vaciarRutinaFabrica}
@@ -994,6 +1018,15 @@ export function GuiaDemostracionAutomatica({
                     title="Restablecer fase a valores de fábrica"
                   >
                     <Trash2 size={11} />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={restablecerTodasLasRutinasFabrica}
+                    className="p-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-cyan-400 border border-slate-800 transition cursor-pointer"
+                    title="Restablecer todas las fases a rutinas oficiales inteligentes"
+                  >
+                    <RotateCcw size={11} />
                   </button>
                 )}
 
@@ -1252,7 +1285,7 @@ export function GuiaDemostracionAutomatica({
                       <div className="absolute right-0 bottom-full mb-2 w-80 bg-slate-950/98 backdrop-blur-2xl border border-slate-700/90 rounded-2xl p-2 shadow-2xl space-y-1 max-h-72 overflow-y-auto z-[9999] font-sans">
                         <div className="flex items-center justify-between px-2 py-1 text-[8.5px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-800 pb-1 mb-1">
                           <span>Fases de Demostración</span>
-                          <span className="text-cyan-400 font-mono">9 pasos</span>
+                          <span className="text-cyan-400 font-mono">{PASOS_DEMO.length} pasos</span>
                         </div>
                         {PASOS_DEMO.map((p, idx) => {
                           const tieneMacro =

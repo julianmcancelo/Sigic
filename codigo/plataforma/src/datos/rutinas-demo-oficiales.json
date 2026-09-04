@@ -2,574 +2,250 @@
   "1": [
     {
       "tipo": "mover",
-      "selector": "button",
-      "textoBoton": "Inicializar",
-      "rx": 0.03,
-      "ry": 0.14,
-      "etiqueta": "Mover hacia: Inicializar",
-      "pausaDespues": 500,
+      "selector": "#btn-nueva-ceremonia, button",
+      "textoBoton": "Nueva Ceremonia",
+      "rx": 0.88,
+      "ry": 0.12,
+      "etiqueta": "Configurando acto oficial de colación...",
+      "pausaDespues": 600,
       "esperarElemento": true
     },
     {
       "tipo": "click",
-      "selector": "button",
-      "textoBoton": "Inicializar",
-      "rx": 0.03,
-      "ry": 0.14,
-      "etiqueta": "Clic en: Inicializar",
-      "pausaDespues": 700,
+      "selector": "#btn-nueva-ceremonia, button",
+      "textoBoton": "Nueva Ceremonia",
+      "rx": 0.88,
+      "ry": 0.12,
+      "etiqueta": "Abriendo inicializador de hábitat de grado...",
+      "pausaDespues": 600,
       "esperarElemento": true
     },
     {
       "tipo": "mover",
-      "selector": "#btn-nueva-ceremonia",
-      "textoBoton": "NUEVA CEREMONIA",
-      "rx": 0.51,
-      "ry": 0.2,
-      "etiqueta": "Mover hacia: NUEVA CEREMONIA",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "#btn-nueva-ceremonia",
-      "textoBoton": "NUEVA CEREMONIA",
-      "rx": 0.51,
-      "ry": 0.2,
-      "etiqueta": "Clic en: NUEVA CEREMONIA",
-      "pausaDespues": 700,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "mover",
-      "selector": "#input-nombre-ceremonia",
-      "rx": 0.31,
-      "ry": 0.3,
-      "etiqueta": "Mover hacia: Campo: Ej: Colación de Grado - Promoción 2026",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "#input-nombre-ceremonia",
-      "rx": 0.31,
-      "ry": 0.3,
-      "etiqueta": "Clic en: Campo: Ej: Colación de Grado - Promoción 2026",
-      "pausaDespues": 700,
+      "selector": "#input-nombre-ceremonia, input[name=\"nombre\"], input",
+      "rx": 0.5,
+      "ry": 0.28,
+      "etiqueta": "Ingresando denominación institucional...",
+      "pausaDespues": 400,
       "esperarElemento": true
     },
     {
       "tipo": "tipear",
-      "selector": "#input-nombre-ceremonia",
-      "texto": "Ceremonia de Prueba SIGIC",
-      "etiqueta": "Escribir: \"Ceremonia de Prueba SIGIC\"",
-      "pausaDespues": 800,
+      "selector": "#input-nombre-ceremonia, input[name=\"nombre\"], input",
+      "texto": "Colación Oficial Beltrán 2026",
+      "etiqueta": "Nombre: \"Colación Oficial Beltrán 2026\"",
+      "pausaDespues": 650,
       "esperarElemento": true
     },
     {
       "tipo": "mover",
-      "selector": "#input-fecha-ceremonia",
-      "rx": 0.25,
-      "ry": 0.39,
-      "etiqueta": "Mover hacia: Campo: fecha",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "#input-fecha-ceremonia",
-      "rx": 0.25,
-      "ry": 0.39,
-      "etiqueta": "Clic en: Campo: fecha",
-      "pausaDespues": 700,
+      "selector": "#input-fecha-ceremonia, input[type=\"date\"]",
+      "rx": 0.35,
+      "ry": 0.42,
+      "etiqueta": "Programando fecha oficial del acto...",
+      "pausaDespues": 400,
       "esperarElemento": true
     },
     {
       "tipo": "tipear",
-      "selector": "#input-fecha-ceremonia",
-      "texto": "2026-09-25",
-      "etiqueta": "Escribir: \"2026-09-25\"",
-      "pausaDespues": 800,
+      "selector": "#input-fecha-ceremonia, input[type=\"date\"]",
+      "texto": "2026-11-20",
+      "etiqueta": "Fecha: 20/11/2026",
+      "pausaDespues": 550,
       "esperarElemento": true
     },
     {
       "tipo": "mover",
-      "selector": "#input-max-invitados-ceremonia",
-      "rx": 0.37,
-      "ry": 0.39,
-      "etiqueta": "Mover hacia: Campo: input-max-invitados-ceremonia",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "#input-max-invitados-ceremonia",
-      "rx": 0.37,
-      "ry": 0.39,
-      "etiqueta": "Clic en: Campo: input-max-invitados-ceremonia",
-      "pausaDespues": 700,
+      "selector": "#input-max-invitados-ceremonia, input[type=\"number\"]",
+      "rx": 0.65,
+      "ry": 0.42,
+      "etiqueta": "Configurando cupo de invitados por graduado...",
+      "pausaDespues": 350,
       "esperarElemento": true
     },
     {
       "tipo": "tipear",
-      "selector": "#input-max-invitados-ceremonia",
-      "texto": "1",
-      "etiqueta": "Escribir: \"1\"",
-      "pausaDespues": 800,
+      "selector": "#input-max-invitados-ceremonia, input[type=\"number\"]",
+      "texto": "4",
+      "etiqueta": "Máximo invitados: 4 por egresado",
+      "pausaDespues": 450,
       "esperarElemento": true
     },
     {
       "tipo": "mover",
-      "selector": "#input-lugar-ceremonia",
-      "rx": 0.31,
-      "ry": 0.48,
-      "etiqueta": "Mover hacia: Campo: input-lugar-ceremonia",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "#input-lugar-ceremonia",
-      "rx": 0.31,
-      "ry": 0.48,
-      "etiqueta": "Clic en: Campo: input-lugar-ceremonia",
-      "pausaDespues": 700,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "mover",
-      "selector": "#input-lugar-ceremonia",
-      "rx": 0.31,
-      "ry": 0.48,
-      "etiqueta": "Mover hacia: Campo: input-lugar-ceremonia",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "#input-lugar-ceremonia",
-      "rx": 0.31,
-      "ry": 0.48,
-      "etiqueta": "Clic en: Campo: input-lugar-ceremonia",
-      "pausaDespues": 700,
+      "selector": "#input-lugar-ceremonia, input[name=\"lugar\"], input",
+      "rx": 0.5,
+      "ry": 0.55,
+      "etiqueta": "Validando sede y auditorio...",
+      "pausaDespues": 400,
       "esperarElemento": true
     },
     {
       "tipo": "tipear",
-      "selector": "#input-lugar-ceremonia",
-      "texto": "Sede Avellaneda",
-      "etiqueta": "Escribir: \"Sede Avellaneda\"",
-      "pausaDespues": 800,
+      "selector": "#input-lugar-ceremonia, input[name=\"lugar\"], input",
+      "texto": "Sede Beltrán Avellaneda",
+      "etiqueta": "Sede: Sede Beltrán Avellaneda",
+      "pausaDespues": 550,
       "esperarElemento": true
     },
     {
       "tipo": "mover",
-      "selector": "#input-limite-ceremonia",
-      "rx": 0.31,
-      "ry": 0.58,
-      "etiqueta": "Mover hacia: Campo: input-limite-ceremonia",
-      "pausaDespues": 500,
+      "selector": "#btn-crear-submit-ceremonia, button[type=\"submit\"]",
+      "textoBoton": "Crear",
+      "rx": 0.7,
+      "ry": 0.9,
+      "etiqueta": "Confirmando e inicializando hábitat...",
+      "pausaDespues": 450,
       "esperarElemento": true
     },
     {
       "tipo": "click",
-      "selector": "#input-limite-ceremonia",
-      "rx": 0.31,
-      "ry": 0.58,
-      "etiqueta": "Clic en: Campo: input-limite-ceremonia",
-      "pausaDespues": 700,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "tipear",
-      "selector": "#input-limite-ceremonia",
-      "texto": "2026-10-22T09:47",
-      "etiqueta": "Escribir: \"2026-10-22T09:47\"",
-      "pausaDespues": 800,
+      "selector": "#btn-crear-submit-ceremonia, button[type=\"submit\"]",
+      "textoBoton": "Crear",
+      "rx": 0.7,
+      "ry": 0.9,
+      "etiqueta": "Ceremonia creada y activada con éxito",
+      "pausaDespues": 850,
       "esperarElemento": true
     },
     {
       "tipo": "mover",
-      "selector": "div",
-      "textoBoton": "FECHA LÍMITE DE CONFIRMACIÓN Opcion",
-      "rx": 0.31,
-      "ry": 0.54,
-      "etiqueta": "Mover hacia: FECHA LÍMITE DE CONFIRMACIÓN Opcion",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "div",
-      "textoBoton": "FECHA LÍMITE DE CONFIRMACIÓN Opcion",
-      "rx": 0.31,
-      "ry": 0.54,
-      "etiqueta": "Clic en: FECHA LÍMITE DE CONFIRMACIÓN Opcion",
-      "pausaDespues": 700,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "mover",
-      "selector": "#btn-crear-submit-ceremonia",
-      "textoBoton": "CREAR",
-      "rx": 0.37,
-      "ry": 0.69,
-      "etiqueta": "Mover hacia: CREAR",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "#btn-crear-submit-ceremonia",
-      "textoBoton": "CREAR",
-      "rx": 0.37,
-      "ry": 0.69,
-      "etiqueta": "Clic en: CREAR",
-      "pausaDespues": 700,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "mover",
-      "selector": "#btn-paso2-cargar-graduados, button",
-      "textoBoton": "PASO 2: CARGAR GRADUADOS (EXCEL)",
-      "rx": 0.49,
-      "ry": 0.61,
-      "etiqueta": "Mover hacia: PASO 2: CARGAR GRADUADOS (EXCEL)",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "#btn-paso2-cargar-graduados, button",
-      "textoBoton": "PASO 2: CARGAR GRADUADOS (EXCEL)",
-      "rx": 0.49,
-      "ry": 0.61,
-      "etiqueta": "Clic en: PASO 2: CARGAR GRADUADOS (EXCEL)",
-      "pausaDespues": 700,
+      "selector": "[class*=\"border-sky-500\"], h3, div",
+      "textoBoton": "Entorno Activo",
+      "rx": 0.28,
+      "ry": 0.36,
+      "etiqueta": "Ceremonia activa confirmada: Auditorio Beltrán",
+      "pausaDespues": 900,
       "esperarElemento": true
     }
   ],
   "2": [
     {
       "tipo": "mover",
-      "selector": "#btn-importar-excel",
-      "textoBoton": "Importar Excel / CSV",
-      "rx": 0.48,
-      "ry": 0.13,
-      "etiqueta": "Mover hacia: Importar Excel / CSV",
-      "pausaDespues": 500,
+      "selector": "#btn-importar-excel, button",
+      "textoBoton": "Importar Excel",
+      "rx": 0.68,
+      "ry": 0.14,
+      "etiqueta": "Validando planilla oficial .xlsx y padrón...",
+      "pausaDespues": 600,
       "esperarElemento": true
     },
     {
       "tipo": "click",
-      "selector": "#btn-importar-excel",
-      "textoBoton": "Importar Excel / CSV",
-      "rx": 0.48,
-      "ry": 0.13,
-      "etiqueta": "Clic en: Importar Excel / CSV",
-      "pausaDespues": 700,
+      "selector": "#btn-importar-excel, button",
+      "textoBoton": "Importar Excel",
+      "rx": 0.68,
+      "ry": 0.14,
+      "soloVisual": true,
+      "etiqueta": "Padrón verificado: 12 egresados listos",
+      "pausaDespues": 650,
       "esperarElemento": true
     },
     {
       "tipo": "mover",
-      "selector": "button",
-      "textoBoton": "Cancelar",
-      "rx": 0.39,
-      "ry": 0.58,
-      "etiqueta": "Mover hacia: Cancelar",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "button",
-      "textoBoton": "Cancelar",
-      "rx": 0.39,
-      "ry": 0.58,
-      "etiqueta": "Clic en: Cancelar",
-      "pausaDespues": 700,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "mover",
-      "selector": "button",
-      "textoBoton": "Nuevo Alumno",
-      "rx": 0.56,
-      "ry": 0.13,
-      "etiqueta": "Mover hacia: Nuevo Alumno",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "button",
-      "textoBoton": "Nuevo Alumno",
-      "rx": 0.56,
-      "ry": 0.13,
-      "etiqueta": "Clic en: Nuevo Alumno",
-      "pausaDespues": 700,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "mover",
-      "selector": "input[placeholder*=\"Juan Cancelo\"]",
-      "rx": 0.33,
-      "ry": 0.4,
-      "etiqueta": "Mover hacia: Campo: Juan Cancelo",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "input[placeholder*=\"Juan Cancelo\"]",
-      "rx": 0.33,
-      "ry": 0.4,
-      "etiqueta": "Clic en: Campo: Juan Cancelo",
-      "pausaDespues": 700,
+      "selector": "#buscador-graduados, input[placeholder*=\"Buscar\" i], input",
+      "rx": 0.38,
+      "ry": 0.22,
+      "etiqueta": "Buscando en nómina oficial...",
+      "pausaDespues": 450,
       "esperarElemento": true
     },
     {
       "tipo": "tipear",
-      "selector": "input[placeholder*=\"35230531\"]",
-      "texto": "12345678",
-      "etiqueta": "Escribir: \"12345678\"",
+      "selector": "#buscador-graduados, input[placeholder*=\"Buscar\" i], input",
+      "texto": "Julian",
+      "etiqueta": "Filtrando egresado por nombre y DNI...",
+      "pausaDespues": 1000,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "tr:has(td), div[class*=\"rounded\"]:has(td), tr, td",
+      "rx": 0.38,
+      "ry": 0.42,
+      "etiqueta": "Egresado verificado: DNI, Legajo y Correo validados",
+      "pausaDespues": 1000,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "#btn-paso3-convocatoria, button",
+      "textoBoton": "Paso 3",
+      "rx": 0.88,
+      "ry": 0.18,
+      "etiqueta": "Continuando a convocatoria y despacho de tokens...",
+      "pausaDespues": 600,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#btn-paso3-convocatoria, button",
+      "textoBoton": "Paso 3",
+      "rx": 0.88,
+      "ry": 0.18,
+      "etiqueta": "Avanzando a despacho de tokens OTP...",
       "pausaDespues": 800,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "mover",
-      "selector": "input[placeholder*=\"Juan Cancelo\"]",
-      "rx": 0.33,
-      "ry": 0.4,
-      "etiqueta": "Mover hacia: Campo: Juan Cancelo",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "input[placeholder*=\"Juan Cancelo\"]",
-      "rx": 0.33,
-      "ry": 0.4,
-      "etiqueta": "Clic en: Campo: Juan Cancelo",
-      "pausaDespues": 700,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "tipear",
-      "selector": "input[placeholder*=\"Juan Cancelo\"]",
-      "texto": "Julian Prueba",
-      "etiqueta": "Escribir: \"Julian Prueba\"",
-      "pausaDespues": 800,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "mover",
-      "selector": "div",
-      "textoBoton": "NOMBRE COMPLETO DNI CORREO (OPCIONA",
-      "rx": 0.5,
-      "ry": 0.49,
-      "etiqueta": "Mover hacia: NOMBRE COMPLETO DNI CORREO (OPCIONA",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "div",
-      "textoBoton": "NOMBRE COMPLETO DNI CORREO (OPCIONA",
-      "rx": 0.5,
-      "ry": 0.49,
-      "etiqueta": "Clic en: NOMBRE COMPLETO DNI CORREO (OPCIONA",
-      "pausaDespues": 700,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "mover",
-      "selector": "input[placeholder*=\"juan@ejemplo.com\"]",
-      "rx": 0.67,
-      "ry": 0.4,
-      "etiqueta": "Mover hacia: Campo: juan@ejemplo.com",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "input[placeholder*=\"juan@ejemplo.com\"]",
-      "rx": 0.67,
-      "ry": 0.4,
-      "etiqueta": "Clic en: Campo: juan@ejemplo.com",
-      "pausaDespues": 700,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "tipear",
-      "selector": "input[placeholder*=\"227067\"]",
-      "texto": "123456",
-      "etiqueta": "Escribir: \"123456\"",
-      "pausaDespues": 800,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "mover",
-      "selector": "select",
-      "textoBoton": "-- Seleccionar Carrera Oficial -- A",
-      "rx": 0.5,
-      "ry": 0.5,
-      "etiqueta": "Mover hacia: -- Seleccionar Carrera Oficial -- A",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "select",
-      "textoBoton": "-- Seleccionar Carrera Oficial -- A",
-      "rx": 0.5,
-      "ry": 0.5,
-      "etiqueta": "Clic en: -- Seleccionar Carrera Oficial -- A",
-      "pausaDespues": 700,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "tipear",
-      "selector": "select",
-      "texto": "Redes e Infraestructura",
-      "etiqueta": "Escribir: \"Redes e Infraestructura\"",
-      "pausaDespues": 800,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "mover",
-      "selector": "select",
-      "textoBoton": "-- Seleccionar Carrera Oficial -- A",
-      "rx": 0.5,
-      "ry": 0.51,
-      "etiqueta": "Mover hacia: -- Seleccionar Carrera Oficial -- A",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "select",
-      "textoBoton": "-- Seleccionar Carrera Oficial -- A",
-      "rx": 0.5,
-      "ry": 0.51,
-      "etiqueta": "Clic en: -- Seleccionar Carrera Oficial -- A",
-      "pausaDespues": 700,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "mover",
-      "selector": "input[placeholder*=\"2022\"]",
-      "rx": 0.67,
-      "ry": 0.49,
-      "etiqueta": "Mover hacia: Campo: 2022",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "input[placeholder*=\"2022\"]",
-      "rx": 0.67,
-      "ry": 0.49,
-      "etiqueta": "Clic en: Campo: 2022",
-      "pausaDespues": 700,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "tipear",
-      "selector": "input[placeholder*=\"2022\"]",
-      "texto": "2021",
-      "etiqueta": "Escribir: \"2021\"",
-      "pausaDespues": 800,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "mover",
-      "selector": "button",
-      "textoBoton": "CREAR GRADUADO",
-      "rx": 0.61,
-      "ry": 0.8,
-      "etiqueta": "Mover hacia: CREAR GRADUADO",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "button",
-      "textoBoton": "CREAR GRADUADO",
-      "rx": 0.61,
-      "ry": 0.8,
-      "etiqueta": "Clic en: CREAR GRADUADO",
-      "pausaDespues": 700,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "mover",
-      "selector": "#btn-paso3-convocatoria",
-      "textoBoton": "PASO 3: CONVOCATORIA",
-      "rx": 0.6,
-      "ry": 0.19,
-      "etiqueta": "Mover hacia: PASO 3: CONVOCATORIA",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "#btn-paso3-convocatoria",
-      "textoBoton": "PASO 3: CONVOCATORIA",
-      "rx": 0.6,
-      "ry": 0.19,
-      "etiqueta": "Clic en: PASO 3: CONVOCATORIA",
-      "pausaDespues": 700,
       "esperarElemento": true
     }
   ],
   "3": [
     {
       "tipo": "mover",
-      "selector": "#tab-convocatoria-pendientes, button:has(strong), button",
+      "selector": "#tab-convocatoria-pendientes, button",
       "textoBoton": "Por Invitar",
       "rx": 0.24,
       "ry": 0.28,
       "etiqueta": "Segmentando egresados por convocar...",
-      "pausaDespues": 600
+      "pausaDespues": 600,
+      "esperarElemento": true
     },
     {
       "tipo": "click",
-      "selector": "#tab-convocatoria-pendientes, button:has(strong), button",
+      "selector": "#tab-convocatoria-pendientes, button",
       "textoBoton": "Por Invitar",
+      "rx": 0.24,
+      "ry": 0.28,
       "etiqueta": "Filtro activo: egresados pendientes de invitación",
-      "pausaDespues": 650
+      "pausaDespues": 650,
+      "esperarElemento": true
     },
     {
       "tipo": "mover",
-      "selector": "#btn-template-studio, button.bg-slate-100, button",
+      "selector": "#btn-template-studio, button",
       "textoBoton": "Template Studio",
       "rx": 0.72,
       "ry": 0.14,
       "etiqueta": "Previsualizando plantilla oficial de invitación...",
-      "pausaDespues": 500
+      "pausaDespues": 500,
+      "esperarElemento": true
     },
     {
       "tipo": "click",
-      "selector": "#btn-template-studio, button.bg-slate-100, button",
+      "selector": "#btn-template-studio, button",
       "textoBoton": "Template Studio",
+      "rx": 0.72,
+      "ry": 0.14,
       "etiqueta": "Abriendo Template Studio con branding Beltrán...",
-      "pausaDespues": 850
+      "pausaDespues": 850,
+      "esperarElemento": true
     },
     {
       "tipo": "mover",
-      "selector": "#btn-cerrar-preview-correo, header button:has(svg), header button",
-      "esperarElemento": true,
+      "selector": "#btn-cerrar-preview-correo, header button:has(svg), header button, button",
       "rx": 0.78,
       "ry": 0.12,
       "etiqueta": "Plantilla aprobada: enlace seguro y token criptográfico",
-      "pausaDespues": 650
+      "pausaDespues": 650,
+      "esperarElemento": true
     },
     {
       "tipo": "click",
-      "selector": "#btn-cerrar-preview-correo, header button:has(svg), header button",
+      "selector": "#btn-cerrar-preview-correo, header button:has(svg), header button, button",
+      "rx": 0.78,
+      "ry": 0.12,
       "etiqueta": "Cerrando previsualización...",
-      "pausaDespues": 600
+      "pausaDespues": 600,
+      "esperarElemento": true
     },
     {
       "tipo": "mover",
@@ -578,41 +254,50 @@
       "rx": 0.82,
       "ry": 0.42,
       "etiqueta": "Invitaciones y tokens OTP emitidos con éxito",
-      "pausaDespues": 1200
+      "pausaDespues": 1200,
+      "esperarElemento": true
     }
   ],
   "4": [
     {
       "tipo": "mover",
-      "selector": "#tarjeta-formula-dios-patria, div[class*=\"cursor-pointer\"]:has(h3)",
+      "selector": "#tarjeta-formula-dios-patria, div[class*=\"cursor-pointer\"]",
       "textoBoton": "Por Dios y por La Patria",
       "rx": 0.32,
       "ry": 0.52,
       "etiqueta": "Explorando fórmulas solemnes de juramento...",
-      "pausaDespues": 600
+      "pausaDespues": 600,
+      "esperarElemento": true
     },
     {
       "tipo": "click",
-      "selector": "#tarjeta-formula-dios-patria, div[class*=\"cursor-pointer\"]:has(h3)",
+      "selector": "#tarjeta-formula-dios-patria, div[class*=\"cursor-pointer\"]",
       "textoBoton": "Por Dios y por La Patria",
+      "rx": 0.32,
+      "ry": 0.52,
       "etiqueta": "Seleccionando: Fórmula I (Por Dios y por La Patria)",
-      "pausaDespues": 800
+      "pausaDespues": 800,
+      "esperarElemento": true
     },
     {
       "tipo": "mover",
-      "selector": "#tarjeta-formula-patria, div[class*=\"cursor-pointer\"]:has(h3)",
+      "selector": "#tarjeta-formula-patria, div[class*=\"cursor-pointer\"]",
       "textoBoton": "Por La Patria",
       "rx": 0.68,
       "ry": 0.52,
       "etiqueta": "Comparando con Fórmula II (Cívica institucional)...",
-      "pausaDespues": 600
+      "pausaDespues": 600,
+      "esperarElemento": true
     },
     {
       "tipo": "click",
-      "selector": "#tarjeta-formula-patria, div[class*=\"cursor-pointer\"]:has(h3)",
+      "selector": "#tarjeta-formula-patria, div[class*=\"cursor-pointer\"]",
       "textoBoton": "Por La Patria",
+      "rx": 0.68,
+      "ry": 0.52,
       "etiqueta": "Seleccionando: Fórmula II (Por La Patria)",
-      "pausaDespues": 800
+      "pausaDespues": 800,
+      "esperarElemento": true
     },
     {
       "tipo": "mover",
@@ -620,81 +305,98 @@
       "rx": 0.5,
       "ry": 0.76,
       "etiqueta": "Registrando comentarios para el estrado oficial...",
-      "pausaDespues": 450
+      "pausaDespues": 450,
+      "esperarElemento": true
     },
     {
       "tipo": "tipear",
       "selector": "#textarea-juramento-comentarios, textarea",
       "texto": "Asistiré puntual junto a mi familia",
       "etiqueta": "Escribiendo nota institucional...",
-      "pausaDespues": 850
+      "pausaDespues": 850,
+      "esperarElemento": true
     },
     {
       "tipo": "mover",
-      "selector": "#btn-guardar-juramento, button.bg-slate-900, button",
+      "selector": "#btn-guardar-juramento, button",
       "textoBoton": "Guardar comentarios",
       "rx": 0.66,
       "ry": 0.86,
       "etiqueta": "Fórmula protocolar registrada exitosamente",
-      "pausaDespues": 500
+      "pausaDespues": 500,
+      "esperarElemento": true
     },
     {
       "tipo": "click",
-      "selector": "#btn-guardar-juramento, button.bg-slate-900, button",
+      "selector": "#btn-guardar-juramento, button",
       "textoBoton": "Guardar comentarios",
+      "rx": 0.66,
+      "ry": 0.86,
       "etiqueta": "Fórmula guardada en legajo de grado",
-      "pausaDespues": 1000
+      "pausaDespues": 1000,
+      "esperarElemento": true
     }
   ],
   "5": [
     {
       "tipo": "mover",
-      "selector": "#btn-agregar-padrino, button:has(svg), button",
+      "selector": "#btn-agregar-padrino, button",
       "textoBoton": "Agregar padrino",
       "rx": 0.28,
       "ry": 0.46,
       "etiqueta": "Asignando docente para la entrega de diploma...",
-      "pausaDespues": 600
+      "pausaDespues": 600,
+      "esperarElemento": true
     },
     {
       "tipo": "click",
-      "selector": "#btn-agregar-padrino, button:has(svg), button",
+      "selector": "#btn-agregar-padrino, button",
       "textoBoton": "Agregar padrino",
+      "rx": 0.28,
+      "ry": 0.46,
       "etiqueta": "Abriendo selector de padrinos de la institución...",
-      "pausaDespues": 750
+      "pausaDespues": 750,
+      "esperarElemento": true
     },
     {
       "tipo": "mover",
-      "selector": "#btn-elegir-primer-profesor, button.bg-indigo-600, button",
-      "esperarElemento": true,
+      "selector": "#btn-elegir-primer-profesor, button",
       "textoBoton": "Elegir",
       "rx": 0.68,
       "ry": 0.56,
       "etiqueta": "Docente de carrera seleccionado...",
-      "pausaDespues": 550
+      "pausaDespues": 550,
+      "esperarElemento": true
     },
     {
       "tipo": "click",
-      "selector": "#btn-elegir-primer-profesor, button.bg-indigo-600, button",
+      "selector": "#btn-elegir-primer-profesor, button",
       "textoBoton": "Elegir",
+      "rx": 0.68,
+      "ry": 0.56,
       "etiqueta": "Padrino de colación confirmado",
-      "pausaDespues": 850
+      "pausaDespues": 850,
+      "esperarElemento": true
     },
     {
       "tipo": "mover",
-      "selector": "#tab-graduado-acompanantes, nav button",
+      "selector": "#tab-graduado-acompanantes, button",
       "textoBoton": "Acompañantes",
       "rx": 0.38,
       "ry": 0.38,
       "etiqueta": "Verificando grupo familiar para el pase grupal...",
-      "pausaDespues": 600
+      "pausaDespues": 600,
+      "esperarElemento": true
     },
     {
       "tipo": "click",
-      "selector": "#tab-graduado-acompanantes, nav button",
+      "selector": "#tab-graduado-acompanantes, button",
       "textoBoton": "Acompañantes",
+      "rx": 0.38,
+      "ry": 0.38,
       "etiqueta": "Mostrando familiares registrados con DNI...",
-      "pausaDespues": 750
+      "pausaDespues": 750,
+      "esperarElemento": true
     },
     {
       "tipo": "mover",
@@ -702,280 +404,124 @@
       "textoBoton": "Acompañante",
       "rx": 0.5,
       "ry": 0.58,
-      "etiqueta": "Pase grupal habilitado: 2 acompañantes vinculados",
-      "pausaDespues": 1200
+      "etiqueta": "Pase grupal habilitado: familiares vinculados",
+      "pausaDespues": 1200,
+      "esperarElemento": true
     }
   ],
   "6": [
     {
       "tipo": "mover",
-      "selector": "svg[title*=\"QR\" i], aside svg, .credencial-graduado svg",
+      "selector": "svg[title*=\"QR\" i], aside svg, .credencial-graduado svg, canvas",
       "rx": 0.68,
       "ry": 0.44,
       "etiqueta": "Generando credencial digital QR criptográfica...",
-      "pausaDespues": 700
+      "pausaDespues": 700,
+      "esperarElemento": true
     },
     {
       "tipo": "mover",
-      "selector": "div[class*=\"from-sky-50\"], section",
+      "selector": "div, section",
       "textoBoton": "Ubicaciones Asignadas",
       "rx": 0.42,
       "ry": 0.54,
       "etiqueta": "Pase grupal: egresado + familiares vinculados",
-      "pausaDespues": 700
+      "pausaDespues": 700,
+      "esperarElemento": true
     },
     {
       "tipo": "mover",
-      "selector": "#btn-credencial-google-wallet, button:has(svg), button",
+      "selector": "#btn-credencial-google-wallet, button",
       "textoBoton": "Google Wallet",
       "rx": 0.22,
       "ry": 0.9,
       "etiqueta": "Pase oficial listo para Google Wallet (v1.1.0)",
-      "pausaDespues": 600
+      "pausaDespues": 600,
+      "esperarElemento": true
     },
     {
       "tipo": "click",
-      "selector": "#btn-credencial-google-wallet, button:has(svg), button",
+      "selector": "#btn-credencial-google-wallet, button",
+      "textoBoton": "Google Wallet",
+      "rx": 0.22,
+      "ry": 0.9,
       "soloVisual": true,
       "etiqueta": "Guardando pase en Google Wallet...",
-      "pausaDespues": 850
+      "pausaDespues": 850,
+      "esperarElemento": true
     },
     {
       "tipo": "mover",
-      "selector": "#btn-credencial-exportar-pdf, button.bg-sky-600, button",
+      "selector": "#btn-credencial-exportar-pdf, button",
       "textoBoton": "Exportar PDF",
       "rx": 0.48,
       "ry": 0.9,
       "etiqueta": "Exportación a PDF con código QR de alta resolución",
-      "pausaDespues": 600
+      "pausaDespues": 600,
+      "esperarElemento": true
     },
     {
       "tipo": "click",
-      "selector": "#btn-credencial-exportar-pdf, button.bg-sky-600, button",
+      "selector": "#btn-credencial-exportar-pdf, button",
+      "textoBoton": "Exportar PDF",
+      "rx": 0.48,
+      "ry": 0.9,
       "soloVisual": true,
       "etiqueta": "Credencial lista para validación en portería",
-      "pausaDespues": 1200
+      "pausaDespues": 1200,
+      "esperarElemento": true
     }
   ],
   "7": [
     {
       "tipo": "mover",
-      "selector": "button",
-      "textoBoton": "Preparación",
-      "rx": 0.03,
-      "ry": 0.41,
-      "etiqueta": "Mover hacia: Preparación",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "button",
-      "textoBoton": "Preparación",
-      "rx": 0.03,
-      "ry": 0.41,
-      "etiqueta": "Clic en: Preparación",
+      "selector": "header, h2, div",
+      "textoBoton": "Distribución y Asignación",
+      "rx": 0.35,
+      "ry": 0.12,
+      "etiqueta": "Analizando plano del auditorio: Platea Baja y Pullman...",
       "pausaDespues": 700,
       "esperarElemento": true
     },
     {
       "tipo": "mover",
-      "selector": "main",
-      "textoBoton": "SIGIC SISTEMA INTEGRAL DE GESTIÓN I",
-      "rx": 0.5,
-      "ry": 0.5,
-      "etiqueta": "Mover hacia: SIGIC SISTEMA INTEGRAL DE GESTIÓN I",
-      "pausaDespues": 500,
+      "selector": "#btn-auto-asignar-butacas, button",
+      "textoBoton": "Auto-Asignar Butacas",
+      "rx": 0.76,
+      "ry": 0.12,
+      "etiqueta": "Ejecutando algoritmo Auto-Seating por carrera...",
+      "pausaDespues": 650,
       "esperarElemento": true
     },
     {
       "tipo": "click",
-      "selector": "main",
-      "textoBoton": "SIGIC SISTEMA INTEGRAL DE GESTIÓN I",
-      "rx": 0.5,
-      "ry": 0.5,
-      "etiqueta": "Clic en: SIGIC SISTEMA INTEGRAL DE GESTIÓN I",
-      "pausaDespues": 700,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "mover",
-      "selector": "button[aria-label*=\"Asiento baja-C-12 — \"]",
-      "textoBoton": "12",
-      "rx": 0.41,
-      "ry": 0.66,
-      "etiqueta": "Mover hacia: 12",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "button[aria-label*=\"Asiento baja-C-12 — \"]",
-      "textoBoton": "12",
-      "rx": 0.41,
-      "ry": 0.66,
-      "etiqueta": "Clic en: 12",
-      "pausaDespues": 700,
+      "selector": "#btn-auto-asignar-butacas, button",
+      "textoBoton": "Auto-Asignar Butacas",
+      "rx": 0.76,
+      "ry": 0.12,
+      "soloVisual": false,
+      "etiqueta": "Calculando orden alfabético y bloques contiguos...",
+      "pausaDespues": 1000,
       "esperarElemento": true
     },
     {
       "tipo": "mover",
       "selector": "button",
-      "textoBoton": "Padrón y Asignaciones (2)",
-      "rx": 0.26,
-      "ry": 0.25,
-      "etiqueta": "Mover hacia: Padrón y Asignaciones (2)",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "button",
-      "textoBoton": "Padrón y Asignaciones (2)",
-      "rx": 0.26,
-      "ry": 0.25,
-      "etiqueta": "Clic en: Padrón y Asignaciones (2)",
-      "pausaDespues": 700,
+      "textoBoton": "Platea Baja",
+      "rx": 0.78,
+      "ry": 0.28,
+      "etiqueta": "Graduados ubicados en Platea Baja por orden alfabético",
+      "pausaDespues": 850,
       "esperarElemento": true
     },
     {
       "tipo": "mover",
       "selector": "button",
-      "textoBoton": "Asignar Butaca",
-      "rx": 0.74,
-      "ry": 0.53,
-      "etiqueta": "Mover hacia: Asignar Butaca",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "button",
-      "textoBoton": "Asignar Butaca",
-      "rx": 0.74,
-      "ry": 0.53,
-      "etiqueta": "Clic en: Asignar Butaca",
-      "pausaDespues": 700,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "mover",
-      "selector": "button[aria-label*=\"Asiento baja-B-6 — E\"]",
-      "textoBoton": "6",
-      "rx": 0.42,
-      "ry": 0.54,
-      "etiqueta": "Mover hacia: 6",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "button[aria-label*=\"Asiento baja-B-6 — E\"]",
-      "textoBoton": "6",
-      "rx": 0.42,
-      "ry": 0.54,
-      "etiqueta": "Clic en: 6",
-      "pausaDespues": 700,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "mover",
-      "selector": "button[aria-label*=\"Asiento baja-D-7 — D\"]",
-      "textoBoton": "7",
-      "rx": 0.43,
-      "ry": 0.62,
-      "etiqueta": "Mover hacia: 7",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "button[aria-label*=\"Asiento baja-D-7 — D\"]",
-      "textoBoton": "7",
-      "rx": 0.43,
-      "ry": 0.62,
-      "etiqueta": "Clic en: 7",
-      "pausaDespues": 700,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "mover",
-      "selector": "button[aria-label*=\"Asiento baja-B-6 — E\"]",
-      "textoBoton": "6",
-      "rx": 0.42,
-      "ry": 0.54,
-      "etiqueta": "Mover hacia: 6",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "button[aria-label*=\"Asiento baja-B-6 — E\"]",
-      "textoBoton": "6",
-      "rx": 0.42,
-      "ry": 0.54,
-      "etiqueta": "Clic en: 6",
-      "pausaDespues": 700,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "mover",
-      "selector": "button[aria-label*=\"Asiento baja-C-11 — \"]",
-      "textoBoton": "11",
-      "rx": 0.5,
-      "ry": 0.58,
-      "etiqueta": "Mover hacia: 11",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "button[aria-label*=\"Asiento baja-C-11 — \"]",
-      "textoBoton": "11",
-      "rx": 0.5,
-      "ry": 0.58,
-      "etiqueta": "Clic en: 11",
-      "pausaDespues": 700,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "mover",
-      "selector": "button[aria-label*=\"Asiento baja-E-14 — \"]",
-      "textoBoton": "14",
-      "rx": 0.55,
-      "ry": 0.66,
-      "etiqueta": "Mover hacia: 14",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "button[aria-label*=\"Asiento baja-E-14 — \"]",
-      "textoBoton": "14",
-      "rx": 0.55,
-      "ry": 0.66,
-      "etiqueta": "Clic en: 14",
-      "pausaDespues": 700,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "mover",
-      "selector": "button",
-      "textoBoton": "CONFIRMAR Y ENVIAR CREDENCIAL",
-      "rx": 0.68,
-      "ry": 0.83,
-      "etiqueta": "Mover hacia: CONFIRMAR Y ENVIAR CREDENCIAL",
-      "pausaDespues": 500,
-      "esperarElemento": true
-    },
-    {
-      "tipo": "click",
-      "selector": "button",
-      "textoBoton": "CONFIRMAR Y ENVIAR CREDENCIAL",
-      "rx": 0.68,
-      "ry": 0.83,
-      "etiqueta": "Clic en: CONFIRMAR Y ENVIAR CREDENCIAL",
-      "pausaDespues": 700,
+      "textoBoton": "Pullman",
+      "rx": 0.88,
+      "ry": 0.28,
+      "etiqueta": "Familiares y acompañantes ubicados en sectores contiguos",
+      "pausaDespues": 850,
       "esperarElemento": true
     },
     {
@@ -984,8 +530,8 @@
       "textoBoton": "Finalizar Preparación",
       "rx": 0.72,
       "ry": 0.17,
-      "etiqueta": "Mover hacia: Finalizar Preparación",
-      "pausaDespues": 500,
+      "etiqueta": "Finalizando preparación oficial de colación...",
+      "pausaDespues": 600,
       "esperarElemento": true
     },
     {
@@ -994,7 +540,7 @@
       "textoBoton": "Finalizar Preparación",
       "rx": 0.72,
       "ry": 0.17,
-      "etiqueta": "Demostración completada con éxito",
+      "etiqueta": "Demostración de ciclo completo finalizada con éxito",
       "pausaDespues": 1200,
       "esperarElemento": true
     }

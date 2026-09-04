@@ -284,7 +284,7 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
             className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white px-3.5 py-2 text-xs font-black shadow-md shadow-cyan-500/20 transition active:scale-95 disabled:opacity-40 cursor-pointer"
           >
             {autoAsignando ? <Sparkles size={14} className="animate-spin" /> : <Sparkles size={14} />}
-            <span>{autoAsignando ? 'Auto-asignando...' : '⚡ Auto-Asignar Butacas'}</span>
+            <span>{autoAsignando ? 'Auto-asignando...' : 'Auto-Asignar Butacas'}</span>
           </button>
 
           <button
