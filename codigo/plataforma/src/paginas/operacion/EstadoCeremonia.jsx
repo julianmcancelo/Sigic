@@ -77,7 +77,7 @@ export function EstadoCeremonia({ onVolver, onNavegar }) {
     <header className="mb-5 flex flex-wrap items-start justify-between gap-4">
       <div className="flex items-start gap-3"><div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-slate-950 text-cyan-300 shadow-lg shadow-slate-900/15"><Activity size={20} /></div><div><p className="text-[9px] font-black uppercase tracking-[.16em] text-cyan-600">Operación en vivo</p><h1 className="text-xl font-black tracking-tight text-slate-900">Estado de la ceremonia</h1><p className="mt-0.5 text-xs font-semibold text-slate-500">Tablero operativo actualizado automáticamente cada 15 segundos.</p></div></div>
       <div className="flex items-center gap-2">
-        <button onClick={() => setMostrarActa(true)} className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 px-3.5 py-2 text-[10px] font-black uppercase tracking-wider text-white shadow-sm transition cursor-pointer">
+        <button id="btn-abrir-acta-oficial" onClick={() => setMostrarActa(true)} className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 px-3.5 py-2 text-[10px] font-black uppercase tracking-wider text-white shadow-sm transition cursor-pointer">
           <FileText size={13} /> Acta Oficial (PDF)
         </button>
         <button onClick={() => cargar()} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-[10px] font-black uppercase tracking-wider text-slate-600 transition hover:border-sky-300 hover:text-sky-700 cursor-pointer"><RefreshCw size={13} className={actualizando ? 'animate-spin' : ''} />Actualizar</button>

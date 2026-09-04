@@ -445,24 +445,28 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion, pestanaForzada }
         {/* Pestañas de Navegación */}
         <nav className="mt-6 flex border-b border-slate-200 overflow-x-auto">
           <button
+            id="tab-graduado-juramento"
             onClick={() => { setPestana('juramento'); limpiarForm(); }}
             className={`flex items-center gap-2 border-b-2 px-4 py-3 text-xs font-black transition shrink-0 cursor-pointer ${pestana === 'juramento' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-400 hover:text-slate-700'}`}
           >
             <ScrollText size={16} /> Juramento ({FORMULAS_JURAMENTO[graduado?.formula_juramento]?.etiquetaCorta || 'Por la Patria'})
           </button>
           <button
+            id="tab-graduado-acompanantes"
             onClick={() => { setPestana('invitados'); limpiarForm(); }}
             className={`flex items-center gap-2 border-b-2 px-4 py-3 text-xs font-black transition shrink-0 cursor-pointer ${pestana === 'invitados' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-400 hover:text-slate-700'}`}
           >
             <Users size={16} /> Acompañantes ({invitados.length})
           </button>
           <button
+            id="tab-graduado-padrinos"
             onClick={() => setPestana('entregadores')}
             className={`flex items-center gap-2 border-b-2 px-4 py-3 text-xs font-black transition shrink-0 cursor-pointer ${pestana === 'entregadores' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-400 hover:text-slate-700'}`}
           >
             <GraduationCap size={16} /> Padrinos ({entregadores.length}/3)
           </button>
           <button
+            id="tab-graduado-credencial"
             onClick={() => setPestana('credencial')}
             className={`flex items-center gap-2 border-b-2 px-4 py-3 text-xs font-black transition shrink-0 cursor-pointer ${pestana === 'credencial' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-400 hover:text-slate-700'}`}
           >

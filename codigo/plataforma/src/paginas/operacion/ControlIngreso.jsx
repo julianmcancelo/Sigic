@@ -795,6 +795,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
               </span>
               <span>·</span>
               <button
+                id="btn-abrir-escaner-respaldo"
                 onClick={() => setModalidad('respaldo_web')}
                 className="text-sky-400 hover:text-sky-300 underline cursor-pointer text-xs"
               >
@@ -830,6 +831,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                 <div className="relative flex-1">
                   <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
                   <input
+                    id="input-porteria-busqueda"
                     ref={inputBusquedaRef}
                     type="text"
                     value={busquedaManual}
@@ -840,6 +842,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                   />
                 </div>
                 <button
+                  id="btn-porteria-buscar"
                   type="submit"
                   disabled={cargandoBusqueda || !busquedaManual.trim()}
                   className="px-4 py-2.5 rounded-2xl bg-sky-500 hover:bg-sky-400 disabled:opacity-40 text-slate-950 font-black text-xs transition active:scale-95 cursor-pointer shadow-md shadow-sky-500/20"
@@ -967,6 +970,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                   <div className="flex items-center gap-2">
                     {resultado.tipo === 'grupo' && !todosAcreditados && (
                       <button
+                        id="btn-porteria-acreditar-grupo"
                         onClick={manejarAcreditarGrupo}
                         disabled={procesandoAcreditacion}
                         className="px-4 py-2.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 text-slate-950 font-black text-xs transition active:scale-95 cursor-pointer shadow-lg shadow-emerald-500/20 flex items-center gap-1.5"
@@ -1012,6 +1016,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                       </span>
                     ) : (
                       <button
+                        id="btn-porteria-acreditar-individual"
                         onClick={manejarAcreditarEgresado}
                         disabled={procesandoAcreditacion}
                         className="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-black text-xs transition cursor-pointer"

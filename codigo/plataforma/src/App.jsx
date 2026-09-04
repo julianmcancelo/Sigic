@@ -231,13 +231,28 @@ function App() {
   const [demoAutomaticaActiva, setDemoAutomaticaActiva] = useState(false)
   const [pestanaGraduadoDemo, setPestanaGraduadoDemo] = useState('juramento')
 
-  const iniciarDemostracionCompleta = () => {
+  const iniciarDemostracionCompleta = async () => {
     guardarTokenSesion('bypass-admin-token')
     localStorage.setItem('sesion_admin', 'true')
     localStorage.setItem('admin_user', JSON.stringify(ADMIN_DEMO))
     setAdminActivo(true)
     setAdminUser(ADMIN_DEMO)
+    setPantallaAdmin('gestion-ceremonias')
     setDemoAutomaticaActiva(true)
+
+    try {
+      const c = await sincronizarEntornoCeremonia()
+      if (!c) {
+        setCeremoniaActiva({
+          id: '22222222-2222-4222-8222-222222222222',
+          nombre: 'Colación Oficial Beltrán 2026',
+          fecha: '2026-11-20',
+          lugar: 'Auditorio Instituto Tecnológico Beltrán',
+          max_invitados: 4,
+          activa: true
+        })
+      }
+    } catch {}
   }
 
   const finalizarDemostracionCompleta = () => {
@@ -255,6 +270,17 @@ function App() {
       setAdminActivo(true)
       setAdminUser(ADMIN_DEMO)
       setPantallaAdmin(paso.vistaAdmin || 'gestion-ceremonias')
+
+      if (!ceremoniaActiva) {
+        setCeremoniaActiva({
+          id: '22222222-2222-4222-8222-222222222222',
+          nombre: 'Colación Oficial Beltrán 2026',
+          fecha: '2026-11-20',
+          lugar: 'Auditorio Instituto Tecnológico Beltrán',
+          max_invitados: 4,
+          activa: true
+        })
+      }
     } else if (paso.tipoUsuario === 'graduado') {
       setAdminActivo(false)
       setGraduadoActivo(true)
@@ -853,9 +879,9 @@ function App() {
         />
       )
     } else if (pantallaAdmin === 'convocatoria') {
-      contenido = <GestionConvocatoria onNavegar={setPantallaAdmin} />
+      contenido = <GestionConvocatoria onNavegar={setPantallaAdmin} ceremoniaActiva={ceremoniaActiva} />
     } else if (pantallaAdmin === 'preparacion-ceremonia') {
-      contenido = <PreparacionCeremonia onNavegar={setPantallaAdmin} />
+      contenido = <PreparacionCeremonia onNavegar={setPantallaAdmin} ceremoniaActiva={ceremoniaActiva} />
     } else if (pantallaAdmin === 'asistente-operativo') {
       contenido = <AsistenteOperativoCeremonia onNavegar={setPantallaAdmin} />
     } else if (pantallaAdmin === 'control-ingreso' || adminUser?.rol === 'PORTERIA' || adminUser?.rol === 'SEGURIDAD') {

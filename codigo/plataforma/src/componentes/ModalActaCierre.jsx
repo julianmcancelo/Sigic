@@ -63,18 +63,21 @@ export function ModalActaCierre({ ceremonia, graduados = [], onCerrar }) {
 
           <div className="flex items-center gap-2">
             <button
+              id="btn-acta-libro-matriz"
               onClick={descargarCsvLibroMatriz}
               className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 border border-slate-700 transition cursor-pointer"
             >
               <Download size={14} /> Libro Matriz (CSV)
             </button>
             <button
+              id="btn-acta-imprimir"
               onClick={imprimirActa}
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-black text-white shadow-md transition cursor-pointer"
             >
               <Printer size={14} /> Imprimir / Guardar PDF
             </button>
             <button
+              id="btn-cerrar-acta-modal"
               onClick={onCerrar}
               className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
             >

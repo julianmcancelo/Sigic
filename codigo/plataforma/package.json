@@ -12,7 +12,7 @@
     "tauri:build": "tauri build"
   },
   "dependencies": {
-    "@jcancelo/google-wallet": "^1.0.0",
+    "@jcancelo/google-wallet": "^1.1.0",
     "@jcancelo/mapa-asientos-sigic": "^2.0.7",
     "@radix-ui/react-alert-dialog": "^1.1.23",
     "@radix-ui/react-dialog": "^1.1.16",

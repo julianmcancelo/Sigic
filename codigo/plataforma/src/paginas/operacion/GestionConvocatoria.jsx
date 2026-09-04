@@ -371,6 +371,7 @@ export function GestionConvocatoria({ onNavegar, usuario, ceremoniaActiva: cerem
 
           <div className="flex flex-wrap items-center gap-2">
             <button
+              id="btn-template-studio"
               type="button"
               onClick={() => setModalPreviewAbierto(true)}
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
@@ -436,6 +437,7 @@ export function GestionConvocatoria({ onNavegar, usuario, ceremoniaActiva: cerem
             return (
               <button
                 key={item.id}
+                id={`tab-convocatoria-${item.id.toLowerCase()}`}
                 type="button"
                 onClick={() => { setPestaña(item.id); setSeleccionados([]) }}
                 className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
@@ -598,6 +600,7 @@ export function GestionConvocatoria({ onNavegar, usuario, ceremoniaActiva: cerem
             {/* BOTÓN RÁPIDO DE DESPACHO TOTAL DE LA PESTAÑA */}
             {pestaña === 'PENDIENTES' && pendientes.length > 0 && seleccionados.length === 0 && (
               <button
+                id="btn-despachar-pendientes"
                 type="button"
                 onClick={() => iniciarDespachoLote('invitacion')}
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 text-xs font-black transition cursor-pointer shadow-sm"

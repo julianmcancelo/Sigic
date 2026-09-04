@@ -287,6 +287,7 @@ export function ModalCredencial({ egresado, onCerrar }) {
         {/* FOOTER DE BOTONES DE ACCIÓN */}
         <footer className="grid grid-cols-1 sm:grid-cols-4 gap-2.5 border-t border-slate-800 bg-slate-900 p-4 sm:p-5">
           <button 
+            id="btn-credencial-google-wallet"
             type="button" 
             onClick={guardarEnGoogleWallet} 
             disabled={cargandoWallet} 
@@ -297,6 +298,7 @@ export function ModalCredencial({ egresado, onCerrar }) {
           </button>
           
           <button 
+            id="btn-credencial-exportar-pdf"
             type="button" 
             onClick={imprimir} 
             className="flex items-center justify-center gap-2 rounded-2xl bg-sky-600 hover:bg-sky-500 px-4 py-3 text-xs font-black uppercase tracking-wider text-white transition active:scale-[0.98] cursor-pointer shadow-md shadow-sky-600/20"

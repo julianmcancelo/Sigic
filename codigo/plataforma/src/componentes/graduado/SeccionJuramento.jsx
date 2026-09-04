@@ -70,6 +70,7 @@ export function SeccionJuramento({ graduado, onActualizar }) {
       <div className="grid gap-4 md:grid-cols-2">
         {/* OPCION 1: DIOS Y PATRIA */}
         <div
+          id="tarjeta-formula-dios-patria"
           onClick={() => guardarFormula('DIOS_Y_PATRIA')}
           className={`relative rounded-3xl border-2 p-6 transition-all cursor-pointer flex flex-col justify-between ${
             formulaSeleccionada === 'DIOS_Y_PATRIA'
@@ -114,6 +115,7 @@ export function SeccionJuramento({ graduado, onActualizar }) {
 
         {/* OPCION 2: POR LA PATRIA */}
         <div
+          id="tarjeta-formula-patria"
           onClick={() => guardarFormula('PATRIA')}
           className={`relative rounded-3xl border-2 p-6 transition-all cursor-pointer flex flex-col justify-between ${
             formulaSeleccionada === 'PATRIA'
@@ -163,6 +165,7 @@ export function SeccionJuramento({ graduado, onActualizar }) {
           Comentarios o consultas adicionales para la organización (opcional)
         </label>
         <textarea
+          id="textarea-juramento-comentarios"
           rows={3}
           value={comentarios}
           onChange={(e) => setComentarios(e.target.value)}
@@ -171,6 +174,7 @@ export function SeccionJuramento({ graduado, onActualizar }) {
         />
         <div className="flex justify-end">
           <button
+            id="btn-guardar-juramento"
             type="button"
             onClick={() => guardarFormula(formulaSeleccionada, comentarios)}
             disabled={guardando}

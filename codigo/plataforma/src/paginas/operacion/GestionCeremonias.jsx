@@ -130,6 +130,7 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
         </div>
         
         <button
+          id="btn-nueva-ceremonia"
           onClick={() => setMostrarForm(true)}
           className="flex items-center gap-1.5 px-4 py-2 bg-sky-500 text-white rounded-full text-[10px] font-black uppercase tracking-wider hover:bg-sky-600 transition-all active:scale-95 shadow-sm cursor-pointer"
         >
@@ -394,6 +395,8 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
               <div className="space-y-1.5">
                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Nombre de la Ceremonia</label>
                 <input 
+                  id="input-nombre-ceremonia"
+                  name="nombre"
                   autoFocus
                   required 
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-semibold focus:border-sky-500 focus:bg-white transition-all outline-none" 
@@ -407,6 +410,8 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
                 <div className="space-y-1.5">
                   <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Fecha del Evento</label>
                   <input 
+                    id="input-fecha-ceremonia"
+                    name="fecha"
                     required type="date" 
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-semibold focus:border-sky-500 focus:bg-white transition-all outline-none" 
                     value={nuevoEvento.fecha} 
@@ -416,6 +421,7 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
                 <div className="space-y-1.5">
                   <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Máximo Invitados</label>
                   <input 
+                    id="input-max-invitados-ceremonia"
                     type="number" 
                     min="1"
                     max="10"
@@ -429,6 +435,7 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
               <div className="space-y-1.5">
                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Sede / Ubicación</label>
                 <input 
+                  id="input-lugar-ceremonia"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-semibold focus:border-sky-500 focus:bg-white transition-all outline-none" 
                   value={nuevoEvento.lugar} 
                   onChange={e => setNuevoEvento({...nuevoEvento, lugar: e.target.value})}
@@ -444,6 +451,7 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
                   <span className="text-[8.5px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">Opcional</span>
                 </div>
                 <input 
+                  id="input-limite-ceremonia"
                   type="datetime-local"
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-semibold focus:border-sky-500 focus:bg-white transition-all outline-none" 
                   value={nuevoEvento.fecha_limite_confirmacion} 
@@ -456,6 +464,7 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
 
               <div className="flex gap-4 pt-4">
                 <button 
+                  id="btn-cancelar-crear-ceremonia"
                   type="button" 
                   onClick={() => setMostrarForm(false)} 
                   className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-500 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all cursor-pointer"
@@ -463,6 +472,7 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
                   Cancelar
                 </button>
                 <button 
+                  id="btn-crear-submit-ceremonia"
                   type="submit" 
                   className="flex-1 bg-slate-900 hover:bg-sky-500 text-white py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-98 cursor-pointer"
                 >

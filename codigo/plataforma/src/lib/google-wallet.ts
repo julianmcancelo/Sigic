@@ -142,16 +142,30 @@ export async function generarPaseGoogleWallet(pase: PaseCeremonia) {
       fechaInicio: doorsOpenIso,
       nombreLugar: pase.lugar || 'Auditorio Instituto Tecnológico Beltrán',
       direccionLugar: pase.lugar || 'Av. Manuel Belgrano 1191, Avellaneda, Buenos Aires, Argentina',
+      mensajes: [
+        {
+          encabezado: 'Ceremonia Oficial de Colación',
+          cuerpo: 'Se solicita presentarse 45 minutos antes para acreditación y asignación protocolar.'
+        }
+      ]
     },
     pase: {
       idObjeto: objectIdCorto,
       nombreTitular: pase.nombre,
+      tipoEntrada: 'Graduado',
+      codigoReserva: pase.token,
       codigoBarras: {
         tipo: 'QR_CODE',
         valor: `SIGIC:${pase.token}`,
         textoAlternativo: `Acceso ${pase.token}`,
       },
       ubicacion: desglosarAsiento(pase.asiento),
+      mensajes: [
+        {
+          encabezado: 'Acreditación en Portería',
+          cuerpo: 'Presentá este código QR en el acceso. Habilita tu ingreso y el de tus acompañantes asignados.'
+        }
+      ],
       campos: [
         {
           clave: 'indicaciones-acceso',

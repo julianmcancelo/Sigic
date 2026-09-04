@@ -275,6 +275,7 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
 
         <div className="flex items-center gap-1.5">
           <button
+            id="btn-importar-excel"
             onClick={() => setMostrarImportar(true)}
             className="flex items-center gap-1.5 rounded-lg bg-emerald-600 px-2.5 py-1.5 text-[10.5px] font-black text-white shadow-xs hover:bg-emerald-500 transition active:scale-95 cursor-pointer"
           >
@@ -330,6 +331,7 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
             </div>
           </div>
           <button
+            id="btn-paso3-convocatoria"
             onClick={() => onNavegar('convocatoria')}
             className="flex items-center gap-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white px-2.5 py-1.5 text-[9.5px] font-black uppercase tracking-wider shadow-xs transition active:scale-95 cursor-pointer shrink-0"
           >
@@ -345,6 +347,7 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
             <div className="relative flex-1">
               <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" size={13} />
               <input
+                id="buscador-graduados"
                 type="text"
                 placeholder="Buscar en el padrón: nombre, DNI, legajo o correo..."
                 value={busqueda}

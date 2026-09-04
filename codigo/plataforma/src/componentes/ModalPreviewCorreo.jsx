@@ -90,6 +90,7 @@ export function ModalPreviewCorreo({
             </div>
 
             <button
+              id="btn-cerrar-preview-correo"
               onClick={onCerrar}
               className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition cursor-pointer"
             >

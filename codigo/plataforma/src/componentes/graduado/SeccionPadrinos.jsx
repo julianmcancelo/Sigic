@@ -66,6 +66,7 @@ export function SeccionPadrinos({
                 </div>
               ) : (
                 <button
+                  id="btn-agregar-padrino"
                   onClick={() => setMostrarSelector(true)}
                   disabled={entregadores.length >= 3}
                   className="w-full flex flex-col items-center justify-center py-8 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 rounded-2xl transition-all disabled:opacity-30"
@@ -85,6 +86,7 @@ export function SeccionPadrinos({
           <div className="bg-slate-900 px-6 py-4 flex items-center justify-between">
             <p className="text-xs font-black uppercase tracking-[0.2em] text-sky-400">Elegí un padrino</p>
             <button
+              id="btn-cerrar-selector-padrinos"
               onClick={() => setMostrarSelector(false)}
               className="text-slate-400 hover:text-white transition-colors"
             >
@@ -101,11 +103,12 @@ export function SeccionPadrinos({
               <p className="text-xs text-slate-400 mb-6">No hay profesores cargados en el sistema.</p>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-6">
-                {profesores.map(prof => {
+                {profesores.map((prof, pIdx) => {
                   const yaAsignado = entregadores.some(e => e.profesor_id === prof.id)
                   return (
                     <button
                       key={prof.id}
+                      id={pIdx === 0 ? 'btn-elegir-primer-profesor' : undefined}
                       onClick={() => onAgregar('PROFESOR', prof)}
                       disabled={yaAsignado || procesando}
                       className={`flex items-center gap-3 p-3 rounded-xl text-left transition-all ${

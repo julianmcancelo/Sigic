@@ -17,8 +17,8 @@ import { SeleccionAsientos } from '../SeleccionAsientos'
 import { ModalAsignarAsientos } from '../../componentes/ModalAsignarAsientos'
 import { emitirCambioSync, useSincronizacion } from '../../lib/sync'
 
-export function PreparacionCeremonia({ onNavegar }) {
-  const [ceremonia, setCeremonia] = useState(null)
+export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp }) {
+  const [ceremonia, setCeremonia] = useState(ceremoniaProp || null)
   const [graduados, setGraduados] = useState([])
   const [invitados, setInvitados] = useState([])
   const [cargando, setCargando] = useState(true)
@@ -50,7 +50,7 @@ export function PreparacionCeremonia({ onNavegar }) {
   async function cargarDatos() {
     setCargando(true)
     try {
-      const cerActiva = await obtenerCeremoniaActiva().catch(() => null)
+      const cerActiva = ceremoniaProp || await obtenerCeremoniaActiva().catch(() => null)
       setCeremonia(cerActiva)
 
       const [grads, invs] = await Promise.all([
@@ -277,6 +277,7 @@ export function PreparacionCeremonia({ onNavegar }) {
 
         <div className="flex flex-wrap items-center gap-2 shrink-0">
           <button
+            id="btn-auto-asignar-butacas"
             type="button"
             onClick={ejecutarAutoSeating}
             disabled={autoAsignando || graduados.length === 0}
