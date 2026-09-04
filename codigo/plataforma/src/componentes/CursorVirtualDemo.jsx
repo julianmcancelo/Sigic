@@ -253,7 +253,11 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
   const [rutinaVersion, setRutinaVersion] = useState(0)
 
   useEffect(() => {
-    const onActualizar = () => setRutinaVersion(v => v + 1)
+    const onActualizar = () => {
+      setTimeout(() => {
+        setRutinaVersion((v) => v + 1)
+      }, 0)
+    }
     window.addEventListener('sigic-rutina-actualizada', onActualizar)
     return () => window.removeEventListener('sigic-rutina-actualizada', onActualizar)
   }, [])

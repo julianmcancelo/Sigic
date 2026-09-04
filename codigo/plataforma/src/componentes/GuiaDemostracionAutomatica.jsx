@@ -222,8 +222,13 @@ export function GuiaDemostracionAutomatica({
   const [mensajeGuardado, setMensajeGuardado] = useState('')
   const bufferTipeoRef = useRef(null)
   const timerDebounceTipeoRef = useRef(null)
+  const accionesGrabadasRef = useRef([])
   const [panelGrabadorMinimizado, setPanelGrabadorMinimizado] = useState(false)
   const [spotlightMinimizado, setSpotlightMinimizado] = useState(false)
+
+  useEffect(() => {
+    accionesGrabadasRef.current = accionesGrabadas
+  }, [accionesGrabadas])
 
   const pasoActual = PASOS_DEMO[pasoIndex] || PASOS_DEMO[0]
 
@@ -510,8 +515,11 @@ export function GuiaDemostracionAutomatica({
       localStorage.removeItem(`sigic_demo_secuencia_${pasoActual.fase}`)
       setTieneRutinaGuardada(false)
       setAccionesGrabadas([])
+      accionesGrabadasRef.current = []
       actualizarMapaFasesGrabadas()
-      window.dispatchEvent(new CustomEvent('sigic-rutina-actualizada', { detail: { fase: pasoActual.fase } }))
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('sigic-rutina-actualizada', { detail: { fase: pasoActual.fase } }))
+      }, 10)
       setMensajeGuardado(`Fase ${pasoActual.fase} restablecida a valores de fábrica`)
       setTimeout(() => setMensajeGuardado(''), 2500)
     }
@@ -521,24 +529,24 @@ export function GuiaDemostracionAutomatica({
   const guardarRutinaActual = useCallback((alTerminar) => {
     consolidarBufferTipeo()
     setTimeout(() => {
-      setAccionesGrabadas((actuales) => {
-        if (actuales.length === 0) {
-          alert(`No se han registrado acciones para la Fase ${pasoActual.fase}. Haz clic en los botones o escribe en los campos para registrar pasos.`)
-          return actuales
-        }
-        if (typeof window !== 'undefined') {
-          localStorage.setItem(`sigic_demo_secuencia_${pasoActual.fase}`, JSON.stringify(actuales))
-          setTieneRutinaGuardada(true)
+      const lista = accionesGrabadasRef.current || []
+      if (lista.length === 0) {
+        alert(`No se han registrado acciones para la Fase ${pasoActual.fase}. Haz clic en los botones o escribe en los campos para registrar pasos.`)
+        return
+      }
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`sigic_demo_secuencia_${pasoActual.fase}`, JSON.stringify(lista))
+        setTieneRutinaGuardada(true)
+        actualizarMapaFasesGrabadas()
+        setMensajeGuardado(`Fase ${pasoActual.fase} guardada exitosamente`)
+        setTimeout(() => {
           window.dispatchEvent(new CustomEvent('sigic-rutina-actualizada', { detail: { fase: pasoActual.fase } }))
-          actualizarMapaFasesGrabadas()
-          setMensajeGuardado(`Fase ${pasoActual.fase} guardada exitosamente`)
-          setTimeout(() => setMensajeGuardado(''), 2500)
-          if (alTerminar) {
-            alTerminar(actuales)
-          }
+        }, 10)
+        setTimeout(() => setMensajeGuardado(''), 2500)
+        if (alTerminar) {
+          alTerminar(lista)
         }
-        return actuales
-      })
+      }
     }, 80)
   }, [consolidarBufferTipeo, pasoActual.fase, actualizarMapaFasesGrabadas])
 
