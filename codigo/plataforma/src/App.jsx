@@ -1414,8 +1414,9 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
     // En Tauri cada módulo se abre en su propia ventana del sistema operativo.
     // La ventana principal permanece disponible como escritorio de trabajo.
     if (esAplicacionNativa && id !== pantallaActual && id !== 'bienvenida') {
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : undefined
       import('@tauri-apps/api/core')
-        .then(({ invoke }) => invoke('abrir_modulo', { ruta: `?modulo=${encodeURIComponent(id)}`, titulo: app?.titulo || 'SiGIC' }))
+        .then(({ invoke }) => invoke('abrir_modulo', { ruta: `?modulo=${encodeURIComponent(id)}`, titulo: app?.titulo || 'SiGIC', baseUrl }))
         .catch(() => onNavegar(id))
       setInicioAbierto(false)
       setMenuContextual(null)

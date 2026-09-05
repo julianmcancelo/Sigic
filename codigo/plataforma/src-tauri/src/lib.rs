@@ -3,13 +3,20 @@ use tauri::{Manager, WebviewUrl, WebviewWindowBuilder};
 const SIGIC_DEMO_URL: &str = "https://demo.sigic.com.ar";
 
 #[tauri::command]
-fn abrir_modulo(app: tauri::AppHandle, ruta: String, titulo: String) -> Result<(), String> {
+fn abrir_modulo(app: tauri::AppHandle, ruta: String, titulo: String, base_url: Option<String>) -> Result<(), String> {
   let etiqueta = format!("modulo-{}", ruta.replace('/', "-").replace(|c: char| !c.is_ascii_alphanumeric() && c != '-', ""));
   if let Some(ventana) = app.get_webview_window(&etiqueta) {
+    let _ = ventana.show();
+    let _ = ventana.unminimize();
     let _ = ventana.set_focus();
     return Ok(());
   }
-  let destino = format!("{}/{}", SIGIC_DEMO_URL.trim_end_matches('/'), ruta.trim_start_matches('/'));
+  let base = base_url.as_deref().unwrap_or(SIGIC_DEMO_URL);
+  let destino = if ruta.starts_with('?') || ruta.starts_with('#') {
+    format!("{}{}", base.trim_end_matches('/'), ruta)
+  } else {
+    format!("{}/{}", base.trim_end_matches('/'), ruta.trim_start_matches('/'))
+  };
   let url = url::Url::parse(&destino).map_err(|error| error.to_string())?;
   WebviewWindowBuilder::new(&app, etiqueta, WebviewUrl::External(url))
     .title(titulo)
@@ -22,10 +29,18 @@ fn abrir_modulo(app: tauri::AppHandle, ruta: String, titulo: String) -> Result<(
   Ok(())
 }
 
+#[tauri::command]
+fn cerrar_ventana_actual(app: tauri::AppHandle) -> Result<(), String> {
+  if let Some((_, ventana)) = app.webview_windows().into_iter().find(|(_, w)| w.is_focused().unwrap_or(false)) {
+    let _ = ventana.close();
+  }
+  Ok(())
+}
+
 pub fn run() {
   tauri::Builder::default()
     .plugin(tauri_plugin_updater::Builder::new().build())
-    .invoke_handler(tauri::generate_handler![abrir_modulo])
+    .invoke_handler(tauri::generate_handler![abrir_modulo, cerrar_ventana_actual])
     .setup(|app| {
       let url = url::Url::parse(SIGIC_DEMO_URL)?;
       if let Some(ventana) = app.get_webview_window("main") {
