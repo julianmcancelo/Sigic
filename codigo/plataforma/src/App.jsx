@@ -45,6 +45,7 @@ import { ADMIN_DEMO, ControlExpositor, EGRESADA_DEMO, MarcaAguaDemo } from './co
 import { GuiaDemostracionAutomatica } from './componentes/GuiaDemostracionAutomatica'
 import { PantallaCargaInicial } from './componentes/PantallaCargaInicial'
 import { AsistenteOperativoCeremonia } from './componentes/AsistenteOperativoCeremonia'
+import { MenuInicio } from './componentes/MenuInicio'
 
 // Servicios
 import { validarToken, obtenerCeremoniaActiva, obtenerEstadoSetup, responderInvitacion, limpiarTokenSesion, guardarTokenSesion, obtenerTokenSesion, obtenerAjustes, actualizarAjuste } from './servicios/api'
@@ -1683,7 +1684,18 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
         {zonaAjuste && <div className={`sigic-snap-preview sigic-snap-preview-${zonaAjuste}`} aria-hidden="true" />}
         <aside className="sigic-session-card"><div className="sigic-session-avatar">{(usuario?.nombre || 'A').slice(0, 1).toUpperCase()}</div><div><strong>{usuario?.nombre || 'Administrador'}</strong><span>{normalizarCorreoInstitucional(usuario?.correo) || 'Sesión administrativa'}</span></div><span className="sigic-session-state">En línea</span></aside>
       </section>
-      {inicioAbierto && <div ref={inicioRef} className="sigic-start-menu" role="dialog" aria-modal="false" aria-label="Acciones de ceremonia"><div className="sigic-start-context"><span>Trabajo actual</span><strong>{ceremoniaActiva?.nombre || 'Sin ceremonia activa'}</strong><button onClick={() => abrirVentana('gestion-ceremonias')}>Cambiar</button></div><button onClick={() => abrirVentana('gestion-ceremonias')} className="sigic-start-continue"><Sparkles size={17} /><span><small>Punto de partida</small><strong>Inicializar o cambiar ceremonia</strong></span><ArrowRight size={15} /></button><div className="sigic-start-search"><Search size={15} /><input ref={buscadorInicioRef} value={busquedaInicio} onChange={evento => setBusquedaInicio(evento.target.value)} placeholder="Buscar otro módulo" /></div><div className="sigic-start-section-title"><span>{busquedaInicio.trim() ? 'Resultados' : 'Accesos de trabajo'}</span><small>{busquedaInicio.trim() ? `${aplicacionesInicio.length} encontrados` : 'Esenciales'}</small></div><div className="sigic-start-apps">{aplicacionesInicio.map(({ id, titulo, icono: Icono, color }) => <button key={id} onClick={() => abrirVentana(id)} className="sigic-start-app"><span className={`${color} sigic-start-app-icon`}><Icono size={17} /></span><span>{titulo}</span><ChevronRight size={14} /></button>)}</div>{aplicacionesInicio.length === 0 && <p className="sigic-start-empty">No se encontraron módulos.</p>}<div className="sigic-start-header"><div className="sigic-user-avatar">{(usuario?.nombre || 'A').slice(0, 1).toUpperCase()}</div><div><p className="text-xs font-bold text-white">{usuario?.nombre || 'Administrador'}</p><p className="text-[9px] text-white/45">Administración</p></div><button onClick={onCerrarSesion} className="ml-auto rounded-lg p-2 text-white/55 hover:bg-white/10 hover:text-white" aria-label="Cerrar sesión" title="Cerrar sesión"><Power size={16} /></button></div></div>}
+      {inicioAbierto && (
+        <MenuInicio
+          ref={inicioRef}
+          aplicaciones={aplicaciones}
+          usuario={usuario}
+          ceremonia={ceremoniaActiva}
+          ventanas={ventanasAbiertas}
+          onAbrir={abrirVentana}
+          onCerrar={() => setInicioAbierto(false)}
+          onCerrarSesion={onCerrarSesion}
+        />
+      )}
       <footer className="sigic-taskbar">
         <button ref={inicioBotonRef} onClick={() => setInicioAbierto(value => !value)} className={`sigic-start-button ${inicioAbierto ? 'is-active' : ''}`} aria-label="Abrir menú principal" aria-expanded={inicioAbierto} title="Menú principal"><img src="/logo-oficial.png" alt="" className="sigic-task-logo" /></button>
         <div className="sigic-task-divider" />

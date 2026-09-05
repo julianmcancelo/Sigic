@@ -29,6 +29,7 @@ import {
 } from '../../servicios/api'
 import { QRCodeSVG } from 'qrcode.react'
 import { useSincronizacion, emitirCambioSync } from '../../lib/sync'
+import './seguridad.css'
 
 const DARK = '#0F172A'
 
@@ -48,6 +49,8 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
   const [ceremoniaSeleccionadaId, setCeremoniaSeleccionadaId] = useState('')
   const [autorizadosMap, setAutorizadosMap] = useState({})
   const [guardandoAutorizacion, setGuardandoAutorizacion] = useState(null)
+  const [cargandoAutorizaciones, setCargandoAutorizaciones] = useState(false)
+  const [personalExpandido, setPersonalExpandido] = useState(null)
   const [procesandoLote, setProcesandoLote] = useState(false)
 
   // Dispositivos móviles
@@ -125,6 +128,7 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
 
   async function cargarAutorizaciones(cerId) {
     if (!cerId) return
+    setCargandoAutorizaciones(true)
     try {
       const list = await obtenerAutorizacionesCeremonia(cerId)
       const map = {}
@@ -136,6 +140,8 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
       setAutorizadosMap(map)
     } catch (err) {
       console.error('Error al cargar autorizaciones:', err)
+    } finally {
+      setCargandoAutorizaciones(false)
     }
   }
 
@@ -436,8 +442,6 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
     const estaAutorizado = !!autorizadosMap[String(u.id)]
     if (filtro === 'administrativos') return u.rol === 'ADMINISTRATIVO'
     if (filtro === 'porteria') return u.rol === 'PORTERIA'
-    if (filtro === 'auditores') return u.rol === 'AUDITOR'
-    if (filtro === 'superadmin') return u.rol === 'SUPER_ADMIN' || u.rol === 'ADMIN'
     if (filtro === 'autorizados') return estaAutorizado
     if (filtro === 'sin-acceso') return !estaAutorizado
     if (filtro === 'inactivos') return u.activo !== 1
@@ -445,613 +449,56 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
   })
 
   const ceremoniaSeleccionada = ceremonias.find(c => String(c.id) === String(ceremoniaSeleccionadaId))
+  const dispositivosVisibles = dispositivos.filter(d => {
+    const coincide = `${d.nombreDispositivo || ''} ${d.modelo || ''} ${d.marca || ''} ${d.usuarioNombre || ''} ${d.usuarioEmail || ''}`.toLowerCase().includes(busqueda.trim().toLowerCase())
+    return coincide
+  })
 
   return (
-    <div className="font-sans pb-12 max-w-7xl mx-auto w-full px-3 sm:px-6">
-      
-      {/* ── HERO BANNER MODERNO CON GRADIENTE Y CONTRASTE ── */}
-      <div className="relative overflow-hidden rounded-[30px] bg-gradient-to-br from-slate-900 via-slate-850 to-[#0c182c] p-6 sm:p-8 text-white shadow-xl shadow-slate-900/10 mb-8 border border-white/10">
-        <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-sky-500/15 blur-[60px]" />
-        <div className="pointer-events-none absolute -left-12 -bottom-12 h-56 w-56 rounded-full bg-indigo-500/10 blur-[50px]" />
+    <div className="sigic-security">
+      <header className="sg-sec-header">
+        <div className="sg-sec-title">{onVolver && <button className="sg-icon-button" onClick={onVolver} aria-label="Volver al inicio"><ArrowLeft size={18} /></button>}<span className="sg-sec-emblem"><ShieldCheck size={22} /></span><div><h1>Seguridad</h1><p>Personal, permisos y dispositivos.</p></div></div>
+        <div className="sg-sec-actions"><button className="sg-button" onClick={refrescarTodo} disabled={cargando || cargandoDispositivos} aria-label="Actualizar seguridad"><RefreshCw size={15} className={cargando || cargandoDispositivos ? 'animate-spin' : ''} /><span>Actualizar</span></button><button className="sg-button sg-button-primary" onClick={() => setMostrarModalNuevo(true)}><UserPlus size={15} />Nuevo personal</button></div>
+      </header>
 
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex items-start sm:items-center gap-4">
-            {onVolver && (
-              <button 
-                onClick={onVolver}
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white/10 hover:bg-white/20 text-white transition active:scale-95 border border-white/15 backdrop-blur-md cursor-pointer"
-                title="Volver al panel"
-              >
-                <ArrowLeft size={19} />
-              </button>
-            )}
-            <div className="flex h-13 w-13 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-sky-500 to-sky-400 text-white shadow-lg shadow-sky-500/30 border border-sky-300/30">
-              <Shield size={26} />
-            </div>
-            <div>
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">Seguridad y Control de Accesos</h1>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-400/15 text-sky-300 border border-sky-400/25 text-[10px] font-black uppercase tracking-wider">
-                  <Activity size={12} className="text-sky-400 animate-pulse" />
-                  Módulo de Portería
-                </span>
-              </div>
-              <p className="text-xs font-semibold text-slate-300/80 mt-1 max-w-xl leading-relaxed">
-                Administrá operadores de acreditación, permisos dinámicos por ceremonia y terminales móviles en vivo.
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3 self-end md:self-center">
-            <button 
-              onClick={refrescarTodo}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/15 transition active:scale-95 backdrop-blur-sm cursor-pointer shadow-sm"
-              title="Refrescar datos en vivo"
-            >
-              <RefreshCw size={14} className={cargando || cargandoDispositivos ? 'animate-spin text-sky-300' : ''} />
-              <span>Actualizar</span>
-            </button>
-
-            <button 
-              onClick={() => setMostrarModalNuevo(true)} 
-              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-sky-500 to-sky-400 hover:from-sky-400 hover:to-sky-300 text-white rounded-xl text-xs font-black shadow-lg shadow-sky-500/25 active:scale-95 transition-all cursor-pointer border border-sky-300/30"
-            >
-              <UserPlus size={15} /> 
-              <span>Registrar Personal</span>
-            </button>
-          </div>
-        </div>
+      <div className="sg-sec-summary" aria-label="Resumen de seguridad">
+        <button onClick={() => { setPestañaActiva('personal'); setFiltro('todos'); setBusqueda('') }}><Users size={17} /><strong>{usuarios.length}</strong><span>Personas</span></button>
+        <button onClick={() => { setPestañaActiva('personal'); setFiltro('activos'); setBusqueda('') }}><ShieldCheck size={17} /><strong>{porterosActivos}</strong><span>Cuentas activas</span></button>
+        <button onClick={() => { setPestañaActiva('personal'); setFiltro('sin-acceso'); setBusqueda('') }}><KeyRound size={17} /><strong>{usuarios.filter(u => u.rol === 'PORTERIA' && !autorizadosMap[String(u.id)]).length}</strong><span>Sin permiso en ceremonia</span></button>
+        <button onClick={() => { setPestañaActiva('dispositivos'); setBusqueda('') }}><Smartphone size={17} /><strong>{dispositivosEnLinea}</strong><span>Dispositivos en línea</span></button>
       </div>
 
-      {/* ALERTAS GLOBALES */}
-      {error && (
-        <div className="mb-6 p-4 rounded-2xl border bg-rose-50 border-rose-200 text-rose-800 text-xs font-bold flex items-center justify-between gap-3 animate-in fade-in duration-200 shadow-sm">
-          <div className="flex items-center gap-2.5">
-            <AlertCircle size={17} className="shrink-0 text-rose-600" />
-            <span>{error}</span>
-          </div>
-          <button onClick={() => setError(null)} className="p-1 hover:bg-rose-100 rounded-lg text-rose-500 cursor-pointer"><X size={14} /></button>
-        </div>
-      )}
+      {error && <div className="sg-notice sg-notice-error" role="alert"><AlertCircle size={17} /><span>{error}</span><button onClick={() => setError(null)} aria-label="Cerrar error"><X size={15} /></button></div>}
+      {exito && <div className="sg-notice sg-notice-success" role="status"><CheckCircle2 size={17} /><span>{exito}</span><button onClick={() => setExito(null)} aria-label="Cerrar aviso"><X size={15} /></button></div>}
 
-      {exito && (
-        <div className="mb-6 p-4 rounded-2xl border bg-emerald-50 border-emerald-200 text-emerald-800 text-xs font-bold flex items-center justify-between gap-3 animate-in fade-in duration-200 shadow-sm">
-          <div className="flex items-center gap-2.5">
-            <CheckCircle2 size={17} className="shrink-0 text-emerald-600" />
-            <span>{exito}</span>
-          </div>
-          <button onClick={() => setExito(null)} className="p-1 hover:bg-emerald-100 rounded-lg text-emerald-500 cursor-pointer"><X size={14} /></button>
-        </div>
-      )}
+      <nav className="sg-sec-tabs" aria-label="Secciones de seguridad">
+        <button aria-pressed={pestañaActiva === 'personal'} onClick={() => { setPestañaActiva('personal'); setBusqueda('') }}><Users size={16} />Personal y permisos<span>{usuarios.length}</span></button>
+        <button aria-pressed={pestañaActiva === 'dispositivos'} onClick={() => { setPestañaActiva('dispositivos'); setBusqueda('') }}><Smartphone size={16} />Dispositivos<span>{dispositivosTotales}</span></button>
+      </nav>
 
-      {/* ── BENTO GRID DE MÉTRICAS CON MICRO-GLOW ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div className="relative overflow-hidden bg-white border border-slate-200/90 rounded-[24px] p-5 shadow-sm hover:shadow-md transition-all">
-          <div className="flex items-center justify-between">
-            <span className="block text-[10px] font-black uppercase text-slate-400 tracking-[0.16em]">Total Operadores</span>
-            <div className="h-10 w-10 rounded-2xl bg-slate-100/80 flex items-center justify-center text-slate-700 border border-slate-200/60"><Users size={19} /></div>
-          </div>
-          <span className="text-3xl font-black text-slate-900 tabular-nums mt-2 block tracking-tight">{totalPorteros}</span>
-          <span className="block text-[11px] font-semibold text-slate-500 mt-1">Cuentas creadas</span>
-        </div>
+      {pestañaActiva === 'personal' && <section className="sg-sec-panel" aria-label="Personal y permisos">
+        <div className="sg-sec-eventbar"><CalendarDays size={18} /><label><span>Permisos para la ceremonia</span><select aria-label="Ceremonia para permisos" value={ceremoniaSeleccionadaId} disabled={cargandoCeremonias || procesandoLote || guardandoAutorizacion !== null} onChange={e => setCeremoniaSeleccionadaId(e.target.value)}>{!ceremonias.length && <option value="">{cargandoCeremonias ? 'Cargando ceremonias…' : 'Sin ceremonias disponibles'}</option>}{ceremonias.map(c => <option key={c.id} value={c.id}>{c.nombre}{c.activa ? ' · Activa' : ''}</option>)}</select></label><details className="sg-sec-bulk"><summary>Acciones en lote<ChevronRight size={14} /></summary><div><button onClick={handleAutorizarTodos} disabled={!ceremoniaSeleccionadaId || procesandoLote || cargandoAutorizaciones}>Autorizar personal activo</button><button className="sg-danger-text" onClick={handleDesautorizarTodos} disabled={!ceremoniaSeleccionadaId || procesandoLote || cargandoAutorizaciones}>Quitar permisos de la ceremonia</button></div></details></div>
+        <div className="sg-sec-toolbar"><div className="sg-sec-search"><Search size={16} /><input aria-label="Buscar personal" placeholder="Buscar por nombre, correo o rol…" value={busqueda} onChange={e => setBusqueda(e.target.value)} />{busqueda && <button onClick={() => setBusqueda('')} aria-label="Limpiar búsqueda de personal"><X size={14} /></button>}</div><select aria-label="Filtrar personal" value={filtro} onChange={e => setFiltro(e.target.value)}><option value="todos">Todo el personal</option><option value="administrativos">Administrativos</option><option value="porteria">Portería</option><option value="activos">Cuentas activas</option><option value="autorizados">Con acceso a esta ceremonia</option><option value="sin-acceso">Portería sin permiso</option><option value="inactivos">Cuentas bloqueadas</option></select></div>
+        <div className="sg-sec-list-meta"><span>{personalVisible.length} de {usuarios.length} personas</span><span>{cargandoAutorizaciones ? 'Actualizando permisos…' : 'Seleccioná una persona para ver sus opciones'}</span></div>
+        {cargando ? <div className="sg-sec-empty" role="status"><RefreshCw className="animate-spin" size={24} /><strong>Cargando personal…</strong></div> : !personalVisible.length ? <div className="sg-sec-empty"><Search size={26} /><strong>{usuarios.length ? 'Nadie coincide con estos filtros' : 'Tu equipo empieza acá'}</strong><p>{usuarios.length ? 'Probá otro nombre o mostrá todo el personal.' : 'Registrá a quienes van a administrar y acreditar la ceremonia.'}</p><button className="sg-button" onClick={() => usuarios.length ? (setBusqueda(''), setFiltro('todos')) : setMostrarModalNuevo(true)}>{usuarios.length ? 'Limpiar filtros' : 'Agregar personal'}</button></div> : <div className="sg-sec-list">
+          <div className="sg-sec-columns" aria-hidden="true"><span>Persona</span><span>Rol</span><span>Acceso a la ceremonia</span><span /></div>
+          {personalVisible.map(u => {
+            const activo = Number(u.activo) === 1
+            const administrativo = u.rol === 'ADMINISTRATIVO'
+            const autorizado = !!autorizadosMap[String(u.id)]
+            const expandido = String(personalExpandido) === String(u.id)
+            return <article className={`sg-sec-person ${expandido ? 'is-expanded' : ''}`} key={u.id}>
+              <div className="sg-sec-row"><button className="sg-sec-identity" onClick={() => setPersonalExpandido(expandido ? null : u.id)} aria-expanded={expandido} aria-controls={`personal-detalle-${u.id}`}><span className={`sg-sec-avatar ${!activo ? 'is-blocked' : ''}`}>{u.nombre?.charAt(0)?.toUpperCase() || 'P'}</span><span><strong>{u.nombre}{String(u.id) === String(usuario?.id) && <small>Vos</small>}</strong><small>{u.email}</small></span></button><span className={`sg-sec-role ${administrativo ? 'is-admin' : ''}`}>{administrativo ? 'Administrativo' : 'Portería'}</span><div className="sg-sec-access">{!activo ? <span className="sg-sec-blocked"><Lock size={13} />Cuenta bloqueada</span> : administrativo ? <span className="sg-sec-global"><ShieldCheck size={14} />Acceso de gestión</span> : <button className={`sg-sec-permission ${autorizado ? 'is-allowed' : ''}`} onClick={() => handleToggleAutorizacion(u.id)} disabled={!ceremoniaSeleccionadaId || cargandoAutorizaciones || guardandoAutorizacion !== null || procesandoLote} aria-pressed={autorizado} aria-label={`${autorizado ? 'Quitar permiso a' : 'Autorizar a'} ${u.nombre} en la ceremonia seleccionada`}>{guardandoAutorizacion === u.id ? <RefreshCw size={14} className="animate-spin" /> : autorizado ? <CheckCircle2 size={14} /> : <KeyRound size={14} />}{autorizado ? 'Autorizado' : 'Autorizar'}</button>}</div><button className="sg-icon-button sg-sec-expand" aria-label={`${expandido ? 'Ocultar' : 'Ver'} opciones de ${u.nombre}`} aria-expanded={expandido} onClick={() => setPersonalExpandido(expandido ? null : u.id)}><ChevronRight size={17} /></button></div>
+              {expandido && <div className="sg-sec-detail" id={`personal-detalle-${u.id}`}><div className="sg-sec-detail-heading"><label>Rol del personal<select aria-label={`Rol de ${u.nombre}`} value={u.rol} onChange={e => handleCambiarRol(u.id, e.target.value)}><option value="ADMINISTRATIVO">Administrativo</option><option value="PORTERIA">Portería</option></select></label><div><span>Último ingreso</span><strong>{u.ultimo_login ? new Date(u.ultimo_login).toLocaleString('es-AR') : 'Todavía no inició sesión'}</strong></div><span className={`sg-sec-account-state ${activo ? 'is-active' : ''}`}>{activo ? 'Cuenta activa' : 'Cuenta bloqueada'}</span></div>
+                {administrativo ? <p className="sg-sec-help"><ShieldCheck size={15} />El personal administrativo gestiona todas las ceremonias.</p> : <div className="sg-sec-assigned"><span>Ceremonias autorizadas</span><div>{ceremonias.map(c => { const asignada = (u.ceremoniasAutorizadas || []).map(String).includes(String(c.id)); return <button key={c.id} aria-pressed={asignada} onClick={() => handleToggleAutorizacion(u.id, c.id)} disabled={!activo || guardandoAutorizacion !== null || procesandoLote || cargandoAutorizaciones}>{asignada ? <Check size={13} /> : <span className="sg-sec-unchecked" />}{c.nombre}</button> })}{!ceremonias.length && <small>No hay ceremonias para asignar.</small>}</div></div>}
+                <div className="sg-sec-detail-actions"><button className="sg-button" onClick={() => handleEnviarInvitacion(u.id, u.email)} disabled={enviandoInvitacionId === u.id || !activo}><Mail size={14} />{enviandoInvitacionId === u.id ? 'Enviando…' : 'Enviar invitación'}</button>{!administrativo && <button className="sg-button" onClick={() => handleGenerarQR(u)} disabled={!activo}><QrCode size={14} />Pase QR</button>}<button className="sg-button" onClick={() => handleToggleEstado(u.id, Number(u.activo))}>{activo ? <Lock size={14} /> : <Unlock size={14} />}{activo ? 'Bloquear cuenta' : 'Reactivar cuenta'}</button><button className="sg-icon-button sg-danger-text" onClick={() => handleEliminarUsuario(u.id, u.nombre)} disabled={eliminandoId === u.id} aria-label={`Eliminar a ${u.nombre}`} title="Eliminar persona"><Trash2 size={16} /></button></div>
+              </div>}
+            </article>
+          })}
+        </div>}
+      </section>}
 
-        <div className="relative overflow-hidden bg-white border border-slate-200/90 rounded-[24px] p-5 shadow-sm hover:shadow-md transition-all">
-          <div className="flex items-center justify-between">
-            <span className="block text-[10px] font-black uppercase text-emerald-600 tracking-[0.16em]">Habilitados en Foco</span>
-            <div className="h-10 w-10 rounded-2xl bg-emerald-50 text-emerald-600 border border-emerald-100 flex items-center justify-center"><CheckCircle2 size={19} /></div>
-          </div>
-          <span className="text-3xl font-black text-emerald-600 tabular-nums mt-2 block tracking-tight">{autorizadosActivos}</span>
-          <span className="block text-[11px] font-semibold text-slate-500 mt-1 truncate">
-            En {ceremoniaSeleccionada?.nombre || 'ceremonia'}
-          </span>
-        </div>
-
-        <div className="relative overflow-hidden bg-white border border-slate-200/90 rounded-[24px] p-5 shadow-sm hover:shadow-md transition-all">
-          <div className="flex items-center justify-between">
-            <span className="block text-[10px] font-black uppercase text-sky-600 tracking-[0.16em]">Cuentas Operativas</span>
-            <div className="h-10 w-10 rounded-2xl bg-sky-50 text-sky-500 border border-sky-100 flex items-center justify-center"><Unlock size={19} /></div>
-          </div>
-          <span className="text-3xl font-black text-sky-500 tabular-nums mt-2 block tracking-tight">{porterosActivos}</span>
-          <span className="block text-[11px] font-semibold text-slate-500 mt-1">Sin bloqueo activo</span>
-        </div>
-
-        <div className="relative overflow-hidden bg-white border border-slate-200/90 rounded-[24px] p-5 shadow-sm hover:shadow-md transition-all">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <span className="block text-[10px] font-black uppercase text-indigo-600 tracking-[0.16em]">Móviles en Línea</span>
-              {dispositivosEnLinea > 0 && (
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-              )}
-            </div>
-            <div className="h-10 w-10 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center"><Smartphone size={19} /></div>
-          </div>
-          <span className="text-3xl font-black text-indigo-600 tabular-nums mt-2 block tracking-tight">{dispositivosEnLinea}</span>
-          <span className="block text-[11px] font-semibold text-slate-500 mt-1">De {dispositivosTotales} vinculados</span>
-        </div>
-      </div>
-
-      {/* ── SELECTOR DE PESTAÑAS TIPO CAPSULA PREMIUM ── */}
-      <div className="flex items-center gap-2 p-1.5 bg-slate-100/80 rounded-2xl border border-slate-200/80 mb-7 max-w-fit shadow-inner">
-        <button
-          onClick={() => setPestañaActiva('personal')}
-          className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl font-black text-xs transition-all cursor-pointer ${
-            pestañaActiva === 'personal'
-              ? 'bg-white text-slate-900 shadow-md shadow-slate-900/5'
-              : 'text-slate-600 hover:text-slate-900'
-          }`}
-        >
-          <Users size={16} className={pestañaActiva === 'personal' ? 'text-sky-500' : ''} />
-          <span>Personal & Permisos por Ceremonia</span>
-          <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${pestañaActiva === 'personal' ? 'bg-slate-900 text-white' : 'bg-slate-200 text-slate-700'}`}>
-            {totalPorteros}
-          </span>
-        </button>
-
-        <button
-          onClick={() => setPestañaActiva('dispositivos')}
-          className={`flex items-center gap-2.5 px-5 py-2.5 rounded-xl font-black text-xs transition-all cursor-pointer ${
-            pestañaActiva === 'dispositivos'
-              ? 'bg-white text-slate-900 shadow-md shadow-slate-900/5'
-              : 'text-slate-600 hover:text-slate-900'
-          }`}
-        >
-          <Smartphone size={16} className={pestañaActiva === 'dispositivos' ? 'text-indigo-500' : ''} />
-          <span>Dispositivos Móviles & Telemetría</span>
-          <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${dispositivosEnLinea > 0 ? 'bg-emerald-500 text-white' : pestañaActiva === 'dispositivos' ? 'bg-slate-900 text-white' : 'bg-slate-200 text-slate-700'}`}>
-            {dispositivosTotales}
-          </span>
-        </button>
-      </div>
-
-      {/* ======================================================== */}
-      {/* PESTAÑA 1: PERSONAL & MATRIZ DE AUTORIZACIONES */}
-      {/* ======================================================== */}
-      {pestañaActiva === 'personal' && (
-        <div className="space-y-5">
-          
-          {/* BARRA DE CONFIGURACIÓN Y ACCIONES EN LOTE POR CEREMONIA */}
-          <div className="bg-white border border-slate-200 rounded-3xl p-5 shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5">
-            <div className="flex items-center gap-3.5">
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-sky-50 text-sky-500 border border-sky-100">
-                <Settings size={22} />
-              </div>
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">Ceremonia en Configuración</span>
-                <div className="flex items-center gap-2 mt-1">
-                  <select
-                    value={ceremoniaSeleccionadaId}
-                    onChange={e => setCeremoniaSeleccionadaId(e.target.value)}
-                    className="bg-slate-50 border border-slate-250 hover:border-sky-400 focus:border-sky-500 focus:bg-white text-xs font-black rounded-xl px-4 py-2 text-slate-900 outline-none transition cursor-pointer shadow-sm"
-                  >
-                    {ceremonias.map(c => (
-                      <option key={c.id} value={c.id}>
-                        {c.nombre} {c.activa === 1 ? '★ [ACTIVA]' : ''}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-            </div>
-
-            {/* ACCIONES RÁPIDAS EN LOTE */}
-            <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
-              <button
-                onClick={handleAutorizarTodos}
-                disabled={procesandoLote || !ceremoniaSeleccionadaId}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs font-bold transition active:scale-95 disabled:opacity-50 cursor-pointer shadow-sm"
-                title="Habilita a todos los operadores activos para escanear en esta ceremonia"
-              >
-                <CheckCircle2 size={15} />
-                <span>Autorizar a Todos</span>
-              </button>
-
-              <button
-                onClick={handleDesautorizarTodos}
-                disabled={procesandoLote || !ceremoniaSeleccionadaId}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-xs font-bold transition active:scale-95 disabled:opacity-50 cursor-pointer shadow-sm"
-                title="Revoca el acceso de todos los operadores en esta ceremonia"
-              >
-                <XCircle size={15} />
-                <span>Revocar Todos</span>
-              </button>
-            </div>
-          </div>
-
-          {/* FILTROS Y BÚSQUEDA */}
-          <div className="flex flex-col sm:flex-row gap-3.5 items-center justify-between bg-white border border-slate-200/90 rounded-2xl p-4 shadow-sm">
-            <div className="relative w-full sm:w-80">
-              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                value={busqueda}
-                onChange={e => setBusqueda(e.target.value)}
-                placeholder="Buscar por nombre o correo..."
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-xs font-semibold text-slate-800 outline-none transition focus:border-sky-400 focus:bg-white"
-              />
-            </div>
-
-            <div className="flex items-center gap-2.5 w-full sm:w-auto">
-              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 shrink-0">Filtrar:</span>
-              <select
-                value={filtro}
-                onChange={e => setFiltro(e.target.value)}
-                className="w-full sm:w-auto rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-bold text-slate-800 outline-none focus:border-sky-400 cursor-pointer"
-              >
-                <option value="todos">Todo el personal ({usuarios.length})</option>
-                <option value="administrativos">Administrativos ({usuarios.filter(u => u.rol === 'ADMINISTRATIVO').length})</option>
-                <option value="porteria">Portería / Seguridad ({usuarios.filter(u => u.rol === 'PORTERIA').length})</option>
-                <option value="auditores">Auditores ({usuarios.filter(u => u.rol === 'AUDITOR').length})</option>
-                <option value="superadmin">Super Administradores ({usuarios.filter(u => u.rol === 'SUPER_ADMIN' || u.rol === 'ADMIN').length})</option>
-                <option value="autorizados">Autorizados en esta ceremonia ({autorizadosActivos})</option>
-                <option value="sin-acceso">Sin autorización en esta ceremonia ({totalPorteros - autorizadosActivos})</option>
-                <option value="inactivos">Cuentas bloqueadas</option>
-              </select>
-            </div>
-          </div>
-
-          {/* LISTADO DE TARJETAS DE PERSONAL */}
-          {cargando ? (
-            <div className="bg-white rounded-3xl border border-slate-200/80 p-14 text-center shadow-sm">
-              <RefreshCw size={28} className="animate-spin text-sky-500 mx-auto mb-3" />
-              <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Cargando cuentas de seguridad y personal...</p>
-            </div>
-          ) : personalVisible.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-slate-300 bg-white py-16 px-6 text-center shadow-sm">
-              <Shield size={40} className="mx-auto mb-3 text-slate-300" />
-              <p className="text-base font-black text-slate-900">No se encontraron usuarios</p>
-              <p className="text-xs font-semibold text-slate-500 mt-1">Registrá un nuevo miembro o modificá los filtros de búsqueda.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {personalVisible.map(u => {
-                const autorizadoEnSeleccionada = !!autorizadosMap[String(u.id)]
-                const activo = u.activo === 1
-                const authsList = u.ceremoniasAutorizadas || []
-
-                return (
-                  <article 
-                    key={u.id} 
-                    className={`rounded-[28px] border p-6 transition-all duration-200 shadow-sm flex flex-col justify-between hover:shadow-md ${
-                      autorizadoEnSeleccionada && activo 
-                        ? 'border-sky-300/80 bg-gradient-to-br from-white via-white to-sky-50/35 ring-1 ring-sky-200' 
-                        : 'border-slate-200/90 bg-white'
-                    }`}
-                  >
-                    <div>
-                      {/* ENCABEZADO DE LA TARJETA */}
-                      <div className="flex items-start justify-between gap-3.5 mb-4">
-                        <div className="flex items-center gap-3.5 min-w-0">
-                          <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-base font-black shadow-sm ${
-                            activo ? 'bg-slate-900 text-white' : 'bg-slate-200 text-slate-400'
-                          }`}>
-                            {u.nombre?.charAt(0)?.toUpperCase() || 'S'}
-                          </div>
-                          <div className="min-w-0">
-                            <h3 className="truncate text-base font-black text-slate-900">{u.nombre}</h3>
-                            <p className="mt-0.5 flex items-center gap-1.5 truncate text-xs font-semibold text-slate-500">
-                              <Mail size={13} /> {u.email}
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
-                          <span className={`rounded-full px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider border ${
-                            u.rol === 'ADMINISTRATIVO' ? 'bg-sky-50 text-sky-700 border-sky-200' :
-                            u.rol === 'PORTERIA' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                            u.rol === 'AUDITOR' ? 'bg-purple-50 text-purple-700 border-purple-200' :
-                            'bg-rose-50 text-rose-700 border-rose-200'
-                          }`}>
-                            {u.rol === 'ADMINISTRATIVO' ? 'Administrativo' :
-                             u.rol === 'PORTERIA' ? 'Portería' :
-                             u.rol === 'AUDITOR' ? 'Auditor' : 'Super Admin'}
-                          </span>
-                          <span className={`rounded-full px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider border ${
-                            activo ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'
-                          }`}>
-                            {activo ? 'Activo' : 'Bloqueado'}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* MATRIZ / PÍLDORAS DE CEREMONIAS ASIGNADAS */}
-                      <div className="my-4 p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
-                        <div className="flex items-center justify-between mb-2.5">
-                          <span className="text-[10px] font-black uppercase tracking-wider text-slate-600">
-                            Ceremonias asignadas ({authsList.length}):
-                          </span>
-                          <span className="text-[9px] text-slate-400 font-semibold">Tocar para alternar</span>
-                        </div>
-                        
-                        <div className="flex flex-wrap gap-1.5">
-                          {ceremonias.map(c => {
-                            const estaAuth = authsList.includes(String(c.id))
-                            const esLaEnFoco = String(c.id) === String(ceremoniaSeleccionadaId)
-
-                            return (
-                              <button
-                                key={c.id}
-                                type="button"
-                                onClick={() => handleToggleAutorizacion(u.id, c.id)}
-                                disabled={guardandoAutorizacion === u.id}
-                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black transition active:scale-95 cursor-pointer border ${
-                                  estaAuth
-                                    ? 'bg-sky-500 text-white border-sky-600 shadow-sm'
-                                    : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
-                                } ${esLaEnFoco ? 'ring-2 ring-sky-400 ring-offset-1' : ''}`}
-                                title={`${estaAuth ? 'Quitar permiso' : 'Autorizar'} en "${c.nombre}"`}
-                              >
-                                {estaAuth ? <Check size={12} className="stroke-[3]" /> : <X size={12} />}
-                                <span className="truncate max-w-[140px]">{c.nombre}</span>
-                              </button>
-                            )
-                          })}
-                        </div>
-                      </div>
-
-                      {/* METADATOS COMPACTOS CON SELECTOR DE ROL */}
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mb-4 text-[10px]">
-                        <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-150">
-                          <span className="text-slate-400 font-bold block uppercase text-[8px]">Rol en Sistema</span>
-                          <select
-                            value={u.rol || 'ADMINISTRATIVO'}
-                            onChange={e => handleCambiarRol(u.id, e.target.value)}
-                            className="w-full bg-white border border-slate-200 rounded-lg px-1.5 py-1 text-[10px] font-bold text-slate-800 outline-none focus:border-sky-400 cursor-pointer mt-1"
-                          >
-                            <option value="ADMINISTRATIVO">Administrativo</option>
-                            <option value="PORTERIA">Portería</option>
-                            <option value="AUDITOR">Auditor</option>
-                            <option value="SUPER_ADMIN">Super Admin</option>
-                          </select>
-                        </div>
-                        <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-150">
-                          <span className="text-slate-400 font-bold block uppercase text-[8px]">Último Acceso</span>
-                          <strong className="text-slate-800 block truncate mt-1">
-                            {u.ultimo_login ? new Date(u.ultimo_login).toLocaleString('es-AR') : 'Nunca'}
-                          </strong>
-                        </div>
-                        <div className={`p-2.5 rounded-xl border ${
-                          autorizadoEnSeleccionada ? 'bg-emerald-50/80 border-emerald-200 text-emerald-900' : 'bg-amber-50/80 border-amber-200 text-amber-900'
-                        }`}>
-                          <span className="font-bold block uppercase text-[8px]">En ceremonia en foco</span>
-                          <strong className="block truncate mt-1">
-                            {autorizadoEnSeleccionada ? '✓ Habilitado' : '✗ Sin permiso'}
-                          </strong>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* BOTONES DE ACCIÓN */}
-                    <div className="flex flex-wrap items-center gap-2 pt-3.5 border-t border-slate-100 mt-1">
-                      <button
-                        onClick={() => handleToggleAutorizacion(u.id)}
-                        disabled={guardandoAutorizacion === u.id}
-                        className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition active:scale-95 cursor-pointer ${
-                          autorizadoEnSeleccionada
-                            ? 'bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200'
-                            : 'bg-slate-900 text-white hover:bg-sky-500 shadow-sm'
-                        }`}
-                      >
-                        {guardandoAutorizacion === u.id ? (
-                          <RefreshCw size={13} className="animate-spin" />
-                        ) : autorizadoEnSeleccionada ? (
-                          <XCircle size={13} />
-                        ) : (
-                          <CheckCircle2 size={13} />
-                        )}
-                        <span>{autorizadoEnSeleccionada ? 'Quitar de esta' : 'Autorizar en esta'}</span>
-                      </button>
-
-                      <button
-                        onClick={() => handleToggleEstado(u.id, u.activo)}
-                        className={`flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl text-[10px] font-black uppercase tracking-wider transition active:scale-95 cursor-pointer border ${
-                          activo 
-                            ? 'bg-slate-50 hover:bg-rose-50 text-slate-700 hover:text-rose-700 border-slate-200' 
-                            : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200'
-                        }`}
-                      >
-                        {activo ? <Lock size={13} /> : <Unlock size={13} />}
-                        <span>{activo ? 'Bloquear' : 'Reactivar'}</span>
-                      </button>
-
-                      <button
-                        onClick={() => handleEnviarInvitacion(u.id, u.email)}
-                        disabled={enviandoInvitacionId === u.id || !activo}
-                        className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-slate-50 hover:bg-sky-50 text-slate-700 hover:text-sky-700 border border-slate-200 hover:border-sky-200 text-[10px] font-black uppercase tracking-wider transition active:scale-95 cursor-pointer disabled:opacity-40"
-                        title="Enviar por correo electrónico el enlace para crear o cambiar su contraseña privada"
-                      >
-                        {enviandoInvitacionId === u.id ? (
-                          <RefreshCw size={13} className="animate-spin text-sky-500" />
-                        ) : (
-                          <Mail size={13} className="text-sky-600" />
-                        )}
-                        <span>{enviandoInvitacionId === u.id ? 'Enviando...' : 'Invitar'}</span>
-                      </button>
-
-                      <button
-                        onClick={() => handleGenerarQR(u)}
-                        disabled={!activo}
-                        className="flex items-center justify-center gap-1.5 py-2.5 px-3.5 rounded-xl bg-sky-50 hover:bg-sky-500 text-sky-600 hover:text-white border border-sky-200 text-[10px] font-black uppercase tracking-wider transition active:scale-95 cursor-pointer disabled:opacity-40"
-                        title="Generar credencial QR para inicio de sesión directo en la app"
-                      >
-                        <QrCode size={13} />
-                        <span>Pase QR</span>
-                      </button>
-
-                      <button
-                        onClick={() => handleEliminarUsuario(u.id, u.nombre)}
-                        disabled={eliminandoId === u.id}
-                        className="flex items-center justify-center p-2.5 rounded-xl bg-slate-50 hover:bg-rose-50 text-slate-400 hover:text-rose-600 border border-slate-200 hover:border-rose-200 transition active:scale-95 cursor-pointer"
-                        title="Eliminar usuario permanentemente"
-                      >
-                        {eliminandoId === u.id ? (
-                          <RefreshCw size={13} className="animate-spin text-rose-500" />
-                        ) : (
-                          <Trash2 size={13} />
-                        )}
-                      </button>
-                    </div>
-                  </article>
-                )
-              })}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ======================================================== */}
-      {/* PESTAÑA 2: DISPOSITIVOS MÓVILES & TELEMETRÍA EN VIVO */}
-      {/* ======================================================== */}
-      {pestañaActiva === 'dispositivos' && (
-        <div className="space-y-5">
-          
-          {/* HEADER DE ESTADO DE DISPOSITIVOS */}
-          <div className="bg-slate-900 rounded-3xl p-6 sm:p-7 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-5 border border-white/10">
-            <div className="flex items-center gap-4">
-              <div className="h-13 w-13 rounded-2xl bg-white/10 text-sky-400 flex items-center justify-center border border-white/10 shadow-inner">
-                <Smartphone size={26} />
-              </div>
-              <div>
-                <div className="flex items-center gap-2.5">
-                  <h2 className="text-lg font-black">Escáneres y Terminales Vinculadas</h2>
-                  <span className="px-2.5 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30 text-[9px] font-black uppercase tracking-wider">
-                    Telemetría en Vivo
-                  </span>
-                </div>
-                <p className="text-xs font-semibold text-slate-400 mt-0.5">
-                  Dispositivos autorizados que operan la aplicación móvil SiGIC Accesos.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="px-5 py-2.5 rounded-2xl bg-white/5 border border-white/10 text-right">
-                <span className="block text-[9px] font-black uppercase tracking-wider text-slate-400">Estado</span>
-                <span className="text-xs font-black text-emerald-400 flex items-center gap-2 justify-end mt-0.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                  {dispositivosEnLinea} en línea · {dispositivosTotales} vinculados
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {/* LISTA DE DISPOSITIVOS */}
-          {cargandoDispositivos ? (
-            <div className="bg-white rounded-3xl border border-slate-200/80 p-14 text-center shadow-sm">
-              <RefreshCw size={28} className="animate-spin text-sky-500 mx-auto mb-3" />
-              <p className="text-xs font-black text-slate-500 uppercase tracking-widest">Consultando terminales móviles...</p>
-            </div>
-          ) : dispositivos.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-slate-300 bg-white py-16 px-6 text-center shadow-sm">
-              <Smartphone size={44} className="mx-auto mb-3 text-slate-300" />
-              <h3 className="text-base font-black text-slate-900">Todavía no hay dispositivos móviles registrados</h3>
-              <p className="text-xs font-semibold text-slate-500 mt-1 max-w-md mx-auto leading-relaxed">
-                Los dispositivos aparecerán automáticamente tan pronto como un operador abra la app móvil SiGIC Accesos o inicie sesión escaneando su Pase QR.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {dispositivos.map(d => {
-                const enLinea = Boolean(d.enLinea)
-                const sesionActiva = d.sesionActiva === 1
-
-                return (
-                  <article 
-                    key={d.dispositivoId}
-                    className="bg-white rounded-[28px] border border-slate-200/90 p-5.5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
-                  >
-                    <div>
-                      {/* ESTADO SUPERIOR */}
-                      <div className="flex items-start justify-between gap-3 mb-4">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className={`relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl shadow-sm ${
-                            enLinea ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-slate-100 text-slate-500'
-                          }`}>
-                            <Smartphone size={22} />
-                            <span className={`absolute -right-1 -top-1 h-3.5 w-3.5 rounded-full border-2 border-white ${
-                              enLinea ? 'bg-emerald-500' : sesionActiva ? 'bg-amber-400' : 'bg-slate-400'
-                            }`} />
-                          </div>
-                          <div className="min-w-0">
-                            <h4 className="truncate text-sm font-black text-slate-900">
-                              {d.nombreDispositivo || `${d.marca || 'Móvil'} ${d.modelo || ''}`}
-                            </h4>
-                            <p className="truncate text-xs font-semibold text-slate-500 mt-0.5">
-                              {d.usuarioNombre || 'Operador de portería'}
-                            </p>
-                          </div>
-                        </div>
-
-                        <span className={`shrink-0 rounded-full px-2.5 py-1 text-[8px] font-black uppercase tracking-wider ${
-                          enLinea 
-                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
-                            : sesionActiva 
-                              ? 'bg-amber-50 text-amber-700 border border-amber-200' 
-                              : 'bg-slate-100 text-slate-500 border border-slate-200'
-                        }`}>
-                          {enLinea ? '🟢 En línea' : sesionActiva ? '🟡 Inactivo' : '⚪ Desconectado'}
-                        </span>
-                      </div>
-
-                      {/* DATOS DE TELEMETRÍA */}
-                      <div className="grid grid-cols-2 gap-2 my-3.5 text-[10px]">
-                        <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                          <span className="text-slate-400 font-bold block uppercase text-[8px]">Sistema Operativo</span>
-                          <strong className="text-slate-800 block truncate mt-0.5">
-                            {d.sistema || 'Android'} {d.versionSistema?.slice(0, 10) || ''}
-                          </strong>
-                        </div>
-                        <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                          <span className="text-slate-400 font-bold block uppercase text-[8px]">Versión App</span>
-                          <strong className="text-slate-800 block truncate mt-0.5">
-                            {d.versionApp || '1.0.5+6'}
-                          </strong>
-                        </div>
-                        <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                          <span className="text-slate-400 font-bold block uppercase text-[8px]">IP Origen</span>
-                          <strong className="text-slate-800 block truncate mt-0.5 font-mono">
-                            {d.ipUltimoAcceso || '127.0.0.1'}
-                          </strong>
-                        </div>
-                        <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                          <span className="text-slate-400 font-bold block uppercase text-[8px]">Último Ping</span>
-                          <strong className="text-slate-800 block truncate mt-0.5">
-                            {d.ultimoAcceso ? new Date(d.ultimoAcceso).toLocaleTimeString('es-AR') : '—'}
-                          </strong>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* BOTONES DE CONTROL REMOTO */}
-                    <div className="flex items-center gap-2 pt-3 border-t border-slate-100 mt-2">
-                      <button
-                        onClick={() => setDispositivoSeleccionado(d)}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-[10px] font-black uppercase tracking-wider transition active:scale-95 cursor-pointer"
-                      >
-                        <Eye size={13} />
-                        <span>Detalles</span>
-                      </button>
-
-                      {sesionActiva && (
-                        <button
-                          onClick={() => handleDesvincularDispositivo(d.dispositivoId)}
-                          disabled={desvinculandoId === d.dispositivoId}
-                          className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-[10px] font-black uppercase tracking-wider transition active:scale-95 cursor-pointer disabled:opacity-50"
-                          title="Forzar cierre de sesión en este móvil"
-                        >
-                          {desvinculandoId === d.dispositivoId ? <RefreshCw size={13} className="animate-spin" /> : <PowerOff size={13} />}
-                          <span>Desconectar</span>
-                        </button>
-                      )}
-                    </div>
-                  </article>
-                )
-              })}
-            </div>
-          )}
-        </div>
-      )}
+      {pestañaActiva === 'dispositivos' && <section className="sg-sec-panel" aria-label="Dispositivos vinculados"><div className="sg-sec-device-header"><div><h2>Dispositivos vinculados</h2><p>Equipos que usan SiGIC Accesos.</p></div><span className="sg-sec-account-state is-active">{dispositivosEnLinea} en línea</span></div><div className="sg-sec-toolbar"><div className="sg-sec-search"><Search size={16} /><input aria-label="Buscar dispositivos" value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar dispositivo o persona…" />{busqueda && <button onClick={() => setBusqueda('')} aria-label="Limpiar búsqueda de dispositivos"><X size={14} /></button>}</div></div>{cargandoDispositivos ? <div className="sg-sec-empty" role="status"><RefreshCw size={24} className="animate-spin" /><strong>Cargando dispositivos…</strong></div> : !dispositivosVisibles.length ? <div className="sg-sec-empty"><Smartphone size={26} /><strong>{busqueda ? 'No encontramos ese dispositivo' : 'Todavía no hay dispositivos'}</strong><p>{busqueda ? 'Probá con el nombre de la persona o del equipo.' : 'Aparecerán cuando el personal inicie sesión en la app móvil.'}</p></div> : <div className="sg-sec-devices">{dispositivosVisibles.map(d => <article key={d.dispositivoId}><span className="sg-sec-device-icon"><Smartphone size={20} /></span><button className="sg-sec-device-name" onClick={() => setDispositivoSeleccionado(d)}><strong>{d.nombreDispositivo || d.modelo || d.marca || 'Dispositivo móvil'}</strong><small>{d.usuarioNombre || 'Sin usuario'} · {d.sistema || 'Sistema no informado'}</small></button><span className={`sg-sec-account-state ${d.enLinea ? 'is-active' : ''}`}>{d.enLinea ? 'En línea' : Number(d.sesionActiva) === 1 ? 'Sin conexión' : 'Sesión cerrada'}</span><button className="sg-icon-button" onClick={() => setDispositivoSeleccionado(d)} aria-label={`Ver dispositivo ${d.nombreDispositivo || d.modelo || d.dispositivoId}`}><ChevronRight size={17} /></button></article>)}</div>}</section>}
 
       {/* ======================================================== */}
       {/* MODAL: DETALLE DIAGNÓSTICO DEL DISPOSITIVO */}
@@ -1181,8 +628,6 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                   {[
                     { id: 'ADMINISTRATIVO', nombre: 'Administrativo', desc: 'Gestión y edición general' },
                     { id: 'PORTERIA', nombre: 'Portería', desc: 'Escaneo y control de accesos' },
-                    { id: 'AUDITOR', nombre: 'Auditor', desc: 'Reportes y estadísticas' },
-                    { id: 'SUPER_ADMIN', nombre: 'Super Admin', desc: 'Control total del sistema' }
                   ].map(r => {
                     const seleccionado = rolNuevo === r.id
                     return (
