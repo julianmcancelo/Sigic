@@ -1512,9 +1512,10 @@ export async function POST(
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
       const { estructura, mapaRoles, usuarioId } = body;
+      const modificadoPor = (typeof usuarioId === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(usuarioId)) ? usuarioId : null;
       await query(
         'INSERT INTO configuracion_anfiteatro (ceremonia_id, estructura, mapa_roles, modificado_por) VALUES ($1, $2, $3, $4)',
-        [ceremoniaId, JSON.stringify(estructura), JSON.stringify(mapaRoles), usuarioId]
+        [ceremoniaId, JSON.stringify(estructura), JSON.stringify(mapaRoles), modificadoPor]
       );
       return NextResponse.json({ ok: true, mensaje: 'Estructura del anfiteatro actualizada' }, { headers });
     }
@@ -1582,7 +1583,7 @@ export async function POST(
         for (let col = 1; col <= columnas.length; col++) {
           const asientoId = `${idFila}-${col}`;
           const rol = mapaRoles?.[asientoId];
-          if (['bloqueado', 'autoridad', 'reservado', 'pasillo'].includes(rol)) continue;
+          if (['bloqueado', 'autoridad', 'reservado', 'pasillo', 'padrino'].includes(rol)) continue;
           
           if (rol === 'graduado') {
             asientosGraduados.push(asientoId);
@@ -3246,6 +3247,33 @@ export async function PUT(
         if (noAsignables) {
           await client.query('ROLLBACK');
           return NextResponse.json({ error: `La butaca ${noAsignables} pertenece a un sector reservado y no se puede asignar.` }, { status: 400, headers });
+        }
+
+        // El graduado no puede sentarse en el sector de padrinos
+        if (egresadoAsiento && mapaRoles[egresadoAsiento] === 'padrino') {
+          await client.query('ROLLBACK');
+          return NextResponse.json({
+            error: `La butaca ${egresadoAsiento} pertenece al sector exclusivo para padrinos y no puede asignarse al graduado.`
+          }, { status: 400, headers });
+        }
+
+        // Verificar que los asientos de sector padrino solo se asignen a acompañantes que son padrinos activos
+        const tieneAsientosPadrinos = Object.values(invitadosAsientos).some(asiento => asiento && mapaRoles[asiento] === 'padrino');
+        if (tieneAsientosPadrinos) {
+          const padrinosRes = await client.query(
+            `SELECT invitado_id FROM entregadores WHERE egresado_id = $1 AND invitado_id IS NOT NULL`,
+            [id]
+          );
+          const idsPadrinosSet = new Set(padrinosRes.rows.map((r: any) => r.invitado_id));
+
+          for (const [invitadoId, asiento] of Object.entries(invitadosAsientos)) {
+            if (asiento && mapaRoles[asiento] === 'padrino' && !idsPadrinosSet.has(invitadoId)) {
+              await client.query('ROLLBACK');
+              return NextResponse.json({
+                error: `La butaca ${asiento} pertenece al sector exclusivo para padrinos y solo puede asignarse a un padrino o entregador de diploma.`
+              }, { status: 400, headers });
+            }
+          }
         }
 
         const columna = esPersonal ? 'asiento_id' : 'asiento_solicitado_id';

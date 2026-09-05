@@ -155,6 +155,9 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
         if (idx === 0 || idx === 1) {
           for (let col = 6; col <= 15; col++) nuevosRoles[`baja-${letra}-${col}`] = 'egresado'
         }
+        if (idx === 2) {
+          for (let col = 6; col <= 15; col++) nuevosRoles[`baja-${letra}-${col}`] = 'padrino'
+        }
         if (idx === 0) {
           nuevosRoles[`baja-A-4`] = 'discapacitado'
           nuevosRoles[`baja-A-17`] = 'discapacitado'
@@ -503,6 +506,7 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
               <div className="grid grid-cols-1 gap-1.5">
                 {[
                   { id: 'egresado', label: 'Sector Graduados', color: 'bg-indigo-600 text-white', desc: 'Primeras filas Platea' },
+                  { id: 'padrino', label: 'Sector Padrinos', color: 'bg-amber-500 text-white', desc: 'Ubicación exclusiva para padrinos de diploma' },
                   { id: 'disponible', label: 'Sector Acompañantes / Libre', color: 'bg-white border border-slate-300 text-slate-700', desc: 'Libre para auto-seating' },
                   { id: 'autoridad', label: 'Autoridades / Estrado', color: 'bg-slate-900 text-white', desc: 'Mesa académica' },
                   { id: 'discapacitado', label: 'Accesibilidad Reducida', color: 'bg-purple-600 text-white', desc: 'Extremos y pasillos' },

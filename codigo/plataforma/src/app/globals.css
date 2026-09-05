@@ -665,6 +665,32 @@ button { cursor: pointer; }
   animation-fill-mode: none !important;
 }
 
+/* Sector Exclusivo para Padrinos / Entregadores */
+.sigic-seat--padrino {
+  background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%) !important;
+  color: #ffffff !important;
+  border: 1.5px solid #d97706 !important;
+  box-shadow: 0 3px 10px rgba(217, 119, 6, 0.45) !important;
+}
+
+.sigic-seat--padrino:hover:not(:disabled) {
+  transform: translateY(-3px) scale(1.08);
+  box-shadow: 0 6px 20px rgba(217, 119, 6, 0.6) !important;
+  border-color: #f59e0b !important;
+}
+
+.sigic-stats__pill--padrino {
+  background: rgba(245, 158, 11, 0.16) !important;
+  color: #b45309 !important;
+  border: 1px solid rgba(245, 158, 11, 0.35) !important;
+}
+
+[data-tema="oscuro"] .sigic-stats__pill--padrino {
+  background: rgba(245, 158, 11, 0.22) !important;
+  color: #fbbf24 !important;
+  border: 1px solid rgba(245, 158, 11, 0.45) !important;
+}
+
 /* 404 · recreacion de la "Homer's Web Page", homenaje al gag clasico de Los Simpsons. */
 @font-face { font-family: "Cooper-Black-404"; src: url("/404/COOPBL.ttf") format("truetype"); font-display: swap; }
 

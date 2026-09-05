@@ -189,6 +189,7 @@ export function ModalAsignarAsientos({
       if (['autoridad', 'reservado', 'bloqueado'].includes(rol)) roles[asientoId] = 'bloqueado'
       if (rol === 'egresado' && personaActiva.tipo !== 'egresado') roles[asientoId] = 'bloqueado'
       if (rol === 'discapacitado' && !personaActivaDatos.requiereAccesibilidad) roles[asientoId] = 'bloqueado'
+      if (rol === 'padrino' && !personaActivaDatos.esPadrino) roles[asientoId] = 'bloqueado'
     })
     return roles
   }
@@ -196,6 +197,13 @@ export function ModalAsignarAsientos({
   // Al hacer clic en un asiento del mapa
   const manejarAsientoClick = (asientoId) => {
     if (esSoloLectura) return
+
+    // Validar exclusividad del sector de padrinos
+    const rolBase = mapaRoles[asientoId] || 'disponible'
+    if (rolBase === 'padrino' && !personaActivaDatos.esPadrino) {
+      setError('Esta butaca pertenece al sector exclusivo para padrinos de diploma.')
+      return
+    }
 
     // 1. Si el asiento ya está ocupado por otra persona de este grupo, removerlo de esa persona
     let nuevasAsignaciones = {
@@ -463,7 +471,7 @@ export function ModalAsignarAsientos({
               ) : !esSoloLectura ? <ChevronRight className="text-sky-400 shrink-0" size={22} /> : null}
             </div>
 
-            <div className="shrink-0 flex items-center gap-2 px-1 text-[9px] text-slate-500"><LockKeyhole size={13} className="text-slate-400" /> Reservadas, autoridades y ocupadas: bloqueadas.</div>
+            <div className="shrink-0 flex items-center gap-2 px-1 text-[9px] text-slate-500"><LockKeyhole size={13} className="text-slate-400" /> Sector padrinos exclusivo para entregadores de diploma. Reservadas y autoridades bloqueadas.</div>
 
             {estructura ? (
               <div className="min-h-0 flex-1 overflow-auto rounded-xl [scrollbar-width:thin] [&_.sigic-wrapper]:gap-1.5 [&_.sigic-mapa]:p-3 [&_.sigic-mapa]:rounded-xl [&_.sigic-escenario]:mb-2 [&_.sigic-escenario__sombra]:h-1 [&_.sigic-stats__pill]:px-2 [&_.sigic-stats__pill]:py-1">

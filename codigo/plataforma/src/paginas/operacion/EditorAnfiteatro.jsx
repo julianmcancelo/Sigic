@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Save, Layout, ZoomIn, ZoomOut, ShieldCheck, AlertCircle, GraduationCap,
-  Armchair, X, Maximize, Minimize, ChevronLeft, ChevronRight, UserCheck, RotateCcw, HelpCircle, Layers, Info, Sparkles
+  Armchair, X, Maximize, Minimize, ChevronLeft, ChevronRight, UserCheck, RotateCcw, HelpCircle, Layers, Info, Sparkles, Award
 } from 'lucide-react';
 import { BASE, obtenerGraduados, obtenerInvitados, cabeceras } from '../../servicios/api';
 import { useSincronizacion, emitirCambioSync } from '../../lib/sync';
@@ -158,6 +158,12 @@ export function EditorAnfiteatro({ ceremoniaId, onVolver, sinHeader }) {
         if (idx === 0 || idx === 1) {
           for (let col = 6; col <= 15; col++) {
             nuevosRoles[`baja-${letra}-${col}`] = 'egresado';
+          }
+        }
+        // Fila C central para sector exclusivo de padrinos
+        if (idx === 2) {
+          for (let col = 6; col <= 15; col++) {
+            nuevosRoles[`baja-${letra}-${col}`] = 'padrino';
           }
         }
         // Accesibilidad en primera fila cerca de pasillos
@@ -414,6 +420,7 @@ export function EditorAnfiteatro({ ceremoniaId, onVolver, sinHeader }) {
                   {[
                     { id: 'disponible', label: 'Disponible', color: 'bg-white border border-slate-300 text-slate-600', icono: Armchair },
                     { id: 'egresado', label: 'Graduado', color: 'bg-indigo-600 text-white', icono: GraduationCap },
+                    { id: 'padrino', label: 'Padrinos', color: 'bg-amber-500 text-white', icono: Award },
                     { id: 'autoridad', label: 'Autoridad', color: 'bg-slate-900 text-white', icono: ShieldCheck },
                     { id: 'discapacitado', label: 'Accesibilidad', color: 'bg-purple-600 text-white', icono: AlertCircle },
                     { id: 'reservado', label: 'Reservado', color: 'bg-amber-500 text-white', icono: Info },
@@ -450,7 +457,7 @@ export function EditorAnfiteatro({ ceremoniaId, onVolver, sinHeader }) {
                <button onClick={() => setNivel('baja')} className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-[9px] ${nivel === 'baja' ? 'bg-sky-50 text-sky-600' : 'text-slate-400 hover:bg-slate-50'}`} title="Platea">P</button>
                <button onClick={() => setNivel('alta')} className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-[9px] ${nivel === 'alta' ? 'bg-sky-50 text-sky-600' : 'text-slate-400 hover:bg-slate-50'}`} title="Pullman">U</button>
                <div className="w-6 h-px bg-slate-100" />
-               {['disponible', 'egresado', 'autoridad', 'discapacitado', 'reservado', 'bloqueado'].map(rol => (
+               {['disponible', 'egresado', 'padrino', 'autoridad', 'discapacitado', 'reservado', 'bloqueado'].map(rol => (
                  <button
                    key={rol}
                    onClick={() => setRolSeleccionado(rol)}
@@ -461,6 +468,7 @@ export function EditorAnfiteatro({ ceremoniaId, onVolver, sinHeader }) {
                  >
                    {rol === 'disponible' ? <Armchair size={13} /> :
                     rol === 'egresado' ? <GraduationCap size={13} /> :
+                    rol === 'padrino' ? <Award size={13} /> :
                     rol === 'autoridad' ? <ShieldCheck size={13} /> :
                     rol === 'discapacitado' ? <AlertCircle size={13} /> :
                     rol === 'reservado' ? <Info size={13} /> : <X size={13} />}

@@ -1,9 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { MapaAsientos } from '@jcancelo/mapa-asientos-sigic';
+import { MapaAsientos, ROLES } from '@jcancelo/mapa-asientos-sigic';
+import { Award } from 'lucide-react';
 import { BASE, obtenerCeremoniaActiva } from '../servicios/api';
+
+if (ROLES && !ROLES.padrino) {
+  ROLES.padrino = {
+    label: 'Padrinos',
+    clase: 'sigic-seat--padrino',
+    Icono: Award,
+    orden: 2.5,
+    descripcion: 'Sector exclusivo para padrinos y entregadores de diploma.'
+  };
+}
 
 const LEYENDA = [
   { rol: 'egresado', color: 'bg-indigo-600', label: 'Graduados' },
+  { rol: 'padrino', color: 'bg-amber-500', label: 'Padrinos' },
   { rol: 'autoridad', color: 'bg-slate-900', label: 'Autoridades' },
   { rol: 'discapacitado', color: 'bg-purple-600', label: 'Accesibilidad' },
   { rol: 'reservado', color: 'bg-amber-500', label: 'Reservado' },
