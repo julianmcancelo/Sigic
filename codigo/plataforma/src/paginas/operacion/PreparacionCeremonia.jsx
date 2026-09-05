@@ -3,7 +3,7 @@ import {
   Armchair, Sparkles, Users, Layers, Save, RotateCcw,
   CheckCircle2, AlertCircle, Search, ArrowRight, UserCheck,
   Download, Layout, ShieldCheck, ChevronRight, ChevronLeft,
-  X, Info, GraduationCap, ZoomIn, ZoomOut, Check, Award
+  X, Info, GraduationCap, ZoomIn, ZoomOut, Check, Award, RefreshCw
 } from 'lucide-react'
 import {
   BASE,
@@ -33,7 +33,7 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
   
   // Estado del mapa
   const [nivel, setNivel] = useState('baja')
-  const [zoom, setZoom] = useState(1)
+  const [zoom, setZoom] = useState(0.9)
   const [rolPincel, setRolPincel] = useState('egresado')
   const [estructura, setEstructura] = useState({
     baja: { filas: 7, asientos: 20 },
@@ -256,39 +256,40 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
   })
 
   return (
-    <div className="font-sans space-y-4 max-w-7xl mx-auto pb-10">
+    <div className="font-sans space-y-2.5 max-w-7xl mx-auto pb-4">
       
-      {/* HEADER DE FASE 4 */}
-      <header className="rounded-2xl bg-slate-900 px-5 py-4 text-white shadow-xl flex flex-col md:flex-row md:items-center md:justify-between gap-3 border border-slate-800">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="px-2.5 py-0.5 rounded-full bg-cyan-400/10 border border-cyan-400/30 text-cyan-300 text-[9px] font-black uppercase tracking-wider">
-              Fase 4 · Asignación de Butacas & Auditorio
-            </span>
-            {ceremonia && (
-              <span className="text-[10px] font-bold text-slate-400 bg-white/10 px-2 py-0.5 rounded-md">
-                {ceremonia.nombre}
-              </span>
-            )}
+      {/* HEADER ULTRA COMPACTO */}
+      <header className="rounded-xl bg-slate-900 px-4 py-2.5 text-white shadow-sm flex flex-wrap items-center justify-between gap-2.5 border border-slate-800">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-400/20 text-sky-400 flex items-center justify-center shrink-0">
+            <Armchair size={17} />
           </div>
-          <h2 className="mt-1 text-xl font-black tracking-tight flex items-center gap-2">
-            <Armchair className="text-cyan-400" size={20} />
-            Distribución y Asignación de Butacas
-          </h2>
-          <p className="text-xs text-slate-400 font-medium">
-            Mapa interactivo, ubicación de graduados y ejecución de Auto-Seating inteligente.
-          </p>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-black tracking-tight truncate">
+                Distribución y Asignación de Butacas
+              </h2>
+              {ceremonia && (
+                <span className="text-[9.5px] font-bold text-slate-300 bg-white/10 px-1.5 py-0.5 rounded shrink-0 truncate max-w-[140px]">
+                  {ceremonia.nombre}
+                </span>
+              )}
+            </div>
+            <p className="text-[10px] text-slate-400 font-medium truncate">
+              Auto-Seating inteligente, mapa de auditorio y control de sectores
+            </p>
+          </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0">
           <button
             id="btn-auto-asignar-butacas"
             type="button"
             onClick={ejecutarAutoSeating}
             disabled={autoAsignando || graduados.length === 0}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white px-3.5 py-2 text-xs font-black shadow-md shadow-cyan-500/20 transition active:scale-95 disabled:opacity-40 cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white px-3 py-1.5 text-[11px] font-black shadow-xs transition active:scale-95 disabled:opacity-40 cursor-pointer"
           >
-            {autoAsignando ? <Sparkles size={14} className="animate-spin" /> : <Sparkles size={14} />}
+            {autoAsignando ? <Sparkles size={13} className="animate-spin" /> : <Sparkles size={13} />}
             <span>{autoAsignando ? 'Auto-asignando...' : 'Auto-Asignar Butacas'}</span>
           </button>
 
@@ -296,9 +297,9 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
             type="button"
             onClick={guardarMapa}
             disabled={guardando}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white px-3 py-2 text-xs font-bold transition active:scale-95 cursor-pointer disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-white px-2.5 py-1.5 text-[11px] font-bold transition active:scale-95 cursor-pointer disabled:opacity-40"
           >
-            <Save size={13} />
+            <Save size={12} />
             <span>{guardando ? 'Guardando...' : 'Guardar Mapa'}</span>
           </button>
 
@@ -307,125 +308,129 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
               type="button"
               id="btn-finalizar-preparacion"
               onClick={() => setMostrarResumenFinal(true)}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-500 px-3.5 py-2 text-xs font-black transition active:scale-95 cursor-pointer shadow-sm shadow-emerald-600/20"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-500/80 px-3 py-1.5 text-[11px] font-black transition active:scale-95 cursor-pointer shadow-xs"
             >
-              <CheckCircle2 size={13} />
-              <span>Finalizar Preparación</span>
+              <CheckCircle2 size={12} />
+              <span>Finalizar</span>
             </button>
           )}
         </div>
       </header>
 
-      {/* FEEDBACK BANNER */}
+      {/* FEEDBACK BANNER COMPACTO */}
       {mensaje && (
-        <div className={`p-3.5 rounded-xl flex items-center justify-between text-xs font-bold shadow-xs ${
+        <div className={`p-2.5 rounded-xl flex items-center justify-between text-xs font-bold shadow-2xs animate-in slide-in-from-top duration-200 ${
           mensaje.tipo === 'error' ? 'bg-rose-50 text-rose-800 border border-rose-200' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
         }`}>
           <div className="flex items-center gap-2">
-            {mensaje.tipo === 'error' ? <AlertCircle size={16} /> : <CheckCircle2 size={16} />}
-            <span>{mensaje.texto}</span>
+            {mensaje.tipo === 'error' ? <AlertCircle size={14} /> : <CheckCircle2 size={14} />}
+            <span className="text-[11px]">{mensaje.texto}</span>
           </div>
-          <button onClick={() => setMensaje(null)} className="cursor-pointer opacity-70 hover:opacity-100">✕</button>
+          <button onClick={() => setMensaje(null)} className="cursor-pointer opacity-70 hover:opacity-100 p-0.5">✕</button>
         </div>
       )}
 
-      {/* KPI STATS BAR */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
-        <div className="p-3 bg-white rounded-xl border border-slate-200/80 shadow-xs flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center font-bold text-xs shrink-0">
-            <Layers size={16} />
+      {/* KPI STATS BAR COMPACTO */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+        <div className="p-2.5 bg-white rounded-xl border border-slate-200/80 shadow-2xs flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+            <Layers size={14} />
           </div>
-          <div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Capacidad</p>
-            <p className="text-sm font-black text-slate-900">{totalCapacidad} butacas</p>
-          </div>
-        </div>
-
-        <div className="p-3 bg-white rounded-xl border border-slate-200/80 shadow-xs flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs shrink-0">
-            <UserCheck size={16} />
-          </div>
-          <div>
-            <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Graduados Ubicados</p>
-            <p className="text-sm font-black text-slate-900">{graduadosConAsiento.length} <span className="text-xs text-slate-400 font-bold">/ {graduados.length}</span></p>
+          <div className="min-w-0">
+            <p className="text-[8.5px] font-black text-slate-400 uppercase tracking-widest truncate">Capacidad</p>
+            <p className="text-xs font-black text-slate-900 leading-tight truncate">{totalCapacidad} butacas</p>
           </div>
         </div>
 
-        <div className="p-3 bg-white rounded-xl border border-slate-200/80 shadow-xs flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-xs shrink-0">
-            <Users size={16} />
+        <div className="p-2.5 bg-white rounded-xl border border-slate-200/80 shadow-2xs flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+            <UserCheck size={14} />
           </div>
-          <div>
-            <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider">Acompañantes</p>
-            <p className="text-sm font-black text-slate-900">{invitadosConAsiento.length} <span className="text-xs text-slate-400 font-bold">/ {invitados.length}</span></p>
-          </div>
-        </div>
-
-        <div className="p-3 bg-white rounded-xl border border-slate-200/80 shadow-xs flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-cyan-50 text-cyan-600 flex items-center justify-center font-bold text-xs shrink-0">
-            <Armchair size={16} />
-          </div>
-          <div>
-            <p className="text-[10px] font-bold text-cyan-700 uppercase tracking-wider">Total Ocupadas</p>
-            <p className="text-sm font-black text-slate-900">{totalOcupados} asientos</p>
+          <div className="min-w-0">
+            <p className="text-[8.5px] font-black text-indigo-600 uppercase tracking-widest truncate">Graduados</p>
+            <p className="text-xs font-black text-slate-900 leading-tight truncate">
+              {graduadosConAsiento.length} <span className="text-[10px] text-slate-400 font-bold">/ {graduados.length}</span>
+            </p>
           </div>
         </div>
 
-        <div className="p-3 bg-white rounded-xl border border-slate-200/80 shadow-xs flex items-center gap-3 col-span-2 sm:col-span-1">
-          <div className="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center font-bold text-xs shrink-0">
-            <CheckCircle2 size={16} />
+        <div className="p-2.5 bg-white rounded-xl border border-slate-200/80 shadow-2xs flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+            <Users size={14} />
           </div>
-          <div>
-            <p className="text-[10px] font-bold text-sky-700 uppercase tracking-wider">Disponibles</p>
-            <p className="text-sm font-black text-slate-900">{disponibles} libres</p>
+          <div className="min-w-0">
+            <p className="text-[8.5px] font-black text-amber-600 uppercase tracking-widest truncate">Acompañantes</p>
+            <p className="text-xs font-black text-slate-900 leading-tight truncate">
+              {invitadosConAsiento.length} <span className="text-[10px] text-slate-400 font-bold">/ {invitados.length}</span>
+            </p>
+          </div>
+        </div>
+
+        <div className="p-2.5 bg-white rounded-xl border border-slate-200/80 shadow-2xs flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
+            <Armchair size={14} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[8.5px] font-black text-sky-600 uppercase tracking-widest truncate">Ocupadas</p>
+            <p className="text-xs font-black text-slate-900 leading-tight truncate">{totalOcupados} asientos</p>
+          </div>
+        </div>
+
+        <div className="p-2.5 bg-white rounded-xl border border-slate-200/80 shadow-2xs flex items-center gap-2.5 col-span-2 sm:col-span-1">
+          <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <CheckCircle2 size={14} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[8.5px] font-black text-emerald-600 uppercase tracking-widest truncate">Disponibles</p>
+            <p className="text-xs font-black text-slate-900 leading-tight truncate">{disponibles} libres</p>
           </div>
         </div>
       </div>
 
-      {/* PESTAÑAS DE NAVEGACIÓN */}
-      <div className="flex items-center justify-between border-b border-slate-200 pb-1">
-        <div className="flex gap-1 bg-slate-100 p-1 rounded-xl">
+      {/* PESTAÑAS DE NAVEGACIÓN COMPACTAS */}
+      <div className="flex items-center justify-between border-b border-slate-200/80 pb-1 pt-0.5">
+        <div className="flex gap-1 bg-slate-100/90 p-0.5 rounded-lg">
           <button
             type="button"
             onClick={() => setPestana('mapa')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
-              pestana === 'mapa' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900'
+            className={`px-3 py-1 rounded-md text-[11px] font-black transition cursor-pointer flex items-center gap-1.5 ${
+              pestana === 'mapa' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900'
             }`}
           >
-            <Armchair size={14} className={pestana === 'mapa' ? 'text-cyan-600' : ''} />
-            Mapa Interactivo del Auditorio
+            <Armchair size={13} className={pestana === 'mapa' ? 'text-sky-500' : ''} />
+            Mapa Interactivo
           </button>
 
           <button
             type="button"
             onClick={() => setPestana('graduados')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
-              pestana === 'graduados' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900'
+            className={`px-3 py-1 rounded-md text-[11px] font-black transition cursor-pointer flex items-center gap-1.5 ${
+              pestana === 'graduados' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900'
             }`}
           >
-            <Users size={14} className={pestana === 'graduados' ? 'text-indigo-600' : ''} />
-            Padrón y Asignaciones ({graduados.length})
+            <Users size={13} className={pestana === 'graduados' ? 'text-indigo-600' : ''} />
+            Padrón y Butacas ({graduados.length})
           </button>
 
           <button
             type="button"
             onClick={() => setPestana('estructura')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-black transition cursor-pointer flex items-center gap-1.5 ${
-              pestana === 'estructura' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-900'
+            className={`px-3 py-1 rounded-md text-[11px] font-black transition cursor-pointer flex items-center gap-1.5 ${
+              pestana === 'estructura' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900'
             }`}
           >
-            <Layout size={14} className={pestana === 'estructura' ? 'text-sky-600' : ''} />
+            <Layout size={13} className={pestana === 'estructura' ? 'text-sky-600' : ''} />
             Estructura & Presets
           </button>
         </div>
 
         {pestana === 'mapa' && (
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             <button
               type="button"
               onClick={() => setNivel('baja')}
-              className={`px-2.5 py-1 rounded-lg text-[10.5px] font-black uppercase transition cursor-pointer ${
-                nivel === 'baja' ? 'bg-slate-900 text-white shadow-xs' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+              className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase transition cursor-pointer ${
+                nivel === 'baja' ? 'bg-slate-900 text-white shadow-2xs' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
               }`}
             >
               Platea Baja
@@ -433,8 +438,8 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
             <button
               type="button"
               onClick={() => setNivel('alta')}
-              className={`px-2.5 py-1 rounded-lg text-[10.5px] font-black uppercase transition cursor-pointer ${
-                nivel === 'alta' ? 'bg-slate-900 text-white shadow-xs' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+              className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase transition cursor-pointer ${
+                nivel === 'alta' ? 'bg-slate-900 text-white shadow-2xs' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
               }`}
             >
               Pullman (Balcón)
@@ -443,25 +448,25 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
         )}
       </div>
 
-      {/* CONTENIDO SEGÚN PESTAÑA */}
+      {/* CONTENIDO: MAPA INTERACTIVO */}
       {pestana === 'mapa' && (
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-start">
           
-          {/* MAPA PRINCIPAL */}
-          <div className="lg:col-span-3 bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-xs flex flex-col items-center min-h-[480px]">
+          {/* MAPA PRINCIPAL (8 COLS) */}
+          <div className="lg:col-span-8 xl:col-span-9 bg-white rounded-xl border border-slate-200/90 p-3 shadow-2xs flex flex-col items-center min-h-[460px] overflow-hidden">
             
-            {/* Tarjeta de info si se cliquea una butaca ocupada */}
+            {/* Info si se cliquea una butaca */}
             {asientoSeleccionadoInfo && (
-              <div className="w-full mb-3 p-3 bg-cyan-50 border border-cyan-200 rounded-xl flex items-center justify-between animate-in fade-in">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-cyan-600 text-white flex items-center justify-center font-bold text-xs">
-                    <Armchair size={14} />
+              <div className="w-full mb-2 p-2 bg-sky-50 border border-sky-200 rounded-lg flex items-center justify-between animate-in fade-in">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-md bg-sky-600 text-white flex items-center justify-center font-bold text-[10px]">
+                    <Armchair size={12} />
                   </div>
-                  <div>
-                    <p className="text-xs font-black text-slate-900">
-                      {asientoSeleccionadoInfo.nombre} · <span className="text-cyan-700 font-bold uppercase text-[10px]">{asientoSeleccionadoInfo.tipo}</span>
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-black text-slate-900 leading-none">
+                      {asientoSeleccionadoInfo.nombre} · <span className="text-sky-700 font-bold uppercase text-[9px]">{asientoSeleccionadoInfo.tipo}</span>
                     </p>
-                    <p className="text-[10.5px] text-slate-500 font-medium">
+                    <p className="text-[10px] text-slate-500 font-medium mt-0.5 leading-none">
                       Butaca: <strong>{asientoSeleccionadoInfo.asientoId}</strong> {asientoSeleccionadoInfo.carrera ? `· ${asientoSeleccionadoInfo.carrera}` : ''}
                     </p>
                   </div>
@@ -469,14 +474,14 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
                 <button
                   type="button"
                   onClick={() => setAsientoSeleccionadoInfo(null)}
-                  className="p-1 text-slate-400 hover:text-slate-700 rounded-md cursor-pointer"
+                  className="p-1 text-slate-400 hover:text-slate-700 rounded cursor-pointer"
                 >
-                  <X size={14} />
+                  <X size={13} />
                 </button>
               </div>
             )}
 
-            <div className="w-full overflow-x-auto flex justify-center py-2">
+            <div className="w-full overflow-x-auto flex justify-center py-1 [&_.sigic-mapa]:p-2 [&_.sigic-mapa]:rounded-xl [&_.sigic-escenario]:mb-2 [&_.sigic-escenario__sombra]:h-1 [&_.sigic-stats__pill]:px-2 [&_.sigic-stats__pill]:py-1">
               <SeleccionAsientos
                 ceremoniaId={ceremonia?.id}
                 nivel={nivel}
@@ -487,26 +492,27 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
                 mapaRoles={mapaRolesVisual}
                 seleccionados={[]}
                 onAsientoClick={manejarClickAsientoMapa}
-                compacto={false}
+                compacto={true}
               />
             </div>
           </div>
 
-          {/* PANEL DE PINCELES Y HERRAMIENTAS */}
-          <div className="space-y-3">
+          {/* PANEL LATERAL DE PINCELES Y ZOOM (4 COLS) */}
+          <div className="lg:col-span-4 xl:col-span-3 space-y-2.5">
             
-            {/* Pinceles de Rol */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs space-y-3">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                <h4 className="text-[10px] font-black uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
-                  <ShieldCheck size={14} className="text-sky-500" /> Pincel de Sectores
+            {/* Pinceles de Rol Compactos */}
+            <div className="bg-white rounded-xl border border-slate-200/90 p-3 shadow-2xs space-y-2">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
+                <h4 className="text-[9.5px] font-black uppercase tracking-wider text-slate-600 flex items-center gap-1">
+                  <ShieldCheck size={13} className="text-sky-500" /> Pincel de Sectores
                 </h4>
+                <span className="text-[8.5px] font-bold text-slate-400">Clic para pintar</span>
               </div>
 
-              <div className="grid grid-cols-1 gap-1.5">
+              <div className="grid grid-cols-1 gap-1">
                 {[
                   { id: 'egresado', label: 'Sector Graduados', color: 'bg-indigo-600 text-white', desc: 'Primeras filas Platea' },
-                  { id: 'padrino', label: 'Sector Padrinos', color: 'bg-amber-500 text-white', desc: 'Ubicación exclusiva para padrinos de diploma' },
+                  { id: 'padrino', label: 'Sector Padrinos', color: 'bg-amber-500 text-white', desc: 'Exclusivo padrinos de diploma' },
                   { id: 'disponible', label: 'Sector Acompañantes / Libre', color: 'bg-white border border-slate-300 text-slate-700', desc: 'Libre para auto-seating' },
                   { id: 'autoridad', label: 'Autoridades / Estrado', color: 'bg-slate-900 text-white', desc: 'Mesa académica' },
                   { id: 'discapacitado', label: 'Accesibilidad Reducida', color: 'bg-purple-600 text-white', desc: 'Extremos y pasillos' },
@@ -517,44 +523,46 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
                     key={r.id}
                     type="button"
                     onClick={() => setRolPincel(r.id)}
-                    className={`flex items-center gap-2.5 p-2 rounded-xl border text-left transition cursor-pointer ${
+                    className={`flex items-center gap-2 p-1.5 rounded-lg border text-left transition cursor-pointer active:scale-98 ${
                       rolPincel === r.id
-                        ? 'border-cyan-500 bg-cyan-50/70 ring-1 ring-cyan-400'
+                        ? 'border-sky-500 bg-sky-50/80 ring-1 ring-sky-400'
                         : 'border-slate-100 hover:bg-slate-50'
                     }`}
                   >
-                    <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 text-[10px] font-bold shadow-xs ${r.color}`}>
+                    <div className={`w-4 h-4 rounded flex items-center justify-center shrink-0 text-[9px] font-bold shadow-2xs ${r.color}`}>
                       ✓
                     </div>
-                    <div className="min-w-0">
-                      <p className={`text-[10.5px] font-black leading-tight truncate ${rolPincel === r.id ? 'text-cyan-950' : 'text-slate-800'}`}>
+                    <div className="min-w-0 flex-1">
+                      <p className={`text-[10px] font-black leading-none truncate ${rolPincel === r.id ? 'text-sky-950' : 'text-slate-800'}`}>
                         {r.label}
                       </p>
-                      <p className="text-[9px] text-slate-400 truncate">{r.desc}</p>
+                      <p className="text-[8.5px] text-slate-400 truncate mt-0.5">{r.desc}</p>
                     </div>
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Controles de Zoom */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-3 shadow-xs flex items-center justify-between">
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Escala</span>
+            {/* Controles de Escala Compactos */}
+            <div className="bg-white rounded-xl border border-slate-200/90 p-2 shadow-2xs flex items-center justify-between">
+              <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider ml-1">Escala Mapa</span>
               <div className="flex items-center gap-1">
                 <button
                   type="button"
-                  onClick={() => setZoom(z => Math.max(0.6, z - 0.1))}
-                  className="w-7 h-7 rounded-lg border border-slate-200 hover:bg-slate-50 flex items-center justify-center text-slate-600 cursor-pointer"
+                  onClick={() => setZoom(z => Math.max(0.5, z - 0.1))}
+                  className="w-6 h-6 rounded-md border border-slate-200 hover:bg-slate-50 flex items-center justify-center text-slate-600 cursor-pointer active:scale-95"
+                  title="Reducir zoom"
                 >
-                  <ZoomOut size={13} />
+                  <ZoomOut size={11} />
                 </button>
-                <span className="text-xs font-bold text-slate-700 w-10 text-center">{Math.round(zoom * 100)}%</span>
+                <span className="text-[10px] font-bold text-slate-700 w-8 text-center">{Math.round(zoom * 100)}%</span>
                 <button
                   type="button"
-                  onClick={() => setZoom(z => Math.min(1.4, z + 0.1))}
-                  className="w-7 h-7 rounded-lg border border-slate-200 hover:bg-slate-50 flex items-center justify-center text-slate-600 cursor-pointer"
+                  onClick={() => setZoom(z => Math.min(1.3, z + 0.1))}
+                  className="w-6 h-6 rounded-md border border-slate-200 hover:bg-slate-50 flex items-center justify-center text-slate-600 cursor-pointer active:scale-95"
+                  title="Aumentar zoom"
                 >
-                  <ZoomIn size={13} />
+                  <ZoomIn size={11} />
                 </button>
               </div>
             </div>
@@ -564,41 +572,41 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
 
       {/* PESTAÑA: LISTA DE GRADUADOS Y ASIGNACIONES */}
       {pestana === 'graduados' && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-xs overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden">
           
           {/* Barra de búsqueda */}
-          <div className="p-3.5 border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50/50">
+          <div className="p-2.5 border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2.5 bg-slate-50/50">
             <div className="relative flex-1 w-full">
-              <Search className="absolute left-3 top-2.5 text-slate-400" size={14} />
+              <Search className="absolute left-3 top-2 text-slate-400" size={13} />
               <input
                 type="text"
-                placeholder="Buscar graduado por nombre, DNI, carrera o butaca..."
+                placeholder="Buscar por nombre, DNI, carrera o butaca..."
                 value={busqueda}
                 onChange={e => setBusqueda(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-cyan-500 shadow-xs"
+                className="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-sky-500 shadow-2xs"
               />
             </div>
-            <div className="text-[11px] font-bold text-slate-500 shrink-0">
-              Mostrando {graduadosFiltrados.length} de {graduados.length} graduados
+            <div className="text-[10px] font-bold text-slate-500 shrink-0">
+              {graduadosFiltrados.length} de {graduados.length} graduados
             </div>
           </div>
 
-          {/* Tabla de graduados */}
-          <div className="overflow-x-auto">
+          {/* Tabla de graduados compacta */}
+          <div className="overflow-x-auto max-h-[500px] [scrollbar-width:thin]">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-600 font-bold uppercase text-[9.5px] border-b border-slate-100">
+              <thead className="bg-slate-50 text-slate-600 font-bold uppercase text-[9px] border-b border-slate-100 sticky top-0 z-10">
                 <tr>
-                  <th className="py-2.5 px-4">Estudiante</th>
-                  <th className="py-2.5 px-4">Carrera</th>
-                  <th className="py-2.5 px-4">Butaca Graduado</th>
-                  <th className="py-2.5 px-4">Acompañantes</th>
-                  <th className="py-2.5 px-4 text-right">Acción</th>
+                  <th className="py-2 px-3">Estudiante</th>
+                  <th className="py-2 px-3">Carrera</th>
+                  <th className="py-2 px-3">Butaca Graduado</th>
+                  <th className="py-2 px-3">Acompañantes</th>
+                  <th className="py-2 px-3 text-right">Acción</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-[11px]">
                 {graduadosFiltrados.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-8 text-center text-slate-400 font-bold">
+                    <td colSpan={5} className="py-6 text-center text-slate-400 font-bold text-xs">
                       No se encontraron graduados registrados.
                     </td>
                   </tr>
@@ -607,23 +615,23 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
                     const invs = invitados.filter(i => i.egresado_id === g.id || i.egresadoId === g.id)
                     return (
                       <tr key={g.id} className="hover:bg-slate-50/50">
-                        <td className="py-2.5 px-4">
-                          <p className="font-bold text-slate-900">{g.nombre}</p>
-                          <p className="text-[10px] text-slate-400">DNI: {g.dni} {g.legajo ? `· Leg: ${g.legajo}` : ''}</p>
+                        <td className="py-2 px-3">
+                          <p className="font-bold text-slate-900 leading-tight">{g.nombre}</p>
+                          <p className="text-[9.5px] text-slate-400">DNI: {g.dni} {g.legajo ? `· Leg: ${g.legajo}` : ''}</p>
                         </td>
-                        <td className="py-2.5 px-4 text-slate-600 max-w-xs truncate">
+                        <td className="py-2 px-3 text-slate-600 max-w-xs truncate text-[10.5px]">
                           {g.carrera || '-'}
                         </td>
-                        <td className="py-2.5 px-4">
+                        <td className="py-2 px-3">
                           {g.asiento_id ? (
-                            <span className="inline-flex items-center gap-1 bg-indigo-50 border border-indigo-200 text-indigo-700 px-2 py-0.5 rounded-md font-black text-[10.5px]">
-                              <Armchair size={12} /> {g.asiento_id}
+                            <span className="inline-flex items-center gap-1 bg-indigo-50 border border-indigo-200 text-indigo-700 px-2 py-0.5 rounded font-black text-[10px]">
+                              <Armchair size={11} /> {g.asiento_id}
                             </span>
                           ) : (
-                            <span className="text-slate-400 italic text-[10px]">Sin asignar</span>
+                            <span className="text-slate-400 italic text-[9.5px]">Sin asignar</span>
                           )}
                         </td>
-                        <td className="py-2.5 px-4">
+                        <td className="py-2 px-3">
                           {invs.length > 0 ? (
                             <div className="flex flex-wrap gap-1">
                               {invs.map(inv => {
@@ -631,30 +639,30 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
                                 return (
                                   <span
                                     key={inv.id}
-                                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-bold ${
+                                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold ${
                                       esPadrino
                                         ? 'bg-amber-100 border border-amber-300 text-amber-900 font-black'
                                         : 'bg-slate-50 border border-slate-200 text-slate-700'
                                     }`}
-                                    title={esPadrino ? 'Padrino / Entregador de diploma' : 'Acompañante regular (No es padrino)'}
+                                    title={esPadrino ? 'Padrino de diploma' : 'Acompañante regular'}
                                   >
-                                    {esPadrino && <Award size={10} className="text-amber-700 shrink-0" />}
-                                    {inv.nombre}{esPadrino ? ' (Padrino)' : ''}: {inv.asiento_id || 'Sin butaca'}
+                                    {esPadrino && <Award size={9} className="text-amber-700 shrink-0" />}
+                                    {inv.nombre}{esPadrino ? ' (Padrino)' : ''}: {inv.asiento_id || 'S/B'}
                                   </span>
                                 )
                               })}
                             </div>
                           ) : (
-                            <span className="text-slate-400 text-[10px]">0 acompañantes</span>
+                            <span className="text-slate-400 text-[9.5px]">0 acompañantes</span>
                           )}
                         </td>
-                        <td className="py-2.5 px-4 text-right">
+                        <td className="py-2 px-3 text-right">
                           <button
                             type="button"
                             onClick={() => setGraduadoParaAsignar(g)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 hover:bg-cyan-50 text-slate-700 hover:text-cyan-700 border border-slate-200 hover:border-cyan-200 rounded-lg text-[10.5px] font-bold transition cursor-pointer"
+                            className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 hover:bg-sky-50 text-slate-700 hover:text-sky-700 border border-slate-200 hover:border-sky-200 rounded-lg text-[10px] font-bold transition cursor-pointer active:scale-95"
                           >
-                            <Armchair size={12} /> Asignar Butaca
+                            <Armchair size={11} /> Asignar
                           </button>
                         </td>
                       </tr>
@@ -669,54 +677,54 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
 
       {/* PESTAÑA: ESTRUCTURA Y PRESETS */}
       {pestana === 'estructura' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           
           {/* Plantillas / Presets */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-3">
-            <h4 className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5 border-b border-slate-100 pb-2">
-              <Sparkles size={15} className="text-cyan-500" /> Plantillas de Sala Preconfiguradas
+          <div className="bg-white rounded-xl border border-slate-200/90 p-4 shadow-2xs space-y-2.5">
+            <h4 className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5 border-b border-slate-100 pb-1.5">
+              <Sparkles size={14} className="text-sky-500" /> Plantillas de Sala Preconfiguradas
             </h4>
-            <p className="text-xs text-slate-500">
+            <p className="text-[11px] text-slate-500">
               Aplicá una arquitectura de sala predeterminada con pasillos y sectores definidos:
             </p>
-            <div className="space-y-2 pt-1">
+            <div className="space-y-1.5 pt-0.5">
               <button
                 type="button"
                 onClick={() => aplicarPlantilla('beltran')}
-                className="w-full text-left p-3 rounded-xl bg-cyan-50 hover:bg-cyan-100 border border-cyan-200 text-cyan-950 transition cursor-pointer"
+                className="w-full text-left p-2.5 rounded-lg bg-sky-50/80 hover:bg-sky-100/80 border border-sky-200 text-sky-950 transition cursor-pointer"
               >
                 <p className="font-black text-xs">★ Auditorio Beltrán (3 Bloques + 2 Pasillos)</p>
-                <p className="text-[10px] text-cyan-700">7 filas en Platea Baja + 5 filas en Pullman con pasillos laterales.</p>
+                <p className="text-[9.5px] text-sky-700">7 filas en Platea Baja + 5 filas en Pullman con pasillos laterales.</p>
               </button>
 
               <button
                 type="button"
                 onClick={() => aplicarPlantilla('pasillo-central')}
-                className="w-full text-left p-3 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 transition cursor-pointer"
+                className="w-full text-left p-2.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 transition cursor-pointer"
               >
                 <p className="font-black text-xs">Aula Magna (2 Bloques con Pasillo Central)</p>
-                <p className="text-[10px] text-slate-500">8 filas en Platea Baja con pasillo divisorio en columna central.</p>
+                <p className="text-[9.5px] text-slate-500">8 filas en Platea Baja con pasillo divisorio en columna central.</p>
               </button>
 
               <button
                 type="button"
                 onClick={() => aplicarPlantilla('limpiar')}
-                className="w-full text-left p-2.5 rounded-xl bg-rose-50/60 hover:bg-rose-100 border border-rose-100 text-rose-700 transition text-xs font-bold cursor-pointer"
+                className="w-full text-left p-2 rounded-lg bg-rose-50/60 hover:bg-rose-100 border border-rose-100 text-rose-700 transition text-[11px] font-bold cursor-pointer"
               >
-                Restablecer todos los roles a libres
+                Restablecer todos los roles a disponibles
               </button>
             </div>
           </div>
 
           {/* Configuración de Filas y Columnas */}
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-4">
-            <h4 className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5 border-b border-slate-100 pb-2">
-              <Layout size={15} className="text-sky-500" /> Dimensiones de la Sala
+          <div className="bg-white rounded-xl border border-slate-200/90 p-4 shadow-2xs space-y-3">
+            <h4 className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5 border-b border-slate-100 pb-1.5">
+              <Layout size={14} className="text-sky-500" /> Dimensiones de la Sala
             </h4>
 
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               <div>
-                <label className="text-[10.5px] font-black uppercase tracking-wider text-slate-500">
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">
                   Platea Baja: Filas ({estructura.baja.filas}) x Asientos ({estructura.baja.asientos})
                 </label>
                 <div className="grid grid-cols-2 gap-2 mt-1">
@@ -726,7 +734,7 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
                     max="30"
                     value={estructura.baja.filas}
                     onChange={e => setEstructura(prev => ({ ...prev, baja: { ...prev.baja, filas: parseInt(e.target.value) || 1 } }))}
-                    className="p-2 border border-slate-200 rounded-xl text-xs font-bold"
+                    className="p-1.5 border border-slate-200 rounded-lg text-xs font-bold"
                   />
                   <input
                     type="number"
@@ -734,13 +742,13 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
                     max="40"
                     value={estructura.baja.asientos}
                     onChange={e => setEstructura(prev => ({ ...prev, baja: { ...prev.baja, asientos: parseInt(e.target.value) || 1 } }))}
-                    className="p-2 border border-slate-200 rounded-xl text-xs font-bold"
+                    className="p-1.5 border border-slate-200 rounded-lg text-xs font-bold"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-[10.5px] font-black uppercase tracking-wider text-slate-500">
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">
                   Pullman: Filas ({estructura.alta.filas}) x Asientos ({estructura.alta.asientos})
                 </label>
                 <div className="grid grid-cols-2 gap-2 mt-1">
@@ -750,7 +758,7 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
                     max="30"
                     value={estructura.alta.filas}
                     onChange={e => setEstructura(prev => ({ ...prev, alta: { ...prev.alta, filas: parseInt(e.target.value) || 1 } }))}
-                    className="p-2 border border-slate-200 rounded-xl text-xs font-bold"
+                    className="p-1.5 border border-slate-200 rounded-lg text-xs font-bold"
                   />
                   <input
                     type="number"
@@ -758,20 +766,20 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
                     max="40"
                     value={estructura.alta.asientos}
                     onChange={e => setEstructura(prev => ({ ...prev, alta: { ...prev.alta, asientos: parseInt(e.target.value) || 1 } }))}
-                    className="p-2 border border-slate-200 rounded-xl text-xs font-bold"
+                    className="p-1.5 border border-slate-200 rounded-lg text-xs font-bold"
                   />
                 </div>
               </div>
 
               <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] font-black uppercase text-slate-400">Aforo Teórico Total</p>
-                  <p className="text-base font-black text-slate-900">{totalCapacidad} Butacas</p>
+                  <p className="text-[9px] font-black uppercase text-slate-400">Aforo Teórico Total</p>
+                  <p className="text-sm font-black text-slate-900">{totalCapacidad} Butacas</p>
                 </div>
                 <button
                   type="button"
                   onClick={guardarMapa}
-                  className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-black transition cursor-pointer"
+                  className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-[11px] font-black transition cursor-pointer active:scale-95"
                 >
                   Aplicar Cambios
                 </button>
