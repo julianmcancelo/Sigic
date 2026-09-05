@@ -638,7 +638,7 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
           duration: const Duration(milliseconds: 250),
           child: _mostrandoCamara
               ? _construirVistaCamaraConTarjeta(context)
-              : _construirVistaInicio(context),
+              : _construirVistaInicioConTarjeta(context),
         ),
       ),
     );
@@ -878,6 +878,11 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
 
           const SizedBox(height: 12),
 
+          // Buscador / Ingreso dinamico manual sin abrir camara
+          _construirBuscadorDinamico(context, tema),
+
+          const SizedBox(height: 10),
+
           // Boton principal: abrir escaner
           Material(
             color: const Color(0xFF0A1422),
@@ -1074,6 +1079,202 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
           ],
         ],
       ),
+    );
+  }
+
+  Widget _construirBuscadorDinamico(BuildContext context, ThemeData tema) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE2EAF0)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0A0F172A),
+            blurRadius: 10,
+            offset: Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: TemaSigic.azulPrincipal.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.keyboard_alt_outlined,
+                  size: 18,
+                  color: TemaSigic.azulPrincipal,
+                ),
+              ),
+              const SizedBox(width: 9),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Ingreso manual dinámico',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 13.5,
+                        color: Color(0xFF0F172A),
+                        letterSpacing: -0.2,
+                      ),
+                    ),
+                    Text(
+                      'DNI, Token alfanumérico o Legajo sin cámara',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Color(0xFF5C7386),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _controladorCodigoManual,
+                  textCapitalization: TextCapitalization.characters,
+                  textInputAction: TextInputAction.search,
+                  onSubmitted: (valor) {
+                    final c = valor.trim();
+                    if (c.isNotEmpty) {
+                      if (_resultado != null) {
+                        setState(() => _resultado = null);
+                      }
+                      _procesarCodigo(c);
+                    }
+                  },
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    hintText: 'Ej.: ABC123, 40123456...',
+                    hintStyle: const TextStyle(
+                      fontSize: 12.5,
+                      color: Color(0xFF94A3B8),
+                    ),
+                    filled: true,
+                    fillColor: const Color(0xFFF8FAFC),
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 11,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: TemaSigic.azulPrincipal,
+                        width: 1.5,
+                      ),
+                    ),
+                    suffixIcon: _controladorCodigoManual.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.close, size: 16),
+                            onPressed: () {
+                              _controladorCodigoManual.clear();
+                              setState(() {});
+                            },
+                          )
+                        : null,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: TemaSigic.azulPrincipal,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 11,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: _cargandoEscaneo
+                    ? null
+                    : () {
+                        final c = _controladorCodigoManual.text.trim();
+                        if (c.isNotEmpty) {
+                          if (_resultado != null) {
+                            setState(() => _resultado = null);
+                          }
+                          _procesarCodigo(c);
+                        }
+                      },
+                child: _cargandoEscaneo
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.search, size: 16),
+                          SizedBox(width: 4),
+                          Text(
+                            'Validar',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 12.5,
+                            ),
+                          ),
+                        ],
+                      ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _construirVistaInicioConTarjeta(BuildContext context) {
+    return Stack(
+      key: const ValueKey('inicio-con-tarjeta'),
+      children: [
+        Positioned.fill(child: _construirVistaInicio(context)),
+        if (_resultado != null)
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _cerrarTarjetaFlotante,
+              child: Container(
+                color: Colors.black.withValues(alpha: 0.4),
+                alignment: Alignment.bottomCenter,
+                child: GestureDetector(
+                  onTap: () {},
+                  child: _construirTarjetaFlotante(context, _resultado!),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 
