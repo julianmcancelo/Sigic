@@ -149,6 +149,142 @@ function esPeticionDemoBackend(req: NextRequest): boolean {
   return false;
 }
 
+async function despacharCredencialEgresado(graduadoId: string, req: NextRequest) {
+  const datos = await query(
+    `SELECT e.*, 
+            COALESCE(c.nombre, (SELECT nombre FROM ceremonias WHERE activa = 1 LIMIT 1), 'Ceremonia de Colación') AS ceremonia_nombre,
+            COALESCE(c.fecha, (SELECT fecha FROM ceremonias WHERE activa = 1 LIMIT 1), '2026-08-27') AS ceremonia_fecha,
+            COALESCE(c.lugar, (SELECT lugar FROM ceremonias WHERE activa = 1 LIMIT 1), 'Sede Beltrán') AS ceremonia_lugar
+     FROM egresados e LEFT JOIN ceremonias c ON c.id = e.ceremonia_id WHERE e.id = $1`,
+    [graduadoId]
+  );
+  const graduado = datos.rows[0];
+  if (!graduado) return { ok: false, status: 404, error: 'Graduado no encontrado' };
+  if (!graduado.correo) return { ok: false, status: 400, error: 'El graduado no tiene un correo electrónico registrado' };
+
+  const hostBase = obtenerOrigenPublico(req);
+  const acceso = `${hostBase}/?token=${graduado.token}`;
+
+  // Consultar invitados con subconsulta para detectar padrinos
+  const invitadosRes = await query(
+    `SELECT i.id, i.nombre, i.asiento_id, i.relacion,
+            EXISTS (
+              SELECT 1 FROM entregadores ent 
+              WHERE ent.egresado_id = i.egresado_id 
+                AND (ent.invitado_id = i.id OR (ent.tipo = 'FAMILIAR' AND LOWER(TRIM(ent.nombre)) = LOWER(TRIM(i.nombre))))
+            ) as es_padrino,
+            (
+              SELECT ent.orden FROM entregadores ent 
+              WHERE ent.egresado_id = i.egresado_id 
+                AND (ent.invitado_id = i.id OR (ent.tipo = 'FAMILIAR' AND LOWER(TRIM(ent.nombre)) = LOWER(TRIM(i.nombre))))
+              ORDER BY ent.orden ASC
+              LIMIT 1
+            ) as orden_padrino
+     FROM invitados i 
+     WHERE i.egresado_id = $1 
+     ORDER BY i.creado_en ASC`,
+    [graduado.id]
+  );
+
+  // Consultar padrinos docentes en la tabla entregadores
+  const docentesRes = await query(
+    `SELECT ent.nombre as entregador_nombre, p.nombre as profesor_nombre
+     FROM entregadores ent
+     LEFT JOIN profesores p ON ent.profesor_id = p.id
+     WHERE ent.egresado_id = $1 AND ent.tipo = 'PROFESOR'
+     ORDER BY ent.orden ASC`,
+    [graduado.id]
+  ).catch(() => ({ rows: [] }));
+  const padrinosDocentes = docentesRes.rows.map((d: any) => d.profesor_nombre || d.entregador_nombre).filter(Boolean);
+
+  // Armar lista estructurada para la plantilla de correo
+  const acompanantesEstructurados = invitadosRes.rows.map((item: any) => ({
+    nombre: item.nombre,
+    asiento: item.asiento_id,
+    esPadrino: Boolean(item.es_padrino),
+    ordenPadrino: item.orden_padrino ? Number(item.orden_padrino) : null,
+    relacion: item.relacion,
+  }));
+
+  // Armar cadenas legibles para el PDF
+  const acompanantesPdf: string[] = [];
+  invitadosRes.rows.forEach((item: any) => {
+    const rol = item.es_padrino ? ' (Padrino de Diploma)' : (item.relacion ? ` (${item.relacion})` : '');
+    const butaca = item.asiento_id ? ` · Butaca ${item.asiento_id}` : ' · Ubicación General';
+    acompanantesPdf.push(`${item.nombre}${butaca}${rol}`);
+  });
+  docentesRes.rows.forEach((d: any) => {
+    const nom = d.profesor_nombre || d.entregador_nombre;
+    if (nom) acompanantesPdf.push(`Prof. ${nom} (Padrino Docente · Estrado)`);
+  });
+
+  let paseGoogleWallet: Awaited<ReturnType<typeof generarPaseGoogleWallet>> = null;
+  try {
+    paseGoogleWallet = await generarPaseGoogleWallet({
+      graduadoId: graduado.id,
+      token: graduado.token,
+      nombre: graduado.nombre,
+      ceremoniaId: graduado.ceremonia_id || 'cer-activa',
+      ceremonia: graduado.ceremonia_nombre,
+      fecha: graduado.ceremonia_fecha,
+      lugar: graduado.ceremonia_lugar,
+      asiento: graduado.asiento_id,
+      acceso,
+    });
+  } catch (error) {
+    console.error('No se pudo generar el pase de Google Wallet:', error);
+  }
+
+  const pdf = await generarPdfCredencial({
+    nombre: graduado.nombre,
+    ceremonia: graduado.ceremonia_nombre,
+    fecha: graduado.ceremonia_fecha,
+    lugar: graduado.ceremonia_lugar,
+    asiento: graduado.asiento_id,
+    acompanantes: acompanantesPdf,
+    acceso,
+  });
+
+  const plantillaHTML = generarPlantillaCredencialCeremonia({
+    nombre: graduado.nombre,
+    ceremonia: graduado.ceremonia_nombre,
+    fecha: graduado.ceremonia_fecha,
+    lugar: graduado.ceremonia_lugar,
+    asiento: graduado.asiento_id,
+    acceso,
+    googleWalletUrl: paseGoogleWallet?.url,
+    acompanantes: acompanantesEstructurados,
+    padrinosDocentes,
+  });
+
+  await enviarCorreo(
+    graduado.correo,
+    `Credencial oficial y confirmación de ubicaciones · ${graduado.ceremonia_nombre}`,
+    plantillaHTML,
+    [{ filename: `Credencial-SiGIC-${graduado.token}.pdf`, content: pdf, contentType: 'application/pdf' }]
+  );
+
+  const actualizado = await query(
+    `UPDATE egresados SET credencial_enviada_en = CURRENT_TIMESTAMP,
+      credencial_envios_count = COALESCE(credencial_envios_count, 0) + 1,
+      google_wallet_object_id = COALESCE($2, google_wallet_object_id),
+      google_wallet_actualizado_en = CASE WHEN $2 IS NULL THEN google_wallet_actualizado_en ELSE CURRENT_TIMESTAMP END
+     WHERE id = $1 RETURNING id, credencial_enviada_en, credencial_envios_count, google_wallet_object_id, google_wallet_actualizado_en`,
+    [graduado.id, paseGoogleWallet?.objectId || null]
+  );
+
+  return {
+    ok: true,
+    credencialEnviada: true,
+    destinatario: graduado.correo,
+    googleWallet: Boolean(paseGoogleWallet),
+    graduado: actualizado.rows[0],
+    mensaje: paseGoogleWallet
+      ? 'Credencial, PDF y pase de Google Wallet enviados correctamente.'
+      : 'Credencial e instrucciones enviadas correctamente al correo del egresado.',
+  };
+}
+
 // Tauri y los navegadores externos requieren responder el preflight antes de
 // realizar solicitudes autenticadas a la API.
 export async function OPTIONS(req: NextRequest) {
@@ -2302,64 +2438,16 @@ export async function POST(
       const isPersonal = await esPersonalValido(req, ROLES_GESTION);
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
-      const datos = await query(
-        `SELECT e.*, 
-                COALESCE(c.nombre, (SELECT nombre FROM ceremonias WHERE activa = 1 LIMIT 1), 'Ceremonia de Colación') AS ceremonia_nombre,
-                COALESCE(c.fecha, (SELECT fecha FROM ceremonias WHERE activa = 1 LIMIT 1), '2026-08-27') AS ceremonia_fecha,
-                COALESCE(c.lugar, (SELECT lugar FROM ceremonias WHERE activa = 1 LIMIT 1), 'Sede Beltrán') AS ceremonia_lugar
-         FROM egresados e LEFT JOIN ceremonias c ON c.id = e.ceremonia_id WHERE e.id = $1`,
-        [slug[1]]
-      );
-      const graduado = datos.rows[0];
-      if (!graduado) return NextResponse.json({ error: 'Graduado no encontrado' }, { status: 404, headers });
-      if (!graduado.correo) return NextResponse.json({ error: 'El graduado no tiene un correo configurado' }, { status: 400, headers });
-      if (graduado.estado !== 'ACEPTADO') return NextResponse.json({ error: 'La credencial se envía cuando el graduado confirma su participación' }, { status: 409, headers });
-      if (graduado.estado_asignacion_butacas !== 'CONFIRMADA') return NextResponse.json({ error: 'Confirmá las butacas del grupo antes de enviar la credencial' }, { status: 409, headers });
-
-      const hostBase = obtenerOrigenPublico(req);
-      const acceso = `${hostBase}/?token=${graduado.token}`;
-      const invitados = await query('SELECT nombre, asiento_id FROM invitados WHERE egresado_id = $1 ORDER BY creado_en ASC', [graduado.id]);
-      const acompanantes = invitados.rows.map(item => `${item.nombre}${item.asiento_id ? ` (${item.asiento_id})` : ''}`);
-      let paseGoogleWallet: Awaited<ReturnType<typeof generarPaseGoogleWallet>> = null;
       try {
-        paseGoogleWallet = await generarPaseGoogleWallet({
-          graduadoId: graduado.id,
-          token: graduado.token,
-          nombre: graduado.nombre,
-          ceremoniaId: graduado.ceremonia_id || 'cer-activa',
-          ceremonia: graduado.ceremonia_nombre,
-          fecha: graduado.ceremonia_fecha,
-          lugar: graduado.ceremonia_lugar,
-          asiento: graduado.asiento_id,
-          acceso,
-        });
-      } catch (error) {
-        // El PDF y el correo siguen siendo entregables aunque Wallet se encuentre en configuración.
-        console.error('No se pudo generar el pase de Google Wallet:', error);
+        const resultado = await despacharCredencialEgresado(slug[1], req);
+        if (!resultado.ok) {
+          return NextResponse.json({ error: resultado.error || 'No se pudo enviar la credencial' }, { status: resultado.status || 500, headers });
+        }
+        return NextResponse.json(resultado, { headers });
+      } catch (error: any) {
+        console.error('Error al enviar credencial:', error);
+        return NextResponse.json({ error: error.message || 'No se pudo enviar la credencial' }, { status: 500, headers });
       }
-      const pdf = await generarPdfCredencial({ nombre: graduado.nombre, ceremonia: graduado.ceremonia_nombre, fecha: graduado.ceremonia_fecha, lugar: graduado.ceremonia_lugar, asiento: graduado.asiento_id, acompanantes, acceso });
-      await enviarCorreo(
-        graduado.correo,
-        `Tu credencial e información de ceremonia · ${graduado.ceremonia_nombre}`,
-        generarPlantillaCredencialCeremonia({ nombre: graduado.nombre, ceremonia: graduado.ceremonia_nombre, fecha: graduado.ceremonia_fecha, lugar: graduado.ceremonia_lugar, asiento: graduado.asiento_id, acceso, googleWalletUrl: paseGoogleWallet?.url }),
-        [{ filename: `Credencial-SiGIC-${graduado.token}.pdf`, content: pdf, contentType: 'application/pdf' }]
-      );
-      const actualizado = await query(
-        `UPDATE egresados SET credencial_enviada_en = CURRENT_TIMESTAMP,
-          credencial_envios_count = COALESCE(credencial_envios_count, 0) + 1,
-          google_wallet_object_id = COALESCE($2, google_wallet_object_id),
-          google_wallet_actualizado_en = CASE WHEN $2 IS NULL THEN google_wallet_actualizado_en ELSE CURRENT_TIMESTAMP END
-         WHERE id = $1 RETURNING id, credencial_enviada_en, credencial_envios_count, google_wallet_object_id, google_wallet_actualizado_en`,
-        [slug[1], paseGoogleWallet?.objectId || null]
-      );
-      return NextResponse.json({
-        ok: true,
-        mensaje: paseGoogleWallet
-          ? 'Credencial, PDF y pase de Google Wallet enviados.'
-          : 'Credencial e información enviadas. El pase de Google Wallet no se pudo generar.',
-        googleWallet: Boolean(paseGoogleWallet),
-        graduado: actualizado.rows[0]
-      }, { headers });
     }
 
     if (slug[0] === 'egresados' && slug[2] === 'wallet' && slug[1]) {
@@ -3186,11 +3274,24 @@ export async function PUT(
         );
 
         await client.query('COMMIT');
+
+        let resultadoCredencial: any = null;
+        if (esPersonal) {
+          try {
+            resultadoCredencial = await despacharCredencialEgresado(id, req);
+          } catch (errEnvio: any) {
+            console.error('No se pudo despachar la credencial por correo tras confirmar butacas:', errEnvio);
+            resultadoCredencial = { ok: false, error: errEnvio.message };
+          }
+        }
+
         return NextResponse.json({
           ok: true,
           asignados: asignaciones.length,
           graduado: estadoGraduado.rows[0],
           invitados: estadoInvitados.rows,
+          credencialEnviada: Boolean(resultadoCredencial?.ok && resultadoCredencial?.credencialEnviada),
+          mensajeCredencial: resultadoCredencial?.mensaje || (resultadoCredencial?.error ? `Aviso de correo: ${resultadoCredencial.error}` : null),
         }, { headers });
       } catch (error: any) {
         await client.query('ROLLBACK');

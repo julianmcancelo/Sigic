@@ -496,7 +496,9 @@ export function ModalAsignarAsientos({
             ) : (
               <>
                 <button onClick={onCerrar} className="px-3 sm:px-5 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-red-500 transition-colors">Cancelar</button>
-                <button onClick={guardar} disabled={procesando || !asignacionCompleta} className="bg-slate-900 text-white font-black uppercase tracking-widest text-[9px] py-2.5 px-4 sm:px-5 rounded-lg shadow-lg shadow-slate-900/20 hover:bg-slate-800 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed">{procesando ? 'Guardando...' : modo === 'propuesta' ? 'Guardar propuesta' : 'Confirmar y enviar credencial'}</button>
+                <button onClick={guardar} disabled={procesando || !asignacionCompleta} className="bg-slate-900 text-white font-black uppercase tracking-widest text-[9px] py-2.5 px-4 sm:px-5 rounded-lg shadow-lg shadow-slate-900/20 hover:bg-slate-800 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                  {procesando ? (modo === 'propuesta' ? 'Guardando propuesta...' : 'Guardando y despachando credencial...') : modo === 'propuesta' ? 'Guardar propuesta' : 'Confirmar y enviar credencial'}
+                </button>
               </>
             )}
           </div>

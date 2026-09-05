@@ -481,67 +481,360 @@ export function generarPlantillaCierreInscripcion(nombre: string, hostBase: stri
     </html>`;
 }
 
-/** Comunicación final con el pase digital y la información operativa de la ceremonia. */
-export function generarPlantillaCredencialCeremonia({ nombre, ceremonia, fecha, lugar, asiento, acceso, googleWalletUrl }: { nombre: string; ceremonia: string; fecha: string; lugar: string; asiento?: string | null; acceso: string; googleWalletUrl?: string | null }) {
+export type AcompananteCredencial = {
+  nombre: string;
+  asiento?: string | null;
+  esPadrino?: boolean;
+  ordenPadrino?: number | null;
+  relacion?: string | null;
+};
+
+export type ParametrosCredencialCeremonia = {
+  nombre: string;
+  ceremonia: string;
+  fecha: string;
+  hora?: string;
+  lugar: string;
+  asiento?: string | null;
+  acceso: string;
+  googleWalletUrl?: string | null;
+  acompanantes?: AcompananteCredencial[];
+  padrinosDocentes?: string[];
+  indicaciones?: string;
+};
+
+function formatearFechaLegible(fechaStr: string) {
+  if (!fechaStr) return 'Fecha a confirmar';
+  try {
+    const limpia = fechaStr.includes('T') ? fechaStr : `${fechaStr.trim()}T12:00:00`;
+    const d = new Date(limpia);
+    if (!isNaN(d.getTime())) {
+      return new Intl.DateTimeFormat('es-AR', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      }).format(d);
+    }
+  } catch {}
+  return fechaStr;
+}
+
+/** Comunicación final con el pase digital, confirmación de butacas e instrucciones operativas de la ceremonia. */
+export function generarPlantillaCredencialCeremonia({
+  nombre,
+  ceremonia,
+  fecha,
+  hora,
+  lugar,
+  asiento,
+  acceso,
+  googleWalletUrl,
+  acompanantes = [],
+  padrinosDocentes = [],
+  indicaciones,
+}: ParametrosCredencialCeremonia) {
   const logo = 'https://raw.githubusercontent.com/julianmcancelo/Sigic/master/codigo/plataforma/public/logo-oficial.png';
+  const fechaTexto = formatearFechaLegible(fecha);
+  const horaTexto = hora ? `${hora} hs` : '18:30 hs';
+
+  // Separar acompanantes regulares de padrinos familiares
+  const padrinosFamiliares = acompanantes.filter(item => item.esPadrino);
+  const acompanantesRegulares = acompanantes.filter(item => !item.esPadrino);
+
   return `
     <!DOCTYPE html>
     <html lang="es">
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Tu Credencial Oficial de Ceremonia</title>
+      <title>Confirmación de Ubicaciones y Credencial Digital · ${escaparHTML(ceremonia)}</title>
     </head>
-    <body style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+    <body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
       <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#f1f5f9">
         <tr>
-          <td align="center" style="padding:40px 15px;">
-            <table width="600" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="max-width:600px;width:100%;border-radius:28px;overflow:hidden;border:1px solid #e2e8f0;box-shadow:0 20px 40px rgba(15,23,42,0.08);">
+          <td align="center" style="padding: 40px 15px;">
+            <table width="620" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="max-width: 620px; width: 100%; border-radius: 28px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 20px 45px rgba(15, 23, 42, 0.09);">
               
-              <!-- HEADER -->
+              <!-- HEADER INSTITUCIONAL -->
               <tr>
-                <td bgcolor="#071b34" style="padding:40px 30px;text-align:center;background:linear-gradient(135deg,#071b34,#0c2d54);border-bottom:4px solid #0284c7;">
-                  <img src="${logo}" alt="SiGIC" width="80" height="80" style="display:inline-block;margin-bottom:14px;border-radius:14px;background:#ffffff;padding:5px;" />
-                  <span style="display:inline-block;padding:4px 14px;background:rgba(56,189,248,0.15);border:1px solid rgba(56,189,248,0.3);border-radius:20px;color:#38bdf8;font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Pase Grupal Habilitado</span>
-                  <h1 style="color:#ffffff;margin:0;font-size:25px;font-weight:800;letter-spacing:-.4px;">Todo Listo Para Tu Ceremonia</h1>
-                  <p style="color:#94a3b8;margin:6px 0 0;font-size:12px;font-weight:600;">Hola, <strong>${escaparHTML(nombre)}</strong>. Tus ubicaciones están confirmadas.</p>
+                <td bgcolor="#071b34" style="padding: 45px 35px 35px; text-align: center; background: linear-gradient(135deg, #071b34 0%, #0c2d54 100%); border-bottom: 4px solid #0284c7;">
+                  <img src="${logo}" alt="SiGIC" width="80" height="80" style="display: inline-block; margin-bottom: 16px; border-radius: 16px; background: #ffffff; padding: 6px;" />
+                  <div>
+                    <span style="display: inline-block; padding: 5px 16px; background: rgba(56, 189, 248, 0.16); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 20px; color: #38bdf8; font-size: 10px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px;">
+                      Pase Grupal Habilitado · Ubicaciones Confirmadas
+                    </span>
+                  </div>
+                  <h1 style="color: #ffffff; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.25;">
+                    Todo Listo Para Tu Ceremonia
+                  </h1>
+                  <p style="color: #94a3b8; margin: 10px 0 0; font-size: 13px; font-weight: 600;">
+                    Estimado/a <strong>${escaparHTML(nombre)}</strong>: Tus butacas y las de tu grupo han sido formalmente confirmadas.
+                  </p>
                 </td>
               </tr>
 
-              <!-- CUERPO DE DATOS OPERATIVOS -->
+              <!-- CONTENIDO PRINCIPAL -->
               <tr>
-                <td style="padding:40px 35px 30px;">
-                  <p style="margin:0 0 4px;color:#64748b;font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;">Ceremonia Oficial</p>
-                  <h2 style="margin:0 0 22px;color:#0f172a;font-size:20px;font-weight:800;">${escaparHTML(ceremonia)}</h2>
-
-                  <!-- TABLA DE DETALLES (FECHA Y BUTACA) -->
-                  <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#f8fafc" style="border:1px solid #e2e8f0;border-radius:18px;margin-bottom:24px;">
+                <td style="padding: 38px 32px 30px;">
+                  
+                  <!-- FICHA DE LA CEREMONIA -->
+                  <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#f8fafc" style="border: 1px solid #e2e8f0; border-radius: 20px; margin-bottom: 30px; overflow: hidden;">
                     <tr>
-                      <td width="50%" style="padding:18px 22px;border-right:1px solid #e2e8f0;">
-                        <span style="display:block;color:#64748b;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;">Fecha & Horario</span>
-                        <strong style="display:block;margin-top:4px;color:#071b34;font-size:15px;">${fecha || '27 de Agosto de 2026'}</strong>
+                      <td style="padding: 20px 24px; border-bottom: 1px solid #e2e8f0; background: #ffffff;">
+                        <span style="display: block; color: #64748b; font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">Acto Académico Oficial</span>
+                        <h2 style="margin: 4px 0 0; color: #071b34; font-size: 18px; font-weight: 800; letter-spacing: -0.2px;">
+                          ${escaparHTML(ceremonia)}
+                        </h2>
                       </td>
-                      <td width="50%" style="padding:18px 22px;">
-                        <span style="display:block;color:#64748b;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;">Butaca del Graduado</span>
-                        <strong style="display:block;margin-top:4px;color:#0284c7;font-size:15px;">${asiento ? `Butaca ${asiento}` : 'Ubicación General'}</strong>
+                    </tr>
+                    <tr>
+                      <td style="padding: 0;">
+                        <table width="100%" cellspacing="0" cellpadding="0" border="0">
+                          <tr>
+                            <td width="33.3%" style="padding: 16px 20px; border-right: 1px solid #e2e8f0;">
+                              <span style="display: block; color: #64748b; font-size: 9px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">Fecha</span>
+                              <strong style="display: block; margin-top: 4px; color: #0f172a; font-size: 13px;">${fechaTexto}</strong>
+                            </td>
+                            <td width="33.3%" style="padding: 16px 20px; border-right: 1px solid #e2e8f0;">
+                              <span style="display: block; color: #64748b; font-size: 9px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">Convocatoria</span>
+                              <strong style="display: block; margin-top: 4px; color: #0284c7; font-size: 13px;">45 min antes</strong>
+                            </td>
+                            <td width="33.3%" style="padding: 16px 20px;">
+                              <span style="display: block; color: #64748b; font-size: 9px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">Inicio del Acto</span>
+                              <strong style="display: block; margin-top: 4px; color: #0f172a; font-size: 13px;">${horaTexto}</strong>
+                            </td>
+                          </tr>
+                          <tr>
+                            <td colspan="3" style="padding: 14px 20px; border-top: 1px solid #e2e8f0; background: #ffffff;">
+                              <span style="display: block; color: #64748b; font-size: 9px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">Sede Institucional</span>
+                              <p style="margin: 4px 0 0; color: #334155; font-size: 12px; line-height: 1.4;">
+                                <strong>${escaparHTML(lugar || 'Auditorio Central · Instituto Tecnológico Beltrán')}</strong> · Av. Manuel Belgrano 1191, Avellaneda
+                              </p>
+                            </td>
+                          </tr>
+                        </table>
                       </td>
                     </tr>
                   </table>
 
-                  <p style="margin:0 0 30px;color:#475569;font-size:14px;line-height:1.6;">
-                    <strong style="color:#0f172a;">Sede del Acto:</strong> ${escaparHTML(lugar || 'Auditorio Central · Instituto Tecnológico Beltrán')}.<br>
-                    Presentate con 30 minutos de anticipación y mostrá el código QR de tu credencial al personal de portería para ingresar junto a tus acompañantes.
-                  </p>
+                  <!-- SECCIÓN DE BUTACAS CONFIRMADAS -->
+                  <div style="margin-bottom: 32px;">
+                    <p style="margin: 0 0 12px; color: #0f172a; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; border-bottom: 2px solid #0284c7; padding-bottom: 6px;">
+                      Distribución de Butacas Confirmadas
+                    </p>
+
+                    <!-- GRADUADO -->
+                    <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#f0f9ff" style="border: 1px solid #bae6fd; border-radius: 14px; margin-bottom: 12px;">
+                      <tr>
+                        <td style="padding: 16px 20px;">
+                          <table width="100%" cellspacing="0" cellpadding="0" border="0">
+                            <tr>
+                              <td>
+                                <span style="display: inline-block; padding: 2px 8px; background: #0284c7; color: #ffffff; border-radius: 6px; font-size: 9px; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 6px;">
+                                  Graduado / Titulado
+                                </span>
+                                <h3 style="margin: 0; color: #071b34; font-size: 15px; font-weight: 800;">
+                                  ${escaparHTML(nombre)}
+                                </h3>
+                              </td>
+                              <td align="right" style="vertical-align: middle;">
+                                <div style="display: inline-block; background: #071b34; border: 1px solid #1e3a5f; border-radius: 10px; padding: 8px 16px; text-align: center;">
+                                  <span style="display: block; color: #38bdf8; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;">Ubicación</span>
+                                  <strong style="color: #ffffff; font-size: 14px; font-weight: 800;">${asiento ? `Butaca ${asiento}` : 'Ubicación Reservada'}</strong>
+                                </div>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <!-- PADRINO FAMILIAR (SI EXISTE) -->
+                    ${padrinosFamiliares.map(pad => `
+                      <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#fffbeb" style="border: 1px solid #fde68a; border-radius: 14px; margin-bottom: 12px;">
+                        <tr>
+                          <td style="padding: 14px 20px;">
+                            <table width="100%" cellspacing="0" cellpadding="0" border="0">
+                              <tr>
+                                <td>
+                                  <span style="display: inline-block; padding: 2px 8px; background: #d97706; color: #ffffff; border-radius: 6px; font-size: 9px; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 4px;">
+                                    Padrino de Diploma / Entregador ${pad.ordenPadrino ? `(${pad.ordenPadrino}°)` : ''}
+                                  </span>
+                                  <h4 style="margin: 0; color: #78350f; font-size: 14px; font-weight: 800;">
+                                    ${escaparHTML(pad.nombre)}
+                                  </h4>
+                                </td>
+                                <td align="right" style="vertical-align: middle;">
+                                  <div style="display: inline-block; background: #78350f; border-radius: 10px; padding: 6px 14px; text-align: center;">
+                                    <span style="display: block; color: #fde68a; font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px;">Butaca Padrino</span>
+                                    <strong style="color: #ffffff; font-size: 13px; font-weight: 800;">${pad.asiento ? `Butaca ${pad.asiento}` : 'Por asignar'}</strong>
+                                  </div>
+                                </td>
+                              </tr>
+                            </table>
+                          </td>
+                        </tr>
+                      </table>
+                    `).join('')}
+
+                    <!-- ACOMPAÑANTES REGULARES -->
+                    ${acompanantesRegulares.length > 0 ? `
+                      <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#f8fafc" style="border: 1px solid #e2e8f0; border-radius: 14px; margin-bottom: 12px; overflow: hidden;">
+                        <tr>
+                          <td style="padding: 12px 18px; background: #ffffff; border-bottom: 1px solid #e2e8f0;">
+                            <span style="color: #64748b; font-size: 10px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase;">
+                              Acompañantes del Graduado (${acompanantesRegulares.length})
+                            </span>
+                          </td>
+                        </tr>
+                        ${acompanantesRegulares.map((inv, idx) => `
+                          <tr>
+                            <td style="padding: 12px 18px; border-bottom: ${idx === acompanantesRegulares.length - 1 ? 'none' : '1px solid #f1f5f9'};">
+                              <table width="100%" cellspacing="0" cellpadding="0" border="0">
+                                <tr>
+                                  <td style="color: #1e293b; font-size: 13px; font-weight: 700;">
+                                    ${escaparHTML(inv.nombre)}
+                                    ${inv.relacion ? `<span style="color: #64748b; font-size: 11px; font-weight: 500;"> · ${escaparHTML(inv.relacion)}</span>` : ''}
+                                  </td>
+                                  <td align="right" style="color: #0284c7; font-size: 12px; font-weight: 800;">
+                                    ${inv.asiento ? `Butaca ${inv.asiento}` : 'Ubicación General'}
+                                  </td>
+                                </tr>
+                              </table>
+                            </td>
+                          </tr>
+                        `).join('')}
+                      </table>
+                    ` : ''}
+
+                    <!-- PADRINO DOCENTE (SI APLICA) -->
+                    ${padrinosDocentes.length > 0 ? `
+                      <div style="background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 12px 16px; margin-bottom: 12px;">
+                        <span style="display: block; color: #475569; font-size: 10px; font-weight: 800; letter-spacing: 0.8px; text-transform: uppercase;">Padrino/a Docente Institucional</span>
+                        <p style="margin: 4px 0 0; color: #071b34; font-size: 12px; font-weight: 700;">
+                          ${padrinosDocentes.map(p => `Prof. ${escaparHTML(p)}`).join(', ')} · <span style="color: #64748b; font-weight: 500;">Ubicación en Estrado Académico</span>
+                        </p>
+                      </div>
+                    ` : ''}
+                  </div>
+
+                  <!-- SECCIÓN CRUCIAL: PREPARACIÓN E INDICACIONES PARA EL DÍA DEL EVENTO -->
+                  <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#f8fafc" style="border: 1px solid #cbd5e1; border-radius: 20px; margin-bottom: 32px; overflow: hidden;">
+                    <tr>
+                      <td bgcolor="#071b34" style="padding: 16px 22px; color: #ffffff;">
+                        <span style="display: block; color: #38bdf8; font-size: 9px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">Guía Oficial</span>
+                        <h3 style="margin: 2px 0 0; font-size: 15px; font-weight: 800; color: #ffffff;">
+                          Instrucciones y Preparación para el Día del Acto
+                        </h3>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="padding: 22px 24px;">
+                        
+                        <!-- PUNTO 1 -->
+                        <table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 16px;">
+                          <tr>
+                            <td width="30" valign="top">
+                              <span style="display: inline-block; width: 22px; height: 22px; line-height: 22px; text-align: center; border-radius: 50%; background: #0284c7; color: #ffffff; font-size: 11px; font-weight: 800;">1</span>
+                            </td>
+                            <td>
+                              <strong style="color: #0f172a; font-size: 13px; display: block; margin-bottom: 2px;">
+                                Presentación anticipada (45 minutos antes)
+                              </strong>
+                              <p style="margin: 0; color: #475569; font-size: 12px; line-height: 1.55;">
+                                Los graduados deben presentarse con 45 minutos de anticipación al horario de inicio en la mesa de recepción institucional para la acreditación, colocación de atributos protocolares y firma del Libro de Actas de Graduados.
+                              </p>
+                            </td>
+                          </tr>
+                        </table>
+
+                        <!-- PUNTO 2 -->
+                        <table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 16px;">
+                          <tr>
+                            <td width="30" valign="top">
+                              <span style="display: inline-block; width: 22px; height: 22px; line-height: 22px; text-align: center; border-radius: 50%; background: #0284c7; color: #ffffff; font-size: 11px; font-weight: 800;">2</span>
+                            </td>
+                            <td>
+                              <strong style="color: #0f172a; font-size: 13px; display: block; margin-bottom: 2px;">
+                                Acreditación en portería con Código QR (Pase Grupal)
+                              </strong>
+                              <p style="margin: 0; color: #475569; font-size: 12px; line-height: 1.55;">
+                                El código QR de tu credencial es tu pase grupal oficial. El egresado y sus acompañantes deben ingresar juntos o exhibir la credencial en el puesto de acreditación de portería para validar el acceso simultáneo de todo el grupo.
+                              </p>
+                            </td>
+                          </tr>
+                        </table>
+
+                        <!-- PUNTO 3 -->
+                        <table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 16px;">
+                          <tr>
+                            <td width="30" valign="top">
+                              <span style="display: inline-block; width: 22px; height: 22px; line-height: 22px; text-align: center; border-radius: 50%; background: #0284c7; color: #ffffff; font-size: 11px; font-weight: 800;">3</span>
+                            </td>
+                            <td>
+                              <strong style="color: #0f172a; font-size: 13px; display: block; margin-bottom: 2px;">
+                                Ocupación estricta de las butacas asignadas
+                              </strong>
+                              <p style="margin: 0; color: #475569; font-size: 12px; line-height: 1.55;">
+                                Las butacas se encuentran numeradas y organizadas por sectores. El graduado ocupará su lugar en las filas reservadas de egresados, y los acompañantes y padrino tomarán asiento en las butacas asignadas que figuran en esta confirmación.
+                              </p>
+                            </td>
+                          </tr>
+                        </table>
+
+                        <!-- PUNTO 4 -->
+                        <table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 16px;">
+                          <tr>
+                            <td width="30" valign="top">
+                              <span style="display: inline-block; width: 22px; height: 22px; line-height: 22px; text-align: center; border-radius: 50%; background: #0284c7; color: #ffffff; font-size: 11px; font-weight: 800;">4</span>
+                            </td>
+                            <td>
+                              <strong style="color: #0f172a; font-size: 13px; display: block; margin-bottom: 2px;">
+                                Protocolo en el estrado y entrega del diploma
+                              </strong>
+                              <p style="margin: 0; color: #475569; font-size: 12px; line-height: 1.55;">
+                                Al ser convocado por el maestro de ceremonias, el graduado subirá al estrado académico acompañado por su padrino o madrina de diploma asignado para la entrega solemne y la fotografía institucional.
+                              </p>
+                            </td>
+                          </tr>
+                        </table>
+
+                        <!-- PUNTO 5 -->
+                        <table width="100%" cellspacing="0" cellpadding="0" border="0">
+                          <tr>
+                            <td width="30" valign="top">
+                              <span style="display: inline-block; width: 22px; height: 22px; line-height: 22px; text-align: center; border-radius: 50%; background: #0284c7; color: #ffffff; font-size: 11px; font-weight: 800;">5</span>
+                            </td>
+                            <td>
+                              <strong style="color: #0f172a; font-size: 13px; display: block; margin-bottom: 2px;">
+                                Código de vestimenta y accesibilidad
+                              </strong>
+                              <p style="margin: 0; color: #475569; font-size: 12px; line-height: 1.55;">
+                                Se solicita vestimenta formal o elegante sport. En caso de requerir asistencia o butaca adaptada para personas con movilidad reducida, comunicarlo al personal de portería al ingresar.
+                              </p>
+                            </td>
+                          </tr>
+                        </table>
+
+                        ${indicaciones ? `
+                          <div style="margin-top: 16px; padding-top: 14px; border-top: 1px solid #e2e8f0; color: #334155; font-size: 12px;">
+                            <strong>Nota institucional adicional:</strong> ${escaparHTML(indicaciones)}
+                          </div>
+                        ` : ''}
+
+                      </td>
+                    </tr>
+                  </table>
 
                   <!-- BOTONES DE ACCIÓN (PORTAL Y GOOGLE WALLET) -->
-                  <table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom:24px;">
+                  <table width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 24px;">
                     <tr>
-                      <td align="center" style="padding-bottom:12px;">
+                      <td align="center" style="padding-bottom: 12px;">
                         <table border="0" cellspacing="0" cellpadding="0">
                           <tr>
-                            <td bgcolor="#0284c7" style="border-radius:14px;box-shadow:0 6px 16px rgba(2,132,199,0.25);">
-                              <a href="${acceso}" target="_blank" style="display:inline-block;padding:16px 36px;color:#ffffff;font-size:14px;font-weight:800;text-decoration:none;letter-spacing:.3px;">
-                                Ver Mi Credencial & Código QR &rarr;
+                            <td bgcolor="#0284c7" style="border-radius: 14px; box-shadow: 0 8px 18px rgba(2, 132, 199, 0.28);">
+                              <a href="${acceso}" target="_blank" style="display: inline-block; padding: 16px 36px; color: #ffffff; font-size: 14px; font-weight: 800; text-decoration: none; letter-spacing: 0.3px;">
+                                Ver Mi Credencial Digital & Código QR &rarr;
                               </a>
                             </td>
                           </tr>
@@ -553,8 +846,8 @@ export function generarPlantillaCredencialCeremonia({ nombre, ceremonia, fecha, 
                       <td align="center">
                         <table border="0" cellspacing="0" cellpadding="0">
                           <tr>
-                            <td bgcolor="#071b34" style="border-radius:12px;border:1px solid #1e293b;">
-                              <a href="${googleWalletUrl}" target="_blank" style="display:inline-block;padding:12px 28px;color:#ffffff;font-size:13px;font-weight:700;text-decoration:none;">
+                            <td bgcolor="#071b34" style="border-radius: 12px; border: 1px solid #1e293b;">
+                              <a href="${googleWalletUrl}" target="_blank" style="display: inline-block; padding: 12px 28px; color: #ffffff; font-size: 13px; font-weight: 700; text-decoration: none;">
                                 Guardar en Google Wallet
                               </a>
                             </td>
@@ -565,18 +858,30 @@ export function generarPlantillaCredencialCeremonia({ nombre, ceremonia, fecha, 
                   </table>
 
                   <!-- NOTA DE ADJUNTO PDF -->
-                  <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:14px;padding:12px 18px;text-align:center;">
-                    <p style="margin:0;color:#166534;font-size:12px;font-weight:700;">
-                      Tu credencial oficial también se encuentra adjunta a este correo en formato PDF.
+                  <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 14px; padding: 14px 20px; text-align: center;">
+                    <strong style="display: block; color: #166534; font-size: 13px; margin-bottom: 3px;">
+                      Credencial Oficial Adjunta en Formato PDF
+                    </strong>
+                    <p style="margin: 0; color: #15803d; font-size: 11px; line-height: 1.45;">
+                      Tu credencial con el código QR de alta resolución se encuentra adjunta a este correo. Podés guardarla en tu teléfono o llevarla impresa el día de la ceremonia.
                     </p>
                   </div>
+
                 </td>
               </tr>
 
-              <!-- FOOTER -->
+              <!-- FOOTER INSTITUCIONAL -->
               <tr>
-                <td align="center" bgcolor="#0f172a" style="padding:25px;border-top:1px solid #1e293b;color:#64748b;font-size:10px;">
-                  Instituto Tecnológico Beltrán · SiGIC © 2026
+                <td align="center" bgcolor="#0f172a" style="padding: 28px 24px; border-top: 1px solid #1e293b; color: #94a3b8; font-size: 11px; line-height: 1.6;">
+                  <p style="margin: 0 0 4px; font-weight: 700; color: #cbd5e1; text-transform: uppercase; letter-spacing: 1px;">
+                    Instituto Tecnológico Beltrán
+                  </p>
+                  <p style="margin: 0 0 10px; color: #64748b; font-size: 10px;">
+                    Av. Manuel Belgrano 1191, Avellaneda, Buenos Aires · Sede Central
+                  </p>
+                  <p style="margin: 0; color: #475569; font-size: 10px;">
+                    SiGIC © 2026 · Sistema Institucional de Gestión de Colaciones
+                  </p>
                 </td>
               </tr>
 
@@ -589,9 +894,27 @@ export function generarPlantillaCredencialCeremonia({ nombre, ceremonia, fecha, 
 }
 
 /** Credencial PDF diseñada para descargar, imprimir o presentar en portería. */
-export async function generarPdfCredencial({ nombre, ceremonia, fecha, lugar, asiento, acompanantes, acceso }: { nombre: string; ceremonia: string; fecha: string; lugar: string; asiento?: string | null; acompanantes: string[]; acceso: string }) {
+export async function generarPdfCredencial({
+  nombre,
+  ceremonia,
+  fecha,
+  lugar,
+  asiento,
+  acompanantes,
+  acceso,
+}: {
+  nombre: string;
+  ceremonia: string;
+  fecha: string;
+  lugar: string;
+  asiento?: string | null;
+  acompanantes: string[];
+  acceso: string;
+}) {
   const qrDataUrl = await QRCode.toDataURL(acceso, { width: 360, margin: 1, color: { dark: '#071b34', light: '#ffffff' } });
   const qr = Buffer.from(qrDataUrl.split(',')[1], 'base64');
+  const fechaTexto = formatearFechaLegible(fecha);
+
   return new Promise<Buffer>((resolve, reject) => {
     const doc = new PDFDocument({ size: 'A4', margin: 0 });
     const partes: Buffer[] = [];
@@ -603,30 +926,39 @@ export async function generarPdfCredencial({ nombre, ceremonia, fecha, lugar, as
     doc.rect(0, 0, 595, 230).fill('#071b34');
     doc.circle(555, 26, 120).fill('#0e5771');
     doc.circle(70, 250, 80).fill('#e0f2fe');
-    doc.fillColor('#67e8f9').font('Helvetica-Bold').fontSize(10).text('SiGIC  |  CREDENCIAL DIGITAL', 48, 54, { characterSpacing: 1.5 });
-    doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(28).text('Ceremonia de colación', 48, 82);
+    doc.fillColor('#67e8f9').font('Helvetica-Bold').fontSize(10).text('SiGIC  |  CREDENCIAL DIGITAL OFICIAL', 48, 54, { characterSpacing: 1.5 });
+    doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(28).text('Ceremonia de Colación', 48, 82);
     doc.fillColor('#cbd5e1').font('Helvetica').fontSize(12).text(ceremonia, 48, 122, { width: 330 });
-    doc.roundedRect(48, 160, 178, 28, 14).fill('#ffffff');
-    doc.fillColor('#0f766e').font('Helvetica-Bold').fontSize(9).text('CREDENCIAL VÁLIDA', 67, 170, { characterSpacing: 1 });
+    doc.roundedRect(48, 160, 200, 28, 14).fill('#ffffff');
+    doc.fillColor('#0f766e').font('Helvetica-Bold').fontSize(9).text('PASE GRUPAL HABILITADO', 65, 170, { characterSpacing: 1 });
 
     doc.roundedRect(40, 205, 515, 520, 22).fill('#ffffff');
     doc.fillColor('#64748b').font('Helvetica-Bold').fontSize(9).text('GRADUADO/A', 68, 245, { characterSpacing: 1.2 });
-    doc.fillColor('#0f172a').font('Helvetica-Bold').fontSize(25).text(nombre, 68, 263, { width: 285, lineBreak: true });
-    doc.fillColor('#475569').font('Helvetica').fontSize(11).text(`Fecha: ${fecha || 'A confirmar'}\nLugar: ${lugar || 'A confirmar'}`, 68, 335, { lineGap: 5, width: 285 });
+    doc.fillColor('#0f172a').font('Helvetica-Bold').fontSize(24).text(nombre, 68, 263, { width: 285, lineBreak: true });
+    doc.fillColor('#475569').font('Helvetica').fontSize(10).text(`Fecha: ${fechaTexto || 'A confirmar'}\nLugar: ${lugar || 'Sede Beltrán'}\nPresentación: 45 minutos antes`, 68, 330, { lineGap: 4, width: 285 });
 
-    doc.roundedRect(370, 242, 145, 145, 16).fill('#f8fafc');
-    doc.image(qr, 385, 257, { width: 115, height: 115 });
-    doc.fillColor('#334155').font('Helvetica-Bold').fontSize(8).text('PRESENTAR EN PORTERÍA', 380, 405, { width: 125, align: 'center' });
+    doc.roundedRect(370, 235, 150, 155, 16).fill('#f8fafc');
+    doc.image(qr, 385, 245, { width: 120, height: 120 });
+    doc.fillColor('#334155').font('Helvetica-Bold').fontSize(8).text('PRESENTAR EN PORTERÍA', 375, 375, { width: 140, align: 'center' });
 
-    doc.roundedRect(68, 425, 447, 86, 14).fill('#e0f2fe');
-    doc.fillColor('#0369a1').font('Helvetica-Bold').fontSize(9).text('UBICACIÓN DEL GRADUADO', 88, 445, { characterSpacing: 1 });
-    doc.fillColor('#071b34').font('Helvetica-Bold').fontSize(22).text(asiento || 'SIN ASIGNAR', 88, 464);
-    doc.fillColor('#475569').font('Helvetica').fontSize(10).text(asiento ? 'Butaca reservada para el acto.' : 'La asignación se informará desde el portal.', 88, 491);
+    doc.roundedRect(68, 415, 452, 80, 14).fill('#e0f2fe');
+    doc.fillColor('#0369a1').font('Helvetica-Bold').fontSize(9).text('UBICACIÓN DEL GRADUADO', 88, 430, { characterSpacing: 1 });
+    doc.fillColor('#071b34').font('Helvetica-Bold').fontSize(20).text(asiento ? `Butaca ${asiento}` : 'UBICACIÓN GENERAL', 88, 448);
+    doc.fillColor('#475569').font('Helvetica').fontSize(9).text(asiento ? 'Butaca numerada reservada en sector egresados.' : 'La asignación se confirmará desde el portal.', 88, 474);
 
-    doc.fillColor('#64748b').font('Helvetica-Bold').fontSize(9).text('ACOMPAÑANTES Y UBICACIONES', 68, 545, { characterSpacing: 1 });
-    doc.fillColor('#1e293b').font('Helvetica').fontSize(11).text(acompanantes.length ? acompanantes.join('\n') : 'Sin acompañantes registrados.', 68, 565, { width: 447, lineGap: 5 });
-    doc.moveTo(68, 661).lineTo(515, 661).strokeColor('#e2e8f0').stroke();
-    doc.fillColor('#64748b').font('Helvetica').fontSize(9).text('Guardá esta credencial en tu teléfono o imprimila. El código QR es personal e intransferible.', 68, 680, { width: 447, align: 'center' });
+    doc.fillColor('#64748b').font('Helvetica-Bold').fontSize(9).text('INTEGRANTES DEL GRUPO Y UBICACIONES', 68, 515, { characterSpacing: 1 });
+    doc.fillColor('#1e293b').font('Helvetica').fontSize(10).text(
+      acompanantes.length ? acompanantes.slice(0, 6).join('\n') : 'Sin acompañantes registrados.',
+      68, 535,
+      { width: 452, lineGap: 5 }
+    );
+
+    doc.moveTo(68, 655).lineTo(520, 655).strokeColor('#e2e8f0').stroke();
+    doc.fillColor('#64748b').font('Helvetica').fontSize(8.5).text(
+      'Pase grupal válido para el graduado y sus acompañantes registrados. Presentar en el puesto de acreditación de portería.',
+      68, 670,
+      { width: 452, align: 'center' }
+    );
     doc.end();
   });
 }

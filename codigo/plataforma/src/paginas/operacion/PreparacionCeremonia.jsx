@@ -787,10 +787,16 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
           todosLosInvitados={invitados}
           modo="confirmacion"
           onCerrar={() => setGraduadoParaAsignar(null)}
-          onAsignado={async () => {
+          onAsignado={async (resultado) => {
             setGraduadoParaAsignar(null)
             await cargarDatos()
-            setMensaje({ tipo: 'exito', texto: 'Ubicación guardada con éxito.' })
+            if (resultado?.credencialEnviada) {
+              setMensaje({ tipo: 'exito', texto: 'Butacas confirmadas y credencial con indicaciones del evento enviada al correo del egresado.' })
+            } else if (resultado?.mensajeCredencial) {
+              setMensaje({ tipo: 'advertencia', texto: `Butacas guardadas. ${resultado.mensajeCredencial}` })
+            } else {
+              setMensaje({ tipo: 'exito', texto: 'Ubicación guardada con éxito.' })
+            }
           }}
         />
       )}
