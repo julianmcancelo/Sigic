@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react'
-import { X, Armchair, CheckCircle2, User, RefreshCw, AlertTriangle, LockKeyhole, Users, ChevronRight, RotateCcw } from 'lucide-react'
+import {
+  X, Armchair, CheckCircle2, User, RefreshCw, AlertTriangle,
+  LockKeyhole, Users, ChevronRight, RotateCcw, Award, GraduationCap
+} from 'lucide-react'
 import { SeleccionAsientos } from '../paginas/SeleccionAsientos'
-import { BASE, asignarAsientos, obtenerAjustes } from '../servicios/api'
+import { BASE, asignarAsientos, obtenerAjustes, obtenerEntregadoresDeGraduado } from '../servicios/api'
 import { emitirCambioSync } from '../lib/sync'
 import { useConfirmacion } from './ModalConfirmacion'
 
@@ -20,6 +23,7 @@ export function ModalAsignarAsientos({
   const esSoloLectura = modo === 'lectura' || modo === 'aprobado' || (graduado.estado_asignacion_butacas === 'CONFIRMADA' && modo !== 'confirmacion')
   const asientoInicial = (persona) => persona.asiento_id || persona.asiento_solicitado_id || null
   const [procesando, setProcesando] = useState(false)
+  const [entregadores, setEntregadores] = useState([])
   const [error, setError] = useState('')
   const [estructura, setEstructura] = useState(null)
   const [mapaRoles, setMapaRoles] = useState({})
@@ -72,6 +76,20 @@ export function ModalAsignarAsientos({
     cargarMapa()
   }, [ceremoniaId])
 
+  // Cargar entregadores del graduado para distinguir quién es padrino
+  useEffect(() => {
+    async function cargarEntregadores() {
+      if (!graduado?.id) return
+      try {
+        const datos = await obtenerEntregadoresDeGraduado(graduado.id)
+        setEntregadores(Array.isArray(datos) ? datos : [])
+      } catch (err) {
+        console.warn('No se pudieron cargar los entregadores del graduado en ModalAsignarAsientos:', err)
+      }
+    }
+    cargarEntregadores()
+  }, [graduado?.id])
+
   // Calcular asientos ocupados por OTROS grupos
   const obtenerAsientosOcupadosPorOtros = () => {
     const ocupados = new Set()
@@ -112,20 +130,37 @@ export function ModalAsignarAsientos({
     id: null,
     nombre: graduado.nombre,
     rolLabel: 'Graduado',
+    esPadrino: false,
+    ordenPadrino: null,
+    relacion: 'Titular',
     requiereAccesibilidad: Boolean(graduado.discapacidad),
     asiento: asignaciones.egresadoAsiento
   })
 
   invitados.forEach(inv => {
+    const entregadorVinculado = entregadores.find(e => 
+      (e.invitado_id && String(e.invitado_id) === String(inv.id)) ||
+      (e.tipo === 'FAMILIAR' && e.nombre && inv.nombre && e.nombre.trim().toLowerCase() === inv.nombre.trim().toLowerCase())
+    )
+    const esPadrino = Boolean(inv.es_padrino || inv.esPadrino || entregadorVinculado)
+    const ordenPadrino = inv.orden_padrino || inv.ordenPadrino || entregadorVinculado?.orden || null
+
     personasGrupo.push({
       tipo: 'invitado',
       id: inv.id,
       nombre: inv.nombre,
-      rolLabel: `Acompañante (${inv.relacion || 'Familiar'})`,
+      rolLabel: esPadrino 
+        ? `${ordenPadrino ? `${ordenPadrino}° ` : ''}Padrino · ${inv.relacion || 'Familiar'}` 
+        : `Acompañante (${inv.relacion || 'Familiar'})`,
+      esPadrino,
+      ordenPadrino,
+      relacion: inv.relacion || 'Familiar',
       requiereAccesibilidad: Boolean(inv.discapacidad),
       asiento: asignaciones.invitadosAsientos[inv.id] || null
     })
   })
+
+  const padrinosDocentes = entregadores.filter(e => e.tipo === 'PROFESOR')
 
   // Obtener todos los asientos seleccionados por el grupo actual
   const obtenerTodosAsientosGrupo = () => {
@@ -293,7 +328,14 @@ export function ModalAsignarAsientos({
                 {esSoloLectura ? 'Ubicaciones aprobadas del grupo' : modo === 'propuesta' ? 'Proponer butacas del grupo' : 'Confirmar butacas del grupo'}
                 {esSoloLectura && <span className="rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 text-[9px] font-black uppercase">Aprobado</span>}
               </h2>
-              <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold truncate">{graduado.nombre} · {personasGrupo.length} integrantes</p>
+              <p className="text-[10px] text-slate-400 uppercase tracking-wider font-bold truncate">
+                {graduado.nombre} · {personasGrupo.length} integrantes
+                {personasGrupo.some(p => p.esPadrino) && (
+                  <span className="ml-2 text-amber-300 font-black tracking-wider">
+                    · Incluye Padrino Familiar
+                  </span>
+                )}
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-3 shrink-0">
@@ -305,7 +347,7 @@ export function ModalAsignarAsientos({
           </div>
         </header>
 
-        <div className="min-h-0 grid grid-cols-1 lg:grid-cols-[16rem_minmax(0,1fr)] overflow-hidden">
+        <div className="min-h-0 grid grid-cols-1 lg:grid-cols-[16.5rem_minmax(0,1fr)] overflow-hidden">
           <aside className="min-h-0 bg-white border-b lg:border-b-0 lg:border-r border-slate-200 flex flex-col">
             <div className="px-3 py-2.5 border-b border-slate-100 flex items-center justify-between">
               <div>
@@ -315,19 +357,68 @@ export function ModalAsignarAsientos({
               <span className="flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-black text-slate-600"><Users size={13} /> {personasGrupo.length}</span>
             </div>
 
-            <div className="p-2 space-y-1.5 overflow-y-auto">
+            {/* Aviso informativo si el egresado seleccionó padrino docente */}
+            {padrinosDocentes.length > 0 && (
+              <div className="mx-2 mt-2 p-2 rounded-xl bg-indigo-50/70 border border-indigo-100 text-[9px]">
+                <p className="font-black uppercase tracking-wider text-indigo-700 flex items-center gap-1">
+                  <GraduationCap size={12} /> Padrino Docente
+                </p>
+                {padrinosDocentes.map(p => (
+                  <p key={p.id} className="text-slate-600 font-bold mt-0.5 truncate">
+                    {p.orden ? `${p.orden}° ` : ''}{p.nombre}
+                  </p>
+                ))}
+              </div>
+            )}
+
+            <div className="p-2 space-y-1.5 overflow-y-auto flex-1">
               {personasGrupo.map((persona, indice) => {
                 const esActivo = personaActivaDatos.tipo === persona.tipo && personaActivaDatos.id === persona.id
                 return (
-                  <button key={`${persona.tipo}-${persona.id || 'grupo'}`} onClick={() => { setPersonaActiva({ tipo: persona.tipo, id: persona.id }); setError('') }} className={`w-full flex items-center gap-2.5 p-2.5 rounded-xl border text-left transition-all ${esActivo ? 'border-sky-400 bg-sky-50 shadow-sm' : 'border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50'}`}>
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-[10px] ${persona.asiento ? 'bg-emerald-100 text-emerald-700' : esActivo ? 'bg-sky-500 text-white' : 'bg-slate-100 text-slate-400'}`}>
-                      {persona.asiento ? <CheckCircle2 size={18} /> : indice + 1}
+                  <button 
+                    key={`${persona.tipo}-${persona.id || 'grupo'}`} 
+                    onClick={() => { setPersonaActiva({ tipo: persona.tipo, id: persona.id }); setError('') }} 
+                    className={`w-full flex items-center gap-2.5 p-2.5 rounded-xl border text-left transition-all ${
+                      esActivo 
+                        ? 'border-sky-400 bg-sky-50 shadow-sm' 
+                        : persona.esPadrino
+                          ? 'border-amber-200/80 bg-amber-50/40 hover:border-amber-300 hover:bg-amber-50/70'
+                          : 'border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-[10px] shrink-0 ${
+                      persona.asiento 
+                        ? 'bg-emerald-100 text-emerald-700' 
+                        : esActivo 
+                          ? 'bg-sky-500 text-white' 
+                          : persona.esPadrino
+                            ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                            : 'bg-slate-100 text-slate-400'
+                    }`}>
+                      {persona.asiento ? <CheckCircle2 size={18} /> : persona.esPadrino ? <Award size={16} /> : indice + 1}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-black text-slate-800 truncate">{persona.nombre}</p>
-                      <p className="mt-0.5 text-[8px] font-bold uppercase tracking-wider text-slate-400">{persona.rolLabel}</p>
+                      <div className="flex items-center gap-1 flex-wrap">
+                        <p className="text-xs font-black text-slate-800 truncate">{persona.nombre}</p>
+                        {persona.esPadrino && (
+                          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-amber-100 border border-amber-300 text-amber-900 text-[8px] font-black uppercase tracking-wider shrink-0">
+                            <Award size={9} /> Padrino
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-0.5 text-[8.5px] font-bold uppercase tracking-wider text-slate-400 truncate">
+                        {persona.tipo === 'egresado'
+                          ? 'Graduado titular'
+                          : persona.esPadrino
+                            ? `${persona.ordenPadrino ? `${persona.ordenPadrino}° ` : ''}Padrino · ${persona.relacion}`
+                            : `Acompañante (${persona.relacion}) · No es padrino`}
+                      </p>
                     </div>
-                    <div className={`shrink-0 rounded-md px-1.5 py-1 text-[9px] font-black ${persona.asiento ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-600'}`}>{persona.asiento || 'S/A'}</div>
+                    <div className={`shrink-0 rounded-md px-1.5 py-1 text-[9px] font-black ${
+                      persona.asiento ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-600'
+                    }`}>
+                      {persona.asiento || 'S/A'}
+                    </div>
                   </button>
                 )
               })}
@@ -342,12 +433,28 @@ export function ModalAsignarAsientos({
 
           <section className="min-h-0 p-2.5 sm:p-3 bg-[radial-gradient(circle_at_top,_#e0f2fe,_#f8fafc_42%)] flex flex-col gap-2 overflow-hidden">
             <div className="shrink-0 bg-white/90 border border-sky-100 rounded-xl px-3 py-2 flex items-center gap-2.5 shadow-sm">
-              <div className="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center"><User size={16} /></div>
+              <div className={`w-8 h-8 rounded-lg text-white flex items-center justify-center shrink-0 ${
+                personaActivaDatos.esPadrino ? 'bg-amber-600' : 'bg-slate-900'
+              }`}>
+                {personaActivaDatos.esPadrino ? <Award size={16} /> : <User size={16} />}
+              </div>
               <div className="min-w-0 flex-1">
-                <p className="text-[8px] uppercase tracking-[0.16em] font-black text-sky-600">
-                  {esSoloLectura ? 'Ubicación confirmada' : grupoEnRevision ? 'Revisión del grupo' : `Paso ${pasoActivo + 1} de ${personasGrupo.length}`}
-                </p>
-                <p className="text-xs font-black text-slate-800 truncate">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="text-[8px] uppercase tracking-[0.16em] font-black text-sky-600">
+                    {esSoloLectura ? 'Ubicación confirmada' : grupoEnRevision ? 'Revisión del grupo' : `Paso ${pasoActivo + 1} de ${personasGrupo.length}`}
+                  </p>
+                  {personaActivaDatos.esPadrino && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-100 border border-amber-300 text-amber-900 text-[8.5px] font-black uppercase tracking-wider">
+                      <Award size={10} /> Rol: Padrino de diploma (${personaActivaDatos.ordenPadrino ? `${personaActivaDatos.ordenPadrino}°` : 'Familiar'})
+                    </span>
+                  )}
+                  {personaActivaDatos.tipo === 'invitado' && !personaActivaDatos.esPadrino && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-slate-600 text-[8.5px] font-bold uppercase tracking-wider">
+                      Rol: Acompañante regular (No es padrino)
+                    </span>
+                  )}
+                </div>
+                <p className="text-xs font-black text-slate-800 truncate mt-0.5">
                   {esSoloLectura ? `${personaActivaDatos.nombre} · Butaca ${personaActivaDatos.asiento || 'S/A'}` : grupoEnRevision ? `Revisando: ${personaActivaDatos.nombre}` : `Asignando a ${personaActivaDatos.nombre}`}
                 </p>
               </div>

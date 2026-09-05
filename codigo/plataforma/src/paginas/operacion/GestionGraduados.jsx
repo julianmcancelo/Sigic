@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { 
   Users, Search, Upload, Trash2, X, Link2, CreditCard,
   UserX, CheckCircle2, Clock, AlertCircle, Armchair, Send, PlusCircle, BadgeCheck, Edit3, MoreHorizontal,
-  FileSpreadsheet, Download, ArrowRight, UserPlus, Sparkles
+  FileSpreadsheet, Download, ArrowRight, UserPlus, Sparkles, Award
 } from 'lucide-react'
 import * as XLSX from 'xlsx'
 
@@ -577,7 +577,16 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
                   <div className="mt-2 flex flex-wrap items-center gap-1.5 border-t border-slate-100 pt-2">
                     <button onClick={() => setGraduadoEditar(grad)} className="rounded-md bg-slate-900 px-2.5 py-1 text-[8.5px] font-bold text-white cursor-pointer hover:bg-slate-800 transition"><Edit3 size={11} className="mr-1 inline" />Editar</button>
                     {!esRechazado && grad.estado === 'ACEPTADO' && <button onClick={() => abrirAsignacion(grad)} className="rounded-md bg-slate-900 px-2.5 py-1 text-[8.5px] font-bold text-white cursor-pointer hover:bg-slate-800 transition"><Armchair size={11} className="mr-1 inline" />Butacas</button>}
-                    {misInvitados.length > 0 && <span className="text-[8.5px] font-semibold text-slate-400">{misInvitados.length} acomp.</span>}
+                    {misInvitados.length > 0 && (
+                      <span className="text-[8.5px] font-semibold text-slate-500 inline-flex items-center gap-1">
+                        {misInvitados.length} acomp.
+                        {misInvitados.some(i => i.es_padrino || i.esPadrino) && (
+                          <span className="text-amber-700 font-bold bg-amber-50 border border-amber-200 px-1 py-0.2 rounded text-[7.5px] uppercase tracking-wider inline-flex items-center gap-0.5" title="Uno o más acompañantes fueron designados padrinos de entrega">
+                            <Award size={9} /> Incluye padrino
+                          </span>
+                        )}
+                      </span>
+                    )}
                     <details className="relative ml-auto">
                       <summary className="grid h-6 w-7 cursor-pointer list-none place-items-center rounded text-slate-400 hover:bg-slate-100"><MoreHorizontal size={13} /></summary>
                       <div className="absolute bottom-7 right-0 z-20 w-44 rounded-xl border border-slate-200 bg-white p-1 shadow-xl">

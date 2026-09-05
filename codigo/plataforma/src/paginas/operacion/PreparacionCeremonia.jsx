@@ -3,7 +3,7 @@ import {
   Armchair, Sparkles, Users, Layers, Save, RotateCcw,
   CheckCircle2, AlertCircle, Search, ArrowRight, UserCheck,
   Download, Layout, ShieldCheck, ChevronRight, ChevronLeft,
-  X, Info, GraduationCap, ZoomIn, ZoomOut, Check
+  X, Info, GraduationCap, ZoomIn, ZoomOut, Check, Award
 } from 'lucide-react'
 import {
   BASE,
@@ -622,11 +622,23 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
                         <td className="py-2.5 px-4">
                           {invs.length > 0 ? (
                             <div className="flex flex-wrap gap-1">
-                              {invs.map(inv => (
-                                <span key={inv.id} className="inline-flex items-center gap-1 bg-amber-50 border border-amber-200 text-amber-800 px-1.5 py-0.5 rounded text-[9.5px] font-bold">
-                                  {inv.nombre}: {inv.asiento_id || 'Sin butaca'}
-                                </span>
-                              ))}
+                              {invs.map(inv => {
+                                const esPadrino = Boolean(inv.es_padrino || inv.esPadrino)
+                                return (
+                                  <span
+                                    key={inv.id}
+                                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-bold ${
+                                      esPadrino
+                                        ? 'bg-amber-100 border border-amber-300 text-amber-900 font-black'
+                                        : 'bg-slate-50 border border-slate-200 text-slate-700'
+                                    }`}
+                                    title={esPadrino ? 'Padrino / Entregador de diploma' : 'Acompañante regular (No es padrino)'}
+                                  >
+                                    {esPadrino && <Award size={10} className="text-amber-700 shrink-0" />}
+                                    {inv.nombre}{esPadrino ? ' (Padrino)' : ''}: {inv.asiento_id || 'Sin butaca'}
+                                  </span>
+                                )
+                              })}
                             </div>
                           ) : (
                             <span className="text-slate-400 text-[10px]">0 acompañantes</span>

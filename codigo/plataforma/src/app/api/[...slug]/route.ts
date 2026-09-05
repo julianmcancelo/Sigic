@@ -767,7 +767,19 @@ export async function GET(
       const condicionCeremonia = ceremoniaId ? 'c.id = $1' : 'c.activa = 1';
 
       const queryStr = `
-        SELECT i.*, e.nombre as "egresadoNombre", e.legajo as "egresadoLegajo"
+        SELECT i.*, e.nombre as "egresadoNombre", e.legajo as "egresadoLegajo",
+               EXISTS (
+                 SELECT 1 FROM entregadores ent 
+                 WHERE ent.egresado_id = i.egresado_id 
+                   AND (ent.invitado_id = i.id OR (ent.tipo = 'FAMILIAR' AND LOWER(TRIM(ent.nombre)) = LOWER(TRIM(i.nombre))))
+               ) as "es_padrino",
+               (
+                 SELECT ent.orden FROM entregadores ent 
+                 WHERE ent.egresado_id = i.egresado_id 
+                   AND (ent.invitado_id = i.id OR (ent.tipo = 'FAMILIAR' AND LOWER(TRIM(ent.nombre)) = LOWER(TRIM(i.nombre))))
+                 ORDER BY ent.orden ASC
+                 LIMIT 1
+               ) as "orden_padrino"
         FROM invitados i
         JOIN egresados e ON i.egresado_id = e.id
         JOIN ceremonias c ON e.ceremonia_id = c.id
@@ -889,7 +901,24 @@ export async function GET(
       const esAutorizado = await esAutorizadoPersonalOEgresado(req, egresadoId, ROLES_LECTURA);
       if (!esAutorizado) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
-      const result = await query('SELECT * FROM invitados WHERE egresado_id = $1', [egresadoId]);
+      const result = await query(`
+        SELECT i.*,
+               EXISTS (
+                 SELECT 1 FROM entregadores ent 
+                 WHERE ent.egresado_id = i.egresado_id 
+                   AND (ent.invitado_id = i.id OR (ent.tipo = 'FAMILIAR' AND LOWER(TRIM(ent.nombre)) = LOWER(TRIM(i.nombre))))
+               ) as "es_padrino",
+               (
+                 SELECT ent.orden FROM entregadores ent 
+                 WHERE ent.egresado_id = i.egresado_id 
+                   AND (ent.invitado_id = i.id OR (ent.tipo = 'FAMILIAR' AND LOWER(TRIM(ent.nombre)) = LOWER(TRIM(i.nombre))))
+                 ORDER BY ent.orden ASC
+                 LIMIT 1
+               ) as "orden_padrino"
+        FROM invitados i
+        WHERE i.egresado_id = $1
+        ORDER BY i.nombre ASC
+      `, [egresadoId]);
       return NextResponse.json(result.rows, { headers });
     }
 
