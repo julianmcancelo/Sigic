@@ -104,9 +104,9 @@ export function CentroOperacionesDemo({ onNavegar }) {
     <section className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-sky-100 bg-sky-50/70 p-3">
       <div className="flex min-w-0 items-center gap-3">
         <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-sky-600 text-white"><Smartphone size={18} /></span>
-        <div><p className="text-[9px] font-black uppercase tracking-[0.16em] text-sky-700">App de portería</p><p className="text-xs font-black text-slate-800">APK Android v1.0.3 · Shorebird activo</p><p className="text-[10px] text-slate-500">Instalación directa para dispositivos de control de acceso.</p></div>
+        <div><p className="text-[9px] font-black uppercase tracking-[0.16em] text-sky-700">App de portería</p><p className="text-xs font-black text-slate-800">APK Android v1.0.5 · Shorebird activo</p><p className="text-[10px] text-slate-500">Instalación directa para dispositivos de control de acceso.</p></div>
       </div>
-      <a href="/descargas/SIGIC-Porteria-1.0.4.apk" download className="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-3.5 py-2.5 text-[10px] font-black uppercase tracking-wider text-white transition hover:bg-sky-700"><Download size={14} /> Descargar APK</a>
+      <a href="/descargas/SIGIC-Porteria-1.0.5.apk" download className="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-3.5 py-2.5 text-[10px] font-black uppercase tracking-wider text-white transition hover:bg-sky-700"><Download size={14} /> Descargar APK</a>
     </section>
 
     <section className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">

@@ -140,9 +140,9 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
   const [copiadoServidor, setCopiadoServidor] = useState(false)
   const [urlApk, setUrlApk] = useState(() => {
     if (typeof window !== 'undefined') {
-      return `${window.location.origin}/descargas/SIGIC-Porteria-1.0.4.apk`
+      return `${window.location.origin}/descargas/SIGIC-Porteria-1.0.5.apk`
     }
-    return 'https://sigic.com.ar/descargas/SIGIC-Porteria-1.0.4.apk'
+    return 'https://sigic.com.ar/descargas/SIGIC-Porteria-1.0.5.apk'
   })
   const [urlServidor, setUrlServidor] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -748,8 +748,8 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
               </p>
 
               <a
-                href="/descargas/SIGIC-Porteria-1.0.4.apk"
-                download="SIGIC-Porteria-1.0.4.apk"
+                href="/descargas/SIGIC-Porteria-1.0.5.apk"
+                download="SIGIC-Porteria-1.0.5.apk"
                 className="w-full py-3 px-4 rounded-2xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-black text-xs transition active:scale-95 shadow-md shadow-sky-500/20 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <Download size={16} /> Descargar APK Directo

@@ -1,6 +1,6 @@
 {
-  "version": "1.0.4+5",
-  "apkUrl": "https://demo.sigic.com.ar/descargas/SIGIC-Porteria-1.0.4.apk",
+  "version": "1.0.5+6",
+  "apkUrl": "https://demo.sigic.com.ar/descargas/SIGIC-Porteria-1.0.5.apk",
   "required": false,
-  "notes": "Mejoras visuales de porteria, inicio institucional e icono oficial."
+  "notes": "Ingreso manual dinamico de codigos/DNI sin camara, sector exclusivo de padrinos y optimizaciones de seguridad."
 }
