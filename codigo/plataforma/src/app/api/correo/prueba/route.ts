@@ -5,7 +5,7 @@ import { enviarCorreo } from '@/lib/email';
 const EMAIL_VALIDO = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(req: NextRequest) {
-  const auth = obtenerUsuarioAutenticado(req, ROLES_GESTION);
+  const auth = await obtenerUsuarioAutenticado(req, ROLES_GESTION);
   if (!auth.valido) {
     return NextResponse.json({ error: auth.error }, { status: auth.statusCode });
   }

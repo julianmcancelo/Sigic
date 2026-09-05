@@ -9,7 +9,7 @@ import { inicializarBaseDatos } from '@/lib/schema';
  */
 export async function GET(req: NextRequest) {
   await inicializarBaseDatos();
-  const auth = obtenerUsuarioAutenticado(req, ROLES_LECTURA);
+  const auth = await obtenerUsuarioAutenticado(req, ROLES_LECTURA);
   
   if (!auth.valido) {
     return NextResponse.json({ error: auth.error }, { status: auth.statusCode });
@@ -34,13 +34,7 @@ export async function GET(req: NextRequest) {
         [usuario.id]
       );
       if (authCheck.rows.length === 0) {
-        const cerActiva = await query('SELECT id FROM ceremonias WHERE activa = 1 LIMIT 1');
-        if (cerActiva.rows.length > 0) {
-          await query(
-            'INSERT INTO ceremonias_usuarios_autorizados (ceremonia_id, usuario_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
-            [cerActiva.rows[0].id, usuario.id]
-          );
-        }
+        return NextResponse.json({ error: 'No tenés ceremonias autorizadas. Contactá a administración.' }, { status: 403 });
       }
     }
 

@@ -17,7 +17,7 @@ class ReleaseDisponible {
 
 class ServicioRelease {
   // Esta es la release base de Shorebird. Los parches OTA no cambian este número.
-  static const versionInstalada = '1.0.5+6';
+  static const versionInstalada = '1.0.6+7';
   static const _url = 'https://demo.sigic.com.ar/descargas/sigic-release.json';
 
   Future<ReleaseDisponible?> buscarNuevaRelease() async {

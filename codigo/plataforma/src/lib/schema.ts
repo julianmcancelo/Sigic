@@ -33,7 +33,7 @@ async function ejecutarInicializacion() {
         nombre VARCHAR(100) NOT NULL,
         email VARCHAR(150) NOT NULL UNIQUE,
         password_hash VARCHAR(255) NOT NULL,
-        rol VARCHAR(20) NOT NULL CHECK (rol IN ('SUPER_ADMIN','ADMINISTRATIVO','ADMIN','PORTERIA','AUDITOR')),
+        rol VARCHAR(20) NOT NULL CHECK (rol IN ('ADMINISTRATIVO','PORTERIA')),
         activo INTEGER DEFAULT 1,
         ultimo_login TIMESTAMP,
         creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -260,6 +260,21 @@ async function ejecutarInicializacion() {
       ON CONFLICT (clave) DO NOTHING
     `);
 
+    // Migración transaccional: conserva administradores, no eleva auditores.
+    await client.query(`
+      ALTER TABLE usuarios_sistema ADD COLUMN IF NOT EXISTS session_version INTEGER NOT NULL DEFAULT 1;
+      ALTER TABLE usuarios_sistema DROP CONSTRAINT IF EXISTS usuarios_sistema_rol_check;
+      UPDATE usuarios_sistema SET rol = 'ADMINISTRATIVO', session_version = session_version + 1
+        WHERE rol IN ('SUPER_ADMIN', 'ADMIN');
+      UPDATE usuarios_sistema SET rol = 'PORTERIA', activo = 0, session_version = session_version + 1
+        WHERE rol NOT IN ('ADMINISTRATIVO', 'PORTERIA');
+      ALTER TABLE usuarios_sistema ADD CONSTRAINT usuarios_sistema_rol_check
+        CHECK (rol IN ('ADMINISTRATIVO', 'PORTERIA'));
+      CREATE TABLE IF NOT EXISTS auth_rate_limits (
+        clave TEXT PRIMARY KEY, contador INTEGER NOT NULL, reinicio TIMESTAMPTZ NOT NULL
+      );
+    `);
+
     if (process.env.DEMO_MODE === 'true') {
       await sembrarDemo(client);
     }
@@ -276,7 +291,7 @@ async function sembrarDemo(client: any) {
   const hash = await bcrypt.hash('Demo1234', 12);
   await client.query(
     `INSERT INTO usuarios_sistema (id,nombre,email,password_hash,rol,activo)
-     VALUES ($1,'Administración Demo','admin@demo.com',$2,'SUPER_ADMIN',1)
+     VALUES ($1,'Administración Demo','admin@demo.com',$2,'ADMINISTRATIVO',1)
      ON CONFLICT (email) DO NOTHING`,
     [ADMIN_DEMO_ID, hash]
   );

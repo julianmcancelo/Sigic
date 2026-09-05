@@ -6,7 +6,7 @@ export type EstadoEgresado = 'PENDIENTE' | 'ACEPTADO' | 'RECHAZADO';
 
 export type EstadoAsignacionButacas = 'SIN_SOLICITUD' | 'PENDIENTE_REVISION' | 'CONFIRMADA';
 
-export type RolUsuario = 'SUPER_ADMIN' | 'ADMIN' | 'OPERADOR' | 'PORTERIA' | 'AUDITOR';
+export type RolUsuario = 'ADMINISTRATIVO' | 'PORTERIA';
 
 export type TipoEntregador = 'PROFESOR' | 'FAMILIAR';
 

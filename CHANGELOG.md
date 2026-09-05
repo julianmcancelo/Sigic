@@ -1,5 +1,15 @@
 # Changelog SiGIC
 
+## 2026-09-05
+### Seguridad y roles
+- Personal limitado a `ADMINISTRATIVO` y `PORTERIA`; acceso `egresado` conservado. Migración de roles anteriores sin eliminar cuentas.
+- Eliminados los bypass del servidor; sesiones revocables y permisos comprobados contra la base de datos.
+- Portería requiere asignaciones explícitas; QR de login limitado a portería activa por ocho horas.
+- Protección transaccional del último administrativo y de la primera instalación.
+- OTP criptográfico de un solo uso, límites compartidos en PostgreSQL y orígenes de API restringidos.
+- Actualización de SheetJS y almacenamiento seguro de tokens en Flutter; HTTPS obligatorio en el móvil.
+- Pruebas reproducibles de seguridad y [guía de migración](docs/SEGURIDAD.md).
+
 ## 2026-06-09
 ### Seguridad
 - Implementamos autenticacion real con tokens de sesion firmados (JWT HS256, sin dependencias externas):

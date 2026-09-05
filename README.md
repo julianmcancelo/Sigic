@@ -81,12 +81,14 @@ SiGIC/
 ## Seguridad del Sistema
 
 > [!IMPORTANT]
-> **Autenticación con JWT:** Todas las llamadas a la API están protegidas mediante tokens JWT firmados `HS256`. La validación de roles y permisos se calcula directamente en el servidor para evitar falsificaciones en el cliente.
+> **Autenticación con JWT:** Las operaciones protegidas usan tokens JWT firmados `HS256`. El personal tiene los roles `ADMINISTRATIVO` y `PORTERIA`; los graduados usan una identidad separada `egresado`. El servidor consulta el estado, rol y versión de sesión actuales del personal en cada petición autenticada.
 
 - **OTP y Enlaces de Autenticación:** Los egresados inician sesión mediante códigos OTP de un solo uso o links únicos generados mediante hashes criptográficamente seguros (`crypto.randomBytes`).
 - **Autorización por Ceremonia:** El personal de portería requiere autorización individual por ceremonia. El acceso a la API se bloquea dinámicamente si el portero no está asignado al evento activo.
-- **Control de Tasa (Rate Limiting):** Limitador en memoria para neutralizar intentos de fuerza bruta en endpoints de autenticación.
+- **Control de Tasa (Rate Limiting):** Contadores atómicos en PostgreSQL compartidos entre instancias para limitar intentos de autenticación.
 - **Protección TLS:** Conexión cifrada obligatoria hacia PostgreSQL (Neon Cloud) mediante `sslmode=require`.
+
+Ver [seguridad, migración de roles y validaciones](docs/SEGURIDAD.md) para los cambios actuales y los pasos pendientes de publicación.
 
 ---
 

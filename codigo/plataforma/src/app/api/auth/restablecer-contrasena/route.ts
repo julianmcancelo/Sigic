@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
       const usuario = { id: tokenInfo.id };
 
       const hash = await bcrypt.hash(clave, 12);
-      await cliente.query('UPDATE usuarios_sistema SET password_hash = $1 WHERE id = $2', [hash, usuario.id]);
+      await cliente.query('UPDATE usuarios_sistema SET password_hash = $1, session_version = session_version + 1 WHERE id = $2', [hash, usuario.id]);
       await cliente.query('UPDATE tokens_recuperacion_contrasena SET usado_en = CURRENT_TIMESTAMP WHERE token_hash = $1', [tokenHash]);
       await cliente.query('DELETE FROM tokens_recuperacion_contrasena WHERE usuario_id = $1 AND token_hash <> $2', [usuario.id, tokenHash]);
       await cliente.query('COMMIT');

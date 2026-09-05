@@ -5,6 +5,7 @@ import '../../servicios/servicio_api.dart';
 import '../../servicios/servicio_shorebird.dart';
 import '../../widgets/panel_tarjeta.dart';
 import '../../nucleo/tema/controlador_tema.dart';
+import '../../nucleo/tema/tema_sigic.dart';
 
 class PestanaAjustes extends StatefulWidget {
   const PestanaAjustes({
@@ -220,193 +221,122 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 28),
           children: [
+            // Tarjeta de perfil unificada y destacada
             Container(
               margin: const EdgeInsets.only(bottom: 18),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: const Color(0xFF0A1422),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 46,
-                    height: 46,
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Image.asset('assets/imagenes/splash-icono.png'),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _usuario?.nombre ?? 'Dispositivo sin sesión',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 16,
-                          ),
-                        ),
-                        const SizedBox(height: 3),
-                        Text(
-                          _usuario == null
-                              ? 'Configurá el entorno y accedé para operar.'
-                              : '${_usuario!.rol} · ${_entorno.toUpperCase()}',
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.68),
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Icon(
-                    conectado ? Icons.settings : Icons.tune,
-                    color: conectado
-                        ? const Color(0xFF6EE7B7)
-                        : const Color(0xFFB8C8D2),
+                borderRadius: BorderRadius.circular(22),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x1F075985),
+                    blurRadius: 16,
+                    offset: Offset(0, 6),
                   ),
                 ],
               ),
-            ),
-            const _TituloSeccion(
-              titulo: 'APARIENCIA',
-              detalle: 'El modo claro es el predeterminado.',
-            ),
-            PanelTarjeta(
-              contenido: ValueListenableBuilder<ThemeMode>(
-                valueListenable: modoTemaSigic,
-                builder: (context, modo, _) =>
-                    DropdownButtonFormField<ThemeMode>(
-                  initialValue: modo,
-                      decoration: const InputDecoration(
-                        labelText: 'Tema de la aplicación',
-                      ),
-                      items: const [
-                        DropdownMenuItem(
-                          value: ThemeMode.light,
-                          child: Text('Claro'),
-                        ),
-                        DropdownMenuItem(
-                          value: ThemeMode.dark,
-                          child: Text('Oscuro'),
-                        ),
-                        DropdownMenuItem(
-                          value: ThemeMode.system,
-                          child: Text('Según el sistema'),
-                        ),
-                      ],
-                      onChanged: (valor) {
-                        if (valor != null) modoTemaSigic.value = valor;
-                      },
-                    ),
-              ),
-            ),
-            const _TituloSeccion(
-              titulo: 'ENTORNO DE TRABAJO',
-              detalle: 'Elegí dónde opera este dispositivo.',
-            ),
-            PanelTarjeta(
-              contenido: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Column(
                 children: [
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+                  Row(
                     children: [
-                      _BotonEntorno(
-                        etiqueta: 'Demo',
-                        icono: Icons.science_outlined,
-                        seleccionado: _entorno == 'demo',
-                        alPresionar: () => _cambiarEntorno('demo'),
+                      CircleAvatar(
+                        radius: 24,
+                        backgroundColor: TemaSigic.azulBrillante.withValues(alpha: 0.18),
+                        child: Text(
+                          _usuario != null && _usuario!.nombre.isNotEmpty
+                              ? _usuario!.nombre[0].toUpperCase()
+                              : '?',
+                          style: const TextStyle(
+                            color: Color(0xFF7DD3FC),
+                            fontWeight: FontWeight.w900,
+                            fontSize: 18,
+                          ),
+                        ),
                       ),
-                      _BotonEntorno(
-                        etiqueta: 'Producción',
-                        icono: Icons.apartment,
-                        seleccionado: _entorno == 'produccion',
-                        alPresionar: () => _cambiarEntorno('produccion'),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _usuario?.nombre ?? 'Dispositivo sin sesión',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 16.5,
+                                letterSpacing: -0.3,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              _usuario == null
+                                  ? 'Iniciá sesión para comenzar a acreditar'
+                                  : '${_usuario!.email} · ${_usuario!.rol}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.68),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                      _BotonEntorno(
-                        etiqueta: 'Servidor',
-                        icono: Icons.tune,
-                        seleccionado: _entorno == 'personalizado',
-                        alPresionar: () => _cambiarEntorno('personalizado'),
+                      _PildoraEstado(
+                        etiqueta: _entorno.toUpperCase(),
+                        color: _entorno == 'produccion'
+                            ? const Color(0xFF0A7F5F)
+                            : const Color(0xFFB4530A),
                       ),
                     ],
                   ),
-                  if (_entorno == 'demo') ...[
-                    const SizedBox(height: 12),
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.amber.withValues(alpha: .12),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Text(
-                        'Entorno aislado · Todos los registros son ficticios y no afectan produccion.',
-                        style: TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                    ),
-                  ],
-                  const SizedBox(height: 14),
-                  TextField(
-                    controller: _controladorApi,
-                    readOnly: _entorno != 'personalizado',
-                    decoration: InputDecoration(
-                      labelText: 'URL de la API',
-                      hintText: ServicioApi.urlBasePorDefecto,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    onPressed: _probandoConexion ? null : _verificarConexion,
-                    icon: Icon(
-                      _probandoConexion
-                          ? Icons.system_update_alt
-                          : Icons.system_update_alt,
-                    ),
-                    label: Text(
-                      _probandoConexion
-                          ? 'Verificando conexión...'
-                          : 'Comprobar conexión',
-                    ),
-                  ),
-                  if (widget.servicioApi.esDireccionLocal(
-                    _controladorApi.text,
-                  )) ...[
+                  if (_usuario != null) ...[
+                    const SizedBox(height: 14),
+                    const Divider(color: Colors.white12, height: 1),
                     const SizedBox(height: 10),
-                    const Text(
-                      'En celulares, reemplaza localhost por la IP de la computadora.',
-                      style: TextStyle(
-                        color: Colors.orange,
-                        fontWeight: FontWeight.w700,
+                    InkWell(
+                      onTap: _cerrarSesion,
+                      borderRadius: BorderRadius.circular(10),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.logout,
+                              size: 15,
+                              color: Colors.red.shade300,
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Cerrar sesión en este dispositivo',
+                              style: TextStyle(
+                                color: Colors.red.shade300,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 12.5,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ],
-                  if (_conexionActiva != null) ...[
-                    const SizedBox(height: 10),
-                    _MensajeConexion(activa: _conexionActiva!),
                   ],
                 ],
               ),
             ),
-            const _TituloSeccion(
-              titulo: 'SESIÓN DE OPERADOR',
-              detalle: 'La cuenta define qué ceremonias podés acreditar.',
-            ),
-            PanelTarjeta(
-              contenido: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (_usuario == null) ...[
+
+            if (_usuario == null) ...[
+              const _TituloSeccion(
+                titulo: 'INICIAR SESIÓN',
+                detalle: 'Ingresá con tu cuenta para operar en portería.',
+              ),
+              PanelTarjeta(
+                contenido: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     if (_entorno == 'demo') ...[
                       FilledButton.icon(
                         onPressed: _iniciandoSesion ? null : _iniciarDemo,
@@ -434,46 +364,127 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
                         labelText: 'Contraseña',
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    FilledButton.icon(
-                      onPressed: _iniciandoSesion ? null : _iniciarSesion,
-                      icon: const Icon(Icons.play_arrow_rounded),
-                      label: Text(
-                        _iniciandoSesion
-                            ? 'Iniciando sesión...'
-                            : 'Iniciar sesión',
-                      ),
-                    ),
-                  ] else ...[
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: CircleAvatar(
-                        backgroundColor: const Color(0xFFE1F4FA),
-                        foregroundColor: const Color(0xFF075985),
+                    const SizedBox(height: 14),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 44,
+                      child: FilledButton(
+                        onPressed: _iniciandoSesion ? null : _iniciarSesion,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: TemaSigic.azulPrincipal,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
                         child: Text(
-                          _usuario!.nombre.substring(0, 1).toUpperCase(),
+                          _iniciandoSesion
+                              ? 'Iniciando sesión...'
+                              : 'Iniciar sesión',
+                          style: const TextStyle(fontWeight: FontWeight.w800),
                         ),
                       ),
-                      title: Text(
-                        _usuario!.nombre,
-                        style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+
+            const _TituloSeccion(
+              titulo: 'APARIENCIA',
+              detalle: 'Ajustá el tema visual de la aplicación.',
+            ),
+            PanelTarjeta(
+              contenido: ValueListenableBuilder<ThemeMode>(
+                valueListenable: modoTemaSigic,
+                builder: (context, modo, _) =>
+                    DropdownButtonFormField<ThemeMode>(
+                  initialValue: modo,
+                  decoration: const InputDecoration(
+                    labelText: 'Tema de la aplicación',
+                  ),
+                  items: const [
+                    DropdownMenuItem(
+                      value: ThemeMode.light,
+                      child: Text('Claro'),
+                    ),
+                    DropdownMenuItem(
+                      value: ThemeMode.dark,
+                      child: Text('Oscuro'),
+                    ),
+                    DropdownMenuItem(
+                      value: ThemeMode.system,
+                      child: Text('Según el sistema'),
+                    ),
+                  ],
+                  onChanged: (valor) {
+                    if (valor != null) modoTemaSigic.value = valor;
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            const _TituloSeccion(
+              titulo: 'ENTORNO DE TRABAJO',
+              detalle: 'Elegí el servidor donde opera este dispositivo.',
+            ),
+            PanelTarjeta(
+              contenido: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _BotonEntorno(
+                        etiqueta: 'Demo',
+                        icono: Icons.science_outlined,
+                        seleccionado: _entorno == 'demo',
+                        alPresionar: () => _cambiarEntorno('demo'),
                       ),
-                      subtitle: Text(_usuario!.email),
-                      trailing: _PildoraEstado(
-                        etiqueta: _usuario!.rol.toUpperCase(),
-                        color: const Color(0xFF075985),
+                      _BotonEntorno(
+                        etiqueta: 'Producción',
+                        icono: Icons.apartment,
+                        seleccionado: _entorno == 'produccion',
+                        alPresionar: () => _cambiarEntorno('produccion'),
+                      ),
+                      _BotonEntorno(
+                        etiqueta: 'Personalizado',
+                        icono: Icons.tune,
+                        seleccionado: _entorno == 'personalizado',
+                        alPresionar: () => _cambiarEntorno('personalizado'),
+                      ),
+                    ],
+                  ),
+                  if (_entorno == 'personalizado') ...[
+                    const SizedBox(height: 14),
+                    TextField(
+                      controller: _controladorApi,
+                      decoration: InputDecoration(
+                        labelText: 'URL de la API',
+                        hintText: ServicioApi.urlBasePorDefecto,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
                     OutlinedButton.icon(
-                      onPressed: _cerrarSesion,
-                      icon: const Icon(Icons.tune),
-                      label: const Text('Cerrar sesión en este dispositivo'),
+                      onPressed: _probandoConexion ? null : _verificarConexion,
+                      icon: const Icon(Icons.refresh, size: 16),
+                      label: Text(
+                        _probandoConexion
+                            ? 'Verificando...'
+                            : 'Comprobar conexión',
+                      ),
                     ),
+                  ],
+                  if (_conexionActiva != null) ...[
+                    const SizedBox(height: 10),
+                    _MensajeConexion(activa: _conexionActiva!),
                   ],
                 ],
               ),
             ),
+            const SizedBox(height: 12),
             const _TituloSeccion(
               titulo: 'ACTUALIZACIONES',
               detalle:

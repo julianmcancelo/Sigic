@@ -268,19 +268,11 @@ export function generarPlantillaInvitacionEquipo({
   const logo = 'https://raw.githubusercontent.com/julianmcancelo/Sigic/master/codigo/plataforma/public/logo-oficial.png';
   
   const descripcionesRol: Record<string, { titulo: string; desc: string }> = {
-    SUPER_ADMIN: {
-      titulo: 'Super Administrador',
-      desc: 'Control total de la plataforma, configuración global, ceremonias, padrones y seguridad.'
-    },
-    ADMINISTRATIVO: {
+ADMINISTRATIVO: {
       titulo: 'Personal Administrativo',
       desc: 'Gestión y edición de ceremonias, graduados, anfiteatro y despacho de convocatorias.'
     },
-    AUDITOR: {
-      titulo: 'Auditor Institucional',
-      desc: 'Supervisión en tiempo real, consulta de reportes, métricas y estado del padrón.'
-    },
-    PORTERIA: {
+PORTERIA: {
       titulo: 'Personal de Acreditación y Portería',
       desc: 'Escaneo y validación de credenciales QR y control de accesos el día del evento.'
     }

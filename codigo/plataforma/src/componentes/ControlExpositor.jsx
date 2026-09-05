@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { GraduationCap, Info, LogOut, Settings, Shield, X, Sparkles } from 'lucide-react'
 
-export const ADMIN_DEMO = { nombre: 'Administración SiGIC · Demo', correo: 'admin@demo.com', rol: 'ADMIN' }
+export const ADMIN_DEMO = { nombre: 'Administración SiGIC · Demo', correo: 'admin@demo.com', rol: 'ADMINISTRATIVO' }
 export const EGRESADA_DEMO = {
   id: '44444444-4444-4444-8444-444444444441', ceremonia_id: '22222222-2222-4222-8222-222222222222',
   ceremonia_activa: true, nombre: 'Julieta Pérez', legajo: 'SIG-001', dni: '40111222',

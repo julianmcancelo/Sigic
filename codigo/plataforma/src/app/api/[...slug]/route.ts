@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { obtenerOrigenPublico } from '@/lib/public-origin';
+import { cambiarAccesoUsuario } from '@/lib/usuarios-seguridad';
 import { query, pool } from '@/lib/db';
 import { firmar } from '@/lib/tokens';
 import { obtenerUsuarioAutenticado, ROLES_GESTION, ROLES_OPERACION, ROLES_LECTURA } from '@/lib/auth-middleware';
@@ -23,7 +24,6 @@ import {
   esAutorizadoPersonalOEgresado,
   esPersonalValido,
   registrarAuditoriaOTP,
-  esUltimoSuperAdmin,
   parsearCodigoAcreditacion
 } from '@/lib/api-helpers';
 
@@ -138,16 +138,6 @@ async function asegurarInicializacion() {
   return inicializacionPromise;
 }
 
-function esPeticionDemoBackend(req: NextRequest): boolean {
-  if (req.headers.get('x-sigic-demo') === '1' || req.headers.get('x-sigic-demo') === 'true') {
-    return true;
-  }
-  const auth = req.headers.get('authorization') || '';
-  if (auth.includes('bypass-')) {
-    return true;
-  }
-  return false;
-}
 
 async function despacharCredencialEgresado(graduadoId: string, req: NextRequest) {
   const datos = await query(
@@ -301,7 +291,7 @@ export async function GET(
     await asegurarInicializacion();
   } catch (error: any) {
     console.error('Error al inicializar la base de datos:', error);
-    return NextResponse.json({ error: error?.message || 'No se pudo inicializar la base de datos' }, { status: 500, headers });
+    return NextResponse.json({ error: 'No se pudo inicializar la base de datos' }, { status: 500, headers });
   }
   const { slug } = await params;
   const path = slug.join('/');
@@ -343,9 +333,9 @@ export async function GET(
     // SETUP EXPORT (BACKUP DATA)
     // -------------------------------------------------------------
     if (path === 'setup/export') {
-      const auth = obtenerUsuarioAutenticado(req);
-      if (!auth.valido || auth.datos?.email?.toLowerCase() !== 'soporte@ibeltran.com.ar') {
-        return NextResponse.json({ error: 'No autorizado. Solo la cuenta de soporte puede exportar la base de datos.' }, { status: 403, headers });
+      const auth = await obtenerUsuarioAutenticado(req);
+      if (!auth.valido || auth.datos?.rol !== 'ADMINISTRATIVO') {
+        return NextResponse.json({ error: 'No autorizado. Solo personal administrativo puede exportar la base de datos.' }, { status: 403, headers });
       }
 
       const egresados = await query('SELECT * FROM egresados').catch(() => ({ rows: [] }));
@@ -371,7 +361,7 @@ export async function GET(
     // STATS
     // -------------------------------------------------------------
     if (path === 'stats') {
-      const auth = obtenerUsuarioAutenticado(req, ROLES_LECTURA);
+      const auth = await obtenerUsuarioAutenticado(req, ROLES_LECTURA);
       if (!auth.valido) return NextResponse.json({ error: auth.error }, { status: auth.statusCode, headers });
 
       const ceremoniaRes = await query('SELECT id, nombre, fecha, lugar, activa FROM ceremonias WHERE activa = 1 LIMIT 1');
@@ -614,7 +604,7 @@ export async function GET(
     // CEREMONIAS
     // -------------------------------------------------------------
     if (path === 'ceremonias/autorizadas') {
-      const auth = obtenerUsuarioAutenticado(req, ROLES_OPERACION);
+      const auth = await obtenerUsuarioAutenticado(req, ROLES_OPERACION);
       if (!auth.valido) {
         return NextResponse.json(
           { error: auth.error || 'Sesión requerida' },
@@ -633,24 +623,13 @@ export async function GET(
         return NextResponse.json(result.rows, { headers });
       }
 
-      const restricciones = await query(
-        'SELECT 1 FROM ceremonias_usuarios_autorizados WHERE usuario_id = $1',
-        [usuario.id]
-      );
-
-      const result = restricciones.rowCount && restricciones.rowCount > 0
-        ? await query(`
+      const result = await query(`
             SELECT c.*, TRUE AS autorizado
             FROM ceremonias c
             INNER JOIN ceremonias_usuarios_autorizados cua ON cua.ceremonia_id = c.id
             WHERE cua.usuario_id = $1
             ORDER BY c.activa DESC, c.fecha DESC
-          `, [usuario.id])
-        : await query(`
-            SELECT c.*, TRUE AS autorizado
-            FROM ceremonias c
-            ORDER BY c.activa DESC, c.fecha DESC
-          `);
+          `, [usuario.id]);
 
       return NextResponse.json(result.rows, { headers });
     }
@@ -878,16 +857,17 @@ export async function GET(
 
       const result = await query('SELECT * FROM usuarios_sistema WHERE id = $1', [userId]);
       const usuario = result.rows[0];
-      if (!usuario) {
-        return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404, headers });
+      if (!usuario || usuario.rol !== 'PORTERIA' || Number(usuario.activo) !== 1) {
+        return NextResponse.json({ error: 'El QR de acceso solo está disponible para cuentas activas de portería.' }, { status: 403, headers });
       }
       
       const token = firmar({
         tipo: 'personal',
         id: usuario.id,
         rol: usuario.rol,
+        sessionVersion: Number(usuario.session_version),
         nombre: usuario.nombre,
-      }, 30 * 24 * 60 * 60);
+      }, 8 * 60 * 60);
       
       return NextResponse.json({ ok: true, token }, { headers });
     }
@@ -1243,7 +1223,7 @@ export async function GET(
 
   } catch (error: any) {
     console.error(`Error en GET /api/${path}:`, error);
-    return NextResponse.json({ error: error.message || 'Error interno del servidor' }, { status: 500, headers });
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500, headers });
   }
 }
 
@@ -1265,18 +1245,9 @@ export async function POST(
   }
 
   try {
-    if (
-      esPeticionDemoBackend(req) &&
-      path !== 'ceremonias' &&
-      !path.startsWith('egresados') &&
-      !path.startsWith('invitados') &&
-      !path.startsWith('entregadores')
-    ) {
-      return NextResponse.json({ ok: true, simulado: true, mensaje: 'Operacion simulada en modo demo (sin persistencia en base de datos)', id: `demo-${Date.now()}` }, { status: 200, headers });
-    }
 
     if (path === 'dispositivos/registrar') {
-      const auth = obtenerUsuarioAutenticado(req, ROLES_LECTURA);
+      const auth = await obtenerUsuarioAutenticado(req, ROLES_LECTURA);
       if (!auth.valido || auth.datos?.tipo !== 'personal') {
         return NextResponse.json({ error: auth.error || 'No autorizado' }, { status: auth.statusCode || 403, headers });
       }
@@ -1367,7 +1338,7 @@ export async function POST(
     }
 
     if (path === 'dispositivos/desvincular') {
-      const auth = obtenerUsuarioAutenticado(req, ROLES_LECTURA);
+      const auth = await obtenerUsuarioAutenticado(req, ROLES_LECTURA);
       if (!auth.valido || auth.datos?.tipo !== 'personal') {
         return NextResponse.json({ error: auth.error || 'No autorizado' }, { status: auth.statusCode || 403, headers });
       }
@@ -1396,13 +1367,22 @@ export async function POST(
          WHERE dispositivo_id = $1`,
         [dispositivoId]
       );
-      return NextResponse.json({ ok: true, mensaje: 'Dispositivo desconectado correctamente' }, { headers });
+      await query('UPDATE usuarios_sistema SET session_version = session_version + 1 WHERE id::text IN (SELECT usuario_id FROM dispositivos_moviles WHERE dispositivo_id = $1)', [dispositivoId]);
+      return NextResponse.json({ ok: true, mensaje: 'Sesiones de la cuenta revocadas correctamente' }, { headers });
     }
 
     // -------------------------------------------------------------
     // SETUP INITIALIZE
     // -------------------------------------------------------------
     if (path === 'setup/initialize') {
+      const claveInstalacion = process.env.SIGIC_SETUP_KEY;
+      const claveIngresada = String(body.setupKey || '');
+      if (process.env.NODE_ENV === 'production' || claveInstalacion) {
+        if (!claveInstalacion || claveInstalacion.length < 32 ||
+            !crypto.timingSafeEqual(crypto.createHash('sha256').update(claveIngresada).digest(), crypto.createHash('sha256').update(claveInstalacion).digest())) {
+          return NextResponse.json({ error: 'Clave de instalación inválida o instalación deshabilitada.' }, { status: 403, headers });
+        }
+      }
       const {
         nombre,
         email,
@@ -1419,50 +1399,63 @@ export async function POST(
         return NextResponse.json({ error: `La contraseña debe tener al menos ${LARGO_MINIMO_PASSWORD} caracteres` }, { status: 400, headers });
       }
 
-      const usuarios = await query('SELECT COUNT(*)::int AS total FROM usuarios_sistema');
-      if (parseInt(usuarios.rows[0]?.total ?? '0', 10) > 0) {
-        return NextResponse.json({ error: 'El sistema ya fue inicializado' }, { status: 409, headers });
+      const setupClient = await pool.connect();
+      try {
+        await setupClient.query('BEGIN');
+        await setupClient.query("SELECT pg_advisory_xact_lock(hashtext('sigic-setup'))");
+        const usuarios = await setupClient.query('SELECT COUNT(*)::int AS total FROM usuarios_sistema');
+        if (parseInt(usuarios.rows[0]?.total ?? '0', 10) > 0) {
+          await setupClient.query('ROLLBACK');
+          return NextResponse.json({ error: 'El sistema ya fue inicializado' }, { status: 409, headers });
+        }
+
+        const hash = await bcrypt.hash(password, RONDAS_BCRYPT);
+        const usuarioId = crypto.randomUUID();
+        const ceremoniaId = crypto.randomUUID();
+
+        await setupClient.query(
+          `INSERT INTO usuarios_sistema (id, nombre, email, password_hash, rol, activo)
+           VALUES ($1, $2, $3, $4, 'ADMINISTRATIVO', 1)`,
+          [usuarioId, nombre, email.toLowerCase(), hash]
+        );
+
+        await setupClient.query(
+          `INSERT INTO ceremonias (id, nombre, fecha, lugar, max_invitados, max_entregadores, activa)
+           VALUES ($1, $2, $3, $4, 4, 3, 1)`,
+          [ceremoniaId, nombreEvento, fechaEvento, lugarEvento]
+        );
+
+        await setupClient.query(
+          `INSERT INTO configuracion_sistema (clave, valor, descripcion, actualizado_en)
+           VALUES ('setup_inicial_completado', '1', 'Indica si el asistente inicial ya fue completado', CURRENT_TIMESTAMP)
+           ON CONFLICT (clave)
+           DO UPDATE SET valor = '1', descripcion = EXCLUDED.descripcion, actualizado_en = CURRENT_TIMESTAMP`
+        );
+
+        await setupClient.query('COMMIT');
+        invalidarCache('setup:status');
+        return NextResponse.json({
+          ok: true,
+          mensaje: 'Configuración inicial creada correctamente',
+          usuario: { id: usuarioId, nombre, email: email.toLowerCase(), rol: 'ADMINISTRATIVO' },
+          ceremonia: { id: ceremoniaId, nombre: nombreEvento, fecha: fechaEvento, lugar: lugarEvento },
+        }, { headers });
+      } catch (error) {
+        await setupClient.query('ROLLBACK');
+        throw error;
+      } finally {
+        setupClient.release();
       }
-
-      const hash = await bcrypt.hash(password, RONDAS_BCRYPT);
-      const usuarioId = crypto.randomUUID();
-      const ceremoniaId = crypto.randomUUID();
-
-      await query(
-        `INSERT INTO usuarios_sistema (id, nombre, email, password_hash, rol, activo)
-         VALUES ($1, $2, $3, $4, 'SUPER_ADMIN', 1)`,
-        [usuarioId, nombre, email.toLowerCase(), hash]
-      );
-
-      await query(
-        `INSERT INTO ceremonias (id, nombre, fecha, lugar, max_invitados, max_entregadores, activa)
-         VALUES ($1, $2, $3, $4, 4, 3, 1)`,
-        [ceremoniaId, nombreEvento, fechaEvento, lugarEvento]
-      );
-
-      await query(
-        `INSERT INTO configuracion_sistema (clave, valor, descripcion, actualizado_en)
-         VALUES ('setup_inicial_completado', '1', 'Indica si el asistente inicial ya fue completado', CURRENT_TIMESTAMP)
-         ON CONFLICT (clave)
-         DO UPDATE SET valor = '1', descripcion = EXCLUDED.descripcion, actualizado_en = CURRENT_TIMESTAMP`
-      );
-
-      return NextResponse.json({
-        ok: true,
-        mensaje: 'Configuración inicial creada correctamente',
-        usuario: { id: usuarioId, nombre, email: email.toLowerCase(), rol: 'SUPER_ADMIN' },
-        ceremonia: { id: ceremoniaId, nombre: nombreEvento, fecha: fechaEvento, lugar: lugarEvento },
-      }, { headers });
     }
 
     // -------------------------------------------------------------
     // SETUP RESET (RESET SYSTEM DATA)
     // -------------------------------------------------------------
     if (path === 'setup/reset') {
-      const auth = obtenerUsuarioAutenticado(req);
-      if (!auth.valido || auth.datos?.rol !== 'SUPER_ADMIN') {
+      const auth = await obtenerUsuarioAutenticado(req);
+      if (!auth.valido || auth.datos?.rol !== 'ADMINISTRATIVO') {
         return NextResponse.json(
-          { error: 'No autorizado. Solo una cuenta SUPER_ADMIN puede resetear el sistema.' },
+          { error: 'No autorizado. Solo una cuenta ADMINISTRATIVO puede resetear el sistema.' },
           { status: 403, headers }
         );
       }
@@ -2508,8 +2501,8 @@ export async function POST(
       }
 
       const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '127.0.0.1';
-      const limiteAlumno = verificarRateLimit(`otp-req-id-${normalizado}`, 5, 10 * 60 * 1000);
-      const limiteRed = verificarRateLimit(`otp-req-ip-${ip}`, 30, 10 * 60 * 1000);
+      const limiteAlumno = await verificarRateLimit(`otp-req-id-${normalizado}`, 5, 10 * 60 * 1000);
+      const limiteRed = await verificarRateLimit(`otp-req-ip-${ip}`, 30, 10 * 60 * 1000);
       if (!limiteAlumno.permitido || !limiteRed.permitido) {
         const segundosRestantes = Math.max(limiteAlumno.segundosRestantes, limiteRed.segundosRestantes);
         return NextResponse.json({
@@ -2582,8 +2575,8 @@ export async function POST(
       if (!identificador || !normalizado || !otpStr) return NextResponse.json({ error: 'Correo o DNI y código OTP requeridos' }, { status: 400, headers });
 
       const ip = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '127.0.0.1';
-      const limiteAlumno = verificarRateLimit(`otp-ver-id-${normalizado}`, 10, 10 * 60 * 1000);
-      const limiteRed = verificarRateLimit(`otp-ver-ip-${ip}`, 60, 10 * 60 * 1000);
+      const limiteAlumno = await verificarRateLimit(`otp-ver-id-${normalizado}`, 10, 10 * 60 * 1000);
+      const limiteRed = await verificarRateLimit(`otp-ver-ip-${ip}`, 60, 10 * 60 * 1000);
       if (!limiteAlumno.permitido || !limiteRed.permitido) {
         const segundosRestantes = Math.max(limiteAlumno.segundosRestantes, limiteRed.segundosRestantes);
         return NextResponse.json({
@@ -2620,8 +2613,14 @@ export async function POST(
       if (estadoOTP === 'EXPIRADO') return NextResponse.json({ error: 'El código OTP ha expirado' }, { status: 400, headers });
       if (estadoOTP === 'CODIGO_INVALIDO') return NextResponse.json({ error: 'Código incorrecto' }, { status: 400, headers });
 
-      // Clean OTP after verification
-      await query('UPDATE egresados SET otp = NULL, otp_expira = NULL WHERE id = $1', [graduado.id]);
+      // Un único consumo incluso con verificaciones concurrentes.
+      const consumido = await query(
+        'UPDATE egresados SET otp = NULL, otp_expira = NULL WHERE id = $1 AND otp = $2 AND otp_expira > CURRENT_TIMESTAMP RETURNING id',
+        [graduado.id, graduado.otp]
+      );
+      if (!consumido.rowCount) return NextResponse.json({ error: 'El código ya fue utilizado o expiró.' }, { status: 400, headers });
+      delete graduado.otp;
+      delete graduado.otp_expira;
 
       const tokenSesion = firmar({ tipo: 'egresado', id: graduado.id, nombre: graduado.nombre }, 4 * 60 * 60);
       const dniHistorial = String(graduado.dni || '').replace(/\D/g, '');
@@ -2650,7 +2649,7 @@ export async function POST(
 
   } catch (error: any) {
     console.error(`Error en POST /api/${path}:`, error);
-    return NextResponse.json({ error: error.message || 'Error interno del servidor' }, { status: 500, headers });
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500, headers });
   }
 }
 
@@ -2672,15 +2671,6 @@ export async function PUT(
   }
 
   try {
-    if (
-      esPeticionDemoBackend(req) &&
-      !(slug[0] === 'ceremonias') &&
-      !(slug[0] === 'egresados') &&
-      !(slug[0] === 'invitados') &&
-      !(slug[0] === 'entregadores')
-    ) {
-      return NextResponse.json({ ok: true, simulado: true, mensaje: 'Actualizacion simulada en modo demo (sin persistencia en base de datos)' }, { status: 200, headers });
-    }
 
     if (slug[0] === 'egresados' && slug[1] && !slug[2]) {
       const isPersonal = await esPersonalValido(req, ROLES_GESTION);
@@ -2763,7 +2753,7 @@ export async function PUT(
     // -------------------------------------------------------------
     if (slug[0] === 'ceremonias' && slug[2] === 'activar' && slug[1]) {
       const id = slug[1];
-      const auth = obtenerUsuarioAutenticado(req, ROLES_OPERACION);
+      const auth = await obtenerUsuarioAutenticado(req, ROLES_OPERACION);
       if (!auth.valido || !auth.datos) {
         return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
       }
@@ -2934,12 +2924,8 @@ export async function PUT(
         return NextResponse.json({ error: 'Rol inválido' }, { status: 400, headers });
       }
 
-      if (rol !== 'SUPER_ADMIN' && await esUltimoSuperAdmin(id)) {
-        return NextResponse.json({ error: 'No podés quitar el rol al último SUPER_ADMIN activo del sistema' }, { status: 409, headers });
-      }
-
-      await query('UPDATE usuarios_sistema SET rol = $1 WHERE id = $2', [rol, id]);
-      return NextResponse.json({ ok: true }, { headers });
+      const resultado = await cambiarAccesoUsuario(id, { rol });
+      return NextResponse.json(resultado, { status: resultado.status, headers });
     }
 
     if (slug[0] === 'usuarios' && slug[2] === 'estado' && slug[1]) {
@@ -2948,15 +2934,8 @@ export async function PUT(
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
       const activo = Number(body?.activo) === 1 ? 1 : 0;
-      if (activo === 0 && await esUltimoSuperAdmin(id)) {
-        const usuario = await query('SELECT rol FROM usuarios_sistema WHERE id = $1', [id]);
-        if (usuario.rows[0]?.rol === 'SUPER_ADMIN') {
-          return NextResponse.json({ error: 'No podés desactivar al último SUPER_ADMIN activo del sistema' }, { status: 409, headers });
-        }
-      }
-
-      await query('UPDATE usuarios_sistema SET activo = $1 WHERE id = $2', [activo, id]);
-      return NextResponse.json({ ok: true }, { headers });
+      const resultado = await cambiarAccesoUsuario(id, { activo });
+      return NextResponse.json(resultado, { status: resultado.status, headers });
     }
 
     // -------------------------------------------------------------
@@ -3410,7 +3389,7 @@ export async function PUT(
 
   } catch (error: any) {
     console.error(`Error en PUT /api/${path}:`, error);
-    return NextResponse.json({ error: error.message || 'Error interno del servidor' }, { status: 500, headers });
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500, headers });
   }
 }
 
@@ -3425,15 +3404,6 @@ export async function DELETE(
   const path = slug.join('/');
 
   try {
-    if (
-      esPeticionDemoBackend(req) &&
-      !(slug[0] === 'ceremonias') &&
-      !(slug[0] === 'egresados') &&
-      !(slug[0] === 'invitados') &&
-      !(slug[0] === 'entregadores')
-    ) {
-      return NextResponse.json({ ok: true, simulado: true, mensaje: 'Eliminacion simulada en modo demo (sin persistencia en base de datos)' }, { status: 200, headers });
-    }
 
     // -------------------------------------------------------------
     // CEREMONIAS
@@ -3458,19 +3428,8 @@ export async function DELETE(
       const isPersonal = await esPersonalValido(req, ROLES_GESTION);
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
-      if (await esUltimoSuperAdmin(id)) {
-        return NextResponse.json({ error: 'No podés eliminar al último SUPER_ADMIN activo del sistema' }, { status: 409, headers });
-      }
-
-      await query('DELETE FROM ceremonias_usuarios_autorizados WHERE usuario_id = $1', [id]);
-      await query('DELETE FROM tokens_recuperacion_contrasena WHERE usuario_id = $1', [id]);
-      await query('DELETE FROM sesiones_porteria WHERE usuario_id = $1', [id]);
-      const result = await query('DELETE FROM usuarios_sistema WHERE id = $1', [id]);
-
-      if (result.rowCount === 0) {
-        return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404, headers });
-      }
-      return NextResponse.json({ ok: true, mensaje: 'Usuario eliminado con éxito' }, { headers });
+      const resultado = await cambiarAccesoUsuario(id, { eliminar: true });
+      return NextResponse.json(resultado, { status: resultado.status, headers });
     }
 
     // -------------------------------------------------------------
@@ -3565,6 +3524,6 @@ export async function DELETE(
 
   } catch (error: any) {
     console.error(`Error en DELETE /api/${path}:`, error);
-    return NextResponse.json({ error: error.message || 'Error interno del servidor' }, { status: 500, headers });
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500, headers });
   }
 }

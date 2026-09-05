@@ -192,7 +192,7 @@ function App() {
       }
       try {
         const u = JSON.parse(localStorage.getItem('admin_user') || 'null');
-        if (u && u.correo && u.correo.toLowerCase() === 'soporte@ibeltran.com.ar') {
+        if (u?.rol === 'ADMINISTRATIVO') {
           return 'centro-control';
         }
         if (u && (u.rol === 'PORTERIA' || u.rol === 'SEGURIDAD')) {
@@ -639,7 +639,7 @@ function App() {
         : 'bypass-admin-token'
       guardarTokenSesion(tokenBypass)
     }
-    if (datosNormalizados && datosNormalizados.correo && datosNormalizados.correo.toLowerCase() === 'soporte@ibeltran.com.ar') {
+    if (datosNormalizados?.rol === 'ADMINISTRATIVO') {
       setPantallaAdmin('centro-control')
     } else if (datosNormalizados && (datosNormalizados.rol === 'PORTERIA' || datosNormalizados.rol === 'SEGURIDAD')) {
       setPantallaAdmin('control-ingreso')
@@ -985,7 +985,7 @@ function App() {
         />
       )
     } else if (pantallaAdmin === 'centro-control') {
-      if (adminUser?.correo?.toLowerCase() === 'soporte@ibeltran.com.ar') {
+      if (adminUser?.rol === 'ADMINISTRATIVO') {
         contenido = (
           <CentroControl
             usuario={adminUser}
@@ -1191,18 +1191,16 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
   const [arrastrandoVentana, setArrastrandoVentana] = useState(false)
   const [redimensionandoVentana, setRedimensionandoVentana] = useState(false)
   const [zonaAjuste, setZonaAjuste] = useState(null)
-  const [busquedaInicio, setBusquedaInicio] = useState('')
   const arrastreRef = useRef(null)
   const redimensionRef = useRef(null)
   const ventanaRef = useRef(null)
   const inicioRef = useRef(null)
   const inicioBotonRef = useRef(null)
-  const buscadorInicioRef = useRef(null)
   const pantallaAnteriorRef = useRef(null)
-  const esSuperAdmin = usuario?.rol === 'SUPER_ADMIN'
+  const esAdministrativo = usuario?.rol === 'ADMINISTRATIVO'
   const aplicaciones = [
     { id: 'bienvenida', titulo: 'Inicio', icono: Home, color: 'bg-sky-500', escritorio: true },
-    { id: 'gestion-ceremonias', titulo: 'Inicializar', icono: CalendarPlus, color: 'bg-indigo-500', escritorio: true },
+    { id: 'gestion-ceremonias', titulo: 'Ceremonias', icono: CalendarPlus, color: 'bg-indigo-500', escritorio: true },
     { id: 'gestion-graduados', titulo: 'Graduados', icono: GraduationCap, color: 'bg-emerald-500', escritorio: true },
     { id: 'convocatoria', titulo: 'Convocatoria', icono: Send, color: 'bg-blue-500', escritorio: true },
     { id: 'preparacion-ceremonia', titulo: 'Preparación', icono: Armchair, color: 'bg-cyan-600', escritorio: true },
@@ -1211,7 +1209,7 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
     { id: 'panel-reportes', titulo: 'Reportes', icono: BarChart3, color: 'bg-purple-500', escritorio: true },
     { id: 'gestion-profesores', titulo: 'Docentes', icono: Award, color: 'bg-indigo-500', escritorio: false },
     { id: 'gestion-porteria', titulo: 'Seguridad', icono: Shield, color: 'bg-violet-500', escritorio: false },
-    { id: 'ajustes', titulo: 'Ajustes', icono: Settings, color: 'bg-slate-500', escritorio: esSuperAdmin },
+    { id: 'ajustes', titulo: 'Ajustes', icono: Settings, color: 'bg-slate-500', escritorio: esAdministrativo },
     { id: 'seleccion-asientos', titulo: 'Anfiteatro', icono: MapPin, color: 'bg-orange-500', escritorio: false },
     ...(modoDemo ? [{ id: 'operaciones-demo', titulo: 'Operaciones', icono: ClipboardCheck, color: 'bg-slate-500', escritorio: false }] : []),
   ]
@@ -1295,9 +1293,15 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
   }, [pantallaActual])
 
   useEffect(() => {
-    if (!inicioAbierto) return
-    buscadorInicioRef.current?.focus()
-  }, [inicioAbierto])
+    const abrirBusqueda = evento => {
+      if ((evento.ctrlKey || evento.metaKey) && evento.key.toLowerCase() === 'k') {
+        evento.preventDefault()
+        setInicioAbierto(abierto => !abierto)
+      }
+    }
+    window.addEventListener('keydown', abrirBusqueda)
+    return () => window.removeEventListener('keydown', abrirBusqueda)
+  }, [])
 
   useEffect(() => {
     const mover = evento => {
@@ -1382,6 +1386,7 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
       }
       if (inicioAbierto) {
         setInicioAbierto(false)
+        inicioBotonRef.current?.focus()
         return
       }
       if (pantallaActual && ventanasAbiertas.includes(pantallaActual) && !ventanasMinimizadas.includes(pantallaActual)) {
@@ -1530,11 +1535,6 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
     }
   }
 
-  const aplicacionesFiltradas = aplicaciones.filter(app => app.titulo.toLowerCase().includes(busquedaInicio.trim().toLowerCase()))
-  const modulosPrioritarios = ['gestion-ceremonias', 'gestion-graduados', 'convocatoria', 'preparacion-ceremonia', 'control-ingreso', 'estado-ceremonia', 'panel-reportes']
-  const aplicacionesInicio = busquedaInicio.trim()
-    ? aplicacionesFiltradas
-    : aplicaciones.filter(app => modulosPrioritarios.includes(app.id))
   const tipoDeVentana = (id) => esAplicacionNativa
     ? 'sigic-window-native'
     : ['control-ingreso', 'panel-reportes', 'estado-ceremonia'].includes(id) ? 'sigic-window-browser' : ['gestion-graduados', 'convocatoria', 'preparacion-ceremonia', 'gestion-profesores', 'gestion-ceremonias'].includes(id) ? 'sigic-window-explorer' : id === 'gestion-porteria' ? 'sigic-window-secure' : 'sigic-window-default'
@@ -1692,12 +1692,12 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
           ceremonia={ceremoniaActiva}
           ventanas={ventanasAbiertas}
           onAbrir={abrirVentana}
-          onCerrar={() => setInicioAbierto(false)}
+          onCerrar={() => { setInicioAbierto(false); inicioBotonRef.current?.focus() }}
           onCerrarSesion={onCerrarSesion}
         />
       )}
       <footer className="sigic-taskbar">
-        <button ref={inicioBotonRef} onClick={() => setInicioAbierto(value => !value)} className={`sigic-start-button ${inicioAbierto ? 'is-active' : ''}`} aria-label="Abrir menú principal" aria-expanded={inicioAbierto} title="Menú principal"><img src="/logo-oficial.png" alt="" className="sigic-task-logo" /></button>
+        <button ref={inicioBotonRef} onClick={() => setInicioAbierto(value => !value)} className={`sigic-start-button ${inicioAbierto ? 'is-active' : ''}`} aria-label="Abrir menú principal" aria-expanded={inicioAbierto} aria-controls="sigic-menu-inicio" title="Menú principal · Ctrl K"><img src="/logo-oficial.png" alt="" className="sigic-task-logo" /></button>
         <div className="sigic-task-divider" />
         <button onClick={() => abrirVentana('bienvenida')} className="sigic-task-app" title="Escritorio SIGIC"><Home size={15} /><span>Escritorio SIGIC</span></button>
         <div className="sigic-open-tasks">{ventanasAbiertas.map(id => { const app = aplicaciones.find(item => item.id === id); const IconoTarea = app?.icono || LayoutGrid; return <button key={id} onClick={() => manejarClickTarea(id)} className={`sigic-open-task ${id === pantallaActual && !ventanasMinimizadas.includes(id) ? 'is-current' : ''} ${ventanasMinimizadas.includes(id) ? 'is-minimized' : ''}`} title={`${app?.titulo || 'SIGIC'}${ventanasMinimizadas.includes(id) ? ' (minimizada)' : ''}`}><IconoTarea size={13} />{app?.titulo || 'SIGIC'}</button> })}</div>
@@ -1748,7 +1748,7 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
 
 // ─── COMPONENTE NAV DOCKER ADMINISTRATIVO PERSISTENTE ───
 function AdminDock({ pantallaActual, onNavegar, posicion, setPosicion, usuario }) {
-  const esSoporte = usuario?.correo && usuario.correo.toLowerCase() === 'soporte@ibeltran.com.ar'
+  const esSoporte = usuario?.rol === 'ADMINISTRATIVO'
 
   const items = [
     { id: 'bienvenida', titulo: 'Inicio', icono: Home },

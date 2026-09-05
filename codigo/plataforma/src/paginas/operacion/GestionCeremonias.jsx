@@ -167,74 +167,75 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
           <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 animate-pulse">Sincronizando Entornos...</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {ceremonias.map(c => (
             <div 
               key={c.id} 
-              className={`relative bg-white rounded-2xl p-6 transition-all duration-300 border shadow-sm flex flex-col justify-between ${
+              className={`relative bg-white rounded-xl p-4 transition-all duration-200 border flex flex-col justify-between ${
                 c.activa 
-                  ? 'border-sky-500/50 shadow-md shadow-sky-500/5' 
-                  : 'border-slate-100 hover:border-slate-300/80 hover:shadow-md'
+                  ? 'border-sky-500 shadow-sm ring-1 ring-sky-500/20' 
+                  : 'border-slate-200/80 hover:border-slate-300 hover:shadow-sm'
               }`}
             >
               {/* Highlight superior para activo */}
               {!!c.activa && (
-                <div className="absolute inset-x-0 top-0 h-1.5 rounded-t-2xl bg-gradient-to-r from-sky-400 to-indigo-500" />
+                <div className="absolute inset-x-0 top-0 h-1 rounded-t-xl bg-gradient-to-r from-sky-400 to-indigo-500" />
               )}
 
               <div>
-                <div className="flex justify-between items-start mb-6">
-                  <div className={`px-2.5 py-1 rounded-full flex items-center gap-1.5 text-[8.5px] font-black uppercase tracking-wider ${
-                    c.activa ? 'bg-sky-50 text-[#0ea5e9] border border-sky-100' : 'bg-slate-100 text-slate-400'
+                <div className="flex justify-between items-center mb-3">
+                  <div className={`px-2 py-0.5 rounded-full flex items-center gap-1.5 text-[8.5px] font-black uppercase tracking-wider ${
+                    c.activa ? 'bg-sky-50 text-sky-600 border border-sky-200/60' : 'bg-slate-100 text-slate-500'
                   }`}>
-                    <span className={`h-1.5 w-1.5 rounded-full ${c.activa ? 'bg-sky-500 animate-pulse' : 'bg-slate-300'}`} />
+                    <span className={`h-1.5 w-1.5 rounded-full ${c.activa ? 'bg-sky-500 animate-pulse' : 'bg-slate-400'}`} />
                     {c.activa ? 'Entorno Activo' : 'Inactivo'}
                   </div>
                   
                   {!c.activa && (
                     <button 
                       onClick={() => handleEliminar(c.id)}
-                      className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all cursor-pointer"
+                      className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
                       title="Eliminar Ceremonia"
                     >
-                      <Trash2 size={15} />
+                      <Trash2 size={13} />
                     </button>
                   )}
                 </div>
 
-                <div className="mb-5">
-                  <h3 className="text-base font-black tracking-tight leading-tight mb-2.5" style={{ color: DARK }}>
+                <div className="mb-3">
+                  <h3 className="text-sm font-extrabold tracking-tight leading-snug mb-2 truncate" title={c.nombre} style={{ color: DARK }}>
                     {c.nombre}
                   </h3>
                   
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-2 text-slate-400">
-                      <Calendar size={13} style={{ color: ACCENT }} />
-                      <span className="text-[11px] font-semibold text-slate-600">
-                        {new Date(c.fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  <div className="grid grid-cols-1 gap-1 text-[11px] text-slate-600">
+                    <div className="flex items-center gap-1.5 truncate">
+                      <Calendar size={12} className="text-sky-500 shrink-0" />
+                      <span className="truncate">
+                        {new Date(c.fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' })}
                       </span>
                     </div>
                     
-                    <div className="flex items-center gap-2 text-slate-400">
-                      <MapPin size={13} style={{ color: ACCENT }} />
-                      <span className="text-[11px] font-semibold text-slate-600">{c.lugar}</span>
+                    <div className="flex items-center gap-1.5 truncate">
+                      <MapPin size={12} className="text-sky-500 shrink-0" />
+                      <span className="truncate">{c.lugar}</span>
                     </div>
                     
-                    <div className="flex items-center gap-2 text-slate-400">
-                      <Users size={13} style={{ color: ACCENT }} />
-                      <span className="text-[11px] font-semibold text-slate-600">{c.max_invitados} Invitados permitidos</span>
+                    <div className="flex items-center gap-1.5 truncate">
+                      <Users size={12} className="text-sky-500 shrink-0" />
+                      <span>{c.max_invitados} invitados permitidos</span>
                     </div>
 
                     {c.fecha_limite_confirmacion && (
-                      <div className="flex items-center gap-2 text-slate-400">
-                        <Clock size={13} className="text-amber-500" />
-                        <span className="text-[11px] font-semibold text-amber-700">
-                          Cierre online: {new Date(c.fecha_limite_confirmacion).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} hs
+                      <div className="flex items-center gap-1.5 truncate">
+                        <Clock size={12} className="text-amber-500 shrink-0" />
+                        <span className="text-amber-700 font-medium truncate">
+                          Cierre: {new Date(c.fecha_limite_confirmacion).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} hs
                         </span>
                       </div>
                     )}
                   </div>
                 </div>
+
                 {/* Visualización de fases y progreso */}
                 {(() => {
                   const estado = estadoCeremonia(c)
@@ -244,39 +245,39 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
                   const invitaciones = Number(c.invitaciones_enviadas || 0)
 
                   const tareas = [
-                    { ok: graduados > 0, texto: graduados ? `${graduados} graduados cargados` : 'Cargar padrón de graduados', destino: 'gestion-graduados', paso: 'Paso 2' },
-                    { ok: invitaciones >= graduados && graduados > 0, texto: graduados > 0 && invitaciones >= graduados ? `${invitaciones}/${graduados} invitaciones enviadas` : 'Enviar invitaciones por correo', destino: 'convocatoria', paso: 'Paso 3' },
-                    { ok: plano, texto: plano ? 'Plano y butacas listos' : 'Configurar butacas y sala', destino: 'preparacion-ceremonia', paso: 'Paso 4' },
+                    { ok: graduados > 0, texto: graduados ? `${graduados} graduados` : 'Cargar graduados', destino: 'gestion-graduados', paso: 'Paso 2' },
+                    { ok: invitaciones >= graduados && graduados > 0, texto: graduados > 0 && invitaciones >= graduados ? `${invitaciones}/${graduados} invitaciones` : 'Enviar invitaciones', destino: 'convocatoria', paso: 'Paso 3' },
+                    { ok: plano, texto: plano ? 'Plano listo' : 'Configurar butacas', destino: 'preparacion-ceremonia', paso: 'Paso 4' },
                   ]
 
                   return (
-                    <div className="mb-4 rounded-2xl border border-slate-100 bg-slate-50/80 p-3.5 space-y-2.5">
+                    <div className="mb-3 rounded-xl border border-slate-100 bg-slate-50/70 p-2.5 space-y-2">
                       <div className="flex items-center justify-between">
-                        <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-slate-600">
-                          <ListChecks size={13} className="text-sky-500" /> Etapa: {ETAPAS[indice]?.[1] || 'Borrador'}
+                        <span className="flex items-center gap-1 text-[8.5px] font-black uppercase tracking-wider text-slate-600">
+                          <ListChecks size={12} className="text-sky-500" /> {ETAPAS[indice]?.[1] || 'Borrador'}
                         </span>
-                        <span className="text-[9px] font-bold text-slate-400">{indice + 1} de 6</span>
+                        <span className="text-[8.5px] font-bold text-slate-400">{indice + 1}/6</span>
                       </div>
 
                       <div className="flex gap-1">
                         {ETAPAS.map(([id], paso) => (
-                          <span key={id} className={`h-1.5 flex-1 rounded-full ${paso <= indice ? 'bg-sky-500' : 'bg-slate-200'}`} />
+                          <span key={id} className={`h-1 flex-1 rounded-full ${paso <= indice ? 'bg-sky-500' : 'bg-slate-200'}`} />
                         ))}
                       </div>
 
-                      <div className="space-y-1.5 pt-1">
+                      <div className="space-y-1 pt-0.5">
                         {tareas.map(t => (
                           <button
                             key={t.paso}
                             onClick={() => onNavegar?.(t.destino)}
-                            className="w-full flex items-center justify-between p-2 rounded-xl bg-white hover:bg-sky-50 border border-slate-100 hover:border-sky-200 transition text-left text-[10px] font-semibold text-slate-600 cursor-pointer group"
+                            className="w-full flex items-center justify-between px-2 py-1.5 rounded-lg bg-white hover:bg-sky-50/80 border border-slate-100 hover:border-sky-200 transition text-left text-[10px] font-medium text-slate-600 cursor-pointer group"
                           >
-                            <span className="flex items-center gap-2">
-                              <CheckCircle2 size={13} className={t.ok ? 'text-emerald-500' : 'text-slate-300'} />
-                              <span>{t.texto}</span>
+                            <span className="flex items-center gap-1.5 truncate">
+                              <CheckCircle2 size={12} className={t.ok ? 'text-emerald-500 shrink-0' : 'text-slate-300 shrink-0'} />
+                              <span className="truncate">{t.texto}</span>
                             </span>
-                            <span className="text-[8.5px] font-black uppercase text-slate-400 group-hover:text-sky-600 flex items-center gap-0.5">
-                              Ir <ArrowRight size={10} />
+                            <span className="text-[8px] font-bold uppercase text-slate-400 group-hover:text-sky-600 flex items-center shrink-0">
+                              Ir <ArrowRight size={9} className="ml-0.5" />
                             </span>
                           </button>
                         ))}
@@ -287,7 +288,7 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
               </div>
 
               {c.activa ? (
-                <div className="space-y-2 pt-1 border-t border-slate-100">
+                <div className="space-y-1.5 pt-2 border-t border-slate-100">
                   {(() => {
                     const graduados = Number(c.total_egresados || 0)
                     const plano = Boolean(c.plano_configurado)
@@ -295,8 +296,8 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
 
                     if (estadoCeremonia(c) === 'FINALIZADA') {
                       return (
-                        <div className="w-full text-center py-2.5 bg-slate-100 text-slate-500 rounded-xl text-[9.5px] font-black uppercase tracking-widest">
-                          Ceremonia finalizada y archivada
+                        <div className="w-full text-center py-2 bg-slate-100 text-slate-500 rounded-lg text-[9px] font-black uppercase tracking-wider">
+                          Ceremonia archivada
                         </div>
                       )
                     }
@@ -306,9 +307,9 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
                         <button
                           id="btn-paso2-cargar-graduados"
                           onClick={() => onNavegar?.('gestion-graduados')}
-                          className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md shadow-emerald-600/20 transition active:scale-98 cursor-pointer"
+                          className="w-full flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white py-2 rounded-lg font-bold text-[9.5px] uppercase tracking-wider shadow-sm transition active:scale-98 cursor-pointer"
                         >
-                          <UserPlus size={15} /> Paso 2: Cargar Graduados (Excel) <ArrowRight size={13} />
+                          <UserPlus size={13} /> Cargar Graduados (Excel) <ArrowRight size={11} />
                         </button>
                       )
                     }
@@ -318,9 +319,9 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
                         <button
                           id="btn-paso3-convocatoria"
                           onClick={() => onNavegar?.('convocatoria')}
-                          className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md shadow-blue-600/20 transition active:scale-98 cursor-pointer"
+                          className="w-full flex items-center justify-center gap-1.5 bg-sky-600 hover:bg-sky-500 text-white py-2 rounded-lg font-bold text-[9.5px] uppercase tracking-wider shadow-sm transition active:scale-98 cursor-pointer"
                         >
-                          <Send size={15} /> Paso 3: Enviar Convocatoria Masiva <ArrowRight size={13} />
+                          <Send size={13} /> Enviar Convocatoria <ArrowRight size={11} />
                         </button>
                       )
                     }
@@ -330,9 +331,9 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
                         <button
                           id="btn-paso4-preparacion"
                           onClick={() => onNavegar?.('preparacion-ceremonia')}
-                          className="w-full flex items-center justify-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md shadow-cyan-600/20 transition active:scale-98 cursor-pointer"
+                          className="w-full flex items-center justify-center gap-1.5 bg-sky-600 hover:bg-sky-500 text-white py-2 rounded-lg font-bold text-[9.5px] uppercase tracking-wider shadow-sm transition active:scale-98 cursor-pointer"
                         >
-                          <Armchair size={15} /> Paso 4: Preparación & Auto-Seating <ArrowRight size={13} />
+                          <Armchair size={13} /> Configurar Butacas <ArrowRight size={11} />
                         </button>
                       )
                     }
@@ -341,24 +342,24 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
                       <button
                         id="btn-paso-control-ingreso"
                         onClick={() => onNavegar?.('control-ingreso')}
-                        className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white py-3 rounded-xl font-black text-[10px] uppercase tracking-widest shadow-md shadow-emerald-600/20 transition active:scale-98 cursor-pointer"
+                        className="w-full flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white py-2 rounded-lg font-bold text-[9.5px] uppercase tracking-wider shadow-sm transition active:scale-98 cursor-pointer"
                       >
-                        <ScanLine size={15} /> Paso 5: Control de Ingreso & Acreditación <ArrowRight size={13} />
+                        <ScanLine size={13} /> Control de Ingreso <ArrowRight size={11} />
                       </button>
                     )
                   })()}
 
                   <button 
                     onClick={() => setAsistenteId(c.id)} 
-                    className="flex w-full items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 py-2.5 text-[9.5px] font-black uppercase tracking-widest text-slate-700 transition-all rounded-xl cursor-pointer"
+                    className="flex w-full items-center justify-center gap-1.5 bg-slate-50 hover:bg-slate-100 py-1.5 text-[8.5px] font-bold uppercase tracking-wider text-slate-600 transition-all rounded-lg border border-slate-200/60 cursor-pointer"
                   >
-                    <ClipboardList size={13} className="text-sky-600" /> Ver Asistente de Todas las Fases
+                    <ClipboardList size={11} className="text-sky-600" /> Asistente de Fases
                   </button>
                 </div>
               ) : (
                 <button
                   onClick={() => handleActivar(c.id)}
-                  className="w-full bg-slate-900 hover:bg-sky-500 text-white py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-98 cursor-pointer"
+                  className="w-full bg-slate-900 hover:bg-sky-600 text-white py-2 rounded-lg text-[9.5px] font-bold uppercase tracking-wider transition-all active:scale-98 cursor-pointer"
                 >
                   Activar Entorno
                 </button>
@@ -369,12 +370,12 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
           {/* CARD AGREGAR RÁPIDO */}
           <button 
             onClick={() => setMostrarForm(true)}
-            className="flex flex-col items-center justify-center gap-3 bg-slate-50/40 rounded-2xl border-2 border-dashed border-slate-200 p-6 hover:bg-white hover:border-sky-300 hover:shadow-md transition-all group min-h-[200px] cursor-pointer"
+            className="flex flex-col items-center justify-center gap-2 bg-slate-50/40 rounded-xl border-2 border-dashed border-slate-200 p-4 hover:bg-white hover:border-sky-300 hover:shadow-sm transition-all group min-h-[160px] cursor-pointer"
           >
-            <div className="w-10 h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 group-hover:text-sky-500 group-hover:rotate-90 transition-all duration-300 shadow-sm">
-              <Plus size={20} />
+            <div className="w-8 h-8 bg-white border border-slate-100 rounded-lg flex items-center justify-center text-slate-400 group-hover:text-sky-500 group-hover:rotate-90 transition-all duration-300 shadow-xs">
+              <Plus size={16} />
             </div>
-            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 group-hover:text-sky-500">Nuevo Entorno</p>
+            <p className="text-[8.5px] font-bold uppercase tracking-widest text-slate-400 group-hover:text-sky-500">Nuevo Entorno</p>
           </button>
         </div>
       )}

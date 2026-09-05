@@ -2,10 +2,13 @@ import { NextRequest } from 'next/server';
 import { query } from '@/lib/db';
 import { obtenerUsuarioAutenticado, ROLES_GESTION, ROLES_LECTURA } from '@/lib/auth-middleware';
 import { decodificarCodigoGoogleWallet } from '@jcancelo/google-wallet';
+import { verificarRateLimit } from './rate-limit';
+import { origenPermitido } from './request-origin';
+export { verificarRateLimit };
 
 export const RONDAS_BCRYPT = 12;
 export const LARGO_MINIMO_PASSWORD = 8;
-export const ROLES_VALIDOS = ['SUPER_ADMIN', 'ADMINISTRATIVO', 'ADMIN', 'PORTERIA', 'AUDITOR'];
+export const ROLES_VALIDOS = ['ADMINISTRATIVO', 'PORTERIA'];
 
 export function prepararIdentificadorGraduado(valor: unknown) {
   const identificador = String(valor || '').trim();
@@ -21,29 +24,14 @@ export function ocultarCorreo(correo: string) {
 }
 
 export function corsHeaders(req: NextRequest) {
-  const origin = req.headers.get('origin') || '*';
+  const origin = req.headers.get('origin');
   return {
-    'Access-Control-Allow-Origin': origin,
+    ...(origin && origenPermitido(req) ? { 'Access-Control-Allow-Origin': origin, 'Access-Control-Allow-Credentials': 'true' } : {}),
+    'Vary': 'Origin',
+    'Cache-Control': 'no-store',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization, Bypass-Tunnel-Reminder',
-    'Access-Control-Allow-Credentials': 'true',
   };
-}
-
-const rateLimits = new Map<string, { contador: number; reinicio: number }>();
-export function verificarRateLimit(key: string, limit: number, windowMs: number) {
-  const ahora = Date.now();
-  let reg = rateLimits.get(key);
-  if (!reg || ahora > reg.reinicio) {
-    reg = { contador: 0, reinicio: ahora + windowMs };
-    rateLimits.set(key, reg);
-  }
-  reg.contador++;
-  if (reg.contador > limit) {
-    const segundosRestantes = Math.ceil((reg.reinicio - ahora) / 1000);
-    return { permitido: false, segundosRestantes };
-  }
-  return { permitido: true, segundosRestantes: 0 };
 }
 
 export async function esAutorizadoPersonalOEgresado(
@@ -51,10 +39,10 @@ export async function esAutorizadoPersonalOEgresado(
   egresadoId: string | number,
   rolesPermitidos = ROLES_GESTION
 ) {
-  const authPersonal = obtenerUsuarioAutenticado(req, rolesPermitidos);
+  const authPersonal = await obtenerUsuarioAutenticado(req, rolesPermitidos);
   if (authPersonal.valido && authPersonal.datos?.tipo === 'personal') return true;
 
-  const auth = obtenerUsuarioAutenticado(req);
+  const auth = await obtenerUsuarioAutenticado(req);
   if (!auth.valido) return false;
   const datos = auth.datos!;
   if (datos.tipo === 'egresado' && String(datos.id) === String(egresadoId)) {
@@ -64,13 +52,13 @@ export async function esAutorizadoPersonalOEgresado(
 }
 
 export async function esPersonalValido(req: NextRequest, rolesPermitidos = ROLES_LECTURA) {
-  const auth = obtenerUsuarioAutenticado(req, rolesPermitidos);
+  const auth = await obtenerUsuarioAutenticado(req, rolesPermitidos);
   if (!auth.valido) return false;
   const datos = auth.datos!;
   const esRolValido = datos.tipo === 'personal' && datos.rol && rolesPermitidos.includes(datos.rol);
   if (!esRolValido) return false;
 
-  if (datos.rol === 'SUPER_ADMIN') return true;
+  if (datos.rol === 'ADMINISTRATIVO') return true;
 
   if (datos.rol === 'PORTERIA') {
     const activeCer = await query('SELECT id FROM ceremonias WHERE activa = 1 LIMIT 1');
@@ -101,15 +89,6 @@ export async function registrarAuditoriaOTP(
   } catch (error) {
     console.error('No se pudo registrar la auditoría OTP:', error);
   }
-}
-
-export async function esUltimoSuperAdmin(id: string) {
-  const result = await query(
-    `SELECT COUNT(*) AS total FROM usuarios_sistema
-     WHERE rol = 'SUPER_ADMIN' AND activo = 1 AND id <> $1`,
-    [id]
-  );
-  return parseInt(result.rows[0]?.total ?? '0', 10) === 0;
 }
 
 export interface ParametrosBusquedaAcreditacion {

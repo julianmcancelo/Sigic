@@ -5,26 +5,13 @@ import { inicializarBaseDatos } from '@/lib/schema';
 import { enviarCorreo, generarPlantillaRecuperacionContrasena } from '@/lib/email';
 import { obtenerOrigenPublico } from '@/lib/public-origin';
 
-const VENTANA_MS = 60 * 60 * 1000;
-const MAX_SOLICITUDES = 5;
-const solicitudes = new Map<string, { cantidad: number; vence: number }>();
-
-function permitirSolicitud(ip: string) {
-  const ahora = Date.now();
-  const registro = solicitudes.get(ip);
-  if (!registro || registro.vence < ahora) {
-    solicitudes.set(ip, { cantidad: 1, vence: ahora + VENTANA_MS });
-    return true;
-  }
-  registro.cantidad += 1;
-  return registro.cantidad <= MAX_SOLICITUDES;
-}
+import { verificarRateLimit } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
   try {
     await inicializarBaseDatos();
     const ip = (req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'desconocida').split(',')[0].trim();
-    if (!permitirSolicitud(ip)) {
+    if (!(await verificarRateLimit(`recuperacion-ip:${ip}`, 5, 60 * 60 * 1000)).permitido) {
       return NextResponse.json({ error: 'Esperá unos minutos antes de solicitar otro enlace.' }, { status: 429 });
     }
     const { email } = await req.json();

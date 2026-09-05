@@ -2,10 +2,12 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../modelos/usuario_sesion.dart';
 
 class ServicioAlmacenamiento {
+  final FlutterSecureStorage _seguro = const FlutterSecureStorage();
   static const String claveApiUrl = 'sigic_api_url';
   static const String claveToken = 'sigic_token';
   static const String claveUsuario = 'sigic_usuario';
@@ -37,12 +39,15 @@ class ServicioAlmacenamiento {
 
   Future<String?> obtenerToken() async {
     final preferencias = await _preferencias;
-    return preferencias.getString(claveToken);
+    // Las sesiones anteriores se descartan; nunca conservar tokens en preferencias.
+    await preferencias.remove(claveToken);
+    return _seguro.read(key: claveToken);
   }
 
   Future<void> guardarToken(String token) async {
     final preferencias = await _preferencias;
-    await preferencias.setString(claveToken, token);
+    await _seguro.write(key: claveToken, value: token);
+    await preferencias.remove(claveToken);
   }
 
   Future<UsuarioSesion?> obtenerUsuario() async {
@@ -62,6 +67,7 @@ class ServicioAlmacenamiento {
   Future<void> limpiarSesion() async {
     final preferencias = await _preferencias;
     await preferencias.remove(claveToken);
+    await _seguro.delete(key: claveToken);
     await preferencias.remove(claveUsuario);
   }
 }

@@ -9,7 +9,7 @@ export function AsistenteSetup({ onFinalizado }) {
 
   // Datos
   const [evento, setEvento] = useState({ nombreEvento: '', fechaEvento: '', lugarEvento: '' })
-  const [admin, setAdmin] = useState({ nombre: '', email: '', password: '' })
+  const [admin, setAdmin] = useState({ nombre: '', email: '', password: '', setupKey: '' })
 
   const esPaso1Valido = evento.nombreEvento.trim() && evento.fechaEvento && evento.lugarEvento.trim()
   const esPaso2Valido = admin.nombre.trim() && admin.email.trim() && admin.password.trim()
@@ -144,7 +144,12 @@ export function AsistenteSetup({ onFinalizado }) {
             </div>
           ) : (
             <div className="animate-fade-in-up">
-              <h2 className="text-2xl font-bold text-slate-800 mb-6">Crear Super Administrador</h2>
+              <h2 className="text-2xl font-bold text-slate-800 mb-6">Crear cuenta administrativa</h2>
+              <label className="block text-sm font-medium text-slate-700 mb-4">
+                Clave de instalación
+                <input type="password" autoComplete="off" value={admin.setupKey} onChange={e => setAdmin({ ...admin, setupKey: e.target.value })} className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3" />
+                <span className="block text-xs text-slate-500 mt-1">Ingresá la clave entregada por quien instaló el sistema.</span>
+              </label>
               <form onSubmit={handleFinalizar} className="space-y-5">
                 <div>
                   <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Nombre Completo</label>

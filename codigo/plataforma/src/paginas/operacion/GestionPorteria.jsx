@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { 
   Shield, UserPlus, QrCode, RefreshCw, AlertCircle, 
   ArrowLeft, CheckCircle2, Lock, Unlock, X, Settings, 
@@ -32,6 +32,7 @@ import { useSincronizacion, emitirCambioSync } from '../../lib/sync'
 import './seguridad.css'
 
 const DARK = '#0F172A'
+const normalizarBusqueda = valor => String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 
 export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
   // Pestaña activa: 'personal' o 'dispositivos'
@@ -50,6 +51,7 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
   const [autorizadosMap, setAutorizadosMap] = useState({})
   const [guardandoAutorizacion, setGuardandoAutorizacion] = useState(null)
   const [cargandoAutorizaciones, setCargandoAutorizaciones] = useState(false)
+  const solicitudAutorizaciones = useRef(0)
   const [personalExpandido, setPersonalExpandido] = useState(null)
   const [procesandoLote, setProcesandoLote] = useState(false)
 
@@ -128,9 +130,12 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
 
   async function cargarAutorizaciones(cerId) {
     if (!cerId) return
+    const solicitud = ++solicitudAutorizaciones.current
     setCargandoAutorizaciones(true)
+    setAutorizadosMap({})
     try {
       const list = await obtenerAutorizacionesCeremonia(cerId)
+      if (solicitud !== solicitudAutorizaciones.current) return
       const map = {}
       if (Array.isArray(list)) {
         list.forEach(userId => {
@@ -139,9 +144,9 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
       }
       setAutorizadosMap(map)
     } catch (err) {
-      console.error('Error al cargar autorizaciones:', err)
+      if (solicitud === solicitudAutorizaciones.current) setError('No se pudieron cargar los permisos. Actualizá para volver a intentar.')
     } finally {
-      setCargandoAutorizaciones(false)
+      if (solicitud === solicitudAutorizaciones.current) setCargandoAutorizaciones(false)
     }
   }
 
@@ -180,7 +185,7 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
   // Toggle de autorización individual para una ceremonia
   async function handleToggleAutorizacion(userId, customCeremoniaId = null) {
     const cerId = customCeremoniaId || ceremoniaSeleccionadaId
-    if (!cerId) return
+    if (!cerId || guardandoAutorizacion !== null || procesandoLote || cargandoAutorizaciones) return
     setGuardandoAutorizacion(userId)
     setError(null)
     
@@ -430,27 +435,25 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
   }
 
   // Métricas calculadas
-  const totalPorteros = usuarios.length
-  const autorizadosActivos = usuarios.filter(u => autorizadosMap[String(u.id)]).length
-  const porterosActivos = usuarios.filter(u => u.activo === 1).length
+  const porterosActivos = usuarios.filter(u => Number(u.activo) === 1).length
   const dispositivosEnLinea = dispositivos.filter(d => d.enLinea).length
   const dispositivosTotales = dispositivos.length
 
   const personalVisible = usuarios.filter(u => {
-    const coincide = `${u.nombre} ${u.email} ${u.rol}`.toLowerCase().includes(busqueda.trim().toLowerCase())
+    const coincide = normalizarBusqueda(`${u.nombre} ${u.email} ${u.rol}`).includes(normalizarBusqueda(busqueda.trim()))
     if (!coincide) return false
-    const estaAutorizado = !!autorizadosMap[String(u.id)]
+    const estaAutorizado = Number(u.activo) === 1 && (u.rol === 'ADMINISTRATIVO' || !!autorizadosMap[String(u.id)])
     if (filtro === 'administrativos') return u.rol === 'ADMINISTRATIVO'
     if (filtro === 'porteria') return u.rol === 'PORTERIA'
     if (filtro === 'autorizados') return estaAutorizado
-    if (filtro === 'sin-acceso') return !estaAutorizado
-    if (filtro === 'inactivos') return u.activo !== 1
+    if (filtro === 'sin-acceso') return u.rol === 'PORTERIA' && !autorizadosMap[String(u.id)]
+    if (filtro === 'activos') return Number(u.activo) === 1
+    if (filtro === 'inactivos') return Number(u.activo) !== 1
     return true
   })
 
-  const ceremoniaSeleccionada = ceremonias.find(c => String(c.id) === String(ceremoniaSeleccionadaId))
   const dispositivosVisibles = dispositivos.filter(d => {
-    const coincide = `${d.nombreDispositivo || ''} ${d.modelo || ''} ${d.marca || ''} ${d.usuarioNombre || ''} ${d.usuarioEmail || ''}`.toLowerCase().includes(busqueda.trim().toLowerCase())
+    const coincide = normalizarBusqueda(`${d.nombreDispositivo || ''} ${d.modelo || ''} ${d.marca || ''} ${d.usuarioNombre || ''} ${d.usuarioEmail || ''}`).includes(normalizarBusqueda(busqueda.trim()))
     return coincide
   })
 

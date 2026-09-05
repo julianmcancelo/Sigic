@@ -27,11 +27,14 @@ class ServicioApi {
   }
 
   Future<String> obtenerApiUrl() async {
-    return await _almacenamiento.obtenerApiUrl() ?? urlBasePorDefecto;
+    return _normalizarApiUrl(await _almacenamiento.obtenerApiUrl() ?? urlBasePorDefecto);
   }
 
   Future<void> guardarApiUrl(String url) async {
-    await _almacenamiento.guardarApiUrl(_normalizarApiUrl(url));
+    final nueva = _normalizarApiUrl(url);
+    final anterior = await _almacenamiento.obtenerApiUrl() ?? urlBasePorDefecto;
+    if (nueva != anterior) await _almacenamiento.limpiarSesion();
+    await _almacenamiento.guardarApiUrl(nueva);
   }
 
   Future<UsuarioSesion?> obtenerUsuarioLocal() async {
@@ -106,8 +109,6 @@ class ServicioApi {
           <String, dynamic>{},
     );
     const rolesPermitidos = {
-      'SUPER_ADMIN',
-      'ADMIN',
       'ADMINISTRATIVO',
       'PORTERIA',
     };
@@ -284,6 +285,7 @@ class ServicioApi {
     };
 
     final uri = Uri.parse('$baseUrl$ruta');
+    const timeout = Duration(seconds: 8);
     late final http.Response respuesta;
     switch (metodo) {
       case 'POST':
@@ -291,17 +293,17 @@ class ServicioApi {
           uri,
           headers: encabezados,
           body: jsonEncode(cuerpo ?? {}),
-        );
+        ).timeout(timeout);
         break;
       case 'PUT':
         respuesta = await http.put(
           uri,
           headers: encabezados,
           body: jsonEncode(cuerpo ?? {}),
-        );
+        ).timeout(timeout);
         break;
       default:
-        respuesta = await http.get(uri, headers: encabezados);
+        respuesta = await http.get(uri, headers: encabezados).timeout(timeout);
     }
 
     final json = _decodificarRespuesta(respuesta);
@@ -333,6 +335,10 @@ class ServicioApi {
     var valor = url.trim();
     if (!valor.startsWith('http://') && !valor.startsWith('https://')) {
       valor = 'https://$valor';
+    }
+    final uri = Uri.tryParse(valor);
+    if (uri == null || uri.scheme != 'https' || uri.host.isEmpty || uri.userInfo.isNotEmpty || uri.hasQuery || uri.hasFragment) {
+      throw Exception('Ingresá una dirección HTTPS válida para el servidor.');
     }
     valor = valor.replaceAll(RegExp(r'/$'), '');
     if (!valor.endsWith('/api')) {

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
@@ -111,13 +112,18 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
 
       if (token != null) {
         try {
-          usuarioValidado = await widget.servicioApi.obtenerSesionActual();
+          final resultados = await Future.wait([
+            widget.servicioApi.obtenerSesionActual(),
+            widget.servicioApi.obtenerCeremoniaActiva(),
+            widget.servicioApi.obtenerCeremoniasAutorizadas(),
+            widget.servicioApi.obtenerEstadisticas(),
+          ]);
+          usuarioValidado = resultados[0] as UsuarioSesion?;
+          ceremonia = resultados[1] as Ceremonia?;
+          ceremoniasAutorizadas = resultados[2] as List<CeremoniaAutorizada>;
+          estadisticas = resultados[3] as EstadisticasAcceso?;
           estadoSesion = EstadoSesion.autenticado;
           mensajeSesion = 'Sesion verificada y protegida';
-          ceremonia = await widget.servicioApi.obtenerCeremoniaActiva();
-          ceremoniasAutorizadas = await widget.servicioApi
-              .obtenerCeremoniasAutorizadas();
-          estadisticas = await widget.servicioApi.obtenerEstadisticas();
         } catch (error) {
           if (usuario != null) {
             estadoSesion = EstadoSesion.sinConexion;
@@ -429,6 +435,12 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
           (respuesta['mensaje'] ?? 'La acreditacion se realizo con exito.')
               .toString();
 
+      if (yaAcreditado) {
+        HapticFeedback.heavyImpact();
+      } else {
+        HapticFeedback.mediumImpact();
+      }
+
       if (actualizado?.tipo == TipoResultadoEscaneo.individual) {
         // Escaneo continuo: mostramos confirmacion breve y volvemos a la
         // camara automaticamente, sin salir de la pantalla de escaneo.
@@ -480,6 +492,11 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
       if (!mounted) return;
       setState(() => _resultado = _resultado?.marcarGraduadoPresente());
       final yaAcreditado = respuesta['yaAcreditado'] == true;
+      if (yaAcreditado) {
+        HapticFeedback.heavyImpact();
+      } else {
+        HapticFeedback.mediumImpact();
+      }
       await _mostrarMensaje(
         yaAcreditado ? 'Graduado ya acreditado' : 'Ingreso del graduado',
         (respuesta['mensaje'] ?? 'Ingreso confirmado.').toString(),
@@ -529,6 +546,7 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
       final detalleOmitidos = omitidos > 0
           ? ' $omitidos ya estaban acreditados.'
           : '';
+      HapticFeedback.mediumImpact();
       if (mounted) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
@@ -575,17 +593,59 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
       builder: (contexto) => Padding(
-        padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(contexto).viewInsets.bottom + 20),
-        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-          const Text('Ingresar código manual', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-          const SizedBox(height: 6),
-          const Text('Usalo cuando el QR no pueda leerse. El código se valida igual que un escaneo.'),
-          const SizedBox(height: 16),
-          TextField(controller: _controladorCodigoManual, autofocus: true, textCapitalization: TextCapitalization.characters, decoration: const InputDecoration(labelText: 'Código alfanumérico', hintText: 'Ej.: SIGIC:ABC123'), onSubmitted: (_) => _procesarManual(contexto)),
-          const SizedBox(height: 12),
-          SizedBox(width: double.infinity, child: FilledButton.icon(onPressed: _cargandoEscaneo ? null : () => _procesarManual(contexto), icon: const Icon(Icons.check_circle_outline), label: const Text('Validar código'))),
-        ]),
+        padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(contexto).viewInsets.bottom + 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 38,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFCBD5E1),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const Text(
+              'Ingresar código manual',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Ingresá DNI, Token alfanumérico o Legajo para buscar el acceso.',
+              style: TextStyle(fontSize: 13, color: Color(0xFF64748B)),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _controladorCodigoManual,
+              autofocus: true,
+              textCapitalization: TextCapitalization.characters,
+              decoration: const InputDecoration(
+                labelText: 'Código, DNI o Legajo',
+                hintText: 'Ej.: 40123456, ABC123...',
+              ),
+              onSubmitted: (_) => _procesarManual(contexto),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: FilledButton.icon(
+                onPressed: _cargandoEscaneo ? null : () => _procesarManual(contexto),
+                icon: const Icon(Icons.check_circle_outline),
+                label: const Text('Validar y Acreditar'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -630,15 +690,28 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    return Scaffold(
-      body: SafeArea(
-        top: !_mostrandoCamara,
-        bottom: false,
-        child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 250),
-          child: _mostrandoCamara
-              ? _construirVistaCamaraConTarjeta(context)
-              : _construirVistaInicioConTarjeta(context),
+    final tieneAccionAtras = _resultado != null || _mostrandoCamara;
+
+    return PopScope(
+      canPop: !tieneAccionAtras,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        if (_resultado != null) {
+          _cerrarTarjetaFlotante();
+        } else if (_mostrandoCamara) {
+          _cerrarCamara();
+        }
+      },
+      child: Scaffold(
+        body: SafeArea(
+          top: !_mostrandoCamara,
+          bottom: false,
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 250),
+            child: _mostrandoCamara
+                ? _construirVistaCamaraConTarjeta(context)
+                : _construirVistaInicioConTarjeta(context),
+          ),
         ),
       ),
     );
@@ -843,6 +916,51 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
                   ),
                 ],
               ),
+            )
+          else if (_token == null)
+            PanelTarjeta(
+              colorBorde: const Color(0xFFBAE6FD),
+              contenido: Row(
+                children: [
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      color: TemaSigic.azulPrincipal.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.info_outline,
+                      color: TemaSigic.azulPrincipal,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Sin sesión de portería',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 13.5,
+                            color: Color(0xFF0F172A),
+                          ),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          'Iniciá sesión desde Ajustes o escaneá un QR de ingreso para cargar las ceremonias.',
+                          style: TextStyle(
+                            fontSize: 11.5,
+                            color: Color(0xFF64748B),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
 
           if (_estadisticas != null) ...[
@@ -878,18 +996,13 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
 
           const SizedBox(height: 12),
 
-          // Buscador / Ingreso dinamico manual sin abrir camara
-          _construirBuscadorDinamico(context, tema),
-
-          const SizedBox(height: 10),
-
-          // Boton principal: abrir escaner
+          // Accion Principal: Boton Escanear QR
           Material(
             color: const Color(0xFF0A1422),
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: BorderRadius.circular(20),
             child: InkWell(
               onTap: _abrirCamara,
-              borderRadius: BorderRadius.circular(22),
+              borderRadius: BorderRadius.circular(20),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -898,16 +1011,16 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
                 child: Row(
                   children: [
                     Container(
-                      width: 52,
-                      height: 52,
+                      width: 48,
+                      height: 48,
                       decoration: BoxDecoration(
                         color: TemaSigic.azulBrillante.withValues(alpha: 0.18),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(14),
                       ),
                       child: const Icon(
                         Icons.qr_code_scanner,
                         color: Color(0xFF7DD3FC),
-                        size: 28,
+                        size: 26,
                       ),
                     ),
                     const SizedBox(width: 14),
@@ -918,11 +1031,11 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
                           Text(
                             _token == null
                                 ? 'Escanear QR de acceso'
-                                : 'Escanear QR',
+                                : 'Escanear QR con cámara',
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w800,
-                              fontSize: 18,
+                              fontSize: 16.5,
                               letterSpacing: -0.3,
                             ),
                           ),
@@ -930,10 +1043,10 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
                           Text(
                             _token == null
                                 ? 'Configuracion o inicio de sesion'
-                                : 'Invitado individual o grupo completo',
+                                : 'Acreditación instantánea grupal o individual',
                             style: TextStyle(
                               color: Colors.white.withValues(alpha: 0.7),
-                              fontSize: 12.5,
+                              fontSize: 12,
                             ),
                           ),
                         ],
@@ -942,7 +1055,7 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
                     Icon(
                       Icons.chevron_right,
                       color: Colors.white.withValues(alpha: 0.55),
-                      size: 26,
+                      size: 24,
                     ),
                   ],
                 ),
@@ -950,102 +1063,68 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
             ),
           ),
 
-          if (_ceremoniasAutorizadas.isNotEmpty) ...[
-            const SizedBox(height: 18),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 2),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Ceremonias habilitadas',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 14.5,
-                    ),
-                  ),
-                  Text(
-                    '${_ceremoniasAutorizadas.length}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF5C7386),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-            ..._ceremoniasAutorizadas.map(
-              (ceremoniaAutorizada) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: ceremoniaAutorizada.activa || _cargando
-                        ? null
-                        : () => _cambiarCeremonia(ceremoniaAutorizada),
-                    borderRadius: BorderRadius.circular(16),
-                    child: Ink(
+          const SizedBox(height: 12),
+
+          // Buscador / Ingreso dinamico manual sin abrir camara
+          _construirBuscadorDinamico(context, tema),
+
+          if (_ceremoniasAutorizadas.length > 1) ...[
+            const SizedBox(height: 14),
+            InkWell(
+              onTap: _mostrarSelectorCeremonias,
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFE2EAF0)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: ceremoniaAutorizada.activa
-                              ? TemaSigic.azulPrincipal.withValues(alpha: 0.35)
-                              : const Color(0xFFE2EAF0),
-                          width: ceremoniaAutorizada.activa ? 1.5 : 1,
-                        ),
+                        color: TemaSigic.azulPrincipal.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 13,
-                          vertical: 3,
-                        ),
-                        leading: Icon(
-                          ceremoniaAutorizada.activa
-                              ? Icons.check_circle
-                              : Icons.school_outlined,
-                          color: ceremoniaAutorizada.activa
-                              ? TemaSigic.azulPrincipal
-                              : const Color(0xFF8496A6),
-                        ),
-                        title: Text(
-                          ceremoniaAutorizada.nombre,
-                          style: TextStyle(
-                            fontWeight: FontWeight.w700,
-                            color: ceremoniaAutorizada.activa
-                                ? TemaSigic.azulPrincipal
-                                : const Color(0xFF0F172A),
-                          ),
-                        ),
-                        subtitle: Text(
-                          '${ceremoniaAutorizada.fecha == null ? 'Fecha a confirmar' : DateFormat('dd/MM/yyyy', 'es_AR').format(ceremoniaAutorizada.fecha!)} · ${ceremoniaAutorizada.lugar}',
-                        ),
-                        trailing: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 9,
-                            vertical: 5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: ceremoniaAutorizada.activa
-                                ? const Color(0xFF10B981).withValues(alpha: 0.13)
-                                : TemaSigic.azulPrincipal.withValues(alpha: 0.09),
-                            borderRadius: BorderRadius.circular(7),
-                          ),
-                          child: Text(
-                            ceremoniaAutorizada.activa ? 'ACTIVA' : 'ELEGIR',
+                      child: const Icon(
+                        Icons.school_outlined,
+                        color: TemaSigic.azulPrincipal,
+                        size: 20,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Ceremonias habilitadas',
                             style: TextStyle(
                               fontWeight: FontWeight.w800,
-                              fontSize: 10.5,
-                              color: ceremoniaAutorizada.activa
-                                  ? const Color(0xFF0A7F5F)
-                                  : TemaSigic.azulPrincipal,
+                              fontSize: 13.5,
+                              color: Color(0xFF0F172A),
                             ),
                           ),
-                        ),
+                          const SizedBox(height: 1),
+                          Text(
+                            '${_ceremoniasAutorizadas.length} disponibles · Tocá para cambiar',
+                            style: const TextStyle(
+                              fontSize: 11.5,
+                              color: Color(0xFF64748B),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ),
+                    const Icon(
+                      Icons.chevron_right,
+                      color: Color(0xFF94A3B8),
+                      size: 22,
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -1083,17 +1162,19 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
   }
 
   Widget _construirBuscadorDinamico(BuildContext context, ThemeData tema) {
+    final tieneTexto = _controladorCodigoManual.text.isNotEmpty;
+
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFE2EAF0)),
+        border: Border.all(color: const Color(0xFFD6E2EC)),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x0A0F172A),
-            blurRadius: 10,
-            offset: Offset(0, 3),
+            color: Color(0x0F0F172A),
+            blurRadius: 12,
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -1103,19 +1184,19 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
           Row(
             children: [
               Container(
-                width: 32,
-                height: 32,
+                width: 36,
+                height: 36,
                 decoration: BoxDecoration(
-                  color: TemaSigic.azulPrincipal.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  color: TemaSigic.azulPrincipal.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Icon(
                   Icons.keyboard_alt_outlined,
-                  size: 18,
+                  size: 20,
                   color: TemaSigic.azulPrincipal,
                 ),
               ),
-              const SizedBox(width: 9),
+              const SizedBox(width: 10),
               const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1124,15 +1205,17 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
                       'Ingreso manual dinámico',
                       style: TextStyle(
                         fontWeight: FontWeight.w800,
-                        fontSize: 13.5,
+                        fontSize: 14,
                         color: Color(0xFF0F172A),
                         letterSpacing: -0.2,
                       ),
                     ),
+                    SizedBox(height: 1),
                     Text(
-                      'DNI, Token alfanumérico o Legajo sin cámara',
+                      'DNI, Token o Legajo sin usar cámara',
                       style: TextStyle(
-                        fontSize: 11,
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w500,
                         color: Color(0xFF5C7386),
                       ),
                     ),
@@ -1141,113 +1224,128 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _controladorCodigoManual,
-                  textCapitalization: TextCapitalization.characters,
-                  textInputAction: TextInputAction.search,
-                  onSubmitted: (valor) {
-                    final c = valor.trim();
-                    if (c.isNotEmpty) {
-                      if (_resultado != null) {
-                        setState(() => _resultado = null);
-                      }
-                      _procesarCodigo(c);
-                    }
-                  },
-                  onChanged: (_) => setState(() {}),
-                  decoration: InputDecoration(
-                    hintText: 'Ej.: ABC123, 40123456...',
-                    hintStyle: const TextStyle(
-                      fontSize: 12.5,
-                      color: Color(0xFF94A3B8),
-                    ),
-                    filled: true,
-                    fillColor: const Color(0xFFF8FAFC),
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 11,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: TemaSigic.azulPrincipal,
-                        width: 1.5,
-                      ),
-                    ),
-                    suffixIcon: _controladorCodigoManual.text.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.close, size: 16),
-                            onPressed: () {
-                              _controladorCodigoManual.clear();
-                              setState(() {});
-                            },
-                          )
-                        : null,
-                  ),
-                ),
+          const SizedBox(height: 14),
+          Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: tieneTexto ? TemaSigic.azulPrincipal : const Color(0xFFCBD5E1),
+                width: tieneTexto ? 1.5 : 1,
               ),
-              const SizedBox(width: 8),
-              FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: TemaSigic.azulPrincipal,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 11,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.search,
+                  color: Color(0xFF64748B),
+                  size: 20,
                 ),
-                onPressed: _cargandoEscaneo
-                    ? null
-                    : () {
-                        final c = _controladorCodigoManual.text.trim();
-                        if (c.isNotEmpty) {
-                          if (_resultado != null) {
-                            setState(() => _resultado = null);
-                          }
-                          _procesarCodigo(c);
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    controller: _controladorCodigoManual,
+                    textCapitalization: TextCapitalization.characters,
+                    textInputAction: TextInputAction.search,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF0F172A),
+                      letterSpacing: 0.3,
+                    ),
+                    onSubmitted: (valor) {
+                      final c = valor.trim();
+                      if (c.isNotEmpty) {
+                        if (_resultado != null) {
+                          setState(() => _resultado = null);
                         }
-                      },
-                child: _cargandoEscaneo
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.search, size: 16),
-                          SizedBox(width: 4),
-                          Text(
-                            'Validar',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 12.5,
-                            ),
-                          ),
-                        ],
+                        _procesarCodigo(c);
+                      }
+                    },
+                    onChanged: (_) => setState(() {}),
+                    decoration: InputDecoration(
+                      hintText: 'Ej.: 40123456, ABC123...',
+                      hintStyle: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: Color(0xFF94A3B8),
                       ),
+                      fillColor: Colors.transparent,
+                      filled: false,
+                      isDense: true,
+                      border: InputBorder.none,
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 12,
+                      ),
+                      suffixIcon: tieneTexto
+                          ? IconButton(
+                              icon: const Icon(Icons.close, size: 18, color: Color(0xFF64748B)),
+                              onPressed: () {
+                                _controladorCodigoManual.clear();
+                                setState(() {});
+                              },
+                            )
+                          : null,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            height: 44,
+            child: FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: TemaSigic.azulPrincipal,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 0,
+                padding: EdgeInsets.zero,
+                minimumSize: Size.zero,
               ),
-            ],
+              onPressed: _cargandoEscaneo
+                  ? null
+                  : () {
+                      final c = _controladorCodigoManual.text.trim();
+                      if (c.isNotEmpty) {
+                        if (_resultado != null) {
+                          setState(() => _resultado = null);
+                        }
+                        _procesarCodigo(c);
+                      }
+                    },
+              child: _cargandoEscaneo
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.check_circle_outline, size: 18),
+                        SizedBox(width: 6),
+                        Text(
+                          'Validar y Buscar Acceso',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 13,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                      ],
+                    ),
+            ),
           ),
         ],
       ),

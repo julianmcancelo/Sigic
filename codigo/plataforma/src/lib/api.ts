@@ -125,7 +125,7 @@ export async function cerrarSesionServidor() {
   await fetch(`${BASE_LOCAL}/auth/logout`, {
     method: 'POST',
     credentials: 'same-origin',
-    headers: { 'Content-Type': 'application/json' }
+    headers: cabeceras()
   }).catch(() => null);
 }
 
@@ -894,6 +894,5 @@ export async function obtenerRegistrosAuditoria(entidad?: string, limite = 100) 
   if (!res.ok) throw new Error('No se pudo obtener el historial de auditoría.');
   return res.json();
 }
-
 
 

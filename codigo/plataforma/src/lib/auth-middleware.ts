@@ -1,5 +1,7 @@
 import { NextRequest } from 'next/server';
 import { verificar, DatosToken } from './tokens';
+import { query } from './db';
+import { inicializarBaseDatos } from './schema';
 
 export interface AuthResult {
   valido: boolean;
@@ -9,24 +11,22 @@ export interface AuthResult {
 }
 
 // Roles de gestión permitidos
-export const ROLES_GESTION = ['SUPER_ADMIN', 'ADMIN', 'ADMINISTRATIVO'];
+export const ROLES_GESTION = ['ADMINISTRATIVO'];
 export const ROLES_OPERACION = [...ROLES_GESTION, 'PORTERIA'];
-export const ROLES_LECTURA = [...ROLES_OPERACION, 'AUDITOR'];
+export const ROLES_LECTURA = [...ROLES_OPERACION];
 
 /**
  * Autentica y valida los permisos de una petición HTTP en las API Routes de Next.js.
  */
-export function obtenerUsuarioAutenticado(
+export async function obtenerUsuarioAutenticado(
   req: NextRequest,
   rolesPermitidos?: string[]
-): AuthResult {
+): Promise<AuthResult> {
   const cabecera = req.headers.get('authorization') || '';
   const tokenCabecera = cabecera.startsWith('Bearer ') ? cabecera.slice(7) : '';
   const tokenCookie = req.cookies.get('sigic_admin_session')?.value || '';
-  // Priorizar tokenCabecera si es un token de bypass (modo demo) o si no hay cookie
-  const token = tokenCabecera.startsWith('bypass-')
-    ? tokenCabecera
-    : (rolesPermitidos?.length && tokenCookie ? tokenCookie : tokenCabecera || tokenCookie);
+  // Una credencial explícita inválida nunca debe heredar otra sesión por cookie.
+  const token = cabecera ? tokenCabecera : tokenCookie;
   if (!token) {
     return {
       valido: false,
@@ -50,6 +50,24 @@ export function obtenerUsuarioAutenticado(
   }
 
   const datos = resultado.datos!;
+
+  if (datos.tipo === 'personal') {
+    await inicializarBaseDatos();
+    const resultadoUsuario = await query(
+      'SELECT rol, activo, session_version, nombre, email FROM usuarios_sistema WHERE id = $1',
+      [datos.id]
+    );
+    const usuario = resultadoUsuario.rows[0];
+    if (!usuario || Number(usuario.activo) !== 1 ||
+        !ROLES_OPERACION.includes(usuario.rol) ||
+        datos.sessionVersion !== Number(usuario.session_version)) {
+      return { valido: false, error: 'Sesión revocada. Volvé a iniciar sesión.', statusCode: 401 };
+    }
+    datos.rol = usuario.rol;
+    datos.nombre = usuario.nombre;
+    datos.email = usuario.email;
+    datos.correo = usuario.email;
+  }
 
   // Si se exige un rol de personal y no coincide
   if (rolesPermitidos && rolesPermitidos.length > 0) {

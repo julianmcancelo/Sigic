@@ -1,4 +1,5 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { obtenerUsuarioAutenticado, ROLES_GESTION } from '@/lib/auth-middleware'
 import fs from 'fs/promises'
 import path from 'path'
 
@@ -16,7 +17,10 @@ export async function GET() {
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  if (process.env.NODE_ENV === 'production') return NextResponse.json({ error: 'No disponible' }, { status: 404 })
+  const auth = await obtenerUsuarioAutenticado(req, ROLES_GESTION)
+  if (!auth.valido) return NextResponse.json({ error: auth.error }, { status: auth.statusCode })
   try {
     const body = await req.json()
     const { fase, secuencia, todasLasFases } = body

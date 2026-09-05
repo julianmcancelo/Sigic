@@ -15,7 +15,7 @@ export function generar(options: GenerarOptions = {}) {
   
   let codigo = '';
   for (let i = 0; i < longitud; i++) {
-    codigo += Math.floor(Math.random() * 10).toString();
+    codigo += crypto.randomInt(0, 10).toString();
   }
   const hash = hashear(codigo);
   const expiracion = new Date(Date.now() + minutosExpiracion * 60 * 1000);

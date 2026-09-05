@@ -67,16 +67,6 @@ class DemoSandbox {
     if (typeof window === 'undefined') return false
 
     const urlStr = typeof url === 'string' ? url : (url?.url || '')
-    // Las operaciones de ceremonias, egresados, invitados y entregadores SIEMPRE viajan a la base de datos real
-    if (
-      urlStr.includes('/api/ceremonias') ||
-      urlStr.includes('/api/egresados') ||
-      urlStr.includes('/api/invitados') ||
-      urlStr.includes('/api/entregadores')
-    ) {
-      return false
-    }
-
     const esDemoActiva = 
       sessionStorage.getItem('sigic_demo_sandbox_activo') === 'true' ||
       sessionStorage.getItem('sigic_demo_activa') === 'true' ||

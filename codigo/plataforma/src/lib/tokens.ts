@@ -1,8 +1,8 @@
 import crypto from 'crypto';
 
 let SECRETO = process.env.JWT_SECRET;
-const MODO_DEMO = process.env.DEMO_MODE === 'true';
 if (!SECRETO || SECRETO.length < 32) {
+  if (process.env.NODE_ENV === 'production') throw new Error('JWT_SECRET debe tener al menos 32 caracteres.');
   SECRETO = crypto.randomBytes(48).toString('hex');
   console.warn('JWT_SECRET no está definido (o es muy corto) en .env.local.');
   console.warn('  Se generó un secreto temporal para el inicio de sesión.');
@@ -20,6 +20,7 @@ export interface DatosToken {
   tipo: 'personal' | 'egresado';
   id: string | number;
   rol?: string;
+  sessionVersion?: number;
   nombre?: string;
   correo?: string;
   email?: string;
@@ -50,54 +51,6 @@ export interface ResultadoVerificacion {
 export function verificar(token: string | null): ResultadoVerificacion {
   if (!token) return { valido: false, motivo: 'TOKEN_AUSENTE' };
 
-  // Los accesos de demostración con token bypass
-  if (token.startsWith('bypass-')) {
-    const ahora = Math.floor(Date.now() / 1000);
-    const unDia = 24 * 60 * 60;
-    if (token === 'bypass-admin-token') {
-      return {
-        valido: true,
-        datos: {
-          tipo: 'personal',
-          id: 'bypass-admin-id',
-          rol: 'ADMIN',
-          nombre: 'Administración - Instituto Beltrán',
-          correo: 'admin.sigic@ibeltran.com.ar',
-          iat: ahora,
-          exp: ahora + unDia
-        }
-      };
-    }
-    if (token === 'bypass-support-token') {
-      return {
-        valido: true,
-        datos: {
-          tipo: 'personal',
-          id: 'bypass-support-id',
-          rol: 'SUPER_ADMIN',
-          nombre: 'Soporte SiGIC',
-          correo: 'soporte@ibeltran.com.ar',
-          iat: ahora,
-          exp: ahora + unDia
-        }
-      };
-    }
-    if (token.startsWith('bypass-egresado-')) {
-      const egresadoId = token.replace('bypass-egresado-', '');
-      return {
-        valido: true,
-        datos: {
-          tipo: 'egresado',
-          id: egresadoId,
-          nombre: 'Cancelo Julian Manuel',
-          correo: '35230531@itbeltran.com.ar',
-          iat: ahora,
-          exp: ahora + unDia
-        }
-      };
-    }
-  }
-
   const partes = token.split('.');
   if (partes.length !== 3) return { valido: false, motivo: 'FORMATO_INVALIDO' };
 
@@ -113,12 +66,19 @@ export function verificar(token: string | null): ResultadoVerificacion {
 
   let datos: DatosToken;
   try {
+    const cabecera = JSON.parse(Buffer.from(header, 'base64url').toString('utf8'));
+    if (cabecera.alg !== 'HS256' || cabecera.typ !== 'JWT') return { valido: false, motivo: 'FORMATO_INVALIDO' };
     datos = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
   } catch {
     return { valido: false, motivo: 'PAYLOAD_INVALIDO' };
   }
 
-  if (!datos.exp || Math.floor(Date.now() / 1000) > datos.exp) {
+  if (!datos || !['personal', 'egresado'].includes(datos.tipo) ||
+      !['string', 'number'].includes(typeof datos.id) || !String(datos.id) ||
+      !Number.isFinite(datos.exp) || !Number.isFinite(datos.iat)) {
+    return { valido: false, motivo: 'PAYLOAD_INVALIDO' };
+  }
+  if (Math.floor(Date.now() / 1000) >= datos.exp!) {
     return { valido: false, motivo: 'EXPIRADO' };
   }
 

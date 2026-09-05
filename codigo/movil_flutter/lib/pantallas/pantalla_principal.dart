@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../servicios/servicio_almacenamiento.dart';
@@ -105,6 +106,34 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
     );
   }
 
+  DateTime? _ultimoToqueAtras;
+
+  void _manejarRetroceso() {
+    if (_indiceActual != 0) {
+      setState(() {
+        _indiceActual = 0;
+      });
+      return;
+    }
+
+    final ahora = DateTime.now();
+    if (_ultimoToqueAtras == null ||
+        ahora.difference(_ultimoToqueAtras!) > const Duration(seconds: 2)) {
+      _ultimoToqueAtras = ahora;
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Presiona de nuevo para salir de la app'),
+          duration: Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    SystemNavigator.pop();
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_inicializandoSistema) {
@@ -133,37 +162,44 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
       ),
     ];
 
-    return Scaffold(
-      body: IndexedStack(index: _indiceActual, children: pantallas),
-      bottomNavigationBar: DecoratedBox(
-        decoration: const BoxDecoration(
-          border: Border(top: BorderSide(color: Color(0xFFE2EAF0))),
-        ),
-        child: NavigationBar(
-          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-          selectedIndex: _indiceActual,
-          onDestinationSelected: (indice) {
-            setState(() {
-              _indiceActual = indice;
-            });
-          },
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.qr_code_scanner_outlined),
-              selectedIcon: Icon(Icons.qr_code_scanner),
-              label: 'Escanear',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.groups_2),
-              selectedIcon: Icon(Icons.groups_2),
-              label: 'Asistencia',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.settings_outlined),
-              selectedIcon: Icon(Icons.settings),
-              label: 'Ajustes',
-            ),
-          ],
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _manejarRetroceso();
+      },
+      child: Scaffold(
+        body: IndexedStack(index: _indiceActual, children: pantallas),
+        bottomNavigationBar: DecoratedBox(
+          decoration: const BoxDecoration(
+            border: Border(top: BorderSide(color: Color(0xFFE2EAF0))),
+          ),
+          child: NavigationBar(
+            labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+            selectedIndex: _indiceActual,
+            onDestinationSelected: (indice) {
+              setState(() {
+                _indiceActual = indice;
+              });
+            },
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.qr_code_scanner_outlined),
+                selectedIcon: Icon(Icons.qr_code_scanner),
+                label: 'Escanear',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.groups_2),
+                selectedIcon: Icon(Icons.groups_2),
+                label: 'Asistencia',
+              ),
+              NavigationDestination(
+                icon: Icon(Icons.settings_outlined),
+                selectedIcon: Icon(Icons.settings),
+                label: 'Ajustes',
+              ),
+            ],
+          ),
         ),
       ),
     );
