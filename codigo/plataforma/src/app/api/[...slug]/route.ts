@@ -1699,6 +1699,77 @@ export async function POST(
     // -------------------------------------------------------------
     // PROFESORES
     // -------------------------------------------------------------
+    if (path === 'profesores/importar' || path === 'profesores/bulk') {
+      const isPersonal = await esPersonalValido(req, ROLES_GESTION);
+      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+
+      const lista = Array.isArray(body?.profesores)
+        ? body.profesores
+        : (Array.isArray(body?.docentes) ? body.docentes : (Array.isArray(body) ? body : []));
+
+      if (lista.length === 0) {
+        return NextResponse.json({ error: 'Se requiere una lista de profesores para importar' }, { status: 400, headers });
+      }
+
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        let agregados = 0;
+        let actualizados = 0;
+
+        for (const item of lista) {
+          const nombre = String(item.nombre || item['Nombre Completo'] || item.Nombre || '').trim();
+          if (!nombre) continue;
+          const dni = item.dni || item.DNI ? String(item.dni || item.DNI).trim() : null;
+          let materia = item.materia || item.Materia || '';
+          if (item.carrera || item.Carrera) {
+            const carr = String(item.carrera || item.Carrera).trim();
+            if (!materia.includes(' | ') && carr) {
+              materia = `${carr} | ${materia}`;
+            }
+          }
+          materia = String(materia).trim() || null;
+
+          if (dni) {
+            const existente = await client.query(
+              'SELECT id FROM profesores WHERE dni = $1 LIMIT 1',
+              [dni]
+            );
+            if (existente.rowCount && existente.rowCount > 0) {
+              await client.query(
+                'UPDATE profesores SET nombre = $1, materia = COALESCE($2, materia), activo = 1 WHERE id = $3',
+                [nombre, materia, existente.rows[0].id]
+              );
+              actualizados++;
+              continue;
+            }
+          }
+
+          await client.query(
+            'INSERT INTO profesores (nombre, dni, materia, activo) VALUES ($1, $2, $3, 1)',
+            [nombre, dni, materia]
+          );
+          agregados++;
+        }
+
+        await client.query('COMMIT');
+        invalidarCache('profesores:*');
+        return NextResponse.json({
+          ok: true,
+          mensaje: `Importación completada: ${agregados} nuevos, ${actualizados} actualizados.`,
+          agregados,
+          actualizados,
+          total: agregados + actualizados
+        }, { status: 201, headers });
+      } catch (err: any) {
+        await client.query('ROLLBACK');
+        console.error('Error en importación masiva de profesores:', err);
+        return NextResponse.json({ error: err.message || 'Error al importar profesores' }, { status: 500, headers });
+      } finally {
+        client.release();
+      }
+    }
+
     if (path === 'profesores') {
       const isPersonal = await esPersonalValido(req, ROLES_GESTION);
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
@@ -1712,6 +1783,7 @@ export async function POST(
         'INSERT INTO profesores (nombre, dni, materia) VALUES ($1, $2, $3) RETURNING *',
         [nombre.trim(), dni ? dni.trim() : null, materia ? materia.trim() : null]
       );
+      invalidarCache('profesores:*');
       return NextResponse.json(result.rows[0], { status: 201, headers });
     }
 
@@ -2908,6 +2980,7 @@ export async function PUT(
         return NextResponse.json({ error: 'Profesor no encontrado' }, { status: 404, headers });
       }
 
+      invalidarCache('profesores:*');
       return NextResponse.json(result.rows[0], { headers });
     }
 
@@ -3449,6 +3522,7 @@ export async function DELETE(
         return NextResponse.json({ error: 'Profesor no encontrado' }, { status: 404, headers });
       }
 
+      invalidarCache('profesores:*');
       return NextResponse.json({ ok: true, mensaje: 'Profesor desactivado correctamente' }, { headers });
     }
 

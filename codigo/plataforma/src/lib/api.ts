@@ -562,6 +562,17 @@ export async function crearProfesor(datos: any) {
   return json;
 }
 
+export async function importarProfesoresMasivo(profesores: any[]) {
+  const res = await fetch(`${BASE_CLASSIC}/profesores/importar`, {
+    method: 'POST',
+    headers: cabeceras(),
+    body: JSON.stringify({ profesores })
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudieron importar los profesores');
+  return json;
+}
+
 export async function editarProfesor(id: string | number, datos: any) {
   const res = await fetch(`${BASE_CLASSIC}/profesores/${id}`, {
     method: 'PUT',

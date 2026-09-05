@@ -23,7 +23,7 @@ export function ModalActaCierre({ ceremonia, graduados = [], onCerrar }) {
   }
 
   function descargarCsvLibroMatriz() {
-    const cabeceras = ['Orden', 'Apellido y Nombre', 'DNI', 'Legajo', 'Carrera', 'Formula Juramento', 'Entregador', 'Diploma Conferido']
+    const cabeceras = ['Orden', 'Apellido y Nombre', 'DNI', 'Legajo', 'Carrera', 'Formula Juramento', 'Padrino', 'Diploma Conferido']
     const filas = egresadosAceptados.map((g, idx) => [
       idx + 1,
       `"${g.nombre || ''}"`,
@@ -130,7 +130,7 @@ export function ModalActaCierre({ ceremonia, graduados = [], onCerrar }) {
                   <th className="p-2.5">Graduado / DNI</th>
                   <th className="p-2.5">Carrera / Título</th>
                   <th className="p-2.5">Fórmula de Jura</th>
-                  <th className="p-2.5">Entregador</th>
+                  <th className="p-2.5">Padrino</th>
                   <th className="p-2.5 text-center">Estado</th>
                 </tr>
               </thead>

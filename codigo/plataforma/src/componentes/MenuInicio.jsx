@@ -13,7 +13,7 @@ const informacion = {
   'control-ingreso': ['Durante el evento', 'Escaneo y asistencia', 'qr porteria acceso escaner'],
   'estado-ceremonia': ['Durante el evento', 'Seguimiento de la ceremonia', 'vivo estado proyeccion'],
   'panel-reportes': ['Durante el evento', 'Resultados y estadísticas', 'informes exportar asistencia'],
-  'gestion-profesores': ['Administrar', 'Docentes y entregadores', 'profesores padrinos'],
+  'gestion-profesores': ['Administrar', 'Docentes y Padrinos', 'profesores padrinos'],
   'gestion-porteria': ['Administrar', 'Personal y permisos', 'usuarios equipo roles dispositivos seguridad'],
   ajustes: ['Administrar', 'Preferencias del sistema', 'configuracion ajustes'],
   'seleccion-asientos': ['Organizar', 'Distribución del espacio', 'anfiteatro mapa butacas'],
