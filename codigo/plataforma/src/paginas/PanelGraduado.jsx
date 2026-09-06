@@ -18,6 +18,7 @@ import {
 } from '../servicios/api'
 import { useSincronizacion, emitirCambioSync } from '../lib/sync'
 import { ModalCredencial } from '../componentes/ModalCredencial'
+import { ModalConfirmacionFinalGraduado } from '../componentes/ModalConfirmacionFinalGraduado'
 import { ListaHistorialGraduado } from './HistorialGraduado'
 import { FormularioAcompanante } from '../componentes/graduado/FormularioAcompanante'
 import { ListaAcompanantes } from '../componentes/graduado/ListaAcompanantes'
@@ -65,6 +66,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion, pestanaForzada }
   const [mensaje, setMensaje] = useState({ tipo: '', texto: '' })
   const [finalizandoInscripcion, setFinalizandoInscripcion] = useState(false)
   const [mostrarButacas, setMostrarButacas] = useState(false)
+  const [mostrarModalRevision, setMostrarModalRevision] = useState(false)
 
   // Entregadores
   const [profesores, setProfesores] = useState([])
@@ -206,12 +208,18 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion, pestanaForzada }
     }
   }
 
-  async function finalizarInscripcion() {
+  function abrirModalRevision() {
+    setMostrarModalRevision(true)
+  }
+
+  async function ejecutarConfirmacionFinal() {
     setFinalizandoInscripcion(true)
     try {
       const resultado = await finalizarInscripcionGraduado(graduado.id)
       setGraduado(valor => ({ ...valor, ...resultado.graduado }))
       emitirCambioSync('EGRESADOS', { egresadoId: graduado.id })
+      setMostrarModalRevision(false)
+      setPestana('credencial')
       setMensaje({ tipo: 'exito', texto: resultado.mensaje })
     } catch (error) {
       setMensaje({ tipo: 'error', texto: error.message || 'No se pudo finalizar la inscripción.' })
@@ -294,23 +302,23 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion, pestanaForzada }
         etiqueta: 'Prestar juramento',
         accion: () => setPestana('juramento')
       }
-    : !perfilCompleto
+    : !perfilCompleto && invitados.length === 0
       ? {
-          titulo: 'Confirmá tus acompañantes',
+          titulo: 'Cargá tus acompañantes',
           detalle: 'Cargá los datos de tus invitados o confirmá tu asistencia individual.',
           etiqueta: 'Gestionar acompañantes',
           accion: () => { setPestana('invitados'); setMostrarForm(false); }
         }
-      : !tienePadrinos
+      : !perfilCompleto
         ? {
-            titulo: 'Elegí tus padrinos',
-            detalle: 'Seleccioná hasta 3 profesores o familiares para la entrega de diploma.',
-            etiqueta: 'Elegir padrinos',
-            accion: () => setPestana('entregadores')
+            titulo: 'Revisá y confirmá tu selección',
+            detalle: 'Verificá tu juramento, tus acompañantes e invitados antes de finalizar el registro oficial.',
+            etiqueta: 'Revisar y Confirmar Selección',
+            accion: () => abrirModalRevision()
           }
         : {
-            titulo: '¡Registro completado con éxito!',
-            detalle: 'Tus datos quedaron confirmados. La institución asignará las butacas automáticamente. Ya podés ver y descargar tu credencial digital.',
+            titulo: '¡Inscripción confirmada!',
+            detalle: 'Tus datos quedaron guardados oficialmente. Podés consultar tu credencial digital o revisar tu selección si necesitás hacer cambios.',
             etiqueta: 'Ver credencial digital',
             accion: () => setPestana('credencial')
           }
@@ -514,7 +522,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion, pestanaForzada }
                 onAgregar={() => { limpiarForm(); setMostrarForm(true); }}
                 onEditar={iniciarEdicion}
                 onEliminar={manejarEliminarInvitado}
-                onFinalizar={finalizarInscripcion}
+                onFinalizar={abrirModalRevision}
               />
             )
           )}
@@ -529,6 +537,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion, pestanaForzada }
               setMostrarSelector={setMostrarSelectorEntregador}
               onAgregar={manejarAgregarEntregador}
               onEliminar={manejarEliminarEntregador}
+              onRevisarFinal={abrirModalRevision}
             />
           )}
 
@@ -544,6 +553,21 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion, pestanaForzada }
           )}
         </section>
       </main>
+
+      {/* MODAL DE VISTA PREVIA Y CONFIRMACIÓN FINAL */}
+      <ModalConfirmacionFinalGraduado
+        abierto={mostrarModalRevision}
+        onCerrar={() => setMostrarModalRevision(false)}
+        onConfirmar={ejecutarConfirmacionFinal}
+        cargando={finalizandoInscripcion}
+        graduado={graduado}
+        invitados={invitados}
+        entregadores={entregadores}
+        fechaCeremonia={fechaCeremonia}
+        lugarCeremonia={lugarCeremonia}
+        onIrASeccion={(sec) => setPestana(sec)}
+      />
+
       {dialogoConfirmacion}
     </div>
   )

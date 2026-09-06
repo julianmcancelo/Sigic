@@ -10,7 +10,8 @@ export function SeccionPadrinos({
   mostrarSelector,
   setMostrarSelector,
   onAgregar,
-  onEliminar
+  onEliminar,
+  onRevisarFinal
 }) {
   return (
     <div className="space-y-8">
@@ -178,6 +179,36 @@ export function SeccionPadrinos({
           </div>
         </div>
       )}
+      {/* Banner de confirmación final desde Padrinos */}
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-purple-50 text-purple-600 font-black">
+            <GraduationCap size={20} />
+          </span>
+          <div>
+            <h3 className="text-xs font-black text-slate-800">
+              {entregadores.length > 0 ? `${entregadores.length} de 3 padrinos asignados` : '¿Preferís no designar padrinos específicos?'}
+            </h3>
+            <p className="mt-0.5 text-[10.5px] text-slate-500">
+              {entregadores.length > 0
+                ? 'Podés revisar el resumen consolidado de toda tu inscripción antes de confirmar.'
+                : 'Podés continuar sin padrinos. La entrega del título la realizará la autoridad protocolar del estrado.'}
+            </p>
+          </div>
+        </div>
+        
+        {typeof onRevisarFinal === 'function' && (
+          <button
+            id="btn-revisar-final-padrinos"
+            type="button"
+            onClick={onRevisarFinal}
+            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-slate-900 hover:bg-emerald-600 px-5 text-xs font-black uppercase tracking-wider text-white shadow-md transition-all active:scale-95 cursor-pointer shrink-0"
+          >
+            <span>Revisar y Confirmar Todo</span> &rarr;
+          </button>
+        )}
+      </div>
+
     </div>
   )
 }

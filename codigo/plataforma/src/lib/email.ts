@@ -439,38 +439,115 @@ export function generarPlantillaRecuperacionContrasena(nombre: string, enlace: s
     </html>`;
 }
 
-/** Aviso único tras finalizar la autogestión; el graduado conserva acceso para corregir datos. */
-export function generarPlantillaCierreInscripcion(nombre: string, hostBase: string) {
+export type DetalleCierreInscripcion = {
+  formulaJuramento?: string;
+  acompanantes?: Array<{ nombre: string; relacion?: string; discapacidad?: boolean }>;
+  padrinos?: Array<{ nombre: string; tipo?: string; orden?: number }>;
+  ceremonia?: string;
+  fecha?: string;
+  lugar?: string;
+  fechaLimite?: string;
+};
+
+/** Aviso tras finalizar o confirmar la autogestión con resumen detallado y plazos de modificación. */
+export function generarPlantillaCierreInscripcion(
+  nombre: string,
+  hostBase: string,
+  detalle: DetalleCierreInscripcion = {}
+) {
   const acceso = `${hostBase}/`;
   const logo = 'https://raw.githubusercontent.com/julianmcancelo/Sigic/master/codigo/plataforma/public/logo-oficial.png';
+  
+  const formulaTexto = detalle.formulaJuramento || 'Por la Patria';
+  const fechaCeremonia = formatearFechaLegible(detalle.fecha || '');
+  const fechaLimiteTexto = detalle.fechaLimite ? formatearFechaLegible(detalle.fechaLimite) : null;
+  const listaAcompanantes = detalle.acompanantes || [];
+  const listaPadrinos = detalle.padrinos || [];
+
   return `
     <!DOCTYPE html>
     <html lang="es">
-    <head><meta charset="UTF-8"><title>Inscripción Confirmada</title></head>
+    <head><meta charset="UTF-8"><title>Inscripción Confirmada · SiGIC</title></head>
     <body style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
       <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#f1f5f9">
         <tr><td align="center" style="padding:40px 15px;">
-          <table width="560" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="max-width:560px;border:1px solid #e2e8f0;border-radius:24px;overflow:hidden;box-shadow:0 15px 30px rgba(0,0,0,0.06);">
-            <tr><td bgcolor="#071b34" style="padding:32px;text-align:center;border-bottom:4px solid #0284c7;">
+          <table width="580" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="max-width:580px;border:1px solid #e2e8f0;border-radius:24px;overflow:hidden;box-shadow:0 15px 35px rgba(0,0,0,0.06);">
+            
+            {/* CABECERA */}
+            <tr><td bgcolor="#071b34" style="padding:32px 25px;text-align:center;border-bottom:4px solid #059669;">
               <img src="${logo}" alt="SiGIC" width="60" height="60" style="display:inline-block;border-radius:12px;background:#ffffff;padding:4px;" />
-              <p style="margin:10px 0 0;color:#38bdf8;font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;">Datos Guardados</p>
-              <h1 style="margin:4px 0 0;color:#ffffff;font-size:22px;font-weight:800;">Hola, ${escaparHTML(nombre)}</h1>
+              <p style="margin:12px 0 0;color:#34d399;font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;">Confirmación de Registro</p>
+              <h1 style="margin:4px 0 0;color:#ffffff;font-size:22px;font-weight:800;">¡Tu selección quedó confirmada, ${escaparHTML(nombre)}!</h1>
             </td></tr>
-            <tr><td style="padding:35px;font-size:15px;line-height:1.65;color:#334155;">
-              <p style="margin:0 0 16px;">Tus datos de participación, fórmula de juramento y registro de acompañantes quedaron guardados correctamente en el sistema.</p>
-              <p style="margin:0 0 28px;">Podés reingresar en cualquier momento antes de la fecha límite para consultar tus butacas o actualizar información.</p>
-              <table cellspacing="0" cellpadding="0" border="0" align="center">
-                <tr><td bgcolor="#0284c7" style="border-radius:12px;">
-                  <a href="${acceso}" style="display:inline-block;padding:15px 32px;background:#0284c7;color:#ffffff;text-decoration:none;font-weight:800;font-size:14px;border-radius:12px;">Revisar Mi Inscripción</a>
+
+            {/* CUERPO */}
+            <tr><td style="padding:32px 28px;font-size:14px;line-height:1.6;color:#334155;">
+              <p style="margin:0 0 18px;font-size:15px;color:#1e293b;">
+                Hemos registrado formalmente tus elecciones para el acto de colación en <strong>${escaparHTML(detalle.ceremonia || 'la Ceremonia Oficial')}</strong>.
+              </p>
+
+              {/* RESUMEN DE ELECCIONES */}
+              <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#f8fafc" style="border:1px solid #e2e8f0;border-radius:16px;margin:0 0 24px;overflow:hidden;">
+                <tr><td style="padding:16px 20px;border-bottom:1px solid #e2e8f0;">
+                  <span style="font-size:10px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:1px;display:block;">Fórmula de Juramento</span>
+                  <strong style="font-size:14px;color:#0f172a;display:block;margin-top:2px;">${escaparHTML(formulaTexto)}</strong>
+                </td></tr>
+
+                <tr><td style="padding:16px 20px;border-bottom:1px solid #e2e8f0;">
+                  <span style="font-size:10px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:1px;display:block;">Acompañantes Registrados (${listaAcompanantes.length})</span>
+                  ${listaAcompanantes.length > 0
+                    ? `<ul style="margin:6px 0 0;padding-left:18px;color:#334155;font-size:13px;">
+                        ${listaAcompanantes.map(a => `<li><strong>${escaparHTML(a.nombre)}</strong> ${a.relacion ? `(${escaparHTML(a.relacion)})` : ''} ${a.discapacidad ? '· <em>Accesible</em>' : ''}</li>`).join('')}
+                       </ul>`
+                    : '<span style="font-size:13px;color:#64748b;display:block;margin-top:2px;">Asistencia individual sin acompañantes.</span>'
+                  }
+                </td></tr>
+
+                ${listaPadrinos.length > 0 ? `
+                  <tr><td style="padding:16px 20px;">
+                    <span style="font-size:10px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:1px;display:block;">Padrinos / Entregadores (${listaPadrinos.length}/3)</span>
+                    <ul style="margin:6px 0 0;padding-left:18px;color:#334155;font-size:13px;">
+                      ${listaPadrinos.map(p => `<li>${p.orden ? `${p.orden}° ` : ''}<strong>${escaparHTML(p.nombre)}</strong> (${p.tipo === 'PROFESOR' ? 'Docente' : 'Familiar'})</li>`).join('')}
+                    </ul>
+                  </td></tr>
+                ` : ''}
+              </table>
+
+              {/* AVISO DE PLAZOS Y BAJAS */}
+              <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:14px;padding:16px 18px;margin:0 0 24px;">
+                <p style="margin:0 0 8px;font-weight:800;font-size:12px;color:#166534;text-transform:uppercase;letter-spacing:0.5px;">
+                  🗓️ Plazos y Modificaciones
+                </p>
+                <p style="margin:0 0 8px;font-size:13px;color:#15803d;line-height:1.5;">
+                  Podés volver a ingresar al portal y actualizar tus datos <strong>en cualquier momento antes de la fecha límite institucional${fechaLimiteTexto ? ` (${fechaLimiteTexto} hs)` : ''}</strong>.
+                </p>
+                <p style="margin:0;font-size:12px;color:#166534;line-height:1.5;">
+                  ⚠️ <strong>En caso de ausencia:</strong> Si alguno de tus acompañantes no va a poder asistir, te pedimos retirarlo desde el portal antes de la fecha límite para poder reasignar su lugar a otro egresado.
+                </p>
+              </div>
+
+              {/* BOTON DE ACCESO */}
+              <table cellspacing="0" cellpadding="0" border="0" align="center" style="margin:10px auto 10px;">
+                <tr><td bgcolor="#059669" style="border-radius:12px;box-shadow:0 6px 14px rgba(5,150,105,0.25);">
+                  <a href="${acceso}" style="display:inline-block;padding:15px 34px;background:#059669;color:#ffffff;text-decoration:none;font-weight:800;font-size:14px;border-radius:12px;letter-spacing:0.3px;">
+                    Ver Mi Credencial / Modificar Selección &rarr;
+                  </a>
                 </td></tr>
               </table>
+
             </td></tr>
-            <tr><td bgcolor="#0f172a" style="padding:18px;text-align:center;color:#64748b;font-size:10px;">Instituto Tecnológico Beltrán · SiGIC</td></tr>
+
+            {/* FOOTER */}
+            <tr><td bgcolor="#0f172a" style="padding:20px;text-align:center;color:#64748b;font-size:10px;border-top:1px solid #1e293b;">
+              <p style="margin:0 0 4px;font-weight:700;color:#cbd5e1;text-transform:uppercase;letter-spacing:1px;">Instituto Tecnológico Beltrán</p>
+              <p style="margin:0;color:#64748b;">SiGIC · Sistema Institucional de Gestión de Colaciones</p>
+            </td></tr>
           </table>
         </td></tr>
       </table>
     </body>
-    </html>`;
+    </html>
+  `;
 }
 
 export type AcompananteCredencial = {

@@ -161,10 +161,17 @@ export function ListaAcompanantes({
             </div>
           </div>
           {perfilCompleto ? (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-100/80 text-emerald-800 rounded-xl text-xs font-black">
-                <CircleCheck size={14} /> Grupo Confirmado
+                <CircleCheck size={14} /> Grupo Guardado
               </span>
+              <button
+                type="button"
+                onClick={onFinalizar}
+                className="inline-flex min-h-9 items-center justify-center gap-1.5 rounded-xl bg-slate-900 hover:bg-emerald-600 px-3.5 text-[10px] font-black uppercase tracking-wider text-white transition active:scale-95 cursor-pointer"
+              >
+                <span>Revisar Todo</span> <ChevronRight size={13} />
+              </button>
             </div>
           ) : (
             <button
@@ -172,7 +179,7 @@ export function ListaAcompanantes({
               disabled={finalizandoInscripcion}
               className="inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 text-[10px] font-black uppercase tracking-wider text-white transition hover:bg-sky-600 active:scale-95 disabled:opacity-60 cursor-pointer"
             >
-              {finalizandoInscripcion ? 'Guardando...' : 'Guardar y confirmar grupo'} <ChevronRight size={14} />
+              {finalizandoInscripcion ? 'Guardando...' : 'Guardar y revisar selección'} <ChevronRight size={14} />
             </button>
           )}
         </div>

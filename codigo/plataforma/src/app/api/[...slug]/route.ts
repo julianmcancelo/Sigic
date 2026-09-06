@@ -3231,21 +3231,52 @@ export async function PUT(
       if (!autorizado) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
       const resultado = await query(
-        `SELECT id, nombre, correo, perfil_finalizado_en, aviso_edicion_enviado_en
-         FROM egresados WHERE id = $1`,
+        `SELECT e.id, e.nombre, e.correo, e.perfil_finalizado_en, e.aviso_edicion_enviado_en,
+                e.formula_juramento, c.nombre AS ceremonia_nombre, c.fecha AS ceremonia_fecha,
+                c.lugar AS ceremonia_lugar, c.fecha_limite_confirmacion, c.fecha_limite_grupo
+         FROM egresados e
+         LEFT JOIN ceremonias c ON c.id = e.ceremonia_id
+         WHERE e.id = $1`,
         [id]
       );
       const graduado = resultado.rows[0];
       if (!graduado) return NextResponse.json({ error: 'Graduado no encontrado' }, { status: 404, headers });
 
+      const invitadosRes = await query(
+        'SELECT nombre, relacion, discapacidad FROM invitados WHERE egresado_id = $1 ORDER BY creado_en ASC',
+        [id]
+      );
+      const entregadoresRes = await query(
+        `SELECT ent.nombre as entregador_nombre, ent.tipo, ent.orden, p.nombre as profesor_nombre
+         FROM entregadores ent
+         LEFT JOIN profesores p ON ent.profesor_id = p.id
+         WHERE ent.egresado_id = $1
+         ORDER BY ent.orden ASC`,
+        [id]
+      ).catch(() => ({ rows: [] }));
+
+      const padrinosDetalle = entregadoresRes.rows.map((r: any) => ({
+        nombre: r.profesor_nombre || r.entregador_nombre || 'Padrino asignado',
+        tipo: r.tipo,
+        orden: Number(r.orden)
+      }));
+
       let avisoEnviado = false;
-      if (!graduado.aviso_edicion_enviado_en && graduado.correo) {
+      if (graduado.correo) {
         try {
-          const hostBase = new URL(req.url).origin;
+          const hostBase = obtenerOrigenPublico(req);
           await enviarCorreo(
             graduado.correo,
-            'Tu inscripción quedó guardada · SiGIC',
-            generarPlantillaCierreInscripcion(graduado.nombre, hostBase)
+            `Inscripción confirmada · ${graduado.ceremonia_nombre || 'Ceremonia de Colación'}`,
+            generarPlantillaCierreInscripcion(graduado.nombre, hostBase, {
+              formulaJuramento: graduado.formula_juramento,
+              ceremonia: graduado.ceremonia_nombre,
+              fecha: graduado.ceremonia_fecha,
+              lugar: graduado.ceremonia_lugar,
+              fechaLimite: graduado.fecha_limite_confirmacion || graduado.fecha_limite_grupo,
+              acompanantes: invitadosRes.rows,
+              padrinos: padrinosDetalle
+            })
           );
           avisoEnviado = true;
         } catch (error) {
@@ -3269,8 +3300,8 @@ export async function PUT(
       return NextResponse.json({
         ok: true,
         mensaje: avisoEnviado
-          ? 'Inscripción finalizada. Enviamos un correo único para que puedas volver a editarla.'
-          : 'Inscripción finalizada. Podés volver a editarla desde el portal cuando lo necesites.',
+          ? 'Inscripción confirmada y correo de respaldo enviado. Podés volver a editar antes de la fecha límite.'
+          : 'Inscripción confirmada. Podés volver a editar desde el portal antes de la fecha límite.',
         avisoEnviado,
         graduado: actualizado.rows[0],
       }, { headers });
