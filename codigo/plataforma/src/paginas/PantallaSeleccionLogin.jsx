@@ -257,13 +257,7 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
           <div className="mt-8 flex items-center justify-center gap-3">
             <button
               type="button"
-              onClick={() => {
-                if (accesoOculto) {
-                  setRevelado(true)
-                } else {
-                  onSeleccionarAdmin()
-                }
-              }}
+              onClick={onSeleccionarAdmin}
               className="inline-flex items-center gap-2 rounded-full bg-slate-900 hover:bg-slate-800 px-6 py-2.5 text-xs font-black text-white shadow-md shadow-slate-900/15 transition-all duration-200 active:scale-95 cursor-pointer"
             >
               <LogIn size={15} />
