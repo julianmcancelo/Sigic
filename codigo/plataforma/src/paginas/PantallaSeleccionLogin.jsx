@@ -147,42 +147,42 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
 
   if (modoDemo) {
     return (
-      <main className="sigic-auth-console sigic-login-selector px-4 py-16 text-white">
-        <div className="absolute inset-0 pointer-events-none opacity-30 [background-image:radial-gradient(circle_at_20%_20%,rgba(34,211,238,.35),transparent_34%),radial-gradient(circle_at_80%_80%,rgba(16,185,129,.25),transparent_30%)]" />
+      <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-16 text-slate-800 bg-gradient-to-tr from-slate-100 via-sky-50/50 to-blue-50/40">
+        <div className="absolute inset-0 pointer-events-none opacity-40 [background-image:radial-gradient(circle_at_20%_20%,rgba(56,189,248,.18),transparent_34%),radial-gradient(circle_at_80%_80%,rgba(99,102,241,.12),transparent_30%)]" />
         <section className="relative z-10 w-full max-w-3xl text-center" aria-labelledby="demo-title">
-          <img src="/logo.png" alt="SiGIC" className="mx-auto h-20 w-20 rounded-2xl bg-white object-cover shadow-2xl" />
-          <p className="mt-7 text-xs font-black uppercase tracking-[0.25em] text-cyan-300">Entorno de demostración</p>
-          <h1 id="demo-title" className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">¿Cómo querés ingresar?</h1>
-          <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-slate-300">Elegí un perfil para recorrer SiGIC. No necesitás usuario ni contraseña y todos los datos son ficticios.</p>
+          <img src="/logo.png" alt="SiGIC" className="mx-auto h-20 w-20 rounded-2xl bg-white object-cover shadow-xl border border-slate-200/80 p-1" />
+          <p className="mt-7 text-xs font-black uppercase tracking-[0.25em] text-sky-600">Entorno de demostración</p>
+          <h1 id="demo-title" className="mt-3 text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">¿Cómo querés ingresar?</h1>
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-slate-600">Elegí un perfil para recorrer SiGIC. No necesitás usuario ni contraseña y todos los datos son ficticios.</p>
 
           <div className="mt-10 grid gap-4 sm:grid-cols-2">
-            <button onClick={onSeleccionarAdmin} className="group flex min-h-40 flex-col items-start justify-between rounded-3xl border border-white/15 bg-white/10 p-6 text-left shadow-xl backdrop-blur transition hover:-translate-y-1 hover:border-cyan-300 hover:bg-cyan-400/15 focus-visible:outline focus-visible:outline-4 focus-visible:outline-cyan-300">
-              <span className="grid h-12 w-12 place-items-center rounded-2xl bg-cyan-300 text-slate-950"><Users size={24} aria-hidden="true" /></span>
-              <span><strong className="block text-xl">Administrador</strong><small className="mt-1 block text-sm text-slate-300">Gestionar graduados, ceremonias, ingresos y reportes</small></span>
-              <span className="flex items-center gap-1 text-xs font-black uppercase tracking-wider text-cyan-300">Ingresar <ChevronRight size={15} aria-hidden="true" /></span>
+            <button onClick={onSeleccionarAdmin} className="group flex min-h-40 flex-col items-start justify-between rounded-3xl border border-slate-200/90 bg-white/90 p-6 text-left shadow-md shadow-slate-200/50 backdrop-blur transition hover:-translate-y-1 hover:border-sky-400 hover:shadow-xl hover:bg-white focus-visible:outline focus-visible:outline-4 focus-visible:outline-sky-300 cursor-pointer">
+              <span className="grid h-12 w-12 place-items-center rounded-2xl bg-sky-100 text-sky-700 group-hover:bg-sky-600 group-hover:text-white transition-colors"><Users size={24} aria-hidden="true" /></span>
+              <span><strong className="block text-xl text-slate-900">Administrador</strong><small className="mt-1 block text-sm text-slate-500">Gestionar graduados, ceremonias, ingresos y reportes</small></span>
+              <span className="flex items-center gap-1 text-xs font-black uppercase tracking-wider text-sky-600">Ingresar <ChevronRight size={15} aria-hidden="true" /></span>
             </button>
 
-            <button onClick={onSeleccionarEgresado} className="group flex min-h-40 flex-col items-start justify-between rounded-3xl border border-white/15 bg-white/10 p-6 text-left shadow-xl backdrop-blur transition hover:-translate-y-1 hover:border-emerald-300 hover:bg-emerald-400/15 focus-visible:outline focus-visible:outline-4 focus-visible:outline-emerald-300">
-              <span className="grid h-12 w-12 place-items-center rounded-2xl bg-emerald-300 text-slate-950"><GraduationCap size={24} aria-hidden="true" /></span>
-              <span><strong className="block text-xl">Egresado</strong><small className="mt-1 block text-sm text-slate-300">Consultar invitación, acompañantes, credencial y ubicación</small></span>
-              <span className="flex items-center gap-1 text-xs font-black uppercase tracking-wider text-emerald-300">Ingresar <ChevronRight size={15} aria-hidden="true" /></span>
+            <button onClick={onSeleccionarEgresado} className="group flex min-h-40 flex-col items-start justify-between rounded-3xl border border-slate-200/90 bg-white/90 p-6 text-left shadow-md shadow-slate-200/50 backdrop-blur transition hover:-translate-y-1 hover:border-emerald-400 hover:shadow-xl hover:bg-white focus-visible:outline focus-visible:outline-4 focus-visible:outline-emerald-300 cursor-pointer">
+              <span className="grid h-12 w-12 place-items-center rounded-2xl bg-emerald-100 text-emerald-700 group-hover:bg-emerald-600 group-hover:text-white transition-colors"><GraduationCap size={24} aria-hidden="true" /></span>
+              <span><strong className="block text-xl text-slate-900">Egresado</strong><small className="mt-1 block text-sm text-slate-500">Consultar invitación, acompañantes, credencial y ubicación</small></span>
+              <span className="flex items-center gap-1 text-xs font-black uppercase tracking-wider text-emerald-600">Ingresar <ChevronRight size={15} aria-hidden="true" /></span>
             </button>
           </div>
 
-          <p className="mt-10 text-[9px] font-bold uppercase tracking-[0.2em] text-slate-500 font-mono">{VERSION_LABEL}</p>
+          <p className="mt-10 text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400 font-mono">{VERSION_LABEL}</p>
         </section>
       </main>
     )
   }
 
   return (
-    <main className="sigic-auth-console sigic-login-selector relative flex min-h-screen flex-col items-center justify-center overflow-hidden select-none text-slate-800 font-sans">
-      {/* Fondo con gradiente claro y orbes */}
-      <div className="absolute inset-0 pointer-events-none bg-radial-light" />
+    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden select-none text-slate-800 font-sans bg-gradient-to-tr from-slate-100 via-sky-50/40 to-blue-50/30">
+      {/* Fondo con gradiente claro y orbes suaves */}
+      <div className="absolute inset-0 pointer-events-none opacity-60 [background-image:radial-gradient(circle_at_20%_20%,rgba(56,189,248,.15),transparent_35%),radial-gradient(circle_at_80%_80%,rgba(99,102,241,.1),transparent_35%)]" />
 
       {/* Orbes de luz decorativos de fondo */}
-      <div className="absolute top-1/3 left-1/4 h-[350px] w-[350px] rounded-full bg-cyan-400/10 blur-[100px] animate-pulse" />
-      <div className="absolute bottom-1/3 right-1/4 h-[350px] w-[350px] rounded-full bg-indigo-400/10 blur-[100px] animate-pulse" style={{ animationDelay: '2s' }} />
+      <div className="absolute top-1/3 left-1/4 h-[350px] w-[350px] rounded-full bg-sky-300/15 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-1/3 right-1/4 h-[350px] w-[350px] rounded-full bg-indigo-300/15 blur-[120px] pointer-events-none" />
 
       {/* Canvas para partículas de Thanos */}
       {snapActivo && (
@@ -194,7 +194,7 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
 
       {/* Modo Mantenimiento */}
       {enMantenimiento && (
-        <div className="sigic-login-panel relative z-10 flex flex-col items-center max-w-sm w-full px-8 py-12 text-center animate-fade-in">
+        <div className="relative z-10 flex flex-col items-center max-w-sm w-full px-8 py-12 text-center bg-white/95 rounded-[32px] border border-slate-200/90 shadow-xl shadow-slate-200/50 animate-fade-in">
           <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-100 text-amber-500 mb-6 shadow-inner">
             <Settings size={32} className="animate-[spin_4s_linear_infinite]" />
           </div>
@@ -216,7 +216,7 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
 
       {/* Contenedor Principal (Tarjeta Glassmorphism Clara) */}
       {!revelado && !enMantenimiento && (
-        <div className={`sigic-login-panel relative z-10 flex flex-col items-center max-w-sm w-full px-8 py-10 text-center transition-all ${
+        <div className={`relative z-10 flex flex-col items-center max-w-sm w-full px-8 py-10 text-center bg-white/90 backdrop-blur-2xl border border-white/90 rounded-[32px] shadow-[0_20px_60px_-15px_rgba(15,23,42,0.08)] transition-all ${
           snapActivo ? 'animate-thanos pointer-events-none' : ''
         }`}>
           
@@ -232,24 +232,24 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
             title={fraseTooltip}
           >
             {/* Anillos decorativos */}
-            <div className="absolute inset-0 rounded-full border border-cyan-500/10 animate-spin-slow pointer-events-none" />
-            <div className="absolute inset-3 rounded-full border border-dashed border-indigo-500/10 animate-spin-reverse pointer-events-none" />
-            <div className="absolute inset-6 rounded-full bg-cyan-500/5 blur-xl pointer-events-none" />
+            <div className="absolute inset-0 rounded-full border border-sky-400/20 animate-spin-slow pointer-events-none" />
+            <div className="absolute inset-3 rounded-full border border-dashed border-indigo-400/20 animate-spin-reverse pointer-events-none" />
+            <div className="absolute inset-6 rounded-full bg-sky-400/10 blur-xl pointer-events-none" />
             
             <img
               src="/logo.png"
               alt="SiGIC"
-              className="h-20 w-auto object-contain relative z-10 logo-flotar filter drop-shadow-[0_8px_16px_rgba(14,165,233,0.1)]"
+              className="h-20 w-auto object-contain relative z-10 logo-flotar filter drop-shadow-[0_8px_16px_rgba(14,165,233,0.15)]"
             />
           </div>
 
           {/* Branding Principal */}
           <div className="space-y-2.5">
-            <h1 className="text-3xl font-black tracking-[0.12em] text-[#1e293b]">
+            <h1 className="text-3xl font-black tracking-[0.12em] text-slate-900">
               SiGIC
             </h1>
-            <div className="mx-auto h-[2px] w-12 bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent" />
-            <p className="text-xs text-slate-500 font-semibold max-w-xs leading-relaxed">
+            <div className="mx-auto h-[2px] w-12 bg-gradient-to-r from-transparent via-sky-500/50 to-transparent" />
+            <p className="text-xs text-slate-600 font-semibold max-w-xs leading-relaxed">
               Sistema de Gestión de Ceremonias de Colación
             </p>
           </div>
@@ -257,7 +257,7 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
           <button
             type="button"
             onClick={onSeleccionarAdmin}
-            className="group mt-8 flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 px-5 py-3.5 text-sm font-black text-white shadow-lg shadow-slate-900/15 transition-all hover:-translate-y-0.5 hover:bg-cyan-600 hover:shadow-cyan-600/20 active:translate-y-0 active:scale-[0.98] focus-visible:outline focus-visible:outline-4 focus-visible:outline-cyan-300"
+            className="group mt-8 flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 hover:bg-sky-600 px-5 py-3.5 text-sm font-black text-white shadow-lg shadow-slate-900/10 transition-all hover:-translate-y-0.5 hover:shadow-sky-600/25 active:translate-y-0 active:scale-[0.98] focus-visible:outline focus-visible:outline-4 focus-visible:outline-sky-300 cursor-pointer"
           >
             <LogIn size={18} aria-hidden="true" className="transition-transform group-hover:translate-x-0.5" />
             Ingresar
@@ -270,7 +270,7 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
             </p>
             <button
               onClick={() => setMostrarInfo(true)}
-              className="block w-full text-[8px] font-bold uppercase tracking-[0.15em] text-slate-400/60 hover:text-cyan-600 transition-colors cursor-pointer animate-pulse"
+              className="block w-full text-[8px] font-bold uppercase tracking-[0.15em] text-slate-400/70 hover:text-sky-600 transition-colors cursor-pointer"
             >
               Proyecto Final · PPT3 · Analista de Sistemas
             </button>
@@ -281,8 +281,8 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
 
       {/* Opciones de Login (Reveladas con efecto de reconstrucción tras la desintegración de Thanos) */}
       {revelado && (
-        <div className="sigic-login-panel relative z-10 flex flex-col items-center max-w-sm w-full px-8 py-10 text-center animate-fade-slide-up">
-          <p className="text-[10px] font-black uppercase tracking-widest text-cyan-600 mb-4">
+        <div className="relative z-10 flex flex-col items-center max-w-sm w-full px-8 py-10 text-center bg-white/90 backdrop-blur-2xl border border-white/90 rounded-[32px] shadow-[0_20px_60px_-15px_rgba(15,23,42,0.08)] animate-fade-slide-up">
+          <p className="text-[10px] font-black uppercase tracking-widest text-sky-600 mb-4">
             Panel de Autenticación Habilitado
           </p>
           
@@ -290,51 +290,51 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
             {/* Opción Admin */}
             <button
               onClick={onSeleccionarAdmin}
-              className="group relative flex w-full items-center gap-3 rounded-2xl border border-slate-100 bg-white p-3 transition-all hover:bg-slate-50 hover:border-cyan-500/30 active:scale-[0.98] cursor-pointer text-left shadow-sm"
+              className="group relative flex w-full items-center gap-3 rounded-2xl border border-slate-200/90 bg-white p-3.5 transition-all hover:bg-sky-50/50 hover:border-sky-300 active:scale-[0.98] cursor-pointer text-left shadow-xs hover:shadow-md"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-50 text-cyan-600 transition-colors group-hover:bg-cyan-600 group-hover:text-white">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-600 transition-colors group-hover:bg-sky-600 group-hover:text-white">
                 <Users size={18} />
               </div>
               <div>
                 <p className="text-[12px] font-black text-slate-800">Administrador</p>
                 <p className="text-[10px] text-slate-400 font-medium">Organizadores y seguridad</p>
               </div>
-              <ChevronRight size={14} className="absolute right-4 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-cyan-500" />
+              <ChevronRight size={14} className="absolute right-4 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-sky-500" />
             </button>
 
             {/* Opción Egresado */}
             <button
               onClick={onSeleccionarEgresado}
-              className="group relative flex w-full items-center gap-3 rounded-2xl border border-slate-100 bg-white p-3 transition-all hover:bg-slate-50 hover:border-indigo-500/30 active:scale-[0.98] cursor-pointer text-left shadow-sm"
+              className="group relative flex w-full items-center gap-3 rounded-2xl border border-slate-200/90 bg-white p-3.5 transition-all hover:bg-emerald-50/50 hover:border-emerald-300 active:scale-[0.98] cursor-pointer text-left shadow-xs hover:shadow-md"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 transition-colors group-hover:bg-indigo-600 group-hover:text-white">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 transition-colors group-hover:bg-emerald-600 group-hover:text-white">
                 <GraduationCap size={18} />
               </div>
               <div>
                 <p className="text-[12px] font-black text-slate-800">Graduado</p>
                 <p className="text-[10px] text-slate-400 font-medium">Ingreso de invitados y datos</p>
               </div>
-              <ChevronRight size={14} className="absolute right-4 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-indigo-500" />
+              <ChevronRight size={14} className="absolute right-4 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-emerald-500" />
             </button>
 
             {/* Opción Manual */}
             <button
               onClick={onSeleccionarManual}
-              className="group relative flex w-full items-center gap-3 rounded-2xl border border-slate-100 bg-white p-3 transition-all hover:bg-slate-50 hover:border-slate-350/30 active:scale-[0.98] cursor-pointer text-left shadow-sm"
+              className="group relative flex w-full items-center gap-3 rounded-2xl border border-slate-200/90 bg-white p-3.5 transition-all hover:bg-slate-50 hover:border-slate-300 active:scale-[0.98] cursor-pointer text-left shadow-xs hover:shadow-md"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition-colors group-hover:bg-slate-500 group-hover:text-white">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition-colors group-hover:bg-slate-700 group-hover:text-white">
                 <BookOpen size={18} />
               </div>
               <div>
                 <p className="text-[12px] font-black text-slate-800">Manual de Usuario</p>
                 <p className="text-[10px] text-slate-400 font-medium">Guías de uso del sistema</p>
               </div>
-              <ChevronRight size={14} className="absolute right-4 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-slate-500" />
+              <ChevronRight size={14} className="absolute right-4 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-slate-600" />
             </button>
           </div>
 
           {/* Footer */}
-          <div className="text-center opacity-50">
+          <div className="text-center opacity-60">
             <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400">
               Instituto Tecnológico Beltrán
             </p>
