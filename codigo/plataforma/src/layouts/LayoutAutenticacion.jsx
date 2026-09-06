@@ -1,5 +1,5 @@
 import React from 'react'
-import { ShieldCheck, ArrowLeft, Calendar, QrCode, Users } from 'lucide-react'
+import { ShieldCheck, ArrowLeft } from 'lucide-react'
 
 export function LayoutAutenticacion({ children, centrado = false, onVolver }) {
   return (
@@ -28,22 +28,24 @@ export function LayoutAutenticacion({ children, centrado = false, onVolver }) {
           : 'max-w-4xl grid grid-cols-1 md:grid-cols-12'
       }`}>
         
-        {/* Panel Izquierdo: Branding Institucional Beltrán */}
+        {/* Panel Izquierdo: Branding Institucional Beltrán con Visual Original de Anfiteatro */}
         {!centrado && (
-          <section className="md:col-span-5 bg-gradient-to-br from-[#0c1a2e] via-[#0f2744] to-[#0a1829] p-8 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden border-b md:border-b-0 md:border-r border-slate-800">
+          <section className="md:col-span-5 bg-gradient-to-br from-[#0a1526] via-[#0d1e38] to-[#07111e] p-8 sm:p-10 text-white flex flex-col justify-between relative overflow-hidden border-b md:border-b-0 md:border-r border-slate-800">
             
-            {/* Resplandores ambientales internos */}
-            <div className="absolute -top-24 -left-24 w-56 h-56 rounded-full bg-sky-500/20 blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-24 -right-24 w-56 h-56 rounded-full bg-blue-600/20 blur-3xl pointer-events-none" />
+            {/* Resplandores ambientales y red sutil */}
+            <div className="absolute -top-28 -left-28 w-64 h-64 rounded-full bg-sky-500/15 blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-28 -right-28 w-64 h-64 rounded-full bg-blue-600/20 blur-3xl pointer-events-none" />
+            <div className="absolute inset-0 opacity-[0.04] bg-[radial-gradient(#38bdf8_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
 
+            {/* Cabecera del Panel */}
             <div className="relative z-10 space-y-6">
               <div className="flex items-center gap-3">
-                <div className="h-12 w-12 rounded-2xl bg-white p-2 shadow-lg flex items-center justify-center border border-white/20 shrink-0">
+                <div className="h-12 w-12 rounded-2xl bg-white p-2 shadow-xl shadow-sky-950/50 flex items-center justify-center border border-white/20 shrink-0">
                   <img src="/logo.png" alt="SiGIC" className="h-full w-full object-contain" />
                 </div>
                 <div>
-                  <span className="inline-block text-[9px] font-black uppercase tracking-[0.2em] text-sky-400">
-                    Plataforma Oficial
+                  <span className="inline-block text-[9px] font-black uppercase tracking-[0.22em] text-sky-400">
+                    Instituto Beltrán
                   </span>
                   <h1 className="text-xl font-black text-white tracking-tight leading-tight">
                     SiGIC
@@ -52,38 +54,76 @@ export function LayoutAutenticacion({ children, centrado = false, onVolver }) {
               </div>
 
               <div>
-                <h2 className="text-2xl font-black text-white tracking-tight leading-snug">
+                <h2 className="text-2xl sm:text-[26px] font-black text-white tracking-tight leading-snug">
                   Gestión Integral de Colaciones
                 </h2>
-                <p className="text-xs text-slate-300/90 font-medium leading-relaxed mt-2">
-                  Sistema de administración y acreditación para ceremonias de graduación del Instituto Tecnológico Beltrán.
+                <p className="text-xs text-slate-300/85 font-normal leading-relaxed mt-2.5">
+                  El protocolo institucional y la acreditación de grado, unificados en una sola experiencia digital.
                 </p>
               </div>
 
-              {/* Características institucionales en píldoras */}
-              <div className="space-y-2.5 pt-2">
-                <div className="flex items-center gap-3 rounded-xl bg-white/[0.06] border border-white/[0.08] px-3.5 py-2.5 backdrop-blur-sm">
-                  <Calendar size={15} className="text-sky-400 shrink-0" />
-                  <span className="text-xs font-semibold text-slate-200">Cronograma y Aforo en Tiempo Real</span>
-                </div>
-                <div className="flex items-center gap-3 rounded-xl bg-white/[0.06] border border-white/[0.08] px-3.5 py-2.5 backdrop-blur-sm">
-                  <QrCode size={15} className="text-sky-400 shrink-0" />
-                  <span className="text-xs font-semibold text-slate-200">Acreditación Rápida con Código QR</span>
-                </div>
-                <div className="flex items-center gap-3 rounded-xl bg-white/[0.06] border border-white/[0.08] px-3.5 py-2.5 backdrop-blur-sm">
-                  <Users size={15} className="text-sky-400 shrink-0" />
-                  <span className="text-xs font-semibold text-slate-200">Portal de Autogestión para Egresados</span>
+              {/* ══ Visual Original: Anfiteatro Lumínico Ceremonial (Arte SVG Vectorial) ══ */}
+              <div className="relative pt-3 pb-2 flex flex-col items-center justify-center">
+                <div className="w-full max-w-[260px] aspect-[4/3] relative flex items-center justify-center">
+                  
+                  {/* Círculos concéntricos de butacas (Arcos del anfiteatro) */}
+                  <svg viewBox="0 0 240 160" className="w-full h-full drop-shadow-[0_0_15px_rgba(56,189,248,0.25)]">
+                    <defs>
+                      <linearGradient id="arcGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.8" />
+                        <stop offset="100%" stopColor="#818cf8" stopOpacity="0.3" />
+                      </linearGradient>
+                      <radialGradient id="stageGlow" cx="50%" cy="100%" r="80%">
+                        <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.4" />
+                        <stop offset="100%" stopColor="#38bdf8" stopOpacity="0" />
+                      </radialGradient>
+                    </defs>
+
+                    {/* Escenario central */}
+                    <path d="M 70 145 Q 120 120 170 145" stroke="#38bdf8" strokeWidth="2.5" fill="none" opacity="0.9" />
+                    <ellipse cx="120" cy="142" rx="40" ry="14" fill="url(#stageGlow)" />
+                    <text x="120" y="145" textAnchor="middle" fill="#7dd3fc" fontSize="7" fontWeight="bold" letterSpacing="1.5">ESCENARIO</text>
+
+                    {/* Fila 1 de Butacas */}
+                    <path d="M 50 115 Q 120 78 190 115" stroke="rgba(255,255,255,0.12)" strokeWidth="1" strokeDasharray="3 4" fill="none" />
+                    {[55, 75, 95, 120, 145, 165, 185].map((x, i) => {
+                      const y = 115 - Math.sin(((x - 50) / 140) * Math.PI) * 37
+                      return <circle key={'f1-' + i} cx={x} cy={y} r="2.2" fill={i % 3 === 0 ? '#38bdf8' : 'rgba(255,255,255,0.4)'} className={i % 3 === 0 ? 'animate-pulse' : ''} />
+                    })}
+
+                    {/* Fila 2 de Butacas */}
+                    <path d="M 35 90 Q 120 45 205 90" stroke="rgba(255,255,255,0.12)" strokeWidth="1" strokeDasharray="3 4" fill="none" />
+                    {[40, 60, 80, 100, 120, 140, 160, 180, 200].map((x, i) => {
+                      const y = 90 - Math.sin(((x - 35) / 170) * Math.PI) * 45
+                      return <circle key={'f2-' + i} cx={x} cy={y} r="2.2" fill={i % 2 === 0 ? '#818cf8' : 'rgba(255,255,255,0.3)'} />
+                    })}
+
+                    {/* Fila 3 de Butacas */}
+                    <path d="M 20 65 Q 120 12 220 65" stroke="rgba(255,255,255,0.1)" strokeWidth="1" strokeDasharray="3 4" fill="none" />
+                    {[25, 45, 65, 85, 105, 120, 135, 155, 175, 195, 215].map((x, i) => {
+                      const y = 65 - Math.sin(((x - 20) / 200) * Math.PI) * 53
+                      return <circle key={'f3-' + i} cx={x} cy={y} r="2.2" fill={i === 5 ? '#38bdf8' : 'rgba(255,255,255,0.25)'} />
+                    })}
+                  </svg>
+                  
+                  {/* Badge sutil sobre el anfiteatro */}
+                  <div className="absolute bottom-0 text-[10px] font-bold text-sky-300/80 tracking-widest uppercase flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-ping" />
+                    <span>Disposición de Ceremonia</span>
+                  </div>
                 </div>
               </div>
+
             </div>
 
-            <div className="relative z-10 pt-6 mt-6 border-t border-white/10 flex items-center justify-between text-[11px] font-bold text-slate-300">
+            {/* Pie del Panel Izquierdo */}
+            <div className="relative z-10 pt-5 mt-4 border-t border-white/10 flex items-center justify-between text-[11px] font-bold text-slate-300">
               <div className="flex items-center gap-2 text-emerald-400">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                 <ShieldCheck size={15} />
-                <span>Acceso Cifrado SSL</span>
+                <span>Acceso Seguro SSL</span>
               </div>
-              <span className="text-slate-400 text-[10px]">v2.5</span>
+              <span className="text-slate-400 text-[10px] font-mono">v2.5</span>
             </div>
           </section>
         )}
