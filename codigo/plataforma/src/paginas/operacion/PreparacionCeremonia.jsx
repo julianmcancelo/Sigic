@@ -558,7 +558,7 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
               <div className="grid grid-cols-1 gap-1">
                 {[
                   { id: 'egresado', label: 'Sector Graduados', color: 'bg-indigo-600 text-white', desc: 'Primeras filas Platea' },
-                  { id: 'padrino', label: 'Sector Padrinos', color: 'bg-amber-500 text-white', desc: 'Exclusivo padrinos de diploma' },
+                  { id: 'padrino', label: 'Sector Padrinos', color: 'bg-red-500 text-white', desc: 'Exclusivo padrinos de diploma' },
                   { id: 'disponible', label: 'Sector Acompañantes / Libre', color: 'bg-white border border-slate-300 text-slate-700', desc: 'Libre para auto-seating' },
                   { id: 'autoridad', label: 'Autoridades / Estrado', color: 'bg-slate-900 text-white', desc: 'Mesa académica' },
                   { id: 'discapacitado', label: 'Accesibilidad Reducida', color: 'bg-purple-600 text-white', desc: 'Extremos y pasillos' },
@@ -687,12 +687,12 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
                                     key={inv.id}
                                     className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold ${
                                       esPadrino
-                                        ? 'bg-amber-100 border border-amber-300 text-amber-900 font-black'
+                                        ? 'bg-red-100 border border-red-300 text-red-900 font-black'
                                         : 'bg-slate-50 border border-slate-200 text-slate-700'
                                     }`}
                                     title={esPadrino ? 'Padrino de diploma' : 'Acompañante regular'}
                                   >
-                                    {esPadrino && <Award size={9} className="text-amber-700 shrink-0" />}
+                                    {esPadrino && <Award size={9} className="text-red-700 shrink-0" />}
                                     {inv.nombre}{esPadrino ? ' (Padrino)' : ''}: {inv.asiento_id || 'S/B'}
                                   </span>
                                 )

@@ -15,7 +15,7 @@ if (ROLES && !ROLES.padrino) {
 
 const LEYENDA = [
   { rol: 'egresado', color: 'bg-indigo-600', label: 'Graduados' },
-  { rol: 'padrino', color: 'bg-amber-500', label: 'Padrinos' },
+  { rol: 'padrino', color: 'bg-red-500', label: 'Padrinos' },
   { rol: 'autoridad', color: 'bg-slate-900', label: 'Autoridades' },
   { rol: 'discapacitado', color: 'bg-purple-600', label: 'Accesibilidad' },
   { rol: 'reservado', color: 'bg-amber-500', label: 'Reservado' },

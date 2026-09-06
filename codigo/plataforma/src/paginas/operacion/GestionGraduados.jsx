@@ -581,7 +581,7 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
                       <span className="text-[8.5px] font-semibold text-slate-500 inline-flex items-center gap-1">
                         {misInvitados.length} acomp.
                         {misInvitados.some(i => i.es_padrino || i.esPadrino) && (
-                          <span className="text-amber-700 font-bold bg-amber-50 border border-amber-200 px-1 py-0.2 rounded text-[7.5px] uppercase tracking-wider inline-flex items-center gap-0.5" title="Uno o más acompañantes fueron designados padrinos de entrega">
+                          <span className="text-red-700 font-bold bg-red-50 border border-red-200 px-1 py-0.2 rounded text-[7.5px] uppercase tracking-wider inline-flex items-center gap-0.5" title="Uno o más acompañantes fueron designados padrinos de entrega">
                             <Award size={9} /> Incluye padrino
                           </span>
                         )}

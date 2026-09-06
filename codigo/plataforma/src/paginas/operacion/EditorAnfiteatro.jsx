@@ -420,7 +420,7 @@ export function EditorAnfiteatro({ ceremoniaId, onVolver, sinHeader }) {
                   {[
                     { id: 'disponible', label: 'Disponible', color: 'bg-white border border-slate-300 text-slate-600', icono: Armchair },
                     { id: 'egresado', label: 'Graduado', color: 'bg-indigo-600 text-white', icono: GraduationCap },
-                    { id: 'padrino', label: 'Padrinos', color: 'bg-amber-500 text-white', icono: Award },
+                    { id: 'padrino', label: 'Padrinos', color: 'bg-red-500 text-white', icono: Award },
                     { id: 'autoridad', label: 'Autoridad', color: 'bg-slate-900 text-white', icono: ShieldCheck },
                     { id: 'discapacitado', label: 'Accesibilidad', color: 'bg-purple-600 text-white', icono: AlertCircle },
                     { id: 'reservado', label: 'Reservado', color: 'bg-amber-500 text-white', icono: Info },
