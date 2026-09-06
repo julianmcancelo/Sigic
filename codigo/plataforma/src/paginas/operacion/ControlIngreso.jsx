@@ -32,6 +32,7 @@ import {
 } from '../../lib/offline-sync'
 import { useSincronizacion, emitirCambioSync } from '../../lib/sync'
 import { QRCodeSVG } from 'qrcode.react'
+import { ModalResumenDemostracion } from '../../componentes/ModalResumenDemostracion'
 
 // Helper para reproducir sonidos con Web Audio API sin dependencias de audio externas
 function reproducirSonido(tipo = 'exito') {
@@ -131,6 +132,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
   const [cambiandoCeremonia, setCambiandoCeremonia] = useState(false)
   const [stats, setStats] = useState(null)
   const [historialIngresos, setHistorialIngresos] = useState([])
+  const [mostrarResumenFinal, setMostrarResumenFinal] = useState(false)
 
   // Modalidad de Acreditación: 'flutter' (por defecto) o 'respaldo_web'
   const [modalidad, setModalidad] = useState('flutter')
@@ -665,6 +667,16 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
             <span className="hidden sm:inline">{sonidoHabilitado ? 'Sonido' : 'Silencio'}</span>
           </button>
 
+          <button
+            id="btn-cierre-ceremonia-agradecimientos"
+            onClick={() => setMostrarResumenFinal(true)}
+            className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs transition active:scale-95 cursor-pointer shadow-md shadow-emerald-600/20 flex items-center gap-1.5"
+            title="Concluir acto de colación y ver balance y agradecimiento final"
+          >
+            <CheckCircle2 size={14} />
+            <span>Cierre de Ceremonia</span>
+          </button>
+
           {onVolver && (
             <button
               onClick={onVolver}
@@ -1098,6 +1110,24 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
           </div>
 
         </main>
+      )}
+
+      {/* MODAL DE RESUMEN EJECUTIVO, BALANCE Y AGRADECIMIENTO */}
+      {mostrarResumenFinal && (
+        <ModalResumenDemostracion
+          ceremonia={ceremonia}
+          graduados={[]}
+          invitados={[]}
+          butacasAsignadas={stats?.presentes || 0}
+          onCerrar={() => {
+            setMostrarResumenFinal(false)
+            if (onVolver) onVolver()
+          }}
+          onReiniciar={() => {
+            setMostrarResumenFinal(false)
+            window.location.reload()
+          }}
+        />
       )}
     </div>
   )

@@ -329,26 +329,14 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
 
           <button
             type="button"
-            id="btn-despacho-credenciales"
+            id="btn-finalizar-preparacion"
             onClick={() => setMostrarDespachoCredenciales(true)}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white px-2.5 py-1.5 text-[11px] font-bold transition active:scale-95 cursor-pointer shadow-xs"
-            title="Centro de Despacho y Emisión de Credenciales QR"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-500/80 px-3.5 py-1.5 text-[11px] font-black transition active:scale-95 cursor-pointer shadow-xs"
+            title="Finalizar preparación y despachar credenciales QR a los confirmados"
           >
-            <Download size={12} />
-            <span>Despacho QR</span>
+            <CheckCircle2 size={13} />
+            <span>Finalizar y Despachar QR</span>
           </button>
-
-          {onNavegar && (
-            <button
-              type="button"
-              id="btn-finalizar-preparacion"
-              onClick={() => setMostrarResumenFinal(true)}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-500/80 px-3 py-1.5 text-[11px] font-black transition active:scale-95 cursor-pointer shadow-xs"
-            >
-              <CheckCircle2 size={12} />
-              <span>Finalizar</span>
-            </button>
-          )}
         </div>
       </header>
 
