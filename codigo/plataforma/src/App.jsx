@@ -1070,6 +1070,8 @@ function App() {
       <PaginaInicioSesion 
         onInicioSesionExitoso={manejarLoginAdminExitoso} 
         onVolver={() => setVistaLogin(null)}
+        onIrAEgresado={() => modoDemoActivo ? manejarLoginGraduadoExitoso(EGRESADA_DEMO) : setVistaLogin('graduado')}
+        onIrAManual={() => setVistaLogin('manual')}
       />
     )
   } else if (vistaLogin === 'graduado') {

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Eye, EyeOff, AlertCircle } from 'lucide-react'
 
-// Campo reutilizable para mantener el mismo estilo en todos los inputs del login.
+// Campo reutilizable con estética moderna, microinteracciones y foco de alta definición.
 export function CampoFormulario({
   etiqueta,
   tipo = 'text',
@@ -24,15 +24,26 @@ export function CampoFormulario({
   const tipoEfectivo = esPassword ? (mostrarClave ? 'text' : 'password') : tipo
 
   return (
-    <label className="block">
-      {mostrarEtiqueta ? <span className="sigic-field-label">{etiqueta}</span> : null}
-      <div className="relative">
-        {Icono ? <Icono className="sigic-field-icon" size={17} aria-hidden="true" /> : null}
+    <div className="block text-left">
+      {mostrarEtiqueta ? (
+        <label htmlFor={nombre} className="block mb-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-600">
+          {etiqueta}
+        </label>
+      ) : null}
+      
+      <div className="group relative">
+        {Icono ? (
+          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 group-focus-within:text-blue-600 transition-colors">
+            <Icono size={17} aria-hidden="true" />
+          </div>
+        ) : null}
+
         <input
-          className={`w-full rounded-lg border px-4 py-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 ${
+          id={nombre}
+          className={`w-full rounded-xl border px-4 py-3 text-sm text-slate-800 outline-none transition-all duration-200 placeholder:text-slate-400 ${
             tieneError
-              ? 'border-rose-300 bg-rose-50 focus:border-rose-400'
-              : 'border-transparent bg-[#EEF6FC] focus:border-[#29ABE2] focus:bg-white'
+              ? 'border-rose-300 bg-rose-50/60 focus:border-rose-400 focus:ring-4 focus:ring-rose-500/10'
+              : 'border-slate-200/90 bg-slate-50/50 hover:bg-slate-50 hover:border-slate-300 focus:border-blue-600 focus:bg-white focus:ring-4 focus:ring-blue-600/10'
           } ${esPassword ? 'pr-11' : ''} ${Icono ? 'pl-11' : ''}`}
           type={tipoEfectivo}
           name={nombre}
@@ -50,24 +61,25 @@ export function CampoFormulario({
           <button
             type="button"
             tabIndex={-1}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-600"
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all cursor-pointer"
             onClick={() => setMostrarClave((v) => !v)}
+            title={mostrarClave ? 'Ocultar contraseña' : 'Ver contraseña'}
           >
-            {mostrarClave ? <EyeOff size={17} /> : <Eye size={17} />}
+            {mostrarClave ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
         ) : null}
       </div>
 
       {reservarError ? (
-        <span className={`sigic-field-feedback${tieneError ? ' is-visible' : ''}`} aria-live="polite">
-          {tieneError ? <><AlertCircle size={11} /> {mensajeError}</> : null}
-        </span>
+        <div className={`flex items-center gap-1.5 mt-1.5 min-h-[18px] text-[11px] font-semibold text-rose-600 transition-opacity duration-200 ${tieneError ? 'opacity-100' : 'opacity-0'}`} aria-live="polite">
+          {tieneError ? <><AlertCircle size={12} className="shrink-0" /> <span>{mensajeError}</span></> : null}
+        </div>
       ) : tieneError ? (
-        <div className="mt-2.5 flex items-start gap-2 rounded-xl bg-rose-50/60 border border-rose-100/70 p-3 text-rose-600 animate-in fade-in slide-in-from-top-1 duration-200">
-          <AlertCircle size={14} className="mt-0.5 shrink-0" />
-          <span className="text-[11px] font-bold leading-tight">{mensajeError}</span>
+        <div className="mt-2 flex items-center gap-2 rounded-xl bg-rose-50 border border-rose-200/80 px-3 py-2 text-rose-700 animate-in fade-in slide-in-from-top-1 duration-200">
+          <AlertCircle size={14} className="shrink-0" />
+          <span className="text-[11px] font-bold">{mensajeError}</span>
         </div>
       ) : null}
-    </label>
+    </div>
   )
 }
