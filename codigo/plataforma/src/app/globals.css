@@ -770,4 +770,61 @@ button { cursor: pointer; }
   .sigic-guest-list { gap: 10px !important; }.sigic-guest-card { align-items: flex-start; gap: 10px; padding: 15px !important; border-radius: 18px !important; }.sigic-guest-card > div:first-child { min-width: 0; gap: 12px; }.sigic-guest-card h4 { max-width: 180px; overflow: hidden; font-size: 15px !important; text-overflow: ellipsis; white-space: nowrap; }.sigic-guest-card p { overflow-wrap: anywhere; }.sigic-guest-card-actions { flex: 0 0 auto; opacity: 1 !important; }.sigic-guest-card-actions button { display: grid; min-width: 38px; min-height: 38px; place-items: center; padding: 8px !important; }.sigic-guest-card-actions button:last-child { color: #e11d48; background: #fff1f2; }
 }
 
+/* ─── ANIMACIONES DE IMPACTO PARA LANDING INSTITUCIONAL (ESTILO EVASION) ─── */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
+@keyframes slideDownPill {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -20px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 0.8;
+  }
+}
+
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-pill-header {
+  animation: slideDownPill 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-float-slow {
+  animation: floatSlow 4s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 6s ease-in-out infinite;
+}
