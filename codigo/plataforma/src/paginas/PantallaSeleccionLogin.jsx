@@ -175,8 +175,52 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
     )
   }
 
+  const [opcionDiseno, setOpcionDiseno] = useState('opcion1') // 'opcion1' | 'opcion2' | 'opcion3'
+
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden select-none text-slate-800 font-sans bg-gradient-to-tr from-slate-100 via-sky-50/40 to-blue-50/30">
+    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden select-none text-slate-800 font-sans bg-gradient-to-tr from-slate-100 via-sky-50/40 to-blue-50/30 p-4">
+      {/* Selector interactivo de opciones de diseño (flotante superior) */}
+      {!revelado && !enMantenimiento && (
+        <div className="fixed top-5 right-5 z-40 flex items-center gap-1 bg-white/90 backdrop-blur-md p-1.5 rounded-full border border-slate-200/90 shadow-lg shadow-slate-900/5">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 pl-2.5 pr-1.5">
+            Diseño:
+          </span>
+          <button
+            type="button"
+            onClick={() => setOpcionDiseno('opcion1')}
+            className={`px-3 py-1 text-xs font-bold rounded-full transition-all cursor-pointer ${
+              opcionDiseno === 'opcion1'
+                ? 'bg-slate-900 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-950 hover:bg-slate-100'
+            }`}
+          >
+            1. Minimalista
+          </button>
+          <button
+            type="button"
+            onClick={() => setOpcionDiseno('opcion2')}
+            className={`px-3 py-1 text-xs font-bold rounded-full transition-all cursor-pointer ${
+              opcionDiseno === 'opcion2'
+                ? 'bg-slate-900 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-950 hover:bg-slate-100'
+            }`}
+          >
+            2. Doble Acceso
+          </button>
+          <button
+            type="button"
+            onClick={() => setOpcionDiseno('opcion3')}
+            className={`px-3 py-1 text-xs font-bold rounded-full transition-all cursor-pointer ${
+              opcionDiseno === 'opcion3'
+                ? 'bg-slate-900 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-950 hover:bg-slate-100'
+            }`}
+          >
+            3. Glass Card
+          </button>
+        </div>
+      )}
+
       {/* Fondo con gradiente claro y orbes suaves */}
       <div className="absolute inset-0 pointer-events-none opacity-60 [background-image:radial-gradient(circle_at_20%_20%,rgba(56,189,248,.15),transparent_35%),radial-gradient(circle_at_80%_80%,rgba(99,102,241,.1),transparent_35%)]" />
 
@@ -214,16 +258,18 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
         </div>
       )}
 
-      {/* Contenedor Principal (Vista Minimalista: Estamos preparando algo importante) */}
-      {!revelado && !enMantenimiento && (
-        <div className={`relative z-10 flex flex-col items-center max-w-2xl w-full px-6 py-12 text-center transition-all ${
+      {/* ════════════════════════════════════════════════════════════════════════════════ */}
+      {/* VARIANTE 1: MINIMALISTA ELEGANTE (Limpia, sobria, idéntica a la maqueta con glow) */}
+      {/* ════════════════════════════════════════════════════════════════════════════════ */}
+      {!revelado && !enMantenimiento && opcionDiseno === 'opcion1' && (
+        <div className={`relative z-10 flex flex-col items-center max-w-2xl w-full px-6 py-10 text-center transition-all animate-fade-in ${
           snapActivo ? 'animate-thanos pointer-events-none' : ''
         }`}>
           
-          {/* Logo de SiGIC en tarjeta blanca */}
+          {/* Logo de SiGIC en tarjeta blanca con resplandor suave */}
           <div 
             onClick={manejarClickLogo}
-            className={`relative mb-8 flex h-20 w-20 items-center justify-center rounded-2xl bg-white border border-slate-200/80 shadow-xl shadow-slate-200/60 p-2.5 cursor-pointer active:scale-95 transition-all duration-300 hover:shadow-2xl hover:-translate-y-0.5 ${
+            className={`group relative mb-8 flex h-20 w-20 items-center justify-center rounded-2xl bg-white border border-slate-200/90 shadow-xl shadow-slate-200/70 p-2.5 cursor-pointer active:scale-95 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${
               clickCount === 1 ? 'animate-shake-1' :
               clickCount === 2 ? 'animate-shake-2' :
               clickCount === 3 ? 'animate-shake-3' :
@@ -231,10 +277,11 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
             }`}
             title={fraseTooltip}
           >
+            <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-sky-400/20 to-blue-500/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
             <img
               src="/logo.png"
               alt="SiGIC"
-              className="h-full w-full object-contain"
+              className="relative z-10 h-full w-full object-contain"
             />
           </div>
 
@@ -253,18 +300,18 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
             Muy pronto vas a poder conocer la plataforma completa de SiGIC.
           </p>
 
-          {/* 2 Botones de Acción: [->] Ingresar y ● Próximamente */}
+          {/* 2 Botones: [->] Ingresar y ● Próximamente */}
           <div className="mt-8 flex items-center justify-center gap-3">
             <button
               type="button"
               onClick={onSeleccionarAdmin}
-              className="inline-flex items-center gap-2 rounded-full bg-slate-900 hover:bg-slate-800 px-6 py-2.5 text-xs font-black text-white shadow-md shadow-slate-900/15 transition-all duration-200 active:scale-95 cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-full bg-slate-950 hover:bg-blue-600 px-6 py-2.5 text-xs font-bold text-white shadow-md shadow-slate-950/15 hover:shadow-lg hover:shadow-blue-600/20 transition-all duration-200 active:scale-95 cursor-pointer group"
             >
-              <LogIn size={15} />
+              <LogIn size={15} className="group-hover:translate-x-0.5 transition-transform" />
               <span>Ingresar</span>
             </button>
 
-            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/90 bg-white/90 px-5 py-2.5 text-xs font-bold text-slate-700 shadow-2xs">
+            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/90 bg-white/90 px-5 py-2.5 text-xs font-bold text-slate-700 shadow-2xs backdrop-blur-sm">
               <span className="h-2 w-2 rounded-full bg-sky-500 animate-pulse" />
               <span>Próximamente</span>
             </div>
@@ -274,11 +321,163 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
           <div className="mt-16 text-center space-y-1">
             <button
               onClick={() => setMostrarInfo(true)}
-              className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400/80 hover:text-sky-600 transition-colors cursor-pointer"
+              className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400 hover:text-sky-600 transition-colors cursor-pointer"
             >
               Instituto Tecnológico Beltrán
             </button>
             <p className="text-[9px] font-bold text-slate-300 font-mono tracking-wider">{VERSION_LABEL}</p>
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════════════════════ */}
+      {/* VARIANTE 2: DOBLE ACCESO DIRECTO (Acceso claro para Admin y para Graduados)     */}
+      {/* ════════════════════════════════════════════════════════════════════════════════ */}
+      {!revelado && !enMantenimiento && opcionDiseno === 'opcion2' && (
+        <div className={`relative z-10 flex flex-col items-center max-w-2xl w-full px-6 py-10 text-center transition-all animate-fade-in ${
+          snapActivo ? 'animate-thanos pointer-events-none' : ''
+        }`}>
+          
+          {/* Badge superior de estado */}
+          <div className="inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50/80 px-3.5 py-1 text-[11px] font-bold text-sky-700 mb-6 shadow-2xs">
+            <span className="h-2 w-2 rounded-full bg-sky-500 animate-pulse" />
+            <span>Próximo Lanzamiento Oficial · SiGIC 2026</span>
+          </div>
+
+          {/* Logo de SiGIC */}
+          <div 
+            onClick={manejarClickLogo}
+            className={`relative mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-white border border-slate-200/90 shadow-xl shadow-slate-200/70 p-2.5 cursor-pointer active:scale-95 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${
+              clickCount === 1 ? 'animate-shake-1' :
+              clickCount === 2 ? 'animate-shake-2' :
+              clickCount === 3 ? 'animate-shake-3' :
+              clickCount === 4 ? 'animate-shake-4' : ''
+            }`}
+            title={fraseTooltip}
+          >
+            <img src="/logo.png" alt="SiGIC" className="h-full w-full object-contain" />
+          </div>
+
+          {/* Kicker Institucional */}
+          <p className="text-[11px] sm:text-xs font-black uppercase tracking-[0.2em] text-sky-600 mb-3">
+            Instituto Tecnológico Beltrán
+          </p>
+
+          {/* Título */}
+          <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-black text-slate-900 tracking-tight leading-[1.1] max-w-xl mx-auto">
+            Estamos preparando algo importante.
+          </h1>
+
+          <p className="mt-4 text-sm text-slate-500 font-medium max-w-md mx-auto leading-relaxed">
+            Plataforma centralizada de colaciones. Elegí tu tipo de acceso para continuar:
+          </p>
+
+          {/* 2 Botones de Acción Diferenciados */}
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-md">
+            <button
+              type="button"
+              onClick={onSeleccionarAdmin}
+              className="w-full sm:w-auto flex-1 inline-flex items-center justify-center gap-2.5 rounded-2xl bg-slate-950 hover:bg-slate-900 px-6 py-3.5 text-xs font-bold text-white shadow-md shadow-slate-950/15 transition-all duration-200 active:scale-98 cursor-pointer group"
+            >
+              <LogIn size={16} className="text-sky-400 group-hover:translate-x-0.5 transition-transform" />
+              <span>Acceso Administrativo</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={onSeleccionarEgresado}
+              className="w-full sm:w-auto flex-1 inline-flex items-center justify-center gap-2.5 rounded-2xl border border-slate-200/90 bg-white hover:bg-blue-50/50 hover:border-blue-300 px-6 py-3.5 text-xs font-bold text-slate-800 shadow-sm transition-all duration-200 active:scale-98 cursor-pointer group"
+            >
+              <GraduationCap size={16} className="text-blue-600 group-hover:scale-110 transition-transform" />
+              <span>Portal de Egresados</span>
+            </button>
+          </div>
+
+          {/* Footer Minimalista */}
+          <div className="mt-14 text-center space-y-1">
+            <button
+              onClick={() => setMostrarInfo(true)}
+              className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400 hover:text-sky-600 transition-colors cursor-pointer"
+            >
+              Prácticas Profesionalizantes III
+            </button>
+            <p className="text-[9px] font-bold text-slate-300 font-mono tracking-wider">{VERSION_LABEL}</p>
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════════════════════ */}
+      {/* VARIANTE 3: HERO GLASS CARD (Caja Bento translúcida de software moderno)       */}
+      {/* ════════════════════════════════════════════════════════════════════════════════ */}
+      {!revelado && !enMantenimiento && opcionDiseno === 'opcion3' && (
+        <div className={`relative z-10 w-full max-w-xl p-8 sm:p-12 text-center rounded-[32px] border border-slate-200/80 bg-white/90 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.08),0_0_0_1px_rgba(255,255,255,0.9)] backdrop-blur-2xl transition-all animate-fade-in ${
+          snapActivo ? 'animate-thanos pointer-events-none' : ''
+        }`}>
+          
+          {/* Cabecera de la Tarjeta */}
+          <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-100">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                SiGIC · Plataforma Oficial
+              </span>
+            </div>
+            <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2.5 py-0.5 rounded-full">
+              Próximamente
+            </span>
+          </div>
+
+          {/* Logo Flotante */}
+          <div 
+            onClick={manejarClickLogo}
+            className={`relative mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-white border border-slate-200/90 shadow-lg p-2.5 cursor-pointer active:scale-95 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
+              clickCount === 1 ? 'animate-shake-1' :
+              clickCount === 2 ? 'animate-shake-2' :
+              clickCount === 3 ? 'animate-shake-3' :
+              clickCount === 4 ? 'animate-shake-4' : ''
+            }`}
+            title={fraseTooltip}
+          >
+            <img src="/logo.png" alt="SiGIC" className="h-full w-full object-contain" />
+          </div>
+
+          {/* Título y descripción */}
+          <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight">
+            Estamos preparando algo importante.
+          </h1>
+
+          <p className="mt-3 text-xs sm:text-sm text-slate-500 font-medium max-w-md mx-auto leading-relaxed">
+            Muy pronto vas a poder conocer la plataforma completa de gestión de colaciones y pases digitales.
+          </p>
+
+          {/* 3 Micro Chips de Features */}
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-[11px] font-bold text-slate-600">
+            <span className="bg-slate-50 border border-slate-200/80 px-3 py-1 rounded-full">🎟️ Acreditación QR</span>
+            <span className="bg-slate-50 border border-slate-200/80 px-3 py-1 rounded-full">🏛️ Control de Butacas</span>
+            <span className="bg-slate-50 border border-slate-200/80 px-3 py-1 rounded-full">🎓 Padrón Digital</span>
+          </div>
+
+          {/* Botón Principal de Ingreso */}
+          <div className="mt-8 flex justify-center">
+            <button
+              type="button"
+              onClick={onSeleccionarAdmin}
+              className="inline-flex items-center gap-2 rounded-full bg-slate-950 hover:bg-blue-600 px-7 py-3 text-xs font-bold text-white shadow-md shadow-slate-950/15 hover:shadow-lg hover:shadow-blue-600/20 transition-all duration-200 active:scale-95 cursor-pointer group"
+            >
+              <LogIn size={15} className="group-hover:translate-x-0.5 transition-transform" />
+              <span>Ingresar al Sistema</span>
+            </button>
+          </div>
+
+          {/* Footer de Tarjeta */}
+          <div className="mt-8 pt-4 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400 font-medium">
+            <button
+              onClick={() => setMostrarInfo(true)}
+              className="hover:text-blue-600 transition-colors cursor-pointer"
+            >
+              Instituto Beltrán · Créditos
+            </button>
+            <span className="font-mono">{VERSION_LABEL}</span>
           </div>
         </div>
       )}
