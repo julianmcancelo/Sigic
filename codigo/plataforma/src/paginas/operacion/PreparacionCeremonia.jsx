@@ -17,6 +17,7 @@ import { SeleccionAsientos } from '../SeleccionAsientos'
 import { ModalAsignarAsientos } from '../../componentes/ModalAsignarAsientos'
 import { ModalAutoAsignar } from '../../componentes/ModalAutoAsignar'
 import { ModalResumenDemostracion } from '../../componentes/ModalResumenDemostracion'
+import { ModalDespachoCredenciales } from '../../componentes/ModalDespachoCredenciales'
 import { emitirCambioSync, useSincronizacion } from '../../lib/sync'
 
 export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp }) {
@@ -29,6 +30,7 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
   const [guardando, setGuardando] = useState(false)
   const [mensaje, setMensaje] = useState(null)
   const [mostrarResumenFinal, setMostrarResumenFinal] = useState(false)
+  const [mostrarDespachoCredenciales, setMostrarDespachoCredenciales] = useState(false)
   
   // Pestañas
   const [pestana, setPestana] = useState('mapa') // 'mapa' | 'graduados' | 'estructura'
@@ -323,6 +325,17 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
           >
             <Save size={12} />
             <span>{guardando ? 'Guardando...' : 'Guardar Mapa'}</span>
+          </button>
+
+          <button
+            type="button"
+            id="btn-despacho-credenciales"
+            onClick={() => setMostrarDespachoCredenciales(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white px-2.5 py-1.5 text-[11px] font-bold transition active:scale-95 cursor-pointer shadow-xs"
+            title="Centro de Despacho y Emisión de Credenciales QR"
+          >
+            <Download size={12} />
+            <span>Despacho QR</span>
           </button>
 
           {onNavegar && (
@@ -869,6 +882,23 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
         graduadosAceptados={graduados.filter(g => g.estado === 'ACEPTADO').length}
         totalInvitados={invitados.length}
       />
+
+      {/* MODAL DE DESPACHO Y EMISIÓN DE CREDENCIALES QR */}
+      {mostrarDespachoCredenciales && (
+        <ModalDespachoCredenciales
+          ceremonia={ceremonia}
+          graduados={graduados}
+          invitados={invitados}
+          onCerrar={() => {
+            setMostrarDespachoCredenciales(false)
+            cargarDatos()
+          }}
+          onIrAPorteria={() => {
+            setMostrarDespachoCredenciales(false)
+            if (onNavegar) onNavegar('porteria')
+          }}
+        />
+      )}
 
       {/* MODAL DE RESUMEN EJECUTIVO Y AGRADECIMIENTO */}
       {mostrarResumenFinal && (
