@@ -15,6 +15,7 @@ import {
 } from '../../servicios/api'
 import { SeleccionAsientos } from '../SeleccionAsientos'
 import { ModalAsignarAsientos } from '../../componentes/ModalAsignarAsientos'
+import { ModalAutoAsignar } from '../../componentes/ModalAutoAsignar'
 import { ModalResumenDemostracion } from '../../componentes/ModalResumenDemostracion'
 import { emitirCambioSync, useSincronizacion } from '../../lib/sync'
 
@@ -24,6 +25,7 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
   const [invitados, setInvitados] = useState([])
   const [cargando, setCargando] = useState(true)
   const [autoAsignando, setAutoAsignando] = useState(false)
+  const [mostrarModalAutoAsignar, setMostrarModalAutoAsignar] = useState(false)
   const [guardando, setGuardando] = useState(false)
   const [mensaje, setMensaje] = useState(null)
   const [mostrarResumenFinal, setMostrarResumenFinal] = useState(false)
@@ -95,16 +97,17 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
   })
 
   // Ejecutar Auto-Seating (Distribución Inteligente)
-  async function ejecutarAutoSeating() {
+  async function ejecutarAutoSeating(opciones = {}) {
     if (!ceremonia?.id) return
     setAutoAsignando(true)
     setMensaje(null)
     try {
-      const res = await autoAsignarButacas(ceremonia.id)
+      const res = await autoAsignarButacas(ceremonia.id, opciones)
       setMensaje({ 
         tipo: 'exito', 
         texto: res.mensaje || '¡Distribución inteligente completada con éxito! Todos los alumnos y acompañantes fueron ubicados.' 
       })
+      setMostrarModalAutoAsignar(false)
       emitirCambioSync('BUTACAS')
       await cargarDatos()
     } catch (err) {
@@ -238,10 +241,29 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
   const totalOcupados = graduadosConAsiento.length + invitadosConAsiento.length
   const disponibles = Math.max(0, totalCapacidad - totalOcupados)
 
-  // Asientos ocupados en el mapa
+  // Asientos ocupados en el mapa y tooltip con nombre de asignados
   const mapaRolesVisual = { ...mapaRoles }
-  graduadosConAsiento.forEach(g => { mapaRolesVisual[g.asiento_id] = 'egresado' })
-  invitadosConAsiento.forEach(i => { mapaRolesVisual[i.asiento_id] = 'reservado' })
+  const datosPorAsiento = {}
+
+  graduadosConAsiento.forEach(g => {
+    mapaRolesVisual[g.asiento_id] = 'egresado'
+    datosPorAsiento[g.asiento_id] = {
+      nombre: g.nombre,
+      carrera: g.carrera,
+      tipo: 'Graduado',
+      juramento: g.formula_juramento === 'DIOS_Y_PATRIA' ? 'Dios y Patria' : 'Por la Patria'
+    }
+  })
+
+  invitadosConAsiento.forEach(i => {
+    mapaRolesVisual[i.asiento_id] = 'reservado'
+    const egresadoTitular = graduados.find(x => x.id === i.egresado_id || x.id === i.egresadoId)
+    datosPorAsiento[i.asiento_id] = {
+      nombre: i.nombre,
+      carrera: egresadoTitular ? `Acompañante de ${egresadoTitular.nombre}` : 'Acompañante',
+      tipo: i.es_padrino || i.esPadrino ? 'Padrino de Diploma' : 'Acompañante'
+    }
+  })
 
   // Filtrado de graduados para la pestaña de lista
   const graduadosFiltrados = graduados.filter(g => {
@@ -285,7 +307,7 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
           <button
             id="btn-auto-asignar-butacas"
             type="button"
-            onClick={ejecutarAutoSeating}
+            onClick={() => setMostrarModalAutoAsignar(true)}
             disabled={autoAsignando || graduados.length === 0}
             className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white px-3 py-1.5 text-[11px] font-black shadow-xs transition active:scale-95 disabled:opacity-40 cursor-pointer"
           >
@@ -456,28 +478,51 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
           <div className="lg:col-span-8 xl:col-span-9 bg-white rounded-xl border border-slate-200/90 p-3 shadow-2xs flex flex-col items-center min-h-[460px] overflow-hidden">
             
             {/* Info si se cliquea una butaca */}
-            {asientoSeleccionadoInfo && (
-              <div className="w-full mb-2 p-2 bg-sky-50 border border-sky-200 rounded-lg flex items-center justify-between animate-in fade-in">
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-md bg-sky-600 text-white flex items-center justify-center font-bold text-[10px]">
-                    <Armchair size={12} />
+            {asientoSeleccionadoInfo ? (
+              <div className="w-full mb-3 p-3 bg-gradient-to-r from-sky-50 via-indigo-50/50 to-white border border-sky-200 rounded-xl flex items-center justify-between shadow-xs animate-in fade-in slide-in-from-top-1">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0">
+                    <Armchair size={18} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[11px] font-black text-slate-900 leading-none">
-                      {asientoSeleccionadoInfo.nombre} · <span className="text-sky-700 font-bold uppercase text-[9px]">{asientoSeleccionadoInfo.tipo}</span>
-                    </p>
-                    <p className="text-[10px] text-slate-500 font-medium mt-0.5 leading-none">
-                      Butaca: <strong>{asientoSeleccionadoInfo.asientoId}</strong> {asientoSeleccionadoInfo.carrera ? `· ${asientoSeleccionadoInfo.carrera}` : ''}
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs font-black text-slate-900 leading-tight">
+                        {asientoSeleccionadoInfo.nombre}
+                      </p>
+                      <span className="text-[9px] bg-indigo-100 text-indigo-800 font-black px-1.5 py-0.5 rounded uppercase border border-indigo-200/60">
+                        {asientoSeleccionadoInfo.tipo}
+                      </span>
+                      {asientoSeleccionadoInfo.objeto?.formula_juramento && (
+                        <span className="text-[9px] bg-sky-100 text-sky-800 font-black px-1.5 py-0.5 rounded border border-sky-200/60">
+                          {asientoSeleccionadoInfo.objeto.formula_juramento === 'DIOS_Y_PATRIA' ? 'Juramento: Dios y Patria' : 'Juramento: Por la Patria'}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[10.5px] text-slate-600 font-medium mt-0.5 leading-tight flex items-center gap-2">
+                      <span>Ubicación: <strong className="text-slate-900 font-black">{asientoSeleccionadoInfo.asientoId}</strong></span>
+                      {asientoSeleccionadoInfo.dni && <span>· DNI: <strong>{asientoSeleccionadoInfo.dni}</strong></span>}
+                      {asientoSeleccionadoInfo.carrera && <span>· {asientoSeleccionadoInfo.carrera}</span>}
                     </p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setAsientoSeleccionadoInfo(null)}
-                  className="p-1 text-slate-400 hover:text-slate-700 rounded cursor-pointer"
+                  className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-white/80 rounded-lg cursor-pointer transition"
+                  title="Cerrar detalle"
                 >
-                  <X size={13} />
+                  <X size={15} />
                 </button>
+              </div>
+            ) : (
+              <div className="w-full mb-2 px-3 py-1.5 bg-slate-50 border border-slate-200/80 rounded-lg flex items-center justify-between text-[11px] text-slate-500">
+                <span className="flex items-center gap-1.5 font-medium">
+                  <Info size={13} className="text-sky-500" />
+                  <strong>Consejo:</strong> Pasá el mouse sobre cualquier butaca para ver quién está asignado o hacé clic para ver su ficha.
+                </span>
+                <span className="text-[10px] font-bold text-slate-400">
+                  {graduadosConAsiento.length} graduados ubicados
+                </span>
               </div>
             )}
 
@@ -493,6 +538,7 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
                 seleccionados={[]}
                 onAsientoClick={manejarClickAsientoMapa}
                 compacto={true}
+                datosPorAsiento={datosPorAsiento}
               />
             </div>
           </div>
@@ -812,6 +858,17 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
           }}
         />
       )}
+
+      {/* MODAL DE AUTO-ASIGNACIÓN INTELIGENTE */}
+      <ModalAutoAsignar
+        abierto={mostrarModalAutoAsignar}
+        onCerrar={() => setMostrarModalAutoAsignar(false)}
+        onConfirmar={ejecutarAutoSeating}
+        cargando={autoAsignando}
+        totalGraduados={graduados.length}
+        graduadosAceptados={graduados.filter(g => g.estado === 'ACEPTADO').length}
+        totalInvitados={invitados.length}
+      />
 
       {/* MODAL DE RESUMEN EJECUTIVO Y AGRADECIMIENTO */}
       {mostrarResumenFinal && (

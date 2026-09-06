@@ -37,7 +37,8 @@ export function SeleccionAsientos({
   onConfirmar,
   estaCargando = false,
   onAsientoClick,
-  compacto = false
+  compacto = false,
+  datosPorAsiento = {}
 }) {
   const [nivelLocal, setNivelLocal] = useState('baja');
   const [zoomLocal, setZoomLocal] = useState(1);
@@ -144,6 +145,7 @@ export function SeleccionAsientos({
         nivelActivo={nivel}
         alCambiarNivel={setNivel}
         maxSeleccionados={!onAsientoClick && maxSeleccion > 0 ? maxSeleccion : undefined}
+        datosPorAsiento={datosPorAsiento}
       />
 
       {/* Leyenda */}

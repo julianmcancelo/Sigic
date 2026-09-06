@@ -3,5 +3,8 @@
   "identifier": "default",
   "description": "Permisos de la aplicación de escritorio SiGIC.",
   "windows": ["main", "modulo-*"],
+  "remote": {
+    "urls": ["https://*.sigic.com.ar/*", "https://app.sigic.com.ar/*", "http://localhost:3000/*"]
+  },
   "permissions": ["core:default", "updater:default"]
 }

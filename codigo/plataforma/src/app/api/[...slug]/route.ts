@@ -1547,43 +1547,107 @@ export async function POST(
       );
       if (!planoRes.rows[0]) return NextResponse.json({ error: 'El plano del anfiteatro no está configurado' }, { status: 400, headers });
 
-      const estructura = typeof planoRes.rows[0].estructura === 'string' ? JSON.parse(planoRes.rows[0].estructura) : planoRes.rows[0].estructura;
-      const mapaRoles = typeof planoRes.rows[0].mapa_roles === 'string' ? JSON.parse(planoRes.rows[0].mapa_roles) : planoRes.rows[0].mapa_roles;
+      const estructura = typeof planoRes.rows[0].estructura === 'string' ? JSON.parse(planoRes.rows[0].estructura) : (planoRes.rows[0].estructura || {});
+      const mapaRoles = typeof planoRes.rows[0].mapa_roles === 'string' ? JSON.parse(planoRes.rows[0].mapa_roles) : (planoRes.rows[0].mapa_roles || {});
+
+      const incluirPendientes = body?.incluirPendientes !== false;
+      const criterio = body?.criterio || 'JURAMENTO'; // 'JURAMENTO' | 'CARRERA' | 'ALFABETICO'
+      const prioridadJuramento = body?.prioridadJuramento || 'DIOS_Y_PATRIA_PRIMERO';
+      const ubicarInvitados = body?.ubicarInvitados !== false;
+
+      const estadosFiltro = incluirPendientes ? "('ACEPTADO', 'PENDIENTE', 'INVITADO')" : "('ACEPTADO')";
 
       const egresadosRes = await query(
-        `SELECT e.id, e.nombre, e.carrera, e.formula_juramento,
+        `SELECT e.id, e.nombre, e.carrera, e.formula_juramento, e.estado,
                 (SELECT json_agg(json_build_object('id', i.id, 'nombre', i.nombre, 'discapacidad', i.discapacidad, 'menor_en_brazos', i.menor_en_brazos))
                  FROM invitados i WHERE i.egresado_id = e.id) as invitados
          FROM egresados e
-         WHERE e.ceremonia_id = $1 AND e.estado = 'ACEPTADO'
+         WHERE e.ceremonia_id = $1 AND e.estado IN ${estadosFiltro}
          ORDER BY e.carrera ASC, e.nombre ASC`,
         [ceremoniaId]
       );
 
-      const egresados = egresadosRes.rows;
+      let egresados = egresadosRes.rows;
       if (egresados.length === 0) {
-        return NextResponse.json({ error: 'No hay graduados en estado ACEPTADO para ubicar.' }, { status: 400, headers });
+        return NextResponse.json({ 
+          error: incluirPendientes ? 'No se encontraron egresados registrados en esta ceremonia.' : 'No hay graduados en estado ACEPTADO para ubicar.' 
+        }, { status: 400, headers });
+      }
+
+      // Ordenar según el criterio especificado
+      if (criterio === 'JURAMENTO') {
+        egresados.sort((a, b) => {
+          const esDiosA = (a.formula_juramento || '').toUpperCase().includes('DIOS');
+          const esDiosB = (b.formula_juramento || '').toUpperCase().includes('DIOS');
+
+          if (esDiosA !== esDiosB) {
+            if (prioridadJuramento === 'DIOS_Y_PATRIA_PRIMERO') {
+              return esDiosA ? -1 : 1;
+            } else {
+              return esDiosA ? 1 : -1;
+            }
+          }
+          const carreraComp = (a.carrera || '').localeCompare(b.carrera || '');
+          if (carreraComp !== 0) return carreraComp;
+          return (a.nombre || '').localeCompare(b.nombre || '');
+        });
+      } else if (criterio === 'CARRERA') {
+        egresados.sort((a, b) => {
+          const carreraComp = (a.carrera || '').localeCompare(b.carrera || '');
+          if (carreraComp !== 0) return carreraComp;
+          return (a.nombre || '').localeCompare(b.nombre || '');
+        });
+      } else if (criterio === 'ALFABETICO') {
+        egresados.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
       }
 
       const asientosGraduados: string[] = [];
       const asientosAccesibles: string[] = [];
       const asientosGenerales: string[] = [];
 
-      const filas = estructura?.filas || [];
-      for (const fila of filas) {
-        const idFila = fila.id || fila.letra;
-        const columnas = fila.columnas || [];
-        for (let col = 1; col <= columnas.length; col++) {
-          const asientoId = `${idFila}-${col}`;
-          const rol = mapaRoles?.[asientoId];
-          if (['bloqueado', 'autoridad', 'reservado', 'pasillo', 'padrino'].includes(rol)) continue;
-          
-          if (rol === 'graduado') {
-            asientosGraduados.push(asientoId);
-          } else if (rol === 'accesible' || rol === 'discapacidad') {
-            asientosAccesibles.push(asientoId);
-          } else {
-            asientosGenerales.push(asientoId);
+      // Extracción de asientos: soporta estructura por niveles (baja/alta) y formato array de filas
+      if (estructura.baja || estructura.alta) {
+        const niveles = [
+          { key: 'baja', cfg: estructura.baja },
+          { key: 'alta', cfg: estructura.alta }
+        ];
+        const letrasAbc = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P'];
+        for (const nivel of niveles) {
+          if (!nivel.cfg) continue;
+          const numFilas = nivel.cfg.filas || 0;
+          const numCols = nivel.cfg.asientos || 0;
+          for (let f = 0; f < numFilas; f++) {
+            const letra = letrasAbc[f] || `F${f + 1}`;
+            for (let c = 1; c <= numCols; c++) {
+              const asientoId = `${nivel.key}-${letra}-${c}`;
+              const rol = mapaRoles?.[asientoId];
+              if (['bloqueado', 'pasillo'].includes(rol)) continue;
+              if (rol === 'egresado' || rol === 'graduado') {
+                asientosGraduados.push(asientoId);
+              } else if (rol === 'discapacitado' || rol === 'accesible' || rol === 'discapacidad') {
+                asientosAccesibles.push(asientoId);
+              } else if (!['autoridad', 'padrino'].includes(rol)) {
+                asientosGenerales.push(asientoId);
+              }
+            }
+          }
+        }
+      } else if (Array.isArray(estructura?.filas)) {
+        for (const fila of estructura.filas) {
+          const idFila = fila.id || fila.letra;
+          const columnas = fila.columnas || [];
+          for (let col = 1; col <= columnas.length; col++) {
+            const asientoId = `${idFila}-${col}`;
+            const rol = mapaRoles?.[asientoId];
+            if (['bloqueado', 'autoridad', 'pasillo', 'padrino'].includes(rol)) continue;
+            
+            if (rol === 'egresado' || rol === 'graduado') {
+              asientosGraduados.push(asientoId);
+            } else if (rol === 'discapacitado' || rol === 'accesible' || rol === 'discapacidad') {
+              asientosAccesibles.push(asientoId);
+            } else {
+              asientosGenerales.push(asientoId);
+            }
           }
         }
       }
@@ -1592,6 +1656,7 @@ export async function POST(
       let poolGenerales = [...asientosGenerales];
       let poolAccesibles = [...asientosAccesibles];
 
+      // Si no se pintaron asientos específicos de egresados, tomar de los generales iniciales
       if (poolGraduados.length === 0) {
         poolGraduados = poolGenerales.splice(0, Math.min(egresados.length + 10, poolGenerales.length));
       }
@@ -1619,28 +1684,30 @@ export async function POST(
             asignadosEgresados++;
           }
 
-          const invs = eg.invitados || [];
-          for (const inv of invs) {
-            if (inv.menor_en_brazos) {
-              await client.query(`UPDATE invitados SET asiento_id = NULL, asiento_solicitado_id = NULL WHERE id = $1`, [inv.id]);
-              continue;
-            }
+          if (ubicarInvitados) {
+            const invs = eg.invitados || [];
+            for (const inv of invs) {
+              if (inv.menor_en_brazos) {
+                await client.query(`UPDATE invitados SET asiento_id = NULL, asiento_solicitado_id = NULL WHERE id = $1`, [inv.id]);
+                continue;
+              }
 
-            let asientoInv: string | null = null;
-            if (inv.discapacidad && poolAccesibles.length > 0) {
-              asientoInv = poolAccesibles.shift()!;
-            } else if (poolGenerales.length > 0) {
-              asientoInv = poolGenerales.shift()!;
-            } else if (poolGraduados.length > 0) {
-              asientoInv = poolGraduados.shift()!;
-            }
+              let asientoInv: string | null = null;
+              if (inv.discapacidad && poolAccesibles.length > 0) {
+                asientoInv = poolAccesibles.shift()!;
+              } else if (poolGenerales.length > 0) {
+                asientoInv = poolGenerales.shift()!;
+              } else if (poolGraduados.length > 0) {
+                asientoInv = poolGraduados.shift()!;
+              }
 
-            if (asientoInv) {
-              await client.query(
-                `UPDATE invitados SET asiento_id = $1, asiento_solicitado_id = NULL WHERE id = $2`,
-                [asientoInv, inv.id]
-              );
-              asignadosInvitados++;
+              if (asientoInv) {
+                await client.query(
+                  `UPDATE invitados SET asiento_id = $1, asiento_solicitado_id = NULL WHERE id = $2`,
+                  [asientoInv, inv.id]
+                );
+                asignadosInvitados++;
+              }
             }
           }
         }

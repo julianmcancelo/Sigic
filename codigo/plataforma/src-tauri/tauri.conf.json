@@ -4,17 +4,28 @@
   "version": "1.0.5",
   "identifier": "ar.com.sigic.escritorio",
   "build": {
+    "beforeDevCommand": "npm run dev",
     "frontendDist": "../public/tauri-shell",
-    "devUrl": "https://demo.sigic.com.ar"
+    "devUrl": "http://localhost:3000"
   },
   "app": {
-    "windows": [{ "label": "main", "title": "SiGIC Escritorio · Instituto Tecnológico Beltrán", "width": 1440, "height": 920, "minWidth": 1024, "minHeight": 680, "resizable": true, "maximized": true, "center": true }],
+    "windows": [
+      {
+        "title": "SiGIC Escritorio · Instituto Tecnológico Beltrán",
+        "width": 1440,
+        "height": 920,
+        "minWidth": 1024,
+        "minHeight": 680,
+        "resizable": true,
+        "center": true
+      }
+    ],
     "security": { "csp": null }
   },
   "bundle": {
     "active": true,
     "targets": "all",
-    "createUpdaterArtifacts": true,
+    "createUpdaterArtifacts": false,
     "publisher": "SiGIC · Instituto Tecnológico Beltrán",
     "shortDescription": "Sistema Integral de Gestión Institucional",
     "longDescription": "SiGIC Escritorio centraliza la gestión de ceremonias, graduados, acreditaciones y reportes institucionales.",

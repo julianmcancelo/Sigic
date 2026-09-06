@@ -82,7 +82,7 @@ button { cursor: pointer; }
 @media (max-width: 640px) { .sigic-surface { border-radius: 14px; box-shadow: none; } }
 
 .sigic-os-shell { min-height: 100vh; background: #081624; color: #e8f2f7; position: relative; overflow: hidden; font-family: 'Trebuchet MS', sans-serif; }
-.sigic-os-grid { position: absolute; inset: 0; opacity: .24; background-image: linear-gradient(rgba(70, 207, 226, .08) 1px, transparent 1px), linear-gradient(90deg, rgba(70, 207, 226, .08) 1px, transparent 1px); background-size: 48px 48px; mask-image: linear-gradient(to bottom, black, transparent 90%); }
+.sigic-os-grid { position: absolute; inset: 0; opacity: .24; background-image: linear-gradient(rgba(70, 207, 226, .08) 1px, transparent 1px), linear-gradient(90deg, rgba(70, 207, 226, .08) 1px, transparent 1px); background-size: 48px 48px; mask-image: linear-gradient(to bottom, black, transparent 90%); pointer-events: none; }
 .sigic-os-shell:before { content: ''; position: absolute; width: 50vw; height: 50vw; right: -18vw; top: -22vw; border-radius: 50%; background: radial-gradient(circle, rgba(0, 183, 211, .19), transparent 66%); pointer-events: none; }
 .sigic-watermark { position: absolute; z-index: 0; left: 51%; top: 51%; display: flex; flex-direction: column; align-items: center; transform: translate(-50%, -50%); pointer-events: none; user-select: none; opacity: .12; }.sigic-watermark img { width: min(420px, 35vw); height: min(420px, 35vw); object-fit: cover; border-radius: 28%; filter: grayscale(1) brightness(2.1) drop-shadow(0 0 36px rgba(0,190,255,.55)); mix-blend-mode: screen; }.sigic-watermark span { margin-top: -52px; color: #b8f5ff; font-size: clamp(24px, 3vw, 48px); font-weight: 800; letter-spacing: .35em; text-indent: .35em; text-shadow: 0 0 22px rgba(0,210,255,.6); }.sigic-watermark small { margin-top: 8px; color: #a4dbe7; font-size: 10px; letter-spacing: .25em; text-transform: uppercase; }.sigic-theme-claro .sigic-watermark { opacity: .09; }.sigic-theme-claro .sigic-watermark img { filter: grayscale(1) contrast(.8) brightness(1.15); mix-blend-mode: multiply; }.sigic-theme-claro .sigic-watermark span, .sigic-theme-claro .sigic-watermark small { color: #1d6380; text-shadow: none; }
 .sigic-os-topbar { height: 68px; display: flex; align-items: center; justify-content: space-between; padding: 0 28px; border-bottom: 1px solid rgba(162, 231, 239, .12); background: rgba(7, 20, 33, .65); position: relative; z-index: 2; }
@@ -342,8 +342,8 @@ button { cursor: pointer; }
 /* Escritorio SIGIC: composición limpia inspirada en el escritorio de Transporte. */
 .sigic-os-topbar { display: none; }
 .sigic-os-workspace { height: calc(100vh - 48px); padding: 10px 8px; }
-.sigic-os-shortcuts { position: absolute; inset: 8px auto 52px 8px; width: 88px; display: flex; flex-direction: column; gap: 4px; margin: 0; align-items: center; }
-.sigic-desktop-icon { width: 78px; min-width: 78px; padding: 8px 4px; gap: 6px; border-radius: 8px; color: #fff; text-shadow: 0 1px 3px #000; }
+.sigic-os-shortcuts { position: absolute; inset: 8px auto 52px 8px; width: 88px; display: flex; flex-direction: column; gap: 4px; margin: 0; align-items: center; z-index: 10; }
+.sigic-desktop-icon { width: 78px; min-width: 78px; padding: 8px 4px; gap: 6px; border-radius: 8px; color: #fff; text-shadow: 0 1px 3px #000; cursor: pointer; user-select: none; position: relative; z-index: 11; }
 .sigic-desktop-icon:hover { background: rgba(255,255,255,.11); color: #fff; transform: none; }
 .sigic-desktop-icon-art { width: 40px; height: 40px; background: transparent !important; box-shadow: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,.65)); }
 .sigic-desktop-icon span:last-child { font-size: 11px; line-height: 1.15; }

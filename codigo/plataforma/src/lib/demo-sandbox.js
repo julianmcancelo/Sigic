@@ -153,12 +153,66 @@ class DemoSandbox {
       return this._crearRespuesta({ ok: true, invitado: nuevoInv }, 201)
     }
 
-    // 12. AUTO-SEATING / BUTACAS (POST /api/butacas/auto-asignar)
-    if (metodo === 'POST' && urlStr.includes('/api/butacas/auto-asignar')) {
+    // 12. AUTO-SEATING / BUTACAS (POST /api/anfiteatro/auto-asignar o /api/butacas/auto-asignar)
+    if (metodo === 'POST' && (urlStr.includes('/api/anfiteatro/auto-asignar') || urlStr.includes('/api/butacas/auto-asignar'))) {
+      const criterio = body?.criterio || 'JURAMENTO'
+      const prioridadJuramento = body?.prioridadJuramento || 'DIOS_Y_PATRIA_PRIMERO'
+      const ubicarInvitados = body?.ubicarInvitados !== false
+
+      // Ordenar graduados demo según criterio
+      if (criterio === 'JURAMENTO') {
+        this.egresados.sort((a, b) => {
+          const esDiosA = (a.formula_juramento || '').toUpperCase().includes('DIOS')
+          const esDiosB = (b.formula_juramento || '').toUpperCase().includes('DIOS')
+          if (esDiosA !== esDiosB) {
+            return prioridadJuramento === 'DIOS_Y_PATRIA_PRIMERO' ? (esDiosA ? -1 : 1) : (esDiosA ? 1 : -1)
+          }
+          return (a.nombre || '').localeCompare(b.nombre || '')
+        })
+      } else if (criterio === 'CARRERA') {
+        this.egresados.sort((a, b) => {
+          const cComp = (a.carrera || '').localeCompare(b.carrera || '')
+          if (cComp !== 0) return cComp
+          return (a.nombre || '').localeCompare(b.nombre || '')
+        })
+      } else if (criterio === 'ALFABETICO') {
+        this.egresados.sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''))
+      }
+
+      // Generar pool de butacas en platea baja
+      const letras = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+      const poolButacas = []
+      letras.forEach(l => {
+        for (let c = 1; c <= 20; c++) {
+          if (c === 5 || c === 16) continue // pasillos Beltrán
+          poolButacas.push(`baja-${l}-${c}`)
+        }
+      })
+
+      let asignadosEgresados = 0
+      this.egresados.forEach(eg => {
+        if (poolButacas.length > 0) {
+          eg.asiento_id = poolButacas.shift()
+          eg.estado_asignacion_butacas = 'CONFIRMADA'
+          asignadosEgresados++
+        }
+      })
+
+      let asignadosInvitados = 0
+      if (ubicarInvitados) {
+        this.invitados.forEach(inv => {
+          if (poolButacas.length > 0) {
+            inv.asiento_id = poolButacas.shift()
+            asignadosInvitados++
+          }
+        })
+      }
+
       return this._crearRespuesta({
         ok: true,
-        mensaje: 'Distribucion inteligente completada con exito (Modo Demo). Todos los egresados y familiares fueron ubicados.',
-        asignados: this.egresados.length
+        mensaje: `Distribución inteligente completada: ${asignadosEgresados} graduados y ${asignadosInvitados} acompañantes ubicados en el auditorio.`,
+        asignadosEgresados,
+        asignadosInvitados
       }, 200)
     }
 

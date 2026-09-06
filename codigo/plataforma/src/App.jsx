@@ -9,7 +9,7 @@
  * 3. Si rechaza → Inhabilitado, se cierra sesión automáticamente
  */
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, CalendarPlus, RefreshCw, Shield, Server, Search, Power, Bell, Wifi, Volume2, ChevronRight, ChevronUp, ArrowRight, LayoutGrid, X, Minus, Maximize2, Square, Copy, Sun, Moon, MousePointer2, Lock, ClipboardCheck, Activity, Send, ListChecks, ScrollText, Sparkles, Armchair, Award, QrCode, Palette } from 'lucide-react'
+import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, CalendarPlus, RefreshCw, Shield, Server, Search, Power, Bell, Wifi, Volume2, ChevronRight, ChevronUp, ArrowRight, LayoutGrid, X, Minus, Maximize2, Square, Copy, Sun, Moon, MousePointer2, Lock, ClipboardCheck, Activity, Send, ListChecks, ScrollText, Sparkles, Armchair, Award, QrCode, Palette, ExternalLink } from 'lucide-react'
 
 // Importación de Modal de Fondo
 import { ModalPersonalizarFondo } from './componentes/ModalPersonalizarFondo'
@@ -1278,7 +1278,6 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
       if (ventanas[pantallaActual]) return ventanas
       return { ...ventanas, [pantallaActual]: disenoInicial(ventanasAbiertas.length) }
     })
-    if (esAplicacionNativa) actualizarDiseno(pantallaActual, { maximizada: true, ajuste: null })
   }, [pantallaActual, esAplicacionNativa])
 
   const ultimoChildrenRef = useRef(children)
@@ -1411,17 +1410,6 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
       setMenuContextual(null)
       return
     }
-    // En Tauri cada módulo se abre en su propia ventana del sistema operativo.
-    // La ventana principal permanece disponible como escritorio de trabajo.
-    if (esAplicacionNativa && id !== pantallaActual && id !== 'bienvenida') {
-      const baseUrl = typeof window !== 'undefined' ? window.location.origin : undefined
-      import('@tauri-apps/api/core')
-        .then(({ invoke }) => invoke('abrir_modulo', { ruta: `?modulo=${encodeURIComponent(id)}`, titulo: app?.titulo || 'SiGIC', baseUrl }))
-        .catch(() => onNavegar(id))
-      setInicioAbierto(false)
-      setMenuContextual(null)
-      return
-    }
     const yaEstabaAbierta = ventanasAbiertas.includes(id)
     setVentanasAbiertas(ventanas => [...ventanas.filter(item => item !== id), id])
     setVentanasCerrandose(ventanas => ventanas.filter(item => item !== id))
@@ -1490,6 +1478,25 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
       setDisenoVentanas(ventanas => { const { [id]: cerrada, ...restantesDisenos } = ventanas; return restantesDisenos })
       setContenidoVentanas(contenidos => { const { [id]: cerrada, ...restantesContenidos } = contenidos; return restantesContenidos })
     }, 180)
+  }
+
+  const desacoplarModuloNativo = async (id, titulo) => {
+    try {
+      if (typeof window !== 'undefined' && window.__TAURI_INTERNALS__) {
+        const { invoke } = await import('@tauri-apps/api/core')
+        await invoke('abrir_modulo', {
+          ruta: `?modulo=${id}`,
+          titulo: `${titulo} · SiGIC Escritorio`,
+          baseUrl: window.location.origin
+        })
+        cerrarVentana(id)
+        return
+      }
+    } catch (e) {
+      console.warn('No se pudo abrir ventana nativa de Tauri:', e)
+    }
+    // Fallback estándar en navegador
+    window.open(`${window.location.origin}/?modulo=${id}`, `sigic_${id}`, 'width=1280,height=820')
   }
 
   const alternarMinimizada = (id) => {
@@ -1616,6 +1623,17 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
                   className="sigic-window-controls"
                   onPointerDown={evento => evento.stopPropagation()}
                 >
+                  <button
+                    type="button"
+                    onClick={evento => {
+                      evento.stopPropagation()
+                      desacoplarModuloNativo(id, titulo)
+                    }}
+                    aria-label="Abrir en ventana nativa independiente"
+                    title="Desacoplar en ventana independiente (Multi-pantalla)"
+                  >
+                    <ExternalLink size={13} />
+                  </button>
                   <button
                     type="button"
                     onClick={evento => {

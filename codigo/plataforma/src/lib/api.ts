@@ -641,11 +641,11 @@ export async function actualizarJuramentoGraduado(graduadoId: string | number, f
   return json;
 }
 
-export async function autoAsignarButacas(ceremoniaId?: string | number) {
+export async function autoAsignarButacas(ceremoniaId?: string | number, opciones: any = {}) {
   const res = await fetch(`${BASE_CLASSIC}/anfiteatro/auto-asignar`, {
     method: 'POST',
     headers: cabeceras(),
-    body: JSON.stringify({ ceremoniaId })
+    body: JSON.stringify({ ceremoniaId, ...opciones })
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'No se pudo realizar la distribución automática de butacas');

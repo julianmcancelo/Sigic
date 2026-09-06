@@ -5,12 +5,188 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>SiGIC Escritorio</title>
     <style>
-      body { margin: 0; min-height: 100vh; display: grid; place-items: center; color: #f7fbff; background: radial-gradient(circle at 20% 10%, #175578, transparent 38%), #071524; font: 500 14px "Segoe UI", sans-serif; }
-      main { display: grid; justify-items: center; gap: 18px; text-align: center; }
-      b { display: grid; place-items: center; width: 72px; height: 72px; border: 1px solid #7fe5f4; border-radius: 16px; color: #7fe5f4; box-shadow: 0 16px 40px #0008; font-size: 26px; }
-      strong { letter-spacing: .16em; font-size: 19px; } p { margin: 0; color: #a9c3d6; font-size: 12px; }
-      i { width: 28px; height: 28px; border: 3px solid #7fe5f4; border-right-color: transparent; border-radius: 50%; animation: spin .8s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        color: #f7fbff;
+        background: radial-gradient(circle at 20% 10%, #175578, transparent 45%), #071524;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      }
+      main {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        text-align: center;
+        max-width: 420px;
+        padding: 24px;
+      }
+      .logo {
+        display: grid;
+        place-items: center;
+        width: 72px;
+        height: 72px;
+        border: 1.5px solid rgba(127, 229, 244, 0.4);
+        background: rgba(127, 229, 244, 0.05);
+        border-radius: 18px;
+        color: #7fe5f4;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+        font-size: 28px;
+        font-weight: 700;
+        letter-spacing: -0.05em;
+      }
+      strong {
+        letter-spacing: 0.18em;
+        font-size: 20px;
+        color: #fff;
+      }
+      p {
+        margin: 0;
+        color: #94a3b8;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      .spinner {
+        width: 26px;
+        height: 26px;
+        border: 2.5px solid rgba(127, 229, 244, 0.2);
+        border-right-color: #7fe5f4;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin-top: 8px;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+      .estado {
+        font-size: 12px;
+        color: #38bdf8;
+        background: rgba(56, 189, 248, 0.1);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        padding: 6px 14px;
+        border-radius: 999px;
+      }
+      .error-box {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        padding: 14px 18px;
+        border-radius: 12px;
+        margin-top: 8px;
+      }
+      .btn {
+        background: #0284c7;
+        color: #fff;
+        border: none;
+        padding: 8px 18px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .btn:hover {
+        background: #0369a1;
+      }
     </style>
   </head>
-  <body><main><b>S</b><strong>SIGIC</strong><p>Iniciando aplicación de escritorio</p><i></i></main></body>
+  <body>
+    <main>
+      <div class="logo">S</div>
+      <strong>SIGIC ESCRITORIO</strong>
+      <div id="badge" class="estado">Conectando con la plataforma...</div>
+      <p id="msg">Iniciando el entorno de gestión institucional...</p>
+      <div id="spinner" class="spinner"></div>
+
+      <div id="errorBox" class="error-box">
+        <p id="errorTxt" style="color: #fca5a5; font-size: 12px;">No se pudo conectar con el servidor.</p>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn" onclick="iniciarConexion()">Reintentar</button>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      const SERVIDOR_LOCAL = 'http://localhost:3000';
+      const SERVIDOR_PROD = 'https://app.sigic.com.ar';
+
+      async function testUrl(url) {
+        try {
+          const res = await fetch(url + '/api/ceremonias/activa', { method: 'HEAD', mode: 'no-cors' });
+          return true;
+        } catch (e) {
+          try {
+            await fetch(url, { method: 'HEAD', mode: 'no-cors' });
+            return true;
+          } catch (_) {
+            return false;
+          }
+        }
+      }
+
+      async function iniciarConexion() {
+        const badge = document.getElementById('badge');
+        const msg = document.getElementById('msg');
+        const spinner = document.getElementById('spinner');
+        const errorBox = document.getElementById('errorBox');
+
+        errorBox.style.display = 'none';
+        spinner.style.display = 'block';
+        badge.innerText = 'Buscando servidor...';
+        badge.style.color = '#38bdf8';
+
+        // 1. Priorizar URL guardada si el usuario la configuró previamente
+        const urlCustom = localStorage.getItem('sigic_servidor_url');
+        if (urlCustom && await testUrl(urlCustom)) {
+          badge.innerText = 'Conectado. Abriendo...';
+          window.location.replace(urlCustom);
+          return;
+        }
+
+        // 2. Probar servidor local
+        msg.innerText = 'Verificando servicio local (localhost:3000)...';
+        if (await testUrl(SERVIDOR_LOCAL)) {
+          badge.innerText = 'Servidor local activo. Ingresando...';
+          window.location.replace(SERVIDOR_LOCAL);
+          return;
+        }
+
+        // 3. Probar servidor nube/remoto
+        msg.innerText = 'Conectando con plataforma en la nube...';
+        if (await testUrl(SERVIDOR_PROD)) {
+          badge.innerText = 'Conectado a la nube. Ingresando...';
+          window.location.replace(SERVIDOR_PROD);
+          return;
+        }
+
+        // 4. Si ninguno responde de inmediato, dar 3 segundos e intentar localhost
+        msg.innerText = 'Aguardando inicialización de Next.js...';
+        await new Promise(r => setTimeout(r, 2500));
+
+        if (await testUrl(SERVIDOR_LOCAL)) {
+          window.location.replace(SERVIDOR_LOCAL);
+          return;
+        }
+
+        // Error
+        spinner.style.display = 'none';
+        badge.innerText = 'Servidor no disponible';
+        badge.style.color = '#f87171';
+        badge.style.borderColor = 'rgba(248, 113, 113, 0.3)';
+        badge.style.background = 'rgba(248, 113, 113, 0.1)';
+        document.getElementById('errorTxt').innerText = 'Asegurate de que el servidor esté iniciado (npm run dev) o contás con conexión a Internet.';
+        errorBox.style.display = 'flex';
+      }
+
+      window.addEventListener('DOMContentLoaded', () => {
+        iniciarConexion();
+      });
+    </script>
+  </body>
 </html>

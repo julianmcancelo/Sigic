@@ -1123,7 +1123,26 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
             textoBoton: 'Auto-Asignar Butacas',
             rx: 0.76, ry: 0.12,
             soloVisual: false,
-            etiqueta: 'Calculando orden alfabético y bloques contiguos...',
+            etiqueta: 'Configurando protocolo y fórmula de juramento...',
+            pausaDespues: 700,
+            esperarElemento: true
+          },
+          {
+            tipo: 'mover',
+            selector: '#btn-confirmar-auto-asignar, button',
+            textoBoton: 'Ejecutar Asignación',
+            rx: 0.55, ry: 0.85,
+            etiqueta: 'Distribuyendo graduados por juramento y orden protocolar...',
+            pausaDespues: 600,
+            esperarElemento: true
+          },
+          {
+            tipo: 'click',
+            selector: '#btn-confirmar-auto-asignar, button',
+            textoBoton: 'Ejecutar Asignación',
+            rx: 0.55, ry: 0.85,
+            soloVisual: false,
+            etiqueta: 'Calculando orden y asignando butacas en auditorio...',
             pausaDespues: 1000,
             esperarElemento: true
           },
