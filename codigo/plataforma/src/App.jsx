@@ -31,6 +31,7 @@ import { CentroControl } from './paginas/operacion/CentroControl'
 import { GestionGraduados } from './paginas/operacion/GestionGraduados'
 import { GestionConvocatoria } from './paginas/operacion/GestionConvocatoria'
 import { PreparacionCeremonia } from './paginas/operacion/PreparacionCeremonia'
+import { DespachoCredenciales } from './paginas/operacion/DespachoCredenciales'
 import { ControlIngreso } from './paginas/operacion/ControlIngreso'
 import { PanelAjustes } from './paginas/operacion/PanelAjustes'
 import { GestionCeremonias } from './paginas/operacion/GestionCeremonias'
@@ -952,6 +953,8 @@ function App() {
       contenido = <GestionConvocatoria onNavegar={setPantallaAdmin} ceremoniaActiva={ceremoniaActiva} />
     } else if (pantallaAdmin === 'preparacion-ceremonia') {
       contenido = <PreparacionCeremonia onNavegar={setPantallaAdmin} ceremoniaActiva={ceremoniaActiva} />
+    } else if (pantallaAdmin === 'despacho-credenciales') {
+      contenido = <DespachoCredenciales onNavegar={setPantallaAdmin} ceremoniaActiva={ceremoniaActiva} usuario={adminUser} />
     } else if (pantallaAdmin === 'asistente-operativo') {
       contenido = <AsistenteOperativoCeremonia onNavegar={setPantallaAdmin} />
     } else if (pantallaAdmin === 'control-ingreso' || adminUser?.rol === 'PORTERIA' || adminUser?.rol === 'SEGURIDAD') {
@@ -1233,6 +1236,7 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
     { id: 'gestion-graduados', titulo: 'Graduados', icono: GraduationCap, color: 'bg-emerald-500', escritorio: true },
     { id: 'convocatoria', titulo: 'Convocatoria', icono: Send, color: 'bg-blue-500', escritorio: true },
     { id: 'preparacion-ceremonia', titulo: 'Preparación', icono: Armchair, color: 'bg-cyan-600', escritorio: true },
+    { id: 'despacho-credenciales', titulo: 'Credenciales', icono: QrCode, color: 'bg-blue-600', escritorio: false },
     { id: 'control-ingreso', titulo: 'Acreditación', icono: ScanLine, color: 'bg-amber-500', escritorio: true },
     { id: 'estado-ceremonia', titulo: 'En vivo', icono: Activity, color: 'bg-teal-500', escritorio: true },
     { id: 'panel-reportes', titulo: 'Reportes', icono: BarChart3, color: 'bg-purple-500', escritorio: true },

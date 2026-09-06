@@ -330,7 +330,13 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
           <button
             type="button"
             id="btn-finalizar-preparacion"
-            onClick={() => setMostrarDespachoCredenciales(true)}
+            onClick={() => {
+              if (onNavegar) {
+                onNavegar('despacho-credenciales')
+              } else {
+                setMostrarDespachoCredenciales(true)
+              }
+            }}
             className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-500/80 px-3.5 py-1.5 text-[11px] font-black transition active:scale-95 cursor-pointer shadow-xs"
             title="Finalizar preparación y despachar credenciales QR a los confirmados"
           >

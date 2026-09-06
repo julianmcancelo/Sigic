@@ -10,6 +10,7 @@ const informacion = {
   'gestion-graduados': ['Organizar', 'Padrón e inscripciones', 'alumnos egresados importar excel'],
   convocatoria: ['Organizar', 'Invitaciones y respuestas', 'correo email enviar invitar'],
   'preparacion-ceremonia': ['Organizar', 'Butacas y organización', 'asientos plano preparacion'],
+  'despacho-credenciales': ['Organizar', 'Emisión y despacho QR', 'credenciales pases email qr despacho'],
   'control-ingreso': ['Durante el evento', 'Escaneo y asistencia', 'qr porteria acceso escaner'],
   'estado-ceremonia': ['Durante el evento', 'Seguimiento de la ceremonia', 'vivo estado proyeccion'],
   'panel-reportes': ['Durante el evento', 'Resultados y estadísticas', 'informes exportar asistencia'],
