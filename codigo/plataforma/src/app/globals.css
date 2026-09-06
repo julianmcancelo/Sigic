@@ -214,6 +214,21 @@ button { cursor: pointer; }
   background-image: linear-gradient(rgba(245, 158, 11, 0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(245, 158, 11, 0.06) 1px, transparent 1px) !important;
 }
 
+.sigic-wallpaper-ceremonial .sigic-os-topbar { border-bottom-color: rgba(245, 158, 11, 0.2); background: rgba(15, 23, 42, 0.8); }
+.sigic-wallpaper-ceremonial .sigic-orbit-mark { border-color: #fbbf24; box-shadow: 0 0 16px rgba(245, 158, 11, 0.35); }
+.sigic-wallpaper-ceremonial .sigic-brand span { color: #f59e0b; }
+.sigic-wallpaper-ceremonial .sigic-window-bar { background: #1c1a45; border-bottom: 1px solid rgba(245, 158, 11, 0.2); }
+.sigic-wallpaper-ceremonial .sigic-window-app-dot { background: #f59e0b; box-shadow: 0 0 8px #f59e0b; }
+.sigic-wallpaper-ceremonial .sigic-window-active { border-color: rgba(245, 158, 11, 0.6); box-shadow: 0 28px 75px rgba(0,0,0,.52), 0 0 0 1px rgba(245, 158, 11, 0.3); }
+.sigic-wallpaper-ceremonial .sigic-taskbar { background: rgba(15, 23, 42, 0.92); border-top-color: rgba(245, 158, 11, 0.2); }
+.sigic-wallpaper-ceremonial .sigic-start-button:hover, .sigic-wallpaper-ceremonial .sigic-start-button.is-active, .sigic-wallpaper-ceremonial .sigic-task-app:hover { background: rgba(245, 158, 11, 0.18); color: #fef08a; }
+.sigic-wallpaper-ceremonial .sigic-start-menu { background: rgba(15, 23, 42, 0.97); border-color: rgba(245, 158, 11, 0.25); box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 30px rgba(245, 158, 11, 0.1); }
+.sigic-wallpaper-ceremonial .sigic-user-avatar { background: linear-gradient(135deg, #fbbf24, #b45309); color: #451a03; }
+.sigic-wallpaper-ceremonial .sigic-session-card { background: rgba(15, 23, 42, 0.88); border-color: rgba(245, 158, 11, 0.25); }
+.sigic-wallpaper-ceremonial .sigic-session-avatar { background: linear-gradient(135deg, #fbbf24, #92400e); }
+.sigic-wallpaper-ceremonial .sigic-context-menu { background: rgba(15, 23, 42, 0.98); border-color: rgba(245, 158, 11, 0.25); }
+.sigic-wallpaper-ceremonial .sigic-context-menu button:hover { background: rgba(245, 158, 11, 0.18); color: #fef08a; }
+
 .sigic-wallpaper-cybergrid {
   background: linear-gradient(135deg, #031326 0%, #08213d 50%, #020b17 100%) !important;
   color: #e0f2fe;
@@ -227,6 +242,21 @@ button { cursor: pointer; }
   background-image: linear-gradient(rgba(56, 189, 248, 0.14) 1px, transparent 1px), linear-gradient(90deg, rgba(56, 189, 248, 0.14) 1px, transparent 1px) !important;
 }
 
+.sigic-wallpaper-cybergrid .sigic-os-topbar { border-bottom-color: rgba(56, 189, 248, 0.3); background: rgba(3, 19, 38, 0.85); }
+.sigic-wallpaper-cybergrid .sigic-orbit-mark { border-color: #38bdf8; box-shadow: 0 0 20px rgba(56, 189, 248, 0.5); }
+.sigic-wallpaper-cybergrid .sigic-brand span { color: #38bdf8; text-shadow: 0 0 10px rgba(56, 189, 248, 0.6); }
+.sigic-wallpaper-cybergrid .sigic-window-bar { background: #08294d; border-bottom: 1px solid rgba(56, 189, 248, 0.3); }
+.sigic-wallpaper-cybergrid .sigic-window-app-dot { background: #38bdf8; box-shadow: 0 0 10px #38bdf8; }
+.sigic-wallpaper-cybergrid .sigic-window-active { border-color: rgba(56, 189, 248, 0.8); box-shadow: 0 28px 75px rgba(0,0,0,.6), 0 0 0 1px rgba(56, 189, 248, 0.4), 0 0 20px rgba(56, 189, 248, 0.2); }
+.sigic-wallpaper-cybergrid .sigic-taskbar { background: rgba(2, 16, 32, 0.94); border-top-color: rgba(56, 189, 248, 0.3); }
+.sigic-wallpaper-cybergrid .sigic-start-button:hover, .sigic-wallpaper-cybergrid .sigic-start-button.is-active, .sigic-wallpaper-cybergrid .sigic-task-app:hover { background: rgba(56, 189, 248, 0.2); color: #bae6fd; text-shadow: 0 0 8px rgba(56, 189, 248, 0.5); }
+.sigic-wallpaper-cybergrid .sigic-start-menu { background: rgba(3, 18, 36, 0.98); border-color: rgba(56, 189, 248, 0.35); box-shadow: 0 25px 60px rgba(0,0,0,0.6), 0 0 35px rgba(56, 189, 248, 0.15); }
+.sigic-wallpaper-cybergrid .sigic-user-avatar { background: linear-gradient(135deg, #38bdf8, #0369a1); color: #082f49; }
+.sigic-wallpaper-cybergrid .sigic-session-card { background: rgba(3, 18, 36, 0.9); border-color: rgba(56, 189, 248, 0.3); }
+.sigic-wallpaper-cybergrid .sigic-session-avatar { background: linear-gradient(135deg, #38bdf8, #0284c7); }
+.sigic-wallpaper-cybergrid .sigic-context-menu { background: rgba(3, 18, 36, 0.98); border-color: rgba(56, 189, 248, 0.3); }
+.sigic-wallpaper-cybergrid .sigic-context-menu button:hover { background: rgba(56, 189, 248, 0.2); color: #bae6fd; }
+
 .sigic-wallpaper-sunset {
   background: radial-gradient(circle at 50% 30%, #2e1547 0%, #150a26 60%, #080312 100%) !important;
   color: #fed7aa;
@@ -237,6 +267,21 @@ button { cursor: pointer; }
 .sigic-wallpaper-sunset .sigic-os-grid {
   background-image: linear-gradient(rgba(249, 115, 22, 0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(249, 115, 22, 0.07) 1px, transparent 1px) !important;
 }
+
+.sigic-wallpaper-sunset .sigic-os-topbar { border-bottom-color: rgba(249, 115, 22, 0.2); background: rgba(24, 13, 42, 0.8); }
+.sigic-wallpaper-sunset .sigic-orbit-mark { border-color: #fb923c; box-shadow: 0 0 16px rgba(249, 115, 22, 0.35); }
+.sigic-wallpaper-sunset .sigic-brand span { color: #fb923c; }
+.sigic-wallpaper-sunset .sigic-window-bar { background: #2b1442; border-bottom: 1px solid rgba(249, 115, 22, 0.2); }
+.sigic-wallpaper-sunset .sigic-window-app-dot { background: #f97316; box-shadow: 0 0 8px #f97316; }
+.sigic-wallpaper-sunset .sigic-window-active { border-color: rgba(249, 115, 22, 0.6); box-shadow: 0 28px 75px rgba(0,0,0,.52), 0 0 0 1px rgba(249, 115, 22, 0.3); }
+.sigic-wallpaper-sunset .sigic-taskbar { background: rgba(24, 13, 42, 0.92); border-top-color: rgba(249, 115, 22, 0.2); }
+.sigic-wallpaper-sunset .sigic-start-button:hover, .sigic-wallpaper-sunset .sigic-start-button.is-active, .sigic-wallpaper-sunset .sigic-task-app:hover { background: rgba(249, 115, 22, 0.18); color: #fed7aa; }
+.sigic-wallpaper-sunset .sigic-start-menu { background: rgba(24, 13, 42, 0.97); border-color: rgba(249, 115, 22, 0.25); box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 30px rgba(249, 115, 22, 0.1); }
+.sigic-wallpaper-sunset .sigic-user-avatar { background: linear-gradient(135deg, #fb923c, #7e22ce); color: #fff; }
+.sigic-wallpaper-sunset .sigic-session-card { background: rgba(24, 13, 42, 0.88); border-color: rgba(249, 115, 22, 0.25); }
+.sigic-wallpaper-sunset .sigic-session-avatar { background: linear-gradient(135deg, #fb923c, #c2410c); }
+.sigic-wallpaper-sunset .sigic-context-menu { background: rgba(24, 13, 42, 0.98); border-color: rgba(249, 115, 22, 0.25); }
+.sigic-wallpaper-sunset .sigic-context-menu button:hover { background: rgba(249, 115, 22, 0.18); color: #fed7aa; }
 
 .sigic-wallpaper-emerald {
   background: radial-gradient(circle at 50% 25%, #083827 0%, #041f17 55%, #02110c 100%) !important;
@@ -249,6 +294,21 @@ button { cursor: pointer; }
   background-image: linear-gradient(rgba(16, 185, 129, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(16, 185, 129, 0.08) 1px, transparent 1px) !important;
 }
 
+.sigic-wallpaper-emerald .sigic-os-topbar { border-bottom-color: rgba(16, 185, 129, 0.2); background: rgba(4, 31, 23, 0.8); }
+.sigic-wallpaper-emerald .sigic-orbit-mark { border-color: #34d399; box-shadow: 0 0 16px rgba(16, 185, 129, 0.35); }
+.sigic-wallpaper-emerald .sigic-brand span { color: #34d399; }
+.sigic-wallpaper-emerald .sigic-window-bar { background: #083828; border-bottom: 1px solid rgba(16, 185, 129, 0.2); }
+.sigic-wallpaper-emerald .sigic-window-app-dot { background: #10b981; box-shadow: 0 0 8px #10b981; }
+.sigic-wallpaper-emerald .sigic-window-active { border-color: rgba(16, 185, 129, 0.6); box-shadow: 0 28px 75px rgba(0,0,0,.52), 0 0 0 1px rgba(16, 185, 129, 0.3); }
+.sigic-wallpaper-emerald .sigic-taskbar { background: rgba(4, 31, 23, 0.92); border-top-color: rgba(16, 185, 129, 0.2); }
+.sigic-wallpaper-emerald .sigic-start-button:hover, .sigic-wallpaper-emerald .sigic-start-button.is-active, .sigic-wallpaper-emerald .sigic-task-app:hover { background: rgba(16, 185, 129, 0.18); color: #a7f3d0; }
+.sigic-wallpaper-emerald .sigic-start-menu { background: rgba(4, 31, 23, 0.97); border-color: rgba(16, 185, 129, 0.25); box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 30px rgba(16, 185, 129, 0.1); }
+.sigic-wallpaper-emerald .sigic-user-avatar { background: linear-gradient(135deg, #34d399, #064e3b); color: #022c22; }
+.sigic-wallpaper-emerald .sigic-session-card { background: rgba(4, 31, 23, 0.88); border-color: rgba(16, 185, 129, 0.25); }
+.sigic-wallpaper-emerald .sigic-session-avatar { background: linear-gradient(135deg, #34d399, #047857); }
+.sigic-wallpaper-emerald .sigic-context-menu { background: rgba(4, 31, 23, 0.98); border-color: rgba(16, 185, 129, 0.25); }
+.sigic-wallpaper-emerald .sigic-context-menu button:hover { background: rgba(16, 185, 129, 0.18); color: #a7f3d0; }
+
 .sigic-wallpaper-sapphire {
   background: radial-gradient(circle at 55% 25%, #072659 0%, #031433 60%, #010817 100%) !important;
   color: #dbeafe;
@@ -259,6 +319,21 @@ button { cursor: pointer; }
 .sigic-wallpaper-sapphire .sigic-os-grid {
   background-image: linear-gradient(rgba(59, 130, 246, 0.09) 1px, transparent 1px), linear-gradient(90deg, rgba(59, 130, 246, 0.09) 1px, transparent 1px) !important;
 }
+
+.sigic-wallpaper-sapphire .sigic-os-topbar { border-bottom-color: rgba(59, 130, 246, 0.2); background: rgba(8, 18, 45, 0.8); }
+.sigic-wallpaper-sapphire .sigic-orbit-mark { border-color: #60a5fa; box-shadow: 0 0 16px rgba(59, 130, 246, 0.35); }
+.sigic-wallpaper-sapphire .sigic-brand span { color: #60a5fa; }
+.sigic-wallpaper-sapphire .sigic-window-bar { background: #0b2256; border-bottom: 1px solid rgba(59, 130, 246, 0.2); }
+.sigic-wallpaper-sapphire .sigic-window-app-dot { background: #3b82f6; box-shadow: 0 0 8px #3b82f6; }
+.sigic-wallpaper-sapphire .sigic-window-active { border-color: rgba(59, 130, 246, 0.6); box-shadow: 0 28px 75px rgba(0,0,0,.52), 0 0 0 1px rgba(59, 130, 246, 0.3); }
+.sigic-wallpaper-sapphire .sigic-taskbar { background: rgba(8, 18, 45, 0.92); border-top-color: rgba(59, 130, 246, 0.2); }
+.sigic-wallpaper-sapphire .sigic-start-button:hover, .sigic-wallpaper-sapphire .sigic-start-button.is-active, .sigic-wallpaper-sapphire .sigic-task-app:hover { background: rgba(59, 130, 246, 0.18); color: #bfdbfe; }
+.sigic-wallpaper-sapphire .sigic-start-menu { background: rgba(8, 18, 45, 0.97); border-color: rgba(59, 130, 246, 0.25); box-shadow: 0 25px 60px rgba(0,0,0,0.5), 0 0 30px rgba(59, 130, 246, 0.1); }
+.sigic-wallpaper-sapphire .sigic-user-avatar { background: linear-gradient(135deg, #60a5fa, #1e3a8a); color: #0f172a; }
+.sigic-wallpaper-sapphire .sigic-session-card { background: rgba(8, 18, 45, 0.88); border-color: rgba(59, 130, 246, 0.25); }
+.sigic-wallpaper-sapphire .sigic-session-avatar { background: linear-gradient(135deg, #60a5fa, #1d4ed8); }
+.sigic-wallpaper-sapphire .sigic-context-menu { background: rgba(8, 18, 45, 0.98); border-color: rgba(59, 130, 246, 0.25); }
+.sigic-wallpaper-sapphire .sigic-context-menu button:hover { background: rgba(59, 130, 246, 0.18); color: #bfdbfe; }
 
 .sigic-wallpaper-alabaster,
 .sigic-theme-claro {
