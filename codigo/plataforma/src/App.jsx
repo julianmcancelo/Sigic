@@ -21,6 +21,7 @@ import { PanelGraduado } from './paginas/PanelGraduado'
 import { HistorialGraduado } from './paginas/HistorialGraduado'
 import { LoginGraduado } from './paginas/LoginGraduado'
 import { PantallaSeleccionLogin } from './paginas/PantallaSeleccionLogin'
+import { LandingInstitucional } from './paginas/LandingInstitucional'
 import { AsistenteSetup } from './paginas/AsistenteSetup'
 import { PantallaAceptacion } from './paginas/PantallaAceptacion'
 import { ManualUsuarioWeb } from './paginas/ManualUsuarioWeb'
@@ -223,7 +224,6 @@ function App() {
       return 'admin'
     }
     if (p === '/egresado' || p === '/graduado' || p === '/carga') return 'graduado'
-    if (p === '/' && localStorage.getItem('mostrar_presentacion_inicial') === 'false') return 'admin'
     return null
   })
 
@@ -1097,15 +1097,20 @@ function App() {
     )
   }
 
-  // CASO E.2: Selección Inicial
+  // CASO E.2: Selección Inicial (Landing Institucional)
   else {
     contenido = (
-      <PantallaSeleccionLogin 
+      <LandingInstitucional 
         modoDemo={modoDemoActivo}
         enMantenimiento={enMantenimiento}
-        accesoOculto={accesoOculto}
         onSeleccionarAdmin={() => modoDemoActivo ? manejarLoginAdminExitoso(ADMIN_DEMO) : setVistaLogin('admin')}
-        onSeleccionarEgresado={() => modoDemoActivo ? manejarLoginGraduadoExitoso(EGRESADA_DEMO) : setVistaLogin('graduado')}
+        onSeleccionarEgresado={(dniOEmail) => {
+          if (modoDemoActivo) {
+            manejarLoginGraduadoExitoso(EGRESADA_DEMO)
+          } else {
+            setVistaLogin('graduado')
+          }
+        }}
         onSeleccionarManual={() => setVistaLogin('manual')}
       />
     )
