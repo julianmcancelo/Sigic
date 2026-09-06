@@ -3,5 +3,10 @@
 codigo/plataforma/node_modules
 codigo/plataforma/.next
 codigo/plataforma/src-tauri/target
+codigo/plataforma/public/descargas/*.apk
+codigo/plataforma/public/descargas/*.exe
 codigo/movil_flutter/.dart_tool
 codigo/movil_flutter/build
+manual.docx
+*.apk
+*.exe

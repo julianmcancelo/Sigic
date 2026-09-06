@@ -5,3 +5,7 @@ src-tauri/target/**
 node_modules
 node_modules/**
 *.log
+*.exe
+*.apk
+public/descargas/*.apk
+public/descargas/*.exe
