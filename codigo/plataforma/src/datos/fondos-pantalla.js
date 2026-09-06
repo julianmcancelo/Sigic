@@ -1,5 +1,5 @@
 /**
- * Catálogo de fondos de pantalla oficiales para SiGIC.
+ * Catálogo de fondos de pantalla y temas oficiales para SiGIC.
  * Cada estilo define sus gradientes, acentos visuales y personalidad institucional.
  */
 export const FONDOS_DISPONIBLES = [
@@ -47,6 +47,33 @@ export const FONDOS_DISPONIBLES = [
     colores: ['#051329', '#082540', '#38bdf8'],
     colorPrincipal: '#38bdf8',
     badge: 'Futurista'
+  },
+  {
+    id: 'sunset',
+    nombre: 'Ocaso & Cobre',
+    descripcion: 'Tonalidades violeta crepúsculo con acentos cálidos en bronce y coral.',
+    tipo: 'oscuro',
+    colores: ['#1a0f2e', '#2a1245', '#f97316'],
+    colorPrincipal: '#f97316',
+    badge: 'Cálido'
+  },
+  {
+    id: 'emerald',
+    nombre: 'Esmeralda Académica',
+    descripcion: 'Verde bosque imperial con delicados toques dorados de distinción.',
+    tipo: 'oscuro',
+    colores: ['#041f17', '#083828', '#eab308'],
+    colorPrincipal: '#10b981',
+    badge: 'Prestigio'
+  },
+  {
+    id: 'sapphire',
+    nombre: 'Zafiro Cósmico',
+    descripcion: 'Azul cobalto profundo y titanio con resplandor electromagnético.',
+    tipo: 'oscuro',
+    colores: ['#0a1128', '#001f54', '#60a5fa'],
+    colorPrincipal: '#3b82f6',
+    badge: 'Profundo'
   },
   {
     id: 'alabaster',
