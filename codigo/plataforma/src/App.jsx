@@ -894,6 +894,7 @@ function App() {
         <HistorialGraduado
           graduado={graduadoUsuario}
           onCerrarSesion={cerrarSesionGraduado}
+          onRevertirRechazo={manejarAceptarInvitacion}
           onCambiarCeremonia={() => {
             cerrarSesionGraduado()
             setVistaLogin('graduado')

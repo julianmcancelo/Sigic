@@ -226,10 +226,13 @@ export function GestionConvocatoria({ onNavegar, usuario, ceremoniaActiva: cerem
   }
 
   async function confirmarManual(graduado) {
+    const esRechazado = graduado.estado === 'RECHAZADO'
     const confirmado = await confirmar({
-      titulo: 'Confirmar asistencia por ventanilla / teléfono',
-      descripcion: `¿Deseás registrar formalmente la asistencia de ${graduado.nombre}? El egresado pasará al estado ACEPTADO.`,
-      textoConfirmar: 'Confirmar asistencia',
+      titulo: esRechazado ? 'Revertir rechazo y confirmar asistencia' : 'Confirmar asistencia por ventanilla / teléfono',
+      descripcion: esRechazado
+        ? `¿Deseás revertir la inasistencia de ${graduado.nombre} y confirmar su participación? El graduado pasará a estado ACEPTADO y podrá cargar acompañantes y seleccionar butaca.`
+        : `¿Deseás registrar formalmente la asistencia de ${graduado.nombre}? El egresado pasará al estado ACEPTADO.`,
+      textoConfirmar: esRechazado ? 'Revertir y confirmar' : 'Confirmar asistencia',
       tipo: 'exito',
     })
     if (!confirmado) return
@@ -802,16 +805,17 @@ export function GestionConvocatoria({ onNavegar, usuario, ceremoniaActiva: cerem
                           <ExternalLink size={14} />
                         </button>
 
-                        {/* BOTÓN CONFIRMAR MANUAL (SI NO CONFIRMÓ AÚN) */}
-                        {g.estado !== 'ACEPTADO' && g.estado !== 'RECHAZADO' && (
+                        {/* BOTÓN CONFIRMAR MANUAL (SI NO ESTÁ CONFIRMADO O SI HABÍA RECHAZADO) */}
+                        {g.estado !== 'ACEPTADO' && (
                           <button
                             type="button"
                             onClick={() => confirmarManual(g)}
                             disabled={ocupado}
-                            className="px-2.5 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-700 text-[11px] font-black transition cursor-pointer border border-emerald-200"
-                            title="Confirmar asistencia manualmente por ventanilla"
+                            className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200 text-xs font-black transition cursor-pointer disabled:opacity-40 shrink-0"
+                            title={g.estado === 'RECHAZADO' ? 'Revertir rechazo y confirmar asistencia' : 'Confirmar asistencia del graduado'}
                           >
-                            Confirmar
+                            <UserCheck size={14} />
+                            <span>Confirmar</span>
                           </button>
                         )}
                       </div>

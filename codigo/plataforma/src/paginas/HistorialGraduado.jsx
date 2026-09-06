@@ -65,9 +65,14 @@ export function ListaHistorialGraduado({ historial = [], actualId }) {
   )
 }
 
-export function HistorialGraduado({ graduado, onCerrarSesion, onCambiarCeremonia }) {
+export function HistorialGraduado({ graduado, onCerrarSesion, onCambiarCeremonia, onRevertirRechazo }) {
   const historial = graduado.historial?.length ? graduado.historial : [graduado]
   const estadoActual = datosEstado(graduado)
+  const activa = graduado.ceremonia_activa === true || graduado.ceremonia_activa === 1
+  const esRechazado = graduado.estado === 'RECHAZADO'
+  const fechaLimite = graduado.ceremonia_fecha_limite_confirmacion || graduado.ceremonia_fecha_limite || graduado.fecha_limite_confirmacion
+  const plazoVencido = Boolean(fechaLimite && new Date(fechaLimite).getTime() < Date.now())
+  const puedeRevertir = activa && esRechazado && !plazoVencido && typeof onRevertirRechazo === 'function'
 
   return (
     <main className="min-h-screen bg-slate-50 px-4 py-6 sm:px-8 sm:py-10">
@@ -81,7 +86,7 @@ export function HistorialGraduado({ graduado, onCerrarSesion, onCambiarCeremonia
               <p className="mt-1 text-xs text-slate-400">DNI {graduado.dni} · {historial.length} {historial.length === 1 ? 'participación' : 'participaciones'}</p>
             </div>
           </div>
-          <button onClick={onCerrarSesion} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-[10px] font-black uppercase tracking-wider text-slate-300 hover:bg-white/10">
+          <button onClick={onCerrarSesion} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-[10px] font-black uppercase tracking-wider text-slate-300 hover:bg-white/10 cursor-pointer">
             <LogOut size={15} /> Cerrar sesión
           </button>
         </header>
@@ -96,9 +101,22 @@ export function HistorialGraduado({ graduado, onCerrarSesion, onCambiarCeremonia
                 <estadoActual.Icono size={13} /> {estadoActual.texto}
               </span>
             </div>
-            <button onClick={onCambiarCeremonia} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-sky-500 px-5 py-3 text-[10px] font-black uppercase tracking-wider text-white shadow-lg shadow-sky-200 hover:bg-sky-600">
-              <RotateCcw size={15} /> Elegir otra ceremonia
-            </button>
+            
+            <div className="flex flex-wrap items-center gap-3">
+              {puedeRevertir && (
+                <button
+                  type="button"
+                  onClick={onRevertirRechazo}
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-600 hover:bg-emerald-700 px-5 py-3 text-[10px] font-black uppercase tracking-wider text-white shadow-lg shadow-emerald-600/20 transition-all cursor-pointer active:scale-95"
+                >
+                  <CheckCircle2 size={15} /> Cambiar a Participar (Confirmar)
+                </button>
+              )}
+
+              <button onClick={onCambiarCeremonia} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-sky-500 px-5 py-3 text-[10px] font-black uppercase tracking-wider text-white shadow-lg shadow-sky-200 hover:bg-sky-600 cursor-pointer">
+                <RotateCcw size={15} /> Elegir otra ceremonia
+              </button>
+            </div>
           </div>
         </section>
 
