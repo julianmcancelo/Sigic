@@ -268,9 +268,23 @@ export function GestionConvocatoria({ onNavegar, usuario, ceremoniaActiva: cerem
     window.open(`https://wa.me/?text=${encodeURIComponent(mensajeWhatsApp)}`, '_blank')
   }
 
-  function abrirPortalEgresado(graduado) {
+  async function abrirPortalEgresado(graduado) {
     const host = typeof window !== 'undefined' ? window.location.origin : ''
-    window.open(`${host}/?token=${graduado.token}&vista=preview`, '_blank', 'noopener,noreferrer')
+    const ruta = `?token=${graduado.token}&vista=preview`
+    try {
+      if (typeof window !== 'undefined' && window.__TAURI_INTERNALS__) {
+        const { invoke } = await import('@tauri-apps/api/core')
+        await invoke('abrir_modulo', {
+          ruta,
+          titulo: `Portal de ${graduado.nombre} · SiGIC`,
+          baseUrl: host
+        })
+        return
+      }
+    } catch (e) {
+      console.warn('No se pudo abrir ventana nativa de Tauri:', e)
+    }
+    window.open(`${host}/${ruta}`, `portal_${graduado.id}`, 'width=1100,height=800')
   }
 
   // Despacho masivo mediante Modal con barra de progreso
@@ -775,17 +789,18 @@ export function GestionConvocatoria({ onNavegar, usuario, ceremoniaActiva: cerem
                           {esCopiado ? <CheckCheck size={14} className="text-emerald-600" /> : <Copy size={14} />}
                         </button>
 
-                        {/* BOTÓN VER PORTAL (EN PESTAÑA APARTE SIN CERRAR SESIÓN ADMIN) */}
-                        <a
-                          href={`${typeof window !== 'undefined' ? window.location.origin : ''}/?token=${g.token}&vista=preview`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
+                        {/* BOTÓN VER PORTAL (EN PESTAÑA APARTE O VENTANA INDEPENDIENTE TAURI) */}
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            abrirPortalEgresado(g)
+                          }}
                           className="p-2 rounded-xl bg-slate-100 hover:bg-sky-50 text-slate-600 hover:text-sky-600 transition cursor-pointer flex items-center justify-center"
-                          title="Abrir portal del graduado en pestaña aparte (sin cerrar sesión de admin)"
+                          title="Abrir portal del graduado en ventana independiente (sin cerrar sesión de admin)"
                         >
                           <ExternalLink size={14} />
-                        </a>
+                        </button>
 
                         {/* BOTÓN CONFIRMAR MANUAL (SI NO CONFIRMÓ AÚN) */}
                         {g.estado !== 'ACEPTADO' && g.estado !== 'RECHAZADO' && (
