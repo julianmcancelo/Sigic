@@ -513,7 +513,11 @@ function App() {
         const esBypass = token.startsWith('bypass-')
 
         if ((response.status === 401 || response.status === 403) && !esRutaAuth && !esBypass) {
-          window.dispatchEvent(new CustomEvent('sigic-desautorizado'))
+          // No cerrar la sesión si el admin está en modo preview del egresado
+          const esAdminPreview = sessionStorage.getItem('sigic_admin_preview') === '1'
+          if (!esAdminPreview) {
+            window.dispatchEvent(new CustomEvent('sigic-desautorizado'))
+          }
         }
         return response;
       }
@@ -582,7 +586,17 @@ function App() {
       
       setValidandoToken(true)
       try {
+        // En modo preview de admin, guardar el JWT real antes de que validarToken lo sobrescriba
+        const esAdmin = typeof window !== 'undefined' && localStorage.getItem('sesion_admin') === 'true'
+        const tokenAdminActual = esAdmin ? obtenerTokenSesion() : null
+
         const datos = await validarToken(tokenURL)
+
+        // Restaurar el JWT del admin si estábamos en modo preview
+        if (tokenAdminActual && !tokenAdminActual.startsWith('bypass-')) {
+          guardarTokenSesion(tokenAdminActual)
+        }
+
         setDatosToken(datos)
         // El token personal incluido en la invitación ya fue validado por el
         // servidor y genera una sesión segura. Abrimos directamente la decisión
@@ -684,9 +698,16 @@ function App() {
       }
     }
     
-    // Si es una simulación del expositor o preview, guardamos el token de bypass correspondiente
+    // Si es una simulación del expositor o preview, guardamos el token de bypass correspondiente.
+    // En modo preview de admin, preservamos el JWT real del administrador para que las
+    // llamadas de gestión (ej. GET /api/egresados) sigan autenticándose correctamente.
     const tokenActual = obtenerTokenSesion()
-    if (!tokenActual || tokenActual.startsWith('bypass-') || esPreview) {
+    if (esPreview && tokenActual && !tokenActual.startsWith('bypass-')) {
+      // Preservar el JWT real del admin para no perder la sesión de gestión
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('sigic_admin_token_backup', tokenActual)
+      }
+    } else if (!tokenActual || tokenActual.startsWith('bypass-')) {
       guardarTokenSesion(`bypass-egresado-${datos.id}`)
     }
     
@@ -702,6 +723,12 @@ function App() {
     setGraduadoActivo(false)
 
     if (typeof window !== 'undefined') {
+      // Restaurar el JWT del admin si salimos del modo preview
+      const tokenBackup = sessionStorage.getItem('sigic_admin_token_backup')
+      if (tokenBackup) {
+        guardarTokenSesion(tokenBackup)
+        sessionStorage.removeItem('sigic_admin_token_backup')
+      }
       sessionStorage.removeItem('preview_graduado_usuario')
       sessionStorage.removeItem('sigic_admin_preview')
     }
