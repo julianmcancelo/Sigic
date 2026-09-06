@@ -214,16 +214,16 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
         </div>
       )}
 
-      {/* Contenedor Principal (Tarjeta Glassmorphism Clara) */}
+      {/* Contenedor Principal (Vista Minimalista: Estamos preparando algo importante) */}
       {!revelado && !enMantenimiento && (
-        <div className={`relative z-10 flex flex-col items-center max-w-sm w-full px-8 py-10 text-center bg-white/90 backdrop-blur-2xl border border-white/90 rounded-[32px] shadow-[0_20px_60px_-15px_rgba(15,23,42,0.08)] transition-all ${
+        <div className={`relative z-10 flex flex-col items-center max-w-2xl w-full px-6 py-12 text-center transition-all ${
           snapActivo ? 'animate-thanos pointer-events-none' : ''
         }`}>
           
-          {/* Logo de SIGIC interactivo */}
+          {/* Logo de SiGIC en tarjeta blanca */}
           <div 
             onClick={manejarClickLogo}
-            className={`relative mb-6 flex h-36 w-36 items-center justify-center cursor-pointer active:scale-95 transition-transform duration-300 ${
+            className={`relative mb-8 flex h-20 w-20 items-center justify-center rounded-2xl bg-white border border-slate-200/80 shadow-xl shadow-slate-200/60 p-2.5 cursor-pointer active:scale-95 transition-all duration-300 hover:shadow-2xl hover:-translate-y-0.5 ${
               clickCount === 1 ? 'animate-shake-1' :
               clickCount === 2 ? 'animate-shake-2' :
               clickCount === 3 ? 'animate-shake-3' :
@@ -231,105 +231,127 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
             }`}
             title={fraseTooltip}
           >
-            {/* Anillos decorativos */}
-            <div className="absolute inset-0 rounded-full border border-sky-400/20 animate-spin-slow pointer-events-none" />
-            <div className="absolute inset-3 rounded-full border border-dashed border-indigo-400/20 animate-spin-reverse pointer-events-none" />
-            <div className="absolute inset-6 rounded-full bg-sky-400/10 blur-xl pointer-events-none" />
-            
             <img
               src="/logo.png"
               alt="SiGIC"
-              className="h-20 w-auto object-contain relative z-10 logo-flotar filter drop-shadow-[0_8px_16px_rgba(14,165,233,0.15)]"
+              className="h-full w-full object-contain"
             />
           </div>
 
-          {/* Branding Principal */}
-          <div className="space-y-2.5">
-            <h1 className="text-3xl font-black tracking-[0.12em] text-slate-900">
-              SiGIC
-            </h1>
-            <div className="mx-auto h-[2px] w-12 bg-gradient-to-r from-transparent via-sky-500/50 to-transparent" />
-            <p className="text-xs text-slate-600 font-semibold max-w-xs leading-relaxed">
-              Sistema de Gestión de Ceremonias de Colación
-            </p>
+          {/* Kicker Institucional */}
+          <p className="text-[11px] sm:text-xs font-black uppercase tracking-[0.2em] text-sky-600 mb-3.5">
+            Sistema de Gestión Integral de Ceremonias
+          </p>
+
+          {/* Título Monumental */}
+          <h1 className="text-4xl sm:text-6xl lg:text-[64px] font-black text-slate-900 tracking-tight leading-[1.1] max-w-2xl mx-auto">
+            Estamos preparando <br className="hidden sm:inline" /> algo importante.
+          </h1>
+
+          {/* Subtítulo */}
+          <p className="mt-4 text-sm sm:text-base text-slate-500 font-medium max-w-lg mx-auto leading-relaxed">
+            Muy pronto vas a poder conocer la plataforma completa de SiGIC.
+          </p>
+
+          {/* 2 Botones de Acción: [->] Ingresar y ● Próximamente */}
+          <div className="mt-8 flex items-center justify-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                if (accesoOculto) {
+                  setRevelado(true)
+                } else {
+                  onSeleccionarAdmin()
+                }
+              }}
+              className="inline-flex items-center gap-2 rounded-full bg-slate-900 hover:bg-slate-800 px-6 py-2.5 text-xs font-black text-white shadow-md shadow-slate-900/15 transition-all duration-200 active:scale-95 cursor-pointer"
+            >
+              <LogIn size={15} />
+              <span>Ingresar</span>
+            </button>
+
+            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/90 bg-white/90 px-5 py-2.5 text-xs font-bold text-slate-700 shadow-2xs">
+              <span className="h-2 w-2 rounded-full bg-sky-500 animate-pulse" />
+              <span>Próximamente</span>
+            </div>
           </div>
 
-          <button
-            type="button"
-            onClick={onSeleccionarAdmin}
-            className="group mt-8 flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-900 hover:bg-sky-600 px-5 py-3.5 text-sm font-black text-white shadow-lg shadow-slate-900/10 transition-all hover:-translate-y-0.5 hover:shadow-sky-600/25 active:translate-y-0 active:scale-[0.98] focus-visible:outline focus-visible:outline-4 focus-visible:outline-sky-300 cursor-pointer"
-          >
-            <LogIn size={18} aria-hidden="true" className="transition-transform group-hover:translate-x-0.5" />
-            Ingresar
-          </button>
-
-          {/* Footer */}
-          <div className="mt-8 text-center space-y-1">
-            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400">
-              Instituto Tecnológico Beltrán
-            </p>
+          {/* Footer Minimalista */}
+          <div className="mt-16 text-center space-y-1">
             <button
               onClick={() => setMostrarInfo(true)}
-              className="block w-full text-[8px] font-bold uppercase tracking-[0.15em] text-slate-400/70 hover:text-sky-600 transition-colors cursor-pointer"
+              className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400/80 hover:text-sky-600 transition-colors cursor-pointer"
             >
-              Proyecto Final · PPT3 · Analista de Sistemas
+              Instituto Tecnológico Beltrán
             </button>
-            <p className="text-[8px] font-bold uppercase tracking-[0.15em] text-slate-300 font-mono">{VERSION_LABEL}</p>
+            <p className="text-[9px] font-bold text-slate-300 font-mono tracking-wider">{VERSION_LABEL}</p>
           </div>
         </div>
       )}
 
-      {/* Opciones de Login (Reveladas con efecto de reconstrucción tras la desintegración de Thanos) */}
+      {/* Opciones de Login (Reveladas al hacer clic en Ingresar o con el Easter Egg) */}
       {revelado && (
-        <div className="relative z-10 flex flex-col items-center max-w-sm w-full px-8 py-10 text-center bg-white/90 backdrop-blur-2xl border border-white/90 rounded-[32px] shadow-[0_20px_60px_-15px_rgba(15,23,42,0.08)] animate-fade-slide-up">
-          <p className="text-[10px] font-black uppercase tracking-widest text-sky-600 mb-4">
-            Panel de Autenticación Habilitado
-          </p>
+        <div className="relative z-10 flex flex-col items-center max-w-sm w-full px-8 py-10 text-center bg-white/95 backdrop-blur-2xl border border-slate-200/90 rounded-[32px] shadow-[0_20px_60px_-15px_rgba(15,23,42,0.08)] animate-fade-slide-up">
+          
+          <div className="flex items-center justify-between w-full mb-5 pb-3 border-b border-slate-100">
+            <div className="text-left">
+              <p className="text-[10px] font-black uppercase tracking-wider text-sky-600">
+                Acceso a SiGIC
+              </p>
+              <h2 className="text-sm font-black text-slate-900">Seleccioná tu rol</h2>
+            </div>
+            <button
+              onClick={() => setRevelado(false)}
+              className="text-[11px] font-bold text-slate-400 hover:text-slate-600 px-2.5 py-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+            >
+              Volver
+            </button>
+          </div>
           
           <div className="w-full space-y-3 mb-6">
             {/* Opción Admin */}
             <button
               onClick={onSeleccionarAdmin}
-              className="group relative flex w-full items-center gap-3 rounded-2xl border border-slate-200/90 bg-white p-3.5 transition-all hover:bg-sky-50/50 hover:border-sky-300 active:scale-[0.98] cursor-pointer text-left shadow-xs hover:shadow-md"
+              className="group relative flex w-full items-center gap-3.5 rounded-2xl border border-slate-200/90 bg-white p-4 transition-all hover:bg-sky-50/50 hover:border-sky-300 active:scale-[0.98] cursor-pointer text-left shadow-xs hover:shadow-md"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-sky-50 text-sky-600 transition-colors group-hover:bg-sky-600 group-hover:text-white">
-                <Users size={18} />
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-50 text-sky-600 transition-colors group-hover:bg-sky-600 group-hover:text-white shrink-0">
+                <Users size={20} />
               </div>
               <div>
-                <p className="text-[12px] font-black text-slate-800">Administrador</p>
-                <p className="text-[10px] text-slate-400 font-medium">Organizadores y seguridad</p>
+                <p className="text-xs font-black text-slate-900">Administrador</p>
+                <p className="text-[11px] text-slate-500 font-medium">Organizadores y directivos</p>
               </div>
-              <ChevronRight size={14} className="absolute right-4 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-sky-500" />
+              <ChevronRight size={15} className="absolute right-4 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-sky-500" />
             </button>
 
             {/* Opción Egresado */}
             <button
               onClick={onSeleccionarEgresado}
-              className="group relative flex w-full items-center gap-3 rounded-2xl border border-slate-200/90 bg-white p-3.5 transition-all hover:bg-emerald-50/50 hover:border-emerald-300 active:scale-[0.98] cursor-pointer text-left shadow-xs hover:shadow-md"
+              className="group relative flex w-full items-center gap-3.5 rounded-2xl border border-slate-200/90 bg-white p-4 transition-all hover:bg-emerald-50/50 hover:border-emerald-300 active:scale-[0.98] cursor-pointer text-left shadow-xs hover:shadow-md"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 transition-colors group-hover:bg-emerald-600 group-hover:text-white">
-                <GraduationCap size={18} />
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 transition-colors group-hover:bg-emerald-600 group-hover:text-white shrink-0">
+                <GraduationCap size={20} />
               </div>
               <div>
-                <p className="text-[12px] font-black text-slate-800">Graduado</p>
-                <p className="text-[10px] text-slate-400 font-medium">Ingreso de invitados y datos</p>
+                <p className="text-xs font-black text-slate-900">Graduado</p>
+                <p className="text-[11px] text-slate-500 font-medium">Ingreso de invitados y datos</p>
               </div>
-              <ChevronRight size={14} className="absolute right-4 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-emerald-500" />
+              <ChevronRight size={15} className="absolute right-4 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-emerald-500" />
             </button>
 
             {/* Opción Manual */}
             <button
               onClick={onSeleccionarManual}
-              className="group relative flex w-full items-center gap-3 rounded-2xl border border-slate-200/90 bg-white p-3.5 transition-all hover:bg-slate-50 hover:border-slate-300 active:scale-[0.98] cursor-pointer text-left shadow-xs hover:shadow-md"
+              className="group relative flex w-full items-center gap-3.5 rounded-2xl border border-slate-200/90 bg-white p-4 transition-all hover:bg-slate-50 hover:border-slate-300 active:scale-[0.98] cursor-pointer text-left shadow-xs hover:shadow-md"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition-colors group-hover:bg-slate-700 group-hover:text-white">
-                <BookOpen size={18} />
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition-colors group-hover:bg-slate-700 group-hover:text-white shrink-0">
+                <BookOpen size={20} />
               </div>
               <div>
-                <p className="text-[12px] font-black text-slate-800">Manual de Usuario</p>
-                <p className="text-[10px] text-slate-400 font-medium">Guías de uso del sistema</p>
+                <p className="text-xs font-black text-slate-900">Manual de Usuario</p>
+                <p className="text-[11px] text-slate-500 font-medium">Guías de uso del sistema</p>
               </div>
-              <ChevronRight size={14} className="absolute right-4 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-slate-600" />
+              <ChevronRight size={15} className="absolute right-4 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-slate-600" />
             </button>
           </div>
 
