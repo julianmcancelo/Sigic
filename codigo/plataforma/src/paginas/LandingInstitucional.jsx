@@ -183,9 +183,9 @@ export function LandingInstitucional({
   return (
     <div className="min-h-screen bg-[#fafbfc] text-slate-800 font-sans selection:bg-blue-600 selection:text-white overflow-x-hidden">
       
-      {/* ══ 1. FLOATING PILL NAVBAR (ESTILO EVASION) ═══════════════ */}
+      {/* ══ 1. FLOATING PILL NAVBAR (ESTILO EVASION CON ANIMACIÓN PILL) ══ */}
       <header
-        className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-4xl transition-all duration-300 rounded-full border ${
+        className={`fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[92%] max-w-4xl transition-all duration-300 rounded-full border animate-pill-header ${
           scrolled
             ? 'bg-white/90 backdrop-blur-xl border-slate-300/80 shadow-[0_10px_30px_rgba(0,0,0,0.08)] py-2 px-3 sm:px-5'
             : 'bg-white/80 backdrop-blur-md border-slate-200/80 shadow-md shadow-slate-200/50 py-2.5 px-4 sm:px-6'
@@ -193,13 +193,13 @@ export function LandingInstitucional({
       >
         <div className="flex items-center justify-between">
           
-          {/* Logo Brand */}
+          {/* Logo Brand con Floating animado */}
           <div className="flex items-center gap-3">
-            <div className="relative h-8 w-8 overflow-hidden rounded-full border border-slate-200 bg-white p-1 shadow-xs">
+            <div className="relative h-8 w-8 overflow-hidden rounded-full border border-slate-200 bg-white p-1 shadow-xs animate-float">
               <img src="/logo-oficial.png" alt="Instituto Beltrán" className="h-full w-full object-contain" />
             </div>
             <a href="#" className="flex items-center gap-1.5 group">
-              <span className="text-base font-black tracking-tight text-slate-900 group-hover:text-blue-600 transition">SiGIC</span>
+              <span className="text-base font-black tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors duration-300">SiGIC</span>
               <span className="hidden sm:inline-block rounded-full bg-blue-50 px-2 py-0.5 text-[9px] font-black uppercase text-blue-700 border border-blue-200/70">
                 2026
               </span>
@@ -208,18 +208,18 @@ export function LandingInstitucional({
 
           {/* Links de Navegación */}
           <nav className="hidden md:flex items-center gap-8 text-xs font-bold text-slate-600">
-            <a href="#portal" className="transition hover:text-blue-600">Portal Egresado</a>
-            <a href="#modulos" className="transition hover:text-blue-600">Módulos</a>
-            <a href="#tecnologia" className="transition hover:text-blue-600">Tecnología</a>
-            <a href="#descargas" className="transition hover:text-blue-600">Descargas</a>
-            <a href="#faq" className="transition hover:text-blue-600">Ayuda</a>
+            <a href="#portal" className="transition-colors hover:text-blue-600 duration-200">Portal Egresado</a>
+            <a href="#modulos" className="transition-colors hover:text-blue-600 duration-200">Módulos</a>
+            <a href="#tecnologia" className="transition-colors hover:text-blue-600 duration-200">Tecnología</a>
+            <a href="#descargas" className="transition-colors hover:text-blue-600 duration-200">Descargas</a>
+            <a href="#faq" className="transition-colors hover:text-blue-600 duration-200">Ayuda</a>
           </nav>
 
           {/* Botones de Acción */}
           <div className="flex items-center gap-2">
             <button
               onClick={onSeleccionarManual}
-              className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-100/80 hover:bg-slate-200/80 px-3.5 py-1.5 text-xs font-bold text-slate-700 transition cursor-pointer"
+              className="hidden sm:inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-100/80 hover:bg-slate-200/80 px-3.5 py-1.5 text-xs font-bold text-slate-700 transition duration-200 cursor-pointer"
             >
               <BookOpen size={13} className="text-blue-600" />
               <span>Manual</span>
@@ -227,7 +227,7 @@ export function LandingInstitucional({
 
             <button
               onClick={onSeleccionarAdmin}
-              className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 hover:bg-blue-600 px-4 py-1.5 text-xs font-black text-white shadow-sm transition-all duration-200 active:scale-95 cursor-pointer"
+              className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 hover:bg-blue-600 px-4 py-1.5 text-xs font-black text-white shadow-sm transition-all duration-300 active:scale-95 cursor-pointer"
             >
               <Lock size={12} />
               <span>Acceso Admin</span>
@@ -237,24 +237,24 @@ export function LandingInstitucional({
         </div>
       </header>
 
-      {/* ══ 2. KINETIC HERO SECTION (ESTILO EVASION CON ANIMACIÓN DE LETRAS) ══ */}
-      <section className="relative pt-28 pb-20 sm:pt-36 sm:pb-28 px-4 sm:px-8 overflow-hidden">
+      {/* ══ 2. KINETIC HERO SECTION (CON EFECTO GRAIN OVERLAY Y ANIMACIONES SLIDE UP) ══ */}
+      <section className="relative pt-28 pb-20 sm:pt-36 sm:pb-28 px-4 sm:px-8 overflow-hidden grain-overlay">
         
         {/* Glow de fondo atmosférico */}
         <div className="absolute top-10 left-1/2 -translate-x-1/2 h-[450px] w-[750px] rounded-full bg-gradient-to-tr from-sky-200/50 via-blue-100/40 to-indigo-100/40 blur-[130px] pointer-events-none" />
         <div className="absolute top-1/2 right-4 h-[300px] w-[300px] rounded-full bg-emerald-100/40 blur-[100px] pointer-events-none" />
 
-        <div className="relative mx-auto max-w-5xl text-center space-y-6">
+        <div className="relative mx-auto max-w-5xl text-center space-y-6 z-10">
           
-          {/* Badge institucional animado */}
-          <div className="inline-flex items-center gap-2 rounded-full border border-blue-200/80 bg-white/90 px-4 py-1.5 text-xs font-bold text-blue-700 shadow-sm shadow-blue-500/5">
+          {/* Badge institucional animado (reveal-up) */}
+          <div className="inline-flex items-center gap-2 rounded-full border border-blue-200/80 bg-white/90 px-4 py-1.5 text-xs font-bold text-blue-700 shadow-sm shadow-blue-500/5 animate-reveal-up animation-delay-100">
             <span className="flex h-2 w-2 rounded-full bg-blue-600 animate-ping" />
             <span className="tracking-wide">Instituto Tecnológico Beltrán</span>
             <span className="text-slate-300">·</span>
             <span className="font-extrabold text-blue-900">Sistema Oficial de Colaciones</span>
           </div>
 
-          {/* Título Cinético con Letras Animadas */}
+          {/* Título Cinético con Letras Animadas (Slide Up escalonado) */}
           <div className="py-2">
             <h1 className="text-[13vw] sm:text-[9vw] lg:text-[7.5rem] font-black leading-[0.9] tracking-tighter text-slate-900 select-none">
               <span className="inline-block animate-slide-up" style={{ animationDelay: '0.05s' }}>S</span>
@@ -267,23 +267,23 @@ export function LandingInstitucional({
               <span className="inline-block animate-slide-up" style={{ animationDelay: '0.54s' }}>·</span>
               <span className="inline-block animate-slide-up" style={{ animationDelay: '0.61s' }}>C</span>
             </h1>
-            <p className="text-xs sm:text-sm font-black uppercase tracking-[0.3em] text-blue-600 mt-2">
+            <p className="text-xs sm:text-sm font-black uppercase tracking-[0.3em] text-blue-600 mt-2 animate-reveal-up animation-delay-200">
               Gestión Integral de Actos Académicos
             </p>
           </div>
 
-          {/* Subtítulo limpio */}
-          <p className="text-base sm:text-xl text-slate-600 font-medium max-w-2xl mx-auto leading-relaxed">
+          {/* Subtítulo limpio con reveal */}
+          <p className="text-base sm:text-xl text-slate-600 font-medium max-w-2xl mx-auto leading-relaxed animate-reveal-up animation-delay-300">
             La plataforma inteligente que centraliza padrones oficiales, autogestión de juramentos, asignación de butacas y acreditación QR en tiempo real.
           </p>
 
-          {/* ══ BUSCADOR / ACCESO DIRECTO DEL GRADUADO ══ */}
-          <div id="portal" className="pt-4 max-w-2xl mx-auto">
-            <div className="rounded-3xl border border-slate-200/90 bg-white/95 p-5 sm:p-7 shadow-[0_20px_50px_rgba(0,0,0,0.06)] backdrop-blur-xl transition-all hover:shadow-[0_25px_60px_rgba(0,0,0,0.09)]">
+          {/* ══ BUSCADOR / ACCESO DIRECTO DEL GRADUADO (SCALE IN) ══ */}
+          <div id="portal" className="pt-4 max-w-2xl mx-auto animate-scale-in animation-delay-400">
+            <div className="rounded-3xl border border-slate-200/90 bg-white/95 p-5 sm:p-7 shadow-[0_20px_50px_rgba(0,0,0,0.06)] backdrop-blur-xl transition-all duration-300 hover:shadow-[0_25px_60px_rgba(0,0,0,0.09)] hover:-translate-y-0.5">
               
               <div className="flex items-center justify-between mb-3 px-1">
                 <span className="text-xs font-black uppercase tracking-wider text-blue-700 flex items-center gap-2">
-                  <GraduationCap size={18} className="text-blue-600" />
+                  <GraduationCap size={18} className="text-blue-600 animate-float" />
                   ¿Sos egresado? Ingresá a tu Portal
                 </span>
                 <span className="text-[11px] font-bold text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full">
@@ -299,13 +299,13 @@ export function LandingInstitucional({
                     value={terminoBusqueda}
                     onChange={(e) => setTerminoBusqueda(e.target.value)}
                     placeholder="Ingresá tu DNI o Correo electrónico..."
-                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/60 pl-11 pr-4 py-3.5 text-sm font-semibold text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition shadow-inner"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50/60 pl-11 pr-4 py-3.5 text-sm font-semibold text-slate-900 placeholder-slate-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-4 focus:ring-blue-500/10 transition-all duration-200 shadow-inner"
                   />
                 </div>
 
                 <button
                   type="submit"
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 px-7 py-3.5 text-sm font-black text-white shadow-lg shadow-blue-500/25 transition active:scale-95 cursor-pointer shrink-0"
+                  className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 px-7 py-3.5 text-sm font-black text-white shadow-lg shadow-blue-500/25 transition-all duration-200 active:scale-95 cursor-pointer shrink-0"
                 >
                   <span>Ingresar al Portal</span>
                   <ArrowRight size={16} />
@@ -314,16 +314,16 @@ export function LandingInstitucional({
 
               {/* Beneficios rápidos */}
               <div className="mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-left text-xs text-slate-600 font-medium">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
+                <div className="flex items-center gap-2 group">
+                  <CheckCircle2 size={15} className="text-emerald-600 shrink-0 group-hover:scale-110 transition-transform" />
                   <span>Confirmación en 1 Clic</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
+                <div className="flex items-center gap-2 group">
+                  <CheckCircle2 size={15} className="text-emerald-600 shrink-0 group-hover:scale-110 transition-transform" />
                   <span>Registro de Acompañantes</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
+                <div className="flex items-center gap-2 group">
+                  <CheckCircle2 size={15} className="text-emerald-600 shrink-0 group-hover:scale-110 transition-transform" />
                   <span>Pase Digital con QR</span>
                 </div>
               </div>
@@ -334,9 +334,9 @@ export function LandingInstitucional({
         </div>
       </section>
 
-      {/* ══ 3. CEREMONIA ACTIVA & RADAR EN VIVO ════════════════════ */}
-      <section className="mx-auto max-w-6xl px-4 sm:px-8 pb-16">
-        <div className="rounded-3xl border border-blue-200/80 bg-gradient-to-br from-white via-sky-50/40 to-blue-50/50 p-6 sm:p-8 shadow-[0_10px_30px_rgba(0,0,0,0.04)] relative overflow-hidden">
+      {/* ══ 3. CEREMONIA ACTIVA & RADAR EN VIVO (SCALE IN) ════════════ */}
+      <section className="mx-auto max-w-6xl px-4 sm:px-8 pb-16 animate-reveal-up animation-delay-200">
+        <div className="rounded-3xl border border-blue-200/80 bg-gradient-to-br from-white via-sky-50/40 to-blue-50/50 p-6 sm:p-8 shadow-[0_10px_30px_rgba(0,0,0,0.04)] relative overflow-hidden group">
           
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
             <div className="space-y-2 max-w-2xl">
@@ -361,12 +361,12 @@ export function LandingInstitucional({
             </div>
 
             <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 w-full lg:w-auto shrink-0">
-              <div className="bg-white p-3.5 rounded-2xl border border-blue-100 shadow-2xs min-w-[140px]">
+              <div className="bg-white p-3.5 rounded-2xl border border-blue-100 shadow-2xs min-w-[140px] transition-all group-hover:border-blue-300">
                 <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Fecha del Acto</p>
                 <p className="font-extrabold text-slate-800 text-xs sm:text-sm mt-0.5">{fechaCeremoniaTexto}</p>
               </div>
 
-              <div className="bg-white p-3.5 rounded-2xl border border-blue-100 shadow-2xs min-w-[140px]">
+              <div className="bg-white p-3.5 rounded-2xl border border-blue-100 shadow-2xs min-w-[140px] transition-all group-hover:border-blue-300">
                 <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Acreditación</p>
                 <p className="font-extrabold text-blue-700 text-xs sm:text-sm mt-0.5">Credencial QR + App</p>
               </div>
@@ -376,11 +376,11 @@ export function LandingInstitucional({
         </div>
       </section>
 
-      {/* ══ 4. MÓDULOS DEL SISTEMA (ESTILO ALPINE & FOREST DE EVASION) ══ */}
+      {/* ══ 4. MÓDULOS DEL SISTEMA (REVEAL LEFT & RIGHT) ══════════════ */}
       <section id="modulos" className="py-20 px-4 sm:px-8 border-t border-slate-200/80 bg-white">
         <div className="mx-auto max-w-6xl">
           
-          <div className="text-center max-w-2xl mx-auto mb-12 space-y-2">
+          <div className="text-center max-w-2xl mx-auto mb-12 space-y-2 animate-reveal-up">
             <span className="text-xs font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200/60">
               Arquitectura Integral
             </span>
@@ -393,13 +393,13 @@ export function LandingInstitucional({
           </div>
 
           {/* Selector de Módulos (Tabs) */}
-          <div className="flex justify-center mb-10 overflow-x-auto pb-2">
+          <div className="flex justify-center mb-10 overflow-x-auto pb-2 animate-reveal-up animation-delay-100">
             <div className="inline-flex p-1.5 rounded-2xl bg-slate-100 border border-slate-200">
               {modulosDestacados.map((modulo, index) => (
                 <button
                   key={modulo.id}
                   onClick={() => setModuloActivo(index)}
-                  className={`px-5 py-2.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer whitespace-nowrap ${
+                  className={`px-5 py-2.5 rounded-xl text-xs font-extrabold transition-all duration-300 cursor-pointer whitespace-nowrap ${
                     moduloActivo === index
                       ? 'bg-white text-slate-900 shadow-md shadow-slate-200/80 scale-[1.02]'
                       : 'text-slate-500 hover:text-slate-800'
@@ -412,11 +412,11 @@ export function LandingInstitucional({
           </div>
 
           {/* Tarjeta Visual Destacada del Módulo Seleccionado */}
-          <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-6 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.05)] overflow-hidden">
+          <div className="rounded-3xl border border-slate-200 bg-gradient-to-br from-slate-50 to-white p-6 sm:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.05)] overflow-hidden animate-scale-in">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
               
-              {/* Información del Módulo */}
-              <div className="space-y-5">
+              {/* Información del Módulo (Reveal Left) */}
+              <div className="space-y-5 animate-reveal-left">
                 <span className="text-[11px] font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200/60">
                   {modulosDestacados[moduloActivo].tag}
                 </span>
@@ -434,7 +434,7 @@ export function LandingInstitucional({
                   {modulosDestacados[moduloActivo].metricas.map((metrica, i) => (
                     <span
                       key={i}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 shadow-2xs"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 shadow-2xs hover:border-blue-300 transition-colors"
                     >
                       <Check size={14} className="text-emerald-600" />
                       {metrica}
@@ -445,7 +445,7 @@ export function LandingInstitucional({
                 <div className="pt-4">
                   <button
                     onClick={onSeleccionarManual}
-                    className="inline-flex items-center gap-2 rounded-2xl bg-slate-900 hover:bg-blue-600 px-6 py-3.5 text-xs font-black text-white transition active:scale-95 cursor-pointer shadow-md"
+                    className="inline-flex items-center gap-2 rounded-2xl bg-slate-900 hover:bg-blue-600 px-6 py-3.5 text-xs font-black text-white transition-all duration-300 active:scale-95 cursor-pointer shadow-md"
                   >
                     <span>Ver Documentación de este Módulo</span>
                     <ArrowUpRight size={15} />
@@ -453,12 +453,12 @@ export function LandingInstitucional({
                 </div>
               </div>
 
-              {/* Vista Previa Visual del Módulo */}
-              <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-slate-200 shadow-xl bg-slate-900 group">
+              {/* Vista Previa Visual del Módulo (Reveal Right + Fade In Image) */}
+              <div className="relative aspect-[4/3] rounded-2xl overflow-hidden border border-slate-200 shadow-xl bg-slate-900 group animate-reveal-right">
                 <img
                   src={modulosDestacados[moduloActivo].imagen}
                   alt={modulosDestacados[moduloActivo].titulo}
-                  className="h-full w-full object-cover object-top group-hover:scale-105 transition-all duration-700 ease-out"
+                  className="h-full w-full object-cover object-top group-hover:scale-105 transition-all duration-700 ease-out animate-fade-in"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent pointer-events-none" />
                 <div className="absolute bottom-4 left-4">
@@ -478,7 +478,7 @@ export function LandingInstitucional({
       <section id="tecnologia" className="py-20 px-4 sm:px-8 bg-slate-50/60 border-t border-slate-200/80">
         <div className="mx-auto max-w-6xl">
           
-          <div className="text-center max-w-2xl mx-auto mb-14 space-y-2">
+          <div className="text-center max-w-2xl mx-auto mb-14 space-y-2 animate-reveal-up">
             <span className="text-xs font-black uppercase tracking-widest text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-200/60">
               Ingeniería & Seguridad
             </span>
@@ -493,10 +493,11 @@ export function LandingInstitucional({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {tecnologias.map((tech, idx) => {
               const Icono = tech.icono
+              const delayClass = `animation-delay-${((idx % 6) + 1) * 100}`
               return (
                 <div
                   key={idx}
-                  className="rounded-3xl border border-slate-200/90 bg-white p-7 shadow-[0_8px_30px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.07)] hover:border-blue-300 transition-all duration-300 group flex flex-col justify-between"
+                  className={`rounded-3xl border border-slate-200/90 bg-white p-7 shadow-[0_8px_30px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_40px_rgba(0,0,0,0.07)] hover:border-blue-300 transition-all duration-300 group flex flex-col justify-between animate-reveal-up ${delayClass}`}
                 >
                   <div className="space-y-4">
                     <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${tech.accent} border flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
@@ -507,7 +508,7 @@ export function LandingInstitucional({
                       <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">
                         {tech.categoria}
                       </p>
-                      <h3 className="text-lg font-black text-slate-900 group-hover:text-blue-600 transition-colors">
+                      <h3 className="text-lg font-black text-slate-900 group-hover:text-blue-600 transition-colors duration-200">
                         {tech.titulo}
                       </h3>
                     </div>
@@ -530,7 +531,7 @@ export function LandingInstitucional({
       </section>
 
       {/* ══ 6. STAT STRIP DE IMPACTO (ESTILO MINIMALISTA EVASION) ════ */}
-      <section className="border-y border-slate-200 bg-white py-12 px-4 sm:px-8">
+      <section className="border-y border-slate-200 bg-white py-12 px-4 sm:px-8 animate-reveal-up">
         <div className="mx-auto max-w-6xl grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
           
           <div className="p-4 border-r border-slate-100 last:border-r-0">
@@ -564,7 +565,7 @@ export function LandingInstitucional({
       <section className="py-20 px-4 sm:px-8 bg-[#f8fafc] overflow-hidden">
         <div className="mx-auto max-w-6xl">
           
-          <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 mb-10">
+          <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 mb-10 animate-reveal-up">
             <div className="space-y-1">
               <span className="text-xs font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200/60">
                 Galería Visual
@@ -577,13 +578,13 @@ export function LandingInstitucional({
             <div className="flex items-center gap-2">
               <button
                 onClick={() => scrollCarrusel('izq')}
-                className="h-10 w-10 rounded-full border border-slate-300 bg-white hover:bg-slate-100 flex items-center justify-center text-slate-700 transition active:scale-95 cursor-pointer shadow-xs"
+                className="h-10 w-10 rounded-full border border-slate-300 bg-white hover:bg-slate-100 flex items-center justify-center text-slate-700 transition duration-200 active:scale-95 cursor-pointer shadow-xs"
               >
                 <ChevronLeft size={18} />
               </button>
               <button
                 onClick={() => scrollCarrusel('der')}
-                className="h-10 w-10 rounded-full border border-slate-300 bg-white hover:bg-slate-100 flex items-center justify-center text-slate-700 transition active:scale-95 cursor-pointer shadow-xs"
+                className="h-10 w-10 rounded-full border border-slate-300 bg-white hover:bg-slate-100 flex items-center justify-center text-slate-700 transition duration-200 active:scale-95 cursor-pointer shadow-xs"
               >
                 <ChevronRight size={18} />
               </button>
@@ -593,7 +594,7 @@ export function LandingInstitucional({
           {/* Carrusel Desplazable */}
           <div
             ref={carruselRef}
-            className="flex gap-6 overflow-x-auto pb-6 scrollbar-none snap-x snap-mandatory"
+            className="flex gap-6 overflow-x-auto pb-6 scrollbar-none snap-x snap-mandatory animate-reveal-up animation-delay-200"
           >
             
             <div className="min-w-[300px] sm:min-w-[420px] rounded-3xl border border-slate-200 bg-white overflow-hidden shadow-lg snap-start group">
@@ -601,7 +602,7 @@ export function LandingInstitucional({
                 <img
                   src="/gestion_ceremonias.png"
                   alt="Gestión de Ceremonias"
-                  className="h-full w-full object-cover group-hover:scale-105 transition duration-500"
+                  className="h-full w-full object-cover group-hover:scale-105 transition-all duration-700 ease-out animate-fade-in"
                 />
               </div>
               <div className="p-5">
@@ -616,7 +617,7 @@ export function LandingInstitucional({
                 <img
                   src="/diseno_anfiteatro.png"
                   alt="Editor del Anfiteatro"
-                  className="h-full w-full object-cover group-hover:scale-105 transition duration-500"
+                  className="h-full w-full object-cover group-hover:scale-105 transition-all duration-700 ease-out animate-fade-in"
                 />
               </div>
               <div className="p-5">
@@ -631,7 +632,7 @@ export function LandingInstitucional({
                 <img
                   src="/gestion_graduados.png"
                   alt="Padrón de Graduados"
-                  className="h-full w-full object-cover group-hover:scale-105 transition duration-500"
+                  className="h-full w-full object-cover group-hover:scale-105 transition-all duration-700 ease-out animate-fade-in"
                 />
               </div>
               <div className="p-5">
@@ -647,7 +648,7 @@ export function LandingInstitucional({
       </section>
 
       {/* ══ 8. CITA EDITORIAL FILOSÓFICA (ESTILO EVASION) ════════════ */}
-      <section className="py-24 px-6 sm:px-12 bg-white border-t border-slate-200/80 text-center">
+      <section className="py-24 px-6 sm:px-12 bg-white border-t border-slate-200/80 text-center animate-reveal-up">
         <div className="mx-auto max-w-4xl space-y-6">
           <p className="text-xs font-black uppercase tracking-[0.25em] text-blue-600">
             Declaración Institucional
@@ -661,14 +662,14 @@ export function LandingInstitucional({
         </div>
       </section>
 
-      {/* ══ 9. CENTRO DE DESCARGAS & APLICACIONES OFICIALES ════════ */}
-      <section id="descargas" className="mx-auto max-w-6xl px-4 sm:px-8 py-14 border-t border-slate-200/80">
-        <div className="rounded-3xl border border-blue-200 bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 p-8 sm:p-12 shadow-2xl relative overflow-hidden text-white">
+      {/* ══ 9. CENTRO DE DESCARGAS & APLICACIONES OFICIALES (GRAIN OVERLAY) ════════ */}
+      <section id="descargas" className="mx-auto max-w-6xl px-4 sm:px-8 py-14 border-t border-slate-200/80 animate-reveal-up">
+        <div className="rounded-3xl border border-blue-200 bg-gradient-to-r from-slate-900 via-blue-950 to-slate-900 p-8 sm:p-12 shadow-2xl relative overflow-hidden text-white grain-overlay">
           
           <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-8">
             <div className="space-y-3 max-w-xl text-center lg:text-left">
               <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-cyan-400/15 border border-cyan-400/30 text-cyan-300 text-xs font-bold uppercase tracking-wider">
-                <Download size={14} /> Aplicaciones Oficiales SiGIC
+                <Download size={14} className="animate-float" /> Aplicaciones Oficiales SiGIC
               </div>
               <h3 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
                 Herramientas para el día de la ceremonia
@@ -681,7 +682,7 @@ export function LandingInstitucional({
             <div className="flex flex-col sm:flex-row gap-3.5 w-full lg:w-auto shrink-0">
               <a
                 href="/descargas"
-                className="inline-flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-cyan-400 to-sky-400 hover:from-cyan-300 hover:to-sky-300 px-6 py-4 text-xs font-black text-slate-950 shadow-lg shadow-cyan-400/20 transition active:scale-95 text-center cursor-pointer"
+                className="inline-flex items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-cyan-400 to-sky-400 hover:from-cyan-300 hover:to-sky-300 px-6 py-4 text-xs font-black text-slate-950 shadow-lg shadow-cyan-400/20 transition-all duration-300 active:scale-95 text-center cursor-pointer"
               >
                 <Smartphone size={17} />
                 <span>App Portería Android (.APK)</span>
@@ -689,7 +690,7 @@ export function LandingInstitucional({
 
               <button
                 onClick={onSeleccionarManual}
-                className="inline-flex items-center justify-center gap-2.5 rounded-2xl border border-white/20 bg-white/10 hover:bg-white/20 px-6 py-4 text-xs font-black text-white transition active:scale-95 cursor-pointer backdrop-blur-xs"
+                className="inline-flex items-center justify-center gap-2.5 rounded-2xl border border-white/20 bg-white/10 hover:bg-white/20 px-6 py-4 text-xs font-black text-white transition-all duration-300 active:scale-95 cursor-pointer backdrop-blur-xs"
               >
                 <BookOpen size={17} className="text-cyan-300" />
                 <span>Manual de Usuario</span>
@@ -701,7 +702,7 @@ export function LandingInstitucional({
       </section>
 
       {/* ══ 10. PREGUNTAS FRECUENTES (FAQ ACCORDION) ═══════════════ */}
-      <section id="faq" className="mx-auto max-w-4xl px-4 sm:px-8 py-16 border-t border-slate-200/80">
+      <section id="faq" className="mx-auto max-w-4xl px-4 sm:px-8 py-16 border-t border-slate-200/80 animate-reveal-up">
         <div className="text-center max-w-xl mx-auto mb-10 space-y-2">
           <span className="text-xs font-black uppercase tracking-widest text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200/60">
             Centro de Ayuda
@@ -720,11 +721,11 @@ export function LandingInstitucional({
             return (
               <div
                 key={index}
-                className="rounded-2xl border border-slate-200 bg-white shadow-2xs overflow-hidden transition-all"
+                className="rounded-2xl border border-slate-200 bg-white shadow-2xs overflow-hidden transition-all duration-300"
               >
                 <button
                   onClick={() => toggleFaq(index)}
-                  className="w-full flex items-center justify-between p-4 sm:p-5 text-left font-bold text-slate-800 hover:text-blue-600 transition cursor-pointer text-sm"
+                  className="w-full flex items-center justify-between p-4 sm:p-5 text-left font-bold text-slate-800 hover:text-blue-600 transition-colors duration-200 cursor-pointer text-sm"
                 >
                   <span className="flex items-center gap-3">
                     <HelpCircle size={18} className="text-blue-600 shrink-0" />
@@ -732,11 +733,11 @@ export function LandingInstitucional({
                   </span>
                   <ChevronDown
                     size={18}
-                    className={`text-slate-400 transition-transform duration-200 shrink-0 ${abierta ? 'rotate-180 text-blue-600' : ''}`}
+                    className={`text-slate-400 transition-transform duration-300 shrink-0 ${abierta ? 'rotate-180 text-blue-600' : ''}`}
                   />
                 </button>
                 {abierta && (
-                  <div className="px-5 pb-5 pt-1 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 bg-slate-50/50">
+                  <div className="px-5 pb-5 pt-1 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 bg-slate-50/50 animate-reveal-up">
                     {faq.respuesta}
                   </div>
                 )}
@@ -751,7 +752,7 @@ export function LandingInstitucional({
         <div className="mx-auto max-w-6xl flex flex-col md:flex-row items-center justify-between gap-6">
           
           <div className="flex items-center gap-3.5">
-            <div className="h-10 w-10 overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-2xs">
+            <div className="h-10 w-10 overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-2xs animate-float">
               <img src="/logo-oficial.png" alt="Instituto Beltrán" className="h-full w-full object-contain" />
             </div>
             <div>
@@ -761,11 +762,11 @@ export function LandingInstitucional({
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-5 font-semibold text-slate-600 text-xs">
-            <button onClick={onSeleccionarManual} className="hover:text-blue-600 cursor-pointer">Manual de Usuario</button>
+            <button onClick={onSeleccionarManual} className="hover:text-blue-600 transition-colors duration-200 cursor-pointer">Manual de Usuario</button>
             <span>·</span>
-            <button onClick={onSeleccionarAdmin} className="hover:text-blue-600 cursor-pointer">Acceso Administrativo</button>
+            <button onClick={onSeleccionarAdmin} className="hover:text-blue-600 transition-colors duration-200 cursor-pointer">Acceso Administrativo</button>
             <span>·</span>
-            <a href="https://www.ibeltran.com.ar" target="_blank" rel="noreferrer" className="hover:text-blue-600 flex items-center gap-1">
+            <a href="https://www.ibeltran.com.ar" target="_blank" rel="noreferrer" className="hover:text-blue-600 transition-colors duration-200 flex items-center gap-1">
               Sitio Oficial Beltrán <ExternalLink size={12} />
             </a>
           </div>
