@@ -20,7 +20,7 @@ import { EditorAnfiteatro } from './EditorAnfiteatro'
 import { EstadoCeremonia } from './EstadoCeremonia'
 import { PanelAjustes } from './PanelAjustes'
 import { PanelReportes } from './PanelReportes'
-import { ManualUsuarioWeb } from './ManualUsuarioWeb'
+import { ManualUsuarioWeb } from '../ManualUsuarioWeb'
 import { GestionPorteria } from './GestionPorteria'
 import { CentroControl } from './CentroControl'
 
