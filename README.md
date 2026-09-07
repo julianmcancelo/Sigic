@@ -40,6 +40,7 @@ El sistema cubre todo el ciclo operativo de un acto de colación institucional:
 | **Padrón de Graduados** | Importación masiva desde Excel/CSV y altas individuales |
 | **Invitaciones** | Autogestión del egresado para asignar acompañantes bajo los límites configurados |
 | **Editor de Anfiteatro** | Distribución visual de sectores y asignación dinámica de butacas |
+
 | **Acreditación QR** | App móvil para escaneo de credenciales y control de firmas digitales |
 | **Portería y Autorización** | Matriz de autorizaciones por portero y ceremonia desde la plataforma web |
 | **Centro de Control** | Diagnósticos en vivo, backups JSON y herramientas de administración del servidor |
@@ -55,7 +56,6 @@ SiGIC/
 │   ├── movil_flutter/           # App vigente de portería (Flutter + Shorebird)
 │   └── landing/                 # Sitio institucional estático
 ├── MANUAL.md                    # Manual de usuario (Administración, Alumnos y Portería)
-├── LEEME.md                     # Guía técnica de desarrollo y seguridad
 ├── README.md                    # Este archivo
 ├── CHANGELOG.md                 # Historial de versiones y cambios
 └── .gitignore
@@ -67,14 +67,12 @@ SiGIC/
 
 | Capa | Tecnología |
 |---|---|
-| **Frontend Web** | React 19, Next.js 15 (App Router), Tailwind CSS |
+| **Frontend Web** | React 19, Next.js 16 (App Router), Tailwind CSS |
 | **Backend / API** | Next.js Serverless Functions (API Routes) |
 | **Base de Datos** | PostgreSQL (Neon Cloud, con `pg` pool nativo) |
 | **Autenticación** | JWT HS256, OTP por email (Nodemailer + SMTP) |
 | **Aplicación Móvil vigente** | Flutter, `mobile_scanner`, Shorebird Code Push |
-| **Aplicaciones históricas** | React Native / Expo (sin releases activos) |
 | **Despliegue Web** | Vercel (serverless, CDN global) |
-| **Herramientas Admin** | .NET 8 (scripts locales de Windows para tareas de mantenimiento) |
 
 ---
 
@@ -88,7 +86,7 @@ SiGIC/
 - **Control de Tasa (Rate Limiting):** Contadores atómicos en PostgreSQL compartidos entre instancias para limitar intentos de autenticación.
 - **Protección TLS:** Conexión cifrada obligatoria hacia PostgreSQL (Neon Cloud) mediante `sslmode=require`.
 
-Ver [seguridad, migración de roles y validaciones](docs/SEGURIDAD.md) para los cambios actuales y los pasos pendientes de publicación.
+Ver [seguridad, migración de roles y validaciones](docs/SEGURIDAD.md) para la arquitectura de seguridad completa.
 
 ---
 
@@ -139,11 +137,11 @@ Ver detalles completos en [`codigo/movil_flutter/README.md`](codigo/movil_flutte
 | Archivo | Contenido |
 |---|---|
 | [`MANUAL.md`](MANUAL.md) | Manual de usuario completo (Administradores, Egresados y Portería) |
-| [`LEEME.md`](LEEME.md) | Guía técnica de desarrollo, variables de entorno y ecosistema de seguridad |
+| [`docs/SEGURIDAD.md`](docs/SEGURIDAD.md) | Guía técnica, variables de entorno y arquitectura de seguridad |
 | [`CHANGELOG.md`](CHANGELOG.md) | Historial detallado de versiones y cambios |
 | [`codigo/plataforma/README.md`](codigo/plataforma/README.md) | Documentación específica de la plataforma web Next.js |
 | [`codigo/movil_flutter/README.md`](codigo/movil_flutter/README.md) | Documentación específica de la app móvil Flutter |
-| [`docs/ESTRUCTURA_REPOSITORIO.md`](docs/ESTRUCTURA_REPOSITORIO.md) | Mapa de proyectos vigentes, históricos y archivos generados |
+| [`docs/ESTRUCTURA_REPOSITORIO.md`](docs/ESTRUCTURA_REPOSITORIO.md) | Mapa de proyectos vigentes, convenciones y archivos generados |
 
 ---
 
