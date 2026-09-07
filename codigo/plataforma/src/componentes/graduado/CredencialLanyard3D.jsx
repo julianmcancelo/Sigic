@@ -2,8 +2,7 @@ import React, { useState, useRef, useEffect } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import {
   Download, Printer, Wallet, Sparkles, ShieldCheck,
-  Armchair, Users, Award, ExternalLink, Check, Copy, AlertCircle,
-  Eye, RefreshCw
+  Armchair, Users, Award, ExternalLink, Check, Copy, AlertCircle
 } from 'lucide-react'
 import { obtenerGoogleWalletPass } from '../../servicios/api'
 
@@ -14,7 +13,6 @@ export function CredencialLanyard3D({ egresado, onImprimir }) {
   const [cargandoWallet, setCargandoWallet] = useState(false)
   const [mensajeWallet, setMensajeWallet] = useState({ tipo: '', texto: '' })
   const [descargandoPNG, setDescargandoPNG] = useState(false)
-  const [volteada, setVolteada] = useState(false)
   const tarjetaRef = useRef(null)
   const svgQRRef = useRef(null)
   const animFrameRef = useRef(null)
@@ -35,7 +33,7 @@ export function CredencialLanyard3D({ egresado, onImprimir }) {
       if (!isNaN(d.getTime())) {
         fechaFormateada = new Intl.DateTimeFormat('es-AR', {
           day: 'numeric',
-          month: 'long',
+          month: 'short',
           year: 'numeric'
         }).format(d)
       }
@@ -47,8 +45,8 @@ export function CredencialLanyard3D({ egresado, onImprimir }) {
   // Bucle de interpolación suave (Lerp Spring Physics)
   useEffect(() => {
     const interpolar = () => {
-      posActualRef.current.x += (posObjetivoRef.current.x - posActualRef.current.x) * 0.12
-      posActualRef.current.y += (posObjetivoRef.current.y - posActualRef.current.y) * 0.12
+      posActualRef.current.x += (posObjetivoRef.current.x - posActualRef.current.x) * 0.14
+      posActualRef.current.y += (posObjetivoRef.current.y - posActualRef.current.y) * 0.14
 
       setRotacion({
         x: Number(posActualRef.current.x.toFixed(2)),
@@ -71,7 +69,6 @@ export function CredencialLanyard3D({ egresado, onImprimir }) {
     const centerX = rect.width / 2
     const centerY = rect.height / 2
 
-    // Ángulos dinámicos con límite máximo
     const rotX = Math.max(-18, Math.min(18, ((y - centerY) / centerY) * -16))
     const rotY = Math.max(-18, Math.min(18, ((x - centerX) / centerX) * 16))
 
@@ -79,7 +76,7 @@ export function CredencialLanyard3D({ egresado, onImprimir }) {
     setBrillo({
       x: (x / rect.width) * 100,
       y: (y / rect.height) * 100,
-      opacidad: 0.42
+      opacidad: 0.45
     })
   }
 
@@ -234,38 +231,53 @@ export function CredencialLanyard3D({ egresado, onImprimir }) {
 
   return (
     <div className="flex flex-col items-center select-none w-full max-w-[360px]">
-      {/* ─── CINTA / LANYARD SUPERIOR COLGANTE CON PÉNDULO ─── */}
-      <div className={`relative flex flex-col items-center w-full pointer-events-none transition-transform duration-300 ${
+      {/* ─── CINTA / LANYARD SUPERIOR REALISTA CON EFECTO TELA Y BROCHE DE ACERO ─── */}
+      <div className={`relative flex flex-col items-center w-full pointer-events-none -mb-3 z-10 transition-transform duration-300 ${
         !estaSobre ? 'animate-[sway_4s_ease-in-out_infinite]' : ''
       }`}>
-        {/* Cintas en V */}
-        <div className="flex justify-center items-start w-40 h-24 -mb-6 relative z-0">
+        {/* Cintas en V con textura de tela satinada real */}
+        <div className="relative flex justify-center items-start w-52 h-32 overflow-visible">
+          {/* Cinta izquierda */}
           <div
-            className="w-9 h-28 bg-gradient-to-b from-sky-600 via-[#0F3260] to-slate-900 shadow-xl transform -rotate-12 origin-top rounded-b-sm border-x border-sky-400/50 flex items-center justify-center overflow-hidden"
-            style={{ backgroundImage: 'repeating-linear-gradient(45deg, rgba(255,255,255,0.12) 0px, rgba(255,255,255,0.12) 2px, transparent 2px, transparent 6px)' }}
+            className="w-12 h-36 bg-gradient-to-b from-[#061224] via-[#0B254E] to-[#0A1A33] shadow-2xl transform -rotate-10 origin-top rounded-b-md border-x-2 border-sky-400 flex items-center justify-center relative overflow-hidden"
+            style={{
+              boxShadow: '0 12px 30px -5px rgba(0, 0, 0, 0.45), inset 0 0 12px rgba(0, 0, 0, 0.6)',
+              backgroundImage: 'repeating-linear-gradient(45deg, rgba(255,255,255,0.08) 0px, rgba(255,255,255,0.08) 2px, transparent 2px, transparent 6px)'
+            }}
           >
-            <span className="text-[8px] font-black text-sky-100/70 uppercase tracking-[0.25em] rotate-90 whitespace-nowrap drop-shadow">
+            <span className="text-[8.5px] font-black text-sky-200 uppercase tracking-[0.25em] rotate-90 whitespace-nowrap drop-shadow-md">
               INSTITUTO BELTRÁN
             </span>
           </div>
+
+          {/* Cinta derecha */}
           <div
-            className="w-9 h-28 bg-gradient-to-b from-sky-600 via-[#0F3260] to-slate-900 shadow-xl transform rotate-12 origin-top rounded-b-sm border-x border-sky-400/50 -ml-2.5 flex items-center justify-center overflow-hidden"
-            style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(255,255,255,0.12) 0px, rgba(255,255,255,0.12) 2px, transparent 2px, transparent 6px)' }}
+            className="w-12 h-36 bg-gradient-to-b from-[#061224] via-[#0B254E] to-[#0A1A33] shadow-2xl transform rotate-10 origin-top rounded-b-md border-x-2 border-sky-400 -ml-3.5 flex items-center justify-center relative overflow-hidden"
+            style={{
+              boxShadow: '0 12px 30px -5px rgba(0, 0, 0, 0.45), inset 0 0 12px rgba(0, 0, 0, 0.6)',
+              backgroundImage: 'repeating-linear-gradient(-45deg, rgba(255,255,255,0.08) 0px, rgba(255,255,255,0.08) 2px, transparent 2px, transparent 6px)'
+            }}
           >
-            <span className="text-[8px] font-black text-sky-100/70 uppercase tracking-[0.25em] -rotate-90 whitespace-nowrap drop-shadow">
+            <span className="text-[8.5px] font-black text-sky-200 uppercase tracking-[0.25em] -rotate-90 whitespace-nowrap drop-shadow-md">
               SIGIC · COLACIÓN
             </span>
           </div>
         </div>
 
-        {/* Hebilla metálica & Remache pasante cromado */}
-        <div className="relative z-10 flex flex-col items-center">
-          <div className="w-12 h-4 bg-gradient-to-r from-slate-400 via-slate-100 to-slate-400 rounded-sm shadow-md border border-slate-300 flex items-center justify-center">
-            <div className="w-8 h-1.5 bg-slate-900 rounded-full shadow-inner" />
+        {/* Remache metálico & Mosquetón de Acero Inoxidable */}
+        <div className="relative -mt-6 z-20 flex flex-col items-center">
+          {/* Abrazadera de metal con remaches */}
+          <div className="w-14 h-5 bg-gradient-to-r from-slate-400 via-slate-100 to-slate-400 rounded-sm shadow-xl border border-slate-300 flex items-center justify-around px-2">
+            <div className="w-2 h-2 bg-slate-700 rounded-full shadow-inner border border-slate-400" />
+            <div className="w-2 h-2 bg-slate-700 rounded-full shadow-inner border border-slate-400" />
           </div>
-          {/* Gancho mosquetón cromado */}
-          <div className="w-6 h-7 bg-gradient-to-b from-slate-300 via-white to-slate-400 border border-slate-300 rounded-b-lg shadow-md -mt-0.5 flex items-center justify-center">
-            <div className="w-2.5 h-3.5 border-2 border-slate-700 rounded-b-sm" />
+          
+          {/* Anilla giratoria de acero */}
+          <div className="w-4 h-4 rounded-full border-2 border-slate-400 bg-gradient-to-b from-slate-200 to-slate-400 shadow-sm -mt-0.5" />
+          
+          {/* Gancho mosquetón de acero cromado */}
+          <div className="w-6 h-8 bg-gradient-to-b from-slate-200 via-white to-slate-400 border-2 border-slate-400 rounded-b-xl shadow-lg -mt-1 flex flex-col items-center justify-end pb-1">
+            <div className="w-2.5 h-4 border-2 border-slate-700 rounded-b-md" />
           </div>
         </div>
       </div>
@@ -280,11 +292,11 @@ export function CredencialLanyard3D({ egresado, onImprimir }) {
           onMouseMove={manejarMouseMove}
           onMouseEnter={manejarMouseEnter}
           onMouseLeave={manejarMouseLeave}
-          className="relative w-full rounded-[32px] overflow-hidden transition-all duration-150 ease-out shadow-2xl cursor-grab active:cursor-grabbing border-2 border-sky-400/40"
+          className="relative w-full rounded-[32px] overflow-hidden transition-all duration-150 ease-out shadow-2xl cursor-grab active:cursor-grabbing border-2 border-sky-400/50"
           style={{
             transform: `rotateX(${rotacion.x}deg) rotateY(${rotacion.y}deg) ${estaSobre ? 'scale3d(1.03, 1.03, 1.03)' : 'scale3d(1, 1, 1)'}`,
             transformStyle: 'preserve-3d',
-            background: 'linear-gradient(160deg, #0B172B 0%, #0F2344 40%, #050B14 100%)',
+            background: 'linear-gradient(160deg, #0A162B 0%, #0F2344 40%, #040913 100%)',
             boxShadow: estaSobre
               ? '0 35px 80px -15px rgba(2, 132, 199, 0.45), 0 0 45px rgba(14, 165, 233, 0.25)'
               : '0 25px 50px -12px rgba(15, 23, 42, 0.35), 0 10px 20px -5px rgba(0, 0, 0, 0.2)'
@@ -299,13 +311,15 @@ export function CredencialLanyard3D({ egresado, onImprimir }) {
             }}
           />
 
-          {/* Ranura del porta-credencial */}
-          <div className="flex justify-center pt-3 pb-1" style={{ transform: 'translateZ(10px)' }}>
-            <div className="w-16 h-2 bg-slate-950 border border-slate-700/90 rounded-full shadow-inner" />
+          {/* Ranura del porta-credencial con marco metálico */}
+          <div className="flex justify-center pt-3 pb-1" style={{ transform: 'translateZ(12px)' }}>
+            <div className="w-16 h-2.5 bg-slate-950 border-2 border-slate-600 rounded-full shadow-inner flex items-center justify-center">
+              <div className="w-12 h-1 bg-black rounded-full" />
+            </div>
           </div>
 
           {/* ── ENCABEZADO DE LA CREDENCIAL (Capa Parallax 1) ── */}
-          <div className="px-5 pt-2 pb-3.5 flex items-center justify-between border-b border-sky-500/20" style={{ transform: 'translateZ(20px)' }}>
+          <div className="px-5 pt-2 pb-3.5 flex items-center justify-between border-b border-sky-500/25" style={{ transform: 'translateZ(20px)' }}>
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-400 to-cyan-300 flex items-center justify-center shadow-lg shadow-sky-500/30">
                 <Award size={17} className="text-slate-950 stroke-[2.5]" />
