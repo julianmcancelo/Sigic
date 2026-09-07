@@ -542,7 +542,7 @@ function App() {
 
   // Las inscripciones rechazadas o finalizadas conservan acceso de consulta.
   useEffect(() => {
-    if (graduadoActivo && graduadoUsuario && !['PENDIENTE', 'ACEPTADO', 'RECHAZADO'].includes(graduadoUsuario.estado)) {
+    if (graduadoActivo && graduadoUsuario && !['PENDIENTE', 'ACEPTADO', 'CONFIRMADO', 'RECHAZADO'].includes(graduadoUsuario.estado)) {
       cerrarSesionGraduado()
     }
   }, [graduadoActivo, graduadoUsuario])
@@ -885,7 +885,7 @@ function App() {
       )
     }
     // Subcase B.2: Estado ACEPTADO → Panel completo del graduado
-    else if (graduadoUsuario.estado === 'ACEPTADO' && ceremoniaSeleccionadaActiva) {
+    else if ((graduadoUsuario.estado === 'ACEPTADO' || graduadoUsuario.estado === 'CONFIRMADO') && ceremoniaSeleccionadaActiva) {
       contenido = <PanelGraduado graduadoSesion={graduadoUsuario} onCerrarSesion={cerrarSesionGraduado} pestanaForzada={pestanaGraduadoDemo} />
     }
     // Rechazadas y ceremonias anteriores: consulta histórica protegida.

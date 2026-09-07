@@ -290,7 +290,7 @@ export function CredencialLanyard3D({ egresado, onImprimir }) {
           <div className="relative flex justify-center items-start w-56 h-36 overflow-visible">
             {/* Cinta izquierda */}
             <div
-              className="w-12 h-40 bg-gradient-to-b from-[#051122] via-[#0A2246] to-[#0D2B59] shadow-2xl transform -rotate-12 origin-top rounded-b-sm border-l-2 border-r-2 border-sky-400 flex items-center justify-center relative overflow-hidden"
+              className="w-12 h-40 bg-gradient-to-b from-[#020712] via-[#061426] to-[#0A1C33] shadow-2xl transform -rotate-12 origin-top rounded-b-sm border-l-2 border-r-2 border-slate-700/80 flex items-center justify-center relative overflow-hidden"
               style={{
                 boxShadow: '0 16px 35px -5px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(0, 0, 0, 0.8)',
                 backgroundImage: 'repeating-linear-gradient(45deg, rgba(255,255,255,0.09) 0px, rgba(255,255,255,0.09) 2px, transparent 2px, transparent 5px)'
@@ -305,7 +305,7 @@ export function CredencialLanyard3D({ egresado, onImprimir }) {
 
             {/* Cinta derecha */}
             <div
-              className="w-12 h-40 bg-gradient-to-b from-[#051122] via-[#0A2246] to-[#0D2B59] shadow-2xl transform rotate-12 origin-top rounded-b-sm border-l-2 border-r-2 border-sky-400 -ml-4 flex items-center justify-center relative overflow-hidden"
+              className="w-12 h-40 bg-gradient-to-b from-[#020712] via-[#061426] to-[#0A1C33] shadow-2xl transform rotate-12 origin-top rounded-b-sm border-l-2 border-r-2 border-slate-700/80 -ml-4 flex items-center justify-center relative overflow-hidden"
               style={{
                 boxShadow: '0 16px 35px -5px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(0, 0, 0, 0.8)',
                 backgroundImage: 'repeating-linear-gradient(-45deg, rgba(255,255,255,0.09) 0px, rgba(255,255,255,0.09) 2px, transparent 2px, transparent 5px)'
