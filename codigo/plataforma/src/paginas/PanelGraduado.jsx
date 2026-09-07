@@ -24,6 +24,7 @@ import { FormularioAcompanante } from '../componentes/graduado/FormularioAcompan
 import { ListaAcompanantes } from '../componentes/graduado/ListaAcompanantes'
 import { SeccionPadrinos } from '../componentes/graduado/SeccionPadrinos'
 import { SeccionJuramento, FORMULAS_JURAMENTO } from '../componentes/graduado/SeccionJuramento'
+import { PantallaCredencialConfirmada } from '../componentes/graduado/PantallaCredencialConfirmada'
 import { useConfirmacion } from '../componentes/ModalConfirmacion'
 
 function formatearFechaCeremonia(valor) {
@@ -47,7 +48,9 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion, pestanaForzada }
   const [graduado, setGraduado] = useState(graduadoSesion)
   const [invitados, setInvitados] = useState([])
   const [cargando, setCargando] = useState(true)
-  const [pestana, setPestana] = useState(pestanaForzada || 'juramento') // 'juramento' | 'invitados' | 'entregadores' | 'credencial'
+  const [pestana, setPestana] = useState(
+    pestanaForzada || (graduadoSesion?.perfil_finalizado_en || graduadoSesion?.inscripcion_finalizada === 1 || graduadoSesion?.estado === 'CONFIRMADO' ? 'credencial' : 'juramento')
+  )
   const [maxInvitados, setMaxInvitados] = useState(4)
 
   useEffect(() => {
@@ -337,6 +340,19 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion, pestanaForzada }
     )
   }
 
+  if (pestana === 'credencial') {
+    return (
+      <PantallaCredencialConfirmada
+        graduado={{ ...graduado, asientos: todosLosAsientos }}
+        invitados={invitados}
+        entregadores={entregadores}
+        profesores={profesores}
+        onCerrarSesion={onCerrarSesion}
+        onEditarDatos={() => setPestana('juramento')}
+      />
+    )
+  }
+
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-900 pb-16 font-sans">
       {/* Topbar Institucional */}
@@ -344,7 +360,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion, pestanaForzada }
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-6">
           <div className="flex items-center gap-3">
             <div className="relative h-9 w-9 overflow-hidden rounded-xl border border-slate-200 bg-white p-1">
-              <Image src="/logo.png" alt="Logo Beltrán" fill className="object-contain" sizes="36px" />
+              <Image src="/logo-oficial.png" alt="Logo Beltrán" fill className="object-contain" sizes="36px" />
             </div>
             <div>
               <p className="text-[10px] font-black uppercase tracking-[.18em] text-slate-400">SiGIC · Instituto Beltrán</p>
@@ -542,17 +558,6 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion, pestanaForzada }
               onEliminar={manejarEliminarEntregador}
               onRevisarFinal={abrirModalRevision}
             />
-          )}
-
-          {pestana === 'credencial' && (
-            <div className="flex flex-col items-center">
-              <div className="w-full max-w-lg">
-                <ModalCredencial 
-                  egresado={{ ...graduado, asientos: todosLosAsientos, invitados }} 
-                  onCerrar={() => setPestana('invitados')} 
-                />
-              </div>
-            </div>
           )}
         </section>
       </main>
