@@ -886,7 +886,7 @@ function App() {
     }
     // Subcase B.2: Estado ACEPTADO → Panel completo del graduado
     else if ((graduadoUsuario.estado === 'ACEPTADO' || graduadoUsuario.estado === 'CONFIRMADO') && ceremoniaSeleccionadaActiva) {
-      contenido = <PanelGraduado graduadoSesion={graduadoUsuario} onCerrarSesion={cerrarSesionGraduado} pestanaForzada={pestanaGraduadoDemo} />
+      contenido = <PanelGraduado key={graduadoUsuario.id} graduadoSesion={graduadoUsuario} onCerrarSesion={cerrarSesionGraduado} pestanaForzada={demoAutomaticaActiva ? pestanaGraduadoDemo : undefined} />
     }
     // Rechazadas y ceremonias anteriores: consulta histórica protegida.
     else {

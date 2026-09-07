@@ -1,13 +1,25 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useId } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
+import QRCode from 'qrcode'
 import {
   Download, Printer, Wallet, ShieldCheck,
   Armchair, Users, Award, Check, AlertCircle,
   GraduationCap, Sparkles, QrCode, Lock, BadgeCheck
 } from 'lucide-react'
 import { obtenerGoogleWalletPass } from '../../servicios/api'
+import './credencial-giro.css'
+
+const equipoCredencial = [
+  'Alan Alexis Alfonso',
+  'Julián Cancelo',
+  'Sol Heilin Contreras Villalba',
+  'Matías Frassia',
+  'Luis Gabriel Santillán',
+]
 
 export function CredencialLanyard3D({ egresado, onImprimir }) {
+  const metalId = useId().replace(/:/g, '')
+  const [reverso, setReverso] = useState(false)
   const [rotacion, setRotacion] = useState({ x: 0, y: 0, z: 0 })
   const [brillo, setBrillo] = useState({ x: 50, y: 50, opacidad: 0 })
   const [estaSobre, setEstaSobre] = useState(false)
@@ -57,9 +69,9 @@ export function CredencialLanyard3D({ egresado, onImprimir }) {
 
       // Si no hay hover, genera un balanceo pendular orgánico suave
       if (!estaSobre) {
-        const oscilacionX = Math.sin(tiempoRef.current * 0.8) * 3
-        const oscilacionY = Math.cos(tiempoRef.current * 0.6) * 4.5
-        const oscilacionZ = Math.sin(tiempoRef.current * 0.5) * 1.5
+        const oscilacionX = Math.sin(tiempoRef.current * 0.5) * 0.8
+        const oscilacionY = Math.cos(tiempoRef.current * 0.4) * 1.5
+        const oscilacionZ = Math.sin(tiempoRef.current * 0.5) * 1.2
         const oscilacionCinta = Math.sin(tiempoRef.current * 0.6) * 3
 
         posObjetivo.current = {
@@ -104,8 +116,8 @@ export function CredencialLanyard3D({ egresado, onImprimir }) {
     const centerY = rect.height / 2
 
     // Ángulos de inclinación basados en la distancia al centro
-    const rotX = Math.max(-18, Math.min(18, ((y - centerY) / centerY) * -16))
-    const rotY = Math.max(-20, Math.min(20, ((x - centerX) / centerX) * 18))
+    const rotX = Math.max(-5, Math.min(5, ((y - centerY) / centerY) * -5))
+    const rotY = Math.max(-7, Math.min(7, ((x - centerX) / centerX) * 7))
     const rotZ = Math.max(-5, Math.min(5, ((x - centerX) / centerX) * 3))
     const cintaTilt = Math.max(-8, Math.min(8, ((x - centerX) / centerX) * 6))
 
@@ -150,24 +162,19 @@ export function CredencialLanyard3D({ egresado, onImprimir }) {
   }
 
   // Generador de imagen PNG HD de la credencial
-  const descargarCredencialPNG = () => {
+  const descargarCredencialPNG = async () => {
     setDescargandoPNG(true)
     try {
-      const svg = svgQRRef.current?.querySelector('svg')
-      if (!svg) throw new Error('No se encontró el código QR')
-
-      const svgData = new XMLSerializer().serializeToString(svg)
-      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' })
-      const URLObj = window.URL || window.webkitURL || window
-      const blobURL = URLObj.createObjectURL(svgBlob)
-
-      const imgQR = new Image()
-      imgQR.onload = () => {
+      const logo = new window.Image()
+      logo.src = new URL('/logo-oficial.png', window.location.origin).href
+      await logo.decode()
+      const imagenQR = document.createElement('canvas')
+      await QRCode.toCanvas(imagenQR, qrValor, { width: 400, margin: 4, errorCorrectionLevel: 'M' })
         const canvas = document.createElement('canvas')
         canvas.width = 800
         canvas.height = 1200
         const ctx = canvas.getContext('2d')
-        if (!ctx) return
+        if (!ctx) throw new Error('El navegador no pudo generar la imagen.')
 
         // Fondo oscuro institucional de alta gama
         const gradient = ctx.createLinearGradient(0, 0, 800, 1200)
@@ -181,27 +188,47 @@ export function CredencialLanyard3D({ egresado, onImprimir }) {
         // Borde dorado/celeste institucional
         ctx.strokeStyle = '#0284C7'
         ctx.lineWidth = 6
+        ctx.beginPath()
         ctx.roundRect(14, 14, 772, 1172, 38)
         ctx.stroke()
 
+        // Marca institucional con proporciones originales.
+        ctx.fillStyle = '#FFFFFF'
+        ctx.beginPath()
+        ctx.roundRect(54, 50, 104, 104, 22)
+        ctx.fill()
+        const escalaLogo = Math.min(88 / logo.naturalWidth, 88 / logo.naturalHeight)
+        const anchoLogo = logo.naturalWidth * escalaLogo
+        const altoLogo = logo.naturalHeight * escalaLogo
+        ctx.drawImage(logo, 106 - anchoLogo / 2, 102 - altoLogo / 2, anchoLogo, altoLogo)
+
         // Encabezado
         ctx.fillStyle = '#38BDF8'
-        ctx.font = 'bold 22px sans-serif'
-        ctx.textAlign = 'center'
-        ctx.fillText('INSTITUTO TECNOLÓGICO BELTRÁN', 400, 95)
+        ctx.font = '900 32px sans-serif'
+        ctx.textAlign = 'left'
+        ctx.fillText('SiGIC', 182, 90)
+        ctx.font = 'bold 17px sans-serif'
+        ctx.fillText('INSTITUTO TECNOLÓGICO BELTRÁN', 182, 120, 548)
 
         ctx.fillStyle = '#FFFFFF'
-        ctx.font = '900 36px sans-serif'
-        ctx.fillText('COLACIÓN DE GRADOS 2026', 400, 145)
+        ctx.font = 'bold 18px sans-serif'
+        ctx.fillText('CREDENCIAL OFICIAL · PASE DE GRADUADO', 182, 149, 548)
+        ctx.strokeStyle = '#38bdf844'
+        ctx.lineWidth = 1
+        ctx.beginPath()
+        ctx.moveTo(54, 180)
+        ctx.lineTo(746, 180)
+        ctx.stroke()
+        ctx.textAlign = 'center'
 
         // Nombre del Graduado
         ctx.fillStyle = '#FFFFFF'
         ctx.font = '900 42px sans-serif'
-        ctx.fillText(egresado?.nombre || 'Graduado', 400, 235)
+        ctx.fillText(egresado?.nombre || 'Graduado', 400, 235, 680)
 
         ctx.fillStyle = '#7DD3FC'
         ctx.font = 'bold 26px sans-serif'
-        ctx.fillText(carreraNombre, 400, 280)
+        ctx.fillText(carreraNombre, 400, 280, 680)
 
         if (egresado?.dni) {
           ctx.fillStyle = '#94A3B8'
@@ -211,16 +238,22 @@ export function CredencialLanyard3D({ egresado, onImprimir }) {
 
         // Marco QR
         ctx.fillStyle = '#FFFFFF'
+        ctx.beginPath()
         ctx.roundRect(175, 360, 450, 450, 28)
         ctx.fill()
 
         // Dibujar QR
-        ctx.drawImage(imgQR, 200, 385, 400, 400)
+        ctx.drawImage(imagenQR, 200, 385, 400, 400)
+        ctx.fillStyle = '#7DD3FC'
+        ctx.font = 'bold 16px sans-serif'
+        ctx.fillText('PRESENTÁ ESTE QR EN PORTERÍA', 400, 831)
 
         // Butacas
         ctx.fillStyle = '#1E293B'
+        ctx.beginPath()
         ctx.roundRect(80, 850, 300, 110, 20)
         ctx.fill()
+        ctx.beginPath()
         ctx.roundRect(420, 850, 300, 110, 20)
         ctx.fill()
 
@@ -229,31 +262,40 @@ export function CredencialLanyard3D({ egresado, onImprimir }) {
         ctx.fillText('BUTACA GRADUADO', 230, 890)
         ctx.fillStyle = '#FFFFFF'
         ctx.font = '900 26px sans-serif'
-        ctx.fillText(asientoPrincipal ? `Fila ${asientoPrincipal.replace('-', ' ')}` : 'Asignada en sala', 230, 935)
+        ctx.fillText(asientoPrincipal ? `Fila ${asientoPrincipal.replace('-', ' ')}` : 'Asignada en sala', 230, 935, 270)
 
         ctx.fillStyle = '#34D399'
         ctx.font = 'bold 19px sans-serif'
         ctx.fillText('GRUPO INVITADOS', 570, 890)
         ctx.fillStyle = '#FFFFFF'
         ctx.font = '900 26px sans-serif'
-        ctx.fillText(`${cantidadInvitados} ${cantidadInvitados === 1 ? 'Acompañante' : 'Acompañantes'}`, 570, 935)
+        ctx.fillText(`${cantidadInvitados} ${cantidadInvitados === 1 ? 'Acompañante' : 'Acompañantes'}`, 570, 935, 270)
 
         // Pie
-        ctx.fillStyle = '#64748B'
-        ctx.font = 'bold 17px monospace'
-        ctx.fillText(`PASE DIGITAL OFICIAL · SIGIC · ${egresado?.token ? String(egresado.token).slice(0, 10).toUpperCase() : 'OK'}`, 400, 1060)
+        ctx.fillStyle = '#E0F2FE'
+        ctx.font = 'bold 23px sans-serif'
+        ctx.fillText(egresado?.ceremonia_nombre || 'Ceremonia de colación', 400, 1007, 680)
+        ctx.fillStyle = '#94A3B8'
+        ctx.font = '19px sans-serif'
+        ctx.fillText(rawFecha ? fechaFormateada : 'Fecha a confirmar', 400, 1042, 680)
+        ctx.fillText(egresado?.ceremonia_sede || egresado?.ceremonia_lugar || 'Sede a confirmar', 400, 1074, 680)
+        ctx.fillStyle = '#38BDF8'
+        ctx.font = 'bold 15px sans-serif'
+        ctx.fillText('TU CREDENCIAL ES PERSONAL · CONSERVALA PARA EL INGRESO', 400, 1140, 680)
 
-        const pngURL = canvas.toDataURL('image/png')
+        const archivo = await new Promise((resolve, reject) => canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('No se pudo crear el PNG.')), 'image/png'))
+        const pngURL = URL.createObjectURL(archivo)
         const link = document.createElement('a')
         link.download = `Credencial_Beltran_${String(egresado?.nombre || 'Graduado').replace(/\s+/g, '_')}.png`
         link.href = pngURL
+        document.body.appendChild(link)
         link.click()
-        URLObj.revokeObjectURL(blobURL)
-        setDescargandoPNG(false)
-      }
-      imgQR.src = blobURL
+        link.remove()
+        setTimeout(() => URL.revokeObjectURL(pngURL), 60000)
     } catch (e) {
       console.error('Error al generar PNG:', e)
+      setMensajeWallet({ tipo: 'error', texto: 'No se pudo descargar la credencial. Probá nuevamente o usá Imprimir Pase.' })
+    } finally {
       setDescargandoPNG(false)
     }
   }
@@ -274,90 +316,113 @@ export function CredencialLanyard3D({ egresado, onImprimir }) {
         style={{
           perspective: '1200px',
           transformStyle: 'preserve-3d',
-          transform: `rotateZ(${(rotacion.cintaTilt || 0) * 0.4}deg)`
+          transform: `rotateX(${rotacion.x}deg) rotateY(${rotacion.y}deg) rotateZ(${rotacion.z}deg)`
         }}
       >
 
         {/* ─── CINTA / LANYARD SUPERIOR REALISTA EN V DE TELA SATINADA ─── */}
         <div
-          className="relative flex flex-col items-center w-full pointer-events-none -mb-3.5 z-20 origin-top"
+          className="relative flex flex-col items-center w-full pointer-events-none z-20 origin-top"
           style={{
-            transformStyle: 'preserve-3d',
-            transform: `rotateY(${(rotacion.y || 0) * 0.35}deg)`
+            marginBottom: '-24px',
+            transformStyle: 'preserve-3d'
           }}
         >
           {/* Cintas en V */}
-          <div className="relative flex justify-center items-start w-56 h-36 overflow-visible">
+          <div className="relative w-40 overflow-visible" style={{ height: 124 }} aria-hidden="true">
             {/* Cinta izquierda */}
             <div
-              className="w-12 h-40 bg-gradient-to-b from-[#020712] via-[#061426] to-[#0A1C33] shadow-2xl transform -rotate-12 origin-top rounded-b-sm border-l-2 border-r-2 border-slate-700/80 flex items-center justify-center relative overflow-hidden"
+              className="absolute bottom-0 left-1/2 w-8 h-40 rounded-b-sm border-x flex items-center justify-center overflow-hidden"
               style={{
-                boxShadow: '0 16px 35px -5px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(0, 0, 0, 0.8)',
-                backgroundImage: 'repeating-linear-gradient(45deg, rgba(255,255,255,0.09) 0px, rgba(255,255,255,0.09) 2px, transparent 2px, transparent 5px)'
+                transform: 'translateX(-50%) rotate(-17deg)',
+                height: 128,
+                transformOrigin: '50% 100%',
+                boxShadow: '0 5px 8px -4px rgba(0, 0, 0, 0.35)',
+                backgroundColor: '#050608',
+                borderColor: '#30363c',
+                backgroundImage: 'repeating-linear-gradient(45deg, rgba(125,211,252,0.045) 0px, rgba(125,211,252,0.045) 1px, transparent 1px, transparent 4px), linear-gradient(90deg, #030405, #15191e 48%, #030405)'
               }}
             >
+              <span className="sigic-cinta-costura" />
               <div className="flex items-center gap-1.5 rotate-90 whitespace-nowrap">
-                <span className="text-[8.5px] font-black text-sky-200 uppercase tracking-[0.25em] drop-shadow-md">
-                  INSTITUTO BELTRÁN
+                <span className="text-[9px] font-bold text-sky-200 uppercase tracking-[0.12em]">
+                  <span style={{ color: '#7dd3fc', textShadow: 'none' }}>INSTITUTO BELTRÁN</span>
                 </span>
               </div>
             </div>
 
             {/* Cinta derecha */}
             <div
-              className="w-12 h-40 bg-gradient-to-b from-[#020712] via-[#061426] to-[#0A1C33] shadow-2xl transform rotate-12 origin-top rounded-b-sm border-l-2 border-r-2 border-slate-700/80 -ml-4 flex items-center justify-center relative overflow-hidden"
+              className="absolute bottom-0 left-1/2 w-8 h-40 rounded-b-sm border-x flex items-center justify-center overflow-hidden"
               style={{
-                boxShadow: '0 16px 35px -5px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(0, 0, 0, 0.8)',
-                backgroundImage: 'repeating-linear-gradient(-45deg, rgba(255,255,255,0.09) 0px, rgba(255,255,255,0.09) 2px, transparent 2px, transparent 5px)'
+                transform: 'translateX(-50%) rotate(17deg)',
+                height: 128,
+                transformOrigin: '50% 100%',
+                boxShadow: '0 5px 8px -4px rgba(0, 0, 0, 0.35)',
+                backgroundColor: '#050608',
+                borderColor: '#30363c',
+                backgroundImage: 'repeating-linear-gradient(-45deg, rgba(125,211,252,0.045) 0px, rgba(125,211,252,0.045) 1px, transparent 1px, transparent 4px), linear-gradient(90deg, #030405, #15191e 48%, #030405)'
               }}
             >
+              <span className="sigic-cinta-costura" />
               <div className="flex items-center gap-1.5 -rotate-90 whitespace-nowrap">
-                <span className="text-[8.5px] font-black text-sky-200 uppercase tracking-[0.25em] drop-shadow-md">
-                  SIGIC · COLACIÓN
+                <span className="text-[9px] font-bold text-sky-200 uppercase tracking-[0.12em]">
+                  <span style={{ color: '#7dd3fc', textShadow: 'none' }}>SIGIC · COLACIÓN</span>
                 </span>
               </div>
             </div>
           </div>
 
           {/* ── HERRAJE DE UNIÓN Y MOSQUETÓN METÁLICO CROMADO ── */}
-          <div className="relative -mt-6 z-30 flex flex-col items-center">
+          <div className="relative -mt-2 z-30 flex flex-col items-center">
             {/* Pasador de acero con remaches dobles */}
-            <div className="w-14 h-5 bg-gradient-to-r from-slate-400 via-slate-100 to-slate-400 rounded-sm shadow-xl border border-slate-300 flex items-center justify-around px-2">
-              <div className="w-2 h-2 bg-slate-700 rounded-full shadow-inner border border-slate-400" />
-              <div className="w-2 h-2 bg-slate-700 rounded-full shadow-inner border border-slate-400" />
-            </div>
-            
-            {/* Anilla articulada giratoria */}
-            <div className="w-4 h-4 rounded-full border-2 border-slate-400 bg-gradient-to-b from-slate-200 to-slate-400 shadow-sm -mt-0.5" />
-            
-            {/* Mosquetón cromado de enganche */}
-            <div className="w-6 h-8 bg-gradient-to-b from-slate-200 via-white to-slate-400 border-2 border-slate-400 rounded-b-xl shadow-lg -mt-1 flex flex-col items-center justify-end pb-1">
-              <div className="w-2.5 h-4 border-2 border-slate-700 rounded-b-md" />
-            </div>
+            <svg width="40" height="62" viewBox="0 0 80 124" fill="none" aria-hidden="true" style={{ display: 'block', overflow: 'visible', filter: 'drop-shadow(0 2px 1px rgba(0,0,0,.22))' }}>
+              <defs>
+                <linearGradient id={metalId} x1="0" y1="0" x2="1" y2="0">
+                  <stop stopColor="#59636b" /><stop offset=".18" stopColor="#bbc3c9" /><stop offset=".38" stopColor="#f5f7f8" /><stop offset=".53" stopColor="#a7b0b7" /><stop offset=".8" stopColor="#e3e7e9" /><stop offset="1" stopColor="#626c74" />
+                </linearGradient>
+              </defs>
+              <rect x="1" y="1" width="78" height="36" rx="5" fill={`url(#${metalId})`} stroke="#607080" strokeWidth="1" />
+              <path d="M6 4H74" stroke="#fff" strokeOpacity=".7" />
+              <path d="M6 33H74" stroke="#7890a5" strokeWidth="2" />
+              <circle cx="23" cy="19" r="6" fill="#263e54" stroke="#e0edf7" strokeWidth="2" />
+              <circle cx="57" cy="19" r="6" fill="#263e54" stroke="#e0edf7" strokeWidth="2" />
+              <circle cx="40" cy="49" r="12" stroke="#637b90" strokeWidth="5" />
+              <circle cx="40" cy="49" r="12" stroke="#d7e5f0" strokeWidth="2" />
+              <path d="M21 62H59V100C59 113 52 121 40 121S21 113 21 100Z" fill={`url(#${metalId})`} stroke="#607080" strokeWidth="1.5" />
+              <path d="M26 67H54V100C54 110 49 116 40 116" stroke="#f4f8fc" strokeWidth="3" />
+              <path d="M33 79H47V100C47 106 44 109 40 109S33 106 33 100Z" fill="#10243a" stroke="#71899e" strokeWidth="2" />
+              <path d="M47 79V98" stroke="#e1ebf3" strokeWidth="3" />
+            </svg>
           </div>
         </div>
 
         {/* ─── TARJETA CREDENCIAL 3D INTERACTIVA CON PARALLAX ─── */}
         <div
-          className="w-full pt-1"
+          className="w-full"
           style={{
             perspective: '1400px',
             transformOrigin: 'top center'
           }}
         >
+          <div className="sigic-credencial-giro" data-reverso={reverso}>
           <div
             ref={tarjetaRef}
+            aria-hidden={reverso}
+            onClick={() => setReverso(true)}
             onMouseMove={manejarMouseMove}
             onMouseEnter={manejarMouseEnter}
             onMouseLeave={manejarMouseLeave}
             className="relative w-full rounded-[32px] overflow-hidden transition-all duration-150 ease-out shadow-2xl cursor-grab active:cursor-grabbing border-2 border-sky-400/50"
             style={{
-              transform: `rotateX(${rotacion.x}deg) rotateY(${rotacion.y}deg) rotateZ(${rotacion.z}deg) ${estaSobre ? 'scale3d(1.03, 1.03, 1.03)' : 'scale3d(1, 1, 1)'}`,
+              gridArea: '1 / 1',
+              backfaceVisibility: 'hidden',
+              WebkitBackfaceVisibility: 'hidden',
               transformStyle: 'preserve-3d',
               background: 'linear-gradient(160deg, #0A162B 0%, #0F2344 40%, #040913 100%)',
               boxShadow: estaSobre
-                ? '0 35px 80px -15px rgba(2, 132, 199, 0.45), 0 0 45px rgba(14, 165, 233, 0.25)'
-                : '0 25px 50px -12px rgba(15, 23, 42, 0.35), 0 10px 20px -5px rgba(0, 0, 0, 0.2)'
+                ? '0 24px 40px -16px rgba(15, 23, 42, 0.4), 0 6px 12px -5px rgba(0, 0, 0, 0.2)'
+                : '0 18px 32px -14px rgba(15, 23, 42, 0.32), 0 5px 10px -5px rgba(0, 0, 0, 0.18)'
             }}
           >
             {/* Capa de Brillo Holográfico Especular Reactivo */}
@@ -370,7 +435,7 @@ export function CredencialLanyard3D({ egresado, onImprimir }) {
             />
 
             {/* Ranura del porta-credencial con marco metálico */}
-            <div className="flex justify-center pt-3 pb-1" style={{ transform: 'translateZ(12px)' }}>
+            <div className="flex justify-center pt-3 pb-1">
               <div className="w-16 h-2.5 bg-slate-950 border-2 border-slate-600 rounded-full shadow-inner flex items-center justify-center">
                 <div className="w-12 h-1 bg-black rounded-full" />
               </div>
@@ -394,7 +459,7 @@ export function CredencialLanyard3D({ egresado, onImprimir }) {
             </div>
 
             {/* ── CUERPO CON QR Y DATOS (Capa Parallax 2) ── */}
-            <div className="p-5 sm:p-6 flex flex-col items-center text-center" style={{ transform: 'translateZ(30px)' }}>
+            <div className="p-3 flex flex-col items-center text-center" style={{ transform: 'translateZ(30px)' }}>
               {/* Tag de Rol */}
               <div className="mb-2 inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-sky-500/20 border border-sky-400/50 text-sky-200 text-[10px] font-black uppercase tracking-widest shadow-sm">
                 <BadgeCheck size={12} className="text-sky-300" />
@@ -422,7 +487,7 @@ export function CredencialLanyard3D({ egresado, onImprimir }) {
               >
                 <QRCodeSVG
                   value={qrValor}
-                  size={175}
+                  size={152}
                   level="M"
                   includeMargin={false}
                   fgColor="#0F172A"
@@ -464,6 +529,16 @@ export function CredencialLanyard3D({ egresado, onImprimir }) {
                 </span>
               </div>
             </div>
+          </div>
+          <div className="sigic-credencial-reverso" aria-hidden={!reverso} onClick={() => setReverso(false)}>
+            <div className="sigic-credencial-ranura" />
+            <img src="/logo-oficial.png" alt="SiGIC" className="sigic-credencial-logo" />
+            <h2>SiGIC</h2>
+            <p className="sigic-credencial-subtitulo">Sistema Integral de Gestión de Invitaciones y Ceremonias</p>
+            <h3>El equipo detrás del proyecto</h3>
+            <ul>{equipoCredencial.map(nombre => <li key={nombre}><strong>{nombre}</strong></li>)}</ul>
+            <footer>Prácticas Profesionalizantes<br /><strong>Instituto Tecnológico Beltrán · 2026</strong></footer>
+          </div>
           </div>
         </div>
 

@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import { CredencialLanyard3D } from './CredencialLanyard3D'
 import { FORMULAS_JURAMENTO } from './SeccionJuramento'
+import './pantalla-credencial.css'
 
 export function PantallaCredencialConfirmada({
   graduado,
@@ -128,7 +129,7 @@ export function PantallaCredencialConfirmada({
   })
 
   return (
-    <div className="min-h-screen bg-[#F0F4F8] text-slate-800 font-sans antialiased pb-24 selection:bg-sky-500 selection:text-white">
+    <div className="sigic-pase-page min-h-screen text-slate-800 font-sans antialiased selection:bg-sky-500 selection:text-white">
       {/* ─── BARRA SUPERIOR INSTITUCIONAL CLARA ─── */}
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-slate-200/90 px-4 sm:px-8 py-3.5 flex items-center justify-between shadow-xs">
         <div className="flex items-center gap-3 sm:gap-4">
@@ -173,11 +174,11 @@ export function PantallaCredencialConfirmada({
       </header>
 
       {/* ─── CONTENEDOR PRINCIPAL BENTO GRID EN MODO CLARO ─── */}
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 sm:pt-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+      <main className="sigic-pase-main">
+        <div className="sigic-pase-layout">
           
           {/* ── COLUMNA IZQUIERDA: CREDENCIAL 3D LANYARD (5 cols) ── */}
-          <div className="lg:col-span-5 flex flex-col items-center justify-center lg:sticky lg:top-24">
+          <div className="sigic-pase-credencial">
             <CredencialLanyard3D
               egresado={{ ...graduado, asientos: todosLosAsientos, invitados }}
               onImprimir={imprimirPaseOficial}
@@ -185,7 +186,7 @@ export function PantallaCredencialConfirmada({
           </div>
 
           {/* ── COLUMNA DERECHA: BENTO DE CONFIRMACIÓN (7 cols) ── */}
-          <div className="lg:col-span-7 space-y-5">
+          <div className="sigic-pase-informacion space-y-5">
             
             {/* CARD 1: ¡TU LUGAR ESTÁ CONFIRMADO! */}
             <div className="p-6 sm:p-8 rounded-[30px] bg-white border border-slate-200/90 shadow-xl shadow-slate-200/60 relative overflow-hidden">
@@ -267,6 +268,8 @@ export function PantallaCredencialConfirmada({
             </div>
 
             {/* CARD 2: RESUMEN DE ASIGNACIÓN PROTOCOLAR */}
+            <details className="sigic-pase-detalle">
+            <summary>Tu grupo y butacas · {1 + cantidadInvitados} personas</summary>
             <div className="p-6 rounded-[26px] bg-white border border-slate-200/90 shadow-xl shadow-slate-200/50 space-y-4">
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-black text-slate-700 uppercase tracking-widest flex items-center gap-2">
@@ -352,6 +355,9 @@ export function PantallaCredencialConfirmada({
             </div>
 
             {/* CARD 3: COMPARTIR CON TU FAMILIA */}
+            </details>
+            <details className="sigic-pase-detalle">
+            <summary>Compartir con tus acompañantes</summary>
             <div className="p-6 rounded-[26px] bg-white border border-slate-200/90 shadow-xl shadow-slate-200/50 space-y-4">
               <div>
                 <h3 className="text-xs font-black text-slate-700 uppercase tracking-widest flex items-center gap-2">
@@ -402,9 +408,17 @@ export function PantallaCredencialConfirmada({
                 </a>
               </div>
             </div>
+            </details>
 
           </div>
         </div>
+      <aside className="sigic-pase-visual" aria-label="Celebración de graduados">
+        {[3, 1, 2, 4].map((numero, indice) => (
+          <img key={numero} className="sigic-pase-foto" style={{ animationDelay: `${indice * 7}s` }} src={`https://ibeltran.com.ar/img/slider/${numero}.jpg`} alt="" aria-hidden="true" loading="lazy" referrerPolicy="no-referrer" />
+        ))}
+        <div className="sigic-pase-visual-marca"><img src="/logo-oficial.png" alt="SiGIC" /><span>INSTITUTO TECNOLÓGICO BELTRÁN</span></div>
+        <div className="sigic-pase-visual-texto"><span>UN NUEVO COMIENZO</span><h2>Todo tu esfuerzo.<br />Un momento<br />para celebrar.</h2><p>El próximo capítulo empieza con vos.</p><div>{nombreCeremonia}</div></div>
+      </aside>
       </main>
 
       {/* ══════════════════════════════════════════════════════════════════════════

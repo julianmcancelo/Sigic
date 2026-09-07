@@ -48,6 +48,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion, pestanaForzada }
   const [graduado, setGraduado] = useState(graduadoSesion)
   const [invitados, setInvitados] = useState([])
   const [cargando, setCargando] = useState(true)
+  const [editandoPerfil, setEditandoPerfil] = useState(false)
   const [pestana, setPestana] = useState(
     pestanaForzada || (graduadoSesion?.perfil_finalizado_en || graduadoSesion?.inscripcion_finalizada === 1 || graduadoSesion?.estado === 'CONFIRMADO' ? 'credencial' : 'juramento')
   )
@@ -300,6 +301,15 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion, pestanaForzada }
     { etiqueta: 'Credencial', completada: perfilCompleto }
   ]
   const pasosCompletados = etapasPortal.filter(etapa => etapa.completada).length
+  const todoCompleto = etapasPortal.every(etapa => etapa.completada)
+
+  // Esperar los datos actuales: la sesión puede ser anterior a la finalización.
+  // La edición explícita permanece abierta aunque todos los pasos sigan completos.
+  useEffect(() => {
+    if (!cargando && todoCompleto && !editandoPerfil && !pestanaForzada) {
+      setPestana('credencial')
+    }
+  }, [cargando, todoCompleto, editandoPerfil, pestanaForzada])
 
   const accionSiguiente = !tieneJuramento
     ? {
@@ -348,7 +358,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion, pestanaForzada }
         entregadores={entregadores}
         profesores={profesores}
         onCerrarSesion={onCerrarSesion}
-        onEditarDatos={() => setPestana('juramento')}
+        onEditarDatos={() => { setEditandoPerfil(true); setPestana('juramento') }}
       />
     )
   }
@@ -400,7 +410,7 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion, pestanaForzada }
               <div className="flex items-center justify-between gap-3">
                 <span className="text-[10px] font-black uppercase tracking-wider text-sky-300">Próximo paso</span>
                 <span className="rounded-full bg-white/10 px-2 py-0.5 text-[9px] font-black text-white">
-                  {pasosCompletados} de 3 listos
+                  {pasosCompletados} de {etapasPortal.length} listos
                 </span>
               </div>
               <h3 className="mt-2 text-sm font-black text-white">{accionSiguiente.titulo}</h3>
