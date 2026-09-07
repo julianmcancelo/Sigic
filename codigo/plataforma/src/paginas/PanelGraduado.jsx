@@ -98,8 +98,11 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion, pestanaForzada }
 
       try {
         const config = await obtenerAjustes()
-        if (config?.max_invitados_por_egresado) {
-          setMaxInvitados(parseInt(config.max_invitados_por_egresado.valor, 10))
+        const valorAjuste = config?.max_invitados?.valor || config?.max_invitados_por_egresado?.valor
+        if (valorAjuste) {
+          setMaxInvitados(parseInt(valorAjuste, 10))
+        } else if (resultadoGraduado.status === 'fulfilled' && resultadoGraduado.value?.ceremonia_max_invitados) {
+          setMaxInvitados(parseInt(resultadoGraduado.value.ceremonia_max_invitados, 10))
         }
       } catch {}
     } catch (err) {

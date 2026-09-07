@@ -1177,7 +1177,7 @@ export async function GET(
     if (slug[0] === 'egresados' && slug[1] === 'token' && slug[2]) {
       const token = slug[2];
       const result = await query(`
-        SELECT e.*, c.nombre AS ceremonia_nombre, c.fecha AS ceremonia_fecha, c.lugar AS ceremonia_lugar, c.activa AS ceremonia_activa
+        SELECT e.*, c.nombre AS ceremonia_nombre, c.fecha AS ceremonia_fecha, c.lugar AS ceremonia_lugar, c.activa AS ceremonia_activa, c.max_invitados AS ceremonia_max_invitados
         FROM egresados e
         JOIN ceremonias c ON e.ceremonia_id = c.id
         WHERE UPPER(e.token) = UPPER($1) AND c.activa = 1
@@ -1207,7 +1207,7 @@ export async function GET(
       if (!esAutorizado) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
       const result = await query(`
-        SELECT e.*, c.nombre AS ceremonia_nombre, c.fecha AS ceremonia_fecha, c.lugar AS ceremonia_lugar, c.activa AS ceremonia_activa
+        SELECT e.*, c.nombre AS ceremonia_nombre, c.fecha AS ceremonia_fecha, c.lugar AS ceremonia_lugar, c.activa AS ceremonia_activa, c.max_invitados AS ceremonia_max_invitados
         FROM egresados e
         LEFT JOIN ceremonias c ON e.ceremonia_id = c.id
         WHERE e.id = $1
@@ -2213,8 +2213,15 @@ export async function POST(
         const actualesRes = await client.query('SELECT COUNT(*) as total FROM invitados WHERE egresado_id = $1', [egresado.id]);
         const totalActual = parseInt(actualesRes.rows[0].total || '0');
 
-        const configResult = await client.query("SELECT valor FROM configuracion_sistema WHERE clave = 'max_invitados_por_egresado'");
-        const maxInvitados = configResult.rows.length > 0 ? parseInt(configResult.rows[0].valor) : 4;
+        const configCeremonia = egresado.ceremonia_id 
+          ? await client.query('SELECT max_invitados FROM ceremonias WHERE id = $1', [egresado.ceremonia_id])
+          : { rows: [] };
+        
+        let maxInvitados = configCeremonia.rows[0]?.max_invitados ? parseInt(configCeremonia.rows[0].max_invitados) : null;
+        if (!maxInvitados) {
+          const configResult = await client.query("SELECT valor FROM configuracion_sistema WHERE clave IN ('max_invitados', 'max_invitados_por_egresado') ORDER BY clave LIMIT 1");
+          maxInvitados = configResult.rows.length > 0 ? parseInt(configResult.rows[0].valor) : 4;
+        }
 
         if (totalActual + nuevos.length > maxInvitados) {
           throw new Error(`Cupos insuficientes. Ya tienes ${totalActual} registrados y quieres añadir ${nuevos.length}. El máximo es ${maxInvitados}.`);
@@ -2858,16 +2865,28 @@ export async function PUT(
         return NextResponse.json({ error: 'El campo "valor" es obligatorio' }, { status: 400, headers });
       }
 
-      const CLAVES_CEREMONIA = ['nombre_evento', 'max_invitados', 'fecha_evento', 'lugar_evento'];
+      const CLAVES_CEREMONIA = ['nombre_evento', 'max_invitados', 'fecha_evento', 'lugar_evento', 'max_invitados_por_egresado'];
       if (CLAVES_CEREMONIA.includes(clave)) {
         const mapeo: Record<string, string> = { 
           'nombre_evento': 'nombre', 
           'max_invitados': 'max_invitados', 
+          'max_invitados_por_egresado': 'max_invitados',
           'fecha_evento': 'fecha', 
           'lugar_evento': 'lugar' 
         };
         
         await query(`UPDATE ceremonias SET ${mapeo[clave]} = $1 WHERE activa = 1`, [valor]);
+        
+        if (clave === 'max_invitados' || clave === 'max_invitados_por_egresado') {
+          await query(
+            `INSERT INTO configuracion_sistema (clave, valor, actualizado_en)
+             VALUES ('max_invitados_por_egresado', $1, CURRENT_TIMESTAMP)
+             ON CONFLICT (clave)
+             DO UPDATE SET valor = EXCLUDED.valor, actualizado_en = CURRENT_TIMESTAMP`,
+            [String(valor)]
+          );
+        }
+        
         invalidarCache('configuracion');
         invalidarCache('ceremonias');
         return NextResponse.json({ ok: true, mensaje: `Hábitat actualizado (${clave})` }, { headers });

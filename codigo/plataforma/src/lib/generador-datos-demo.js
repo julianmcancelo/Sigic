@@ -138,7 +138,7 @@ export function generarDatosDemoAleatorios() {
   const fechaCeremonia = `${anioCeremonia}-${String(mesAleatorio).padStart(2, '0')}-${String(diaAleatorio).padStart(2, '0')}`
   const fechaLimite = `${anioCeremonia}-${String(mesAleatorio - 1).padStart(2, '0')}-20T18:00`
   const lugarCeremonia = elementoAleatorio(SEDES_BELTRAN)
-  const maxInvitados = numeroAleatorio(2, 4)
+  const maxInvitados = 4
   const ceremoniaId = `demo-cer-${Date.now()}`
 
   // 2. Graduado aleatorio
