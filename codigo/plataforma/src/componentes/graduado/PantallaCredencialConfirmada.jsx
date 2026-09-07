@@ -4,7 +4,8 @@ import {
   Calendar, MapPin, CheckCircle2, Share2, Copy, Check,
   ExternalLink, LogOut, Edit3, Armchair, Users, Award,
   ScrollText, Sparkles, AlertCircle, Clock, Send, MessageCircle,
-  ShieldCheck, HeartHandshake, ArrowRight, UserCheck
+  ShieldCheck, HeartHandshake, ArrowRight, UserCheck, GraduationCap,
+  Ticket, BookmarkCheck, FileText
 } from 'lucide-react'
 import { CredencialLanyard3D } from './CredencialLanyard3D'
 import { FORMULAS_JURAMENTO } from './SeccionJuramento'
@@ -96,12 +97,12 @@ export function PantallaCredencialConfirmada({
 
   // Compartir por WhatsApp
   const mensajeWhatsApp = encodeURIComponent(
-    `¡Hola! Ya tengo confirmada mi entrada y las de mis acompañantes para el Acto de Colación 2026 en el Instituto Beltrán 🎓.\n\nPodes ver nuestra credencial grupal y butacas acá:\n${linkCompartir}`
+    `Hola! Ya tengo confirmada mi entrada y las de mis acompañantes para el Acto de Colación 2026 en el Instituto Beltrán.\n\nPodes ver nuestra credencial grupal y butacas acá:\n${linkCompartir}`
   )
   const urlWhatsApp = `https://wa.me/?text=${mensajeWhatsApp}`
 
   // Compartir por Telegram
-  const urlTelegram = `https://t.me/share/url?url=${encodeURIComponent(linkCompartir)}&text=${encodeURIComponent('¡Nuestra credencial para la Colación Beltrán 2026!')}`
+  const urlTelegram = `https://t.me/share/url?url=${encodeURIComponent(linkCompartir)}&text=${encodeURIComponent('Nuestra credencial para la Colación Beltrán 2026')}`
 
   return (
     <div className="min-h-screen bg-[#F0F4F8] text-slate-800 font-sans antialiased pb-24 selection:bg-sky-500 selection:text-white">
@@ -176,8 +177,9 @@ export function PantallaCredencialConfirmada({
                 </div>
 
                 <div>
-                  <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-tight">
-                    ¡YA TENÉS TU ENTRADA! 🎓
+                  <h2 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-tight flex items-center gap-2.5">
+                    <BookmarkCheck size={28} className="text-[#0284C7] shrink-0" />
+                    ¡Tu lugar está confirmado!
                   </h2>
                   <p className="text-xs sm:text-sm text-slate-600 font-medium mt-1">
                     Tu inscripción oficial y la de tu grupo se encuentran confirmadas en el sistema.
@@ -264,7 +266,7 @@ export function PantallaCredencialConfirmada({
                 <div className="p-3.5 rounded-2xl bg-sky-50/60 border border-sky-200 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 rounded-xl bg-sky-500/20 text-[#0284C7] flex items-center justify-center font-bold text-sm shadow-xs">
-                      🎓
+                      <GraduationCap size={16} className="text-[#0284C7]" />
                     </div>
                     <div>
                       <p className="text-xs font-black text-slate-900">{graduado?.nombre}</p>
@@ -351,7 +353,7 @@ export function PantallaCredencialConfirmada({
                   className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#0284C7] hover:bg-[#0369A1] text-white font-black text-xs transition-all active:scale-95 shrink-0 cursor-pointer shadow-md shadow-sky-600/20"
                 >
                   {copiado ? <Check size={14} /> : <Copy size={14} />}
-                  <span>{copiado ? '¡Copiado!' : 'Copiar'}</span>
+                  <span>{copiado ? 'Copiado' : 'Copiar'}</span>
                 </button>
               </div>
 
