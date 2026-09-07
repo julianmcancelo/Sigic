@@ -504,15 +504,13 @@ export function CredencialLanyard3D({ egresado, onImprimir }) {
             <span>Guardar PNG</span>
           </button>
           
-          {onImprimir && (
-            <button
-              onClick={onImprimir}
-              className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs border border-slate-200 shadow-xs transition-all active:scale-95 cursor-pointer hover:text-slate-900"
-            >
-              <Printer size={13} className="text-slate-500" />
-              <span>Imprimir Pase</span>
-            </button>
-          )}
+          <button
+            onClick={onImprimir}
+            className="flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs border border-slate-200 shadow-xs transition-all active:scale-95 cursor-pointer hover:text-slate-900"
+          >
+            <Printer size={13} className="text-slate-500" />
+            <span>Imprimir Pase</span>
+          </button>
         </div>
 
         {mensajeWallet.texto && (

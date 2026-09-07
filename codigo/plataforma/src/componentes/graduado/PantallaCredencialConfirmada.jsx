@@ -1,11 +1,12 @@
 import React, { useState } from 'react'
 import Image from 'next/image'
+import { QRCodeSVG } from 'qrcode.react'
 import {
   Calendar, MapPin, CheckCircle2, Share2, Copy, Check,
   ExternalLink, LogOut, Edit3, Armchair, Users, Award,
   ScrollText, Sparkles, AlertCircle, Clock, Send, MessageCircle,
   ShieldCheck, HeartHandshake, ArrowRight, UserCheck, GraduationCap,
-  Ticket, BookmarkCheck, FileText
+  Ticket, BookmarkCheck, FileText, Printer, Download, CheckCircle
 } from 'lucide-react'
 import { CredencialLanyard3D } from './CredencialLanyard3D'
 import { FORMULAS_JURAMENTO } from './SeccionJuramento'
@@ -59,6 +60,21 @@ export function PantallaCredencialConfirmada({
     }
   }
 
+  // Función de impresión limpia y formal (A4 / Pase Oficial de Entrada)
+  const imprimirPaseOficial = () => {
+    const tituloAnterior = document.title
+    document.title = `Pase_Oficial_Beltran_${String(graduado?.nombre || 'Graduado').replace(/\s+/g, '_')}`
+    document.body.classList.add('imprimiendo-pase-oficial-beltran')
+    const restaurar = () => {
+      document.title = tituloAnterior
+      document.body.classList.remove('imprimiendo-pase-oficial-beltran')
+      window.removeEventListener('afterprint', restaurar)
+    }
+    window.addEventListener('afterprint', restaurar)
+    window.print()
+    setTimeout(restaurar, 2000)
+  }
+
   // Calendarios
   const tituloEvento = encodeURIComponent(`Colación Beltrán 2026 - ${graduado?.nombre || 'Graduado'}`)
   const descripcionEvento = encodeURIComponent(`Ceremonia de Colación del Instituto Tecnológico Beltrán.\nGraduado: ${graduado?.nombre}\nCredencial oficial: ${linkCompartir}`)
@@ -103,6 +119,13 @@ export function PantallaCredencialConfirmada({
 
   // Compartir por Telegram
   const urlTelegram = `https://t.me/share/url?url=${encodeURIComponent(linkCompartir)}&text=${encodeURIComponent('Nuestra credencial para la Colación Beltrán 2026')}`
+
+  const qrValor = JSON.stringify({
+    id: graduado?.id,
+    token: graduado?.token,
+    dni: graduado?.dni,
+    asientos: todosLosAsientos
+  })
 
   return (
     <div className="min-h-screen bg-[#F0F4F8] text-slate-800 font-sans antialiased pb-24 selection:bg-sky-500 selection:text-white">
@@ -157,7 +180,7 @@ export function PantallaCredencialConfirmada({
           <div className="lg:col-span-5 flex flex-col items-center justify-center lg:sticky lg:top-24">
             <CredencialLanyard3D
               egresado={{ ...graduado, asientos: todosLosAsientos, invitados }}
-              onImprimir={() => window.print()}
+              onImprimir={imprimirPaseOficial}
             />
           </div>
 
@@ -383,6 +406,200 @@ export function PantallaCredencialConfirmada({
           </div>
         </div>
       </main>
+
+      {/* ══════════════════════════════════════════════════════════════════════════
+          DOCUMENTO IMPRIMIBLE OFICIAL A4 / CREDENCIAL INSTITUCIONAL BELTRÁN
+          (Solo visible durante window.print via @media print)
+         ══════════════════════════════════════════════════════════════════════════ */}
+      <div className="hoja-imprimible-pase-beltran hidden">
+        <div className="w-full max-w-[210mm] mx-auto bg-white p-8 font-sans text-slate-900 border-2 border-slate-300 rounded-2xl">
+          
+          {/* ENCABEZADO INSTITUCIONAL */}
+          <div className="flex items-center justify-between pb-6 border-b-2 border-slate-900">
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 border-2 border-slate-300 rounded-2xl p-1 bg-white flex items-center justify-center">
+                <img src="/logo-oficial.png" alt="Logo Beltrán" className="w-full h-full object-contain" />
+              </div>
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-[0.25em] text-[#0284C7]">INSTITUTO TECNOLÓGICO BELTRÁN</p>
+                <h1 className="text-2xl font-black tracking-tight text-slate-950 uppercase">{nombreCeremonia}</h1>
+                <p className="text-xs font-bold text-slate-500 mt-0.5">SISTEMA DE GESTIÓN INSTITUCIONAL DE COLACIONES (SiGIC)</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="inline-block px-3 py-1 bg-emerald-100 text-emerald-900 border border-emerald-300 text-[10px] font-black rounded-lg uppercase tracking-wider">
+                PASE OFICIAL DE ACCESO
+              </div>
+              <p className="font-mono text-xs font-bold text-slate-500 mt-1">
+                TK-{String(graduado?.token || 'OK').slice(0, 10).toUpperCase()}
+              </p>
+            </div>
+          </div>
+
+          {/* CUERPO DEL PASE: TARJETA PRINCIPAL Y QR */}
+          <div className="my-6 grid grid-cols-12 gap-6 p-6 rounded-2xl border-2 border-slate-800 bg-slate-50">
+            
+            {/* DATOS DEL GRADUADO (8 columnas) */}
+            <div className="col-span-8 flex flex-col justify-between space-y-4">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#0284C7]">TITULAR GRADUADO/A</span>
+                <h2 className="text-3xl font-black text-slate-950 uppercase tracking-tight leading-tight mt-0.5">
+                  {graduado?.nombre || 'Graduado'}
+                </h2>
+                <p className="text-sm font-bold text-sky-800 mt-1">
+                  {graduado?.carrera || 'Graduado Institucional'}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3 pt-3 border-t border-slate-300">
+                <div>
+                  <p className="text-[9px] font-black uppercase text-slate-500">DNI</p>
+                  <p className="text-sm font-black text-slate-900">{graduado?.dni || '—'}</p>
+                </div>
+                <div>
+                  <p className="text-[9px] font-black uppercase text-slate-500">LEGAJO</p>
+                  <p className="text-sm font-black text-slate-900">{graduado?.legajo || '—'}</p>
+                </div>
+                <div>
+                  <p className="text-[9px] font-black uppercase text-slate-500">GRUPO TOTAL</p>
+                  <p className="text-sm font-black text-emerald-700">{1 + cantidadInvitados} Personas</p>
+                </div>
+              </div>
+
+              <div className="p-3 bg-white border border-slate-300 rounded-xl flex items-center justify-between">
+                <div>
+                  <p className="text-[9px] font-black uppercase text-slate-500">BUTACA ASIGNADA GRADUADO</p>
+                  <p className="text-base font-black text-slate-950">
+                    {graduado?.asiento_id ? `Fila ${graduado.asiento_id.replace('-', ' ')}` : 'Asignada en sala'}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[9px] font-black uppercase text-slate-500">PADRINO / ENTREGADOR</p>
+                  <p className="text-xs font-bold text-slate-800">
+                    {entregadores.length > 0 ? entregadores[0].nombre : 'Autoridad Beltrán'}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* QR DE ACCESO GRUPAL (4 columnas) */}
+            <div className="col-span-4 flex flex-col items-center justify-center p-4 bg-white border border-slate-300 rounded-xl shadow-xs text-center">
+              <span className="text-[9px] font-black uppercase tracking-widest text-[#0284C7] mb-2">QR DE PORTERÍA</span>
+              <QRCodeSVG
+                value={qrValor}
+                size={140}
+                level="M"
+                includeMargin={false}
+                fgColor="#000000"
+                bgColor="#FFFFFF"
+              />
+              <span className="text-[8.5px] font-mono font-bold text-slate-600 mt-2">
+                PASE GRUPAL · {1 + cantidadInvitados} {1 + cantidadInvitados === 1 ? 'LUGAR' : 'LUGARES'}
+              </span>
+            </div>
+
+          </div>
+
+          {/* DETALLE PROTOCOLAR DE ACOMPAÑANTES */}
+          <div className="mb-6">
+            <h3 className="text-xs font-black uppercase tracking-wider text-slate-800 mb-2">
+              DISTRIBUCIÓN DE ACOMPAÑANTES Y BUTACAS EN EL ANFITEATRO
+            </h3>
+            <table className="w-full border-collapse border border-slate-300 text-xs">
+              <thead>
+                <tr className="bg-slate-100 text-slate-700 text-left font-black uppercase text-[10px]">
+                  <th className="p-2 border border-slate-300">Asistente</th>
+                  <th className="p-2 border border-slate-300">Rol / Parentesco</th>
+                  <th className="p-2 border border-slate-300">Documento (DNI)</th>
+                  <th className="p-2 border border-slate-300 text-right">Ubicación / Butaca</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="bg-sky-50/50 font-bold">
+                  <td className="p-2 border border-slate-300">{graduado?.nombre}</td>
+                  <td className="p-2 border border-slate-300 text-sky-800">Graduado Titular</td>
+                  <td className="p-2 border border-slate-300">{graduado?.dni}</td>
+                  <td className="p-2 border border-slate-300 text-right font-black">
+                    {graduado?.asiento_id ? `Fila ${graduado.asiento_id.replace('-', ' ')}` : 'Asignada en sala'}
+                  </td>
+                </tr>
+                {invitados.map((inv, idx) => (
+                  <tr key={inv.id || idx}>
+                    <td className="p-2 border border-slate-300">{inv.nombre}</td>
+                    <td className="p-2 border border-slate-300 text-slate-600">{inv.relacion || 'Acompañante'}</td>
+                    <td className="p-2 border border-slate-300">{inv.dni || '—'}</td>
+                    <td className="p-2 border border-slate-300 text-right font-bold">
+                      {inv.asiento_id ? `Fila ${inv.asiento_id.replace('-', ' ')}` : 'Junto al graduado'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* INSTRUCCIONES PROTOCOLARES PARA EL DÍA DEL EVENTO */}
+          <div className="p-4 border border-slate-300 rounded-xl bg-slate-50 text-[10px] space-y-1.5 text-slate-700">
+            <p className="font-black uppercase text-slate-900 text-[11px]">INSTRUCCIONES DE INGRESO PARA EL EVENTO:</p>
+            <p>1. <strong>Presentación del Pase:</strong> Este documento debe presentarse impreso o en pantalla del dispositivo móvil al personal de seguridad y acreditación en la portería.</p>
+            <p>2. <strong>Validez Grupal:</strong> El código QR contiene la acreditación del graduado y de la totalidad de sus acompañantes registrados.</p>
+            <p>3. <strong>Puntualidad:</strong> Se solicita presentarse con 30 minutos de antelación al inicio del acto en <strong>{lugarEvento}</strong> ({fechaFormateada}).</p>
+          </div>
+
+          {/* PIE INSTITUCIONAL */}
+          <div className="mt-6 pt-4 border-t border-slate-300 flex items-center justify-between text-[9px] text-slate-500 font-mono">
+            <span>INSTITUTO TECNOLÓGICO BELTRÁN · VALIDACIÓN OFICIAL DIGITAL SiGIC</span>
+            <span>FECHA DE EMISIÓN: {new Date().toLocaleDateString('es-AR')}</span>
+          </div>
+
+        </div>
+      </div>
+
+      <style>{`
+        @media print {
+          html, body {
+            background: #ffffff !important;
+            color: #0f172a !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            height: auto !important;
+            overflow: visible !important;
+          }
+
+          /* Ocultar todos los elementos en pantalla excepto la hoja imprimible */
+          body * {
+            visibility: hidden !important;
+          }
+
+          .hoja-imprimible-pase-beltran,
+          .hoja-imprimible-pase-beltran * {
+            visibility: visible !important;
+          }
+
+          .hoja-imprimible-pase-beltran {
+            display: block !important;
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            min-height: 100% !important;
+            background: #ffffff !important;
+            color: #0f172a !important;
+            z-index: 9999999 !important;
+            margin: 0 !important;
+            padding: 10mm 15mm !important;
+            box-sizing: border-box !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+
+          @page {
+            size: A4 portrait;
+            margin: 0;
+          }
+        }
+      `}</style>
+
     </div>
   )
 }
