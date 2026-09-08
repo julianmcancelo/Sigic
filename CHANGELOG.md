@@ -1,5 +1,20 @@
 # Changelog SiGIC
 
+## 2026-09-07
+### Plataforma Web — Portal del Egresado
+- **Pantalla de credencial confirmada:** nueva vista `PantallaCredencialConfirmada.jsx` que se muestra al completar el flujo de inscripción. Presenta un layout Bento Grid institucional con la credencial 3D interactiva, estadísticas de la ceremonia y acciones de descarga.
+- **Credencial con lanyard 3D:** componente `CredencialLanyard3D.jsx` con física pendular, oscilación en tres ejes y cinta satinada azul marino oscuro. Responde al movimiento del cursor del usuario.
+- **Pase imprimible A4:** al hacer clic en "Imprimir", el sistema genera un documento oficial de una página con datos de la ceremonia, tabla de acompañantes, código QR y pie institucional. No imprime más la interfaz completa.
+- **Acceso directo a credencial por token:** los egresados con estado `CONFIRMADO` que ingresan por su enlace de invitación son redirigidos directamente a la credencial sin pasar por el flujo de inscripción.
+- **Soporte de estado `CONFIRMADO`:** `App.jsx` y `PanelGraduado.jsx` reconocen correctamente el estado `CONFIRMADO` sin cerrar la sesión.
+- **Sin emojis:** todos los emojis fueron reemplazados por íconos de Lucide React en toda la interfaz del portal del egresado y pantalla de selección de login.
+- **Fix logo:** creado alias `public/logo.png` para vistas que referenciaban esa ruta. El logo oficial ahora se muestra correctamente en el login y el layout de autenticación.
+
+### Plataforma Web — Backend
+- **Fix desbloqueo de cuentas:** limpieza de la tabla `auth_rate_limits` y reactivación de cuentas bloqueadas por intentos fallidos. La columna `activo` en `usuarios_sistema` es de tipo `integer` (1 = activo, 0 = bloqueado).
+
+---
+
 ## 2026-09-05
 ### Seguridad y roles
 - Personal limitado a `ADMINISTRATIVO` y `PORTERIA`; acceso `egresado` conservado. Migración de roles anteriores sin eliminar cuentas.
@@ -12,46 +27,24 @@
 
 ## 2026-06-09
 ### Seguridad
-- Implementamos autenticacion real con tokens de sesion firmados (JWT HS256, sin dependencias externas):
-  - el login emite un token con el rol verificado por el servidor,
-  - eliminamos la autorizacion por header `x-rol` (era falsificable por el cliente),
-  - los egresados reciben un token propio limitado a sus datos (via OTP o link de invitacion).
-- Protegimos todos los endpoints de gestion (egresados, invitados, ceremonias, configuracion, profesores, usuarios, stats) con autorizacion por rol en el servidor.
-- Agregamos rate limiting en login, solicitud/verificacion de OTP e inicializacion del sistema.
-- El OTP se invalida despues de 5 intentos fallidos.
-- Reemplazamos los tokens de invitacion basados en `Math.random()` por codigos criptograficamente seguros.
-- Dejamos de loguear los cuerpos de las peticiones (contenian contrasenas y codigos OTP) y eliminamos logs de depuracion del OTP.
-- Activamos la verificacion del certificado TLS hacia PostgreSQL (Neon).
-- CORS configurable por `CORS_ORIGINS`, cabeceras de seguridad y limite de tamano de JSON.
-- Politica de contrasenas (minimo 8 caracteres) y bcrypt con factor 12.
-- Proteccion contra dejar el sistema sin SUPER_ADMIN activo.
-- Nuevo `.env.example` sin secretos y seccion de seguridad en `LEEME.md`.
+- Autenticación real con tokens de sesión firmados (JWT HS256): el login emite un token con el rol verificado por el servidor; los egresados reciben un token propio limitado a sus datos (OTP o link de invitación).
+- Eliminada la autorización por header `x-rol` (era falsificable por el cliente).
+- Protegidos todos los endpoints de gestión con autorización por rol en el servidor.
+- Rate limiting en login, solicitud/verificación de OTP e inicialización del sistema.
+- OTP invalidado después de 5 intentos fallidos.
+- Tokens de invitación reemplazados por códigos criptográficamente seguros (`crypto.randomBytes`).
+- Activada la verificación del certificado TLS hacia PostgreSQL (Neon).
+- CORS configurable por `CORS_ORIGINS`, cabeceras de seguridad y límite de tamaño de JSON.
+- Política de contraseñas (mínimo 8 caracteres) y bcrypt con factor 12.
+- Protección contra dejar el sistema sin administrador activo.
 
 ### Actualizado
-- Control Center reescrito como aplicacion nativa de Windows 11 (v5.0.0):
-  - sin dependencias externas (se elimina customtkinter; solo libreria estandar de Python),
-  - estetica Fluent estilo app Configuracion: tipografia Segoe UI Variable, tarjetas, panel de navegacion,
-  - color de acento real del sistema (leido del Registro de Windows),
-  - tema claro/oscuro que sigue la preferencia del sistema (configurable: sistema/claro/oscuro),
-  - barra de titulo oscura nativa via DWM y conciencia de DPI para texto nitido,
-  - consola estilo Terminal de Windows (Cascadia Mono) con colores por tipo de mensaje.
-- La app de porteria (Flutter) ahora inicia sesion contra el backend y envia el token en cada operacion.
-- Los frontends web y movil envian el token de sesion en el header `Authorization`.
-- Pagina raiz del backend redisenada y salida de consola del arranque mas clara.
-- Migracion automatica de la tabla `usuarios_sistema` en SQLite local para los nuevos roles.
+- La app de portería (Flutter) inicia sesión contra el backend y envía el token en cada operación.
+- Los frontends web y móvil envían el token de sesión en el header `Authorization`.
 
 ## 2026-05-24
 ### Actualizado
-- Reorganizamos la raiz del proyecto para una estructura mas clara (`docs`, `tools`, `Assets/logos`).
-- Limpiamos artefactos de desarrollo y archivos basura en frontend, backend y mobile.
-- Mejoramos el Control Center en Python para monitoreo operativo de backend, frontend y base de datos.
-- Corregimos arranque del backend para inicializacion de base con manejo asincrono y error controlado.
-- Agregamos soporte de entorno dinamico en frontend para `VITE_API_BASE_URL`.
-- Integramos setup inicial del sistema:
-  - endpoint de estado (`GET /api/setup/status`),
-  - endpoint de inicializacion (`POST /api/setup/initialize`),
-  - asistente de configuracion inicial en frontend.
-- Reemplazamos login admin de demo por login real contra backend (`/api/auth/login`).
-- Agregamos script de limpieza de datos operativos en backend (`npm run db:reset-datos`).
-- Reescribimos README en formato limpio, sin emojis, con lenguaje propio del equipo.
-
+- Reorganización de la raíz del proyecto (`docs`, `tools`, `Assets/logos`).
+- Setup inicial del sistema: endpoint de estado (`GET /api/setup/status`), endpoint de inicialización (`POST /api/setup/initialize`) y asistente de configuración inicial en frontend.
+- Login admin real contra backend (`/api/auth/login`), reemplaza el demo estático.
+- Script de limpieza de datos operativos en backend (`npm run db:reset-datos`).
