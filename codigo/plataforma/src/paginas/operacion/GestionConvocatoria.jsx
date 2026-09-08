@@ -1,3 +1,4 @@
+import { origenPortalGraduados } from '../../lib/graduate-origin'
 import React, { useEffect, useState, useMemo } from 'react'
 import {
   AlertCircle, Check, CheckCircle2, Clock3, Copy, CreditCard, Edit3, ExternalLink,
@@ -252,7 +253,7 @@ export function GestionConvocatoria({ onNavegar, usuario, ceremoniaActiva: cerem
 
   function copiarLinkAcceso(graduado) {
     const host = typeof window !== 'undefined' ? window.location.origin : ''
-    const url = `${host}/?token=${graduado.token}`
+    const url = `${origenPortalGraduados(host)}/?token=${graduado.token}`
     navigator.clipboard.writeText(url)
     setCopiadoId(graduado.id)
     setAviso(`Enlace de acceso copiado para ${graduado.nombre}.`)
@@ -261,7 +262,7 @@ export function GestionConvocatoria({ onNavegar, usuario, ceremoniaActiva: cerem
 
   function abrirWhatsApp(graduado) {
     const host = typeof window !== 'undefined' ? window.location.origin : ''
-    const url = `${host}/?token=${graduado.token}`
+    const url = `${origenPortalGraduados(host)}/?token=${graduado.token}`
     const fechaTexto = ceremonia?.fecha 
       ? new Date(`${ceremonia.fecha}T12:00:00`).toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })
       : 'próximamente'

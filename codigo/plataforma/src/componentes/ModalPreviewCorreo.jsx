@@ -1,3 +1,4 @@
+import { origenPortalGraduados } from '../lib/graduate-origin'
 import React, { useState } from 'react'
 import { 
   X, Monitor, Smartphone, Mail, Sparkles, Send, Check, 
@@ -23,7 +24,7 @@ export function ModalPreviewCorreo({
     ? new Date(`${ceremonia.fecha}T12:00:00`).toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })
     : '27 de Agosto de 2026'
   const lugarCeremonia = ceremonia?.lugar || 'Auditorio Central - Instituto Tecnológico Beltrán'
-  const linkPortal = typeof window !== 'undefined' ? `${window.location.origin}/?token=${tokenGraduado}` : `https://sigic.ibeltran.com.ar/?token=${tokenGraduado}`
+  const linkPortal = `${origenPortalGraduados()}/?token=${tokenGraduado}`
 
   async function handleEnviarPrueba() {
     if (!usuarioActual?.email && !usuarioActual?.correo) {

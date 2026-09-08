@@ -1071,20 +1071,20 @@ function App() {
   }
 
   // CASO D: Login Manual
-  else if (vistaLogin === 'admin') {
+  else if (window.location.hostname !== 'graduados.sigic.com.ar' && (vistaLogin === 'admin' || (window.location.hostname === 'app.sigic.com.ar' && !vistaLogin))) {
     contenido = (
       <PaginaInicioSesion 
         onInicioSesionExitoso={manejarLoginAdminExitoso} 
         onVolver={() => setVistaLogin(null)}
-        onIrAEgresado={() => modoDemoActivo ? manejarLoginGraduadoExitoso(EGRESADA_DEMO) : setVistaLogin('graduado')}
+        onIrAEgresado={() => modoDemoActivo ? manejarLoginGraduadoExitoso(EGRESADA_DEMO) : window.location.hostname === 'app.sigic.com.ar' ? window.location.assign('https://graduados.sigic.com.ar') : setVistaLogin('graduado')}
         onIrAManual={() => setVistaLogin('manual')}
       />
     )
-  } else if (vistaLogin === 'graduado') {
+  } else if (vistaLogin === 'graduado' || window.location.hostname === 'graduados.sigic.com.ar') {
     contenido = (
       <LoginGraduado 
         onLoginExitoso={manejarLoginGraduadoExitoso} 
-        onVolver={() => setVistaLogin(null)} 
+        onVolver={() => window.location.hostname === 'graduados.sigic.com.ar' ? window.location.assign('https://sigic.com.ar') : setVistaLogin(null)}
       />
     )
   } else if (vistaLogin === 'manual') {

@@ -14,7 +14,7 @@ function cargar(nombre, mocks = {}, env = {}) {
   const source = fs.readFileSync(archivo, 'utf8');
   const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true } }).outputText;
   const module = { exports: {} };
-  const context = { module, exports: module.exports, Buffer, Date, console,
+  const context = { module, exports: module.exports, Buffer, Date, URL, console,
     process: { env: { NODE_ENV: 'test', JWT_SECRET: 'test-only-secret-'.repeat(4), ...env } },
     require: name => Object.hasOwn(mocks, name) ? mocks[name] : require(name) };
   vm.runInNewContext(compiled, context, { filename: archivo });
@@ -22,6 +22,17 @@ function cargar(nombre, mocks = {}, env = {}) {
 }
 
 const tokens = cargar('lib/tokens.ts');
+test('Portal graduados: enlaces por entorno y redirección sin romper preview ni API', () => {
+  const portal = cargar('lib/graduate-origin.ts');
+  assert.equal(portal.origenPortalGraduados('https://app.sigic.com.ar'), 'https://graduados.sigic.com.ar');
+  assert.equal(portal.origenPortalGraduados('https://demo.sigic.com.ar'), 'https://demo.sigic.com.ar');
+  assert.equal(portal.origenPortalGraduados('http://localhost:3000'), 'http://localhost:3000');
+  const { middleware } = cargar('middleware.ts', { './lib/request-origin': cargar('lib/request-origin.ts') });
+  const req = path => new NextRequest(`https://app.sigic.com.ar${path}`, { headers: { host: 'app.sigic.com.ar' } });
+  assert.equal(middleware(req('/?token=abc&otro=1')).headers.get('location'), 'https://graduados.sigic.com.ar/?token=abc&otro=1');
+  assert.equal(middleware(req('/?token=abc&vista=preview')).headers.get('location'), null);
+  assert.equal(middleware(req('/api/estado?token=abc')).headers.get('location'), null);
+});
 const request = (token, cookie) => new NextRequest('https://app.sigic.com.ar/api/usuarios', {
   headers: { ...(token !== undefined ? { authorization: `Bearer ${token}` } : {}), ...(cookie ? { cookie: `sigic_admin_session=${cookie}` } : {}) }
 });

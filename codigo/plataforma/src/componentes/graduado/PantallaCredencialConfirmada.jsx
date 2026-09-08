@@ -1,3 +1,4 @@
+import { origenPortalGraduados } from '../../lib/graduate-origin'
 import React, { useState, useEffect } from 'react'
 import { flushSync } from 'react-dom'
 import { obtenerGraduadoPorId, obtenerInvitadosDeEgresado } from '../../servicios/api'
@@ -59,7 +60,7 @@ export function PantallaCredencialConfirmada({
   const formulaJuramento = FORMULAS_JURAMENTO[graduado?.formula_juramento] || FORMULAS_JURAMENTO['PATRIA']
 
   // Enlace para compartir
-  const hostBase = typeof window !== 'undefined' ? window.location.origin : 'https://sigic.beltran.edu.ar'
+  const hostBase = origenPortalGraduados()
   const linkCompartir = `${hostBase}/?token=${graduado?.token || ''}`
 
   const copiarEnlace = () => {

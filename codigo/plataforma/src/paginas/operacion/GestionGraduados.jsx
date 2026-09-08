@@ -1,3 +1,4 @@
+import { origenPortalGraduados } from '../../lib/graduate-origin'
 import { useState, useEffect } from 'react'
 import { 
   Users, Search, Upload, Trash2, X, Link2, CreditCard,
@@ -144,13 +145,7 @@ export function GestionGraduados({ usuario, ceremoniaActiva, onVolver, onCerrarS
   }
 
   function manejarLink(grad) {
-    const host = window.location.hostname.toLowerCase()
-    const origen = host.includes('sigic-demo') || host === 'demo.sigic.com.ar'
-      ? 'https://demo.sigic.com.ar'
-      : host.endsWith('.sigic.com.ar')
-        ? window.location.origin
-        : 'https://app.sigic.com.ar'
-    const url = `${origen}/?token=${grad.token}`
+    const url = `${origenPortalGraduados()}/?token=${grad.token}`
     setLinkQR({ egresado: grad, link: url })
   }
 

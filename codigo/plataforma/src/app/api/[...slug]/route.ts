@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { obtenerOrigenPublico } from '@/lib/public-origin';
+import { obtenerOrigenPublico, obtenerOrigenGraduados } from '@/lib/public-origin';
 import { cambiarAccesoUsuario } from '@/lib/usuarios-seguridad';
 import { query, pool } from '@/lib/db';
 import { firmar } from '@/lib/tokens';
@@ -152,7 +152,7 @@ async function despacharCredencialEgresado(graduadoId: string, req: NextRequest)
   if (!graduado) return { ok: false, status: 404, error: 'Graduado no encontrado' };
   if (!graduado.correo) return { ok: false, status: 400, error: 'El graduado no tiene un correo electrónico registrado' };
 
-  const hostBase = obtenerOrigenPublico(req);
+  const hostBase = obtenerOrigenGraduados(req);
   const acceso = `${hostBase}/?token=${graduado.token}`;
 
   // Consultar invitados con subconsulta para detectar padrinos
@@ -2543,7 +2543,7 @@ export async function POST(
 
       // La invitación debe volver al mismo entorno que la generó. Esto evita
       // que una variable global de producción mande la demo a otro login.
-      const hostBase = obtenerOrigenPublico(req);
+      const hostBase = obtenerOrigenGraduados(req);
       const linkAcceso = `${hostBase}/?token=${graduado.token}`;
       const plantilla = generarPlantillaInvitacion(graduado.nombre, linkAcceso, hostBase);
       
@@ -2611,7 +2611,7 @@ export async function POST(
       if (!graduado) return NextResponse.json({ error: 'Graduado no encontrado' }, { status: 404, headers });
       if (graduado.estado !== 'ACEPTADO') return NextResponse.json({ error: 'La credencial se genera cuando el graduado confirma su participación' }, { status: 409, headers });
 
-      const hostBase = obtenerOrigenPublico(req);
+      const hostBase = obtenerOrigenGraduados(req);
       const acceso = `${hostBase}/?token=${graduado.token}`;
       try {
         const paseGoogleWallet = await generarPaseGoogleWallet({
@@ -3287,7 +3287,7 @@ export async function PUT(
       let avisoEnviado = false;
       if (graduado.correo) {
         try {
-          const hostBase = obtenerOrigenPublico(req);
+          const hostBase = obtenerOrigenGraduados(req);
           await enviarCorreo(
             graduado.correo,
             `Inscripción confirmada · ${graduado.ceremonia_nombre || 'Ceremonia de Colación'}`,

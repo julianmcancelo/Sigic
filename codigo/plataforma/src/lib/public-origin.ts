@@ -1,4 +1,9 @@
 import type { NextRequest } from 'next/server';
+import { origenPortalGraduados } from './graduate-origin';
+
+export function obtenerOrigenGraduados(req: NextRequest) {
+  return origenPortalGraduados(obtenerOrigenPublico(req));
+}
 
 const ORIGEN_DEMO = 'https://demo.sigic.com.ar';
 const ORIGEN_PRODUCCION = 'https://app.sigic.com.ar';
