@@ -5,9 +5,36 @@ import {
   Armchair, Ticket, ShieldCheck, Wallet, Loader2, Info, AlertTriangle,
   Sparkles, Award, Users, Check
 } from 'lucide-react'
-import { obtenerGoogleWalletPass } from '../servicios/api'
+import { obtenerGoogleWalletPass, obtenerInvitadosDeEgresado } from '../servicios/api'
+import { CredencialLanyard3D } from './graduado/CredencialLanyard3D'
 
-export function ModalCredencial({ egresado, onCerrar }) {
+export function ModalCredencial({ egresado: egresadoBase, onCerrar }) {
+  const [grupo, setGrupo] = useState(null)
+  const [errorGrupo, setErrorGrupo] = useState('')
+  const [reintento, setReintento] = useState(0)
+  useEffect(() => {
+    let vigente = true
+    setGrupo(null)
+    setErrorGrupo('')
+    if (!egresadoBase?.id) return
+    obtenerInvitadosDeEgresado(egresadoBase.id).then(invitados => {
+      if (!Array.isArray(invitados)) throw new Error('Respuesta de acompañantes inválida')
+      if (vigente) setGrupo({ id: egresadoBase.id, invitados })
+    }).catch(() => {
+      if (vigente) setErrorGrupo('No pudimos cargar los acompañantes. Reintentá para abrir la credencial completa.')
+    })
+    return () => { vigente = false }
+  }, [egresadoBase?.id, reintento])
+  const grupoCargado = grupo?.id === egresadoBase?.id
+  const egresado = egresadoBase && {
+    ...egresadoBase,
+    invitados: grupoCargado ? grupo.invitados : [],
+    asientos: [...new Set([
+      egresadoBase.asiento_id,
+      egresadoBase.entregador_asiento_id,
+      ...(grupoCargado ? grupo.invitados.map(invitado => invitado.asiento_id) : [])
+    ].filter(Boolean))]
+  }
   const [falloLogo, setFalloLogo] = useState(false)
   const [cargandoWallet, setCargandoWallet] = useState(false)
   const [walletMensaje, setWalletMensaje] = useState({ tipo: '', texto: '' })
@@ -21,6 +48,17 @@ export function ModalCredencial({ egresado, onCerrar }) {
   }, [onCerrar])
 
   if (!egresado) return null
+  if (!grupoCargado) return (
+    <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/85 p-4" role="dialog" aria-modal="true" aria-label="Cargar credencial">
+      <div className="max-w-sm rounded-2xl bg-white p-6 text-center text-slate-800 shadow-xl">
+        <p role={errorGrupo ? 'alert' : 'status'} className="text-sm">{errorGrupo || 'Cargando credencial y acompañantes…'}</p>
+        <div className="mt-4 flex justify-center gap-3">
+          {errorGrupo && <button className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-bold text-white" onClick={() => setReintento(valor => valor + 1)}>Reintentar</button>}
+          <button className="rounded-lg border px-4 py-2 text-sm" onClick={onCerrar}>Cerrar</button>
+        </div>
+      </div>
+    </div>
+  )
 
   const invitados = egresado.invitados || []
   const asientosInvitados = invitados.filter(invitado => invitado.asiento_id)
@@ -119,8 +157,11 @@ export function ModalCredencial({ egresado, onCerrar }) {
         </header>
 
         {/* CUERPO CON LA TARJETA IMPRIMIBLE */}
-        <div className="flex-1 overflow-y-auto bg-slate-950/90 p-4 sm:p-7">
-          <div className="hoja-credencial-graduado relative mx-auto max-w-[680px]">
+        <div className="flex-1 overflow-y-auto bg-slate-100 p-4 sm:p-5">
+          <div className="mx-auto flex max-w-[290px] justify-center">
+            <CredencialLanyard3D egresado={egresado} onImprimir={imprimir} />
+          </div>
+          <div className="hoja-credencial-graduado hidden relative mx-auto max-w-[680px]">
             <div className="linea-corte-graduado hidden" aria-hidden="true" />
 
             <article 
@@ -285,7 +326,7 @@ export function ModalCredencial({ egresado, onCerrar }) {
         </div>
 
         {/* FOOTER DE BOTONES DE ACCIÓN */}
-        <footer className="grid grid-cols-1 sm:grid-cols-4 gap-2.5 border-t border-slate-800 bg-slate-900 p-4 sm:p-5">
+        <footer className="sigic-modal-credencial-acciones grid grid-cols-2 gap-2.5 border-t border-slate-800 bg-slate-900 p-3">
           <button 
             id="btn-credencial-google-wallet"
             type="button" 
@@ -326,6 +367,8 @@ export function ModalCredencial({ egresado, onCerrar }) {
       </div>
 
       <style>{`
+        .sigic-modal-credencial-acciones > button:first-child,
+        .sigic-modal-credencial-acciones > button:nth-child(3) { display: none; }
         @media print {
           html,
           body {
@@ -349,6 +392,7 @@ export function ModalCredencial({ egresado, onCerrar }) {
           .credencial-graduado,
           .credencial-graduado * { visibility: visible !important; }
           .hoja-credencial-graduado {
+            display: block !important;
             position: fixed !important;
             inset: 0 !important;
             width: 150mm !important;

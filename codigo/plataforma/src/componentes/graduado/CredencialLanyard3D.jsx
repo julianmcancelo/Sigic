@@ -262,7 +262,7 @@ export function CredencialLanyard3D({ egresado, onImprimir }) {
         ctx.fillText('BUTACA GRADUADO', 230, 890)
         ctx.fillStyle = '#FFFFFF'
         ctx.font = '900 26px sans-serif'
-        ctx.fillText(asientoPrincipal ? `Fila ${asientoPrincipal.replace('-', ' ')}` : 'Asignada en sala', 230, 935, 270)
+        ctx.fillText(asientoPrincipal ? `Fila ${asientoPrincipal.replace('-', ' ')}` : 'A asignar', 230, 935, 270)
 
         ctx.fillStyle = '#34D399'
         ctx.font = 'bold 19px sans-serif'
@@ -506,7 +506,7 @@ export function CredencialLanyard3D({ egresado, onImprimir }) {
                     <Armchair size={12} className="text-sky-400" /> Butaca
                   </span>
                   <p className="text-xs font-black text-white truncate mt-1">
-                    {asientoPrincipal ? `Fila ${asientoPrincipal.replace('-', ' ')}` : 'Asignada en sala'}
+                    {asientoPrincipal ? `Fila ${asientoPrincipal.replace('-', ' ')}` : 'A asignar'}
                   </p>
                 </div>
                 <div className="p-2.5 rounded-2xl bg-slate-900/80 border border-emerald-500/30 text-left shadow-md">

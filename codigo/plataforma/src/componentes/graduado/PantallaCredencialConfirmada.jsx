@@ -1,4 +1,6 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { flushSync } from 'react-dom'
+import { obtenerGraduadoPorId, obtenerInvitadosDeEgresado } from '../../servicios/api'
 import Image from 'next/image'
 import { QRCodeSVG } from 'qrcode.react'
 import {
@@ -13,17 +15,24 @@ import { FORMULAS_JURAMENTO } from './SeccionJuramento'
 import './pantalla-credencial.css'
 
 export function PantallaCredencialConfirmada({
-  graduado,
-  invitados = [],
+  graduado: graduadoBase,
+  invitados: invitadosBase = [],
   entregadores = [],
   profesores = [],
   onCerrarSesion,
   onEditarDatos
 }) {
   const [copiado, setCopiado] = useState(false)
+  const [datosImpresion, setDatosImpresion] = useState(null)
+  const [errorImpresion, setErrorImpresion] = useState('')
+  const [preparandoImpresion, setPreparandoImpresion] = useState(false)
+  useEffect(() => { setDatosImpresion(null) }, [graduadoBase, invitadosBase])
+  const graduado = datosImpresion?.id === graduadoBase?.id ? { ...graduadoBase, ...datosImpresion.graduado } : graduadoBase
+  const invitados = datosImpresion?.id === graduadoBase?.id ? datosImpresion.invitados : invitadosBase
 
   const todosLosAsientos = graduado?.asientos || (graduado?.asiento_id ? [graduado.asiento_id] : [])
   const cantidadInvitados = invitados.length
+  const faltanButacas = !graduado?.asiento_id || invitados.some(inv => !inv.asiento_id && !inv.menor_en_brazos)
   
   // Datos de la ceremonia activa
   const rawFecha = graduado?.ceremonia_fecha || graduado?.fecha_evento || '2026-08-27'
@@ -62,7 +71,20 @@ export function PantallaCredencialConfirmada({
   }
 
   // Función de impresión limpia y formal (A4 / Pase Oficial de Entrada)
-  const imprimirPaseOficial = () => {
+  const imprimirPaseOficial = async () => {
+    if (preparandoImpresion) return
+    setPreparandoImpresion(true)
+    setErrorImpresion('')
+    try {
+      const [actualizado, grupo] = await Promise.all([obtenerGraduadoPorId(graduadoBase.id), obtenerInvitadosDeEgresado(graduadoBase.id)])
+      if (!actualizado || !Array.isArray(grupo)) throw new Error('Datos incompletos')
+      flushSync(() => setDatosImpresion({ id: graduadoBase.id, graduado: actualizado, invitados: grupo }))
+    } catch {
+      setErrorImpresion('No pudimos actualizar las butacas. Volvé a intentar la impresión para usar los datos vigentes.')
+      setPreparandoImpresion(false)
+      return
+    }
+    setPreparandoImpresion(false)
     const tituloAnterior = document.title
     document.title = `Pase_Oficial_Beltran_${String(graduado?.nombre || 'Graduado').replace(/\s+/g, '_')}`
     document.body.classList.add('imprimiendo-pase-oficial-beltran')
@@ -178,7 +200,8 @@ export function PantallaCredencialConfirmada({
         <div className="sigic-pase-layout">
           
           {/* ── COLUMNA IZQUIERDA: CREDENCIAL 3D LANYARD (5 cols) ── */}
-          <div className="sigic-pase-credencial">
+          <div className="sigic-pase-credencial" style={{ flexDirection: 'column', alignItems: 'center' }}>
+            {errorImpresion && <p role="alert" className="text-xs text-red-700">{errorImpresion}</p>}
             <CredencialLanyard3D
               egresado={{ ...graduado, asientos: todosLosAsientos, invitados }}
               onImprimir={imprimirPaseOficial}
@@ -230,6 +253,7 @@ export function PantallaCredencialConfirmada({
                 <p className="text-xs text-slate-600 font-medium leading-relaxed">
                   Enviamos el comprobante a <span className="font-bold text-slate-900">{graduado?.correo || 'tu correo registrado'}</span>. El día del acto, presentá el código QR en pantalla o impreso en portería para ingresar junto a tus acompañantes.
                 </p>
+                {faltanButacas && <p className="rounded-xl bg-sky-50 p-3 text-xs text-sky-900">Tu ubicación está a asignar. Podés volver a consultar este pase más adelante. Si el día del evento sigue pendiente, presentá tu QR en Portería para que te indiquen dónde ubicarte.</p>}
 
                 {/* ── AGREGAR AL CALENDARIO ── */}
                 <div className="pt-2 border-t border-slate-100">
@@ -302,7 +326,7 @@ export function PantallaCredencialConfirmada({
                   <div className="text-right">
                     <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white border border-sky-200 text-[#0369A1] text-[11px] font-bold shadow-xs">
                       <Armchair size={13} className="text-[#0284C7]" />
-                      {graduado?.asiento_id ? `Fila ${graduado.asiento_id.replace('-', ' ')}` : 'Asignada en sala'}
+                      {graduado?.asiento_id ? `Fila ${graduado.asiento_id.replace('-', ' ')}` : 'A asignar'}
                     </span>
                   </div>
                 </div>
@@ -323,7 +347,7 @@ export function PantallaCredencialConfirmada({
                       <div className="text-right">
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-white border border-slate-200 text-slate-700 text-[11px] font-medium shadow-xs">
                           <Armchair size={13} className="text-slate-400" />
-                          {inv.asiento_id ? `Fila ${inv.asiento_id.replace('-', ' ')}` : 'Junto al graduado'}
+                          {inv.asiento_id ? `Fila ${inv.asiento_id.replace('-', ' ')}` : 'A asignar'}
                         </span>
                       </div>
                     </div>
@@ -484,7 +508,7 @@ export function PantallaCredencialConfirmada({
                 <div>
                   <p className="text-[9px] font-black uppercase text-slate-500">BUTACA ASIGNADA GRADUADO</p>
                   <p className="text-base font-black text-slate-950">
-                    {graduado?.asiento_id ? `Fila ${graduado.asiento_id.replace('-', ' ')}` : 'Asignada en sala'}
+                    {graduado?.asiento_id ? `Fila ${graduado.asiento_id.replace('-', ' ')}` : 'A asignar'}
                   </p>
                 </div>
                 <div className="text-right">
@@ -534,7 +558,7 @@ export function PantallaCredencialConfirmada({
                   <td className="p-2 border border-slate-300 text-sky-800">Graduado Titular</td>
                   <td className="p-2 border border-slate-300">{graduado?.dni}</td>
                   <td className="p-2 border border-slate-300 text-right font-black">
-                    {graduado?.asiento_id ? `Fila ${graduado.asiento_id.replace('-', ' ')}` : 'Asignada en sala'}
+                    {graduado?.asiento_id ? `Fila ${graduado.asiento_id.replace('-', ' ')}` : 'A asignar'}
                   </td>
                 </tr>
                 {invitados.map((inv, idx) => (
@@ -543,7 +567,7 @@ export function PantallaCredencialConfirmada({
                     <td className="p-2 border border-slate-300 text-slate-600">{inv.relacion || 'Acompañante'}</td>
                     <td className="p-2 border border-slate-300">{inv.dni || '—'}</td>
                     <td className="p-2 border border-slate-300 text-right font-bold">
-                      {inv.asiento_id ? `Fila ${inv.asiento_id.replace('-', ' ')}` : 'Junto al graduado'}
+                      {inv.asiento_id ? `Fila ${inv.asiento_id.replace('-', ' ')}` : 'A asignar'}
                     </td>
                   </tr>
                 ))}
@@ -554,6 +578,7 @@ export function PantallaCredencialConfirmada({
           {/* INSTRUCCIONES PROTOCOLARES PARA EL DÍA DEL EVENTO */}
           <div className="p-4 border border-slate-300 rounded-xl bg-slate-50 text-[10px] space-y-1.5 text-slate-700">
             <p className="font-black uppercase text-slate-900 text-[11px]">INSTRUCCIONES DE INGRESO PARA EL EVENTO:</p>
+            {faltanButacas && <p><strong>Ubicación a asignar:</strong> Podés consultar este pase más adelante. Si tu butaca o la de un acompañante sigue pendiente el día del evento, presentá el QR en Portería para recibir indicaciones.</p>}
             <p>1. <strong>Presentación del Pase:</strong> Este documento debe presentarse impreso o en pantalla del dispositivo móvil al personal de seguridad y acreditación en la portería.</p>
             <p>2. <strong>Validez Grupal:</strong> El código QR contiene la acreditación del graduado y de la totalidad de sus acompañantes registrados.</p>
             <p>3. <strong>Puntualidad:</strong> Se solicita presentarse con 30 minutos de antelación al inicio del acto en <strong>{lugarEvento}</strong> ({fechaFormateada}).</p>

@@ -592,9 +592,10 @@ function App() {
 
         const datos = await validarToken(tokenURL)
 
-        // Restaurar el JWT del admin si estábamos en modo preview
+        // El portal usa la sesión del graduado recién validada. El token anterior
+        // se reserva exclusivamente para volver a la administración al cerrar.
         if (tokenAdminActual && !tokenAdminActual.startsWith('bypass-')) {
-          guardarTokenSesion(tokenAdminActual)
+          sessionStorage.setItem('sigic_admin_token_backup', tokenAdminActual)
         }
 
         setDatosToken(datos)
@@ -705,7 +706,9 @@ function App() {
     if (esPreview && tokenActual && !tokenActual.startsWith('bypass-')) {
       // Preservar el JWT real del admin para no perder la sesión de gestión
       if (typeof window !== 'undefined') {
-        sessionStorage.setItem('sigic_admin_token_backup', tokenActual)
+        if (!sessionStorage.getItem('sigic_admin_token_backup')) {
+          sessionStorage.setItem('sigic_admin_token_backup', tokenActual)
+        }
       }
     } else if (!tokenActual || tokenActual.startsWith('bypass-')) {
       guardarTokenSesion(`bypass-egresado-${datos.id}`)

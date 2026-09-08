@@ -22,6 +22,8 @@ import { emitirCambioSync, useSincronizacion } from '../../lib/sync'
 
 export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp }) {
   const [ceremonia, setCeremonia] = useState(ceremoniaProp || null)
+  const solicitudDatos = useRef(0)
+  const ceremoniaActual = useRef(ceremoniaProp)
   const [graduados, setGraduados] = useState([])
   const [invitados, setInvitados] = useState([])
   const [cargando, setCargando] = useState(true)
@@ -54,15 +56,25 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
 
   // Cargar todos los datos
   async function cargarDatos() {
+    const solicitud = ++solicitudDatos.current
     setCargando(true)
     try {
-      const cerActiva = ceremoniaProp || await obtenerCeremoniaActiva().catch(() => null)
+      const cerActiva = ceremoniaActual.current || await obtenerCeremoniaActiva()
+      if (solicitud !== solicitudDatos.current) return
       setCeremonia(cerActiva)
+      setGraduados([])
+      setInvitados([])
+      setMapaRoles({})
+      setMapaRolesOriginal(null)
+      setEstructura({ baja: { filas: 7, asientos: 20 }, alta: { filas: 5, asientos: 22 } })
+      setEstructuraOriginal(null)
+      if (!cerActiva?.id) return
 
       const [grads, invs] = await Promise.all([
-        obtenerGraduados(cerActiva?.id).catch(() => []),
-        obtenerInvitados(cerActiva?.id).catch(() => [])
+        obtenerGraduados(cerActiva.id),
+        obtenerInvitados(cerActiva.id)
       ])
+      if (solicitud !== solicitudDatos.current) return
       setGraduados(grads)
       setInvitados(invs)
 
@@ -72,6 +84,7 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
         })
         if (res.ok) {
           const data = await res.json()
+          if (solicitud !== solicitudDatos.current) return
           if (data.estructura) {
             setEstructura(data.estructura)
             setEstructuraOriginal(data.estructura)
@@ -83,14 +96,33 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
         }
       }
     } catch (err) {
+      if (solicitud !== solicitudDatos.current) return
       setMensaje({ tipo: 'error', texto: err.message || 'Error al sincronizar datos del auditorio.' })
     } finally {
-      setCargando(false)
+      if (solicitud === solicitudDatos.current) setCargando(false)
     }
   }
 
   useEffect(() => {
+    ceremoniaActual.current = ceremoniaProp
     cargarDatos()
+  }, [ceremoniaProp?.id])
+
+  useEffect(() => {
+    const cambiarCeremonia = evento => {
+      ceremoniaActual.current = evento.detail || null
+      setGraduadoParaAsignar(null)
+      setMostrarModalAutoAsignar(false)
+      setMostrarDespachoCredenciales(false)
+      setMostrarResumenFinal(false)
+      setAsientoSeleccionadoInfo(null)
+      cargarDatos()
+    }
+    window.addEventListener('sigic-ceremonia-cambiada', cambiarCeremonia)
+    return () => {
+      ++solicitudDatos.current
+      window.removeEventListener('sigic-ceremonia-cambiada', cambiarCeremonia)
+    }
   }, [])
 
   // Sincronización en vivo
@@ -104,6 +136,15 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
     setAutoAsignando(true)
     setMensaje(null)
     try {
+      // La asignación debe trabajar sobre el mismo plano que está viendo el operador.
+      const guardado = await fetch(`${BASE}/configuracion/anfiteatro/estructura/${ceremonia.id}`, {
+        method: 'POST',
+        headers: cabeceras(),
+        body: JSON.stringify({ estructura, mapaRoles })
+      })
+      if (!guardado.ok) throw new Error('No se pudo guardar el plano. No se asignaron butacas; intentá nuevamente.')
+      setEstructuraOriginal(JSON.parse(JSON.stringify(estructura)))
+      setMapaRolesOriginal(JSON.parse(JSON.stringify(mapaRoles)))
       const res = await autoAsignarButacas(ceremonia.id, opciones)
       setMensaje({ 
         tipo: 'exito', 

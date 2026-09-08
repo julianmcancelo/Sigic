@@ -458,7 +458,8 @@ export function generarPlantillaCierreInscripcion(
   const acceso = `${hostBase}/`;
   const logo = 'https://raw.githubusercontent.com/julianmcancelo/Sigic/master/codigo/plataforma/public/logo-oficial.png';
   
-  const formulaTexto = detalle.formulaJuramento || 'Por la Patria';
+  const formulas: Record<string, string> = { DIOS_Y_PATRIA: 'Por Dios y por la Patria', PATRIA: 'Por la Patria' };
+  const formulaTexto = formulas[detalle.formulaJuramento || 'PATRIA'] || detalle.formulaJuramento || 'Por la Patria';
   const fechaCeremonia = formatearFechaLegible(detalle.fecha || '');
   const fechaLimiteTexto = detalle.fechaLimite ? formatearFechaLegible(detalle.fechaLimite) : null;
   const listaAcompanantes = detalle.acompanantes || [];
@@ -467,26 +468,27 @@ export function generarPlantillaCierreInscripcion(
   return `
     <!DOCTYPE html>
     <html lang="es">
-    <head><meta charset="UTF-8"><title>Inscripción Confirmada · SiGIC</title></head>
+    <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Inscripción Confirmada · SiGIC</title></head>
     <body style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-      <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#f1f5f9">
+      <div style="display:none;max-height:0;overflow:hidden;opacity:0;">Tu registro está confirmado. Consultá el resumen de tu selección y accedé al portal del graduado.</div>
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#f1f5f9">
         <tr><td align="center" style="padding:40px 15px;">
-          <table width="580" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="max-width:580px;border:1px solid #e2e8f0;border-radius:24px;overflow:hidden;box-shadow:0 15px 35px rgba(0,0,0,0.06);">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="width:100%;max-width:600px;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;">
             
-            {/* CABECERA */}
-            <tr><td bgcolor="#071b34" style="padding:32px 25px;text-align:center;border-bottom:4px solid #059669;">
+            <tr><td bgcolor="#071b34" style="padding:32px 28px;text-align:left;border-bottom:4px solid #38bdf8;">
               <img src="${logo}" alt="SiGIC" width="60" height="60" style="display:inline-block;border-radius:12px;background:#ffffff;padding:4px;" />
-              <p style="margin:12px 0 0;color:#34d399;font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;">Confirmación de Registro</p>
-              <h1 style="margin:4px 0 0;color:#ffffff;font-size:22px;font-weight:800;">¡Tu selección quedó confirmada, ${escaparHTML(nombre)}!</h1>
+              <p style="margin:20px 0 10px;color:#7dd3fc;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;">Portal del graduado / Registro confirmado</p>
+              <h1 style="margin:0;color:#ffffff;font-size:30px;line-height:1.2;font-weight:700;">Todo listo para<br>tu próximo paso.</h1>
+              <p style="margin:16px 0 0;color:#cbd5e1;font-size:15px;line-height:1.6;">${escaparHTML(nombre)}, tu selección quedó guardada.</p>
             </td></tr>
 
-            {/* CUERPO */}
             <tr><td style="padding:32px 28px;font-size:14px;line-height:1.6;color:#334155;">
               <p style="margin:0 0 18px;font-size:15px;color:#1e293b;">
-                Hemos registrado formalmente tus elecciones para el acto de colación en <strong>${escaparHTML(detalle.ceremonia || 'la Ceremonia Oficial')}</strong>.
+                Este es el resumen de tu registro para <strong>${escaparHTML(detalle.ceremonia || 'la ceremonia de colación')}</strong>. Conservá este correo para consultar tus elecciones.
               </p>
+              ${detalle.fecha || detalle.lugar ? `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:0 0 24px;border-left:3px solid #0ea5e9;background:#f0f9ff;"><tr><td style="padding:14px 18px;font-size:13px;line-height:1.7;color:#0c4a6e;">${detalle.fecha ? `<strong>Fecha</strong><br>${escaparHTML(fechaCeremonia)}<br>` : ''}${detalle.lugar ? `<strong>Lugar</strong><br>${escaparHTML(detalle.lugar)}` : ''}</td></tr></table>` : ''}
+              <h2 style="margin:0 0 14px;font-size:18px;color:#0f172a;font-weight:700;">Tu selección</h2>
 
-              {/* RESUMEN DE ELECCIONES */}
               <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#f8fafc" style="border:1px solid #e2e8f0;border-radius:16px;margin:0 0 24px;overflow:hidden;">
                 <tr><td style="padding:16px 20px;border-bottom:1px solid #e2e8f0;">
                   <span style="font-size:10px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:1px;display:block;">Fórmula de Juramento</span>
@@ -497,7 +499,7 @@ export function generarPlantillaCierreInscripcion(
                   <span style="font-size:10px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:1px;display:block;">Acompañantes Registrados (${listaAcompanantes.length})</span>
                   ${listaAcompanantes.length > 0
                     ? `<ul style="margin:6px 0 0;padding-left:18px;color:#334155;font-size:13px;">
-                        ${listaAcompanantes.map(a => `<li><strong>${escaparHTML(a.nombre)}</strong> ${a.relacion ? `(${escaparHTML(a.relacion)})` : ''} ${a.discapacidad ? '· <em>Accesible</em>' : ''}</li>`).join('')}
+                        ${listaAcompanantes.map(a => `<li style="padding:6px 0;line-height:1.6;"><strong>${escaparHTML(a.nombre)}</strong>${a.relacion ? `<br><span style="color:#64748b;">${escaparHTML(a.relacion)}</span>` : ''} ${a.discapacidad ? '· <em>Accesible</em>' : ''}</li>`).join('')}
                        </ul>`
                     : '<span style="font-size:13px;color:#64748b;display:block;margin-top:2px;">Asistencia individual sin acompañantes.</span>'
                   }
@@ -507,37 +509,34 @@ export function generarPlantillaCierreInscripcion(
                   <tr><td style="padding:16px 20px;">
                     <span style="font-size:10px;font-weight:800;color:#64748b;text-transform:uppercase;letter-spacing:1px;display:block;">Padrinos / Entregadores (${listaPadrinos.length}/3)</span>
                     <ul style="margin:6px 0 0;padding-left:18px;color:#334155;font-size:13px;">
-                      ${listaPadrinos.map(p => `<li>${p.orden ? `${p.orden}° ` : ''}<strong>${escaparHTML(p.nombre)}</strong> (${p.tipo === 'PROFESOR' ? 'Docente' : 'Familiar'})</li>`).join('')}
+                      ${listaPadrinos.map(p => `<li style="padding:6px 0;line-height:1.6;">${p.orden ? `${p.orden}° ` : ''}<strong>${escaparHTML(p.nombre)}</strong><br><span style="color:#64748b;">${p.tipo === 'PROFESOR' ? 'Docente' : 'Familiar'}</span></li>`).join('')}
                     </ul>
                   </td></tr>
                 ` : ''}
               </table>
 
-              {/* AVISO DE PLAZOS Y BAJAS */}
               <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:14px;padding:16px 18px;margin:0 0 24px;">
                 <p style="margin:0 0 8px;font-weight:800;font-size:12px;color:#166534;text-transform:uppercase;letter-spacing:0.5px;">
-                  🗓️ Plazos y Modificaciones
+                  Plazos y modificaciones
                 </p>
                 <p style="margin:0 0 8px;font-size:13px;color:#15803d;line-height:1.5;">
                   Podés volver a ingresar al portal y actualizar tus datos <strong>en cualquier momento antes de la fecha límite institucional${fechaLimiteTexto ? ` (${fechaLimiteTexto} hs)` : ''}</strong>.
                 </p>
                 <p style="margin:0;font-size:12px;color:#166534;line-height:1.5;">
-                  ⚠️ <strong>En caso de ausencia:</strong> Si alguno de tus acompañantes no va a poder asistir, te pedimos retirarlo desde el portal antes de la fecha límite para poder reasignar su lugar a otro egresado.
+                  <strong>Si cambia tu grupo:</strong> Retirá del portal a quienes no puedan asistir, antes de la fecha límite. Así podremos reasignar sus lugares.
                 </p>
               </div>
 
-              {/* BOTON DE ACCESO */}
               <table cellspacing="0" cellpadding="0" border="0" align="center" style="margin:10px auto 10px;">
-                <tr><td bgcolor="#059669" style="border-radius:12px;box-shadow:0 6px 14px rgba(5,150,105,0.25);">
-                  <a href="${acceso}" style="display:inline-block;padding:15px 34px;background:#059669;color:#ffffff;text-decoration:none;font-weight:800;font-size:14px;border-radius:12px;letter-spacing:0.3px;">
-                    Ver Mi Credencial / Modificar Selección &rarr;
+                <tr><td bgcolor="#0369a1" style="border-radius:8px;text-align:center;">
+                  <a href="${escaparHTML(acceso)}" style="display:inline-block;padding:16px 28px;background:#0369a1;color:#ffffff;text-decoration:none;font-weight:700;font-size:14px;border-radius:8px;">
+                    Abrir mi portal
                   </a>
                 </td></tr>
               </table>
 
             </td></tr>
 
-            {/* FOOTER */}
             <tr><td bgcolor="#0f172a" style="padding:20px;text-align:center;color:#64748b;font-size:10px;border-top:1px solid #1e293b;">
               <p style="margin:0 0 4px;font-weight:700;color:#cbd5e1;text-transform:uppercase;letter-spacing:1px;">Instituto Tecnológico Beltrán</p>
               <p style="margin:0;color:#64748b;">SiGIC · Sistema Institucional de Gestión de Colaciones</p>

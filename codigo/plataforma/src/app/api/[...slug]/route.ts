@@ -1510,6 +1510,8 @@ export async function POST(
         'INSERT INTO configuracion_anfiteatro (ceremonia_id, estructura, mapa_roles, modificado_por) VALUES ($1, $2, $3, $4)',
         [ceremoniaId, JSON.stringify(estructura), JSON.stringify(mapaRoles), modificadoPor]
       );
+      invalidarCache('anfiteatro:*');
+      invalidarCache('ceremonias');
       return NextResponse.json({ ok: true, mensaje: 'Estructura del anfiteatro actualizada' }, { headers });
     }
 
@@ -1529,6 +1531,8 @@ export async function POST(
         'INSERT INTO configuracion_anfiteatro (ceremonia_id, estructura, mapa_roles, actualizado_en) VALUES ($1, $2, $3, CURRENT_TIMESTAMP)',
         [ceremoniaId, estructura, mapaRoles]
       );
+      invalidarCache('anfiteatro:*');
+      invalidarCache('ceremonias');
       return NextResponse.json({ mensaje: 'Configuración guardada con éxito en la base de datos' }, { headers });
     }
 
