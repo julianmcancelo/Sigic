@@ -48,25 +48,20 @@ export function LayoutAutenticacion({ children, centrado = false, onVolver }) {
               <p className="mt-4 max-w-[270px] text-[13px] leading-6 text-slate-300">Todo lo que necesitás para ser parte de tu ceremonia, en un solo lugar.</p>
             </div>
 
-            <div aria-hidden="true" className="relative my-6 hidden md:block">
-              <svg viewBox="0 0 300 210" className="mx-auto w-full max-w-[280px]" fill="none">
-                <ellipse cx="150" cy="186" rx="99" ry="13" fill="#020d1b" opacity=".45" />
-                <circle cx="154" cy="100" r="87" stroke="#7dd3fc" strokeOpacity=".12" />
-                <circle cx="154" cy="100" r="68" stroke="#7dd3fc" strokeOpacity=".08" />
-                <g transform="rotate(-7 145 110)">
-                  <rect x="51" y="42" width="192" height="132" rx="13" fill="#102e48" stroke="#315570" />
-                  <rect x="60" y="51" width="174" height="114" rx="7" stroke="#7dd3fc" strokeOpacity=".25" />
-                  <path d="m112 85 35-16 35 16-35 16-35-16Z" fill="#38bdf8" />
-                  <path d="M125 96v14c14 9 30 9 44 0V96" stroke="#7dd3fc" strokeWidth="3" strokeLinejoin="round" />
-                  <path d="M182 86v26" stroke="#38bdf8" strokeWidth="2" strokeLinecap="round" />
-                  <path d="M108 131h78M123 141h47" stroke="#8eafc5" strokeWidth="3" strokeLinecap="round" />
-                  <path d="m207 145-9 30 13-5 9 8 4-32" fill="#0284c7" />
-                  <circle cx="215" cy="139" r="16" fill="#0ea5e9" stroke="#7dd3fc" strokeWidth="2" />
-                  <path d="m208 139 5 5 9-10" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                </g>
-                <path d="M40 62h10M45 57v10M252 118h8M256 114v8" stroke="#7dd3fc" strokeOpacity=".6" strokeLinecap="round" />
-              </svg>
-            </div>
+            <figure className="relative my-7 hidden overflow-hidden rounded-2xl border border-white/15 bg-[#102e48] shadow-xl shadow-black/15 md:block">
+              <img
+                src="https://ibeltran.com.ar/img/slider/3.jpg"
+                alt="Hall del Instituto Tecnológico Beltrán, con su emblema en el piso"
+                width="1920"
+                height="800"
+                className="aspect-[4/3] w-full object-cover object-[42%_center]"
+              />
+              <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[#061525] via-transparent to-transparent" />
+              <figcaption className="absolute inset-x-0 bottom-0 px-4 pb-4 pt-8">
+                <span className="block text-[9px] font-bold uppercase tracking-[0.18em] text-sky-300">Nuestra institución</span>
+                <span className="mt-1 block text-sm font-semibold text-white">El lugar donde comienza tu futuro.</span>
+              </figcaption>
+            </figure>
 
             <div className="relative mt-6 flex flex-wrap gap-x-4 gap-y-2 text-[11px] text-slate-300 md:mt-auto">
               <span>Tu inscripción</span><span>Tu grupo</span><span>Tu credencial</span>
