@@ -125,7 +125,7 @@ export function LoginGraduado({ onLoginExitoso, onVolver, emailInicial = '' }) {
 
   return (
     <LayoutAutenticacion>
-      <div className="px-8 py-9">
+      <div className="min-w-0 md:px-8 md:py-9">
         {/* Encabezado */}
         <div className="mb-6 flex items-center justify-between">
           <button 
@@ -144,7 +144,7 @@ export function LoginGraduado({ onLoginExitoso, onVolver, emailInicial = '' }) {
             ? (emailInicial ? 'Hola de nuevo' : 'Hola Graduado')
             : 'Verificá tu identidad'}
         </h1>
-        <p className="mb-8 text-xs leading-relaxed text-[#90A4AE]">
+        <p className="mb-6 text-sm leading-relaxed text-slate-500">
           {paso === 1 
             ? (emailInicial 
                 ? `Solicitá un código para acceder a tu panel vinculado a ${emailInicial}.`
@@ -222,14 +222,14 @@ export function LoginGraduado({ onLoginExitoso, onVolver, emailInicial = '' }) {
                   </div>
                   <input
                     id="identificador-graduado"
-                    autoFocus
+                    autoFocus={false}
                     type={tipoAcceso === 'correo' ? 'email' : 'text'}
                     inputMode={tipoAcceso === 'correo' ? 'email' : 'numeric'}
                     autoComplete={tipoAcceso === 'correo' ? 'email' : 'off'}
                     value={identificador}
                     onChange={manejarIdentificador}
                     placeholder={tipoAcceso === 'correo' ? 'nombre@correo.com' : 'Ej.: 35230532'}
-                    className="w-full rounded-2xl bg-transparent py-4 pl-12 pr-4 text-sm font-bold text-slate-700 outline-none placeholder:font-medium placeholder:text-slate-300"
+                    className="w-full rounded-2xl bg-transparent py-4 pl-12 pr-4 text-base md:text-sm font-bold text-slate-700 outline-none placeholder:font-medium placeholder:text-slate-300"
                   />
                 </div>
                 <p className="ml-1 flex items-start gap-1.5 text-[10px] leading-relaxed text-slate-400">
@@ -393,7 +393,7 @@ export function LoginGraduado({ onLoginExitoso, onVolver, emailInicial = '' }) {
         )}
 
         {/* Separador + botón equipo */}
-        <div className="mt-12 border-t border-slate-100 pt-6 flex items-center justify-between">
+        <div className="mt-6 md:mt-12 border-t border-slate-100 pt-4 md:pt-6 flex items-center justify-between">
           <p className="text-[9px] font-black uppercase tracking-widest text-slate-300">
             Instituto Beltrán · SiGIC 2026
           </p>
