@@ -44,24 +44,45 @@ export function LayoutAutenticacion({ children, centrado = false, onVolver }) {
 
             <div className="relative mt-8 md:mt-10">
               <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-sky-300">Ceremonias de colación</p>
-              <h2 className="max-w-[280px] text-[30px] font-bold leading-[1.15] tracking-[-0.035em] sm:text-[34px]">Un gran logro.<br /><span className="text-sky-300">Un nuevo comienzo.</span></h2>
-              <p className="mt-4 max-w-[270px] text-[13px] leading-6 text-slate-300">Todo lo que necesitás para ser parte de tu ceremonia, en un solo lugar.</p>
+              <h2 className="max-w-[280px] text-[30px] font-bold leading-[1.15] tracking-[-0.035em] sm:text-[34px]">Tu próximo<br /><span className="text-sky-300">gran momento.</span></h2>
+              <p className="mt-4 max-w-[270px] text-[13px] leading-6 text-slate-300">Confirmá tu participación y prepará tu credencial.</p>
             </div>
 
-            <figure className="relative my-7 hidden overflow-hidden rounded-2xl border border-white/15 bg-[#102e48] shadow-xl shadow-black/15 md:block">
-              <img
-                src="https://ibeltran.com.ar/img/slider/3.jpg"
-                alt="Hall del Instituto Tecnológico Beltrán, con su emblema en el piso"
-                width="1920"
-                height="800"
-                className="aspect-[4/3] w-full object-cover object-[42%_center]"
-              />
-              <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-[#061525] via-transparent to-transparent" />
-              <figcaption className="absolute inset-x-0 bottom-0 px-4 pb-4 pt-8">
-                <span className="block text-[9px] font-bold uppercase tracking-[0.18em] text-sky-300">Nuestra institución</span>
-                <span className="mt-1 block text-sm font-semibold text-white">El lugar donde comienza tu futuro.</span>
-              </figcaption>
-            </figure>
+            <div aria-hidden="true" className="group relative my-4 hidden h-[275px] items-center justify-center [perspective:900px] md:flex">
+              <div className="absolute bottom-0 h-8 w-40 rounded-full bg-black/30 blur-xl" />
+              <svg viewBox="0 0 280 330" className="h-full w-auto origin-top -rotate-[5deg] drop-shadow-[10px_18px_12px_rgba(0,0,0,.35)] motion-safe:transition-transform motion-safe:duration-700 motion-safe:ease-out motion-safe:group-hover:rotate-[3deg] motion-safe:group-hover:[transform:rotate(3deg)_rotateY(-10deg)]">
+                <defs>
+                  <linearGradient id="acceso-cinta" x2="1" y2="0"><stop stopColor="#010409"/><stop offset=".5" stopColor="#202b36"/><stop offset="1" stopColor="#03070c"/></linearGradient>
+                  <linearGradient id="acceso-metal" x2="1" y2=".3"><stop stopColor="#516376"/><stop offset=".3" stopColor="#eef5ff"/><stop offset=".55" stopColor="#94a8bd"/><stop offset=".8" stopColor="#f3f8ff"/><stop offset="1" stopColor="#607489"/></linearGradient>
+                  <linearGradient id="acceso-tarjeta" x2="1" y2="1"><stop stopColor="#153d5d"/><stop offset=".45" stopColor="#0a2039"/><stop offset="1" stopColor="#061223"/></linearGradient>
+                  <linearGradient id="acceso-brillo" x2="1" y2="1"><stop stopColor="white" stopOpacity=".16"/><stop offset=".45" stopColor="white" stopOpacity="0"/></linearGradient>
+                  <pattern id="acceso-tejido" width="3" height="3" patternUnits="userSpaceOnUse"><path d="M0 0h3" stroke="white" strokeOpacity=".08"/></pattern>
+                </defs>
+                <path d="M90-15h25l34 99-19 12Z" fill="url(#acceso-cinta)" stroke="#354452" strokeWidth=".6"/>
+                <path d="M171-15h25l-48 111-21-12Z" fill="url(#acceso-cinta)" stroke="#354452" strokeWidth=".6"/>
+                <path d="M90-15h25l34 99-19 12ZM171-15h25l-48 111-21-12Z" fill="url(#acceso-tejido)"/>
+                <text transform="translate(105 9) rotate(70)" fill="#7dd3fc" fontSize="7" fontWeight="700" letterSpacing="1.4">INSTITUTO BELTRÁN</text>
+                <text transform="translate(173 7) rotate(112)" fill="#7dd3fc" fontSize="7" fontWeight="700" letterSpacing="1.4">SiGIC · COLACIÓN</text>
+                <rect x="48" y="115" width="184" height="207" rx="19" fill="url(#acceso-tarjeta)" stroke="#38bdf8" strokeOpacity=".8" strokeWidth="1.3"/>
+                <rect x="51" y="118" width="178" height="201" rx="16" fill="url(#acceso-brillo)"/>
+                <rect x="117" y="123" width="46" height="6" rx="3" fill="#020810" stroke="#506d85"/>
+                <rect x="126" y="83" width="28" height="13" rx="3" fill="url(#acceso-metal)"/>
+                <circle cx="132" cy="89" r="2" fill="#304359"/><circle cx="148" cy="89" r="2" fill="#304359"/>
+                <path d="M136 96h8v8h-8z" fill="url(#acceso-metal)"/>
+                <rect x="133" y="102" width="14" height="29" rx="6" fill="url(#acceso-metal)" stroke="#8ca5ba"/>
+                <path d="M138 108v15q2 4 5 0v-11" stroke="#344b60" strokeWidth="1.5" fill="none"/>
+                <rect x="69" y="150" width="35" height="35" rx="10" fill="white"/>
+                <image href="/logo.png" x="76" y="157" width="21" height="21"/>
+                <text x="114" y="163" fill="#7dd3fc" fontSize="7" fontWeight="700" letterSpacing="1.3">INSTITUTO</text>
+                <text x="114" y="176" fill="white" fontSize="11" fontWeight="700">BELTRÁN</text>
+                <path d="M69 201h142" stroke="#7dd3fc" strokeOpacity=".2"/>
+                <text x="69" y="222" fill="#7dd3fc" fontSize="7" fontWeight="700" letterSpacing="1.7">CEREMONIA DE</text>
+                <text x="68" y="249" fill="white" fontSize="25" fontWeight="800" letterSpacing="-.7">Colación</text>
+                <text x="69" y="267" fill="#a7bbcf" fontSize="9">Tu historia continúa.</text>
+                <path d="M69 289h25" stroke="#38bdf8" strokeWidth="3" strokeLinecap="round"/>
+                <text x="211" y="298" textAnchor="end" fill="#7dd3fc" fontSize="11" fontWeight="700">SiGIC</text>
+              </svg>
+            </div>
 
             <div className="relative mt-6 flex flex-wrap gap-x-4 gap-y-2 text-[11px] text-slate-300 md:mt-auto">
               <span>Tu inscripción</span><span>Tu grupo</span><span>Tu credencial</span>
