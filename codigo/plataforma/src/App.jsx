@@ -1136,14 +1136,14 @@ function App() {
       {modoDemoActivo && <MarcaAguaDemo />}
       
       {/* Herramienta para alternar modo de operación y demostraciones */}
-      <ControlExpositor
+      {window.location.hostname !== 'graduados.sigic.com.ar' && <ControlExpositor
         modoDemoActivo={modoDemoActivo}
         onAlternarModoDemo={alternarModoDemo}
         onSimularAdmin={manejarLoginAdminExitoso}
         onSimularEgresado={manejarLoginGraduadoExitoso}
         onLimpiar={limpiarTodo}
         onIniciarDemo={iniciarDemostracionCompleta}
-      />
+      />}
 
       {/* Orquestador de Piloto Automático y Showcase en Vivo */}
       {demoAutomaticaActiva && (
