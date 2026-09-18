@@ -299,7 +299,7 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
   })
 
   invitadosConAsiento.forEach(i => {
-    mapaRolesVisual[i.asiento_id] = 'reservado'
+    mapaRolesVisual[i.asiento_id] = 'acompanante'
     const egresadoTitular = graduados.find(x => x.id === i.egresado_id || x.id === i.egresadoId)
     datosPorAsiento[i.asiento_id] = {
       nombre: i.nombre,
@@ -605,13 +605,13 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
 
               <div className="grid grid-cols-1 gap-1">
                 {[
-                  { id: 'egresado', label: 'Sector Graduados', color: 'bg-indigo-600 text-white', desc: 'Primeras filas Platea' },
-                  { id: 'padrino', label: 'Sector Padrinos', color: 'bg-red-500 text-white', desc: 'Exclusivo padrinos de diploma' },
-                  { id: 'disponible', label: 'Sector Acompañantes / Libre', color: 'bg-white border border-slate-300 text-slate-700', desc: 'Libre para auto-seating' },
-                  { id: 'autoridad', label: 'Autoridades / Estrado', color: 'bg-slate-900 text-white', desc: 'Mesa académica' },
-                  { id: 'discapacitado', label: 'Accesibilidad Reducida', color: 'bg-purple-600 text-white', desc: 'Extremos y pasillos' },
-                  { id: 'reservado', label: 'Reservado Especial', color: 'bg-amber-500 text-white', desc: 'Protocolo institucional' },
-                  { id: 'bloqueado', label: 'Pasillo / Columna', color: 'bg-slate-200 text-slate-600', desc: 'Espacio no transitable' },
+                  { id: 'egresado', label: 'Azul (Egresados)', color: 'bg-blue-600 text-white', desc: 'Butacas exclusivas para graduados con diploma' },
+                  { id: 'acompanante', label: 'Verde (Acompañantes)', color: 'bg-emerald-600 text-white', desc: 'Asignados a familiares e invitados' },
+                  { id: 'ocupado', label: 'Rojo (Ocupado)', color: 'bg-red-600 text-white', desc: 'Butacas ya reservadas en la ceremonia' },
+                  { id: 'disponible', label: 'Gris Claro (Libre)', color: 'bg-slate-100 border border-slate-300 text-slate-700', desc: 'Asientos libres para selección' },
+                  { id: 'bloqueado', label: 'Gris Oscuro (Bloquear / Protocolo)', color: 'bg-slate-900 text-white', desc: 'Primeras filas para Directivos, Autoridades y Docentes' },
+                  { id: 'discapacitado', label: 'Violeta (Asiento preferencial)', color: 'bg-purple-600 text-white', desc: 'Invitados con discapacidad o movilidad reducida' },
+                  { id: 'padrino', label: 'Sector Padrinos / Diploma', color: 'bg-amber-500 text-white', desc: 'Entregadores de diploma' },
                 ].map(r => (
                   <button
                     key={r.id}

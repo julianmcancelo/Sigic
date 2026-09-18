@@ -14,12 +14,12 @@ if (ROLES && !ROLES.padrino) {
 }
 
 const LEYENDA = [
-  { rol: 'egresado', color: 'bg-indigo-600', label: 'Graduados' },
-  { rol: 'padrino', color: 'bg-red-500', label: 'Padrinos' },
-  { rol: 'autoridad', color: 'bg-slate-900', label: 'Autoridades' },
-  { rol: 'discapacitado', color: 'bg-purple-600', label: 'Accesibilidad' },
-  { rol: 'reservado', color: 'bg-amber-500', label: 'Reservado' },
-  { rol: 'disponible', color: 'bg-white border border-slate-200', label: 'Disponible' },
+  { rol: 'egresado', color: 'bg-blue-600', label: 'Azul (Egresados)' },
+  { rol: 'acompanante', color: 'bg-emerald-600', label: 'Verde (Acompañantes)' },
+  { rol: 'ocupado', color: 'bg-red-600', label: 'Rojo (Ocupado)' },
+  { rol: 'disponible', color: 'bg-slate-100 border border-slate-300', label: 'Gris Claro (Libre)' },
+  { rol: 'bloqueado', color: 'bg-slate-800', label: 'Gris Oscuro (Reservado/Bloqueado)' },
+  { rol: 'discapacitado', color: 'bg-purple-600', label: 'Violeta (Asiento preferencial)' },
 ];
 
 export function SeleccionAsientos({

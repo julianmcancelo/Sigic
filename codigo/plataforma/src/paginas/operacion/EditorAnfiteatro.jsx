@@ -418,13 +418,13 @@ export function EditorAnfiteatro({ ceremoniaId, onVolver, sinHeader }) {
                 
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { id: 'disponible', label: 'Disponible', color: 'bg-white border border-slate-300 text-slate-600', icono: Armchair },
-                    { id: 'egresado', label: 'Graduado', color: 'bg-indigo-600 text-white', icono: GraduationCap },
-                    { id: 'padrino', label: 'Padrinos', color: 'bg-red-500 text-white', icono: Award },
-                    { id: 'autoridad', label: 'Autoridad', color: 'bg-slate-900 text-white', icono: ShieldCheck },
-                    { id: 'discapacitado', label: 'Accesibilidad', color: 'bg-purple-600 text-white', icono: AlertCircle },
-                    { id: 'reservado', label: 'Reservado', color: 'bg-amber-500 text-white', icono: Info },
-                    { id: 'bloqueado', label: 'Pasillo / Columna', color: 'bg-slate-200 text-slate-600', icono: X },
+                    { id: 'egresado', label: 'Azul · Egresados', color: 'bg-blue-600 text-white', icono: GraduationCap },
+                    { id: 'acompanante', label: 'Verde · Acompañantes', color: 'bg-emerald-600 text-white', icono: Armchair },
+                    { id: 'ocupado', label: 'Rojo · Ocupado', color: 'bg-red-600 text-white', icono: Armchair },
+                    { id: 'disponible', label: 'Gris Claro · Libre', color: 'bg-slate-100 border border-slate-300 text-slate-700', icono: Armchair },
+                    { id: 'bloqueado', label: 'Bloquear / Protocolo', color: 'bg-slate-900 text-slate-200', icono: ShieldCheck },
+                    { id: 'discapacitado', label: 'Violeta · Preferencial', color: 'bg-purple-600 text-white', icono: AlertCircle },
+                    { id: 'padrino', label: 'Padrinos Diploma', color: 'bg-amber-500 text-white', icono: Award },
                   ].map(rol => (
                     <button
                       key={rol.id}
@@ -457,21 +457,24 @@ export function EditorAnfiteatro({ ceremoniaId, onVolver, sinHeader }) {
                <button onClick={() => setNivel('baja')} className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-[9px] ${nivel === 'baja' ? 'bg-sky-50 text-sky-600' : 'text-slate-400 hover:bg-slate-50'}`} title="Platea">P</button>
                <button onClick={() => setNivel('alta')} className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-[9px] ${nivel === 'alta' ? 'bg-sky-50 text-sky-600' : 'text-slate-400 hover:bg-slate-50'}`} title="Pullman">U</button>
                <div className="w-6 h-px bg-slate-100" />
-               {['disponible', 'egresado', 'padrino', 'autoridad', 'discapacitado', 'reservado', 'bloqueado'].map(rol => (
+               {[
+                 { id: 'egresado', icono: GraduationCap, label: 'Azul · Egresados' },
+                 { id: 'acompanante', icono: Armchair, label: 'Verde · Acompañantes' },
+                 { id: 'ocupado', icono: Armchair, label: 'Rojo · Ocupado' },
+                 { id: 'disponible', icono: Armchair, label: 'Gris Claro · Libre' },
+                 { id: 'bloqueado', icono: ShieldCheck, label: 'Gris Oscuro · Bloquear / Protocolo' },
+                 { id: 'discapacitado', icono: AlertCircle, label: 'Violeta · Preferencial' },
+                 { id: 'padrino', icono: Award, label: 'Padrino' },
+               ].map(item => (
                  <button
-                   key={rol}
-                   onClick={() => setRolSeleccionado(rol)}
+                   key={item.id}
+                   onClick={() => setRolSeleccionado(item.id)}
                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${
-                     rolSeleccionado === rol ? 'bg-sky-500 text-white shadow-md' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'
+                     rolSeleccionado === item.id ? 'bg-sky-500 text-white shadow-md' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'
                    }`}
-                   title={rol}
+                   title={item.label}
                  >
-                   {rol === 'disponible' ? <Armchair size={13} /> :
-                    rol === 'egresado' ? <GraduationCap size={13} /> :
-                    rol === 'padrino' ? <Award size={13} /> :
-                    rol === 'autoridad' ? <ShieldCheck size={13} /> :
-                    rol === 'discapacitado' ? <AlertCircle size={13} /> :
-                    rol === 'reservado' ? <Info size={13} /> : <X size={13} />}
+                   <item.icono size={13} />
                  </button>
                ))}
              </div>

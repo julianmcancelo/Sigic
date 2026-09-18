@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import {
   X, Armchair, CheckCircle2, User, RefreshCw, AlertTriangle,
-  LockKeyhole, Users, ChevronRight, RotateCcw, Award, GraduationCap
+  LockKeyhole, Users, ChevronRight, RotateCcw, Award, GraduationCap, Accessibility
 } from 'lucide-react'
 import { SeleccionAsientos } from '../paginas/SeleccionAsientos'
 import { BASE, asignarAsientos, obtenerAjustes, obtenerEntregadoresDeGraduado } from '../servicios/api'
@@ -205,6 +205,11 @@ export function ModalAsignarAsientos({
       return
     }
 
+    if (rolBase === 'discapacitado' && !personaActivaDatos.requiereAccesibilidad) {
+      setError('Esta butaca es un Asiento Preferencial (Violeta) reservado para personas con movilidad reducida.')
+      return
+    }
+
     // 1. Si el asiento ya está ocupado por otra persona de este grupo, removerlo de esa persona
     let nuevasAsignaciones = {
       ...asignaciones,
@@ -399,11 +404,13 @@ export function ModalAsignarAsientos({
                         ? 'bg-emerald-100 text-emerald-700' 
                         : esActivo 
                           ? 'bg-sky-500 text-white' 
-                          : persona.esPadrino
-                            ? 'bg-amber-100 text-amber-800 border border-amber-300'
-                            : 'bg-slate-100 text-slate-400'
+                          : persona.requiereAccesibilidad
+                            ? 'bg-purple-100 text-purple-800 border border-purple-300'
+                            : persona.esPadrino
+                              ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                              : 'bg-slate-100 text-slate-400'
                     }`}>
-                      {persona.asiento ? <CheckCircle2 size={18} /> : persona.esPadrino ? <Award size={16} /> : indice + 1}
+                      {persona.asiento ? <CheckCircle2 size={18} /> : persona.requiereAccesibilidad ? <Accessibility size={16} /> : persona.esPadrino ? <Award size={16} /> : indice + 1}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1 flex-wrap">
@@ -411,6 +418,11 @@ export function ModalAsignarAsientos({
                         {persona.esPadrino && (
                           <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-amber-100 border border-amber-300 text-amber-900 text-[8px] font-black uppercase tracking-wider shrink-0">
                             <Award size={9} /> Padrino
+                          </span>
+                        )}
+                        {persona.requiereAccesibilidad && (
+                          <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-purple-100 border border-purple-300 text-purple-900 text-[8px] font-black uppercase tracking-wider shrink-0">
+                            <Accessibility size={9} /> Movilidad Reducida
                           </span>
                         )}
                       </div>
@@ -442,23 +454,28 @@ export function ModalAsignarAsientos({
           <section className="min-h-0 p-2.5 sm:p-3 bg-[radial-gradient(circle_at_top,_#e0f2fe,_#f8fafc_42%)] flex flex-col gap-2 overflow-hidden">
             <div className="shrink-0 bg-white/90 border border-sky-100 rounded-xl px-3 py-2 flex items-center gap-2.5 shadow-sm">
               <div className={`w-8 h-8 rounded-lg text-white flex items-center justify-center shrink-0 ${
-                personaActivaDatos.esPadrino ? 'bg-amber-600' : 'bg-slate-900'
+                personaActivaDatos.requiereAccesibilidad ? 'bg-purple-600' : personaActivaDatos.esPadrino ? 'bg-amber-600' : 'bg-slate-900'
               }`}>
-                {personaActivaDatos.esPadrino ? <Award size={16} /> : <User size={16} />}
+                {personaActivaDatos.requiereAccesibilidad ? <Accessibility size={16} /> : personaActivaDatos.esPadrino ? <Award size={16} /> : <User size={16} />}
               </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="text-[8px] uppercase tracking-[0.16em] font-black text-sky-600">
                     {esSoloLectura ? 'Ubicación confirmada' : grupoEnRevision ? 'Revisión del grupo' : `Paso ${pasoActivo + 1} de ${personasGrupo.length}`}
                   </p>
-                  {personaActivaDatos.esPadrino && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-100 border border-amber-300 text-amber-900 text-[8.5px] font-black uppercase tracking-wider">
-                      <Award size={10} /> Rol: Padrino de diploma (${personaActivaDatos.ordenPadrino ? `${personaActivaDatos.ordenPadrino}°` : 'Familiar'})
+                  {personaActivaDatos.requiereAccesibilidad && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-purple-100 border border-purple-300 text-purple-900 text-[8.5px] font-black uppercase tracking-wider">
+                      <Accessibility size={10} /> Asiento Preferencial · Movilidad Reducida
                     </span>
                   )}
-                  {personaActivaDatos.tipo === 'invitado' && !personaActivaDatos.esPadrino && (
+                  {personaActivaDatos.esPadrino && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-100 border border-amber-300 text-amber-900 text-[8.5px] font-black uppercase tracking-wider">
+                      <Award size={10} /> Rol: Padrino de diploma ({personaActivaDatos.ordenPadrino ? `${personaActivaDatos.ordenPadrino}°` : 'Familiar'})
+                    </span>
+                  )}
+                  {personaActivaDatos.tipo === 'invitado' && !personaActivaDatos.esPadrino && !personaActivaDatos.requiereAccesibilidad && (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-slate-600 text-[8.5px] font-bold uppercase tracking-wider">
-                      Rol: Acompañante regular (No es padrino)
+                      Rol: Acompañante regular
                     </span>
                   )}
                 </div>
@@ -471,7 +488,12 @@ export function ModalAsignarAsientos({
               ) : !esSoloLectura ? <ChevronRight className="text-sky-400 shrink-0" size={22} /> : null}
             </div>
 
-            <div className="shrink-0 flex items-center gap-2 px-1 text-[9px] text-slate-500"><LockKeyhole size={13} className="text-slate-400" /> Sector exclusivo para padrinos de diploma. Reservadas y autoridades bloqueadas.</div>
+            <div className="shrink-0 flex items-center gap-2 px-1 text-[9px] text-slate-500">
+              <LockKeyhole size={13} className="text-slate-400" />
+              <span>
+                Asignación oficial: <strong>Azul</strong> (Egresado), <strong>Verde</strong> (Acompañantes), <strong>Violeta</strong> (Preferencial movilidad reducida).
+              </span>
+            </div>
 
             {estructura ? (
               <div className="min-h-0 flex-1 overflow-auto rounded-xl [scrollbar-width:thin] [&_.sigic-wrapper]:gap-1.5 [&_.sigic-mapa]:p-3 [&_.sigic-mapa]:rounded-xl [&_.sigic-escenario]:mb-2 [&_.sigic-escenario__sombra]:h-1 [&_.sigic-stats__pill]:px-2 [&_.sigic-stats__pill]:py-1">
