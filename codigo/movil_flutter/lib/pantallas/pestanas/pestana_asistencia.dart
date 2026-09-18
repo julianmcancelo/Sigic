@@ -572,6 +572,21 @@ class _GrupoAsistenciaTarjeta extends StatelessWidget {
                       color: Color(0xFF5C7386),
                     ),
                   ),
+                  if (grupo.formulaJuramento != null && grupo.formulaJuramento!.isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      (grupo.formulaJuramento!.toUpperCase().contains('DIOS'))
+                          ? '✝️ Jura: Dios y la Patria'
+                          : '🏛️ Jura: Por la Patria',
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w700,
+                        color: (grupo.formulaJuramento!.toUpperCase().contains('DIOS'))
+                            ? const Color(0xFFB45309)
+                            : const Color(0xFF0369A1),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),

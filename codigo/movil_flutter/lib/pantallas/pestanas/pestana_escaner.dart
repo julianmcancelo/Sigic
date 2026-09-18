@@ -2325,6 +2325,37 @@ class _TarjetaFlotanteGrupo extends StatelessWidget {
                         fontSize: 12,
                       ),
                     ),
+                    if (grupo.formulaJuramento != null && grupo.formulaJuramento!.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: (grupo.formulaJuramento!.toUpperCase().contains('DIOS'))
+                              ? const Color(0xFFF59E0B).withValues(alpha: 0.22)
+                              : const Color(0xFF38BDF8).withValues(alpha: 0.22),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                            color: (grupo.formulaJuramento!.toUpperCase().contains('DIOS'))
+                                ? const Color(0xFFFBBF24)
+                                : const Color(0xFF7DD3FC),
+                            width: 0.8,
+                          ),
+                        ),
+                        child: Text(
+                          (grupo.formulaJuramento!.toUpperCase().contains('DIOS'))
+                              ? 'JURA: DIOS Y PATRIA'
+                              : 'JURA: POR LA PATRIA',
+                          style: TextStyle(
+                            color: (grupo.formulaJuramento!.toUpperCase().contains('DIOS'))
+                                ? const Color(0xFFFDE68A)
+                                : const Color(0xFFE0F2FE),
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),

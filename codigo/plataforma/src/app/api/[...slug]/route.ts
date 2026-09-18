@@ -1052,6 +1052,7 @@ export async function GET(
           e.dni,
           e.legajo,
           e.carrera,
+          e.formula_juramento,
           e.asiento_id,
           COALESCE(e.presente, FALSE) AS presente,
           e.fecha_presente,

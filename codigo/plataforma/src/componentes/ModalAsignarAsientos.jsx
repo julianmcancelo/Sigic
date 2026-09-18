@@ -428,7 +428,13 @@ export function ModalAsignarAsientos({
                       </div>
                       <p className="mt-0.5 text-[8.5px] font-bold uppercase tracking-wider text-slate-400 truncate">
                         {persona.tipo === 'egresado'
-                          ? 'Graduado titular'
+                          ? `Graduado titular${
+                              (graduado.formula_juramento || '').toUpperCase().includes('DIOS')
+                                ? ' · ✝️ Jura: Dios y Patria'
+                                : (graduado.formula_juramento || '').toUpperCase() === 'PATRIA'
+                                  ? ' · 🏛️ Jura: Por la Patria'
+                                  : ''
+                            }`
                           : persona.esPadrino
                             ? `${persona.ordenPadrino ? `${persona.ordenPadrino}° ` : ''}Padrino · ${persona.relacion}`
                             : `Acompañante (${persona.relacion}) · No es padrino`}

@@ -41,6 +41,8 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
   const [nivel, setNivel] = useState('baja')
   const [zoom, setZoom] = useState(0.9)
   const [rolPincel, setRolPincel] = useState('egresado')
+  const [verProtocoloJuramento, setVerProtocoloJuramento] = useState(false)
+  const [filtroJuramento, setFiltroJuramento] = useState('TODOS') // 'TODOS' | 'DIOS_Y_PATRIA' | 'PATRIA' | 'SIN_DEFINIR'
   const [estructura, setEstructura] = useState({
     baja: { filas: 7, asientos: 20 },
     alta: { filas: 5, asientos: 22 }
@@ -284,17 +286,31 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
   const totalOcupados = graduadosConAsiento.length + invitadosConAsiento.length
   const disponibles = Math.max(0, totalCapacidad - totalOcupados)
 
+  // Estadísticas protocolares de juramento
+  const totalDiosYPatria = graduados.filter(g => (g.formula_juramento || '').toUpperCase().includes('DIOS')).length
+  const totalPorLaPatria = graduados.filter(g => (g.formula_juramento || '').toUpperCase() === 'PATRIA').length
+  const totalSinDefinir = graduados.length - (totalDiosYPatria + totalPorLaPatria)
+
   // Asientos ocupados en el mapa y tooltip con nombre de asignados
   const mapaRolesVisual = { ...mapaRoles }
   const datosPorAsiento = {}
 
   graduadosConAsiento.forEach(g => {
-    mapaRolesVisual[g.asiento_id] = 'egresado'
+    const esDios = (g.formula_juramento || '').toUpperCase().includes('DIOS')
+    const etiquetaJura = esDios ? 'Dios y Patria' : g.formula_juramento === 'PATRIA' ? 'Por la Patria' : 'General / Sin Definir'
+    
+    // Si la capa protocolar está activa, coloreamos la butaca con el ribete de su juramento
+    if (verProtocoloJuramento) {
+      mapaRolesVisual[g.asiento_id] = esDios ? 'jura_dios' : 'jura_patria'
+    } else {
+      mapaRolesVisual[g.asiento_id] = 'egresado'
+    }
+
     datosPorAsiento[g.asiento_id] = {
       nombre: g.nombre,
       carrera: g.carrera,
       tipo: 'Graduado',
-      juramento: g.formula_juramento === 'DIOS_Y_PATRIA' ? 'Dios y Patria' : 'Por la Patria'
+      juramento: etiquetaJura
     }
   })
 
@@ -310,13 +326,19 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
 
   // Filtrado de graduados para la pestaña de lista
   const graduadosFiltrados = graduados.filter(g => {
+    // Filtro por juramento
+    if (filtroJuramento === 'DIOS_Y_PATRIA' && !(g.formula_juramento || '').toUpperCase().includes('DIOS')) return false
+    if (filtroJuramento === 'PATRIA' && (g.formula_juramento || '').toUpperCase() !== 'PATRIA') return false
+    if (filtroJuramento === 'SIN_DEFINIR' && g.formula_juramento) return false
+
     const q = busqueda.toLowerCase().trim()
     if (!q) return true
     return (
       (g.nombre && g.nombre.toLowerCase().includes(q)) ||
       (g.dni && String(g.dni).includes(q)) ||
       (g.carrera && g.carrera.toLowerCase().includes(q)) ||
-      (g.asiento_id && g.asiento_id.toLowerCase().includes(q))
+      (g.asiento_id && g.asiento_id.toLowerCase().includes(q)) ||
+      (g.formula_juramento && g.formula_juramento.toLowerCase().includes(q))
     )
   })
 
@@ -495,25 +517,49 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
         </div>
 
         {pestana === 'mapa' && (
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Switch Protocolar de Fórmulas de Jura */}
             <button
               type="button"
-              onClick={() => setNivel('baja')}
-              className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase transition cursor-pointer ${
-                nivel === 'baja' ? 'bg-slate-900 text-white shadow-2xs' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+              onClick={() => setVerProtocoloJuramento(!verProtocoloJuramento)}
+              className={`px-2.5 py-1 rounded-md text-[10.5px] font-black transition cursor-pointer flex items-center gap-1.5 border shadow-2xs ${
+                verProtocoloJuramento
+                  ? 'bg-amber-500 text-slate-950 border-amber-400 ring-2 ring-amber-300/40'
+                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
               }`}
+              title="Resaltar las butacas de egresados según si juran Por Dios y la Patria o Por la Patria"
             >
-              Platea Baja
+              <ScrollText size={12} className={verProtocoloJuramento ? 'text-slate-950' : 'text-amber-500'} />
+              <span>{verProtocoloJuramento ? 'Capa Protocolo: Activa' : 'Fórmulas de Jura'}</span>
+              <span className={`px-1 py-0.2 rounded text-[8.5px] font-black uppercase ${
+                verProtocoloJuramento ? 'bg-black text-amber-300' : 'bg-slate-100 text-slate-500'
+              }`}>
+                {totalDiosYPatria + totalPorLaPatria}
+              </span>
             </button>
-            <button
-              type="button"
-              onClick={() => setNivel('alta')}
-              className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase transition cursor-pointer ${
-                nivel === 'alta' ? 'bg-slate-900 text-white shadow-2xs' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
-              }`}
-            >
-              Pullman (Balcón)
-            </button>
+
+            <div className="h-4 w-px bg-slate-200" />
+
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setNivel('baja')}
+                className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase transition cursor-pointer ${
+                  nivel === 'baja' ? 'bg-slate-900 text-white shadow-2xs' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                Platea Baja
+              </button>
+              <button
+                type="button"
+                onClick={() => setNivel('alta')}
+                className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase transition cursor-pointer ${
+                  nivel === 'alta' ? 'bg-slate-900 text-white shadow-2xs' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                Pullman (Balcón)
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -571,6 +617,48 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
                 <span className="text-[10px] font-bold text-slate-400">
                   {graduadosConAsiento.length} graduados ubicados
                 </span>
+              </div>
+            )}
+
+            {/* Banner y Leyenda Protocolar cuando la capa de Juramento está activa */}
+            {verProtocoloJuramento && (
+              <div className="w-full mb-2 p-2.5 rounded-xl bg-gradient-to-r from-amber-500/10 via-sky-500/10 to-transparent border border-amber-300/80 flex flex-wrap items-center justify-between gap-2 text-xs animate-in fade-in duration-200">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-lg bg-amber-500 text-slate-950 font-black flex items-center justify-center text-[10px] shrink-0 shadow-2xs">
+                    ⚖️
+                  </span>
+                  <div>
+                    <p className="font-black text-slate-900 leading-none flex items-center gap-1.5">
+                      Distinción Protocolar de Fórmulas de Jura en Sala
+                      <span className="text-[9px] bg-amber-200 text-amber-900 font-extrabold px-1.5 py-0.2 rounded-full uppercase">
+                        En vivo
+                      </span>
+                    </p>
+                    <p className="text-[10px] text-slate-600 mt-0.5 font-medium">
+                      Visualizá la distribución de bloques para coordinar la toma de juramento desde el estrado.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white border border-amber-300 shadow-2xs">
+                    <span className="w-3.5 h-3.5 rounded bg-blue-700 border-2 border-amber-400 shadow-xs inline-block shrink-0" />
+                    <span className="text-[10px] font-bold text-slate-800">
+                      Dios y la Patria <strong className="text-amber-700">({totalDiosYPatria})</strong>
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white border border-sky-300 shadow-2xs">
+                    <span className="w-3.5 h-3.5 rounded bg-sky-600 border-2 border-sky-300 shadow-xs inline-block shrink-0" />
+                    <span className="text-[10px] font-bold text-slate-800">
+                      Por la Patria <strong className="text-sky-700">({totalPorLaPatria})</strong>
+                    </span>
+                  </div>
+                  {totalSinDefinir > 0 && (
+                    <span className="text-[9.5px] font-semibold text-slate-400">
+                      {totalSinDefinir} sin especificar
+                    </span>
+                  )}
+                </div>
               </div>
             )}
 
@@ -668,20 +756,61 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
       {pestana === 'graduados' && (
         <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden">
           
-          {/* Barra de búsqueda */}
-          <div className="p-2.5 border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2.5 bg-slate-50/50">
+          {/* Barra de búsqueda y Filtro por Juramento */}
+          <div className="p-2.5 border-b border-slate-100 flex flex-col md:flex-row items-center justify-between gap-2.5 bg-slate-50/50">
             <div className="relative flex-1 w-full">
               <Search className="absolute left-3 top-2 text-slate-400" size={13} />
               <input
                 type="text"
-                placeholder="Buscar por nombre, DNI, carrera o butaca..."
+                placeholder="Buscar por nombre, DNI, carrera, juramento o butaca..."
                 value={busqueda}
                 onChange={e => setBusqueda(e.target.value)}
                 className="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-sky-500 shadow-2xs"
               />
             </div>
+
+            {/* Selector de filtro protocolar de juramento */}
+            <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+              <span className="text-[9px] font-black uppercase text-slate-400">Jura:</span>
+              <button
+                type="button"
+                onClick={() => setFiltroJuramento('TODOS')}
+                className={`px-2 py-1 rounded text-[9.5px] font-bold transition cursor-pointer ${
+                  filtroJuramento === 'TODOS'
+                    ? 'bg-slate-900 text-white shadow-xs'
+                    : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                Todos ({graduados.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setFiltroJuramento('DIOS_Y_PATRIA')}
+                className={`px-2 py-1 rounded text-[9.5px] font-bold transition cursor-pointer flex items-center gap-1 ${
+                  filtroJuramento === 'DIOS_Y_PATRIA'
+                    ? 'bg-blue-700 text-white border-blue-800 shadow-xs'
+                    : 'bg-white border border-amber-300 text-amber-900 hover:bg-amber-50/50'
+                }`}
+              >
+                <span>✝️ Dios y Patria</span>
+                <span className="text-[8.5px] font-black px-1 py-0.2 rounded bg-amber-200 text-amber-900">{totalDiosYPatria}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setFiltroJuramento('PATRIA')}
+                className={`px-2 py-1 rounded text-[9.5px] font-bold transition cursor-pointer flex items-center gap-1 ${
+                  filtroJuramento === 'PATRIA'
+                    ? 'bg-sky-600 text-white border-sky-700 shadow-xs'
+                    : 'bg-white border border-sky-300 text-sky-900 hover:bg-sky-50/50'
+                }`}
+              >
+                <span>🏛️ Por la Patria</span>
+                <span className="text-[8.5px] font-black px-1 py-0.2 rounded bg-sky-200 text-sky-900">{totalPorLaPatria}</span>
+              </button>
+            </div>
+
             <div className="text-[10px] font-bold text-slate-500 shrink-0">
-              {graduadosFiltrados.length} de {graduados.length} graduados
+              {graduadosFiltrados.length} filtrados
             </div>
           </div>
 
@@ -692,6 +821,7 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
                 <tr>
                   <th className="py-2 px-3">Estudiante</th>
                   <th className="py-2 px-3">Carrera</th>
+                  <th className="py-2 px-3">Fórmula Jura</th>
                   <th className="py-2 px-3">Butaca Graduado</th>
                   <th className="py-2 px-3">Acompañantes</th>
                   <th className="py-2 px-3 text-right">Acción</th>
@@ -700,13 +830,16 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
               <tbody className="divide-y divide-slate-100 text-[11px]">
                 {graduadosFiltrados.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="py-6 text-center text-slate-400 font-bold text-xs">
-                      No se encontraron graduados registrados.
+                    <td colSpan={6} className="py-6 text-center text-slate-400 font-bold text-xs">
+                      No se encontraron graduados registrados con los filtros seleccionados.
                     </td>
                   </tr>
                 ) : (
                   graduadosFiltrados.map(g => {
                     const invs = invitados.filter(i => i.egresado_id === g.id || i.egresadoId === g.id)
+                    const esDios = (g.formula_juramento || '').toUpperCase().includes('DIOS')
+                    const esPatria = (g.formula_juramento || '').toUpperCase() === 'PATRIA'
+
                     return (
                       <tr key={g.id} className="hover:bg-slate-50/50">
                         <td className="py-2 px-3">
@@ -715,6 +848,19 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
                         </td>
                         <td className="py-2 px-3 text-slate-600 max-w-xs truncate text-[10.5px]">
                           {g.carrera || '-'}
+                        </td>
+                        <td className="py-2 px-3">
+                          {esDios ? (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-black bg-blue-50 text-blue-900 border border-amber-400/80 shadow-2xs">
+                              ✝️ Dios y Patria
+                            </span>
+                          ) : esPatria ? (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-black bg-sky-50 text-sky-900 border border-sky-300 shadow-2xs">
+                              🏛️ Por la Patria
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 italic text-[9.5px]">Sin definir</span>
+                          )}
                         </td>
                         <td className="py-2 px-3">
                           {g.asiento_id ? (

@@ -1421,3 +1421,33 @@ button.sigic-seat[data-rol="padrino"]:hover:not(:disabled) {
   box-shadow: 0 6px 20px rgba(217, 119, 6, 0.6) !important;
   border-color: #fbbf24 !important;
 }
+
+/* 7. Protocolo Académico - Distinción de Jura sobre Butaca de Egresado */
+.sigic-seat--jura-dios,
+button.sigic-seat[data-rol="jura_dios"] {
+  background: linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%) !important;
+  color: #ffffff !important;
+  border: 2px solid #fbbf24 !important;
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.45), 0 3px 10px rgba(29, 78, 216, 0.5) !important;
+}
+.sigic-seat--jura-dios:hover:not(:disabled),
+button.sigic-seat[data-rol="jura_dios"]:hover:not(:disabled) {
+  transform: translateY(-3px) scale(1.08);
+  border-color: #fef08a !important;
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.6), 0 6px 20px rgba(30, 64, 175, 0.6) !important;
+}
+
+.sigic-seat--jura-patria,
+button.sigic-seat[data-rol="jura_patria"] {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+  color: #ffffff !important;
+  border: 2px solid #38bdf8 !important;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.45), 0 3px 10px rgba(2, 132, 199, 0.5) !important;
+}
+.sigic-seat--jura-patria:hover:not(:disabled),
+button.sigic-seat[data-rol="jura_patria"]:hover:not(:disabled) {
+  transform: translateY(-3px) scale(1.08);
+  border-color: #bae6fd !important;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.6), 0 6px 20px rgba(3, 105, 161, 0.6) !important;
+}
+

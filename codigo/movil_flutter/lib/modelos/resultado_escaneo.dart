@@ -51,6 +51,7 @@ class GrupoEgresado {
     required this.asientoId,
     required this.estado,
     required this.presente,
+    this.formulaJuramento,
     this.fechaPresente,
   });
 
@@ -61,6 +62,7 @@ class GrupoEgresado {
   final String asientoId;
   final String estado;
   final bool presente;
+  final String? formulaJuramento;
   final String? fechaPresente;
 
   factory GrupoEgresado.desdeMapa(Map<String, dynamic> mapa) {
@@ -72,11 +74,12 @@ class GrupoEgresado {
       asientoId: (mapa['asiento_id'] ?? '').toString(),
       estado: (mapa['estado'] ?? '').toString(),
       presente: _aBool(mapa['presente']),
+      formulaJuramento: mapa['formula_juramento']?.toString(),
       fechaPresente: mapa['fecha_presente']?.toString(),
     );
   }
 
-  GrupoEgresado copiarCon({bool? presente, String? fechaPresente}) {
+  GrupoEgresado copiarCon({bool? presente, String? fechaPresente, String? formulaJuramento}) {
     return GrupoEgresado(
       id: id,
       nombre: nombre,
@@ -85,6 +88,7 @@ class GrupoEgresado {
       asientoId: asientoId,
       estado: estado,
       presente: presente ?? this.presente,
+      formulaJuramento: formulaJuramento ?? this.formulaJuramento,
       fechaPresente: fechaPresente ?? this.fechaPresente,
     );
   }
