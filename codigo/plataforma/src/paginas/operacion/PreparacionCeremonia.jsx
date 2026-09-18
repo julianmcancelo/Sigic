@@ -3,7 +3,7 @@ import {
   Armchair, Sparkles, Users, Layers, Save, RotateCcw,
   CheckCircle2, AlertCircle, Search, ArrowRight, UserCheck,
   Download, Layout, ShieldCheck, ChevronRight, ChevronLeft,
-  X, Info, GraduationCap, ZoomIn, ZoomOut, Check, Award, RefreshCw
+  X, Info, GraduationCap, ZoomIn, ZoomOut, Check, Award, RefreshCw, ScrollText
 } from 'lucide-react'
 import {
   BASE,
