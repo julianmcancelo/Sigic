@@ -49,7 +49,7 @@ import { AsistenteOperativoCeremonia } from './componentes/AsistenteOperativoCer
 import { MenuInicio } from './componentes/MenuInicio'
 
 // Servicios
-import { validarToken, obtenerCeremoniaActiva, obtenerEstadoSetup, responderInvitacion, limpiarTokenSesion, guardarTokenSesion, obtenerTokenSesion, obtenerAjustes, actualizarAjuste } from './servicios/api'
+import { validarToken, obtenerCeremoniaActiva, obtenerEstadoSetup, responderInvitacion, limpiarTokenSesion, guardarTokenSesion, obtenerTokenSesion, obtenerAjustes, actualizarAjuste, cerrarSesionServidor } from './servicios/api'
 import { generarDatosDemoAleatorios, obtenerDatosDemoActuales, limpiarDatosDemo } from './lib/generador-datos-demo'
 import { demoSandbox } from './lib/demo-sandbox'
 
@@ -68,34 +68,18 @@ function verificarModoDemo() {
     return false
   }
 
-  // 2. Detección automática por subdominio (demo.sigic.com.ar activa demo por defecto)
+  // 2. Detección automática por subdominio exclusivo de demo
   const host = window.location.hostname.toLowerCase()
   if (host === 'demo.sigic.com.ar' || host.startsWith('demo.') || host.includes('-demo.')) {
     return true
   }
-  if (host === 'app.sigic.com.ar') {
-    // En producción institucional real, desactivado por defecto salvo preferencia manual en localStorage
-    const demoGuardado = localStorage.getItem('sigic_modo_demo')
-    if (demoGuardado === 'true') return true
-    return false
-  }
 
-  // 3. Preferencia en memoria local
+  // 3. Preferencia explícita guardada por el usuario en localStorage
   const demoGuardado = localStorage.getItem('sigic_modo_demo')
   if (demoGuardado === 'true') return true
   if (demoGuardado === 'false') return false
 
-  // 4. Si hay una sesión activa con token JWT real, priorizar modo real
-  const token = sessionStorage.getItem('sigic_token')
-  if (token && !token.startsWith('bypass-')) {
-    return false
-  }
-
-  // 5. Variable de entorno explícita
-  if (process.env.NEXT_PUBLIC_DEMO_MODE === 'true') return true
-  if (process.env.NEXT_PUBLIC_DEMO_MODE === 'false') return false
-
-  // 6. Por defecto en SiGIC: Modo Real conectado a PostgreSQL
+  // 4. Modo real institucional por defecto (PostgreSQL real, sin mocks ni bypass)
   return false
 }
 
@@ -665,13 +649,19 @@ function App() {
     setVistaLogin(null)
   }
 
-  function cerrarSesionAdmin() {
+  async function cerrarSesionAdmin() {
     setAdminUser({ nombre: '', correo: '' })
     setAdminActivo(false)
     localStorage.removeItem('sesion_admin')
     localStorage.removeItem('admin_user')
     limpiarTokenSesion()
-    window.location.href = '/'
+    try {
+      await cerrarSesionServidor()
+    } catch (_) {}
+    setVistaLogin(null)
+    if (typeof window !== 'undefined') {
+      window.location.href = '/'
+    }
   }
 
   // ─── 5. LÓGICA DE GRADUADO ───
@@ -1111,8 +1101,8 @@ function App() {
         modoDemo={modoDemoActivo}
         enMantenimiento={enMantenimiento}
         accesoOculto={accesoOculto}
-        onSeleccionarAdmin={() => modoDemoActivo ? manejarLoginAdminExitoso(ADMIN_DEMO) : setVistaLogin('admin')}
-        onSeleccionarEgresado={() => modoDemoActivo ? manejarLoginGraduadoExitoso(EGRESADA_DEMO) : setVistaLogin('graduado')}
+        onSeleccionarAdmin={() => setVistaLogin('admin')}
+        onSeleccionarEgresado={() => setVistaLogin('graduado')}
         onSeleccionarManual={() => setVistaLogin('manual')}
       />
     )
