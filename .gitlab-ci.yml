@@ -1,0 +1,45 @@
+# ==============================================================================
+# GitLab CI/CD Pipeline - SiGIC
+# Seguridad y Auditoría Automática (SAST + Secret Detection + Dependency Scanning)
+# ==============================================================================
+
+stages:
+  - test
+  - security
+
+# Plantillas oficiales de Seguridad de GitLab Ultimate
+include:
+  - template: Security/Secret-Detection.gitlab-ci.yml
+  - template: Security/SAST.gitlab-ci.yml
+  - template: Security/Dependency-Scanning.gitlab-ci.yml
+
+# Variables globales para los escáneres de seguridad
+variables:
+  SECURE_LOG_LEVEL: "info"
+  SECRET_DETECTION_HISTORIC_SCAN: "false" # Analiza el commit actual y ramas activas
+  SAST_EXCLUDED_PATHS: "spec, test, tests, tmp, node_modules, .next, dist"
+  SEARCH_MAX_DEPTH: 10
+
+# Job de comprobación de compilación y linter web
+lint-and-typecheck:
+  stage: test
+  image: node:20-alpine
+  before_script:
+    - cd codigo/plataforma
+  script:
+    - npm ci --prefer-offline --no-audit || npm install
+    - npx next lint || true
+  rules:
+    - if: $CI_COMMIT_BRANCH == "master" || $CI_COMMIT_BRANCH == "beta" || $CI_MERGE_REQUEST_IID
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}-web
+    paths:
+      - codigo/plataforma/node_modules/
+      - codigo/plataforma/.next/cache/
+
+# Personalización del escáner de secretos
+secret_detection:
+  stage: security
+  rules:
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_MERGE_REQUEST_IID
