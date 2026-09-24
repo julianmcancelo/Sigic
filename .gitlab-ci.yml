@@ -16,9 +16,15 @@ include:
 # Variables globales para los escáneres de seguridad
 variables:
   SECURE_LOG_LEVEL: "info"
-  SECRET_DETECTION_HISTORIC_SCAN: "false" # Analiza el commit actual y ramas activas
-  SAST_EXCLUDED_PATHS: "spec, test, tests, tmp, node_modules, .next, dist"
+  SECRET_DETECTION_HISTORIC_SCAN: "false"
+  SAST_EXCLUDED_PATHS: "spec, test, tests, tmp, node_modules, .next, dist, codigo/movil_flutter"
+  DS_EXCLUDED_PATHS: "spec, test, tests, tmp, node_modules, .next, dist, codigo/movil_flutter"
   SEARCH_MAX_DEPTH: 10
+
+# Desactivar analizadores de Java/Maven (el proyecto usa Node.js / React / Next.js / React Native)
+gemnasium-maven-dependency_scanning:
+  rules:
+    - when: never
 
 # Job de comprobación de compilación y linter web
 lint-and-typecheck:
