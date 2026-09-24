@@ -17,6 +17,16 @@
 </p>
 
 <p align="center">
+  <a href="https://gitlab.com/jcancelo-group1/sigic/-/pipelines"><img src="https://gitlab.com/jcancelo-group1/sigic/badges/master/pipeline.svg" alt="GitLab CI Pipeline" /></a>
+  &nbsp;
+  <img src="https://img.shields.io/badge/Security-SAST%20%26%20Secrets%20Passed-brightgreen?style=flat&logo=gitlab" alt="Security Passed" />
+  &nbsp;
+  <img src="https://img.shields.io/badge/APK%20Build-Automated-blue?style=flat&logo=android" alt="APK Automated Build" />
+  &nbsp;
+  <img src="https://img.shields.io/badge/Mirror-GitHub%20%E2%86%94%20GitLab-fc6d26?style=flat&logo=git" alt="Mirror Active" />
+</p>
+
+<p align="center">
   <a href="https://sigic-one.vercel.app">Ver en Producción &rarr; sigic-one.vercel.app</a>
   &nbsp;·&nbsp;
   <a href="https://demo.sigic.com.ar">Demo en Vivo &rarr; demo.sigic.com.ar</a>

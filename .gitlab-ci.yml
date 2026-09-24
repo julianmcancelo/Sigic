@@ -1,10 +1,11 @@
 # ==============================================================================
 # GitLab CI/CD Pipeline - SiGIC
-# Seguridad y Auditoría Automática (SAST + Secret Detection + Dependency Scanning)
+# Seguridad y Auditoría Automática + Compilación APK Flutter
 # ==============================================================================
 
 stages:
   - test
+  - build
   - security
 
 # Plantillas oficiales de Seguridad de GitLab Ultimate
@@ -17,16 +18,18 @@ include:
 variables:
   SECURE_LOG_LEVEL: "info"
   SECRET_DETECTION_HISTORIC_SCAN: "false"
-  SAST_EXCLUDED_PATHS: "spec, test, tests, tmp, node_modules, .next, dist, codigo/movil_flutter"
+  SAST_EXCLUDED_PATHS: "spec, test, tests, tmp, node_modules, .next, dist"
   DS_EXCLUDED_PATHS: "spec, test, tests, tmp, node_modules, .next, dist, codigo/movil_flutter"
   SEARCH_MAX_DEPTH: 10
 
-# Desactivar analizadores de Java/Maven (el proyecto usa Node.js / React / Next.js / React Native)
+# Desactivar analizadores de Java/Maven automáticos (gestionamos el build Android explícitamente)
 gemnasium-maven-dependency_scanning:
   rules:
     - when: never
 
-# Job de comprobación de compilación y linter web
+# ------------------------------------------------------------------------------
+# 1. Comprobación y Linter Web (Next.js)
+# ------------------------------------------------------------------------------
 lint-and-typecheck:
   stage: test
   image: node:20-alpine
@@ -43,7 +46,35 @@ lint-and-typecheck:
       - codigo/plataforma/node_modules/
       - codigo/plataforma/.next/cache/
 
-# Personalización del escáner de secretos
+# ------------------------------------------------------------------------------
+# 2. Compilación Automática del APK Flutter (Portería)
+# ------------------------------------------------------------------------------
+build-flutter-apk:
+  stage: build
+  image: ghcr.io/cirruslabs/flutter:3.29.0
+  before_script:
+    - cd codigo/movil_flutter
+    - flutter doctor -v
+  script:
+    - flutter pub get
+    - flutter build apk --release --no-tree-shake-icons
+    - mkdir -p ../../dist-apk
+    - cp build/app/outputs/flutter-apk/app-release.apk ../../dist-apk/SIGIC-Porteria-Release.apk
+  artifacts:
+    name: "SIGIC-Porteria-APK-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - dist-apk/SIGIC-Porteria-Release.apk
+    expire_in: 30 days
+  rules:
+    # Se ejecuta al crear un tag (ej: movil-v1.0.8), o manualmente con un clic en GitLab
+    - if: $CI_COMMIT_TAG =~ /^movil-/
+    - if: $CI_COMMIT_BRANCH == "master"
+      when: manual
+      allow_failure: true
+
+# ------------------------------------------------------------------------------
+# 3. Escáner de Secretos
+# ------------------------------------------------------------------------------
 secret_detection:
   stage: security
   rules:
