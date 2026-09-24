@@ -1,0 +1,29 @@
+name: Mirror to GitLab
+
+on:
+  push:
+    branches:
+      - master
+      - beta
+      - demo
+    tags:
+      - '*'
+
+jobs:
+  mirror-to-gitlab:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push to GitLab Mirror
+        env:
+          GITLAB_TOKEN: ${{ secrets.GITLAB_TOKEN }}
+        run: |
+          if [ -n "$GITLAB_TOKEN" ]; then
+            git push --prune "https://oauth2:${GITLAB_TOKEN}@gitlab.com/jcancelo-group1/sigic.git" +refs/remotes/origin/*:refs/heads/* +refs/tags/*:refs/tags/*
+          else
+            echo "GITLAB_TOKEN secret not configured, skipping remote GitHub Action mirror."
+          fi
