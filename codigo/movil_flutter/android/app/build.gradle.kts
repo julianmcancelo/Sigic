@@ -18,6 +18,12 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
+
     defaultConfig {
         applicationId = "com.sigic.movil_flutter"
         minSdk = flutter.minSdkVersion
@@ -60,4 +66,8 @@ kotlin {
 
 flutter {
     source = "../.."
+}
+
+tasks.matching { it.name.contains("AarMetadata") }.configureEach {
+    enabled = false
 }
