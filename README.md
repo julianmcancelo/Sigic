@@ -152,6 +152,11 @@ flutter pub get
 flutter run
 ```
 
+> [!TIP]
+> **Descarga directa del APK de Portería (Compilado en CI):**  
+> Puedes descargar el binario release listo para instalar directamente desde los artefactos de GitLab:  
+> [📥 Descargar SIGIC-Porteria-Release.apk (v1.0.8)](https://gitlab.com/jcancelo-group1/sigic/-/jobs/artifacts/movil-v1.0.8/raw/dist-apk/SIGIC-Porteria-Release.apk?job=build-flutter-apk)
+
 Las actualizaciones OTA en producción se gestionan con Shorebird. Ver [`codigo/movil_flutter/README.md`](codigo/movil_flutter/README.md).
 
 ---
