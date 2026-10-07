@@ -27,6 +27,7 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
 
   int _indiceActual = 0;
   String? _mensajeShorebird;
+  ReleaseDisponible? _releasePendiente;
   int _revisionSesion = 0;
   bool _inicializandoSistema = true;
   String _estadoInicio = 'Verificando actualizaciones seguras...';
@@ -78,6 +79,9 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
   Future<void> _avisarNuevaRelease() async {
     final release = await _servicioRelease.buscarNuevaRelease();
     if (!mounted || release == null) return;
+    setState(() {
+      _releasePendiente = release;
+    });
     await showDialog<void>(
       context: context,
       barrierDismissible: !release.required,
@@ -182,20 +186,30 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
                 _indiceActual = indice;
               });
             },
-            destinations: const [
-              NavigationDestination(
+            destinations: [
+              const NavigationDestination(
                 icon: Icon(Icons.qr_code_scanner_outlined),
                 selectedIcon: Icon(Icons.qr_code_scanner),
                 label: 'Escanear',
               ),
-              NavigationDestination(
+              const NavigationDestination(
                 icon: Icon(Icons.groups_2),
                 selectedIcon: Icon(Icons.groups_2),
                 label: 'Asistencia',
               ),
               NavigationDestination(
-                icon: Icon(Icons.settings_outlined),
-                selectedIcon: Icon(Icons.settings),
+                icon: Badge(
+                  isLabelVisible: _releasePendiente != null,
+                  backgroundColor: const Color(0xFFEF4444),
+                  smallSize: 8,
+                  child: const Icon(Icons.settings_outlined),
+                ),
+                selectedIcon: Badge(
+                  isLabelVisible: _releasePendiente != null,
+                  backgroundColor: const Color(0xFFEF4444),
+                  smallSize: 8,
+                  child: const Icon(Icons.settings),
+                ),
                 label: 'Ajustes',
               ),
             ],

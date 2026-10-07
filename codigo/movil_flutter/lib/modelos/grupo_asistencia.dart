@@ -27,6 +27,18 @@ class GrupoAsistencia {
   int get personasPresentes => invitadosPresentes + (presente ? 1 : 0);
   int get totalPersonas => invitados.length + 1;
 
+  Map<String, dynamic> aMapa() => {
+    'id': id,
+    'nombre': nombre,
+    'dni': dni,
+    'legajo': legajo,
+    'carrera': carrera,
+    'asiento_id': asientoId,
+    'presente': presente,
+    if (formulaJuramento != null) 'formula_juramento': formulaJuramento,
+    'invitados': invitados.map((inv) => inv.aMapa()).toList(),
+  };
+
   factory GrupoAsistencia.desdeMapa(Map<String, dynamic> mapa) {
     final invitadosRaw = mapa['invitados'];
     final invitados = invitadosRaw is List

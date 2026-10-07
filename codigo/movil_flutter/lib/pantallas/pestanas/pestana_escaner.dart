@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
@@ -13,7 +12,9 @@ import '../../modelos/resultado_escaneo.dart';
 import '../../modelos/usuario_sesion.dart';
 import '../../nucleo/tema/tema_sigic.dart';
 import '../../servicios/servicio_api.dart';
+import '../../servicios/servicio_feedback.dart';
 import '../../widgets/panel_tarjeta.dart';
+import '../../widgets/visor_camara_widget.dart';
 
 class PestanaEscaner extends StatefulWidget {
   const PestanaEscaner({
@@ -436,9 +437,9 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
               .toString();
 
       if (yaAcreditado) {
-        HapticFeedback.heavyImpact();
+        ServicioFeedback.accesoDenegado();
       } else {
-        HapticFeedback.mediumImpact();
+        ServicioFeedback.accesoPermitido();
       }
 
       if (actualizado?.tipo == TipoResultadoEscaneo.individual) {
@@ -493,9 +494,9 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
       setState(() => _resultado = _resultado?.marcarGraduadoPresente());
       final yaAcreditado = respuesta['yaAcreditado'] == true;
       if (yaAcreditado) {
-        HapticFeedback.heavyImpact();
+        ServicioFeedback.accesoDenegado();
       } else {
-        HapticFeedback.mediumImpact();
+        ServicioFeedback.accesoPermitido();
       }
       await _mostrarMensaje(
         yaAcreditado ? 'Graduado ya acreditado' : 'Ingreso del graduado',
@@ -546,7 +547,7 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
       final detalleOmitidos = omitidos > 0
           ? ' $omitidos ya estaban acreditados.'
           : '';
-      HapticFeedback.mediumImpact();
+      ServicioFeedback.accesoPermitido();
       if (mounted) {
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
@@ -1066,7 +1067,17 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
           const SizedBox(height: 12),
 
           // Buscador / Ingreso dinamico manual sin abrir camara
-          _construirBuscadorDinamico(context, tema),
+          Row(
+            children: [
+              Expanded(child: _construirBuscadorDinamico(context, tema)),
+              const SizedBox(width: 8),
+              IconButton.filledTonal(
+                onPressed: _abrirIngresoManual,
+                icon: const Icon(Icons.keyboard_alt_outlined),
+                tooltip: 'Ingreso manual por código',
+              ),
+            ],
+          ),
 
           if (_ceremoniasAutorizadas.length > 1) ...[
             const SizedBox(height: 14),
@@ -1385,7 +1396,14 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
         Positioned.fill(
           child: kIsWeb
               ? _construirVistaEscaneoWeb(context)
-              : _construirVistaCamara(context),
+              : VisorCamaraWidget(
+                  controlador: _controladorCamara,
+                  alDetectarCodigo: _procesarCodigo,
+                  alCerrar: _cerrarCamara,
+                  estadisticas: _estadisticas,
+                  token: _token,
+                  enVivo: _resultado?.tipo == TipoResultadoEscaneo.individual,
+                ),
         ),
         if (_resultado != null)
           Positioned.fill(
@@ -1477,228 +1495,6 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _construirVistaCamara(BuildContext context) {
-    final tema = Theme.of(context);
-    final estadisticas = _estadisticas;
-    final enVivo = _token != null && _ceremonia != null;
-
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: MobileScanner(
-            controller: _controladorCamara,
-            onDetect: (captura) {
-              final codigo = captura.barcodes.isEmpty
-                  ? null
-                  : captura.barcodes.first.rawValue;
-              if (codigo != null) {
-                _procesarCodigo(codigo);
-              }
-            },
-          ),
-        ),
-        Positioned.fill(
-          child: DecoratedBox(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xC70A1422),
-                  Color(0x4D101C2D),
-                  Color(0x99071019),
-                ],
-              ),
-            ),
-            child: SafeArea(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        IconButton.filled(
-                          style: IconButton.styleFrom(
-                            backgroundColor: Colors.white.withValues(
-                              alpha: 0.14,
-                            ),
-                            foregroundColor: Colors.white,
-                          ),
-                          onPressed: _cerrarCamara,
-                          icon: const Icon(Icons.arrow_back_rounded),
-                        ),
-                        const SizedBox(width: 8),
-                        IconButton.filled(
-                          tooltip: 'Ingresar código manual',
-                          style: IconButton.styleFrom(backgroundColor: Colors.white.withValues(alpha: 0.14), foregroundColor: Colors.white),
-                          onPressed: _abrirIngresoManual,
-                          icon: const Icon(Icons.keyboard_alt_outlined),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                enVivo
-                                    ? 'Acreditando en vivo'
-                                    : _token == null
-                                    ? 'Escanear QR de acceso'
-                                    : 'Escanear acreditacion',
-                                style: tema.textTheme.titleMedium?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                              const SizedBox(height: 3),
-                              Text(
-                                enVivo
-                                    ? _ceremonia!.nombre
-                                    : _token == null
-                                    ? 'Apunta al QR de configuracion o inicio de sesion.'
-                                    : 'Alinea el codigo dentro del marco para acreditar rapido.',
-                                style: tema.textTheme.bodySmall?.copyWith(
-                                  color: Colors.white.withValues(alpha: 0.8),
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (enVivo && estadisticas != null) ...[
-                          const SizedBox(width: 10),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 11,
-                              vertical: 7,
-                            ),
-                            decoration: BoxDecoration(
-                              color: TemaSigic.exito.withValues(alpha: 0.22),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: TemaSigic.exito.withValues(alpha: 0.45),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: 7,
-                                  height: 7,
-                                  margin: const EdgeInsets.only(right: 6),
-                                  decoration: const BoxDecoration(
-                                    color: TemaSigic.exito,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                Text(
-                                  '${estadisticas.presentes}/${estadisticas.totalInvitados}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w800,
-                                    fontFamily: 'monospace',
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  const Spacer(),
-                  Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Container(
-                        width: 292,
-                        height: 292,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(40),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.16),
-                            width: 1.4,
-                          ),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Color(0x66000000),
-                              blurRadius: 28,
-                              spreadRadius: 4,
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(
-                        width: 274,
-                        height: 274,
-                        child: CustomPaint(painter: _MarcoEscanerPainter()),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 28),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 14,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(22),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.12),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: TemaSigic.azulBrillante.withValues(
-                              alpha: 0.22,
-                            ),
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: Icon(
-                            enVivo
-                                ? Icons.autorenew
-                                : Icons.center_focus_strong,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            enVivo
-                                ? 'La camara sigue activa: cada escaneo suma sin salir de esta pantalla.'
-                                : _token == null
-                                ? 'Este escaner acepta QR de configuracion y de acceso seguro.'
-                                : 'El sistema reconocera invitados individuales o grupos completos.',
-                            style: tema.textTheme.bodyMedium?.copyWith(
-                              color: Colors.white,
-                              height: 1.3,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 28),
-                  if (_cargandoEscaneo && _resultado == null)
-                    const CircularProgressIndicator(color: Colors.white),
-                  const SizedBox(height: 32),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 
@@ -1809,55 +1605,6 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
 }
 
 enum EstadoSesion { comprobando, autenticado, invitado, sinConexion, expirada }
-
-class _MarcoEscanerPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    const colorEsquina = Color(0xFF7DD3FC);
-    final pintura = Paint()
-      ..color = colorEsquina
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 5
-      ..strokeCap = StrokeCap.round;
-
-    const largoEsquina = 34.0;
-    const radio = 26.0;
-    final rect = Offset.zero & size;
-
-    final ruta = Path()
-      ..moveTo(rect.left, rect.top + largoEsquina)
-      ..lineTo(rect.left, rect.top + radio)
-      ..quadraticBezierTo(rect.left, rect.top, rect.left + radio, rect.top)
-      ..lineTo(rect.left + largoEsquina, rect.top)
-      ..moveTo(rect.right - largoEsquina, rect.top)
-      ..lineTo(rect.right - radio, rect.top)
-      ..quadraticBezierTo(rect.right, rect.top, rect.right, rect.top + radio)
-      ..lineTo(rect.right, rect.top + largoEsquina)
-      ..moveTo(rect.right, rect.bottom - largoEsquina)
-      ..lineTo(rect.right, rect.bottom - radio)
-      ..quadraticBezierTo(
-        rect.right,
-        rect.bottom,
-        rect.right - radio,
-        rect.bottom,
-      )
-      ..lineTo(rect.right - largoEsquina, rect.bottom)
-      ..moveTo(rect.left + largoEsquina, rect.bottom)
-      ..lineTo(rect.left + radio, rect.bottom)
-      ..quadraticBezierTo(
-        rect.left,
-        rect.bottom,
-        rect.left,
-        rect.bottom - radio,
-      )
-      ..lineTo(rect.left, rect.bottom - largoEsquina);
-
-    canvas.drawPath(ruta, pintura);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
 
 /// Tarjeta hero de la ceremonia activa (pantalla de inicio, direccion 2d).
 class _TarjetaCeremoniaActiva extends StatelessWidget {

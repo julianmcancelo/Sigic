@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 
+import 'package:url_launcher/url_launcher.dart';
+
 import '../../modelos/usuario_sesion.dart';
 import '../../servicios/servicio_api.dart';
 import '../../servicios/servicio_shorebird.dart';
+import '../../servicios/servicio_release.dart';
 import '../../widgets/panel_tarjeta.dart';
 import '../../nucleo/tema/controlador_tema.dart';
 import '../../nucleo/tema/tema_sigic.dart';
@@ -28,6 +31,9 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
   final TextEditingController _controladorCorreo = TextEditingController();
   final TextEditingController _controladorContrasena = TextEditingController();
 
+  final ServicioRelease _servicioRelease = ServicioRelease();
+  ReleaseDisponible? _releaseDisponible;
+  bool _buscandoActualizacion = false;
   bool _probandoConexion = false;
   bool _iniciandoSesion = false;
   bool? _conexionActiva;
@@ -185,9 +191,28 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
   }
 
   Future<void> _buscarActualizacion() async {
-    final mensaje = await widget.servicioShorebird
-        .buscarYDescargarActualizacion();
-    _mostrarSnack(mensaje ?? 'No hay actualizaciones nuevas por ahora.');
+    setState(() => _buscandoActualizacion = true);
+    try {
+      final mensajeShorebird = await widget.servicioShorebird
+          .buscarYDescargarActualizacion();
+      final release = await _servicioRelease.buscarNuevaRelease();
+      if (!mounted) return;
+      setState(() {
+        _releaseDisponible = release;
+      });
+
+      if (release != null) {
+        _mostrarSnack(
+          '¡Nueva versión SiGIC ${release.version} disponible en GitHub!',
+        );
+      } else if (mensajeShorebird != null) {
+        _mostrarSnack(mensajeShorebird);
+      } else {
+        _mostrarSnack('La aplicación está en su versión más reciente.');
+      }
+    } finally {
+      if (mounted) setState(() => _buscandoActualizacion = false);
+    }
   }
 
   void _mostrarSnack(String mensaje) {
@@ -511,14 +536,83 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    'Las mejoras se descargan en segundo plano y quedan listas al reiniciar la aplicación.',
+                    'Las mejoras se descargan en segundo plano con Shorebird y quedan listas al reiniciar.',
                     style: TextStyle(color: Color(0xFF5C7386), height: 1.35),
                   ),
+                  if (_releaseDisponible != null) ...[
+                    const SizedBox(height: 14),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0A7F5F).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFF0A7F5F).withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(
+                                Icons.new_releases,
+                                color: Color(0xFF0A7F5F),
+                                size: 18,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Versión ${_releaseDisponible!.version} disponible',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  color: Color(0xFF0A7F5F),
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            _releaseDisponible!.notes,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF334155),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          FilledButton.icon(
+                            onPressed: () async {
+                              final uri = Uri.tryParse(_releaseDisponible!.apkUrl);
+                              if (uri != null) {
+                                await launchUrl(uri, mode: LaunchMode.externalApplication);
+                              }
+                            },
+                            style: FilledButton.styleFrom(
+                              backgroundColor: const Color(0xFF0A7F5F),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                            icon: const Icon(Icons.download, size: 16),
+                            label: const Text('Descargar APK e instalar'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 14),
                   FilledButton.tonalIcon(
-                    onPressed: _buscarActualizacion,
-                    icon: const Icon(Icons.system_update_alt),
-                    label: const Text('Buscar actualización ahora'),
+                    onPressed: _buscandoActualizacion ? null : _buscarActualizacion,
+                    icon: _buscandoActualizacion
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.system_update_alt),
+                    label: Text(
+                      _buscandoActualizacion
+                          ? 'Comprobando servidores...'
+                          : 'Buscar actualización ahora',
+                    ),
                   ),
                 ],
               ),

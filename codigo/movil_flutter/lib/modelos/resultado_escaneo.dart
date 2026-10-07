@@ -29,6 +29,16 @@ class InvitadoEscaneado {
     );
   }
 
+  Map<String, dynamic> aMapa() => {
+    'id': id,
+    'nombre': nombre,
+    'dni': dni,
+    'relacion': relacion,
+    'presente': presente,
+    'discapacidad': discapacidad,
+    if (fechaPresente != null) 'fecha_presente': fechaPresente,
+  };
+
   factory InvitadoEscaneado.desdeMapa(Map<String, dynamic> mapa) {
     return InvitadoEscaneado(
       id: (mapa['id'] ?? '').toString(),

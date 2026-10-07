@@ -6,6 +6,8 @@ import '../../modelos/ceremonia_autorizada.dart';
 import '../../modelos/grupo_asistencia.dart';
 import '../../nucleo/tema/tema_sigic.dart';
 import '../../servicios/servicio_api.dart';
+import '../../servicios/servicio_feedback.dart';
+import '../../servicios/servicio_offline.dart';
 import '../../widgets/panel_tarjeta.dart';
 
 class PestanaAsistencia extends StatefulWidget {
@@ -65,18 +67,37 @@ class _PestanaAsistenciaState extends State<PestanaAsistencia> {
 
       if (!mounted) return;
 
+      final grupos = resultados[0] as List<GrupoAsistencia>;
+      final cerActiva = resultados[1] as Ceremonia?;
+      final cerAutorizadas = resultados[2] as List<CeremoniaAutorizada>;
+
+      // Guardar en cache local para disponibilidad offline
+      if (grupos.isNotEmpty) {
+        await ServicioOffline().guardarPadronLocal(grupos);
+      }
+
       setState(() {
-        _grupos = resultados[0] as List<GrupoAsistencia>;
-        _ceremonia = resultados[1] as Ceremonia?;
-        _ceremoniasAutorizadas = resultados[2] as List<CeremoniaAutorizada>;
+        _grupos = grupos;
+        _ceremonia = cerActiva;
+        _ceremoniasAutorizadas = cerAutorizadas;
         _cargando = false;
       });
     } catch (error) {
       if (!mounted) return;
-      setState(() {
-        _error = error.toString().replaceFirst('Exception: ', '');
-        _cargando = false;
-      });
+      // Intento de rescate desde cache local offline
+      final padronCache = await ServicioOffline().obtenerPadronLocal();
+      if (padronCache.isNotEmpty) {
+        setState(() {
+          _grupos = padronCache;
+          _error = 'Modo sin conexión: mostrando padrón en caché local.';
+          _cargando = false;
+        });
+      } else {
+        setState(() {
+          _error = error.toString().replaceFirst('Exception: ', '');
+          _cargando = false;
+        });
+      }
     }
   }
 
@@ -269,18 +290,41 @@ class _PestanaAsistenciaState extends State<PestanaAsistencia> {
   Future<void> _acreditarGraduado(String id) async {
     try {
       await widget.servicioApi.acreditarGraduado(id);
+      await ServicioFeedback.accesoPermitido();
       await _cargar();
     } catch (error) {
-      _mostrarError(error);
+      // Si falla la red, encolar offline y dar feedback positivo al operador
+      await ServicioOffline().encolarAcreditacion(id: id, tipo: 'egresado');
+      await ServicioFeedback.accesoPermitido();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Guardado offline. Se sincronizará al conectar.'),
+            backgroundColor: Color(0xFFF59E0B),
+          ),
+        );
+      }
+      await _cargar();
     }
   }
 
   Future<void> _acreditarInvitado(String id) async {
     try {
       await widget.servicioApi.acreditarInvitado(id);
+      await ServicioFeedback.accesoPermitido();
       await _cargar();
     } catch (error) {
-      _mostrarError(error);
+      await ServicioOffline().encolarAcreditacion(id: id, tipo: 'invitado');
+      await ServicioFeedback.accesoPermitido();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Guardado offline. Se sincronizará al conectar.'),
+            backgroundColor: Color(0xFFF59E0B),
+          ),
+        );
+      }
+      await _cargar();
     }
   }
 
