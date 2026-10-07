@@ -123,3 +123,6 @@ tools/sigic_control_config.json
 respaldo_legacy/
 
 .vercel
+
+*.apk
+dist-apk/
