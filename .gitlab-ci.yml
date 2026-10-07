@@ -54,7 +54,7 @@ build-flutter-apk:
   image: ghcr.io/cirruslabs/flutter:3.29.0
   before_script:
     - cd codigo/movil_flutter
-    - flutter doctor -v
+    - yes | flutter doctor --android-licenses || true
   script:
     - flutter pub get
     - flutter build apk --release --no-tree-shake-icons
