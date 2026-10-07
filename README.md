@@ -27,9 +27,7 @@
 </p>
 
 <p align="center">
-  <a href="https://sigic-one.vercel.app">Ver en Producción &rarr; sigic-one.vercel.app</a>
-  &nbsp;·&nbsp;
-  <a href="https://demo.sigic.com.ar">Demo en Vivo &rarr; demo.sigic.com.ar</a>
+  <a href="https://www.sigic.com.ar">Ver en Producción &rarr; www.sigic.com.ar</a>
 </p>
 
 > [!NOTE]
