@@ -37,3 +37,5 @@ autoinstall:
     - curtin in-target --target=/target -- systemctl enable sigic.service
     # 5. Configurar modo kiosco gráfico
     - curtin in-target --target=/target -- bash /opt/sigic/os-appliance/setup-kiosk.sh
+    # 6. Aplicar personalización visual e institucional
+    - curtin in-target --target=/target -- bash /opt/sigic/os-appliance/custom-branding.sh
