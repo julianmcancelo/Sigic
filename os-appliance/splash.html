@@ -14,8 +14,8 @@
       min-height: 100vh;
       display: grid;
       place-items: center;
-      background: radial-gradient(circle at 50% 43%, rgba(14, 105, 139, 0.28), transparent 28rem),
-                  radial-gradient(circle at 10% 100%, rgba(22, 70, 118, 0.32), transparent 32rem),
+      background: radial-gradient(circle at 50% 40%, rgba(14, 105, 139, 0.32), transparent 28rem),
+                  radial-gradient(circle at 10% 100%, rgba(22, 70, 118, 0.35), transparent 32rem),
                   #03080e;
       color: #d9f7fb;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -27,22 +27,22 @@
       flex-direction: column;
       align-items: center;
       text-align: center;
-      width: min(520px, calc(100% - 40px));
+      width: min(600px, calc(100% - 40px));
       animation: fadeIn 0.8s ease-out;
     }
     .logo-container {
       position: relative;
-      width: 110px;
-      height: 110px;
+      width: 100px;
+      height: 100px;
       display: grid;
       place-items: center;
-      margin-bottom: 24px;
+      margin-bottom: 18px;
     }
     .logo-glow {
       position: absolute;
       inset: 0;
       border: 1px solid rgba(100, 225, 232, 0.28);
-      border-radius: 32px;
+      border-radius: 30px;
       background: rgba(91, 218, 227, 0.04);
       transform: rotate(45deg);
       animation: pulse 2.5s ease-in-out infinite;
@@ -50,9 +50,9 @@
     .logo-img {
       position: relative;
       z-index: 2;
-      width: 72px;
-      height: 72px;
-      border-radius: 18px;
+      width: 68px;
+      height: 68px;
+      border-radius: 16px;
       background: #ffffff;
       box-shadow: 0 0 0 8px rgba(91, 218, 227, 0.08), 0 18px 55px rgba(32, 195, 225, 0.3);
       display: flex;
@@ -68,24 +68,24 @@
     .badge {
       color: #5fe6ed;
       font-family: ui-monospace, "Cascadia Code", monospace;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 700;
       letter-spacing: 0.2em;
       text-transform: uppercase;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
     h1 {
       color: #f5feff;
-      font-size: 38px;
+      font-size: 34px;
       font-weight: 800;
       letter-spacing: -0.02em;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
     p.subtitle {
       color: rgba(225, 248, 250, 0.75);
-      font-size: 16px;
+      font-size: 14px;
       font-weight: 400;
-      margin-bottom: 28px;
+      margin-bottom: 16px;
     }
     .progress-bar {
       width: 220px;
@@ -94,7 +94,7 @@
       border-radius: 99px;
       overflow: hidden;
       position: relative;
-      margin-bottom: 18px;
+      margin-bottom: 14px;
     }
     .progress-bar-fill {
       position: absolute;
@@ -109,9 +109,10 @@
       align-items: center;
       gap: 8px;
       color: rgba(194, 234, 239, 0.6);
-      font-size: 11px;
+      font-size: 10px;
       letter-spacing: 0.08em;
       text-transform: uppercase;
+      margin-bottom: 24px;
     }
     .status-dot {
       width: 6px;
@@ -120,9 +121,50 @@
       background: #6ce8d3;
       box-shadow: 0 0 10px #6ce8d3;
     }
+
+    /* Tarjeta del Equipo y Proyecto */
+    .project-card {
+      background: rgba(10, 26, 44, 0.55);
+      border: 1px solid rgba(100, 225, 232, 0.18);
+      border-radius: 16px;
+      padding: 14px 22px;
+      width: 100%;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+    .project-header {
+      font-size: 11px;
+      font-weight: 700;
+      color: #72e9e6;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 8px;
+      border-bottom: 1px solid rgba(100, 225, 232, 0.15);
+      padding-bottom: 6px;
+    }
+    .team-grid {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 6px 14px;
+      font-size: 12px;
+      color: rgba(225, 248, 250, 0.88);
+    }
+    .team-member {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .team-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: #38bdf8;
+    }
+
     footer {
       position: fixed;
-      bottom: 24px;
+      bottom: 20px;
       left: 32px;
       right: 32px;
       display: flex;
@@ -158,9 +200,9 @@
         <img src="logo.png" alt="SiGIC Logo" onerror="this.style.display='none'">
       </div>
     </div>
-    <div class="badge">Gestión Institucional</div>
+    <div class="badge">Gestión Institucional de Colaciones</div>
     <h1>SiGIC</h1>
-    <p class="subtitle">Iniciando plataforma y servicios de colación...</p>
+    <p class="subtitle">Iniciando plataforma y servicios del auditorio...</p>
     <div class="progress-bar">
       <div class="progress-bar-fill"></div>
     </div>
@@ -168,15 +210,26 @@
       <div class="status-dot"></div>
       <span>Cargando servicios locales</span>
     </div>
+
+    <!-- Información del Trabajo y Equipo -->
+    <div class="project-card">
+      <div class="project-header">Prácticas Profesionalizantes 2026 — Instituto Tecnológico Beltrán</div>
+      <div class="team-grid">
+        <div class="team-member"><span class="team-dot"></span><span>Cancelo Julian</span></div>
+        <div class="team-member"><span class="team-dot"></span><span>Alfonso Alan Alexis</span></div>
+        <div class="team-member"><span class="team-dot"></span><span>Contreras V. Sol</span></div>
+        <div class="team-member"><span class="team-dot"></span><span>Frassia Matias</span></div>
+        <div class="team-member"><span class="team-dot"></span><span>Santillan Luis G.</span></div>
+      </div>
+    </div>
   </div>
 
   <footer>
     <span>Instituto Tecnológico Beltrán</span>
-    <span>Terminal Autónoma SiGIC</span>
+    <span>Terminal Autónoma SiGIC 2026</span>
   </footer>
 
   <script>
-    // Redirigir a la plataforma automáticamente cuando esté lista
     function verificarServidor() {
       fetch('http://localhost:3000/api/estado', { mode: 'no-cors' })
         .then(() => {
