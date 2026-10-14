@@ -13,13 +13,18 @@ let pool: Pool;
 
 if (!global.pgPool) {
   const sslInseguro = process.env.DB_SSL_INSECURE === '1';
+  const esLocalOContenedor = 
+    process.env.DATABASE_URL?.includes('localhost') || 
+    process.env.DATABASE_URL?.includes('sigic-db') ||
+    process.env.DATABASE_URL?.includes('127.0.0.1');
+
   global.pgPool = new Pool({
     connectionString: process.env.DATABASE_URL,
     max: 20,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 5000,
     allowExitOnIdle: true,
-    ssl: process.env.DATABASE_URL?.includes('localhost') 
+    ssl: (esLocalOContenedor && sslInseguro) || process.env.DATABASE_URL?.includes('localhost')
       ? false 
       : {
           rejectUnauthorized: !sslInseguro
