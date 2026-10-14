@@ -40,8 +40,10 @@ mkdir -p iso_nueva/nocloud
 cp user-data iso_nueva/nocloud/user-data
 touch iso_nueva/nocloud/meta-data
 
-# 5. Modificar grub para bootear directamente en autoinstall
-sed -i 's|linux\t/casper/vmlinuz|linux\t/casper/vmlinuz autoinstall ds=nocloud\\;s=/cdrom/nocloud/|g' iso_nueva/boot/grub/grub.cfg
+# 5. Inyectar menú GRUB de arranque oficial con branding SiGIC
+if [ -f grub.cfg ]; then
+  cp grub.cfg iso_nueva/boot/grub/grub.cfg
+fi
 
 # 6. Empaquetar nueva ISO booteable
 echo "Empaquetando $ISO_SALIDA..."
