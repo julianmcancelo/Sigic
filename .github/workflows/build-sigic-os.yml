@@ -1,0 +1,52 @@
+name: Compilar SiGIC OS Appliance (ISO)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Versión del Appliance (ej: 1.0.0)'
+        required: true
+        default: '1.0.0'
+
+jobs:
+  build-iso:
+    name: Compilar ISO Booteable
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout del Repositorio
+        uses: actions/checkout@v4
+
+      - name: Instalar herramientas de compilación de ISO
+        run: |
+          sudo apt update
+          sudo apt install -y p7zip-full xorriso isolinux wget
+
+      - name: Ejecutar generación de ISO de SiGIC OS
+        run: |
+          cd os-appliance
+          chmod +x build-iso.sh setup-kiosk.sh custom-branding.sh
+          ./build-iso.sh
+
+      - name: Subir ISO como Release de GitHub
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+        with:
+          tag_name: "sigic-os-v${{ github.event.inputs.version || '1.0.0' }}"
+          name: "SiGIC OS Appliance v${{ github.event.inputs.version || '1.0.0' }}"
+          draft: false
+          prerelease: false
+          files: os-appliance/*.iso
+          body: |
+            ### 💿 SiGIC OS Appliance (ISO Booteable)
+            
+            Sistema Operativo autónomo y listo para usar en eventos de graduación.
+            
+            - **Arranque directo**: Modo Kiosco con interfaz oficial de SiGIC.
+            - **Base de Datos**: PostgreSQL 16 preconfigurado.
+            - **Usuario por defecto**: `sigic` / `sigic2026`.
+            - **Quemado en Pendrive**: Compatible con Rufus, BalenaEtcher y Ventoy.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
