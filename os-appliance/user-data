@@ -1,0 +1,39 @@
+#cloud-config
+autoinstall:
+  version: 1
+  locale: es_AR.UTF-8
+  keyboard:
+    layout: es
+  identity:
+    hostname: sigic-box
+    username: sigic
+    # Password default: sigic2026 (cifrado con sha-512)
+    password: "$6$rounds=4096$sigicsalt$7v1kK92W1Z3E9vP3wL1tYg0iQ5k0N3xQ2b1p6R7z8c3y4v5w6x7y8z9a0b1c2d3e4f5g6h7i8j9k0"
+    realname: "SiGIC Appliance"
+  ssh:
+    install-server: true
+    allow-pw: true
+  packages:
+    - docker.io
+    - docker-compose-plugin
+    - git
+    - curl
+    - openbox
+    - xorg
+    - xinit
+    - nodm
+    - chromium-browser
+    - unclutter
+  late-commands:
+    # 1. Habilitar y arrancar Docker
+    - curtin in-target --target=/target -- systemctl enable docker
+    # 2. Agregar usuario sigic al grupo docker
+    - curtin in-target --target=/target -- usermod -aG docker sigic
+    # 3. Clonar SiGIC en /opt/sigic
+    - curtin in-target --target=/target -- git clone https://github.com/julianmcancelo/Sigic.git /opt/sigic
+    - curtin in-target --target=/target -- chown -R sigic:sigic /opt/sigic
+    # 4. Instalar servicio systemd de SiGIC
+    - curtin in-target --target=/target -- cp /opt/sigic/os-appliance/sigic.service /etc/systemd/system/sigic.service
+    - curtin in-target --target=/target -- systemctl enable sigic.service
+    # 5. Configurar modo kiosco gráfico
+    - curtin in-target --target=/target -- bash /opt/sigic/os-appliance/setup-kiosk.sh
