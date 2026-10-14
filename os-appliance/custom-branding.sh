@@ -2,12 +2,12 @@
 set -e
 
 # ==============================================================================
-# Script de Personalización Estética y de Marca (Branding) para SiGIC Linux
+# Script de Personalización Estética y de Marca para SiGIC Linux
 # ==============================================================================
 
 echo "=== Aplicando personalización visual e institucional a SiGIC Linux ==="
 
-# 1. Mensaje de Bienvenida en Terminal (MOTD) 100% en Español
+# 1. Mensaje de bienvenida en terminal (simple y claro)
 cat << 'EOF' > /etc/motd
    _____ _ _____ _____ _____ 
   / ____(_) ____|_   _/ ____|
@@ -16,20 +16,20 @@ cat << 'EOF' > /etc/motd
   ____) | | |___ _| || |____ 
  |_____/|_|_____|_____\_____|
  
- Sistema de Gestión Institucional de Colaciones
- Instituto Tecnológico Beltrán — Prácticas Profesionalizantes 2026
+ Sistema de Gestión de Colaciones
+ Instituto Tecnológico Beltrán — Práctica Profesionalizante 2026
  ------------------------------------------------------------------
- Equipo de Desarrollo:
+ Alumnos:
  • Cancelo Julián
  • Alfonso Alan Alexis
  • Contreras Villalba Sol Heilin
  • Frassia Matías
  • Santillán Luis Gabriel
  ------------------------------------------------------------------
- Estado del Sistema:
- • Portal Web:        http://localhost:3000
- • Ver Servicios:     docker compose -f /opt/sigic/docker-compose.yml ps
- • Ver Registros:     docker compose -f /opt/sigic/docker-compose.yml logs -f
+ Acceso al sistema:
+ • Web local:       http://localhost:3000
+ • Estado:          docker compose -f /opt/sigic/docker-compose.yml ps
+ • Ver registros:   docker compose -f /opt/sigic/docker-compose.yml logs -f
  ------------------------------------------------------------------
 EOF
 
@@ -61,8 +61,8 @@ cat << 'EOF' > /etc/skel/.config/openbox/rc.xml
 </openbox_config>
 EOF
 
-# 4. Hostname y banner de red institucional
+# 4. Hostname
 echo "sigic-appliance" > /etc/hostname
 sed -i 's/127.0.1.1.*/127.0.1.1\tsigic-appliance/g' /etc/hosts 2>/dev/null || true
 
-echo "¡Personalización estética e institucional aplicada exitosamente!"
+echo "¡Personalización aplicada exitosamente!"
