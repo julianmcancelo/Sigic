@@ -29,13 +29,16 @@ unclutter -idle 3 -root &
 # Iniciar gestor de ventanas liviano
 openbox-session &
 
-# Esperar a que el backend de SiGIC esté respondiendo en localhost:3000
-echo "Esperando a SiGIC..."
-until curl -s http://localhost:3000/api/estado > /dev/null 2>&1 || curl -s http://localhost:3000 > /dev/null 2>&1; do
-  sleep 2
-done
+# Copiar pantalla de bienvenida estética y logo
+mkdir -p /opt/sigic-splash
+cp /opt/sigic/os-appliance/splash.html /opt/sigic-splash/index.html
+if [ -f "/opt/sigic/codigo/plataforma/public/logo.png" ]; then
+  cp /opt/sigic/codigo/plataforma/public/logo.png /opt/sigic-splash/logo.png
+fi
+chown -R sigic:sigic /opt/sigic-splash
 
 # Lanzar Chromium en modo Kiosco a pantalla completa
+# Abre la pantalla de carga idéntica a SiGIC de inmediato, la cual redirige sola al detectar el servidor
 chromium-browser \
   --kiosk \
   --noerrdialogs \
@@ -46,7 +49,7 @@ chromium-browser \
   --disable-pinch \
   --overscroll-history-navigation=0 \
   --disable-features=Translate \
-  --app=http://localhost:3000
+  --app=file:///opt/sigic-splash/index.html
 EOF
 
 chmod +x /home/sigic/.xsession
