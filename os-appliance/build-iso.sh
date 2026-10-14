@@ -21,11 +21,18 @@ for cmd in xorriso 7z mksquashfs; do
   fi
 done
 
-# 2. Descargar ISO oficial si no existe
-if [ ! -f "$ISO_ORIGINAL" ]; then
-  echo "Descargando imagen base de Ubuntu Server..."
-  wget "https://releases.ubuntu.com/24.04/${ISO_ORIGINAL}"
+# 2. Descargar ISO oficial de Ubuntu Server
+# Ubuntu actualiza los releases puntuales (ej: 24.04.2 / 24.04.3 / 24.04.5), por lo que resolvemos el enlace actual
+if [ ! -f "ubuntu-base.iso" ]; then
+  echo "Resolviendo enlace oficial de descarga de Ubuntu Server 24.04 LTS..."
+  ISO_URL=$(curl -sL "https://releases.ubuntu.com/24.04/" | grep -oP 'href="\Kubuntu-24\.04\.[0-9]+-live-server-amd64\.iso' | head -n 1)
+  if [ -z "$ISO_URL" ]; then
+    ISO_URL="ubuntu-24.04.5-live-server-amd64.iso"
+  fi
+  echo "Descargando: https://releases.ubuntu.com/24.04/${ISO_URL} ..."
+  wget -O "ubuntu-base.iso" "https://releases.ubuntu.com/24.04/${ISO_URL}"
 fi
+ISO_ORIGINAL="ubuntu-base.iso"
 
 # 3. Preparar directorios de trabajo
 echo "Extrayendo imagen..."
