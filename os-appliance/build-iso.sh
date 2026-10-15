@@ -58,19 +58,26 @@ echo "SiGIC OS 2026 - Instituto Tecnologico Beltran" > iso_nueva/.disk/info 2>/d
 ISO_SALIDA="sigic-os-ubuntu-desktop-amd64.iso"
 echo "Empaquetando $ISO_SALIDA..."
 
+# Detectar archivos de booteo presentes
+BOOT_ARGS=""
+if [ -f "iso_nueva/boot/grub/i386-pc/eltorito.img" ]; then
+  BOOT_ARGS="-b boot/grub/i386-pc/eltorito.img -c boot.catalog -no-emul-boot -boot-load-size 4 -boot-info-table"
+elif [ -f "iso_nueva/isolinux/isolinux.bin" ]; then
+  BOOT_ARGS="-b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table"
+fi
+
+EFI_ARGS=""
+if [ -f "iso_nueva/boot/grub/efi.img" ]; then
+  EFI_ARGS="-eltorito-alt-boot -e boot/grub/efi.img -no-emul-boot -isohybrid-gpt-basdat"
+elif [ -f "iso_nueva/EFI/boot/bootx64.efi" ]; then
+  EFI_ARGS="-eltorito-alt-boot -e EFI/boot/bootx64.efi -no-emul-boot"
+fi
+
 xorriso -as mkisofs \
-  -r -V "SIGIC_UBUNTU" \
-  -J -l -b boot/grub/i386-pc/eltorito.img \
-  -c boot.catalog \
-  -no-emul-boot -boot-load-size 4 -boot-info-table \
-  -eltorito-alt-boot \
-  -e boot/grub/efi.img \
-  -no-emul-boot -isohybrid-gpt-basdat \
-  -o "$ISO_SALIDA" \
-  iso_nueva 2>/dev/null || \
-xorriso -as mkisofs \
-  -r -V "SIGIC_UBUNTU" \
+  -r -V "SIGIC_OS" \
   -J -l \
+  $BOOT_ARGS \
+  $EFI_ARGS \
   -o "$ISO_SALIDA" \
   iso_nueva
 
