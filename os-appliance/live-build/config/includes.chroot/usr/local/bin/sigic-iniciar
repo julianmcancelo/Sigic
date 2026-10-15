@@ -28,9 +28,11 @@ gio set "$HOME/Desktop"/*.desktop metadata::trusted true 2>/dev/null || true
   xfdesktop --reload 2>/dev/null || true
 ) &
 
-# Lanzar la Pantalla de Bienvenida y Login de SiGIC OS
+# Lanzar la Pantalla de Bienvenida y Login de SiGIC OS con soporte CORS local
 exec chromium \
   --no-first-run --no-default-browser-check --noerrdialogs \
   --disable-infobars --disable-session-crashed-bubble \
+  --disable-web-security --allow-file-access-from-files \
+  --user-data-dir=/tmp/chromium-sigic \
   --password-store=basic --lang=es-AR --start-fullscreen \
   --app=file:///opt/sigic/bienvenida-os.html

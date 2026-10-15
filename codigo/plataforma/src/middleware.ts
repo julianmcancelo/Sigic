@@ -2,6 +2,20 @@ import { NextRequest, NextResponse } from 'next/server';
 import { origenPermitido } from './lib/request-origin';
 
 export function middleware(request: NextRequest) {
+  // Manejo inmediato de preflight OPTIONS para peticiones de API
+  if (request.method === 'OPTIONS' && request.nextUrl.pathname.startsWith('/api/')) {
+    const origin = request.headers.get('origin');
+    return new NextResponse(null, {
+      status: 204,
+      headers: {
+        'Access-Control-Allow-Origin': origin === 'null' ? '*' : (origin || '*'),
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization, Bypass-Tunnel-Reminder',
+        'Access-Control-Max-Age': '86400',
+      }
+    });
+  }
+
   if (request.nextUrl.pathname.startsWith('/api/') && !origenPermitido(request)) {
     return NextResponse.json({ error: 'Origen no autorizado.' }, { status: 403 });
   }

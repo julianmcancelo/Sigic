@@ -646,6 +646,18 @@
       }
     }
 
+    async function enviarConReintento(url, opciones, maxReintentos = 3) {
+      for (let intento = 1; intento <= maxReintentos; intento++) {
+        try {
+          const res = await fetch(url, opciones);
+          return res;
+        } catch (err) {
+          if (intento === maxReintentos) throw err;
+          await new Promise(res => setTimeout(res, 1200));
+        }
+      }
+    }
+
     async function procesarEnvio(e, tipo) {
       if (e) e.preventDefault();
       const errBox = document.getElementById('os-error-box');
@@ -656,8 +668,8 @@
       const detalle = document.getElementById('overlay-detail');
 
       overlay.style.display = 'flex';
-      titulo.textContent = tipo === 'primer_inicio' ? '¡Ya casi terminamos!' : 'Iniciando sesión...';
-      detalle.textContent = 'Guardando tus datos en el equipo...';
+      titulo.textContent = tipo === 'primer_inicio' ? 'Configurando tu equipo...' : 'Iniciando sesión...';
+      detalle.textContent = 'Conectando con el sistema operativo local...';
 
       let payload = {};
       if (tipo === 'primer_inicio') {
@@ -678,11 +690,12 @@
       }
 
       try {
-        const res = await fetch('http://localhost:3000/api/sistema/acceso-os', {
+        detalle.textContent = 'Guardando datos en el equipo y la plataforma...';
+        const res = await enviarConReintento('http://localhost:3000/api/sistema/acceso-os', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
-        });
+        }, 3);
 
         const datos = await res.json().catch(() => ({}));
 
@@ -690,13 +703,13 @@
           throw new Error(datos.error || 'Por favor revisá los datos ingresados e intentá nuevamente.');
         }
 
-        detalle.textContent = '✓ Tus datos se guardaron correctamente';
+        detalle.textContent = 'Datos guardados correctamente';
         setTimeout(() => {
-          detalle.textContent = '✓ El primer acto de graduación ya está preparado';
+          detalle.textContent = 'Preparando el primer acto de graduación...';
         }, 400);
 
         setTimeout(() => {
-          detalle.textContent = '¡Todo listo! Abriendo tu panel de trabajo...';
+          detalle.textContent = 'Abriendo tu panel de trabajo institucional...';
         }, 800);
 
         setTimeout(() => {
@@ -706,7 +719,12 @@
 
       } catch (err) {
         overlay.style.display = 'none';
-        errBox.textContent = err.message || 'No se pudo conectar con el servidor local. Aguardá unos segundos.';
+        const msg = (err && err.message) || '';
+        if (msg.includes('Failed to fetch') || msg.includes('NetworkError')) {
+          errBox.textContent = 'El servicio local de SiGIC aún se está iniciando en segundo plano. Por favor aguardá unos instantes y volvé a intentar.';
+        } else {
+          errBox.textContent = msg || 'No se pudo conectar con el servidor local. Aguardá unos segundos.';
+        }
         errBox.style.display = 'block';
       }
     }

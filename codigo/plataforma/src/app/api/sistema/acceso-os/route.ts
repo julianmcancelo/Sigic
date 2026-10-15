@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { query } from '@/lib/db';
 import { firmar } from '@/lib/tokens';
+import { inicializarBaseDatos } from '@/lib/schema';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { execFile } from 'child_process';
@@ -9,6 +10,16 @@ import { promisify } from 'util';
 const execFileAsync = promisify(execFile);
 const RONDAS_BCRYPT = 10;
 const LARGO_MINIMO_PASSWORD = 6;
+
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, Bypass-Tunnel-Reminder',
+};
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: CORS_HEADERS });
+}
 
 async function sincronizarUsuarioLinux(nombre: string, email: string, password: string) {
   if (process.platform === 'linux') {
@@ -28,6 +39,7 @@ async function sincronizarUsuarioLinux(nombre: string, email: string, password: 
 
 export async function GET() {
   try {
+    await inicializarBaseDatos().catch(() => {});
     const res = await query('SELECT COUNT(*)::int AS total FROM usuarios_sistema');
     const total = parseInt(res.rows[0]?.total ?? '0', 10);
     return NextResponse.json({
@@ -36,14 +48,15 @@ export async function GET() {
       requiereSetup: total === 0,
       sistema: 'SiGIC OS',
       institucion: 'Instituto Tecnológico Beltrán'
-    });
+    }, { headers: CORS_HEADERS });
   } catch (error: any) {
-    return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: error.message }, { status: 500, headers: CORS_HEADERS });
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
+    await inicializarBaseDatos().catch(() => {});
     const body = await req.json().catch(() => ({}));
     const tipo = body.tipo || (body.setupKey ? 'primer_inicio' : 'login');
 
@@ -52,7 +65,7 @@ export async function POST(req: NextRequest) {
       const claveIngresada = String(body.setupKey || '').trim();
 
       if (claveIngresada !== '35230531' && claveIngresada !== claveInstalacion) {
-        return NextResponse.json({ ok: false, error: 'Clave de instalación inválida.' }, { status: 403 });
+        return NextResponse.json({ ok: false, error: 'Clave de instalación inválida.' }, { status: 403, headers: CORS_HEADERS });
       }
 
       const nombre = String(body.nombre || '').trim();
@@ -63,10 +76,10 @@ export async function POST(req: NextRequest) {
       const lugarEvento = String(body.lugarEvento || 'Auditorio Central Beltrán').trim();
 
       if (!nombre || !email || !password) {
-        return NextResponse.json({ ok: false, error: 'Nombre, correo y contraseña son obligatorios' }, { status: 400 });
+        return NextResponse.json({ ok: false, error: 'Nombre, correo y contraseña son obligatorios' }, { status: 400, headers: CORS_HEADERS });
       }
       if (password.length < LARGO_MINIMO_PASSWORD) {
-        return NextResponse.json({ ok: false, error: `La contraseña debe tener al menos ${LARGO_MINIMO_PASSWORD} caracteres` }, { status: 400 });
+        return NextResponse.json({ ok: false, error: `La contraseña debe tener al menos ${LARGO_MINIMO_PASSWORD} caracteres` }, { status: 400, headers: CORS_HEADERS });
       }
 
       // Sincronizar cuenta nativa de Linux
@@ -121,7 +134,7 @@ export async function POST(req: NextRequest) {
         mensaje: 'SiGIC OS y plataforma inicializados con éxito',
         token,
         usuario: { id: usuarioId, nombre, email, rol: 'ADMINISTRATIVO' }
-      });
+      }, { headers: CORS_HEADERS });
     }
 
     // Modo LOGIN EXISTENTE
@@ -130,7 +143,7 @@ export async function POST(req: NextRequest) {
       const password = String(body.password || '');
 
       if (!email || !password) {
-        return NextResponse.json({ ok: false, error: 'Ingrese correo y contraseña' }, { status: 400 });
+        return NextResponse.json({ ok: false, error: 'Ingrese correo y contraseña' }, { status: 400, headers: CORS_HEADERS });
       }
 
       const res = await query(
@@ -139,13 +152,13 @@ export async function POST(req: NextRequest) {
       );
 
       if (res.rows.length === 0) {
-        return NextResponse.json({ ok: false, error: 'Usuario no registrado en el sistema.' }, { status: 401 });
+        return NextResponse.json({ ok: false, error: 'Usuario no registrado en el sistema.' }, { status: 401, headers: CORS_HEADERS });
       }
 
       const user = res.rows[0];
       const match = await bcrypt.compare(password, user.password_hash);
       if (!match) {
-        return NextResponse.json({ ok: false, error: 'Contraseña incorrecta.' }, { status: 401 });
+        return NextResponse.json({ ok: false, error: 'Contraseña incorrecta.' }, { status: 401, headers: CORS_HEADERS });
       }
 
       // Sincronizar contraseña y nombre en Linux
@@ -163,12 +176,12 @@ export async function POST(req: NextRequest) {
         mensaje: 'Sesión iniciada correctamente',
         token,
         usuario: { id: user.id, nombre: user.nombre, email: user.email, rol: user.rol }
-      });
+      }, { headers: CORS_HEADERS });
     }
 
-    return NextResponse.json({ ok: false, error: 'Tipo de operación desconocido' }, { status: 400 });
+    return NextResponse.json({ ok: false, error: 'Tipo de operación desconocido' }, { status: 400, headers: CORS_HEADERS });
   } catch (error: any) {
     console.error('Error en acceso-os:', error);
-    return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    return NextResponse.json({ ok: false, error: error.message }, { status: 500, headers: CORS_HEADERS });
   }
 }

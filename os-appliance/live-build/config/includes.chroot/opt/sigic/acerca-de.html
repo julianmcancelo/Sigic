@@ -302,7 +302,12 @@
     }
   </style>
 </head>
-<body>
+<body oncontextmenu="return false;">
+  <script>
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') window.close();
+    });
+  </script>
 
   <div class="os-dialog">
     <!-- Header Limpio y Despejado -->
