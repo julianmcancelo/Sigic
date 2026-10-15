@@ -23,18 +23,16 @@ window.sigic-window {
     background-color: #f1f5f9;
 }
 
-.sigic-headerbar {
-    background: #ffffff;
+headerbar.sigic-headerbar {
+    background-color: #ffffff;
     border-bottom: 1px solid #e2e8f0;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .sigic-main-card {
     background-color: #ffffff;
-    border: 1px solid #e2e8f0;
+    border: 1px solid #cbd5e1;
     border-radius: 16px;
-    padding: 24px;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+    padding: 20px;
 }
 
 .sigic-qr-card {
@@ -46,60 +44,51 @@ window.sigic-window {
 
 .title-main {
     font-size: 20px;
-    font-weight: 800;
+    font-weight: bold;
     color: #0f172a;
 }
 
 .title-section {
     font-size: 13px;
-    font-weight: 700;
+    font-weight: bold;
     color: #0284c7;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
 }
 
 .text-institution {
     font-size: 12px;
-    font-weight: 600;
     color: #64748b;
 }
 
 .team-member {
-    font-size: 13.5px;
-    font-weight: 600;
+    font-size: 13px;
+    font-weight: bold;
     color: #1e293b;
-    padding: 4px 0px;
+    padding: 3px 0px;
 }
 
 .spec-key {
     font-size: 12px;
-    font-weight: 600;
     color: #64748b;
 }
 
 .spec-val {
     font-size: 12px;
-    font-weight: 700;
+    font-weight: bold;
     color: #0f172a;
 }
 
 .btn-primary {
-    background: #0284c7;
+    background-color: #0284c7;
     color: #ffffff;
-    font-weight: 700;
+    font-weight: bold;
     font-size: 13px;
-    border-radius: 999px;
+    border-radius: 18px;
     padding: 8px 18px;
-    border: none;
+    border-width: 0px;
 }
 
 .btn-primary:hover {
-    background: #0369a1;
-}
-
-.status-dot {
-    color: #10b981;
-    font-size: 11px;
+    background-color: #0369a1;
 }
 """
 
@@ -121,10 +110,10 @@ class AcercaDeSigic(Gtk.Window):
 
         # Contenedor principal con margen
         box_principal = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
-        box_principal.set_margin_top(20)
-        box_principal.set_margin_bottom(20)
-        box_principal.set_margin_start(24)
-        box_principal.set_margin_end(24)
+        box_principal.set_margin_top(16)
+        box_principal.set_margin_bottom(16)
+        box_principal.set_margin_start(20)
+        box_principal.set_margin_end(20)
         self.add(box_principal)
 
         # Fila superior: Logo institucional + Titular
@@ -133,7 +122,7 @@ class AcercaDeSigic(Gtk.Window):
         logo_path = "/opt/sigic/logo.png"
         if os.path.exists(logo_path):
             try:
-                pixbuf_logo = GdkPixbuf.Pixbuf.new_from_file_at_scale(logo_path, -1, 48, True)
+                pixbuf_logo = GdkPixbuf.Pixbuf.new_from_file_at_scale(logo_path, -1, 46, True)
                 img_logo = Gtk.Image.new_from_pixbuf(pixbuf_logo)
                 box_top.pack_start(img_logo, False, False, 0)
             except Exception:
@@ -155,7 +144,7 @@ class AcercaDeSigic(Gtk.Window):
         card_central.get_style_context().add_class("sigic-main-card")
 
         # Columna Izquierda: Equipo de Desarrollo y Datos Técnicos
-        col_izq = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        col_izq = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
 
         lbl_sec_equipo = Gtk.Label(xalign=0)
         lbl_sec_equipo.set_markup("<span class='title-section'>Equipo de Desarrollo</span>")
@@ -178,7 +167,7 @@ class AcercaDeSigic(Gtk.Window):
 
         # Separador horizontal
         sep = Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL)
-        col_izq.pack_start(sep, False, False, 6)
+        col_izq.pack_start(sep, False, False, 4)
 
         lbl_sec_specs = Gtk.Label(xalign=0)
         lbl_sec_specs.set_markup("<span class='title-section'>Detalles del Sistema</span>")
@@ -236,7 +225,7 @@ class AcercaDeSigic(Gtk.Window):
             col_der.pack_start(img_qr, False, False, 4)
 
         lbl_qr_desc = Gtk.Label(xalign=0.5)
-        lbl_qr_desc.set_markup("<small><span color='#64748b' weight='medium'>Escaneá con tu teléfono o hacé clic abajo para ingresar</span></small>")
+        lbl_qr_desc.set_markup("<small><span foreground='#64748b'>Escaneá con tu teléfono o hacé clic abajo para ingresar</span></small>")
         lbl_qr_desc.set_line_wrap(True)
         lbl_qr_desc.set_justify(Gtk.Justification.CENTER)
         col_der.pack_start(lbl_qr_desc, False, False, 0)
@@ -253,7 +242,7 @@ class AcercaDeSigic(Gtk.Window):
         box_bottom = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
         
         lbl_status = Gtk.Label(xalign=0)
-        lbl_status.set_markup("<span color='#10b981'>●</span> <small><span color='#475569' weight='semibold'>Sistema operativo listo · Servicio local activo en puerto 3000</span></small>")
+        lbl_status.set_markup("<span foreground='#10b981'>●</span> <small><span foreground='#475569' weight='bold'>Sistema operativo listo · Servicio local activo en puerto 3000</span></small>")
         box_bottom.pack_start(lbl_status, True, True, 0)
 
         btn_cerrar = Gtk.Button(label="Cerrar")
@@ -270,19 +259,22 @@ class AcercaDeSigic(Gtk.Window):
             subprocess.Popen(["xdg-open", url])
 
 def aplicar_estilos():
-    css_provider = Gtk.CssProvider()
-    css_provider.load_from_data(CSS_ESTILOS)
-    screen = Gdk.Screen.get_default()
-    if screen:
-        Gtk.StyleContext.add_provider_for_screen(
-            screen,
-            css_provider,
-            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
-        )
+    try:
+        css_provider = Gtk.CssProvider()
+        css_provider.load_from_data(CSS_ESTILOS)
+        screen = Gdk.Screen.get_default()
+        if screen:
+            Gtk.StyleContext.add_provider_for_screen(
+                screen,
+                css_provider,
+                Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+            )
+    except Exception as err:
+        print(f"Aviso CSS: {err}")
 
 def main():
-    aplicar_estilos()
     win = AcercaDeSigic()
+    aplicar_estilos()
     win.connect("destroy", Gtk.main_quit)
     win.show_all()
     Gtk.main()

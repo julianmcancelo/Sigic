@@ -26,119 +26,108 @@ except Exception as err:
     sys.exit(1)
 
 CSS_ESTILOS = b"""
-* {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-}
-
 window.asistente-bg {
-    background: #eef2f6;
+    background-color: #eef2f6;
 }
 
 .top-bar {
-    background: rgba(255, 255, 255, 0.92);
+    background-color: #ffffff;
     border-bottom: 1px solid #cbd5e1;
     padding: 10px 24px;
 }
 
 .top-title {
     font-size: 14px;
-    font-weight: 800;
+    font-weight: bold;
     color: #0f172a;
 }
 
 .top-pill {
-    background: rgba(2, 132, 199, 0.12);
+    background-color: rgba(2, 132, 199, 0.12);
     color: #0284c7;
     font-size: 11px;
-    font-weight: 800;
+    font-weight: bold;
     border-radius: 6px;
     padding: 3px 8px;
 }
 
 .top-clock {
     font-size: 13px;
-    font-weight: 700;
+    font-weight: bold;
     color: #334155;
 }
 
 .main-card {
     background-color: #ffffff;
     border: 1px solid #cbd5e1;
-    border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+    border-radius: 18px;
 }
 
 .sidebar {
-    background: linear-gradient(180deg, #091a2e 0%, #03080e 100%);
-    border-top-left-radius: 19px;
-    border-bottom-left-radius: 19px;
-    padding: 32px 28px;
+    background-color: #091a2e;
+    border-top-left-radius: 17px;
+    border-bottom-left-radius: 17px;
+    padding: 28px 24px;
 }
 
 .sidebar-title {
-    font-size: 24px;
-    font-weight: 900;
+    font-size: 22px;
+    font-weight: bold;
     color: #ffffff;
 }
 
 .sidebar-sub {
     font-size: 12px;
-    font-weight: 700;
+    font-weight: bold;
     color: #38bdf8;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
 }
 
 .sidebar-desc {
     font-size: 13px;
-    line-height: 1.45;
     color: #94a3b8;
 }
 
 .feature-item {
-    font-size: 12.5px;
-    font-weight: 600;
+    font-size: 12px;
+    font-weight: bold;
     color: #e2e8f0;
 }
 
 .sidebar-footer {
     font-size: 11px;
     color: #64748b;
-    font-weight: 500;
 }
 
 .form-container {
-    padding: 28px 36px;
+    padding: 24px 32px;
 }
 
 .tab-btn {
-    background: #f1f5f9;
+    background-color: #f1f5f9;
     color: #64748b;
     font-size: 13px;
-    font-weight: 700;
-    border-radius: 10px;
+    font-weight: bold;
+    border-radius: 9px;
     padding: 8px 16px;
     border: 1px solid #cbd5e1;
 }
 
 .tab-btn.active {
-    background: #ffffff;
+    background-color: #ffffff;
     color: #0284c7;
     border: 1px solid #0284c7;
-    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.15);
 }
 
 .input-label {
     font-size: 12px;
-    font-weight: 700;
+    font-weight: bold;
     color: #334155;
-    margin-bottom: 2px;
 }
 
 .input-field {
-    background: #ffffff;
+    background-color: #ffffff;
     border: 1px solid #cbd5e1;
-    border-radius: 9px;
+    border-radius: 8px;
     padding: 8px 12px;
     font-size: 13px;
     color: #0f172a;
@@ -146,60 +135,57 @@ window.asistente-bg {
 
 .input-field:focus {
     border-color: #0284c7;
-    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
 }
 
 .btn-primary {
-    background: #0284c7;
+    background-color: #0284c7;
     color: #ffffff;
-    font-size: 14px;
-    font-weight: 800;
-    border-radius: 10px;
-    padding: 11px 20px;
-    border: none;
+    font-size: 13px;
+    font-weight: bold;
+    border-radius: 9px;
+    padding: 10px 20px;
+    border-width: 0px;
 }
 
 .btn-primary:hover {
-    background: #0369a1;
+    background-color: #0369a1;
 }
 
 .btn-pill {
-    background: #f1f5f9;
+    background-color: #f1f5f9;
     color: #334155;
-    font-size: 11.5px;
-    font-weight: 700;
+    font-size: 11px;
+    font-weight: bold;
     border-radius: 8px;
     padding: 5px 10px;
     border: 1px solid #cbd5e1;
 }
 
 .btn-pill:hover {
-    background: #e2e8f0;
+    background-color: #e2e8f0;
     color: #0f172a;
 }
 
 .error-banner {
-    background: #fef2f2;
+    background-color: #fef2f2;
     border: 1px solid #fecaca;
-    border-radius: 9px;
-    padding: 9px 14px;
+    border-radius: 8px;
+    padding: 8px 12px;
     color: #991b1b;
-    font-size: 12.5px;
-    font-weight: 600;
+    font-size: 12px;
+    font-weight: bold;
 }
 
 .status-label {
     font-size: 13px;
-    font-weight: 700;
+    font-weight: bold;
     color: #0284c7;
 }
 
 .footer-system {
     font-size: 11px;
     color: #64748b;
-    font-weight: 500;
-    text-align: center;
-    padding: 10px;
+    padding: 8px;
 }
 """
 
@@ -634,19 +620,22 @@ class AsistenteSigicOS(Gtk.Window):
         GLib.idle_add(Gtk.main_quit)
 
 def aplicar_estilos():
-    css_provider = Gtk.CssProvider()
-    css_provider.load_from_data(CSS_ESTILOS)
-    screen = Gdk.Screen.get_default()
-    if screen:
-        Gtk.StyleContext.add_provider_for_screen(
-            screen,
-            css_provider,
-            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
-        )
+    try:
+        css_provider = Gtk.CssProvider()
+        css_provider.load_from_data(CSS_ESTILOS)
+        screen = Gdk.Screen.get_default()
+        if screen:
+            Gtk.StyleContext.add_provider_for_screen(
+                screen,
+                css_provider,
+                Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+            )
+    except Exception as err:
+        print(f"Aviso CSS: {err}")
 
 def main():
-    aplicar_estilos()
     win = AsistenteSigicOS()
+    aplicar_estilos()
     win.connect("destroy", Gtk.main_quit)
     win.show_all()
     Gtk.main()
