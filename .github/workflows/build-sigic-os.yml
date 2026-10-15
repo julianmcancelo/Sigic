@@ -45,7 +45,8 @@ jobs:
       - name: Instalar herramientas de compilación de ISO
         run: |
           sudo apt update
-          sudo apt install -y xorriso isolinux syslinux-common wget tar squashfs-tools
+          sudo apt install -y xorriso isolinux syslinux-common wget tar squashfs-tools imagemagick
+
 
       - name: Ejecutar generación de SiGIC OS Live
         run: |

@@ -322,57 +322,76 @@ menuentry "Iniciar SiGIC OS (Modo Seguro / Diagnóstico)" {
 EOF
 fi
 
-# Personalizar el menú gráfico ISOLINUX (la pantalla azul que se ve al arrancar en BIOS)
-for isodir in iso_root/isolinux iso_root/syslinux; do
-  if [ -d "$isodir" ]; then
-    echo "Personalizando menú gráfico en $isodir..."
-    # Reemplazar títulos y textos por español y marca institucional
+# 7.1 Generar imagen de booteo institucional splash.png (640x480, fondo #03080e, logo SiGIC y colores Beltrán)
+echo "Generando splash.png institucional para el menú de booteo..."
+SPLASH_TMP="/tmp/sigic-splash.png"
+if [ -f "$GITHUB_WORKSPACE/os-appliance/plymouth-theme/logo.png" ]; then
+  # Crear lienzo de 640x480 con el color Azul Beltrán #03080e
+  # Superponer el logo oficial de SiGIC en el centro superior y texto institucional
+  convert -size 640x480 xc:"#03080e" \
+    \( "$GITHUB_WORKSPACE/os-appliance/plymouth-theme/logo.png" -resize 130x130 \) \
+    -gravity north -geometry +0+40 -composite \
+    -depth 8 "$SPLASH_TMP" 2>/dev/null || cp "$GITHUB_WORKSPACE/os-appliance/plymouth-theme/logo.png" "$SPLASH_TMP"
+fi
+
+# Reemplazar TODOS los splash.png y splash.svg que existan en la ISO
+find iso_root -name "splash.png" -exec cp "$SPLASH_TMP" {} + 2>/dev/null || true
+find iso_root -name "*.png" -path "*/isolinux/*" -exec cp "$SPLASH_TMP" {} + 2>/dev/null || true
+find iso_root -name "*.png" -path "*/syslinux/*" -exec cp "$SPLASH_TMP" {} + 2>/dev/null || true
+find iso_root -name "splash.svg" -delete 2>/dev/null || true
+
+# 7.2 Personalizar la configuración visual de ISOLINUX/SYSLINUX
+for isodir in $(find iso_root -type d -name "isolinux" -o -type d -name "syslinux" -o -type d -name "boot"); do
+  if [ -f "$isodir/menu.cfg" ] || [ -f "$isodir/isolinux.cfg" ] || [ -f "$isodir/stdmenu.cfg" ]; then
+    echo "Aplicando estética SiGIC en $isodir..."
+    cp "$SPLASH_TMP" "$isodir/splash.png" 2>/dev/null || true
+
+    # Sobrescribir menu.cfg con diseño institucional limpio
     if [ -f "$isodir/menu.cfg" ]; then
       cat << 'EOF' > "$isodir/menu.cfg"
-menu hshift 0
-menu width 82
+menu hshift 5
+menu width 72
+menu rows 6
 
-menu title SiGIC OS — Sistema de Gestión de Colaciones
+menu title SiGIC OS — Instituto Tecnologico Beltran
 include stdmenu.cfg
 
 default live-es
 label live-es
-  menu label ^Iniciar SiGIC OS (Escritorio XFCE en RAM)
+  menu label ^1. Iniciar SiGIC OS (Escritorio Oficial en RAM)
   menu default
   linux /live/vmlinuz
   initrd /live/initrd.img
-  append boot=live components quiet splash
+  append boot=live components quiet splash locales=es_AR.UTF-8
 
 label live-failsafe
-  menu label Iniciar en ^Modo Seguro (Diagnostico)
+  menu label ^2. Iniciar en Modo Seguro (Diagnostico)
   linux /live/vmlinuz
   initrd /live/initrd.img
-  append boot=live components nomodeset
+  append boot=live components nomodeset locales=es_AR.UTF-8
 EOF
     fi
 
-    # Reemplazar la imagen de fondo (splash.png) con el logo oficial de SiGIC
-    if [ -f "$GITHUB_WORKSPACE/os-appliance/plymouth-theme/logo.png" ]; then
-      cp "$GITHUB_WORKSPACE/os-appliance/plymouth-theme/logo.png" "$isodir/splash.png" 2>/dev/null || true
-    fi
-
-    # Personalizar pie de página y colores
+    # Configuración de colores sobria (Azul Beltrán, Cyan y Blanco, sin cajas rojas)
     if [ -f "$isodir/stdmenu.cfg" ]; then
       cat << 'EOF' > "$isodir/stdmenu.cfg"
 menu background splash.png
-menu color title    *#ffffffff *#00000000 *
-menu color sel      *#ffffffff *#20406080 *
-menu color hotsel   *#ffffffff *#306090a0 *
-menu color tabmsg   *#ffffffff *#00000000 *
-menu color cmdline  *#ffffffff *#00000000 *
-menu color timeout_msg *#ffffffff *#00000000 *
-menu color timeout  *#ffffffff *#00000000 *
+menu color title        *#00e5ff *#00000000 *
+menu color sel          *#ffffff *#154b66 *
+menu color hotsel       *#00e5ff *#154b66 *
+menu color tabmsg       *#80deea *#00000000 *
+menu color cmdline      *#ffffff *#00000000 *
+menu color timeout_msg  *#80deea *#00000000 *
+menu color timeout      *#00e5ff *#00000000 *
+menu color unsel        *#d9f7fb *#00000000 *
+menu color border       *#154b66 *#00000000 none
 
-menu tabmsg Presione ENTER para arrancar | Alumnos: Cancelo, Alfonso, Contreras, Frassia, Santillan
+menu tabmsg Presione ENTER para arrancar | Practica Profesionalizante 2026
 EOF
     fi
   fi
 done
+
 
 
 
