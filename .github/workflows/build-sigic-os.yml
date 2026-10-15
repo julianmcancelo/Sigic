@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Versión del Appliance (ej: 1.0.0)'
+        description: 'Versión del Appliance (ej: 3.0.0)'
         required: true
-        default: '1.0.0'
+        default: '3.0.0'
 
 jobs:
   build-iso:
-    name: Compilar ISO Booteable
+    name: Compilar ISO Booteable (Debian 12 Live)
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -19,42 +19,41 @@ jobs:
       - name: Checkout del Repositorio
         uses: actions/checkout@v4
 
-      - name: Instalar herramientas de compilación de ISO
+      - name: Instalar herramientas de compilación de Debian Live
         run: |
           sudo apt update
-          sudo apt install -y p7zip-full xorriso isolinux wget dosfstools mtools
+          sudo apt install -y live-build debootstrap isolinux syslinux-common xorriso squashfs-tools p7zip-full
 
-      - name: Ejecutar generación de ISO de SiGIC OS
+      - name: Ejecutar generación de ISO Live de SiGIC OS
         run: |
           cd os-appliance
-          chmod +x build-iso.sh setup-kiosk.sh custom-branding.sh
-          ./build-iso.sh
-          rm -f ubuntu-base.iso debian-*.iso
-          # Dividir la ISO en partes de 1.8GB (.iso.part00, .iso.part01) para no superar el límite de 2GB de GitHub
-          7z a -v1800m sigic-os-ubuntu.7z sigic-os-*.iso
+          chmod +x build-debian-live.sh
+          ./build-debian-live.sh
 
-      - name: Subir imagen como Artifact de GitHub Actions (Descarga directa)
+      - name: Subir ISO completa como Artifact de GitHub Actions (Descarga directa en 1 click)
         uses: actions/upload-artifact@v4
         with:
-          name: sigic-os-ubuntu-iso
+          name: sigic-os-debian12-live-iso
           path: os-appliance/sigic-os-*.iso
           retention-days: 14
 
-      - name: Subir ISO como Release de GitHub
+      - name: Subir ISO a GitHub Releases
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
         with:
-          tag_name: "sigic-os-v${{ github.event.inputs.version || '2.0.2' }}"
-          name: "SiGIC OS Appliance v${{ github.event.inputs.version || '2.0.2' }}"
+          tag_name: "sigic-os-v${{ github.event.inputs.version || '3.0.0' }}"
+          name: "SiGIC OS Debian 12 Live v${{ github.event.inputs.version || '3.0.0' }}"
           draft: false
           prerelease: false
-          files: os-appliance/sigic-os-ubuntu.7z.*
+          files: os-appliance/sigic-os-*.iso
           body: |
-            ### 💿 SiGIC OS Ubuntu Appliance (Booteable)
+            ### 💿 SiGIC OS Debian 12 Live Edition (Booteable)
             
-            Sistema Operativo autónomo con el Escritorio Oficial de SiGIC.
+            Sistema Operativo 100% Live y autónomo con arranque directo a memoria RAM (sin requerir disco).
             
-            - **Descarga**: Descargar las partes `sigic-os-ubuntu.7z.001` y descomprimir con 7-Zip o WinRAR.
-            - También disponible como archivo directo en la pestaña **Artifacts** de este workflow.
+            - **Arranque directo**: Carga en 5 segundos con Openbox + Chromium Kiosk.
+            - **Compatibilidad**: Probado y garantizado tanto para VirtualBox (BIOS y UEFI) como PCs físicas.
+            - **Descarga directa**: Archivo `.iso` único listo para montar en VirtualBox o grabar con Rufus/BalenaEtcher en un pendrive.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
