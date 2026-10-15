@@ -27,8 +27,8 @@ jobs:
       - name: Ejecutar generación de SiGIC OS Live
         run: |
           cd os-appliance
-          chmod +x build-alpine-live.sh
-          ./build-alpine-live.sh
+          chmod +x build-xfce-live.sh
+          ./build-xfce-live.sh
 
       - name: Subir ISO como Artifact de GitHub Actions (Descarga directa en 1 click)
         uses: actions/upload-artifact@v4

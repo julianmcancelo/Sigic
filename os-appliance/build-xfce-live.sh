@@ -15,7 +15,7 @@ mkdir -p "$WORK_DIR"
 cd "$WORK_DIR"
 
 # 2. Descargar la imagen base oficial de Debian 12 Live XFCE
-DEBIAN_LIVE_URL="https://cdimage.debian.org/debian-cd/current-live/amd64/iso-hybrid/debian-live-12.8.0-amd64-xfce.iso"
+DEBIAN_LIVE_URL="https://cdimage.debian.org/debian-cd/current-live/amd64/iso-hybrid/debian-live-13.7.0-amd64-xfce.iso"
 ISO_BASE="debian-live-xfce.iso"
 
 if [ ! -f "$ISO_BASE" ]; then
