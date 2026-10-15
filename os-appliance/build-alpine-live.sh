@@ -195,13 +195,14 @@ echo "Empaquetando $ISO_FINAL con xorriso..."
 xorriso -as mkisofs \
   -r -V "ALPINE_EXT" \
   -J -joliet-long -l \
-  -isohybrid-mbr alpine_iso/boot/syslinux/isolinux.bin 2>/dev/null || true \
   -b boot/syslinux/isolinux.bin \
   -c boot/syslinux/boot.cat \
   -no-emul-boot -boot-load-size 4 -boot-info-table \
-  -eltorito-alt-boot -e boot/grub/efi.img -no-emul-boot -isohybrid-gpt-basdat 2>/dev/null || true \
   -o "$ISO_FINAL" \
-  alpine_iso 2>/dev/null || xorriso -as mkisofs -r -V "SIGIC_OS" -o "$ISO_FINAL" alpine_iso
+  alpine_iso
+
+ls -lh "$ISO_FINAL"
+
 
 echo "=========================================================="
 echo "¡LISTO! Se generó la imagen: $ISO_FINAL"
