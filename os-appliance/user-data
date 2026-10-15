@@ -9,6 +9,9 @@ autoinstall:
     username: sigic
     password: "$6$rounds=4096$sigicsalt$7v1kK92W1Z3E9vP3wL1tYg0iQ5k0N3xQ2b1p6R7z8c3y4v5w6x7y8z9a0b1c2d3e4f5g6h7i8j9k0"
     realname: "SiGIC Appliance"
+  storage:
+    layout:
+      name: direct
   ssh:
     install-server: true
     allow-pw: true
