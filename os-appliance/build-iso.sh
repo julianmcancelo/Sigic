@@ -55,29 +55,28 @@ fi
 echo "SiGIC OS 2026 - Instituto Tecnologico Beltran" > iso_nueva/.disk/info 2>/dev/null || true
 
 # 6. Empaquetar nueva ISO booteable de SiGIC Ubuntu
+# 6. Empaquetar nueva ISO booteable de SiGIC Ubuntu (Totalmente compatible con VirtualBox UEFI y BIOS)
 ISO_SALIDA="sigic-os-ubuntu-desktop-amd64.iso"
-echo "Empaquetando $ISO_SALIDA..."
+echo "Empaquetando $ISO_SALIDA con arranque hibrido UEFI + BIOS..."
 
-# Detectar archivos de booteo presentes
-BOOT_ARGS=""
-if [ -f "iso_nueva/boot/grub/i386-pc/eltorito.img" ]; then
-  BOOT_ARGS="-b boot/grub/i386-pc/eltorito.img -c boot.catalog -no-emul-boot -boot-load-size 4 -boot-info-table"
-elif [ -f "iso_nueva/isolinux/isolinux.bin" ]; then
-  BOOT_ARGS="-b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table"
-fi
+# Extraer el sector MBR booteable de la imagen original de Ubuntu
+dd if="$ISO_ORIGINAL" bs=1 count=446 of=isohdpfx.bin 2>/dev/null || true
 
-EFI_ARGS=""
-if [ -f "iso_nueva/boot/grub/efi.img" ]; then
-  EFI_ARGS="-eltorito-alt-boot -e boot/grub/efi.img -no-emul-boot -isohybrid-gpt-basdat"
-elif [ -f "iso_nueva/EFI/boot/bootx64.efi" ]; then
-  EFI_ARGS="-eltorito-alt-boot -e EFI/boot/bootx64.efi -no-emul-boot"
-fi
-
+# Empaquetado oficial con el MBR y la partición EFI de Ubuntu
 xorriso -as mkisofs \
   -r -V "SIGIC_OS" \
-  -J -l \
-  $BOOT_ARGS \
-  $EFI_ARGS \
+  -J -joliet-long -l \
+  -iso-level 3 \
+  -partition_offset 16 \
+  --mbr-force-bootable \
+  -isohybrid-mbr isohdpfx.bin \
+  -b boot/grub/i386-pc/eltorito.img \
+  -c boot.catalog \
+  -no-emul-boot -boot-load-size 4 -boot-info-table \
+  --grub2-boot-info \
+  -eltorito-alt-boot \
+  -e boot/grub/efi.img \
+  -no-emul-boot -isohybrid-gpt-basdat \
   -o "$ISO_SALIDA" \
   iso_nueva
 
