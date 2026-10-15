@@ -1,0 +1,32 @@
+<!DOCTYPE Menu PUBLIC "-//freedesktop//DTD Menu 1.0//EN"
+  "http://www.freedesktop.org/standards/menu-spec/1.0/menu.dtd">
+
+<Menu>
+    <Name>Xfce</Name>
+
+    <DefaultAppDirs/>
+    <DefaultDirectoryDirs/>
+    <DefaultMergeDirs/>
+
+    <Include>
+        <Filename>SiGIC.desktop</Filename>
+        <Filename>sigic-asistente.desktop</Filename>
+        <Filename>sigic-acerca-de.desktop</Filename>
+        <Filename>sigic-manual.desktop</Filename>
+        <Filename>xfce4-terminal.desktop</Filename>
+        <Filename>chromium.desktop</Filename>
+        <Filename>xfce4-session-logout.desktop</Filename>
+    </Include>
+
+    <Layout>
+        <Filename>SiGIC.desktop</Filename>
+        <Filename>sigic-asistente.desktop</Filename>
+        <Filename>sigic-acerca-de.desktop</Filename>
+        <Filename>sigic-manual.desktop</Filename>
+        <Separator/>
+        <Filename>xfce4-terminal.desktop</Filename>
+        <Filename>chromium.desktop</Filename>
+        <Separator/>
+        <Filename>xfce4-session-logout.desktop</Filename>
+    </Layout>
+</Menu>

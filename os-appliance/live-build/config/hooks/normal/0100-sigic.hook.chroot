@@ -77,6 +77,21 @@ if [ -f /usr/share/applications/xfce4-about.desktop ]; then
   sed -i 's/^Icon=.*/Icon=sigic/' /usr/share/applications/xfce4-about.desktop || true
 fi
 
+# --- Limpieza de menú: ocultar accesos genéricos innecesarios ---
+for app in exo-mail-reader.desktop exo-file-manager.desktop xfce4-appfinder.desktop \
+           thunar.desktop thunar-bulk-rename.desktop xfce4-run.desktop \
+           debian-xterm.desktop debian-uxterm.desktop; do
+  if [ -f "/usr/share/applications/$app" ]; then
+    grep -q "NoDisplay=true" "/usr/share/applications/$app" || echo "NoDisplay=true" >> "/usr/share/applications/$app"
+  fi
+done
+
+# Asegurar menú personalizado de SiGIC
+mkdir -p /etc/xdg/menus
+if [ -f /etc/xdg/menus/sigic-applications.menu ]; then
+  cp /etc/xdg/menus/sigic-applications.menu /etc/xdg/menus/xfce-applications.menu 2>/dev/null || true
+fi
+
 # --- Tema de arranque Plymouth (si el tema es válido) ---
 if [ -f /usr/share/plymouth/themes/sigic/sigic.plymouth ]; then
   plymouth-set-default-theme sigic 2>/dev/null || true
