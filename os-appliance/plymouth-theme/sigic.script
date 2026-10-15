@@ -1,0 +1,39 @@
+# ==============================================================================
+# Script Plymouth para SiGIC OS — Fondo oscuro #03080e y logo oficial centrado
+# ==============================================================================
+
+# 1. Configurar color de fondo oficial (Azul noche profundo #03080e)
+Window.SetBackgroundTopColor(0.012, 0.031, 0.055);
+Window.SetBackgroundBottomColor(0.012, 0.031, 0.055);
+
+# 2. Cargar Logo de SiGIC
+logo_image = Image("logo.png");
+logo_sprite = Sprite(logo_image);
+
+# Centrar el logo en la pantalla
+screen_width = Window.GetWidth();
+screen_height = Window.GetHeight();
+
+logo_x = (screen_width - logo_image.GetWidth()) / 2;
+logo_y = (screen_height - logo_image.GetHeight()) / 2 - 30;
+
+logo_sprite.SetX(logo_x);
+logo_sprite.SetY(logo_y);
+logo_sprite.SetOpacity(1.0);
+
+# 3. Mensaje de Texto Institucional
+text_image = Image.Text("SiGIC OS 2026 — Instituto Tecnologico Beltran", 0.42, 0.88, 0.92);
+text_sprite = Sprite(text_image);
+text_sprite.SetX((screen_width - text_image.GetWidth()) / 2);
+text_sprite.SetY(logo_y + logo_image.GetHeight() + 30);
+text_sprite.SetOpacity(0.85);
+
+# 4. Indicador de carga pulsante
+progress = 0.0;
+fun refresh_callback () {
+  progress += 0.02;
+  opacity = 0.5 + 0.5 * Math.Sin(progress);
+  text_sprite.SetOpacity(opacity);
+}
+
+Plymouth.SetRefreshFunction(refresh_callback);

@@ -33,7 +33,15 @@ cat << 'EOF' > /etc/motd
  ------------------------------------------------------------------
 EOF
 
-# 2. Configurar el fondo de pantalla oficial
+# 2. Configurar el tema de booteo Plymouth oficial de SiGIC (reemplazar pantalla morada de Ubuntu)
+mkdir -p /usr/share/plymouth/themes/sigic
+if [ -d "/opt/sigic/os-appliance/plymouth-theme" ]; then
+  cp -r /opt/sigic/os-appliance/plymouth-theme/* /usr/share/plymouth/themes/sigic/
+  plymouth-set-default-theme -R sigic 2>/dev/null || update-alternatives --install /usr/share/plymouth/themes/default.plymouth default.plymouth /usr/share/plymouth/themes/sigic/sigic.plymouth 100 2>/dev/null || true
+  update-initramfs -u 2>/dev/null || true
+fi
+
+# 2.1 Configurar el fondo de pantalla oficial
 mkdir -p /usr/share/backgrounds/sigic
 if [ -f "/opt/sigic/codigo/plataforma/public/logo.png" ]; then
   cp /opt/sigic/codigo/plataforma/public/logo.png /usr/share/backgrounds/sigic/logo.png
