@@ -190,13 +190,12 @@ echo "Generando imagen ISO booteable híbrida en $ISO_FINAL..."
 xorriso -as mkisofs \
   -r -V "SIGIC_OS_XFCE" \
   -J -joliet-long -l \
-  -isohybrid-mbr /usr/lib/ISOLINUX/isohdpfx.bin 2>/dev/null || true \
   -b isolinux/isolinux.bin \
   -c isolinux/boot.cat \
   -no-emul-boot -boot-load-size 4 -boot-info-table \
-  -eltorito-alt-boot -e boot/grub/efi.img -no-emul-boot -isohybrid-gpt-basdat 2>/dev/null || true \
   -o "$ISO_FINAL" \
-  iso_root 2>/dev/null || xorriso -as mkisofs -r -V "SIGIC_OS" -o "$ISO_FINAL" iso_root
+  iso_root
 
 ls -lh "$ISO_FINAL"
 echo "¡Generación finalizada con éxito!"
+
