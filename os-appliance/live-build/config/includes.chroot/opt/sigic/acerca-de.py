@@ -43,7 +43,9 @@ headerbar.sigic-headerbar {
 }
 
 button.btn-primary {
+    background-image: none;
     background-color: #0284c7;
+    border-color: #0284c7;
     color: #ffffff;
     border-radius: 12px;
     padding: 9px 18px;
@@ -52,7 +54,9 @@ button.btn-primary {
 }
 
 button.btn-primary:hover {
+    background-image: none;
     background-color: #0369a1;
+    border-color: #0369a1;
 }
 
 button.btn-secondary {
@@ -247,8 +251,12 @@ class AcercaDeSigic(Gtk.Window):
         lbl_qr_title.set_markup("<span foreground='#0284c7' weight='heavy' size='11000'>PORTAL INSTITUCIONAL</span>")
         col_der.pack_start(lbl_qr_title, False, False, 0)
 
-        # Widget QR Vectorial Cairo (100% garantizado)
-        self.qr_widget = QRWidget(size=164)
+        # Render de código QR (PNG directo o widget vectorial)
+        qr_file = "/opt/sigic/qr-sigic.png"
+        if os.path.exists(qr_file):
+            self.qr_widget = Gtk.Image.new_from_file(qr_file)
+        else:
+            self.qr_widget = QRWidget(size=164)
         box_qr_align = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         box_qr_align.set_halign(Gtk.Align.CENTER)
         box_qr_align.pack_start(self.qr_widget, False, False, 0)

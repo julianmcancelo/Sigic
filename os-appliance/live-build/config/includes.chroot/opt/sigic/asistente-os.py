@@ -118,6 +118,7 @@ button.tab-btn:hover {
 }
 
 button.tab-btn.active {
+    background-image: none;
     background-color: #0284c7;
     color: #ffffff;
     border: 1px solid #0284c7;
@@ -143,7 +144,9 @@ button.tab-btn.active {
 }
 
 button.btn-primary {
+    background-image: none;
     background-color: #0284c7;
+    border-color: #0284c7;
     color: #ffffff;
     font-size: 13px;
     font-weight: bold;
@@ -153,10 +156,13 @@ button.btn-primary {
 }
 
 button.btn-primary:hover {
+    background-image: none;
     background-color: #0369a1;
+    border-color: #0369a1;
 }
 
 button.btn-pill {
+    background-image: none;
     background-color: #e0f2fe;
     color: #0284c7;
     font-size: 11px;
@@ -167,6 +173,7 @@ button.btn-pill {
 }
 
 button.btn-pill:hover {
+    background-image: none;
     background-color: #bae6fd;
     color: #0369a1;
 }
