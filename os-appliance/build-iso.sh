@@ -44,10 +44,15 @@ mkdir -p iso_nueva/nocloud
 cp user-data iso_nueva/nocloud/user-data
 touch iso_nueva/nocloud/meta-data
 
-# 5. Inyectar menú GRUB de arranque personalizado
+# 5. Inyectar menú GRUB de arranque personalizado y cambiar la identidad del disco
 if [ -f grub.cfg ]; then
   cp grub.cfg iso_nueva/boot/grub/grub.cfg 2>/dev/null || true
+  cp grub.cfg iso_nueva/boot/grub/loopback.cfg 2>/dev/null || true
+  cp grub.cfg iso_nueva/EFI/boot/grub.cfg 2>/dev/null || true
 fi
+
+# Reemplazar el nombre del sistema en la metadata del disco
+echo "SiGIC OS 2026 - Instituto Tecnologico Beltran" > iso_nueva/.disk/info 2>/dev/null || true
 
 # 6. Empaquetar nueva ISO booteable de SiGIC Ubuntu
 ISO_SALIDA="sigic-os-ubuntu-desktop-amd64.iso"

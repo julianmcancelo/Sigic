@@ -61,8 +61,28 @@ cat << 'EOF' > /etc/skel/.config/openbox/rc.xml
 </openbox_config>
 EOF
 
-# 4. Hostname
+# 4. Hostname e identidad del sistema operativo (reemplazar Ubuntu por SiGIC OS)
 echo "sigic-appliance" > /etc/hostname
 sed -i 's/127.0.1.1.*/127.0.1.1\tsigic-appliance/g' /etc/hosts 2>/dev/null || true
+
+cat << 'EOF' > /etc/issue
+SiGIC OS 2026 — Instituto Tecnológico Beltrán \n \l
+
+EOF
+
+cp /etc/issue /etc/issue.net
+
+# Personalizar /etc/os-release para herramientas y auditoría
+cat << 'EOF' > /etc/os-release
+NAME="SiGIC OS"
+VERSION="2026 (Appliance)"
+ID=sigic
+ID_LIKE=ubuntu
+PRETTY_NAME="SiGIC OS 2026 — Instituto Tecnológico Beltrán"
+VERSION_ID="2026"
+HOME_URL="https://www.sigic.com.ar"
+SUPPORT_URL="https://github.com/julianmcancelo/Sigic"
+BUG_REPORT_URL="https://github.com/julianmcancelo/Sigic/issues"
+EOF
 
 echo "¡Personalización aplicada exitosamente!"
