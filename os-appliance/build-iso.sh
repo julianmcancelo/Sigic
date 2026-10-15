@@ -86,9 +86,17 @@ elif [ -f "iso_nueva/isolinux/isolinux.bin" ]; then
   BOOT_OPT="-b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table"
 fi
 
+# Extraer la etiqueta original de volumen (Volume ID) que Casper necesita para montar el medio
+ORIGINAL_LABEL=$(xorriso -as cdrecord -toc dev="$ISO_ORIGINAL" 2>&1 | grep -oP 'Volume Id\s*:\s*\K\S+' || true)
+if [ -z "$ORIGINAL_LABEL" ]; then
+  ORIGINAL_LABEL="ubuntu-server-24.04-amd64"
+fi
+echo "Etiqueta de volumen original detectada: $ORIGINAL_LABEL"
+
 xorriso -as mkisofs \
-  -r -V "SIGIC_OS" \
+  -r -V "$ORIGINAL_LABEL" \
   -J -joliet-long -l \
+  -iso-level 3 \
   -partition_offset 16 \
   -isohybrid-mbr isohdpfx.bin \
   $BOOT_OPT \
