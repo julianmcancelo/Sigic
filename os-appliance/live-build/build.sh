@@ -85,11 +85,21 @@ mkdir -p config/includes.chroot/usr/share/pixmaps \
          config/includes.chroot/usr/share/icons/hicolor/128x128/apps \
          config/includes.chroot/usr/share/icons/hicolor/scalable/apps
 
+SPLASH_PRE="$LB_SRC/splash.png"
+
+if [ -f "$SPLASH_PRE" ]; then
+  echo ">> Usando splash institucional pregenerado: $SPLASH_PRE"
+  cp "$SPLASH_PRE" splash.png
+elif [ -f "$LOGO" ]; then
+  convert -size 640x480 xc:'#03080e' \( "$LOGO" -resize x120 \) -gravity north -geometry +0+25 -composite \
+    -depth 8 -colors 256 PNG8:splash.png
+else
+  convert -size 640x480 xc:'#03080e' -depth 8 -colors 256 PNG8:splash.png
+fi
+
 if [ -f "$LOGO" ]; then
   convert -size 1920x1080 xc:'#03080e' \( "$LOGO" -resize x380 \) -gravity center -composite \
     config/includes.chroot/usr/share/backgrounds/sigic/fondo.png
-  convert -size 640x480 xc:'#03080e' \( "$LOGO" -resize x200 \) -gravity center -geometry +0-30 -composite \
-    -depth 8 -colors 256 PNG8:splash.png
   mkdir -p config/includes.chroot/opt/sigic
   cp "$LOGO" config/includes.chroot/opt/sigic/logo.png
   # Pixmaps e iconos de sistema
@@ -108,7 +118,6 @@ if [ -f "$LOGO" ]; then
   cp "$RAIZ/plymouth-theme/"* config/includes.chroot/usr/share/plymouth/themes/sigic/
 else
   convert -size 1920x1080 xc:'#03080e' config/includes.chroot/usr/share/backgrounds/sigic/fondo.png
-  convert -size 640x480 xc:'#03080e' -depth 8 -colors 256 PNG8:splash.png
 fi
 
 # --- Menú de arranque (BIOS y UEFI) con la marca de SiGIC --------------------

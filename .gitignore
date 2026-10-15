@@ -126,3 +126,11 @@ respaldo_legacy/
 
 *.apk
 dist-apk/
+ 
+!os-appliance/**/*.png
+!os-appliance/**/*.svg
+!os-appliance/**/*.jpg
+!os-appliance/plymouth-theme/logo.png
+ 
+os-appliance/iso/
+*.iso

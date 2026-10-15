@@ -10,15 +10,23 @@ echo ">> [HOOK BINARY SIGIC] Personalizando el menú de arranque institucional..
 echo ">> [HOOK BINARY SIGIC] PWD actual: $(pwd)"
 
 LOGO="/work/os-appliance/plymouth-theme/logo.png"
+SPLASH_PRE="/work/os-appliance/live-build/splash.png"
 
-# 1. Generar splash PNG de 640x480 en formato PNG8 indexado con fondo Azul Beltrán (#03080e)
-if [ -f "$LOGO" ]; then
+# 1. Obtener o generar splash PNG de 640x480 en formato indexado (Azul Beltrán #03080e + logo)
+if [ -f "$SPLASH_PRE" ]; then
+  echo ">> [HOOK BINARY SIGIC] Usando splash institucional pre-generado: $SPLASH_PRE"
+  cp "$SPLASH_PRE" /tmp/sigic_splash.png
+elif [ -f "$LOGO" ]; then
+  echo ">> [HOOK BINARY SIGIC] Generando splash desde logotipo: $LOGO"
   convert -size 640x480 xc:'#03080e' \
-    \( "$LOGO" -resize x200 \) -gravity center -geometry +0-30 -composite \
+    \( "$LOGO" -resize x120 \) -gravity north -geometry +0+25 -composite \
     -depth 8 -colors 256 PNG8:/tmp/sigic_splash.png
 else
+  echo ">> [HOOK BINARY SIGIC] ALERTA: Creando fallback de splash"
   convert -size 640x480 xc:'#03080e' -depth 8 -colors 256 PNG8:/tmp/sigic_splash.png
 fi
+
+echo ">> Tamaño de /tmp/sigic_splash.png: $(ls -lh /tmp/sigic_splash.png | awk '{print $5}')"
 
 # 2. Identificar todos los posibles directorios base donde residen los archivos de arranque
 CANDIDATOS=()
@@ -48,13 +56,14 @@ for BASE in "${CANDIDATOS[@]}"; do
   # B. Eliminar logos SVG de Debian para evitar que sobrescriban el splash PNG
   find "$BASE" -type f -name "splash.svg" -delete 2>/dev/null || true
 
-  # C. Sobrescribir archivos de menú de isolinux/syslinux con títulos, colores y textos en ESPAÑOL
+  # C. Sobrescribir archivos de menú de isolinux/syslinux con títulos, colores, opciones y submenú Acerca de
   find "$BASE" -type d \( -name "isolinux" -o -name "syslinux" \) 2>/dev/null | while read -r dir; do
-    echo "   -> Configurando menú isolinux en: $dir"
+    echo "   -> Configurando menú isolinux con Acerca de en: $dir"
     cat << 'EOF' > "$dir/menu.cfg"
-menu hshift 4
-menu width 70
-menu rows 5
+menu hshift 6
+menu width 68
+menu rows 9
+menu vshift 11
 
 menu title SiGIC OS - Instituto Tecnologico Beltran
 include stdmenu.cfg
@@ -72,6 +81,47 @@ label live-failsafe
   linux /live/vmlinuz
   initrd /live/initrd.img
   append boot=live components nomodeset locales=es_AR.UTF-8 keyboard-layouts=latam timezone=America/Argentina/Buenos_Aires
+
+label acerca
+  menu label ^3. Acerca del Equipo y Proyecto (Beltran 2026)
+  menu goto acerca
+
+menu begin acerca
+  menu title -- Acerca de SiGIC | Instituto Tecnologico Beltran --
+  include stdmenu.cfg
+
+  label info-header
+    menu label === PRACTICA PROFESIONALIZANTE 2026 ===
+    menu disable
+
+  label alumno-1
+    menu label   * Cancelo Julian
+    menu disable
+
+  label alumno-2
+    menu label   * Alfonso Alan Alexis
+    menu disable
+
+  label alumno-3
+    menu label   * Contreras Villalba Sol Heilin
+    menu disable
+
+  label alumno-4
+    menu label   * Frassia Matias
+    menu disable
+
+  label alumno-5
+    menu label   * Santillan Luis Gabriel
+    menu disable
+
+  label info-tech
+    menu label Debian 13 | Next.js 16 | PostgreSQL | React Native | Expo
+    menu disable
+
+  label volver
+    menu label ^<- Volver al Menu Principal
+    menu exit
+menu end
 EOF
 
     cat << 'EOF' > "$dir/stdmenu.cfg"
@@ -80,6 +130,7 @@ menu color title        * #00e5ff #00000000 none
 menu color sel          * #ffffff #154b66 none
 menu color hotsel       * #00e5ff #154b66 none
 menu color unsel        * #d9f7fb #00000000 none
+menu color help         * #80deea #00000000 none
 menu color tabmsg       * #80deea #00000000 none
 menu color cmdline      0 #ffffff #00000000 none
 menu color timeout_msg  * #80deea #00000000 none
@@ -92,7 +143,7 @@ EOF
     cp /tmp/sigic_splash.png "$dir/splash.png"
   done
 
-  # D. Modificar cualquier otro archivo .cfg o de GRUB que tenga texto residual en inglés o Debian
+  # D. Modificar cualquier otro archivo .cfg o de GRUB
   find "$BASE" -type f \( -name "*.cfg" -o -name "grub.cfg" \) 2>/dev/null | while read -r cfg; do
     sed -i \
       -e 's/Debian GNU\/Linux/SiGIC OS/g' \
