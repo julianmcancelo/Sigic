@@ -9,10 +9,11 @@
  * 3. Si rechaza → Inhabilitado, se cierra sesión automáticamente
  */
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, CalendarPlus, RefreshCw, Shield, Server, Search, Power, Bell, Wifi, Volume2, ChevronRight, ChevronUp, ArrowRight, LayoutGrid, X, Minus, Maximize2, Square, Copy, Sun, Moon, MousePointer2, Lock, ClipboardCheck, Activity, Send, ListChecks, ScrollText, Sparkles, Armchair, Award, QrCode, Palette, ExternalLink } from 'lucide-react'
+import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, CalendarPlus, RefreshCw, Shield, Server, Search, Power, Bell, Wifi, Volume2, ChevronRight, ChevronUp, ArrowRight, LayoutGrid, X, Minus, Maximize2, Square, Copy, Sun, Moon, MousePointer2, Lock, ClipboardCheck, Activity, Send, ListChecks, ScrollText, Sparkles, Armchair, Award, QrCode, Palette, ExternalLink, Info, BookOpen } from 'lucide-react'
 
-// Importación de Modal de Fondo
+// Importación de Modal de Fondo y Acerca de
 import { ModalPersonalizarFondo } from './componentes/ModalPersonalizarFondo'
+import { ModalAcercaDe } from './componentes/ModalAcercaDe'
 
 // Importación de Páginas
 import { PaginaInicioSesion } from './paginas/PaginaInicioSesion'
@@ -1032,6 +1033,12 @@ function App() {
           </div>
         )
       }
+    } else if (pantallaAdmin === 'manual-usuario') {
+      contenido = (
+        <ManualUsuarioWeb
+          onVolver={() => setPantallaAdmin('bienvenida')}
+        />
+      )
     } else {
       contenido = versionAdmin === 'clasica' ? (
         <PantallaBienvenida
@@ -1156,6 +1163,7 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
   const [cuadriculaActiva, setCuadriculaActiva] = useState(() => localStorage.getItem('sigic_cuadricula') !== 'false')
   const [marcaAguaActiva, setMarcaAguaActiva] = useState(() => localStorage.getItem('sigic_marca_agua') !== 'false')
   const [mostrarModalFondo, setMostrarModalFondo] = useState(false)
+  const [mostrarModalAcercaDe, setMostrarModalAcercaDe] = useState(false)
 
   const cambiarFondo = (nuevoFondo) => {
     setFondoId(nuevoFondo)
@@ -1237,6 +1245,8 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
     { id: 'gestion-porteria', titulo: 'Seguridad', icono: Shield, color: 'bg-violet-500', escritorio: false },
     { id: 'ajustes', titulo: 'Ajustes', icono: Settings, color: 'bg-slate-500', escritorio: esAdministrativo },
     { id: 'seleccion-asientos', titulo: 'Anfiteatro', icono: MapPin, color: 'bg-orange-500', escritorio: false },
+    { id: 'manual-usuario', titulo: 'Manual Oficial', icono: BookOpen, color: 'bg-sky-600', escritorio: true },
+    { id: 'acerca-de', titulo: 'Acerca de SiGIC', icono: Info, color: 'bg-indigo-600', escritorio: true },
     ...(modoDemo ? [{ id: 'operaciones-demo', titulo: 'Operaciones', icono: ClipboardCheck, color: 'bg-slate-500', escritorio: false }] : []),
   ]
   const accesos = aplicaciones.filter(app => app.escritorio)
@@ -1433,6 +1443,12 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
       setVentanasMinimizadas(ventanasAbiertas)
       onNavegar('bienvenida')
       setInicioAbierto(true)
+      setMenuContextual(null)
+      return
+    }
+    if (id === 'acerca-de') {
+      setMostrarModalAcercaDe(true)
+      setInicioAbierto(false)
       setMenuContextual(null)
       return
     }
@@ -1771,6 +1787,8 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
           <button onClick={cambiarTema}>{tema === 'oscuro' ? <Sun size={14} /> : <Moon size={14} />} Cambiar a modo {tema === 'oscuro' ? 'claro' : 'oscuro'}</button>
           <button onClick={() => setInicioAbierto(true)}><Search size={14} /> Buscar una aplicación</button>
           <button onClick={() => setMostrarEquipo(true)}><Users size={14} /> Conocer al equipo</button>
+          <button onClick={() => { setMenuContextual(null); setMostrarModalAcercaDe(true) }}><Info size={14} /> Acerca de SiGIC...</button>
+          <button onClick={() => { setMenuContextual(null); abrirVentana('manual-usuario') }}><BookOpen size={14} /> Manual de Usuario</button>
           <div className="sigic-context-separator" />
           <button onClick={() => window.location.reload()}><RefreshCw size={14} /> Actualizar escritorio</button>
         </div>
@@ -1785,6 +1803,16 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
           marcaAguaActiva={marcaAguaActiva}
           alCambiarMarcaAgua={cambiarMarcaAgua}
           onCerrar={() => setMostrarModalFondo(false)}
+        />
+      )}
+      {mostrarModalAcercaDe && (
+        <ModalAcercaDe
+          abierto={mostrarModalAcercaDe}
+          onCerrar={() => setMostrarModalAcercaDe(false)}
+          onAbrirManual={() => {
+            setMostrarModalAcercaDe(false)
+            abrirVentana('manual-usuario')
+          }}
         />
       )}
     </main>

@@ -65,6 +65,8 @@ jobs:
 
       - name: Subir ISO a GitHub Releases
         uses: softprops/action-gh-release@v2
+        # La ISO supera los 2 GB que permite GitHub Releases: no debe romper el build (el Artifact ya está subido).
+        continue-on-error: true
         if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
         with:
           tag_name: "sigic-os-v${{ github.event.inputs.version || '5.0.0' }}"

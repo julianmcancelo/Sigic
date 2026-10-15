@@ -18,6 +18,8 @@ const informacion = {
   'gestion-porteria': ['Administrar', 'Personal y permisos', 'usuarios equipo roles dispositivos seguridad'],
   ajustes: ['Administrar', 'Preferencias del sistema', 'configuracion ajustes'],
   'seleccion-asientos': ['Organizar', 'Distribución del espacio', 'anfiteatro mapa butacas'],
+  'manual-usuario': ['Ayuda y Soporte', 'Guía y documentación oficial', 'manual documentacion ayuda soporte guia'],
+  'acerca-de': ['Ayuda y Soporte', 'Créditos y equipo Beltrán', 'acerca de version equipo beltran creditos'],
   'operaciones-demo': ['Administrar', 'Herramientas de demostración', 'demo prueba'],
 }
 const normalizar = valor => String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
@@ -31,7 +33,7 @@ export const MenuInicio = forwardRef(function MenuInicio({ aplicaciones, usuario
   const resultados = disponibles.filter(app => normalizar(`${app.titulo} ${(informacion[app.id] || []).join(' ')}`).includes(termino))
   const ultima = [...ventanas].reverse().map(id => disponibles.find(app => app.id === id)).find(Boolean)
   const continuar = ultima || disponibles.find(app => app.id === (ceremonia ? 'preparacion-ceremonia' : 'gestion-ceremonias'))
-  const grupos = ['Organizar', 'Durante el evento', 'Administrar']
+  const grupos = ['Organizar', 'Durante el evento', 'Administrar', 'Ayuda y Soporte']
 
   function navegarConTeclado(evento) {
     if (!['ArrowDown', 'ArrowUp'].includes(evento.key)) return
