@@ -1,244 +1,388 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Acerca de SiGIC — Instituto Tecnológico Beltrán</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: radial-gradient(circle at top, #0c2333 0%, #03080e 75%);
-    color: #d9f7fb;
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
-    min-height: 100vh;
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-  }
-  .container {
-    max-width: 680px;
-    width: 100%;
-    background: rgba(8, 24, 36, 0.75);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(0, 229, 255, 0.2);
-    border-radius: 20px;
-    padding: 32px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0, 229, 255, 0.08);
-  }
-  .header {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    border-bottom: 1px solid rgba(0, 229, 255, 0.15);
-    padding-bottom: 20px;
-    margin-bottom: 24px;
-  }
-  .header img {
-    height: 72px;
-    width: 72px;
-    object-fit: contain;
-    filter: drop-shadow(0 0 12px rgba(0, 229, 255, 0.4));
-  }
-  .header-text h1 {
-    font-size: 26px;
-    color: #ffffff;
-    letter-spacing: 0.05em;
-    font-weight: 800;
-  }
-  .header-text h1 span {
-    color: #00e5ff;
-  }
-  .header-text p {
-    font-size: 14px;
-    color: #80deea;
-    margin-top: 2px;
-  }
-  .badge-inst {
-    display: inline-block;
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    font-weight: 700;
-    color: #00e5ff;
-    background: rgba(0, 229, 255, 0.1);
-    border: 1px solid rgba(0, 229, 255, 0.3);
-    padding: 3px 10px;
-    border-radius: 999px;
-    margin-top: 6px;
-  }
-  .grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 24px;
-  }
-  .card {
-    background: rgba(3, 12, 19, 0.6);
-    border: 1px solid rgba(0, 229, 255, 0.1);
-    border-radius: 14px;
-    padding: 16px;
-  }
-  .card h2 {
-    font-size: 13px;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #00e5ff;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .team-list {
-    list-style: none;
-    font-size: 13px;
-    line-height: 1.8;
-  }
-  .team-list li {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    color: #ecfeff;
-  }
-  .team-list li::before {
-    content: "•";
-    color: #00e5ff;
-    font-weight: bold;
-  }
-  .tech-pills {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-  }
-  .pill {
-    font-size: 11px;
-    background: rgba(14, 46, 62, 0.8);
-    border: 1px solid rgba(0, 229, 255, 0.2);
-    color: #d9f7fb;
-    padding: 4px 8px;
-    border-radius: 6px;
-  }
-  .meta-info {
-    background: rgba(0, 229, 255, 0.05);
-    border-left: 3px solid #00e5ff;
-    padding: 12px 16px;
-    border-radius: 0 10px 10px 0;
-    margin-bottom: 24px;
-    font-size: 12px;
-    line-height: 1.6;
-    color: #a5f3fc;
-  }
-  .meta-info code {
-    background: rgba(0, 0, 0, 0.4);
-    color: #67e8f9;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-family: monospace;
-    font-size: 13px;
-    border: 1px solid rgba(0, 229, 255, 0.2);
-  }
-  .actions {
-    display: flex;
-    gap: 12px;
-    justify-content: flex-end;
-  }
-  .btn {
-    text-decoration: none;
-    font-size: 13px;
-    font-weight: 600;
-    padding: 10px 18px;
-    border-radius: 10px;
-    transition: all 0.2s ease;
-    cursor: pointer;
-    border: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .btn-primary {
-    background: #00e5ff;
-    color: #03080e;
-    box-shadow: 0 4px 15px rgba(0, 229, 255, 0.3);
-  }
-  .btn-primary:hover {
-    background: #38bdf8;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 20px rgba(0, 229, 255, 0.4);
-  }
-  .btn-secondary {
-    background: rgba(255, 255, 255, 0.08);
-    color: #d9f7fb;
-    border: 1px solid rgba(255, 255, 255, 0.15);
-  }
-  .btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.15);
-    color: #ffffff;
-  }
-  .footer {
-    text-align: center;
-    margin-top: 20px;
-    font-size: 11px;
-    color: #64748b;
-  }
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acerca de SiGIC OS — Instituto Tecnológico Beltrán</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      min-height: 100vh;
+      background: #f1f5f9 radial-gradient(circle at 50% 0%, #e2e8f0 0%, #cbd5e1 100%);
+      color: #0f172a;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+      user-select: none;
+    }
+
+    .modal-card {
+      width: 100%;
+      max-width: 760px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 24px;
+      box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Cabecera */
+    .header {
+      background: linear-gradient(135deg, #091a2e 0%, #03080e 100%);
+      color: #ffffff;
+      padding: 32px 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+    .header::after {
+      content: "";
+      position: absolute;
+      top: -60px;
+      right: -40px;
+      width: 220px;
+      height: 220px;
+      background: radial-gradient(circle, rgba(0, 229, 255, 0.22) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .brand-wrap {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      z-index: 1;
+    }
+    .brand-logo {
+      height: 64px;
+      width: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 12px rgba(0, 229, 255, 0.4));
+    }
+    .brand-info h1 {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-info h1 span {
+      color: #00e5ff;
+    }
+    .brand-info p {
+      font-size: 13px;
+      color: #94a3b8;
+      margin-top: 2px;
+      font-weight: 500;
+    }
+
+    .badge-version {
+      z-index: 1;
+      background: rgba(0, 229, 255, 0.12);
+      border: 1px solid rgba(0, 229, 255, 0.35);
+      color: #00e5ff;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    /* Cuerpo con pestañas o paneles */
+    .body-content {
+      padding: 28px 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* Grilla de dos columnas */
+    .grid-two {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .panel-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 18px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-title {
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #0284c7;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .panel-title svg {
+      width: 16px;
+      height: 16px;
+      stroke: #0284c7;
+      fill: none;
+      stroke-width: 2.2;
+    }
+
+    /* Lista de Estudiantes */
+    .team-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .team-member {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+    .team-member .role-tag {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: #64748b;
+      background: #f1f5f9;
+      padding: 2px 8px;
+      border-radius: 6px;
+    }
+
+    /* Especificaciones del Sistema */
+    .specs-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+    .spec-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px dashed #e2e8f0;
+    }
+    .spec-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    .spec-key {
+      color: #64748b;
+      font-weight: 600;
+    }
+    .spec-val {
+      color: #0f172a;
+      font-weight: 800;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11.5px;
+    }
+
+    /* Banner Institucional Beltrán */
+    .inst-banner {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 14px;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .inst-text {
+      font-size: 12px;
+      color: #166534;
+      font-weight: 700;
+    }
+    .inst-sub {
+      font-size: 11px;
+      color: #15803d;
+      font-weight: 500;
+    }
+
+    /* Botonera de acciones */
+    .actions-bar {
+      background: #f8fafc;
+      border-top: 1px solid #e2e8f0;
+      padding: 18px 36px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .actions-links {
+      display: flex;
+      gap: 12px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      border: none;
+    }
+    .btn-secondary {
+      background: #ffffff;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+    }
+    .btn-secondary:hover {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
+    .btn-primary {
+      background: #0284c7;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+    }
+    .btn-primary:hover {
+      background: #0369a1;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(2, 132, 199, 0.35);
+    }
+  </style>
 </head>
 <body>
 
-<div class="container">
-  <div class="header">
-    <img src="logo.png" alt="SiGIC Logo" onerror="this.src='/usr/share/pixmaps/sigic.png'">
-    <div class="header-text">
-      <h1>SiGIC <span>OS</span></h1>
-      <p>Sistema de Gestión Institucional de Colaciones</p>
-      <span class="badge-inst">Instituto Tecnológico Beltrán · Práctica Profesionalizante 2026</span>
-    </div>
-  </div>
-
-  <div class="grid">
-    <div class="card">
-      <h2>Equipo de Desarrollo</h2>
-      <ul class="team-list">
-        <li>Cancelo Julián</li>
-        <li>Alfonso Alan Alexis</li>
-        <li>Contreras Villalba Sol Heilin</li>
-        <li>Frassia Matías</li>
-        <li>Santillán Luis Gabriel</li>
-      </ul>
-    </div>
-
-    <div class="card">
-      <h2>Tecnologías Integradas</h2>
-      <div class="tech-pills">
-        <span class="pill">Debian 13 Trixie</span>
-        <span class="pill">Next.js 16 (React 19)</span>
-        <span class="pill">PostgreSQL Neon / Local</span>
-        <span class="pill">TailwindCSS 4</span>
-        <span class="pill">Chromium Engine</span>
-        <span class="pill">XFCE 4 Desktop</span>
-        <span class="pill">React Native / Expo</span>
-        <span class="pill">OTP & JWT Auth</span>
+  <div class="modal-card">
+    <!-- Header -->
+    <div class="header">
+      <div class="brand-wrap">
+        <img src="logo.png" alt="SiGIC" class="brand-logo" onerror="this.src='/usr/share/pixmaps/sigic.png'">
+        <div class="brand-info">
+          <h1>SiGIC <span>OS</span></h1>
+          <p>Sistema Operativo Institucional · Instituto Tecnológico Beltrán</p>
+        </div>
       </div>
+      <div class="badge-version">v7.5.5 Appliance</div>
+    </div>
+
+    <!-- Cuerpo -->
+    <div class="body-content">
+      
+      <!-- Fila dos columnas -->
+      <div class="grid-two">
+        
+        <!-- Panel 1: Equipo de Desarrollo -->
+        <div class="panel-box">
+          <div class="panel-title">
+            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            <span>Equipo de Desarrollo</span>
+          </div>
+          <ul class="team-list">
+            <li class="team-member">
+              <span>Cancelo Julián</span>
+              <span class="role-tag">Coordinación & Full-Stack</span>
+            </li>
+            <li class="team-member">
+              <span>Alfonso Alan Alexis</span>
+              <span class="role-tag">Arquitectura & Backend</span>
+            </li>
+            <li class="team-member">
+              <span>Contreras Villalba Sol Heilin</span>
+              <span class="role-tag">Diseño UX & Frontend</span>
+            </li>
+            <li class="team-member">
+              <span>Frassia Matías</span>
+              <span class="role-tag">Base de Datos & Seguridad</span>
+            </li>
+            <li class="team-member">
+              <span>Santillán Luis Gabriel</span>
+              <span class="role-tag">App Móvil & Testing</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Panel 2: Especificaciones del Appliance -->
+        <div class="panel-box">
+          <div class="panel-title">
+            <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
+            <span>Arquitectura y Stack</span>
+          </div>
+          <div class="specs-grid">
+            <div class="spec-row">
+              <span class="spec-key">Sistema Operativo</span>
+              <span class="spec-val">Debian 13 (Trixie amd64)</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-key">Núcleo Linux</span>
+              <span class="spec-val">Kernel 6.12 LTS</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-key">Entorno de Escritorio</span>
+              <span class="spec-val">XFCE 4.20 SiGIC Edition</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-key">Motor Web</span>
+              <span class="spec-val">Next.js 16 (React 19)</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-key">Base de Datos</span>
+              <span class="spec-val">PostgreSQL 16 (Neon / Local)</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-key">Servidor de Correo</span>
+              <span class="spec-val">Nodemailer + Buzón Virtual</span>
+            </div>
+            <div class="spec-row">
+              <span class="spec-key">Acreditación Móvil</span>
+              <span class="spec-val">React Native (Expo)</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Banner Beltrán -->
+      <div class="inst-banner">
+        <div>
+          <div class="inst-text">Instituto Tecnológico Beltrán — Avellaneda, Buenos Aires</div>
+          <div class="inst-sub">Práctica Profesionalizante 2026 · Tecnicatura Superior en Desarrollo de Software</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Barra de Acciones Inferior -->
+    <div class="actions-bar">
+      <div class="actions-links">
+        <a href="http://localhost:3000/manual" target="_blank" class="btn btn-secondary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
+          <span>Manual de Soporte</span>
+        </a>
+        <a href="http://localhost:3000/" target="_blank" class="btn btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+          <span>Abrir Plataforma SiGIC</span>
+        </a>
+      </div>
+      <button class="btn btn-secondary" onclick="window.close()">Cerrar</button>
     </div>
   </div>
-
-  <div class="meta-info">
-    <strong>Parámetros de Despliegue Local:</strong><br>
-    • Acceso Web: <code>http://localhost:3000</code><br>
-    • Clave de Instalación del Asistente: <code>35230531</code><br>
-    • Base de Datos: PostgreSQL 16 (puerto 5432, base de datos <code>sigic</code>)
-  </div>
-
-  <div class="actions">
-    <button class="btn btn-secondary" onclick="window.close()">Cerrar</button>
-    <a href="http://localhost:3000/manual" target="_blank" class="btn btn-secondary">Manual de Soporte</a>
-    <a href="http://localhost:3000/" target="_blank" class="btn btn-primary">Abrir Plataforma SiGIC →</a>
-  </div>
-</div>
-
-<div class="footer">
-  SiGIC OS Appliance — Todos los derechos reservados · 2026 Instituto Tecnológico Beltrán
-</div>
 
 </body>
 </html>

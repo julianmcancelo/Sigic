@@ -132,6 +132,13 @@ function App() {
   // ─── 1. SESIÓN DE ADMINISTRADOR ───
   const [adminActivo, setAdminActivo] = useState(() => {
     if (typeof window === 'undefined') return false
+    const params = new URLSearchParams(window.location.search)
+    const adminToken = params.get('admin_token')
+    if (adminToken) {
+      guardarTokenSesion(adminToken)
+      localStorage.setItem('sesion_admin', 'true')
+      return true
+    }
     const activo = localStorage.getItem('sesion_admin') === 'true'
     if (activo && verificarModoDemo() && !obtenerTokenSesion()) {
       guardarTokenSesion('bypass-admin-token')

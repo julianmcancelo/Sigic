@@ -1,0 +1,12 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Exec=/usr/local/bin/sigic-acerca-de
+Icon=sigic
+StartupNotify=true
+Terminal=false
+Categories=Utility;X-XFCE;X-Xfce-Toplevel;Help;
+OnlyShowIn=XFCE;
+Name=Acerca de SiGIC OS
+Comment=Información y Diagnóstico del Sistema Operativo Institucional — Beltrán 2026
+GenericName=Acerca de SiGIC OS

@@ -28,8 +28,9 @@ gio set "$HOME/Desktop"/*.desktop metadata::trusted true 2>/dev/null || true
   xfdesktop --reload 2>/dev/null || true
 ) &
 
+# Lanzar la Pantalla de Bienvenida y Login de SiGIC OS
 exec chromium \
   --no-first-run --no-default-browser-check --noerrdialogs \
   --disable-infobars --disable-session-crashed-bubble \
-  --password-store=basic --lang=es-AR --start-maximized \
-  file:///opt/sigic/espera.html
+  --password-store=basic --lang=es-AR --start-fullscreen \
+  --app=file:///opt/sigic/bienvenida-os.html
