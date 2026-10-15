@@ -10,7 +10,7 @@ echo "=== Generador de SiGIC OS Live Appliance (Debian 12 Bookworm) ==="
 
 # 1. Instalar dependencias necesarias para Debian Live
 sudo apt update
-sudo apt install -y live-build debootstrap isolinux syslinux-common xorriso squashfs-tools
+sudo apt install -y live-build debootstrap isolinux syslinux-common xorriso squashfs-tools debian-archive-keyring
 
 # 2. Directorio de trabajo
 BUILD_DIR="debian-live"
@@ -18,12 +18,16 @@ rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 cd "$BUILD_DIR"
 
-# 3. Configurar live-build para Debian 12 con soporte híbrido BIOS + UEFI
+# 3. Configurar live-build para Debian 12 con soporte híbrido BIOS + UEFI y mirrors de Debian oficiales
 echo "Configurando live-build..."
 lb config \
+  --mode debian \
   --distribution bookworm \
   --architectures amd64 \
-  --archive-areas "main contrib non-free" \
+  --mirror-bootstrap "http://deb.debian.org/debian/" \
+  --mirror-chroot "http://deb.debian.org/debian/" \
+  --mirror-binary "http://deb.debian.org/debian/" \
+  --archive-areas "main contrib non-free non-free-firmware" \
   --bootloader syslinux \
   --binary-images iso-hybrid \
   --iso-application "SiGIC OS 2026 - Instituto Tecnologico Beltran" \
@@ -31,6 +35,7 @@ lb config \
   --iso-volume "SIGIC_OS" \
   --memtest none \
   --win32-loader false
+
 
 
 # 4. Lista de paquetes esenciales para SiGIC Appliance
