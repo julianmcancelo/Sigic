@@ -212,6 +212,11 @@ label live-failsafe
 EOF
     fi
 
+    # Reemplazar la imagen de fondo (splash.png) con el logo oficial de SiGIC
+    if [ -f "$GITHUB_WORKSPACE/os-appliance/plymouth-theme/logo.png" ]; then
+      cp "$GITHUB_WORKSPACE/os-appliance/plymouth-theme/logo.png" "$isodir/splash.png" 2>/dev/null || true
+    fi
+
     # Personalizar pie de página y colores
     if [ -f "$isodir/stdmenu.cfg" ]; then
       cat << 'EOF' > "$isodir/stdmenu.cfg"
@@ -229,6 +234,7 @@ EOF
     fi
   fi
 done
+
 
 
 # 8. Generar la ISO Híbrida final
