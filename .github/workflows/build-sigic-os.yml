@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Versión del Appliance (ej: 4.0.0)'
+        description: 'Versión del Appliance (ej: 5.0.0)'
         required: true
-        default: '4.0.0'
+        default: '5.0.0'
 
 jobs:
   build-iso:
-    name: Compilar ISO Booteable (Alpine Extended Live)
+    name: Compilar ISO Booteable (XFCE Desktop Live)
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -22,39 +22,40 @@ jobs:
       - name: Instalar herramientas de compilación
         run: |
           sudo apt update
-          sudo apt install -y xorriso isolinux syslinux-common wget tar
+          sudo apt install -y xorriso squashfs-tools isolinux syslinux-common wget curl
 
-      - name: Ejecutar generación de Alpine Extended Live
+      - name: Ejecutar generación de SiGIC OS XFCE Live
         run: |
           cd os-appliance
-          chmod +x build-alpine-live.sh
-          ./build-alpine-live.sh
+          chmod +x build-xfce-live.sh
+          ./build-xfce-live.sh
 
       - name: Subir ISO como Artifact de GitHub Actions (Descarga directa en 1 click)
         uses: actions/upload-artifact@v4
         with:
-          name: sigic-os-alpine-live-iso
+          name: sigic-os-xfce-live-iso
           path: os-appliance/sigic-os-*.iso
           retention-days: 14
 
-      - name: Subir ISO a GitHub Releases (Archivo único sin compresión ni partes)
+      - name: Subir ISO a GitHub Releases
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
         with:
-          tag_name: "sigic-os-v${{ github.event.inputs.version || '4.0.0' }}"
-          name: "SiGIC OS Alpine Extended Live v${{ github.event.inputs.version || '4.0.0' }}"
+          tag_name: "sigic-os-v${{ github.event.inputs.version || '5.0.0' }}"
+          name: "SiGIC OS XFCE Desktop Live v${{ github.event.inputs.version || '5.0.0' }}"
           draft: false
           prerelease: false
           files: os-appliance/sigic-os-*.iso
           body: |
-            ### 💿 SiGIC OS Appliance (Alpine Linux Extended Edition)
+            ### 💿 SiGIC OS Appliance (XFCE Desktop Live Edition)
             
-            Sistema Operativo ultraliviano (~800 MB) diseñado específicamente para correr en **memoria RAM (Diskless)**.
+            Sistema Operativo de escritorio completo con entorno gráfico **XFCE preinstalado** y acceso directo en RAM.
             
-            - **Arranque instantáneo**: Carga en 3 segundos en VirtualBox (tanto BIOS como UEFI).
-            - **Sin instalación**: No toca ni pide particiones en el disco duro.
-            - **Descarga directa**: Un único archivo `.iso` sin partes divididas.
+            - **Entorno Gráfico Completo**: Entra directamente al escritorio con el fondo Azul Beltrán y los 9 módulos de SiGIC.
+            - **100% Preinstalado**: No requiere descargar paquetes ni ejecutar comandos en la terminal.
+            - **Descarga Directa**: Archivo `.iso` único listo para VirtualBox o USB booteable.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
 
