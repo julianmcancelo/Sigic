@@ -22,6 +22,15 @@ systemctl enable postgresql || true
 systemctl enable sigic-db-init.service
 systemctl enable sigic-server.service
 
+# --- Fondo de escritorio oficial SiGIC (reemplazar default xfce wallpapers) ---
+mkdir -p /etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml
+cp -r /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/* /etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/ 2>/dev/null || true
+if [ -f /usr/share/backgrounds/sigic/fondo.png ]; then
+  find /usr/share/backgrounds/xfce -type f -exec cp /usr/share/backgrounds/sigic/fondo.png {} + 2>/dev/null || true
+  find /usr/share/images -name "*.png" -exec cp /usr/share/backgrounds/sigic/fondo.png {} + 2>/dev/null || true
+  find /usr/share/images -name "*.svg" -exec cp /usr/share/backgrounds/sigic/fondo.png {} + 2>/dev/null || true
+fi
+
 # --- Accesos directos del escritorio ejecutables ---
 chmod +x /etc/skel/Desktop/*.desktop
 
