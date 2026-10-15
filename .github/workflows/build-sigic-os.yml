@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Versión del Appliance (ej: 3.0.0)'
+        description: 'Versión del Appliance (ej: 4.0.0)'
         required: true
-        default: '3.0.0'
+        default: '4.0.0'
 
 jobs:
   build-iso:
-    name: Compilar ISO Booteable (Debian 12 Live)
+    name: Compilar ISO Booteable (Alpine Extended Live)
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -19,41 +19,42 @@ jobs:
       - name: Checkout del Repositorio
         uses: actions/checkout@v4
 
-      - name: Instalar herramientas de compilación de Debian Live
+      - name: Instalar herramientas de compilación
         run: |
           sudo apt update
-          sudo apt install -y live-build debootstrap isolinux syslinux-common xorriso squashfs-tools p7zip-full
+          sudo apt install -y xorriso isolinux syslinux-common wget tar
 
-      - name: Ejecutar generación de ISO Live de SiGIC OS
+      - name: Ejecutar generación de Alpine Extended Live
         run: |
           cd os-appliance
-          chmod +x build-debian-live.sh
-          ./build-debian-live.sh
+          chmod +x build-alpine-live.sh
+          ./build-alpine-live.sh
 
-      - name: Subir ISO completa como Artifact de GitHub Actions (Descarga directa en 1 click)
+      - name: Subir ISO como Artifact de GitHub Actions (Descarga directa en 1 click)
         uses: actions/upload-artifact@v4
         with:
-          name: sigic-os-debian12-live-iso
+          name: sigic-os-alpine-live-iso
           path: os-appliance/sigic-os-*.iso
           retention-days: 14
 
-      - name: Subir ISO a GitHub Releases
+      - name: Subir ISO a GitHub Releases (Archivo único sin compresión ni partes)
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
         with:
-          tag_name: "sigic-os-v${{ github.event.inputs.version || '3.0.0' }}"
-          name: "SiGIC OS Debian 12 Live v${{ github.event.inputs.version || '3.0.0' }}"
+          tag_name: "sigic-os-v${{ github.event.inputs.version || '4.0.0' }}"
+          name: "SiGIC OS Alpine Extended Live v${{ github.event.inputs.version || '4.0.0' }}"
           draft: false
           prerelease: false
           files: os-appliance/sigic-os-*.iso
           body: |
-            ### 💿 SiGIC OS Debian 12 Live Edition (Booteable)
+            ### 💿 SiGIC OS Appliance (Alpine Linux Extended Edition)
             
-            Sistema Operativo 100% Live y autónomo con arranque directo a memoria RAM (sin requerir disco).
+            Sistema Operativo ultraliviano (~800 MB) diseñado específicamente para correr en **memoria RAM (Diskless)**.
             
-            - **Arranque directo**: Carga en 5 segundos con Openbox + Chromium Kiosk.
-            - **Compatibilidad**: Probado y garantizado tanto para VirtualBox (BIOS y UEFI) como PCs físicas.
-            - **Descarga directa**: Archivo `.iso` único listo para montar en VirtualBox o grabar con Rufus/BalenaEtcher en un pendrive.
+            - **Arranque instantáneo**: Carga en 3 segundos en VirtualBox (tanto BIOS como UEFI).
+            - **Sin instalación**: No toca ni pide particiones en el disco duro.
+            - **Descarga directa**: Un único archivo `.iso` sin partes divididas.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
