@@ -37,10 +37,13 @@ chmod -R u+w iso_root
 # 4. Desempaquetar el sistema de archivos raíz (squashfs) para personalizar el escritorio
 echo "Desempaquetando squashfs del sistema..."
 rm -rf squashfs-root
-sudo unsquashfs -d squashfs-root iso_root/live/filesystem.squashfs || true
+sudo unsquashfs -d squashfs-root iso_root/live/filesystem.squashfs
+sudo chown -R $USER:$USER squashfs-root
+chmod -R u+w squashfs-root
 
 # 5. Inyectar personalización del Escritorio XFCE con Dock Lateral y Branding SiGIC
 echo "Personalizando el escritorio XFCE y Dock..."
+
 
 # 5.1 Hostname y Banner de consola
 echo "sigic-appliance" > squashfs-root/etc/hostname
