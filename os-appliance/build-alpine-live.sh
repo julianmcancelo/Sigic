@@ -81,23 +81,36 @@ auto eth0
 iface eth0 inet dhcp
 EOF
 
-# 3.4 Inyectar entorno de escritorio Kiosco y pantalla SiGIC
+# 3.4 Configurar paquetes predeterminados en world para que estén activos
+mkdir -p "$OVERLAY_DIR/etc/apk"
+cat << 'EOF' > "$OVERLAY_DIR/etc/apk/world"
+alpine-base
+xorg-server
+xf86-video-modesetting
+xf86-input-libinput
+openbox
+chromium
+xinit
+xset
+EOF
+
+# 3.5 Inyectar entorno de escritorio Kiosco y pantalla SiGIC
 mkdir -p "$OVERLAY_DIR/opt/sigic-splash"
 cp splash.html "$OVERLAY_DIR/opt/sigic-splash/index.html"
 if [ -f "../codigo/plataforma/public/logo.png" ]; then
   cp ../codigo/plataforma/public/logo.png "$OVERLAY_DIR/opt/sigic-splash/logo.png"
 fi
 
-# 3.5 Script de inicio de interfaz gráfica Kiosco (.xinitrc)
+# 3.6 Script de inicio de interfaz gráfica Kiosco (.xinitrc)
 mkdir -p "$OVERLAY_DIR/root"
 cat << 'EOF' > "$OVERLAY_DIR/root/.xinitrc"
 #!/bin/sh
-xset s off
-xset -dpms
-xset s noblank
+xset s off 2>/dev/null || true
+xset -dpms 2>/dev/null || true
+xset s noblank 2>/dev/null || true
 openbox &
 
-# Abrir Chromium en pantalla completa
+# Abrir Chromium en pantalla completa de inmediato
 exec chromium-browser \
   --kiosk \
   --noerrdialogs \
@@ -109,34 +122,26 @@ exec chromium-browser \
 EOF
 chmod +x "$OVERLAY_DIR/root/.xinitrc"
 
-# 3.6 Servicio de inicio automático de SiGIC
-mkdir -p "$OVERLAY_DIR/etc/init.d"
-cat << 'EOF' > "$OVERLAY_DIR/etc/init.d/sigic-kiosk"
-#!/sbin/openrc-run
+# 3.7 Iniciar automáticamente la pantalla gráfica al bootear (autologin en tty1)
+mkdir -p "$OVERLAY_DIR/etc/inittab.d"
+sed -i 's/tty1::respawn:\/sbin\/getty 38400 tty1/tty1::respawn:\/sbin\/getty -n -l \/root\/autologin 38400 tty1/g' "$OVERLAY_DIR/etc/inittab" 2>/dev/null || true
 
-description="SiGIC OS Kiosk Mode Service"
-
-depend() {
-    need localmount
-    after bootmisc
-}
-
-start() {
-    ebegin "Iniciando SiGIC OS Kiosk..."
-    # Configurar usuario sin password
-    echo "root:sigic" | chpasswd
-    
-    # Iniciar servidor Xorg directo con .xinitrc
-    startx &
-    eend $?
-}
+cat << 'EOF' > "$OVERLAY_DIR/root/autologin"
+#!/bin/sh
+exec /bin/login -f root
 EOF
-chmod +x "$OVERLAY_DIR/etc/init.d/sigic-kiosk"
+chmod +x "$OVERLAY_DIR/root/autologin"
 
-# Activar servicios al arrancar en OpenRC
-mkdir -p "$OVERLAY_DIR/etc/runlevels/default"
-ln -sf /etc/init.d/sigic-kiosk "$OVERLAY_DIR/etc/runlevels/default/sigic-kiosk"
-ln -sf /etc/init.d/networking "$OVERLAY_DIR/etc/runlevels/default/networking"
+# Configurar .profile de root para levantar startx al entrar
+cat << 'EOF' > "$OVERLAY_DIR/root/.profile"
+if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
+  echo "Iniciando SiGIC OS..."
+  setup-xorg-base 2>/dev/null || true
+  apk add --no-cache openbox chromium xinit xset 2>/dev/null || true
+  exec startx
+fi
+EOF
+
 
 # 3.7 Empaquetar el overlay apkovl
 cd "$OVERLAY_DIR"

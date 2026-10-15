@@ -10,7 +10,7 @@ on:
 
 jobs:
   build-iso:
-    name: Compilar ISO Booteable (XFCE Desktop Live)
+    name: Compilar ISO Booteable (Alpine Live Auto-Start)
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -22,20 +22,21 @@ jobs:
       - name: Instalar herramientas de compilación
         run: |
           sudo apt update
-          sudo apt install -y xorriso squashfs-tools isolinux syslinux-common wget curl
+          sudo apt install -y xorriso isolinux syslinux-common wget tar
 
-      - name: Ejecutar generación de SiGIC OS XFCE Live
+      - name: Ejecutar generación de SiGIC OS Live
         run: |
           cd os-appliance
-          chmod +x build-xfce-live.sh
-          ./build-xfce-live.sh
+          chmod +x build-alpine-live.sh
+          ./build-alpine-live.sh
 
       - name: Subir ISO como Artifact de GitHub Actions (Descarga directa en 1 click)
         uses: actions/upload-artifact@v4
         with:
-          name: sigic-os-xfce-live-iso
+          name: sigic-os-live-iso
           path: os-appliance/sigic-os-*.iso
           retention-days: 14
+
 
       - name: Subir ISO a GitHub Releases
         uses: softprops/action-gh-release@v2
