@@ -1,10 +1,10 @@
 [Desktop Entry]
 Version=1.0
 Type=Application
-Name=Panel de Administración
-Comment=Consola de Gestión y Auditoría
+Name=SiGIC Portal
+Comment=Acceso directo a la plataforma institucional
 Exec=chromium --lang=es-AR --start-maximized http://localhost:3000/
 Icon=/usr/share/pixmaps/sigic.png
 Terminal=false
-Categories=Network;Office;
+Categories=Office;Education;System;
 StartupNotify=true

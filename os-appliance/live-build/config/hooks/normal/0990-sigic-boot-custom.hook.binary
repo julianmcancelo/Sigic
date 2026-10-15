@@ -74,13 +74,13 @@ label live-es
   menu default
   linux /live/vmlinuz
   initrd /live/initrd.img
-  append boot=live components quiet splash locales=es_AR.UTF-8 keyboard-layouts=latam timezone=America/Argentina/Buenos_Aires
+  append boot=live components quiet splash username=sigic user-fullname="SiGIC Beltran" hostname=sigic-os locales=es_AR.UTF-8 keyboard-layouts=latam timezone=America/Argentina/Buenos_Aires
 
 label live-failsafe
   menu label ^2. Iniciar en Modo Seguro (Resolucion Estandar)
   linux /live/vmlinuz
   initrd /live/initrd.img
-  append boot=live components nomodeset locales=es_AR.UTF-8 keyboard-layouts=latam timezone=America/Argentina/Buenos_Aires
+  append boot=live components nomodeset username=sigic user-fullname="SiGIC Beltran" hostname=sigic-os locales=es_AR.UTF-8 keyboard-layouts=latam timezone=America/Argentina/Buenos_Aires
 
 label acerca
   menu label ^3. Acerca del Equipo y Proyecto (Beltran 2026)

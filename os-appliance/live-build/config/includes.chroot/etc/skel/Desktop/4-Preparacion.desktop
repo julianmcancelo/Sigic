@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Preparación
+Comment=Mapeo y asignación de butacas del anfiteatro
+Exec=chromium --lang=es-AR --app="http://localhost:3000/?modulo=preparacion-ceremonia"
+Icon=/usr/share/pixmaps/sigic-preparacion.png
+Terminal=false
+Categories=Office;Education;System;
+StartupNotify=true

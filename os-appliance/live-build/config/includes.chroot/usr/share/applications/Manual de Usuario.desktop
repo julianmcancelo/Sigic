@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Manual de Usuario
+Comment=Guía oficial de uso y soporte técnico
+Exec=chromium --lang=es-AR --app="http://localhost:3000/manual"
+Icon=/usr/share/pixmaps/sigic-manual.png
+Terminal=false
+Categories=Office;Education;System;
+StartupNotify=true

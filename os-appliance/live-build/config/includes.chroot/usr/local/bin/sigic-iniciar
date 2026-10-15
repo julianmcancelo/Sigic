@@ -2,6 +2,9 @@
 # Se ejecuta al iniciar sesión: aplica personalización visual, fondo y lanza el navegador.
 FONDO=/usr/share/backgrounds/sigic/fondo.png
 
+# Nombre completo de usuario institucional en el sistema
+chfn -f "SiGIC Beltrán" "$USER" 2>/dev/null || true
+
 # Confiar en los accesos directos del escritorio para mostrar sus iconos institucionales
 chmod +x "$HOME/Desktop"/*.desktop 2>/dev/null || true
 gio set "$HOME/Desktop"/*.desktop metadata::trusted true 2>/dev/null || true
@@ -22,6 +25,7 @@ gio set "$HOME/Desktop"/*.desktop metadata::trusted true 2>/dev/null || true
       xfconf-query -c xfce4-desktop -p "${p%last-image}image-style" -s 5 2>/dev/null || true
     done
   done
+  xfdesktop --reload 2>/dev/null || true
 ) &
 
 exec chromium \

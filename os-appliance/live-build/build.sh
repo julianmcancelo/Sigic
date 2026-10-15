@@ -97,9 +97,12 @@ else
   convert -size 640x480 xc:'#03080e' -depth 8 -colors 256 PNG8:splash.png
 fi
 
-if [ -f "$LOGO" ]; then
+if [ ! -f config/includes.chroot/usr/share/backgrounds/sigic/fondo.png ] && [ -f "$LOGO" ]; then
   convert -size 1920x1080 xc:'#03080e' \( "$LOGO" -resize x380 \) -gravity center -composite \
     config/includes.chroot/usr/share/backgrounds/sigic/fondo.png
+fi
+
+if [ -f "$LOGO" ]; then
   mkdir -p config/includes.chroot/opt/sigic
   cp "$LOGO" config/includes.chroot/opt/sigic/logo.png
   # Pixmaps e iconos de sistema

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Graduados
+Comment=Padrón de egresados e importación masiva
+Exec=chromium --lang=es-AR --app="http://localhost:3000/?modulo=gestion-graduados"
+Icon=/usr/share/pixmaps/sigic-graduados.png
+Terminal=false
+Categories=Office;Education;System;
+StartupNotify=true

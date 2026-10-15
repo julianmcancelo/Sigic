@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Reportes
+Comment=Métricas, asistencia y exportación de datos
+Exec=chromium --lang=es-AR --app="http://localhost:3000/?modulo=panel-reportes"
+Icon=/usr/share/pixmaps/sigic-reportes.png
+Terminal=false
+Categories=Office;Education;System;
+StartupNotify=true

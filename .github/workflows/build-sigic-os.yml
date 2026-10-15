@@ -41,6 +41,7 @@ jobs:
           cp -a .next/standalone/. "$DESTINO/"
           cp -r public "$DESTINO/public"
           cp -r .next/static "$DESTINO/.next/static"
+          node "$GITHUB_WORKSPACE/os-appliance/build_visual_assets.js"
           ls -la "$DESTINO"
 
       - name: Generar la ISO con Debian live-build (contenedor Debian 13)

@@ -2,9 +2,9 @@
 Version=1.0
 Type=Application
 Name=Manual de Usuario
-Comment=Guía oficial de uso y soporte de SiGIC
-Exec=chromium --lang=es-AR --start-maximized http://localhost:3000/manual
-Icon=/usr/share/pixmaps/sigic.png
+Comment=Guía oficial de uso y soporte técnico
+Exec=chromium --lang=es-AR --app="http://localhost:3000/manual"
+Icon=/usr/share/pixmaps/sigic-manual.png
 Terminal=false
-Categories=Network;Office;
+Categories=Office;Education;System;
 StartupNotify=true

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=En vivo
+Comment=Monitor operativo en tiempo real del evento
+Exec=chromium --lang=es-AR --app="http://localhost:3000/?modulo=estado-ceremonia"
+Icon=/usr/share/pixmaps/sigic-envivo.png
+Terminal=false
+Categories=Office;Education;System;
+StartupNotify=true
