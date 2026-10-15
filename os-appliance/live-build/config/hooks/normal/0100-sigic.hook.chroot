@@ -13,7 +13,7 @@ ln -sf /usr/share/zoneinfo/America/Argentina/Buenos_Aires /etc/localtime
 # --- Usuario de sistema para el servidor web ---
 id sigicweb >/dev/null 2>&1 || useradd --system --no-create-home --shell /usr/sbin/nologin sigicweb
 chown -R sigicweb:sigicweb /opt/sigic-web
-chmod +x /usr/local/bin/sigic-iniciar /usr/local/bin/sigic-acerca-de /usr/local/bin/sigic-configurar-usuario /usr/local/sbin/sigic-db-init 2>/dev/null || true
+chmod +x /usr/local/bin/sigic-iniciar /usr/local/bin/sigic-acerca-de /usr/local/bin/sigic-configurar-usuario /usr/local/sbin/sigic-db-init /opt/sigic/*.py 2>/dev/null || true
 chmod 640 /etc/sigic/sigic.env
 chgrp sigicweb /etc/sigic/sigic.env
 echo "sigicweb ALL=(ALL) NOPASSWD: /usr/local/bin/sigic-configurar-usuario" > /etc/sudoers.d/sigicweb
