@@ -62,21 +62,37 @@ echo "Empaquetando $ISO_SALIDA con arranque hibrido UEFI + BIOS..."
 # Extraer el sector MBR booteable de la imagen original de Ubuntu
 dd if="$ISO_ORIGINAL" bs=1 count=446 of=isohdpfx.bin 2>/dev/null || true
 
-# Empaquetado oficial con el MBR y la partición EFI de Ubuntu
+# En Ubuntu 24.04, la imagen de arranque EFI puede estar en EFI/boot/bootx64.efi o boot/grub/i386-pc
+EFI_OPT=""
+if [ -f "iso_nueva/EFI/boot/bootx64.efi" ]; then
+  # Crear una imagen FAT EFI estándar si no existe efi.img suelta
+  mkdir -p efidir/EFI/boot
+  cp iso_nueva/EFI/boot/bootx64.efi efidir/EFI/boot/ 2>/dev/null || true
+  if [ -f "iso_nueva/boot/grub/grub.cfg" ]; then
+    mkdir -p efidir/boot/grub
+    cp iso_nueva/boot/grub/grub.cfg efidir/boot/grub/
+  fi
+  # Generar efi.img
+  dd if=/dev/zero of=iso_nueva/boot/efi.img bs=1M count=10 2>/dev/null || true
+  mkfs.vfat iso_nueva/boot/efi.img 2>/dev/null || true
+  mcopy -i iso_nueva/boot/efi.img -s efidir/* ::/ 2>/dev/null || true
+  EFI_OPT="-eltorito-alt-boot -e boot/efi.img -no-emul-boot -isohybrid-gpt-basdat"
+fi
+
+BOOT_OPT=""
+if [ -f "iso_nueva/boot/grub/i386-pc/eltorito.img" ]; then
+  BOOT_OPT="-b boot/grub/i386-pc/eltorito.img -c boot.catalog -no-emul-boot -boot-load-size 4 -boot-info-table"
+elif [ -f "iso_nueva/isolinux/isolinux.bin" ]; then
+  BOOT_OPT="-b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table"
+fi
+
 xorriso -as mkisofs \
   -r -V "SIGIC_OS" \
   -J -joliet-long -l \
-  -iso-level 3 \
   -partition_offset 16 \
-  --mbr-force-bootable \
   -isohybrid-mbr isohdpfx.bin \
-  -b boot/grub/i386-pc/eltorito.img \
-  -c boot.catalog \
-  -no-emul-boot -boot-load-size 4 -boot-info-table \
-  --grub2-boot-info \
-  -eltorito-alt-boot \
-  -e boot/grub/efi.img \
-  -no-emul-boot -isohybrid-gpt-basdat \
+  $BOOT_OPT \
+  $EFI_OPT \
   -o "$ISO_SALIDA" \
   iso_nueva
 

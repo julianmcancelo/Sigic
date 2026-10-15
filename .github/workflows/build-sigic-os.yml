@@ -22,7 +22,7 @@ jobs:
       - name: Instalar herramientas de compilación de ISO
         run: |
           sudo apt update
-          sudo apt install -y p7zip-full xorriso isolinux wget
+          sudo apt install -y p7zip-full xorriso isolinux wget dosfstools mtools
 
       - name: Ejecutar generación de ISO de SiGIC OS
         run: |
