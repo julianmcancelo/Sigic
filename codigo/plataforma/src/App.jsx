@@ -194,7 +194,7 @@ function App() {
   )
 
   const [dockPosicion, setDockPosicion] = useState(
-    () => (typeof window !== 'undefined' ? localStorage.getItem('sigic_dock_posicion') : 'abajo') || 'abajo'
+    () => (typeof window !== 'undefined' ? localStorage.getItem('sigic_dock_posicion') : 'izquierda') || 'izquierda'
   )
 
 
