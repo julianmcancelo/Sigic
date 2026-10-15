@@ -27,6 +27,9 @@ lb config \
   --mirror-bootstrap "http://deb.debian.org/debian/" \
   --mirror-chroot "http://deb.debian.org/debian/" \
   --mirror-binary "http://deb.debian.org/debian/" \
+  --mirror-chroot-security "http://deb.debian.org/debian-security/" \
+  --mirror-binary-security "http://deb.debian.org/debian-security/" \
+  --security true \
   --archive-areas "main contrib non-free non-free-firmware" \
   --bootloader syslinux \
   --binary-images iso-hybrid \
@@ -35,6 +38,14 @@ lb config \
   --iso-volume "SIGIC_OS" \
   --memtest none \
   --win32-loader false
+
+# En Debian 11+ el repo de seguridad cambió de "bookworm/updates" a "bookworm-security"
+mkdir -p config/archives
+cat << 'EOF' > config/archives/security.list.chroot
+deb http://deb.debian.org/debian-security bookworm-security main contrib non-free non-free-firmware
+EOF
+cp config/archives/security.list.chroot config/archives/security.list.binary
+
 
 
 
