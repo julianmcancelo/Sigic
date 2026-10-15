@@ -30,26 +30,31 @@ jobs:
           chmod +x build-iso.sh setup-kiosk.sh custom-branding.sh
           ./build-iso.sh
           rm -f ubuntu-base.iso debian-*.iso
-          # Comprimir en formato .zip o .tar.gz para descarga rápida y eficiente
-          7z a -tzip sigic-os-ubuntu-desktop.zip sigic-os-*.iso
+          # Dividir la ISO en partes de 1.8GB (.iso.part00, .iso.part01) para no superar el límite de 2GB de GitHub
+          7z a -v1800m sigic-os-ubuntu.7z sigic-os-*.iso
+
+      - name: Subir imagen como Artifact de GitHub Actions (Descarga directa)
+        uses: actions/upload-artifact@v4
+        with:
+          name: sigic-os-ubuntu-iso
+          path: os-appliance/sigic-os-*.iso
+          retention-days: 14
 
       - name: Subir ISO como Release de GitHub
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
         with:
-          tag_name: "sigic-os-v${{ github.event.inputs.version || '2.0.0' }}"
-          name: "SiGIC OS Appliance v${{ github.event.inputs.version || '2.0.0' }}"
+          tag_name: "sigic-os-v${{ github.event.inputs.version || '2.0.2' }}"
+          name: "SiGIC OS Appliance v${{ github.event.inputs.version || '2.0.2' }}"
           draft: false
           prerelease: false
-          files: os-appliance/sigic-os-ubuntu-desktop.zip
+          files: os-appliance/sigic-os-ubuntu.7z.*
           body: |
-            ### 💿 SiGIC OS Appliance (ISO Booteable)
+            ### 💿 SiGIC OS Ubuntu Appliance (Booteable)
             
-            Sistema Operativo autónomo y listo para usar en eventos de graduación.
+            Sistema Operativo autónomo con el Escritorio Oficial de SiGIC.
             
-            - **Arranque directo**: Modo Kiosco con interfaz oficial de SiGIC.
-            - **Base de Datos**: PostgreSQL 16 preconfigurado.
-            - **Usuario por defecto**: `sigic` / `sigic2026`.
-            - **Quemado en Pendrive**: Compatible con Rufus, BalenaEtcher y Ventoy.
+            - **Descarga**: Descargar las partes `sigic-os-ubuntu.7z.001` y descomprimir con 7-Zip o WinRAR.
+            - También disponible como archivo directo en la pestaña **Artifacts** de este workflow.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
