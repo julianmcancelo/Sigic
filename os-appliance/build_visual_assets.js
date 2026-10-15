@@ -281,14 +281,62 @@ StartupNotify=true
   createDesktopLauncher('SiGIC Portal', 'Acceso directo a la plataforma institucional', 'chromium --lang=es-AR --start-maximized http://localhost:3000/', 'sigic.png', 'SiGIC.desktop');
 
   // =========================================================================
-  // 5. PLYMOUTH BOOT SPLASH (Tema Institucional Beltrán)
+  // 5. PLYMOUTH BOOT SPLASH (Tema Institucional Beltrán de Alta Fidelidad)
   // =========================================================================
   const PLYMOUTH_DIR = path.join(ROOT, 'plymouth-theme');
   const PLYMOUTH_CHROOT = path.join(CHROOT_DIR, 'usr', 'share', 'plymouth', 'themes', 'sigic');
 
-  // 5.1 Generar track y barra de progreso
-  const trackSvg = Buffer.from('<svg width="280" height="4"><rect width="280" height="4" rx="2" fill="#0d283c"/></svg>');
-  const barSvg = Buffer.from('<svg width="70" height="4"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#00e5ff" stop-opacity="0.2"/><stop offset="50%" stop-color="#00e5ff" stop-opacity="1"/><stop offset="100%" stop-color="#00e5ff" stop-opacity="0.2"/></linearGradient></defs><rect width="70" height="4" rx="2" fill="url(#g)"/></svg>');
+  // 5.1 Renderizar bloque central con logo, resplandor y tipografía de precisión (600x320)
+  const logoPlymouthCenter = await sharp(LOGO_SRC)
+    .resize(130, 130, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .toBuffer();
+
+  const svgSplashCenter = Buffer.from(`
+    <svg width="600" height="320">
+      <defs>
+        <radialGradient id="glowCenter" cx="50%" cy="30%" r="45%">
+          <stop offset="0%" stop-color="#0284c7" stop-opacity="0.32"/>
+          <stop offset="60%" stop-color="#0284c7" stop-opacity="0.08"/>
+          <stop offset="100%" stop-color="#0284c7" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="dividerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stop-color="#00e5ff" stop-opacity="0"/>
+          <stop offset="50%" stop-color="#00e5ff" stop-opacity="0.7"/>
+          <stop offset="100%" stop-color="#00e5ff" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+      <!-- Resplandor azul detrás del logo -->
+      <circle cx="300" cy="85" r="140" fill="url(#glowCenter)"/>
+
+      <!-- Título Principal -->
+      <text x="300" y="195" font-family="DejaVu Sans, Arial, sans-serif" font-size="28" font-weight="900" fill="#00e5ff" text-anchor="middle" letter-spacing="4">SiGIC OS</text>
+
+      <!-- Subtítulo Institucional -->
+      <text x="300" y="222" font-family="DejaVu Sans, Arial, sans-serif" font-size="11" font-weight="bold" fill="#7dd3fc" text-anchor="middle" letter-spacing="2.2">INSTITUTO TECNOLÓGICO BELTRÁN</text>
+
+      <!-- Divisor sutil con brillo -->
+      <line x1="160" y1="234" x2="440" y2="234" stroke="url(#dividerGrad)" stroke-width="1.2"/>
+
+      <!-- Tagline / Badge -->
+      <text x="300" y="254" font-family="DejaVu Sans, Arial, sans-serif" font-size="9.5" font-weight="bold" fill="#38bdf8" text-anchor="middle" letter-spacing="1.5">SISTEMA DE GESTIÓN INSTITUCIONAL DE COLACIONES</text>
+
+      <!-- Mensaje de Estado -->
+      <text x="300" y="295" font-family="DejaVu Sans, Arial, sans-serif" font-size="11" font-weight="500" fill="#94a3b8" text-anchor="middle">Iniciando plataforma y servicios en memoria RAM...</text>
+    </svg>
+  `);
+
+  const splashCenterBuf = await sharp(svgSplashCenter)
+    .composite([
+      { input: logoPlymouthCenter, top: 20, left: Math.round((600 - 130) / 2) }
+    ])
+    .png()
+    .toBuffer();
+
+  fs.writeFileSync(path.join(PLYMOUTH_DIR, 'splash_center.png'), splashCenterBuf);
+
+  // 5.2 Barra de progreso animada de diseño refinado
+  const trackSvg = Buffer.from('<svg width="300" height="4"><rect width="300" height="4" rx="2" fill="#091f30" stroke="#123d5c" stroke-width="0.8"/></svg>');
+  const barSvg = Buffer.from('<svg width="85" height="4"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#00e5ff" stop-opacity="0.1"/><stop offset="35%" stop-color="#00e5ff" stop-opacity="1"/><stop offset="65%" stop-color="#00e5ff" stop-opacity="1"/><stop offset="100%" stop-color="#00e5ff" stop-opacity="0.1"/></linearGradient></defs><rect width="85" height="4" rx="2" fill="url(#g)"/></svg>');
 
   const trackBuf = await sharp(trackSvg).png().toBuffer();
   const barBuf = await sharp(barSvg).png().toBuffer();
@@ -296,7 +344,17 @@ StartupNotify=true
   fs.writeFileSync(path.join(PLYMOUTH_DIR, 'track.png'), trackBuf);
   fs.writeFileSync(path.join(PLYMOUTH_DIR, 'bar.png'), barBuf);
 
-  // 5.2 Sincronizar todos los archivos de plymouth-theme al chroot
+  // 5.3 Footer institucional de precisión (800x50)
+  const svgFooter = Buffer.from(`
+    <svg width="800" height="50">
+      <text x="400" y="20" font-family="DejaVu Sans, Arial, sans-serif" font-size="9" font-weight="bold" fill="#0284c7" text-anchor="middle" letter-spacing="2">PRÁCTICA PROFESIONALIZANTE 2026</text>
+      <text x="400" y="38" font-family="DejaVu Sans, Arial, sans-serif" font-size="10" font-weight="600" fill="#64748b" text-anchor="middle" letter-spacing="0.5">Cancelo Julián · Alfonso Alan Alexis · Contreras Sol · Frassia Matías · Santillán Luis Gabriel</text>
+    </svg>
+  `);
+  const footerBuf = await sharp(svgFooter).png().toBuffer();
+  fs.writeFileSync(path.join(PLYMOUTH_DIR, 'footer.png'), footerBuf);
+
+  // 5.4 Sincronizar todos los archivos de plymouth-theme al chroot
   for (const archivo of fs.readdirSync(PLYMOUTH_DIR)) {
     if (archivo.endsWith('.png') || archivo.endsWith('.plymouth') || archivo.endsWith('.script')) {
       fs.copyFileSync(path.join(PLYMOUTH_DIR, archivo), path.join(PLYMOUTH_CHROOT, archivo));

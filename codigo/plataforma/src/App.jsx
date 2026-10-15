@@ -819,9 +819,20 @@ function App() {
 
   // CASO 0.1: Sistema Virgen (Requiere Asistente de Configuración)
   if (requiereSetup) {
-    return <AsistenteSetup onFinalizado={() => {
-      window.location.href = '/'
-    }} />
+    return (
+      <AsistenteSetup
+        onFinalizado={(res) => {
+          if (res?.usuario) {
+            manejarLoginAdminExitoso(res.usuario)
+            setRequiereSetup(false)
+            setPantallaAdmin('bienvenida')
+            sincronizarEntornoCeremonia()
+          } else {
+            window.location.href = '/'
+          }
+        }}
+      />
+    )
   }
 
   // CASO A: El usuario entró por un Link Directo (?token=...)

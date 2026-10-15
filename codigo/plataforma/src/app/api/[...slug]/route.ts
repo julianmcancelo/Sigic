@@ -1440,9 +1440,11 @@ export async function POST(
 
         await setupClient.query('COMMIT');
         invalidarCache('setup:status');
+        const token = firmar({ id: usuarioId, email: email.toLowerCase(), nombre, rol: 'ADMINISTRATIVO' });
         return NextResponse.json({
           ok: true,
           mensaje: 'Configuración inicial creada correctamente',
+          token,
           usuario: { id: usuarioId, nombre, email: email.toLowerCase(), rol: 'ADMINISTRATIVO' },
           ceremonia: { id: ceremoniaId, nombre: nombreEvento, fecha: fechaEvento, lugar: lugarEvento },
         }, { headers });
