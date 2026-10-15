@@ -22,6 +22,7 @@ async function main() {
     path.join(CHROOT_DIR, 'usr', 'share', 'icons', 'hicolor', '48x48', 'apps'),
     path.join(CHROOT_DIR, 'usr', 'share', 'icons', 'hicolor', '128x128', 'apps'),
     path.join(CHROOT_DIR, 'usr', 'share', 'applications'),
+    path.join(CHROOT_DIR, 'usr', 'share', 'plymouth', 'themes', 'sigic'),
     path.join(CHROOT_DIR, 'etc', 'skel', 'Desktop'),
     path.join(CHROOT_DIR, 'opt', 'sigic')
   ];
@@ -279,7 +280,30 @@ StartupNotify=true
   fs.writeFileSync(path.join(CHROOT_DIR, 'opt', 'sigic', 'logo.png'), iconGen);
   createDesktopLauncher('SiGIC Portal', 'Acceso directo a la plataforma institucional', 'chromium --lang=es-AR --start-maximized http://localhost:3000/', 'sigic.png', 'SiGIC.desktop');
 
-  console.log('>> ¡Sistema visual integral de SiGIC OS generado exitosamente!');
+  // =========================================================================
+  // 5. PLYMOUTH BOOT SPLASH (Tema Institucional Beltrán)
+  // =========================================================================
+  const PLYMOUTH_DIR = path.join(ROOT, 'plymouth-theme');
+  const PLYMOUTH_CHROOT = path.join(CHROOT_DIR, 'usr', 'share', 'plymouth', 'themes', 'sigic');
+
+  // 5.1 Generar track y barra de progreso
+  const trackSvg = Buffer.from('<svg width="280" height="4"><rect width="280" height="4" rx="2" fill="#0d283c"/></svg>');
+  const barSvg = Buffer.from('<svg width="70" height="4"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#00e5ff" stop-opacity="0.2"/><stop offset="50%" stop-color="#00e5ff" stop-opacity="1"/><stop offset="100%" stop-color="#00e5ff" stop-opacity="0.2"/></linearGradient></defs><rect width="70" height="4" rx="2" fill="url(#g)"/></svg>');
+
+  const trackBuf = await sharp(trackSvg).png().toBuffer();
+  const barBuf = await sharp(barSvg).png().toBuffer();
+
+  fs.writeFileSync(path.join(PLYMOUTH_DIR, 'track.png'), trackBuf);
+  fs.writeFileSync(path.join(PLYMOUTH_DIR, 'bar.png'), barBuf);
+
+  // 5.2 Sincronizar todos los archivos de plymouth-theme al chroot
+  for (const archivo of fs.readdirSync(PLYMOUTH_DIR)) {
+    if (archivo.endsWith('.png') || archivo.endsWith('.plymouth') || archivo.endsWith('.script')) {
+      fs.copyFileSync(path.join(PLYMOUTH_DIR, archivo), path.join(PLYMOUTH_CHROOT, archivo));
+    }
+  }
+
+  console.log('>> ¡Sistema visual integral y Plymouth Splash de SiGIC OS generados exitosamente!');
 }
 
 main().catch(err => {

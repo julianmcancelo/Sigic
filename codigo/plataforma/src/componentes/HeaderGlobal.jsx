@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { LogOut, ArrowLeft, User } from 'lucide-react'
+import { LogOut, ArrowLeft, User, LayoutGrid } from 'lucide-react'
 import { ModalConfirmacion } from './ModalConfirmacion'
 
 /**
@@ -35,8 +35,8 @@ export function HeaderGlobal({
     >
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 sm:px-6 py-3 sm:py-4">
         
-        {/* BLOQUE IZQUIERDO: Navegación + Branding + Título Contextual */}
-        <div className="flex items-center gap-3 sm:gap-5">
+        {/* BLOQUE IZQUIERDO: Navegación + Menú Inicio + Branding + Título Contextual */}
+        <div className="flex items-center gap-2 sm:gap-4">
           {onVolver && (
             <button 
               onClick={onVolver}
@@ -47,6 +47,17 @@ export function HeaderGlobal({
               <ArrowLeft size={20} className="hidden sm:block transition-transform group-hover:-translate-x-0.5" />
             </button>
           )}
+
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent('sigic-abrir-menu'))}
+            className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-[#091b2e] hover:bg-sky-600 text-white transition-all duration-200 active:scale-95 shadow-md shadow-slate-950/10 cursor-pointer border border-cyan-500/30 group"
+            title="Abrir Menú de Inicio SiGIC (Ctrl + K)"
+          >
+            <LayoutGrid size={15} className="text-cyan-400 group-hover:rotate-90 transition-transform duration-300" />
+            <span className="text-xs font-black tracking-wide hidden md:inline">Menú SiGIC</span>
+            <kbd className="hidden lg:inline text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/10 text-white/80">Ctrl K</kbd>
+          </button>
           
           <div className="flex items-center">
             {/* Branding Logo Oficial */}

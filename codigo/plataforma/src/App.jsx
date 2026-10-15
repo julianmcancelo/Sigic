@@ -1111,6 +1111,8 @@ function App() {
         onSeleccionarAdmin={() => setVistaLogin('admin')}
         onSeleccionarEgresado={() => setVistaLogin('graduado')}
         onSeleccionarManual={() => setVistaLogin('manual')}
+        onLoginAdminExitoso={manejarLoginAdminExitoso}
+        onLoginGraduadoExitoso={manejarLoginGraduadoExitoso}
       />
     )
   }
@@ -1334,8 +1336,13 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
         setInicioAbierto(abierto => !abierto)
       }
     }
+    const manejarAbrirMenu = () => setInicioAbierto(abierto => !abierto)
     window.addEventListener('keydown', abrirBusqueda)
-    return () => window.removeEventListener('keydown', abrirBusqueda)
+    window.addEventListener('sigic-abrir-menu', manejarAbrirMenu)
+    return () => {
+      window.removeEventListener('keydown', abrirBusqueda)
+      window.removeEventListener('sigic-abrir-menu', manejarAbrirMenu)
+    }
   }, [])
 
   useEffect(() => {
