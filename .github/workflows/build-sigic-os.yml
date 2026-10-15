@@ -29,16 +29,19 @@ jobs:
           cd os-appliance
           chmod +x build-iso.sh setup-kiosk.sh custom-branding.sh
           ./build-iso.sh
+          rm -f ubuntu-base.iso debian-*.iso
+          # Comprimir en formato .zip o .tar.gz para descarga rápida y eficiente
+          7z a -tzip sigic-os-ubuntu-desktop.zip sigic-os-*.iso
 
       - name: Subir ISO como Release de GitHub
         uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
         with:
-          tag_name: "sigic-os-v${{ github.event.inputs.version || '1.0.0' }}"
-          name: "SiGIC OS Appliance v${{ github.event.inputs.version || '1.0.0' }}"
+          tag_name: "sigic-os-v${{ github.event.inputs.version || '2.0.0' }}"
+          name: "SiGIC OS Appliance v${{ github.event.inputs.version || '2.0.0' }}"
           draft: false
           prerelease: false
-          files: os-appliance/*.iso
+          files: os-appliance/sigic-os-ubuntu-desktop.zip
           body: |
             ### 💿 SiGIC OS Appliance (ISO Booteable)
             
