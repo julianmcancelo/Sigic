@@ -53,6 +53,21 @@ export function AsistenteSetup({ onFinalizado }) {
         ...admin
       })
 
+      // Sincronizar cuenta de usuario con el sistema operativo Linux (si se ejecuta en SiGIC OS)
+      try {
+        await fetch('/api/sistema/primer-inicio', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nombre: admin.nombre,
+            email: admin.email,
+            password: admin.password
+          })
+        })
+      } catch (eSync) {
+        console.warn('Aviso sincronización con Linux OS:', eSync)
+      }
+
       // Guardar sesión y token JWT de inmediato
       if (res?.token) {
         guardarTokenSesion(res.token)

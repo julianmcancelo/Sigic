@@ -1,0 +1,31 @@
+#!/bin/bash
+# ==============================================================================
+# SiGIC OS — Script de Configuración del Usuario de Linux en Primer Inicio
+# ==============================================================================
+NOMBRE="$1"
+EMAIL="$2"
+PASSWORD="$3"
+
+USER_TARGET="sigic"
+
+# 1. Actualizar Nombre Completo en el Sistema Linux
+if [ -n "$NOMBRE" ]; then
+  chfn -f "$NOMBRE" "$USER_TARGET" 2>/dev/null || true
+fi
+
+# 2. Actualizar Contraseña del Usuario Linux
+if [ -n "$PASSWORD" ]; then
+  echo "$USER_TARGET:$PASSWORD" | chpasswd 2>/dev/null || true
+fi
+
+# 3. Configurar Git y entorno de usuario
+if [ -n "$EMAIL" ]; then
+  su - "$USER_TARGET" -c "git config --global user.name '$NOMBRE' 2>/dev/null; git config --global user.email '$EMAIL' 2>/dev/null" || true
+fi
+
+# 4. Marcar que el primer inicio asistido fue completado
+mkdir -p "/home/$USER_TARGET/.config"
+touch "/home/$USER_TARGET/.config/sigic-setup-done"
+chown -R "$USER_TARGET:$USER_TARGET" "/home/$USER_TARGET/.config" 2>/dev/null || true
+
+exit 0

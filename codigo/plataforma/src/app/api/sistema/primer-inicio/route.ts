@@ -1,0 +1,29 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { execFile } from 'child_process';
+import { promisify } from 'util';
+
+const execFileAsync = promisify(execFile);
+
+export async function POST(req: NextRequest) {
+  try {
+    const { nombre, email, password } = await req.json().catch(() => ({}));
+
+    if (process.platform === 'linux') {
+      try {
+        await execFileAsync('sudo', [
+          '/usr/local/bin/sigic-configurar-usuario',
+          String(nombre || 'SiGIC Beltrán'),
+          String(email || 'admin@sigic.com'),
+          String(password || '')
+        ]);
+        console.log('[SISTEMA] Usuario de Linux actualizado exitosamente.');
+      } catch (err: any) {
+        console.warn('[SISTEMA] No se pudo ejecutar sigic-configurar-usuario:', err.message);
+      }
+    }
+
+    return NextResponse.json({ ok: true, mensaje: 'Usuario del sistema configurado correctamente' });
+  } catch (error: any) {
+    return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+  }
+}
