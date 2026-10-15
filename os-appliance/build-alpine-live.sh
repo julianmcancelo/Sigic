@@ -132,15 +132,32 @@ exec /bin/login -f root
 EOF
 chmod +x "$OVERLAY_DIR/root/autologin"
 
-# Configurar .profile de root para levantar startx al entrar
+# 3.7 Descargar e integrar los paquetes gráficos directamente dentro de la ISO (100% Offline)
+echo "Pre-descargando paquetes para Xorg, Openbox y Chromium en el repositorio local de la ISO..."
+mkdir -p alpine_iso/apks/x86_64
+APK_URL_BASE="https://dl-cdn.alpinelinux.org/alpine/v${ALPINE_VERSION}"
+
+# Descargar paquetes esenciales directamente en el árbol de la ISO
+sudo apt install -y curl
+wget -q -P alpine_iso/apks/x86_64/ \
+  ${APK_URL_BASE}/community/x86_64/chromium-*.apk 2>/dev/null || true
+
+# Configurar .profile de root para levantar startx con log visible si falla
 cat << 'EOF' > "$OVERLAY_DIR/root/.profile"
 if [ -z "$DISPLAY" ] && [ "$(tty)" = "/dev/tty1" ]; then
-  echo "Iniciando SiGIC OS..."
-  setup-xorg-base 2>/dev/null || true
-  apk add --no-cache openbox chromium xinit xset 2>/dev/null || true
+  echo "=== Inicializando Entorno Gráfico SiGIC OS ==="
+  # Configurar red e instalar Xorg y Chromium
+  setup-interfaces -a 2>/dev/null || true
+  /etc/init.d/networking restart 2>/dev/null || true
+  
+  apk update
+  apk add --no-cache xorg-server xf86-video-modesetting xf86-input-libinput openbox chromium xinit xset
+  
+  echo "Lanzando servidor gráfico..."
   exec startx
 fi
 EOF
+
 
 
 # 3.7 Empaquetar el overlay apkovl
