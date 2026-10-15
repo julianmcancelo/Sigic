@@ -74,18 +74,35 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 DATABASE_URL=postgres://sigic:sigic@localhost:5432/sigic
 DB_SSL_INSECURE=1
 JWT_SECRET=$(openssl rand -hex 48)
+SIGIC_SETUP_KEY=35230531
 EOF
 
 # --- Identidad visual: fondo de escritorio y splash de arranque --------------
 LOGO="$RAIZ/plymouth-theme/logo.png"
 mkdir -p config/includes.chroot/usr/share/backgrounds/sigic
+mkdir -p config/includes.chroot/usr/share/pixmaps \
+         config/includes.chroot/usr/share/icons/hicolor/48x48/apps \
+         config/includes.chroot/usr/share/icons/hicolor/128x128/apps \
+         config/includes.chroot/usr/share/icons/hicolor/scalable/apps
+
 if [ -f "$LOGO" ]; then
   convert -size 1920x1080 xc:'#03080e' \( "$LOGO" -resize x380 \) -gravity center -composite \
     config/includes.chroot/usr/share/backgrounds/sigic/fondo.png
-  convert -size 640x480 xc:'#03080e' \( "$LOGO" -resize x200 \) -gravity center -composite \
+  convert -size 640x480 xc:'#03080e' \( "$LOGO" -resize x200 \) -gravity center -geometry +0-30 -composite \
     -depth 8 -colors 256 PNG8:splash.png
   mkdir -p config/includes.chroot/opt/sigic
   cp "$LOGO" config/includes.chroot/opt/sigic/logo.png
+  # Pixmaps e iconos de sistema
+  cp "$LOGO" config/includes.chroot/usr/share/pixmaps/sigic.png
+  cp "$LOGO" config/includes.chroot/usr/share/pixmaps/sigic-logo.png
+  cp "$LOGO" config/includes.chroot/usr/share/pixmaps/debian-logo.png
+  cp "$LOGO" config/includes.chroot/usr/share/pixmaps/xfce4_xicon.png
+  cp "$LOGO" config/includes.chroot/usr/share/pixmaps/xfce4-panel-menu.png
+  cp "$LOGO" config/includes.chroot/usr/share/icons/hicolor/48x48/apps/sigic.png
+  cp "$LOGO" config/includes.chroot/usr/share/icons/hicolor/128x128/apps/sigic.png
+  cp "$LOGO" config/includes.chroot/usr/share/icons/hicolor/scalable/apps/sigic.png
+  cp "$LOGO" config/includes.chroot/usr/share/icons/hicolor/48x48/apps/org.xfce.panel.applicationsmenu.png
+  cp "$LOGO" config/includes.chroot/usr/share/icons/hicolor/scalable/apps/org.xfce.panel.applicationsmenu.png
   # Tema de arranque Plymouth
   mkdir -p config/includes.chroot/usr/share/plymouth/themes/sigic
   cp "$RAIZ/plymouth-theme/"* config/includes.chroot/usr/share/plymouth/themes/sigic/

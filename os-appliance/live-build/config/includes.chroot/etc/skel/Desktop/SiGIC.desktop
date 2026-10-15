@@ -4,6 +4,7 @@ Type=Application
 Name=SiGIC
 Comment=Sistema Integral de Gestión Institucional
 Exec=chromium --lang=es-AR --start-maximized http://localhost:3000/
-Icon=/opt/sigic/logo.png
+Icon=/usr/share/pixmaps/sigic.png
 Terminal=false
 Categories=Network;Office;
+StartupNotify=true

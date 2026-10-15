@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acerca de SiGIC — Instituto Tecnológico Beltrán</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: radial-gradient(circle at top, #0c2333 0%, #03080e 75%);
+    color: #d9f7fb;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+    min-height: 100vh;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .container {
+    max-width: 680px;
+    width: 100%;
+    background: rgba(8, 24, 36, 0.75);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(0, 229, 255, 0.2);
+    border-radius: 20px;
+    padding: 32px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0, 229, 255, 0.08);
+  }
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    border-bottom: 1px solid rgba(0, 229, 255, 0.15);
+    padding-bottom: 20px;
+    margin-bottom: 24px;
+  }
+  .header img {
+    height: 72px;
+    width: 72px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 12px rgba(0, 229, 255, 0.4));
+  }
+  .header-text h1 {
+    font-size: 26px;
+    color: #ffffff;
+    letter-spacing: 0.05em;
+    font-weight: 800;
+  }
+  .header-text h1 span {
+    color: #00e5ff;
+  }
+  .header-text p {
+    font-size: 14px;
+    color: #80deea;
+    margin-top: 2px;
+  }
+  .badge-inst {
+    display: inline-block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+    color: #00e5ff;
+    background: rgba(0, 229, 255, 0.1);
+    border: 1px solid rgba(0, 229, 255, 0.3);
+    padding: 3px 10px;
+    border-radius: 999px;
+    margin-top: 6px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .card {
+    background: rgba(3, 12, 19, 0.6);
+    border: 1px solid rgba(0, 229, 255, 0.1);
+    border-radius: 14px;
+    padding: 16px;
+  }
+  .card h2 {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #00e5ff;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .team-list {
+    list-style: none;
+    font-size: 13px;
+    line-height: 1.8;
+  }
+  .team-list li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #ecfeff;
+  }
+  .team-list li::before {
+    content: "•";
+    color: #00e5ff;
+    font-weight: bold;
+  }
+  .tech-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .pill {
+    font-size: 11px;
+    background: rgba(14, 46, 62, 0.8);
+    border: 1px solid rgba(0, 229, 255, 0.2);
+    color: #d9f7fb;
+    padding: 4px 8px;
+    border-radius: 6px;
+  }
+  .meta-info {
+    background: rgba(0, 229, 255, 0.05);
+    border-left: 3px solid #00e5ff;
+    padding: 12px 16px;
+    border-radius: 0 10px 10px 0;
+    margin-bottom: 24px;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #a5f3fc;
+  }
+  .meta-info code {
+    background: rgba(0, 0, 0, 0.4);
+    color: #67e8f9;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 13px;
+    border: 1px solid rgba(0, 229, 255, 0.2);
+  }
+  .actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+  }
+  .btn {
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 18px;
+    border-radius: 10px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-primary {
+    background: #00e5ff;
+    color: #03080e;
+    box-shadow: 0 4px 15px rgba(0, 229, 255, 0.3);
+  }
+  .btn-primary:hover {
+    background: #38bdf8;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0, 229, 255, 0.4);
+  }
+  .btn-secondary {
+    background: rgba(255, 255, 255, 0.08);
+    color: #d9f7fb;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+  .btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+  }
+  .footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 11px;
+    color: #64748b;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <img src="logo.png" alt="SiGIC Logo" onerror="this.src='/usr/share/pixmaps/sigic.png'">
+    <div class="header-text">
+      <h1>SiGIC <span>OS</span></h1>
+      <p>Sistema de Gestión Institucional de Colaciones</p>
+      <span class="badge-inst">Instituto Tecnológico Beltrán · Práctica Profesionalizante 2026</span>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>Equipo de Desarrollo</h2>
+      <ul class="team-list">
+        <li>Cancelo Julián</li>
+        <li>Alfonso Alan Alexis</li>
+        <li>Contreras Villalba Sol Heilin</li>
+        <li>Frassia Matías</li>
+        <li>Santillán Luis Gabriel</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Tecnologías Integradas</h2>
+      <div class="tech-pills">
+        <span class="pill">Debian 13 Trixie</span>
+        <span class="pill">Next.js 16 (React 19)</span>
+        <span class="pill">PostgreSQL Neon / Local</span>
+        <span class="pill">TailwindCSS 4</span>
+        <span class="pill">Chromium Engine</span>
+        <span class="pill">XFCE 4 Desktop</span>
+        <span class="pill">React Native / Expo</span>
+        <span class="pill">OTP & JWT Auth</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="meta-info">
+    <strong>Parámetros de Despliegue Local:</strong><br>
+    • Acceso Web: <code>http://localhost:3000</code><br>
+    • Clave de Instalación del Asistente: <code>35230531</code><br>
+    • Base de Datos: PostgreSQL 16 (puerto 5432, base de datos <code>sigic</code>)
+  </div>
+
+  <div class="actions">
+    <button class="btn btn-secondary" onclick="window.close()">Cerrar</button>
+    <a href="http://localhost:3000/manual" target="_blank" class="btn btn-secondary">Manual de Soporte</a>
+    <a href="http://localhost:3000/" target="_blank" class="btn btn-primary">Abrir Plataforma SiGIC →</a>
+  </div>
+</div>
+
+<div class="footer">
+  SiGIC OS Appliance — Todos los derechos reservados · 2026 Instituto Tecnológico Beltrán
+</div>
+
+</body>
+</html>

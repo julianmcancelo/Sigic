@@ -9,7 +9,7 @@ export function AsistenteSetup({ onFinalizado }) {
 
   // Datos
   const [evento, setEvento] = useState({ nombreEvento: '', fechaEvento: '', lugarEvento: '' })
-  const [admin, setAdmin] = useState({ nombre: '', email: '', password: '', setupKey: '' })
+  const [admin, setAdmin] = useState({ nombre: '', email: '', password: '', setupKey: '35230531' })
 
   const esPaso1Valido = evento.nombreEvento.trim() && evento.fechaEvento && evento.lugarEvento.trim()
   const esPaso2Valido = admin.nombre.trim() && admin.email.trim() && admin.password.trim()

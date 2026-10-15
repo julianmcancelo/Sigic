@@ -1,0 +1,8 @@
+#!/bin/bash
+exec chromium \
+  --app="file:///opt/sigic/acerca-de.html" \
+  --window-size=720,640 \
+  --no-first-run \
+  --no-default-browser-check \
+  --disable-translate \
+  --disable-features=Translate

@@ -1,9 +1,20 @@
 #!/bin/bash
-# Se ejecuta al iniciar sesión: aplica el fondo de SiGIC y abre el navegador.
+# Se ejecuta al iniciar sesión: aplica personalización visual, fondo y lanza el navegador.
 FONDO=/usr/share/backgrounds/sigic/fondo.png
 
-# Fondo en todos los monitores/espacios de trabajo
+# Confiar en los accesos directos del escritorio para mostrar sus iconos institucionales
+chmod +x "$HOME/Desktop"/*.desktop 2>/dev/null || true
+gio set "$HOME/Desktop"/*.desktop metadata::trusted true 2>/dev/null || true
+
+# Fondo y personalización de panel en segundo plano
 (
+  # Ajustar panel XFCE con logo e impronta SiGIC
+  sleep 2
+  xfconf-query -c xfce4-panel -p /plugins/plugin-1/button-title -s " SiGIC" --create -t string 2>/dev/null || true
+  xfconf-query -c xfce4-panel -p /plugins/plugin-1/button-icon -s "/usr/share/pixmaps/sigic.png" --create -t string 2>/dev/null || true
+  xfconf-query -c xfce4-panel -p /plugins/plugin-1/show-button-title -s true --create -t bool 2>/dev/null || true
+  xfconf-query -c xfce4-panel -p /plugins/plugin-1/show-button-icon -s true --create -t bool 2>/dev/null || true
+
   for i in 1 3 6 10; do
     sleep "$i"
     for p in $(xfconf-query -c xfce4-desktop -l 2>/dev/null | grep 'last-image$'); do

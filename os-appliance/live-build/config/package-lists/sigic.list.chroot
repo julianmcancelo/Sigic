@@ -8,6 +8,7 @@ lightdm-gtk-greeter
 dbus-x11
 network-manager
 network-manager-gnome
+libglib2.0-bin
 # Navegador
 chromium
 chromium-l10n

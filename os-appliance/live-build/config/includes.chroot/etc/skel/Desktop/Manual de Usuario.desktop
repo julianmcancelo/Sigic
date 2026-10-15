@@ -4,6 +4,7 @@ Type=Application
 Name=Manual de Usuario
 Comment=Guía oficial de uso y soporte de SiGIC
 Exec=chromium --lang=es-AR --start-maximized http://localhost:3000/manual
-Icon=/opt/sigic/logo.png
+Icon=/usr/share/pixmaps/sigic.png
 Terminal=false
 Categories=Network;Office;
+StartupNotify=true
