@@ -31,13 +31,12 @@ fi
 
 ISO_ORIGINAL="ubuntu-base.iso"
 
-# 3. Extraer imagen original
-echo "Extrayendo imagen..."
-rm -rf iso_extraida iso_nueva
-7z x "$ISO_ORIGINAL" -oiso_extraida
-
+# 3. Extraer imagen original con xorriso (preservando enlaces simbólicos, permisos y metadata que 7z rompe)
+echo "Extrayendo imagen con xorriso..."
+rm -rf iso_nueva
 mkdir -p iso_nueva
-cp -r iso_extraida/* iso_nueva/ 2>/dev/null || true
+xorriso -osirrox on -indev "$ISO_ORIGINAL" -extract / iso_nueva
+chmod -R u+w iso_nueva
 
 # 4. Inyectar configuración desatendida autoinstall
 mkdir -p iso_nueva/nocloud
