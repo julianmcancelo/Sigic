@@ -19,7 +19,9 @@ const directivaScripts = process.env.NODE_ENV === 'production'
   : "script-src 'self' 'unsafe-inline' 'unsafe-eval'";
 
 const nextConfig: NextConfig = {
+  output: 'standalone',
   poweredByHeader: false,
+
   async headers() {
     return [{
       source: '/:path*',

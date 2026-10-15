@@ -19,16 +19,35 @@ jobs:
       - name: Checkout del Repositorio
         uses: actions/checkout@v4
 
-      - name: Instalar herramientas de compilación
+      - name: Configurar Node.js para compilar SiGIC Web
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: codigo/plataforma/package-lock.json
+
+      - name: Compilar Plataforma SiGIC Web (Standalone para Appliance)
+        run: |
+          cd codigo/plataforma
+          npm ci --legacy-peer-deps
+          npm run build
+          # Preparar paquete autónomo para embeber en la ISO
+          mkdir -p ../../os-appliance/sigic-build
+          cp -r .next/standalone/* ../../os-appliance/sigic-build/ 2>/dev/null || cp -r .next ../../os-appliance/sigic-build/
+          cp -r public ../../os-appliance/sigic-build/public 2>/dev/null || true
+          cp -r .next/static ../../os-appliance/sigic-build/.next/static 2>/dev/null || true
+
+      - name: Instalar herramientas de compilación de ISO
         run: |
           sudo apt update
-          sudo apt install -y xorriso isolinux syslinux-common wget tar
+          sudo apt install -y xorriso isolinux syslinux-common wget tar squashfs-tools
 
       - name: Ejecutar generación de SiGIC OS Live
         run: |
           cd os-appliance
           chmod +x build-xfce-live.sh
           ./build-xfce-live.sh
+
 
       - name: Subir ISO como Artifact de GitHub Actions (Descarga directa en 1 click)
         uses: actions/upload-artifact@v4

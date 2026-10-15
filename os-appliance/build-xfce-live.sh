@@ -107,11 +107,65 @@ cat << 'EOF' > squashfs-root/etc/motd
  ------------------------------------------------------------------
 EOF
 
-cat << 'EOF' > squashfs-root/etc/issue
-SiGIC OS 2026 — Instituto Tecnológico Beltrán \n \l
+# 5.1 Inyectar Node.js y la Plataforma SiGIC Web para funcionamiento 100% Offline
+echo "Inyectando Plataforma SiGIC Web y servicio autónomo..."
+mkdir -p squashfs-root/opt/sigic-web
 
+# Copiar el build compilado de Next.js
+if [ -d "$GITHUB_WORKSPACE/os-appliance/sigic-build" ]; then
+  cp -r "$GITHUB_WORKSPACE/os-appliance/sigic-build"/* squashfs-root/opt/sigic-web/ 2>/dev/null || true
+fi
+
+# Instalar Node.js dentro de squashfs usando chroot
+sudo chroot squashfs-root /bin/bash -c "
+  apt-get update && \
+  apt-get install -y nodejs npm curl wget && \
+  apt-get clean
+" 2>/dev/null || true
+
+# Crear script de arranque del servidor SiGIC
+cat << 'EOF' > squashfs-root/opt/sigic-web/iniciar-sigic.sh
+#!/bin/bash
+export NODE_ENV=production
+export PORT=3000
+export HOSTNAME="0.0.0.0"
+export NEXT_PUBLIC_APP_URL="http://localhost:3000"
+export JWT_SECRET="sigic_appliance_secret_key_2026_beltran"
+
+cd /opt/sigic-web
+if [ -f "server.js" ]; then
+  exec node server.js
+elif [ -f "node_modules/.bin/next" ]; then
+  exec ./node_modules/.bin/next start -p 3000
+else
+  # Fallback con servidor web estático para la interfaz
+  npx -y serve -s public -l 3000
+fi
 EOF
-cp squashfs-root/etc/issue squashfs-root/etc/issue.net
+chmod +x squashfs-root/opt/sigic-web/iniciar-sigic.sh
+
+# Crear servicio systemd para que arranque antes del login
+cat << 'EOF' > squashfs-root/etc/systemd/system/sigic-server.service
+[Unit]
+Description=Servidor Oficial SiGIC (Plataforma Web)
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/sigic-web
+ExecStart=/bin/bash /opt/sigic-web/iniciar-sigic.sh
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Habilitar el servicio dentro del sistema
+sudo chroot squashfs-root systemctl enable sigic-server.service 2>/dev/null || true
+ln -sf /etc/systemd/system/sigic-server.service squashfs-root/etc/systemd/system/multi-user.target.wants/sigic-server.service 2>/dev/null || true
+
 
 # 5.2 Fondo de pantalla Azul Beltrán oficial de SiGIC
 mkdir -p squashfs-root/usr/share/backgrounds/sigic
@@ -154,16 +208,14 @@ cat << 'EOF' > squashfs-root/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/x
 </channel>
 EOF
 
-# Configurar apariencia oscura elegante tipo SiGIC (Greybird-dark o Adwaita-dark)
-cat << 'EOF' > squashfs-root/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml
-<?xml version="1.0" encoding="UTF-8"?>
-<channel name="xsettings" version="1.0">
-  <property name="Net" type="empty">
-    <property name="ThemeName" type="string" value="Adwaita-dark"/>
-    <property name="IconThemeName" type="string" value="Papirus-Dark"/>
-  </property>
-</channel>
-EOF
+# Copiar configuraciones a los perfiles del usuario live y a /etc/xdg para que apliquen de inmediato
+mkdir -p squashfs-root/etc/xdg/xfce4/xfconf/xfce-perchannel-xml
+cp squashfs-root/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/* squashfs-root/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/ 2>/dev/null || true
+
+mkdir -p squashfs-root/home/user/.config/xfce4/xfconf/xfce-perchannel-xml
+cp squashfs-root/etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/* squashfs-root/home/user/.config/xfce4/xfconf/xfce-perchannel-xml/ 2>/dev/null || true
+chown -R 1000:1000 squashfs-root/home/user 2>/dev/null || true
+
 
 # Eliminar icono "Install Debian" y accesos genéricos
 rm -f squashfs-root/etc/skel/Desktop/install*.desktop
@@ -174,16 +226,17 @@ mkdir -p squashfs-root/etc/skel/Desktop
 mkdir -p squashfs-root/usr/share/applications/sigic
 
 MODULOS=(
-  "Panel de Control|panel-control|http://localhost:3000|preferences-system"
-  "Gestión de Ceremonias|ceremonias|http://localhost:3000|x-office-calendar"
-  "Gestión de Graduados|graduados|http://localhost:3000|system-users"
-  "Gestión de Invitados|invitados|http://localhost:3000|mail-attachment"
-  "Diseño del Anfiteatro|anfiteatro|http://localhost:3000|applications-multimedia"
-  "Control de Ingreso (Portería)|porteria|http://localhost:3000|security-high"
-  "Gestión de Profesores|profesores|http://localhost:3000|contact-new"
-  "Panel de Reportes|reportes|http://localhost:3000|office-chart"
-  "Ajustes del Sistema|ajustes|http://localhost:3000|preferences-other"
+  "Panel de Control|panel-control|http://localhost:3000/?modulo=centro-control|preferences-system"
+  "Gestión de Ceremonias|ceremonias|http://localhost:3000/?modulo=gestion-ceremonias|x-office-calendar"
+  "Gestión de Graduados|graduados|http://localhost:3000/?modulo=gestion-graduados|system-users"
+  "Gestión de Invitados|invitados|http://localhost:3000/?modulo=gestion-invitados|mail-attachment"
+  "Diseño del Anfiteatro|anfiteatro|http://localhost:3000/?modulo=editor-anfiteatro|applications-multimedia"
+  "Control de Ingreso (Portería)|porteria|http://localhost:3000/?modulo=control-ingreso|security-high"
+  "Gestión de Profesores|profesores|http://localhost:3000/?modulo=gestion-profesores|contact-new"
+  "Panel de Reportes|reportes|http://localhost:3000/?modulo=reportes|office-chart"
+  "Ajustes del Sistema|ajustes|http://localhost:3000/?modulo=ajustes|preferences-other"
 )
+
 
 for mod in "${MODULOS[@]}"; do
   IFS="|" read -r titulo slug url icono <<< "$mod"
