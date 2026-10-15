@@ -52,9 +52,9 @@ if [ -f grub.cfg ]; then
 fi
 
 # Reemplazar el nombre del sistema en la metadata del disco
+mkdir -p iso_nueva/.disk
 echo "SiGIC OS 2026 - Instituto Tecnologico Beltran" > iso_nueva/.disk/info 2>/dev/null || true
 
-# 6. Empaquetar nueva ISO booteable de SiGIC Ubuntu
 # 6. Empaquetar nueva ISO booteable de SiGIC Ubuntu (Totalmente compatible con VirtualBox UEFI y BIOS)
 ISO_SALIDA="sigic-os-ubuntu-desktop-amd64.iso"
 echo "Empaquetando $ISO_SALIDA con arranque hibrido UEFI + BIOS..."
