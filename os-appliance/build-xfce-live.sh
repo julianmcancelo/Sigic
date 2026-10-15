@@ -150,7 +150,7 @@ cd iso_root
 md5sum live/filesystem.squashfs > live/filesystem.squashfs.md5 2>/dev/null || true
 cd "$WORK_DIR"
 
-# 7. Inyectar menú GRUB personalizado con los alumnos de la Práctica Profesionalizante
+# 7. Inyectar menú GRUB y Menú ISOLINUX personalizado con branding SiGIC y créditos del Beltrán
 if [ -f "iso_root/boot/grub/grub.cfg" ]; then
   cat << 'EOF' > iso_root/boot/grub/grub.cfg
 set default="0"
@@ -171,17 +171,65 @@ echo "    • Frassia Matias"
 echo "    • Santillan Luis Gabriel"
 echo "  ========================================================================"
 
-menuentry "Iniciar SiGIC OS (Escritorio XFCE Completo en RAM)" {
+menuentry "Iniciar SiGIC OS (Escritorio XFCE Oficial — Instituto Beltrán)" {
     linux /live/vmlinuz boot=live components quiet splash
     initrd /live/initrd.img
 }
 
-menuentry "Iniciar SiGIC OS (Modo Seguro / Diagnostico)" {
+menuentry "Iniciar SiGIC OS (Modo Seguro / Diagnóstico)" {
     linux /live/vmlinuz boot=live components nomodeset
     initrd /live/initrd.img
 }
 EOF
 fi
+
+# Personalizar el menú gráfico ISOLINUX (la pantalla azul que se ve al arrancar en BIOS)
+for isodir in iso_root/isolinux iso_root/syslinux; do
+  if [ -d "$isodir" ]; then
+    echo "Personalizando menú gráfico en $isodir..."
+    # Reemplazar títulos y textos por español y marca institucional
+    if [ -f "$isodir/menu.cfg" ]; then
+      cat << 'EOF' > "$isodir/menu.cfg"
+menu hshift 0
+menu width 82
+
+menu title SiGIC OS — Sistema de Gestión de Colaciones
+include stdmenu.cfg
+
+default live-es
+label live-es
+  menu label ^Iniciar SiGIC OS (Escritorio XFCE en RAM)
+  menu default
+  linux /live/vmlinuz
+  initrd /live/initrd.img
+  append boot=live components quiet splash
+
+label live-failsafe
+  menu label Iniciar en ^Modo Seguro (Diagnostico)
+  linux /live/vmlinuz
+  initrd /live/initrd.img
+  append boot=live components nomodeset
+EOF
+    fi
+
+    # Personalizar pie de página y colores
+    if [ -f "$isodir/stdmenu.cfg" ]; then
+      cat << 'EOF' > "$isodir/stdmenu.cfg"
+menu background splash.png
+menu color title    *#ffffffff *#00000000 *
+menu color sel      *#ffffffff *#20406080 *
+menu color hotsel   *#ffffffff *#306090a0 *
+menu color tabmsg   *#ffffffff *#00000000 *
+menu color cmdline  *#ffffffff *#00000000 *
+menu color timeout_msg *#ffffffff *#00000000 *
+menu color timeout  *#ffffffff *#00000000 *
+
+menu tabmsg Presione ENTER para arrancar | Alumnos: Cancelo, Alfonso, Contreras, Frassia, Santillan
+EOF
+    fi
+  fi
+done
+
 
 # 8. Generar la ISO Híbrida final
 ISO_FINAL="$GITHUB_WORKSPACE/os-appliance/sigic-os-xfce-desktop-amd64.iso"
