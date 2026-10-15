@@ -23,14 +23,15 @@ echo "Configurando live-build..."
 lb config \
   --distribution bookworm \
   --architectures amd64 \
-  --archive-areas "main contrib non-free non-free-firmware" \
-  --bootloaders "syslinux,grub-efi" \
+  --archive-areas "main contrib non-free" \
+  --bootloader syslinux \
   --binary-images iso-hybrid \
   --iso-application "SiGIC OS 2026 - Instituto Tecnologico Beltran" \
   --iso-publisher "Alumnos de Practica Profesionalizante 2026" \
   --iso-volume "SIGIC_OS" \
   --memtest none \
   --win32-loader false
+
 
 # 4. Lista de paquetes esenciales para SiGIC Appliance
 mkdir -p config/package-lists
