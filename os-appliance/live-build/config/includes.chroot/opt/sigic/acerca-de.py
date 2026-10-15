@@ -25,7 +25,7 @@ window.sigic-window {
 
 headerbar.sigic-headerbar {
     background-color: #ffffff;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid #cbd5e1;
 }
 
 .sigic-main-card {
@@ -42,52 +42,14 @@ headerbar.sigic-headerbar {
     padding: 16px;
 }
 
-.title-main {
-    font-size: 20px;
-    font-weight: bold;
-    color: #0f172a;
-}
-
-.title-section {
-    font-size: 13px;
-    font-weight: bold;
-    color: #0284c7;
-}
-
-.text-institution {
-    font-size: 12px;
-    color: #64748b;
-}
-
-.team-member {
-    font-size: 13px;
-    font-weight: bold;
-    color: #1e293b;
-    padding: 3px 0px;
-}
-
-.spec-key {
-    font-size: 12px;
-    color: #64748b;
-}
-
-.spec-val {
-    font-size: 12px;
-    font-weight: bold;
-    color: #0f172a;
-}
-
-.btn-primary {
+button.btn-primary {
     background-color: #0284c7;
-    color: #ffffff;
-    font-weight: bold;
-    font-size: 13px;
     border-radius: 18px;
     padding: 8px 18px;
     border-width: 0px;
 }
 
-.btn-primary:hover {
+button.btn-primary:hover {
     background-color: #0369a1;
 }
 """
@@ -130,9 +92,9 @@ class AcercaDeSigic(Gtk.Window):
 
         box_titulos = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3)
         lbl_titulo = Gtk.Label(xalign=0)
-        lbl_titulo.set_markup("<span class='title-main'>SiGIC OS</span>  <small><span foreground='#0284c7' weight='bold'>Edición Institucional</span></small>")
+        lbl_titulo.set_markup("<span foreground='#0f172a' weight='heavy' size='15000'>SiGIC OS</span>  <small><span foreground='#0284c7' weight='bold'>Edición Institucional</span></small>")
         lbl_sub = Gtk.Label(xalign=0)
-        lbl_sub.set_markup("<span class='text-institution'>Sistema de Gestión Institucional de Colaciones — Práctica Profesionalizante 2026</span>")
+        lbl_sub.set_markup("<span foreground='#64748b' weight='bold' size='10500'>Sistema de Gestión Institucional de Colaciones — Práctica Profesionalizante 2026</span>")
         box_titulos.pack_start(lbl_titulo, False, False, 0)
         box_titulos.pack_start(lbl_sub, False, False, 0)
         box_top.pack_start(box_titulos, True, True, 0)
@@ -147,7 +109,7 @@ class AcercaDeSigic(Gtk.Window):
         col_izq = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
 
         lbl_sec_equipo = Gtk.Label(xalign=0)
-        lbl_sec_equipo.set_markup("<span class='title-section'>Equipo de Desarrollo</span>")
+        lbl_sec_equipo.set_markup("<span foreground='#0284c7' weight='heavy' size='11000'>EQUIPO DE DESARROLLO</span>")
         col_izq.pack_start(lbl_sec_equipo, False, False, 0)
 
         integrantes = [
@@ -161,7 +123,7 @@ class AcercaDeSigic(Gtk.Window):
         box_equipo = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
         for miembro in integrantes:
             lbl_m = Gtk.Label(xalign=0)
-            lbl_m.set_markup(f"<span class='team-member'>•  {miembro}</span>")
+            lbl_m.set_markup(f"<span foreground='#1e293b' weight='bold'>•  {miembro}</span>")
             box_equipo.pack_start(lbl_m, False, False, 0)
         col_izq.pack_start(box_equipo, False, False, 4)
 
@@ -170,7 +132,7 @@ class AcercaDeSigic(Gtk.Window):
         col_izq.pack_start(sep, False, False, 4)
 
         lbl_sec_specs = Gtk.Label(xalign=0)
-        lbl_sec_specs.set_markup("<span class='title-section'>Detalles del Sistema</span>")
+        lbl_sec_specs.set_markup("<span foreground='#0284c7' weight='heavy' size='11000'>DETALLES DEL SISTEMA</span>")
         col_izq.pack_start(lbl_sec_specs, False, False, 0)
 
         grid_specs = Gtk.Grid()
@@ -187,9 +149,9 @@ class AcercaDeSigic(Gtk.Window):
 
         for fila, (k, v) in enumerate(specs):
             lbl_k = Gtk.Label(xalign=0)
-            lbl_k.set_markup(f"<span class='spec-key'>{k}</span>")
+            lbl_k.set_markup(f"<span foreground='#64748b' weight='bold'>{k}</span>")
             lbl_v = Gtk.Label(xalign=0)
-            lbl_v.set_markup(f"<span class='spec-val'>{v}</span>")
+            lbl_v.set_markup(f"<span foreground='#0f172a' weight='bold'>{v}</span>")
             grid_specs.attach(lbl_k, 0, fila, 1, 1)
             grid_specs.attach(lbl_v, 1, fila, 1, 1)
 
@@ -202,35 +164,32 @@ class AcercaDeSigic(Gtk.Window):
         col_der.get_style_context().add_class("sigic-qr-card")
 
         lbl_qr_title = Gtk.Label(xalign=0.5)
-        lbl_qr_title.set_markup("<span class='title-section'>Portal Institucional</span>")
+        lbl_qr_title.set_markup("<span foreground='#0284c7' weight='heavy' size='11000'>PORTAL INSTITUCIONAL</span>")
         col_der.pack_start(lbl_qr_title, False, False, 0)
 
         qr_path_png = "/opt/sigic/qr-sigic.png"
-        qr_path_svg = "/opt/sigic/qr-sigic.svg"
         img_qr = None
         if os.path.exists(qr_path_png):
             try:
-                pixbuf_qr = GdkPixbuf.Pixbuf.new_from_file_at_scale(qr_path_png, 180, 180, True)
-                img_qr = Gtk.Image.new_from_pixbuf(pixbuf_qr)
-            except Exception:
-                pass
-        elif os.path.exists(qr_path_svg):
-            try:
-                pixbuf_qr = GdkPixbuf.Pixbuf.new_from_file_at_scale(qr_path_svg, 180, 180, True)
-                img_qr = Gtk.Image.new_from_pixbuf(pixbuf_qr)
-            except Exception:
-                pass
+                pixbuf_qr = GdkPixbuf.Pixbuf.new_from_file(qr_path_png)
+                pixbuf_qr_scaled = pixbuf_qr.scale_simple(170, 170, GdkPixbuf.InterpType.BILINEAR)
+                img_qr = Gtk.Image.new_from_pixbuf(pixbuf_qr_scaled)
+            except Exception as e:
+                print(f"Error cargando QR: {e}")
 
         if img_qr:
             col_der.pack_start(img_qr, False, False, 4)
 
         lbl_qr_desc = Gtk.Label(xalign=0.5)
-        lbl_qr_desc.set_markup("<small><span foreground='#64748b'>Escaneá con tu teléfono o hacé clic abajo para ingresar</span></small>")
+        lbl_qr_desc.set_markup("<small><span foreground='#475569' weight='bold'>Escaneá con tu teléfono o hacé clic abajo para ingresar</span></small>")
         lbl_qr_desc.set_line_wrap(True)
         lbl_qr_desc.set_justify(Gtk.Justification.CENTER)
         col_der.pack_start(lbl_qr_desc, False, False, 0)
 
-        btn_web = Gtk.Button(label="Abrir www.sigic.com.ar")
+        btn_web = Gtk.Button()
+        lbl_btn = Gtk.Label()
+        lbl_btn.set_markup("<span foreground='#ffffff' weight='bold'>Abrir www.sigic.com.ar</span>")
+        btn_web.add(lbl_btn)
         btn_web.get_style_context().add_class("btn-primary")
         btn_web.connect("clicked", self.on_abrir_web)
         col_der.pack_start(btn_web, False, False, 6)
@@ -242,7 +201,7 @@ class AcercaDeSigic(Gtk.Window):
         box_bottom = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
         
         lbl_status = Gtk.Label(xalign=0)
-        lbl_status.set_markup("<span foreground='#10b981'>●</span> <small><span foreground='#475569' weight='bold'>Sistema operativo listo · Servicio local activo en puerto 3000</span></small>")
+        lbl_status.set_markup("<span foreground='#10b981'>●</span> <small><span foreground='#334155' weight='bold'>Sistema operativo listo · Servicio local activo en puerto 3000</span></small>")
         box_bottom.pack_start(lbl_status, True, True, 0)
 
         btn_cerrar = Gtk.Button(label="Cerrar")
