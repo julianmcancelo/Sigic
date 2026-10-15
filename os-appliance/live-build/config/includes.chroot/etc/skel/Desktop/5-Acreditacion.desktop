@@ -3,7 +3,7 @@ Version=1.0
 Type=Application
 Name=Acreditación
 Comment=Control de ingreso y escaneo de credenciales QR
-Exec=chromium --lang=es-AR --app="http://localhost:3000/?modulo=control-ingreso"
+Exec=/usr/local/bin/sigic-acreditacion
 Icon=/usr/share/pixmaps/sigic-acreditacion.png
 Terminal=false
 Categories=Office;Education;System;

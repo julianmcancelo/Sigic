@@ -3,7 +3,7 @@ Version=1.0
 Type=Application
 Name=Ceremonias
 Comment=Gestión de actos y eventos académicos
-Exec=chromium --lang=es-AR --app="http://localhost:3000/?modulo=gestion-ceremonias"
+Exec=/usr/local/bin/sigic-ceremonias
 Icon=/usr/share/pixmaps/sigic-ceremonias.png
 Terminal=false
 Categories=Office;Education;System;

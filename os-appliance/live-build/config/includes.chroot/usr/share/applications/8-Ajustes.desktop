@@ -3,7 +3,7 @@ Version=1.0
 Type=Application
 Name=Ajustes
 Comment=Configuración de red, modo mantenimiento y sistema
-Exec=chromium --lang=es-AR --app="http://localhost:3000/?modulo=ajustes"
+Exec=/usr/local/bin/sigic-ajustes
 Icon=/usr/share/pixmaps/sigic-ajustes.png
 Terminal=false
 Categories=Office;Education;System;
