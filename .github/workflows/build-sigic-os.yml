@@ -4,16 +4,15 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Versión del Appliance (ej: 5.0.0)'
+        description: 'Versión del Appliance (ej: 7.3.0)'
         required: true
-        default: '5.0.0'
+        default: '7.3.0'
 
 jobs:
   build-iso:
-    name: Compilar ISO Booteable (Alpine Live Auto-Start)
+    name: Compilar ISO (Debian live-build + Chromium)
     runs-on: ubuntu-24.04
-    permissions:
-      contents: write
+    timeout-minutes: 120
 
     steps:
       - name: Checkout del Repositorio
@@ -26,64 +25,35 @@ jobs:
           cache: 'npm'
           cache-dependency-path: codigo/plataforma/package-lock.json
 
-      - name: Compilar Plataforma SiGIC Web (Standalone para Appliance)
+      - name: Compilar Plataforma SiGIC Web (Standalone para el appliance)
         env:
-          JWT_SECRET: "sigic_appliance_secret_key_2026_beltran_produccion_super_segura"
-          DATABASE_URL: "postgres://sigic:sigic_password@localhost:5432/sigic_db"
+          JWT_SECRET: "clave_temporal_solo_para_compilar_sigic_2026_beltran_0123456789"
+          DATABASE_URL: "postgres://sigic:sigic@localhost:5432/sigic"
           NEXT_TELEMETRY_DISABLED: 1
         run: |
           cd codigo/plataforma
           npm ci --legacy-peer-deps
           npm run build
-          # Preparar paquete autónomo para embeber en la ISO
-          mkdir -p ../../os-appliance/sigic-build
-          cp -r .next/standalone/* ../../os-appliance/sigic-build/ 2>/dev/null || cp -r .next ../../os-appliance/sigic-build/
-          cp -r public ../../os-appliance/sigic-build/public 2>/dev/null || true
-          cp -r .next/static ../../os-appliance/sigic-build/.next/static 2>/dev/null || true
+          DESTINO="$GITHUB_WORKSPACE/os-appliance/sigic-build"
+          rm -rf "$DESTINO"
+          mkdir -p "$DESTINO/.next"
+          # El punto final es clave: copia también la carpeta oculta .next/ del standalone
+          cp -a .next/standalone/. "$DESTINO/"
+          cp -r public "$DESTINO/public"
+          cp -r .next/static "$DESTINO/.next/static"
+          ls -la "$DESTINO"
 
-
-      - name: Instalar herramientas de compilación de ISO
+      - name: Generar la ISO con Debian live-build (contenedor Debian 13)
         run: |
-          sudo apt update
-          sudo apt install -y xorriso isolinux syslinux-common wget tar squashfs-tools imagemagick
+          docker run --rm --privileged \
+            -e SIGIC_VERSION="${{ github.event.inputs.version }}" \
+            -v "$GITHUB_WORKSPACE:/work" \
+            debian:trixie bash /work/os-appliance/live-build/build.sh
 
-
-      - name: Ejecutar generación de SiGIC OS Live
-        run: |
-          cd os-appliance
-          chmod +x build-xfce-live.sh
-          ./build-xfce-live.sh
-
-
-      - name: Subir ISO como Artifact de GitHub Actions (Descarga directa en 1 click)
+      - name: Subir ISO como Artifact de GitHub Actions
         uses: actions/upload-artifact@v4
         with:
           name: sigic-os-live-iso
-          path: os-appliance/sigic-os-*.iso
+          path: os-appliance/sigic-os-amd64.iso
           retention-days: 14
-
-
-      - name: Subir ISO a GitHub Releases
-        uses: softprops/action-gh-release@v2
-        # La ISO supera los 2 GB que permite GitHub Releases: no debe romper el build (el Artifact ya está subido).
-        continue-on-error: true
-        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
-        with:
-          tag_name: "sigic-os-v${{ github.event.inputs.version || '5.0.0' }}"
-          name: "SiGIC OS XFCE Desktop Live v${{ github.event.inputs.version || '5.0.0' }}"
-          draft: false
-          prerelease: false
-          files: os-appliance/sigic-os-*.iso
-          body: |
-            ### 💿 SiGIC OS Appliance (XFCE Desktop Live Edition)
-            
-            Sistema Operativo de escritorio completo con entorno gráfico **XFCE preinstalado** y acceso directo en RAM.
-            
-            - **Entorno Gráfico Completo**: Entra directamente al escritorio con el fondo Azul Beltrán y los 9 módulos de SiGIC.
-            - **100% Preinstalado**: No requiere descargar paquetes ni ejecutar comandos en la terminal.
-            - **Descarga Directa**: Archivo `.iso` único listo para VirtualBox o USB booteable.
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
-
+          compression-level: 0

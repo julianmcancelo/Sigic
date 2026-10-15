@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Panel de Administración
+Comment=Ingreso del personal administrativo
+Exec=chromium --lang=es-AR --start-maximized http://localhost:3000/admin
+Icon=/opt/sigic/logo.png
+Terminal=false
+Categories=Network;Office;

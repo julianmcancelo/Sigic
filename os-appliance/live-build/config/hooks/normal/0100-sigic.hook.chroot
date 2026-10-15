@@ -1,0 +1,46 @@
+#!/bin/bash
+# Hook de construcción (dentro del chroot): personaliza el sistema de SiGIC OS.
+set -e
+
+# --- Idioma: español de Argentina ---
+sed -i 's/^# *es_AR.UTF-8 UTF-8/es_AR.UTF-8 UTF-8/' /etc/locale.gen
+grep -q '^es_AR.UTF-8 UTF-8' /etc/locale.gen || echo 'es_AR.UTF-8 UTF-8' >> /etc/locale.gen
+locale-gen
+update-locale LANG=es_AR.UTF-8 LANGUAGE=es_AR:es
+echo "America/Argentina/Buenos_Aires" > /etc/timezone
+ln -sf /usr/share/zoneinfo/America/Argentina/Buenos_Aires /etc/localtime
+
+# --- Usuario de sistema para el servidor web ---
+id sigicweb >/dev/null 2>&1 || useradd --system --no-create-home --shell /usr/sbin/nologin sigicweb
+chown -R sigicweb:sigicweb /opt/sigic-web
+chmod +x /usr/local/bin/sigic-iniciar /usr/local/sbin/sigic-db-init
+chmod 640 /etc/sigic/sigic.env
+chgrp sigicweb /etc/sigic/sigic.env
+
+# --- Servicios ---
+systemctl enable postgresql || true
+systemctl enable sigic-db-init.service
+systemctl enable sigic-server.service
+
+# --- Accesos directos del escritorio ejecutables ---
+chmod +x /etc/skel/Desktop/*.desktop
+
+# --- Quitar bloqueo de pantalla (equipo de exposición sin contraseña) ---
+apt-get purge -y light-locker xfce4-screensaver 2>/dev/null || true
+
+# --- Identidad del sistema ---
+sed -i 's/^PRETTY_NAME=.*/PRETTY_NAME="SiGIC OS (Instituto Tecnológico Beltrán)"/' /etc/os-release || true
+cat > /etc/issue <<'EOF'
+SiGIC OS - Instituto Tecnologico Beltran
+EOF
+echo "sigic-os" > /etc/hostname
+
+# --- Tema de arranque Plymouth (si el tema es válido) ---
+if [ -f /usr/share/plymouth/themes/sigic/sigic.plymouth ]; then
+  plymouth-set-default-theme sigic 2>/dev/null || true
+  update-initramfs -u 2>/dev/null || true
+fi
+
+# --- Limpieza ---
+apt-get clean
+rm -rf /var/lib/apt/lists/*

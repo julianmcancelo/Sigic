@@ -1,0 +1,9 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=SiGIC
+Comment=Sistema Integral de Gestión Institucional
+Exec=chromium --lang=es-AR --start-maximized http://localhost:3000/
+Icon=/opt/sigic/logo.png
+Terminal=false
+Categories=Network;Office;

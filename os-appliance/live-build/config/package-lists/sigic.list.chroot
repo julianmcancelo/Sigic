@@ -1,0 +1,34 @@
+# Escritorio
+xorg
+xfce4
+xfce4-terminal
+xfce4-notifyd
+lightdm
+lightdm-gtk-greeter
+dbus-x11
+network-manager
+network-manager-gnome
+# Navegador
+chromium
+chromium-l10n
+# Plataforma SiGIC
+nodejs
+postgresql
+postgresql-client
+curl
+# Idioma y teclado
+locales
+keyboard-configuration
+console-setup
+task-spanish
+# Fuentes
+fonts-noto-core
+fonts-noto-color-emoji
+fonts-liberation
+fonts-dejavu
+# Arranque grafico
+plymouth
+plymouth-themes
+# Integracion con maquinas virtuales
+spice-vdagent
+open-vm-tools

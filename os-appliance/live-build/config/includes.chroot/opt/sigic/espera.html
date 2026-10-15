@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>SiGIC — Iniciando</title>
+<style>
+  html,body{margin:0;height:100%;background:#03080e;color:#d9f7fb;font-family:system-ui,"Noto Sans",sans-serif}
+  body{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center}
+  img{height:150px}
+  h1{margin:0;font-size:28px;letter-spacing:.14em;color:#00e5ff}
+  p{margin:0;color:#80deea}
+  small{color:#4b7a85}
+  .barra{width:280px;height:4px;background:#0c2a36;border-radius:4px;overflow:hidden}
+  .barra i{display:block;width:40%;height:100%;background:#00e5ff;animation:m 1.3s ease-in-out infinite}
+  @keyframes m{0%{margin-left:-40%}100%{margin-left:100%}}
+</style>
+</head>
+<body>
+  <img src="logo.png" alt="" onerror="this.style.display='none'">
+  <h1>SiGIC</h1>
+  <p>Sistema Integral de Gestión Institucional</p>
+  <div class="barra"><i></i></div>
+  <p id="estado">Iniciando servicios, aguarde unos segundos…</p>
+  <small>Instituto Tecnológico Beltrán · Práctica Profesionalizante 2026</small>
+<script>
+  let intentos = 0;
+  async function probar() {
+    intentos++;
+    try {
+      await fetch('http://localhost:3000/api/estado', { mode: 'no-cors', cache: 'no-store' });
+      location.replace('http://localhost:3000/');
+      return;
+    } catch (e) {
+      if (intentos > 90) {
+        document.getElementById('estado').textContent =
+          'El servidor tarda más de lo normal. Reintentando…';
+      }
+    }
+    setTimeout(probar, 1500);
+  }
+  probar();
+</script>
+</body>
+</html>
