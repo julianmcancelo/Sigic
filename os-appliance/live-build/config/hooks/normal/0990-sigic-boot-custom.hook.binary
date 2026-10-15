@@ -1,0 +1,95 @@
+#!/bin/bash
+# =============================================================================
+# SiGIC OS — Hook Binary: Aplica personalización 100% SiGIC sobre binary/
+# Se ejecuta DESPUÉS de que live-build genera syslinux/isolinux/grub y antes
+# de empaquetar la ISO final.
+# =============================================================================
+set -e
+
+echo ">> [HOOK BINARY SIGIC] Personalizando el menú de arranque institucional..."
+
+LOGO="/work/os-appliance/plymouth-theme/logo.png"
+
+# 1. Generar splash PNG de 640x480 en formato PNG8 indexado con fondo Azul Beltrán (#03080e)
+if [ -f "$LOGO" ]; then
+  convert -size 640x480 xc:'#03080e' \
+    \( "$LOGO" -resize x200 \) -gravity center -composite \
+    -depth 8 -colors 256 PNG8:/tmp/sigic_splash.png
+else
+  convert -size 640x480 xc:'#03080e' -depth 8 -colors 256 PNG8:/tmp/sigic_splash.png
+fi
+
+# 2. Reemplazar TODAS las imágenes de splash y fondos de syslinux/isolinux/grub
+find binary/ -type f \( -name "splash.png" -o -name "splash.svg" -o -name "*.png" \) | while read -r img; do
+  case "$img" in
+    *isolinux*|*syslinux*|*boot*|*grub*)
+      cp /tmp/sigic_splash.png "$img" 2>/dev/null || true
+      ;;
+  esac
+done
+
+# 3. Eliminar logos SVG de Debian para que no sobreescriban el splash PNG
+find binary/ -type f -name "splash.svg" -delete 2>/dev/null || true
+
+# 4. Sobrescribir archivos de menú de isolinux/syslinux con títulos, colores y textos en ESPAÑOL
+find binary/ -type d \( -name "isolinux" -o -name "syslinux" \) | while read -r dir; do
+  if [ -f "$dir/menu.cfg" ]; then
+    cat << 'EOF' > "$dir/menu.cfg"
+menu hshift 4
+menu width 70
+menu rows 5
+
+menu title SiGIC OS - Instituto Tecnologico Beltran
+include stdmenu.cfg
+
+default live-es
+label live-es
+  menu label ^1. Iniciar SiGIC OS (Escritorio en RAM)
+  menu default
+  linux /live/vmlinuz
+  initrd /live/initrd.img
+  append boot=live components quiet splash locales=es_AR.UTF-8 keyboard-layouts=latam timezone=America/Argentina/Buenos_Aires
+
+label live-failsafe
+  menu label ^2. Iniciar en Modo Seguro (Resolucion Estandar)
+  linux /live/vmlinuz
+  initrd /live/initrd.img
+  append boot=live components nomodeset locales=es_AR.UTF-8 keyboard-layouts=latam timezone=America/Argentina/Buenos_Aires
+EOF
+  fi
+
+  if [ -f "$dir/stdmenu.cfg" ]; then
+    cat << 'EOF' > "$dir/stdmenu.cfg"
+menu background splash.png
+menu color title        * #00e5ff #00000000 none
+menu color sel          * #ffffff #154b66 none
+menu color hotsel       * #00e5ff #154b66 none
+menu color unsel        * #d9f7fb #00000000 none
+menu color tabmsg       * #80deea #00000000 none
+menu color cmdline      0 #ffffff #00000000 none
+menu color timeout_msg  * #80deea #00000000 none
+menu color timeout      * #00e5ff #00000000 none
+menu color border       * #154b66 #00000000 none
+
+menu tabmsg Presione ENTER para arrancar | Practica Profesionalizante 2026
+EOF
+  fi
+
+  # Copiar explícitamente el splash en el directorio del bootloader
+  cp /tmp/sigic_splash.png "$dir/splash.png"
+done
+
+# 5. Modificar cualquier otro archivo .cfg o de GRUB que tenga texto residual en inglés o Debian
+find binary/ -type f \( -name "*.cfg" -o -name "grub.cfg" \) | while read -r cfg; do
+  sed -i \
+    -e 's/Debian GNU\/Linux/SiGIC OS/g' \
+    -e 's/Live system (amd64)/Iniciar SiGIC OS/g' \
+    -e 's/Live system (amd64 fail-safe mode)/Iniciar en Modo Seguro/g' \
+    -e 's/Live system/Iniciar SiGIC OS/g' \
+    -e 's/Press ENTER to boot or TAB to edit a menu entry/Presione ENTER para arrancar | SiGIC OS Beltran/g' \
+    -e 's/Boot menu/Menu de Inicio/g' \
+    -e 's/Utilities/Herramientas/g' \
+    "$cfg" 2>/dev/null || true
+done
+
+echo ">> [HOOK BINARY SIGIC] Menú de arranque personalizado exitosamente."

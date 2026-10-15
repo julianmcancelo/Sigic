@@ -57,7 +57,7 @@ lb config \
 
 # --- Copiar paquetes, archivos y hooks propios -------------------------------
 cp -r "$LB_SRC/config/." config/
-chmod +x config/hooks/normal/*.hook.chroot
+chmod +x config/hooks/normal/* 2>/dev/null || true
 
 # --- Plataforma web ----------------------------------------------------------
 mkdir -p config/includes.chroot/opt/sigic-web
