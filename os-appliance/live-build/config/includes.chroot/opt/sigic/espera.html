@@ -1,44 +1,196 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>SiGIC — Iniciando</title>
-<style>
-  html,body{margin:0;height:100%;background:#03080e;color:#d9f7fb;font-family:system-ui,"Noto Sans",sans-serif}
-  body{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center}
-  img{height:150px}
-  h1{margin:0;font-size:28px;letter-spacing:.14em;color:#00e5ff}
-  p{margin:0;color:#80deea}
-  small{color:#4b7a85}
-  .barra{width:280px;height:4px;background:#0c2a36;border-radius:4px;overflow:hidden}
-  .barra i{display:block;width:40%;height:100%;background:#00e5ff;animation:m 1.3s ease-in-out infinite}
-  @keyframes m{0%{margin-left:-40%}100%{margin-left:100%}}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SiGIC OS — Preparando el sistema</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #f8fafc radial-gradient(circle at 50% 25%, #f1f5f9 0%, #e2e8f0 60%, #cbd5e1 100%);
+      color: #0f172a;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      user-select: none;
+    }
+
+    /* Resplandores suaves de fondo */
+    .glow {
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(2, 132, 199, 0.15) 0%, transparent 70%);
+      filter: blur(60px);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .card {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 580px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 26px;
+      padding: 44px 36px 36px;
+      box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.9) inset;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+
+    .logo-img {
+      height: 80px;
+      width: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 14px rgba(2, 132, 199, 0.28));
+      margin-bottom: 20px;
+    }
+
+    .badge-top {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #0284c7;
+      margin-bottom: 6px;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+
+    p.subtitle {
+      font-size: 14px;
+      color: #64748b;
+      margin-bottom: 26px;
+      line-height: 1.5;
+    }
+
+    /* Barra de progreso fluida y estética */
+    .bar-track {
+      width: 260px;
+      height: 5px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+      position: relative;
+      margin-bottom: 18px;
+    }
+    .bar-fill {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 45%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #0284c7 0%, #00e5ff 100%);
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+      animation: barSweep 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+    @keyframes barSweep {
+      0% { left: -45%; }
+      100% { left: 100%; }
+    }
+
+    .status-msg {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #0284c7;
+      margin-bottom: 28px;
+    }
+
+    /* Tarjeta del Equipo amigable */
+    .team-box {
+      width: 100%;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 14px 18px;
+      font-size: 12px;
+    }
+    .team-title {
+      font-weight: 800;
+      color: #334155;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 11px;
+      margin-bottom: 8px;
+    }
+    .team-names {
+      color: #64748b;
+      line-height: 1.6;
+      font-weight: 500;
+    }
+
+    .footer-text {
+      margin-top: 22px;
+      font-size: 11.5px;
+      color: #94a3b8;
+    }
+  </style>
 </head>
 <body>
-  <img src="logo.png" alt="" onerror="this.style.display='none'">
-  <h1>SiGIC</h1>
-  <p>Sistema Integral de Gestión Institucional</p>
-  <div class="barra"><i></i></div>
-  <p id="estado">Iniciando servicios, aguarde unos segundos…</p>
-  <small>Instituto Tecnológico Beltrán · Práctica Profesionalizante 2026</small>
-<script>
-  let intentos = 0;
-  async function probar() {
-    intentos++;
-    try {
-      await fetch('http://localhost:3000/api/estado', { mode: 'no-cors', cache: 'no-store' });
-      location.replace('http://localhost:3000/');
-      return;
-    } catch (e) {
-      if (intentos > 90) {
-        document.getElementById('estado').textContent =
-          'El servidor tarda más de lo normal. Reintentando…';
+
+  <div class="glow"></div>
+
+  <div class="card">
+    <img src="logo.png" alt="SiGIC" class="logo-img" onerror="this.src='/usr/share/pixmaps/sigic.png'">
+    
+    <div class="badge-top">Instituto Beltrán</div>
+    <h1>SiGIC OS</h1>
+    <p class="subtitle">Estamos preparando todo para comenzar.<br>Aguardá un instante mientras dejamos listo tu entorno de trabajo.</p>
+
+    <div class="bar-track">
+      <div class="bar-fill"></div>
+    </div>
+
+    <div class="status-msg" id="status-texto">Iniciando plataforma local...</div>
+
+    <div class="team-box">
+      <div class="team-title">Práctica Profesionalizante 2026</div>
+      <div class="team-names">
+        Cancelo Julián · Alfonso Alan Alexis · Contreras Villalba Sol Heilin · Frassia Matías · Santillán Luis Gabriel
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-text">
+    Instituto Tecnológico Beltrán — Avellaneda, Buenos Aires
+  </div>
+
+  <script>
+    let intentos = 0;
+    async function comprobarServicio() {
+      intentos++;
+      try {
+        const res = await fetch('http://localhost:3000/api/estado', { cache: 'no-store' });
+        if (res.ok) {
+          // Servidor listo: abrir el asistente de bienvenida y acceso
+          window.location.replace('file:///opt/sigic/bienvenida-os.html');
+          return;
+        }
+      } catch (e) {
+        if (intentos > 15) {
+          document.getElementById('status-texto').textContent = 'Iniciando la base de datos y servicios...';
+        }
       }
+      setTimeout(comprobarServicio, 1000);
     }
-    setTimeout(probar, 1500);
-  }
-  probar();
-</script>
+    setTimeout(comprobarServicio, 800);
+  </script>
 </body>
 </html>

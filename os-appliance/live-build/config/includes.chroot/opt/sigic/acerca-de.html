@@ -8,7 +8,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
       min-height: 100vh;
-      background: #f1f5f9 radial-gradient(circle at 50% 0%, #e2e8f0 0%, #cbd5e1 100%);
+      background: #f8fafc radial-gradient(circle at 50% 0%, #e2e8f0 0%, #cbd5e1 100%);
       color: #0f172a;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       display: flex;
@@ -21,10 +21,10 @@
 
     .modal-card {
       width: 100%;
-      max-width: 760px;
+      max-width: 780px;
       background: #ffffff;
       border: 1px solid #cbd5e1;
-      border-radius: 24px;
+      border-radius: 26px;
       box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.8) inset;
       overflow: hidden;
       display: flex;
@@ -35,7 +35,7 @@
     .header {
       background: linear-gradient(135deg, #091a2e 0%, #03080e 100%);
       color: #ffffff;
-      padding: 32px 36px;
+      padding: 32px 38px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -80,7 +80,7 @@
     .brand-info p {
       font-size: 13px;
       color: #94a3b8;
-      margin-top: 2px;
+      margin-top: 3px;
       font-weight: 500;
     }
 
@@ -89,21 +89,29 @@
       background: rgba(0, 229, 255, 0.12);
       border: 1px solid rgba(0, 229, 255, 0.35);
       color: #00e5ff;
-      font-size: 11px;
+      font-size: 11.5px;
       font-weight: 800;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
+      letter-spacing: 0.05em;
       padding: 6px 14px;
       border-radius: 999px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
     }
 
-    /* Cuerpo con pestañas o paneles */
+    /* Cuerpo */
     .body-content {
-      padding: 28px 36px;
+      padding: 28px 38px;
       display: flex;
       flex-direction: column;
-      gap: 24px;
+      gap: 22px;
+    }
+
+    .intro-box {
+      font-size: 13.5px;
+      line-height: 1.6;
+      color: #334155;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 16px 20px;
     }
 
     /* Grilla de dos columnas */
@@ -114,7 +122,7 @@
     }
 
     .panel-box {
-      background: #f8fafc;
+      background: #ffffff;
       border: 1px solid #e2e8f0;
       border-radius: 18px;
       padding: 20px;
@@ -124,9 +132,9 @@
 
     .panel-title {
       font-size: 12px;
-      font-weight: 900;
+      font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.06em;
       color: #0284c7;
       margin-bottom: 14px;
       display: flex;
@@ -134,8 +142,8 @@
       gap: 8px;
     }
     .panel-title svg {
-      width: 16px;
-      height: 16px;
+      width: 17px;
+      height: 17px;
       stroke: #0284c7;
       fill: none;
       stroke-width: 2.2;
@@ -153,7 +161,7 @@
       align-items: center;
       justify-content: space-between;
       padding: 8px 12px;
-      background: #ffffff;
+      background: #f8fafc;
       border: 1px solid #e2e8f0;
       border-radius: 12px;
       font-size: 12.5px;
@@ -161,41 +169,33 @@
       color: #1e293b;
     }
     .team-member .role-tag {
-      font-size: 10.5px;
+      font-size: 11px;
       font-weight: 600;
       color: #64748b;
-      background: #f1f5f9;
-      padding: 2px 8px;
-      border-radius: 6px;
     }
 
-    /* Especificaciones del Sistema */
-    .specs-grid {
+    /* Lista de beneficios amigable */
+    .benefit-list {
+      list-style: none;
       display: flex;
       flex-direction: column;
-      gap: 9px;
+      gap: 11px;
     }
-    .spec-row {
+    .benefit-item {
       display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 12px;
-      padding-bottom: 6px;
-      border-bottom: 1px dashed #e2e8f0;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 12.5px;
+      color: #334155;
+      line-height: 1.45;
     }
-    .spec-row:last-child {
-      border-bottom: none;
-      padding-bottom: 0;
-    }
-    .spec-key {
-      color: #64748b;
-      font-weight: 600;
-    }
-    .spec-val {
-      color: #0f172a;
-      font-weight: 800;
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: 11.5px;
+    .benefit-bullet {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #0284c7;
+      margin-top: 6px;
+      flex-shrink: 0;
     }
 
     /* Banner Institucional Beltrán */
@@ -223,7 +223,7 @@
     .actions-bar {
       background: #f8fafc;
       border-top: 1px solid #e2e8f0;
-      padding: 18px 36px;
+      padding: 18px 38px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -236,11 +236,10 @@
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 9px 18px;
+      padding: 10px 18px;
       border-radius: 12px;
-      font-size: 12px;
+      font-size: 12.5px;
       font-weight: 800;
-      letter-spacing: 0.03em;
       cursor: pointer;
       text-decoration: none;
       transition: all 0.2s ease;
@@ -276,15 +275,19 @@
         <img src="logo.png" alt="SiGIC" class="brand-logo" onerror="this.src='/usr/share/pixmaps/sigic.png'">
         <div class="brand-info">
           <h1>SiGIC <span>OS</span></h1>
-          <p>Sistema Operativo Institucional · Instituto Tecnológico Beltrán</p>
+          <p>Sistema Integral para la Organización de Actos de Colación</p>
         </div>
       </div>
-      <div class="badge-version">v7.5.5 Appliance</div>
+      <div class="badge-version">Edición Beltrán 2026</div>
     </div>
 
     <!-- Cuerpo -->
     <div class="body-content">
       
+      <div class="intro-box">
+        Este equipo está listo y preparado para acompañar a la comunidad educativa del <strong>Instituto Beltrán</strong> en la organización de sus ceremonias de egreso: desde la carga de alumnos y el envío de invitaciones, hasta la ubicación en butacas y el ingreso rápido el día del evento.
+      </div>
+
       <!-- Fila dos columnas -->
       <div class="grid-two">
         
@@ -297,63 +300,51 @@
           <ul class="team-list">
             <li class="team-member">
               <span>Cancelo Julián</span>
-              <span class="role-tag">Coordinación & Full-Stack</span>
+              <span class="role-tag">Coordinación</span>
             </li>
             <li class="team-member">
               <span>Alfonso Alan Alexis</span>
-              <span class="role-tag">Arquitectura & Backend</span>
+              <span class="role-tag">Arquitectura</span>
             </li>
             <li class="team-member">
               <span>Contreras Villalba Sol Heilin</span>
-              <span class="role-tag">Diseño UX & Frontend</span>
+              <span class="role-tag">Diseño Visual</span>
             </li>
             <li class="team-member">
               <span>Frassia Matías</span>
-              <span class="role-tag">Base de Datos & Seguridad</span>
+              <span class="role-tag">Base de Datos</span>
             </li>
             <li class="team-member">
               <span>Santillán Luis Gabriel</span>
-              <span class="role-tag">App Móvil & Testing</span>
+              <span class="role-tag">Aplicación Móvil</span>
             </li>
           </ul>
         </div>
 
-        <!-- Panel 2: Especificaciones del Appliance -->
+        <!-- Panel 2: Funciones principales -->
         <div class="panel-box">
           <div class="panel-title">
-            <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
-            <span>Arquitectura y Stack</span>
+            <svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+            <span>¿Qué podés hacer?</span>
           </div>
-          <div class="specs-grid">
-            <div class="spec-row">
-              <span class="spec-key">Sistema Operativo</span>
-              <span class="spec-val">Debian 13 (Trixie amd64)</span>
-            </div>
-            <div class="spec-row">
-              <span class="spec-key">Núcleo Linux</span>
-              <span class="spec-val">Kernel 6.12 LTS</span>
-            </div>
-            <div class="spec-row">
-              <span class="spec-key">Entorno de Escritorio</span>
-              <span class="spec-val">XFCE 4.20 SiGIC Edition</span>
-            </div>
-            <div class="spec-row">
-              <span class="spec-key">Motor Web</span>
-              <span class="spec-val">Next.js 16 (React 19)</span>
-            </div>
-            <div class="spec-row">
-              <span class="spec-key">Base de Datos</span>
-              <span class="spec-val">PostgreSQL 16 (Neon / Local)</span>
-            </div>
-            <div class="spec-row">
-              <span class="spec-key">Servidor de Correo</span>
-              <span class="spec-val">Nodemailer + Buzón Virtual</span>
-            </div>
-            <div class="spec-row">
-              <span class="spec-key">Acreditación Móvil</span>
-              <span class="spec-val">React Native (Expo)</span>
-            </div>
-          </div>
+          <ul class="benefit-list">
+            <li class="benefit-item">
+              <span class="benefit-bullet"></span>
+              <span><strong>Armar actos y ceremonias</strong> definiendo sedes, fechas y plano interactivo del auditorio.</span>
+            </li>
+            <li class="benefit-item">
+              <span class="benefit-bullet"></span>
+              <span><strong>Cargar graduados en lote</strong> directamente desde cualquier planilla de Excel.</span>
+            </li>
+            <li class="benefit-item">
+              <span class="benefit-bullet"></span>
+              <span><strong>Enviar invitaciones automáticas</strong> por correo para que cada egresado elija sus butacas.</span>
+            </li>
+            <li class="benefit-item">
+              <span class="benefit-bullet"></span>
+              <span><strong>Acreditar ingresos el día del acto</strong> escaneando los códigos QR desde el teléfono móvil.</span>
+            </li>
+          </ul>
         </div>
 
       </div>
@@ -361,7 +352,7 @@
       <!-- Banner Beltrán -->
       <div class="inst-banner">
         <div>
-          <div class="inst-text">Instituto Tecnológico Beltrán — Avellaneda, Buenos Aires</div>
+          <div class="inst-text">Instituto Tecnológico Beltrán — Avellaneda, Provincia de Buenos Aires</div>
           <div class="inst-sub">Práctica Profesionalizante 2026 · Tecnicatura Superior en Desarrollo de Software</div>
         </div>
       </div>
@@ -373,7 +364,7 @@
       <div class="actions-links">
         <a href="http://localhost:3000/manual" target="_blank" class="btn btn-secondary">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
-          <span>Manual de Soporte</span>
+          <span>Manual de Ayuda</span>
         </a>
         <a href="http://localhost:3000/" target="_blank" class="btn btn-primary">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>

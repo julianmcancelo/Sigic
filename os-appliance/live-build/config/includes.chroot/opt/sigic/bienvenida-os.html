@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SiGIC OS — Inicio de Sesión y Asistente del Sistema</title>
+  <title>SiGIC OS — Te damos la bienvenida</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #f1f5f9 radial-gradient(circle at 50% 0%, #e2e8f0 0%, #cbd5e1 100%);
+      background: #f8fafc radial-gradient(circle at 50% 0%, #e2e8f0 0%, #cbd5e1 100%);
       color: #0f172a;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
       user-select: none;
@@ -19,11 +19,11 @@
     /* Resplandores suaves de fondo */
     .glow-1 {
       position: absolute;
-      top: -120px;
+      top: -100px;
       left: 15%;
       width: 650px;
       height: 650px;
-      background: radial-gradient(circle, rgba(14, 165, 233, 0.15) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(14, 165, 233, 0.16) 0%, transparent 70%);
       filter: blur(80px);
       pointer-events: none;
     }
@@ -90,9 +90,8 @@
       border: 1px solid #cbd5e1;
       padding: 6px 16px;
       border-radius: 999px;
-      font-size: 11.5px;
+      font-size: 12px;
       color: #475569;
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
       font-weight: 600;
       box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
     }
@@ -109,7 +108,7 @@
       50% { opacity: 0.5; transform: scale(0.85); }
     }
 
-    /* Tarjeta Central */
+    /* Tarjeta Principal */
     .main-card {
       width: 100%;
       max-width: 1020px;
@@ -122,7 +121,7 @@
       min-height: 550px;
     }
 
-    /* Lateral izquierdo de la tarjeta (Branding y características) */
+    /* Lateral izquierdo de la tarjeta (Branding amigable) */
     .card-sidebar {
       width: 38%;
       background: linear-gradient(180deg, #091a2e 0%, #03080e 100%);
@@ -144,14 +143,14 @@
       pointer-events: none;
     }
     .sidebar-header h2 {
-      font-size: 22px;
+      font-size: 24px;
       font-weight: 900;
       color: #ffffff;
       margin-bottom: 8px;
       letter-spacing: -0.01em;
     }
     .sidebar-header p {
-      font-size: 12px;
+      font-size: 13px;
       color: #94a3b8;
       line-height: 1.6;
       margin-bottom: 28px;
@@ -160,7 +159,7 @@
     .features-list {
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 18px;
     }
     .feature-item {
       display: flex;
@@ -168,8 +167,8 @@
       gap: 12px;
     }
     .feature-icon {
-      width: 32px;
-      height: 32px;
+      width: 34px;
+      height: 34px;
       border-radius: 10px;
       background: rgba(0, 229, 255, 0.12);
       border: 1px solid rgba(0, 229, 255, 0.25);
@@ -180,35 +179,34 @@
       flex-shrink: 0;
     }
     .feature-icon svg {
-      width: 16px;
-      height: 16px;
+      width: 17px;
+      height: 17px;
       stroke: #00e5ff;
       fill: none;
       stroke-width: 2.2;
     }
     .feature-text h4 {
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 700;
       color: #ffffff;
       margin-bottom: 2px;
     }
     .feature-text p {
-      font-size: 11px;
-      color: #64748b;
-      line-height: 1.4;
+      font-size: 11.5px;
+      color: #94a3b8;
+      line-height: 1.45;
     }
 
     .sidebar-footer {
-      font-size: 11px;
-      color: #475569;
-      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11.5px;
+      color: #64748b;
       display: flex;
       justify-content: space-between;
       border-top: 1px solid rgba(255, 255, 255, 0.08);
       padding-top: 16px;
     }
 
-    /* Lateral derecho (Formularios e interactividad con tonos claros) */
+    /* Lateral derecho (Formularios claros y guiados) */
     .card-body {
       width: 62%;
       padding: 36px 42px;
@@ -223,19 +221,17 @@
       display: flex;
       gap: 8px;
       background: #f1f5f9;
-      padding: 4px;
+      padding: 5px;
       border-radius: 14px;
       margin-bottom: 24px;
       border: 1px solid #e2e8f0;
     }
     .tab-btn {
       flex: 1;
-      padding: 9px 12px;
+      padding: 10px 14px;
       border-radius: 10px;
-      font-size: 11.5px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+      font-size: 12px;
+      font-weight: 700;
       border: none;
       background: transparent;
       color: #64748b;
@@ -245,6 +241,7 @@
     .tab-btn.active {
       background: #ffffff;
       color: #0284c7;
+      font-weight: 800;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
     }
 
@@ -254,12 +251,16 @@
     }
     .form-label {
       display: block;
-      font-size: 10.5px;
-      font-weight: 900;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #475569;
+      font-size: 11px;
+      font-weight: 800;
+      color: #334155;
       margin-bottom: 6px;
+    }
+    .form-hint {
+      font-size: 10.5px;
+      color: #64748b;
+      font-weight: 500;
+      margin-left: 4px;
     }
     .form-input {
       width: 100%;
@@ -292,10 +293,8 @@
       color: #ffffff;
       border: none;
       border-radius: 14px;
-      font-size: 13px;
-      font-weight: 900;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
+      font-size: 13.5px;
+      font-weight: 800;
       cursor: pointer;
       box-shadow: 0 8px 20px rgba(2, 132, 199, 0.25);
       transition: all 0.2s ease;
@@ -317,7 +316,7 @@
       cursor: not-allowed;
     }
 
-    /* Pills demo */
+    /* Accesos rápidos de prueba */
     .demo-pills {
       display: flex;
       align-items: center;
@@ -327,16 +326,16 @@
       border-top: 1px solid #e2e8f0;
     }
     .demo-label {
-      font-size: 11px;
+      font-size: 11.5px;
       color: #64748b;
-      font-weight: bold;
+      font-weight: 600;
     }
     .pill-btn {
       background: #f1f5f9;
       border: 1px solid #cbd5e1;
       border-radius: 999px;
-      padding: 4px 12px;
-      font-size: 11px;
+      padding: 5px 12px;
+      font-size: 11.5px;
       color: #0284c7;
       font-weight: 700;
       cursor: pointer;
@@ -363,7 +362,7 @@
       color: #b91c1c;
     }
 
-    /* Overlay de éxito y transición */
+    /* Overlay de éxito y transición amigable */
     .overlay-exito {
       display: none;
       position: absolute;
@@ -416,7 +415,7 @@
       </div>
       <div class="system-status">
         <span class="status-dot"></span>
-        <span id="label-estado">SiGIC OS Activo · Debian 13</span>
+        <span id="label-estado">Sistema listo para comenzar</span>
       </div>
     </div>
 
@@ -427,8 +426,8 @@
       <div class="card-sidebar">
         <div>
           <div class="sidebar-header">
-            <h2>Acceso al Sistema</h2>
-            <p>Configuración unificada para el usuario del sistema operativo y la plataforma institucional de colaciones.</p>
+            <h2>¡Te damos la bienvenida!</h2>
+            <p>Vamos a preparar tu equipo en dos pasos muy sencillos para que puedas empezar a organizar las colaciones.</p>
           </div>
 
           <div class="features-list">
@@ -437,8 +436,8 @@
                 <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
               </div>
               <div class="feature-text">
-                <h4>Usuario Linux Nativo</h4>
-                <p>Crea o actualiza la cuenta local de Debian para el operador.</p>
+                <h4>Tu cuenta de responsable</h4>
+                <p>Vas a tener el control total para gestionar ceremonias, graduados y lugares.</p>
               </div>
             </div>
             <div class="feature-item">
@@ -446,8 +445,8 @@
                 <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
               </div>
               <div class="feature-text">
-                <h4>Credenciales Maestras</h4>
-                <p>Contraseña sincronizada para el equipo físico y SiGIC Web.</p>
+                <h4>Acceso único y seguro</h4>
+                <p>Con tu misma contraseña vas a poder encender la máquina y entrar a la plataforma.</p>
               </div>
             </div>
             <div class="feature-item">
@@ -455,8 +454,8 @@
                 <svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
               </div>
               <div class="feature-text">
-                <h4>Ceremonia Beltrán 2026</h4>
-                <p>Inicializa la base de datos PostgreSQL y anfiteatro.</p>
+                <h4>Tu primer acto ya preparado</h4>
+                <p>Te dejamos configurado el primer evento para que no tengas que empezar de cero.</p>
               </div>
             </div>
           </div>
@@ -464,97 +463,97 @@
 
         <div class="sidebar-footer">
           <span>Práctica Profesionalizante 2026</span>
-          <span>v7.5.5</span>
+          <span>Versión 7.5.6</span>
         </div>
       </div>
 
       <!-- Panel de Contenido Derecho -->
       <div class="card-body">
         
-        <!-- Pestañas de Modo -->
+        <!-- Pestañas de Modo Amigables -->
         <div class="tabs">
           <button type="button" class="tab-btn active" id="tab-setup" onclick="cambiarPestana('setup')">
-            Primer Inicio (Crear Usuario)
+            Paso 1: Configurar este equipo
           </button>
           <button type="button" class="tab-btn" id="tab-login" onclick="cambiarPestana('login')">
-            Iniciar Sesión Existente
+            Ya tengo una cuenta
           </button>
         </div>
 
         <!-- Alerta de Error -->
         <div class="alert alert-error" id="box-error"></div>
 
-        <!-- Formulario SETUP (Primer Inicio) -->
+        <!-- Formulario SETUP (Amigable y guiado) -->
         <form id="form-setup" onsubmit="ejecutarAcceso(event, 'primer_inicio')">
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">Nombre del Operador / Admin</label>
-              <input type="text" id="setup-nombre" class="form-input" value="Administrador Beltrán" required>
+              <label class="form-label">¿Cómo te llamás? <span class="form-hint">(Tu nombre y apellido)</span></label>
+              <input type="text" id="setup-nombre" class="form-input" value="Administrador Beltrán" placeholder="Ej: Juan Pérez" required>
             </div>
             <div class="form-group">
-              <label class="form-label">Correo Institucional</label>
-              <input type="email" id="setup-email" class="form-input" value="admin@sigic.com" required>
+              <label class="form-label">¿Cuál es tu correo de contacto?</label>
+              <input type="email" id="setup-email" class="form-input" value="admin@sigic.com" placeholder="Ej: tu-correo@beltran.edu.ar" required>
             </div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">Contraseña de Sistema y SiGIC</label>
+              <label class="form-label">Elegí una contraseña segura</label>
               <input type="password" id="setup-pass" class="form-input" value="ColacionBeltran2026!" required>
             </div>
             <div class="form-group">
-              <label class="form-label">Clave de Instalación Beltrán</label>
+              <label class="form-label">Clave de activación del instituto</label>
               <input type="text" id="setup-key" class="form-input" value="35230531" required>
             </div>
           </div>
 
           <div class="form-group">
-            <label class="form-label">Nombre de la Ceremonia Inicial</label>
+            <label class="form-label">¿Cómo se va a llamar el primer acto de graduación?</label>
             <input type="text" id="setup-ceremonia" class="form-input" value="Colación Beltrán 2026">
           </div>
 
           <button type="submit" class="btn-submit" id="btn-submit-setup">
-            <span>Configurar e Iniciar Sesión en SiGIC OS</span>
+            <span>Dejar todo listo y comenzar a usar el sistema</span>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
           </button>
         </form>
 
-        <!-- Formulario LOGIN (Acceso Existente) -->
+        <!-- Formulario LOGIN (Acceso directo) -->
         <form id="form-login" style="display: none;" onsubmit="ejecutarAcceso(event, 'login')">
           <div class="form-group">
-            <label class="form-label">Correo Electrónico</label>
+            <label class="form-label">Tu correo electrónico</label>
             <input type="email" id="login-email" class="form-input" value="admin@sigic.com" required>
           </div>
 
           <div class="form-group">
-            <label class="form-label">Contraseña</label>
+            <label class="form-label">Tu contraseña</label>
             <input type="password" id="login-pass" class="form-input" value="ColacionBeltran2026!" required>
           </div>
 
           <button type="submit" class="btn-submit" id="btn-submit-login">
-            <span>Ingresar a SiGIC OS</span>
+            <span>Ingresar a mi cuenta</span>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
           </button>
 
           <!-- Accesos Rápidos Demo -->
           <div class="demo-pills">
-            <span class="demo-label">Rápido:</span>
-            <button type="button" class="pill-btn" onclick="cargarDemo('admin')">Admin</button>
-            <button type="button" class="pill-btn" onclick="cargarDemo('soporte')">Soporte</button>
+            <span class="demo-label">Probar rápido como:</span>
+            <button type="button" class="pill-btn" onclick="cargarDemo('admin')">Administrador</button>
+            <button type="button" class="pill-btn" onclick="cargarDemo('soporte')">Soporte Técnico</button>
             <button type="button" class="pill-btn" onclick="cargarDemo('porteria')">Portería</button>
           </div>
         </form>
 
       </div>
 
-      <!-- Overlay de Éxito / Transición -->
+      <!-- Overlay de Éxito y Transición Amigable -->
       <div class="overlay-exito" id="overlay-exito">
         <div class="overlay-spinner"></div>
         <h3 style="font-size: 20px; font-weight: 900; color: #0f172a; margin-bottom: 8px;" id="overlay-titulo">
-          Configurando SiGIC OS...
+          Preparando tu equipo...
         </h3>
-        <p style="font-size: 13px; color: #0284c7; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 600;" id="overlay-detalle">
-          Sincronizando cuenta del sistema operativo Linux Debian...
+        <p style="font-size: 13.5px; color: #0284c7; font-weight: 600;" id="overlay-detalle">
+          Guardando tus datos de acceso...
         </p>
       </div>
 
@@ -562,7 +561,7 @@
 
     <!-- Footer Inferior -->
     <div class="footer-bar">
-      Instituto Tecnológico Beltrán · Cancelo Julián · Alfonso Alan Alexis · Contreras Sol · Frassia Matías · Santillán Luis Gabriel
+      Instituto Tecnológico Beltrán · Práctica Profesionalizante 2026 · Cancelo Julián · Alfonso Alan Alexis · Contreras Sol · Frassia Matías · Santillán Luis Gabriel
     </div>
   </div>
 
@@ -608,8 +607,8 @@
       const detalle = document.getElementById('overlay-detalle');
 
       overlay.style.display = 'flex';
-      titulo.textContent = tipo === 'primer_inicio' ? 'Configurando SiGIC OS...' : 'Iniciando Sesión...';
-      detalle.textContent = 'Comunicando con el sistema operativo y servicios locales...';
+      titulo.textContent = tipo === 'primer_inicio' ? '¡Ya casi terminamos!' : 'Iniciando sesión...';
+      detalle.textContent = 'Guardando tus datos en el equipo...';
 
       let payload = {};
       if (tipo === 'primer_inicio') {
@@ -639,17 +638,17 @@
         const datos = await res.json().catch(() => ({}));
 
         if (!res.ok || !datos.ok) {
-          throw new Error(datos.error || 'No se pudo procesar la solicitud.');
+          throw new Error(datos.error || 'Por favor revisá los datos ingresados e intentá nuevamente.');
         }
 
         // Animación de éxito
-        detalle.textContent = '✓ Usuario Linux configurado exitosamente';
+        detalle.textContent = '✓ Tus datos se guardaron correctamente';
         setTimeout(() => {
-          detalle.textContent = '✓ Credenciales sincronizadas con SiGIC';
+          detalle.textContent = '✓ El primer acto de graduación ya está preparado';
         }, 400);
 
         setTimeout(() => {
-          detalle.textContent = '¡Bienvenido! Entrando al entorno de trabajo...';
+          detalle.textContent = '¡Todo listo! Abriendo tu panel de trabajo...';
         }, 800);
 
         // Redirigir directamente al panel pasando el token
@@ -660,7 +659,7 @@
 
       } catch (err) {
         overlay.style.display = 'none';
-        errBox.textContent = err.message || 'Error de conexión con el sistema local.';
+        errBox.textContent = err.message || 'No se pudo conectar con el servidor local. Aguardá unos segundos.';
         errBox.style.display = 'block';
       }
     }
@@ -672,7 +671,7 @@
         const data = await res.json().catch(() => ({}));
         if (data.ok && data.inicializado) {
           cambiarPestana('login');
-          document.getElementById('label-estado').textContent = 'SiGIC OS Configurado · Sesión Lista';
+          document.getElementById('label-estado').textContent = 'Equipo configurado y listo para usar';
         }
       } catch (e) {
         // En espera de que levante Next.js

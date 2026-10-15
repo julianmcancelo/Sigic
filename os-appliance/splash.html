@@ -3,273 +3,190 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SiGIC — Gestión de Colaciones</title>
+  <title>SiGIC OS — Preparando el sistema</title>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    body {
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      background: radial-gradient(circle at 50% 35%, rgba(14, 105, 139, 0.35), transparent 28rem),
-                  radial-gradient(circle at 15% 100%, rgba(22, 70, 118, 0.38), transparent 34rem),
-                  #03080e;
-      color: #d9f7fb;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%;
+      height: 100%;
       overflow: hidden;
+      background: #f8fafc radial-gradient(circle at 50% 25%, #f1f5f9 0%, #e2e8f0 60%, #cbd5e1 100%);
+      color: #0f172a;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
       user-select: none;
     }
-    
-    .noise-overlay {
-      position: fixed;
-      inset: 0;
-      opacity: 0.035;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+
+    .glow {
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(2, 132, 199, 0.15) 0%, transparent 70%);
+      filter: blur(60px);
       pointer-events: none;
+      z-index: 1;
     }
 
-    .container {
+    .card {
       position: relative;
-      z-index: 2;
+      z-index: 10;
+      width: 100%;
+      max-width: 580px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 26px;
+      padding: 44px 36px 36px;
+      box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.9) inset;
       display: flex;
       flex-direction: column;
       align-items: center;
       text-align: center;
-      width: min(600px, calc(100% - 36px));
-      animation: aparecerSuave 0.9s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    .logo-container {
-      position: relative;
-      width: 110px;
-      height: 110px;
-      display: grid;
-      place-items: center;
-      margin-bottom: 18px;
-    }
-    .logo-glow {
-      position: absolute;
-      inset: 0;
-      border: 1px solid rgba(100, 225, 232, 0.28);
-      border-radius: 32px;
-      background: rgba(91, 218, 227, 0.045);
-      transform: rotate(45deg);
-      animation: pulsoAura 3s ease-in-out infinite;
-    }
     .logo-img {
-      position: relative;
-      z-index: 2;
-      width: 72px;
-      height: 72px;
-      border-radius: 18px;
-      background: #ffffff;
-      box-shadow: 0 0 0 8px rgba(91, 218, 227, 0.07), 0 20px 50px rgba(32, 195, 225, 0.35);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-    .logo-img img {
-      width: 82%;
-      height: 82%;
+      height: 80px;
+      width: auto;
       object-fit: contain;
+      filter: drop-shadow(0 4px 14px rgba(2, 132, 199, 0.28));
+      margin-bottom: 20px;
     }
 
-    .badge {
-      color: #5fe6ed;
-      font-family: ui-monospace, "Cascadia Code", monospace;
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      margin-bottom: 6px;
-    }
-    h1 {
-      color: #f5feff;
-      font-size: 36px;
+    .badge-top {
+      font-size: 11px;
       font-weight: 800;
-      letter-spacing: -0.025em;
-      line-height: 1.1;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #0284c7;
       margin-bottom: 6px;
     }
+
+    h1 {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+
     p.subtitle {
-      color: rgba(225, 248, 250, 0.76);
-      font-size: 15px;
-      font-weight: 450;
+      font-size: 14px;
+      color: #64748b;
+      margin-bottom: 26px;
+      line-height: 1.5;
+    }
+
+    .bar-track {
+      width: 260px;
+      height: 5px;
+      background: #e2e8f0;
+      border-radius: 999px;
+      overflow: hidden;
+      position: relative;
       margin-bottom: 18px;
     }
-
-    .progress-bar {
-      width: 190px;
-      height: 3px;
-      background: rgba(116, 229, 235, 0.14);
-      border-radius: 99px;
-      overflow: hidden;
-      position: relative;
-      margin-bottom: 12px;
-    }
-    .progress-bar-fill {
+    .bar-fill {
       position: absolute;
+      top: 0;
+      left: 0;
       height: 100%;
-      width: 48%;
-      border-radius: inherit;
-      background: linear-gradient(90deg, transparent, #6ce8e5, transparent);
-      animation: barridoLuz 1.3s ease-in-out infinite;
+      width: 45%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #0284c7 0%, #00e5ff 100%);
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+      animation: barSweep 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
     }
-    .status-text {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: rgba(194, 234, 239, 0.65);
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      margin-bottom: 22px;
-    }
-    .status-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: #6ce8d3;
-      box-shadow: 0 0 10px #6ce8d3;
+    @keyframes barSweep {
+      0% { left: -45%; }
+      100% { left: 100%; }
     }
 
-    /* Tarjeta de los Alumnos / Proyecto */
-    .project-card {
-      background: rgba(10, 26, 44, 0.6);
-      border: 1px solid rgba(100, 225, 232, 0.2);
-      border-radius: 16px;
-      padding: 14px 22px;
+    .status-msg {
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #0284c7;
+      margin-bottom: 28px;
+    }
+
+    .team-box {
       width: 100%;
-      backdrop-filter: blur(14px);
-      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35);
-      text-align: center;
-    }
-    .project-header {
-      font-size: 11px;
-      font-weight: 700;
-      color: #6ee6e5;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      margin-bottom: 10px;
-      border-bottom: 1px solid rgba(100, 225, 232, 0.16);
-      padding-bottom: 7px;
-    }
-    .team-grid {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 8px 18px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 14px 18px;
       font-size: 12px;
-      color: rgba(235, 250, 252, 0.92);
+    }
+    .team-title {
+      font-weight: 800;
+      color: #334155;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-size: 11px;
+      margin-bottom: 8px;
+    }
+    .team-names {
+      color: #64748b;
+      line-height: 1.6;
       font-weight: 500;
     }
-    .team-member {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-    }
-    .team-dot {
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background: #38bdf8;
-      box-shadow: 0 0 6px rgba(56, 189, 248, 0.8);
-    }
 
-    footer {
-      position: fixed;
-      bottom: 20px;
-      left: 32px;
-      right: 32px;
-      display: flex;
-      justify-content: space-between;
-      color: rgba(192, 231, 235, 0.45);
-      font-family: ui-monospace, "Cascadia Code", monospace;
-      font-size: 10px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-
-    @keyframes pulsoAura {
-      50% {
-        transform: rotate(45deg) scale(1.08);
-        border-color: rgba(100, 225, 232, 0.48);
-      }
-    }
-    @keyframes barridoLuz {
-      0% { transform: translateX(-100%); }
-      100% { transform: translateX(250%); }
-    }
-    @keyframes aparecerSuave {
-      from { opacity: 0; transform: translateY(14px) scale(0.98); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
+    .footer-text {
+      margin-top: 22px;
+      font-size: 11.5px;
+      color: #94a3b8;
     }
   </style>
 </head>
 <body>
-  <div class="noise-overlay" aria-hidden="true"></div>
 
-  <div class="container">
-    <div class="logo-container">
-      <div class="logo-glow" aria-hidden="true"></div>
-      <div class="logo-img">
-        <img src="logo.png" alt="Logo SiGIC" onerror="this.style.display='none'">
+  <div class="glow"></div>
+
+  <div class="card">
+    <img src="logo.png" alt="SiGIC" class="logo-img" onerror="this.src='../codigo/plataforma/public/logo.png'">
+    
+    <div class="badge-top">Instituto Beltrán</div>
+    <h1>SiGIC OS</h1>
+    <p class="subtitle">Estamos preparando todo para comenzar.<br>Aguardá un instante mientras dejamos listo tu entorno de trabajo.</p>
+
+    <div class="bar-track">
+      <div class="bar-fill"></div>
+    </div>
+
+    <div class="status-msg" id="status-texto">Iniciando plataforma local...</div>
+
+    <div class="team-box">
+      <div class="team-title">Práctica Profesionalizante 2026</div>
+      <div class="team-names">
+        Cancelo Julián · Alfonso Alan Alexis · Contreras Villalba Sol Heilin · Frassia Matías · Santillán Luis Gabriel
       </div>
-    </div>
-    
-    <div class="badge">Gestión Institucional de Colaciones</div>
-    <h1>SiGIC</h1>
-    <p class="subtitle">Iniciando el sistema...</p>
-    
-    <div class="progress-bar" aria-hidden="true">
-      <div class="progress-bar-fill"></div>
-    </div>
-    
-    <div class="status-text">
-      <div class="status-dot"></div>
-      <span>Cargando servicios</span>
-    </div>
-
-    <!-- Créditos simples y claros: Alumnos e Instituto -->
-    <div class="project-card">
-      <div class="project-header">Instituto Tecnológico Beltrán — Práctica Profesionalizante 2026</div>
-      <div class="team-grid">
-        <div class="team-member"><span class="team-dot"></span><span>Cancelo Julián</span></div>
-        <div class="team-member"><span class="team-dot"></span><span>Alfonso Alan Alexis</span></div>
-        <div class="team-member"><span class="team-dot"></span><span>Contreras Villalba Sol</span></div>
-        <div class="team-member"><span class="team-dot"></span><span>Frassia Matías</span></div>
-        <div class="team-member"><span class="team-dot"></span><span>Santillán Luis Gabriel</span></div>
-      </div>
-    </div>
-
-    <!-- Indicador de Red Wi-Fi Autónoma para Celulares de Portería -->
-    <div style="margin-top: 14px; display: inline-flex; align-items: center; gap: 10px; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.22); padding: 7px 16px; border-radius: 999px; font-size: 11px; color: #bae6fd;">
-      <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #38bdf8; box-shadow: 0 0 8px #38bdf8;"></span>
-      <span>Wi-Fi Offline: <b>SiGIC - Evento Colacion</b> (Clave: <code>sigic2026</code>)</span>
     </div>
   </div>
 
-  <footer>
-    <span>Instituto Tecnológico Beltrán</span>
-    <span>SiGIC 2026</span>
-  </footer>
+  <div class="footer-text">
+    Instituto Tecnológico Beltrán — Avellaneda, Buenos Aires
+  </div>
 
   <script>
-    function verificarServidor() {
-      fetch('http://localhost:3000/api/estado', { mode: 'no-cors' })
-        .then(() => {
-          window.location.href = 'http://localhost:3000';
-        })
-        .catch(() => {
-          setTimeout(verificarServidor, 1500);
-        });
+    let intentos = 0;
+    async function comprobarServicio() {
+      intentos++;
+      try {
+        const res = await fetch('http://localhost:3000/api/estado', { cache: 'no-store' });
+        if (res.ok) {
+          window.location.replace('file:///opt/sigic/bienvenida-os.html');
+          return;
+        }
+      } catch (e) {
+        if (intentos > 15) {
+          document.getElementById('status-texto').textContent = 'Iniciando la base de datos y servicios...';
+        }
+      }
+      setTimeout(comprobarServicio, 1000);
     }
-    setTimeout(verificarServidor, 2000);
+    setTimeout(comprobarServicio, 800);
   </script>
 </body>
 </html>
