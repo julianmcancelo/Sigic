@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-SiGIC OS — Asistente Nativo de Primer Inicio y Acceso
-Aplicación de sistema desarrollada en Python 3 + GTK 3 para Debian GNU/Linux / XFCE.
-Configura la cuenta de usuario de Linux, inicializa la plataforma y lanza la sesión.
+SiGIC — Asistente de Configuración Inicial y Acceso
+Aplicación nativa en Python 3 + GTK 3 para Debian GNU/Linux / XFCE.
+Sincroniza usuario de Linux, inicializa base de datos y lanza la plataforma.
 """
 
 import os
@@ -27,28 +27,29 @@ except Exception as err:
 
 CSS_ESTILOS = b"""
 window.asistente-bg {
-    background-color: #eef2f6;
+    background-color: #f1f5f9;
 }
 
 .top-bar {
     background-color: #ffffff;
     border-bottom: 1px solid #cbd5e1;
-    padding: 10px 24px;
+    padding: 8px 20px;
 }
 
 .top-title {
-    font-size: 14px;
+    font-size: 15px;
     font-weight: bold;
     color: #0f172a;
 }
 
 .top-pill {
-    background-color: rgba(2, 132, 199, 0.12);
+    background-color: #e0f2fe;
     color: #0284c7;
     font-size: 11px;
     font-weight: bold;
     border-radius: 6px;
     padding: 3px 8px;
+    border: 1px solid #bae6fd;
 }
 
 .top-clock {
@@ -60,14 +61,14 @@ window.asistente-bg {
 .main-card {
     background-color: #ffffff;
     border: 1px solid #cbd5e1;
-    border-radius: 18px;
+    border-radius: 16px;
 }
 
 .sidebar {
     background-color: #091a2e;
-    border-top-left-radius: 17px;
-    border-bottom-left-radius: 17px;
-    padding: 28px 24px;
+    border-top-left-radius: 15px;
+    border-bottom-left-radius: 15px;
+    padding: 22px 20px;
 }
 
 .sidebar-title {
@@ -83,7 +84,7 @@ window.asistente-bg {
 }
 
 .sidebar-desc {
-    font-size: 13px;
+    font-size: 12px;
     color: #94a3b8;
 }
 
@@ -99,27 +100,31 @@ window.asistente-bg {
 }
 
 .form-container {
-    padding: 24px 32px;
+    padding: 18px 24px;
 }
 
-.tab-btn {
+button.tab-btn {
     background-color: #f1f5f9;
-    color: #64748b;
-    font-size: 13px;
+    color: #475569;
+    font-size: 12px;
     font-weight: bold;
-    border-radius: 9px;
-    padding: 8px 16px;
+    border-radius: 8px;
+    padding: 8px 14px;
     border: 1px solid #cbd5e1;
 }
 
-.tab-btn.active {
-    background-color: #ffffff;
-    color: #0284c7;
+button.tab-btn:hover {
+    background-color: #e2e8f0;
+}
+
+button.tab-btn.active {
+    background-color: #0284c7;
+    color: #ffffff;
     border: 1px solid #0284c7;
 }
 
 .input-label {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: bold;
     color: #334155;
 }
@@ -127,8 +132,8 @@ window.asistente-bg {
 .input-field {
     background-color: #ffffff;
     border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    padding: 8px 12px;
+    border-radius: 7px;
+    padding: 6px 10px;
     font-size: 13px;
     color: #0f172a;
 }
@@ -137,33 +142,33 @@ window.asistente-bg {
     border-color: #0284c7;
 }
 
-.btn-primary {
+button.btn-primary {
     background-color: #0284c7;
     color: #ffffff;
     font-size: 13px;
     font-weight: bold;
     border-radius: 9px;
-    padding: 10px 20px;
+    padding: 10px 18px;
     border-width: 0px;
 }
 
-.btn-primary:hover {
+button.btn-primary:hover {
     background-color: #0369a1;
 }
 
-.btn-pill {
-    background-color: #f1f5f9;
-    color: #334155;
+button.btn-pill {
+    background-color: #e0f2fe;
+    color: #0284c7;
     font-size: 11px;
     font-weight: bold;
-    border-radius: 8px;
-    padding: 5px 10px;
-    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    padding: 5px 12px;
+    border: 1px solid #7dd3fc;
 }
 
-.btn-pill:hover {
-    background-color: #e2e8f0;
-    color: #0f172a;
+button.btn-pill:hover {
+    background-color: #bae6fd;
+    color: #0369a1;
 }
 
 .error-banner {
@@ -177,7 +182,7 @@ window.asistente-bg {
 }
 
 .status-label {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: bold;
     color: #0284c7;
 }
@@ -185,14 +190,14 @@ window.asistente-bg {
 .footer-system {
     font-size: 11px;
     color: #64748b;
-    padding: 8px;
+    padding: 6px;
 }
 """
 
-class AsistenteSigicOS(Gtk.Window):
+class AsistenteSigic(Gtk.Window):
     def __init__(self):
-        super().__init__(title="SiGIC OS — Asistente de Inicio y Acceso")
-        self.set_default_size(980, 680)
+        super().__init__(title="SiGIC — Asistente de Inicio y Acceso")
+        self.set_default_size(860, 540)
         self.set_position(Gtk.WindowPosition.CENTER)
         self.set_resizable(False)
         self.get_style_context().add_class("asistente-bg")
@@ -201,7 +206,7 @@ class AsistenteSigicOS(Gtk.Window):
         vbox_root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
         self.add(vbox_root)
 
-        # 1. Barra superior
+        # 1. Barra superior institucional
         topbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
         topbar.get_style_context().add_class("top-bar")
 
@@ -214,7 +219,7 @@ class AsistenteSigicOS(Gtk.Window):
             except Exception:
                 pass
 
-        lbl_brand = Gtk.Label(label="SiGIC OS")
+        lbl_brand = Gtk.Label(label="SiGIC")
         lbl_brand.get_style_context().add_class("top-title")
         topbar.pack_start(lbl_brand, False, False, 0)
 
@@ -226,8 +231,8 @@ class AsistenteSigicOS(Gtk.Window):
         topbar.pack_start(Gtk.Box(), True, True, 0)
 
         # Indicador de estado y reloj
-        self.lbl_top_status = Gtk.Label(label="● Sistema operativo listo")
-        self.lbl_top_status.set_markup("<span foreground='#10b981'>●</span> <small><span foreground='#475569' weight='bold'>Sistema operativo listo</span></small>")
+        self.lbl_top_status = Gtk.Label()
+        self.lbl_top_status.set_markup("<span foreground='#10b981'>●</span> <small><span foreground='#475569' weight='bold'>Sistema listo</span></small>")
         topbar.pack_start(self.lbl_top_status, False, False, 0)
 
         self.lbl_clock = Gtk.Label()
@@ -239,30 +244,30 @@ class AsistenteSigicOS(Gtk.Window):
 
         # 2. Contenedor central flotante
         box_center = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
-        box_center.set_margin_top(16)
-        box_center.set_margin_bottom(12)
-        box_center.set_margin_start(24)
-        box_center.set_margin_end(24)
+        box_center.set_margin_top(12)
+        box_center.set_margin_bottom(8)
+        box_center.set_margin_start(16)
+        box_center.set_margin_end(16)
 
         card = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=0)
         card.get_style_context().add_class("main-card")
 
         # 2A. Columna lateral institucional (Izquierda)
-        sidebar = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=16)
-        sidebar.set_size_request(320, -1)
+        sidebar = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=14)
+        sidebar.set_size_request(265, -1)
         sidebar.get_style_context().add_class("sidebar")
 
         if os.path.exists(logo_top_path):
             try:
-                pixbuf_side = GdkPixbuf.Pixbuf.new_from_file_at_scale(logo_top_path, -1, 46, True)
+                pixbuf_side = GdkPixbuf.Pixbuf.new_from_file_at_scale(logo_top_path, -1, 42, True)
                 img_side = Gtk.Image.new_from_pixbuf(pixbuf_side)
                 img_side.set_alignment(0, 0.5)
                 sidebar.pack_start(img_side, False, False, 0)
             except Exception:
                 pass
 
-        box_side_titles = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
-        lbl_s_title = Gtk.Label(label="SiGIC OS", xalign=0)
+        box_side_titles = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3)
+        lbl_s_title = Gtk.Label(label="SiGIC", xalign=0)
         lbl_s_title.get_style_context().add_class("sidebar-title")
         lbl_s_sub = Gtk.Label(label="Plataforma de Colaciones", xalign=0)
         lbl_s_sub.get_style_context().add_class("sidebar-sub")
@@ -271,25 +276,25 @@ class AsistenteSigicOS(Gtk.Window):
         sidebar.pack_start(box_side_titles, False, False, 0)
 
         lbl_s_desc = Gtk.Label(
-            label="Plataforma oficial para la coordinación integral de colaciones, acreditación digital y gestión de egresados.",
+            label="Coordinación integral de colaciones, acreditación digital y gestión institucional de egresados.",
             xalign=0
         )
         lbl_s_desc.set_line_wrap(True)
         lbl_s_desc.get_style_context().add_class("sidebar-desc")
         sidebar.pack_start(lbl_s_desc, False, False, 0)
 
-        # Características
+        # Características destacadas
         features = [
-            "Acreditación móvil mediante código QR",
-            "Asignación visual de butacas en tiempo real",
-            "Gestión integral de graduados y diplomas"
+            "Acreditación móvil por código QR",
+            "Asignación visual de butacas",
+            "Padrón y entrega de diplomas"
         ]
-        box_feats = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        box_feats = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
         for f in features:
             lbl_f = Gtk.Label(xalign=0)
             lbl_f.set_markup(f"<span foreground='#00e5ff'>✓</span>  <span class='feature-item'>{f}</span>")
             box_feats.pack_start(lbl_f, False, False, 0)
-        sidebar.pack_start(box_feats, False, False, 8)
+        sidebar.pack_start(box_feats, False, False, 4)
 
         # Espacio flexible
         sidebar.pack_start(Gtk.Box(), True, True, 0)
@@ -304,12 +309,12 @@ class AsistenteSigicOS(Gtk.Window):
         card.pack_start(sidebar, False, False, 0)
 
         # 2B. Columna derecha: Formularios y pestañas
-        self.right_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=14)
+        self.right_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
         self.right_panel.get_style_context().add_class("form-container")
 
         # Pestañas Superiores
         box_tabs = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-        self.btn_tab_setup = Gtk.Button(label="Configurar por primera vez")
+        self.btn_tab_setup = Gtk.Button(label="Configuración inicial")
         self.btn_tab_setup.get_style_context().add_class("tab-btn")
         self.btn_tab_setup.get_style_context().add_class("active")
         self.btn_tab_setup.connect("clicked", lambda b: self.cambiar_modo("setup"))
@@ -335,10 +340,10 @@ class AsistenteSigicOS(Gtk.Window):
         # Contenedor dinámico de formularios (Stack)
         self.stack = Gtk.Stack()
         self.stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
-        self.stack.set_transition_duration(200)
+        self.stack.set_transition_duration(150)
 
         # === VISTA 1: SETUP ===
-        box_setup = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        box_setup = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=7)
 
         # Nombre
         lbl_n = Gtk.Label(label="Nombre y apellido institucional", xalign=0)
@@ -381,16 +386,19 @@ class AsistenteSigicOS(Gtk.Window):
         box_setup.pack_start(lbl_c, False, False, 0)
         box_setup.pack_start(self.ent_setup_ceremonia, False, False, 0)
 
-        # Botón Setup
-        self.btn_submit_setup = Gtk.Button(label="Completar configuración e ingresar al sistema")
+        # Botón Setup celeste
+        self.btn_submit_setup = Gtk.Button()
+        lbl_s_btn = Gtk.Label()
+        lbl_s_btn.set_markup("<span foreground='#ffffff' weight='heavy' size='11000'>Completar configuración e ingresar</span>")
+        self.btn_submit_setup.add(lbl_s_btn)
         self.btn_submit_setup.get_style_context().add_class("btn-primary")
         self.btn_submit_setup.connect("clicked", lambda b: self.ejecutar_accion("primer_inicio"))
-        box_setup.pack_start(self.btn_submit_setup, False, False, 6)
+        box_setup.pack_start(self.btn_submit_setup, False, False, 4)
 
         self.stack.add_named(box_setup, "setup")
 
         # === VISTA 2: LOGIN ===
-        box_login = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
+        box_login = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
 
         lbl_le = Gtk.Label(label="Correo institucional", xalign=0)
         lbl_le.get_style_context().add_class("input-label")
@@ -407,14 +415,18 @@ class AsistenteSigicOS(Gtk.Window):
         box_login.pack_start(lbl_lp, False, False, 0)
         box_login.pack_start(self.ent_login_pass, False, False, 0)
 
-        self.btn_submit_login = Gtk.Button(label="Iniciar Sesión en SiGIC OS")
+        # Botón Login celeste
+        self.btn_submit_login = Gtk.Button()
+        lbl_l_btn = Gtk.Label()
+        lbl_l_btn.set_markup("<span foreground='#ffffff' weight='heavy' size='11000'>Iniciar Sesión en SiGIC</span>")
+        self.btn_submit_login.add(lbl_l_btn)
         self.btn_submit_login.get_style_context().add_class("btn-primary")
         self.btn_submit_login.connect("clicked", lambda b: self.ejecutar_accion("login"))
         box_login.pack_start(self.btn_submit_login, False, False, 6)
 
-        # Accesos rápidos demo
+        # Accesos rápidos celestes
         box_demos = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
-        lbl_demo = Gtk.Label(label="Acceso de prueba:")
+        lbl_demo = Gtk.Label(label="Acceso rápido:")
         lbl_demo.get_style_context().add_class("input-label")
         box_demos.pack_start(lbl_demo, False, False, 0)
 
@@ -504,7 +516,7 @@ class AsistenteSigicOS(Gtk.Window):
         url = "http://localhost:3000/api/sistema/acceso-os"
         for _ in range(15):
             try:
-                req = urllib.request.Request(url, headers={"User-Agent": "SiGIC-OS-Assistant"})
+                req = urllib.request.Request(url, headers={"User-Agent": "SiGIC-Assistant"})
                 with urllib.request.urlopen(req, timeout=3) as res:
                     data = json.loads(res.read().decode())
                     if data.get("ok") and data.get("inicializado"):
@@ -543,7 +555,7 @@ class AsistenteSigicOS(Gtk.Window):
         data_bytes = json.dumps(payload).encode("utf-8")
         headers = {
             "Content-Type": "application/json",
-            "User-Agent": "SiGIC-OS-Assistant"
+            "User-Agent": "SiGIC-Assistant"
         }
 
         # Intento de conexión con reintentos automáticos
@@ -554,7 +566,7 @@ class AsistenteSigicOS(Gtk.Window):
         for intento in range(1, max_intentos + 1):
             GLib.idle_add(
                 self.lbl_progreso.set_text,
-                f"Conectando con el sistema operativo local... (intento {intento}/{max_intentos})" if intento > 1 else "Guardando datos en el equipo..."
+                f"Conectando con el sistema local... (intento {intento}/{max_intentos})" if intento > 1 else "Guardando datos en el equipo..."
             )
             try:
                 req = urllib.request.Request(url, data=data_bytes, headers=headers, method="POST")
@@ -634,7 +646,7 @@ def aplicar_estilos():
         print(f"Aviso CSS: {err}")
 
 def main():
-    win = AsistenteSigicOS()
+    win = AsistenteSigic()
     aplicar_estilos()
     win.connect("destroy", Gtk.main_quit)
     win.show_all()

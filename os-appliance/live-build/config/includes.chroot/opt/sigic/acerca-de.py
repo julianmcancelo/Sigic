@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-SiGIC OS — Acerca del Sistema y Equipo de Desarrollo
+SiGIC — Acerca del Sistema y Equipo de Desarrollo
 Aplicación nativa GTK3 para entorno XFCE / Debian GNU/Linux.
 """
 
@@ -44,19 +44,99 @@ headerbar.sigic-headerbar {
 
 button.btn-primary {
     background-color: #0284c7;
-    border-radius: 18px;
-    padding: 8px 18px;
+    color: #ffffff;
+    border-radius: 12px;
+    padding: 9px 18px;
     border-width: 0px;
+    font-weight: bold;
 }
 
 button.btn-primary:hover {
     background-color: #0369a1;
 }
+
+button.btn-secondary {
+    background-color: #ffffff;
+    color: #334155;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 6px 16px;
+    font-weight: bold;
+}
+
+button.btn-secondary:hover {
+    background-color: #f1f5f9;
+}
 """
+
+class QRWidget(Gtk.DrawingArea):
+    """Renderizador Cairo vectorial de alta fidelidad para el QR de https://www.sigic.com.ar"""
+    MATRIX = [
+        "1111111010001010101111111",
+        "1000001010001000101000001",
+        "1011101011111100101011101",
+        "1011101001100100101011101",
+        "1011101010001010101011101",
+        "1000001001111100001000001",
+        "1111111010101010101111111",
+        "0000000001111100000000000",
+        "1001111110010010110010111",
+        "0011000101000111010111110",
+        "0011101100110101101101001",
+        "1001000001101011000101111",
+        "1111001011010001101000001",
+        "1100010010101011110010010",
+        "1110101001100111011011111",
+        "1001010111101000110101101",
+        "1010111110011110111110110",
+        "0000000011110100100010110",
+        "1111111010101000101010001",
+        "1000001011110111100010001",
+        "1011101011011011111110000",
+        "1011101010001011001000011",
+        "1011101000111011010011111",
+        "1000001000001011000110111",
+        "1111111011110000110001001"
+    ]
+
+    def __init__(self, size=164):
+        super().__init__()
+        self.set_size_request(size, size)
+        self.connect("draw", self.on_draw)
+
+    def on_draw(self, widget, cr):
+        w = widget.get_allocated_width()
+        h = widget.get_allocated_height()
+
+        # Marco blanco con esquinas redondeadas
+        cr.set_source_rgb(1.0, 1.0, 1.0)
+        cr.rectangle(0, 0, w, h)
+        cr.fill()
+
+        n = len(self.MATRIX)
+        padding = 10
+        side = min(w, h) - (padding * 2)
+        cell = side / n
+        start_x = (w - (n * cell)) / 2.0
+        start_y = (h - (n * cell)) / 2.0
+
+        # Módulos azul marino oscuro de SiGIC
+        cr.set_source_rgb(0.06, 0.10, 0.18)
+        for r, row in enumerate(self.MATRIX):
+            for c, bit in enumerate(row):
+                if bit == '1':
+                    cr.rectangle(
+                        start_x + (c * cell),
+                        start_y + (r * cell),
+                        cell + 0.1,
+                        cell + 0.1
+                    )
+        cr.fill()
+        return False
 
 class AcercaDeSigic(Gtk.Window):
     def __init__(self):
-        super().__init__(title="Acerca de SiGIC OS")
+        super().__init__(title="Acerca de SiGIC")
         self.set_default_size(740, 560)
         self.set_position(Gtk.WindowPosition.CENTER)
         self.set_resizable(False)
@@ -65,7 +145,7 @@ class AcercaDeSigic(Gtk.Window):
         # HeaderBar nativo estilo GNOME / XFCE
         header = Gtk.HeaderBar()
         header.set_show_close_button(True)
-        header.props.title = "Acerca de SiGIC OS"
+        header.props.title = "Acerca de SiGIC"
         header.props.subtitle = "Instituto Tecnológico Beltrán"
         header.get_style_context().add_class("sigic-headerbar")
         self.set_titlebar(header)
@@ -92,7 +172,7 @@ class AcercaDeSigic(Gtk.Window):
 
         box_titulos = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3)
         lbl_titulo = Gtk.Label(xalign=0)
-        lbl_titulo.set_markup("<span foreground='#0f172a' weight='heavy' size='15000'>SiGIC OS</span>  <small><span foreground='#0284c7' weight='bold'>Edición Institucional</span></small>")
+        lbl_titulo.set_markup("<span foreground='#0f172a' weight='heavy' size='15000'>SiGIC</span>  <small><span foreground='#0284c7' weight='bold'>Edición Institucional</span></small>")
         lbl_sub = Gtk.Label(xalign=0)
         lbl_sub.set_markup("<span foreground='#64748b' weight='bold' size='10500'>Sistema de Gestión Institucional de Colaciones — Práctica Profesionalizante 2026</span>")
         box_titulos.pack_start(lbl_titulo, False, False, 0)
@@ -158,8 +238,8 @@ class AcercaDeSigic(Gtk.Window):
         col_izq.pack_start(grid_specs, False, False, 0)
         card_central.pack_start(col_izq, True, True, 0)
 
-        # Columna Derecha: Tarjeta con Código QR y Acceso Directo
-        col_der = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
+        # Columna Derecha: Tarjeta con Código QR Vectorial y Acceso Directo
+        col_der = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
         col_der.set_size_request(240, -1)
         col_der.get_style_context().add_class("sigic-qr-card")
 
@@ -167,18 +247,12 @@ class AcercaDeSigic(Gtk.Window):
         lbl_qr_title.set_markup("<span foreground='#0284c7' weight='heavy' size='11000'>PORTAL INSTITUCIONAL</span>")
         col_der.pack_start(lbl_qr_title, False, False, 0)
 
-        qr_path_png = "/opt/sigic/qr-sigic.png"
-        img_qr = None
-        if os.path.exists(qr_path_png):
-            try:
-                pixbuf_qr = GdkPixbuf.Pixbuf.new_from_file(qr_path_png)
-                pixbuf_qr_scaled = pixbuf_qr.scale_simple(170, 170, GdkPixbuf.InterpType.BILINEAR)
-                img_qr = Gtk.Image.new_from_pixbuf(pixbuf_qr_scaled)
-            except Exception as e:
-                print(f"Error cargando QR: {e}")
-
-        if img_qr:
-            col_der.pack_start(img_qr, False, False, 4)
+        # Widget QR Vectorial Cairo (100% garantizado)
+        self.qr_widget = QRWidget(size=164)
+        box_qr_align = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
+        box_qr_align.set_halign(Gtk.Align.CENTER)
+        box_qr_align.pack_start(self.qr_widget, False, False, 0)
+        col_der.pack_start(box_qr_align, False, False, 2)
 
         lbl_qr_desc = Gtk.Label(xalign=0.5)
         lbl_qr_desc.set_markup("<small><span foreground='#475569' weight='bold'>Escaneá con tu teléfono o hacé clic abajo para ingresar</span></small>")
@@ -188,11 +262,11 @@ class AcercaDeSigic(Gtk.Window):
 
         btn_web = Gtk.Button()
         lbl_btn = Gtk.Label()
-        lbl_btn.set_markup("<span foreground='#ffffff' weight='bold'>Abrir www.sigic.com.ar</span>")
+        lbl_btn.set_markup("<span foreground='#ffffff' weight='heavy' size='10500'>Abrir www.sigic.com.ar</span>")
         btn_web.add(lbl_btn)
         btn_web.get_style_context().add_class("btn-primary")
         btn_web.connect("clicked", self.on_abrir_web)
-        col_der.pack_start(btn_web, False, False, 6)
+        col_der.pack_start(btn_web, False, False, 4)
 
         card_central.pack_start(col_der, False, False, 0)
         box_principal.pack_start(card_central, True, True, 0)
@@ -201,10 +275,14 @@ class AcercaDeSigic(Gtk.Window):
         box_bottom = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
         
         lbl_status = Gtk.Label(xalign=0)
-        lbl_status.set_markup("<span foreground='#10b981'>●</span> <small><span foreground='#334155' weight='bold'>Sistema operativo listo · Servicio local activo en puerto 3000</span></small>")
+        lbl_status.set_markup("<span foreground='#10b981'>●</span> <small><span foreground='#334155' weight='bold'>Sistema listo · Servicio local activo en puerto 3000</span></small>")
         box_bottom.pack_start(lbl_status, True, True, 0)
 
-        btn_cerrar = Gtk.Button(label="Cerrar")
+        btn_cerrar = Gtk.Button()
+        lbl_cerrar = Gtk.Label()
+        lbl_cerrar.set_markup("<span foreground='#334155' weight='bold'>Cerrar</span>")
+        btn_cerrar.add(lbl_cerrar)
+        btn_cerrar.get_style_context().add_class("btn-secondary")
         btn_cerrar.connect("clicked", lambda b: self.destroy())
         box_bottom.pack_start(btn_cerrar, False, False, 0)
 

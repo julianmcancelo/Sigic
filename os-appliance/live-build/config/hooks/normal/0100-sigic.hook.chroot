@@ -63,16 +63,16 @@ chmod +x /etc/skel/Desktop/*.desktop 2>/dev/null || true
 apt-get purge -y light-locker xfce4-screensaver 2>/dev/null || true
 
 # --- Identidad del sistema ---
-sed -i 's/^PRETTY_NAME=.*/PRETTY_NAME="SiGIC OS (Instituto Tecnológico Beltrán)"/' /etc/os-release || true
+sed -i 's/^PRETTY_NAME=.*/PRETTY_NAME="SiGIC (Instituto Tecnológico Beltrán)"/' /etc/os-release || true
 cat > /etc/issue <<'EOF'
-SiGIC OS - Instituto Tecnologico Beltran
+SiGIC - Instituto Tecnologico Beltran
 EOF
-echo "sigic-os" > /etc/hostname
+echo "sigic" > /etc/hostname
 
-# --- Reemplazar "Acerca de XFCE" por "Acerca de SiGIC OS" ---
+# --- Reemplazar "Acerca de XFCE" por "Acerca de SiGIC" ---
 if [ -f /usr/share/applications/xfce4-about.desktop ]; then
-  sed -i 's/^Name=.*/Name=Acerca de SiGIC OS/' /usr/share/applications/xfce4-about.desktop || true
-  sed -i 's/^Comment=.*/Comment=Información y Diagnóstico de SiGIC OS - Instituto Beltrán/' /usr/share/applications/xfce4-about.desktop || true
+  sed -i 's/^Name=.*/Name=Acerca de SiGIC/' /usr/share/applications/xfce4-about.desktop || true
+  sed -i 's/^Comment=.*/Comment=Información y Diagnóstico de SiGIC - Instituto Beltrán/' /usr/share/applications/xfce4-about.desktop || true
   sed -i 's|^Exec=.*|Exec=/usr/local/bin/sigic-acerca-de|' /usr/share/applications/xfce4-about.desktop || true
   sed -i 's/^Icon=.*/Icon=sigic/' /usr/share/applications/xfce4-about.desktop || true
 fi
