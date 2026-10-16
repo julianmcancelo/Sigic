@@ -19,7 +19,7 @@ if (!global.pgPool) {
     process.env.DATABASE_URL?.includes('127.0.0.1');
 
   global.pgPool = new Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: process.env.DATABASE_URL || process.env.POSTGRES_URL || process.env.POSTGRES_PRISMA_URL,
     max: 20,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 5000,

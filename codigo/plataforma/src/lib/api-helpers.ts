@@ -8,7 +8,7 @@ export { verificarRateLimit };
 
 export const RONDAS_BCRYPT = 12;
 export const LARGO_MINIMO_PASSWORD = 8;
-export const ROLES_VALIDOS = ['ADMINISTRATIVO', 'PORTERIA'];
+export const ROLES_VALIDOS = ['ADMINISTRATIVO', 'SUPER_ADMIN', 'ADMIN', 'SOPORTE', 'PORTERIA', 'SEGURIDAD', 'AUDITOR'];
 
 export function prepararIdentificadorGraduado(valor: unknown) {
   const identificador = String(valor || '').trim();

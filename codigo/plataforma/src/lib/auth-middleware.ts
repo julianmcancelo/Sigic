@@ -11,9 +11,9 @@ export interface AuthResult {
 }
 
 // Roles de gestión permitidos
-export const ROLES_GESTION = ['ADMINISTRATIVO'];
-export const ROLES_OPERACION = [...ROLES_GESTION, 'PORTERIA'];
-export const ROLES_LECTURA = [...ROLES_OPERACION];
+export const ROLES_GESTION = ['ADMINISTRATIVO', 'SUPER_ADMIN', 'ADMIN', 'SOPORTE'];
+export const ROLES_OPERACION = [...ROLES_GESTION, 'PORTERIA', 'SEGURIDAD'];
+export const ROLES_LECTURA = [...ROLES_OPERACION, 'AUDITOR'];
 
 /**
  * Autentica y valida los permisos de una petición HTTP en las API Routes de Next.js.
