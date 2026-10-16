@@ -58,17 +58,21 @@ fi
 
 # --- Accesos directos del escritorio ejecutables y CONFIABLES (sin cartel de advertencia) ---
 chmod +x /etc/skel/Desktop/*.desktop 2>/dev/null || true
-mkdir -p /etc/skel/.config/xfce4/xfconf/xfce4-channel-xml
-mkdir -p /etc/xdg/xfce4/xfconf/xfce4-channel-xml
-cat > /etc/xdg/xfce4/xfconf/xfce4-channel-xml/thunar.xml <<'EOF'
+mkdir -p /etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml
+mkdir -p /etc/xdg/xfce4/xfconf/xfce-perchannel-xml
+cat > /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/thunar.xml <<'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
 <channel name="thunar" version="1.0">
   <property name="misc-exec-shell-scripts-by-default" type="bool" value="true"/>
 </channel>
 EOF
+cp /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/thunar.xml /etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/thunar.xml 2>/dev/null || true
 # Desactivar la verificación de lanzador no confiable en xfce4-desktop / thunar
 for f in /etc/skel/Desktop/*.desktop; do
-  [ -f "$f" ] && gio set "$f" "metadata::trusted" "yes" 2>/dev/null || true
+  if [ -f "$f" ]; then
+    gio set "$f" "metadata::trusted" "yes" 2>/dev/null || true
+    gio set "$f" "metadata::xfce-exe-checksum" "$(sha256sum "$f" 2>/dev/null | cut -d' ' -f1)" 2>/dev/null || true
+  fi
 done
 
 # --- Quitar bloqueo de pantalla (equipo de exposición sin contraseña) ---

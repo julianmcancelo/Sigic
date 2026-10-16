@@ -602,262 +602,125 @@ def obtener_payload_qr_graduado(g):
     }, ensure_ascii=False)
 
 
+def cargar_datos_produccion():
+    rutas = [
+        "/opt/sigic/datos_produccion.json",
+        os.path.join(os.path.dirname(__file__), "datos_produccion.json"),
+        os.path.expanduser("~/.config/sigic/datos_produccion.json")
+    ]
+    for r in rutas:
+        if os.path.exists(r):
+            try:
+                with open(r, "r", encoding="utf-8") as f:
+                    return json.load(f)
+            except Exception:
+                pass
+    return None
+
+
 def estado_inicial():
-    return {
-        "ceremonias": [
-            {
-                "id": 1,
-                "nombre": "Colación Beltrán 2026 — Tecnicaturas Superiores",
-                "fecha": "28 de Noviembre de 2026",
+    prod = cargar_datos_produccion()
+    if prod and prod.get("egresados"):
+        cer_list = []
+        for c in prod.get("ceremonias", []):
+            cer_list.append({
+                "id": str(c.get("id")),
+                "nombre": c.get("nombre", "Ceremonia Beltrán"),
+                "fecha": str(c.get("fecha", "2026-11-28"))[:10],
                 "hora": "18:00 hs",
-                "lugar": "Anfiteatro Central — Instituto Tecnológico Beltrán",
+                "lugar": c.get("lugar", "Auditorio Central Beltrán"),
                 "aforo": 200,
-                "cupo_invitados": 3,
-                "activa": True
+                "cupo_invitados": int(c.get("max_invitados") or 4),
+                "activa": bool(c.get("activa"))
+            })
+
+        prof_list = []
+        for idx, p in enumerate(prod.get("profesores", [])):
+            prof_list.append({
+                "id": p.get("id", idx + 1),
+                "nombre": p.get("nombre", "Docente"),
+                "cargo": p.get("cargo", "Profesor Titular"),
+                "carrera": p.get("carrera", CARRERAS_BELTRAN[0]),
+                "correo": p.get("correo", "")
+            })
+
+        inv_map = {}
+        for inv in prod.get("invitados", []):
+            eid = str(inv.get("egresado_id", ""))
+            inv_map.setdefault(eid, []).append({
+                "nombre": inv.get("nombre", ""),
+                "dni": str(inv.get("dni", "")),
+                "parentesco": inv.get("relacion", "Acompañante"),
+                "presente": bool(inv.get("presente")),
+                "asiento_id": inv.get("asiento_id", "")
+            })
+
+        grads_list = []
+        for g in prod.get("egresados", []):
+            gid = str(g.get("id", ""))
+            asiento = g.get("asiento_id") or "Sin asignar"
+            asiento_dsp = asiento
+            if "baja-" in asiento or "alta-" in asiento:
+                partes = asiento.split("-")
+                if len(partes) >= 3:
+                    asiento_dsp = f"{partes[1]}{partes[2]}"
+
+            grads_list.append({
+                "id": gid,
+                "dni": str(g.get("dni", "")),
+                "nombre": g.get("nombre", ""),
+                "legajo": g.get("legajo", ""),
+                "correo": g.get("correo", ""),
+                "telefono": g.get("telefono", ""),
+                "carrera": g.get("carrera", CARRERAS_BELTRAN[0]),
+                "promedio": str(g.get("promedio", "") or "8.50"),
+                "estado": g.get("estado", "PENDIENTE"),
+                "butaca": asiento_dsp,
+                "asiento_id": asiento,
+                "otp_codigo": g.get("otp", "") or g.get("token", ""),
+                "fecha_invitacion": str(g.get("invitacion_ultimo_envio_en", ""))[:16] if g.get("invitacion_ultimo_envio_en") else "—",
+                "credencial_enviada": bool(g.get("credencial_enviada_en")),
+                "entregador": g.get("entregador_nombre", "Sin asignar"),
+                "invitados": inv_map.get(gid, []),
+                "acreditado": bool(g.get("presente")),
+                "hora_ingreso": str(g.get("fecha_presente", ""))[-8:] if g.get("fecha_presente") else "",
+                "estado_escenario": "DIPLOMA ENTREGADO" if g.get("diploma_entregado") else ("EN SALA" if g.get("presente") else "PENDIENTE"),
+                "hora_diploma": ""
+            })
+
+        return {
+            "ceremonias": cer_list,
+            "profesores": prof_list,
+            "operadores_porteria": [
+                {"id": 1, "nombre": "Marcos Gómez — Jefe de Portería", "email": "porteria1@ibeltran.com.ar", "rol": "PORTERIA", "activo": True, "autorizado": True, "token": "PORTERIA-BELTRAN-2026-TK01", "ultimo_login": "16/10/2026 17:30"},
+                {"id": 2, "nombre": "Carolina Vega — Acceso Principal", "email": "porteria2@ibeltran.com.ar", "rol": "PORTERIA", "activo": True, "autorizado": True, "token": "PORTERIA-BELTRAN-2026-TK02", "ultimo_login": "16/10/2026 17:35"},
+                {"id": 3, "nombre": "Secretaría Académica Beltrán", "email": "academica@ibeltran.com.ar", "rol": "ADMINISTRATIVO", "activo": True, "autorizado": True, "token": "ADMIN-BELTRAN-2026-TK03", "ultimo_login": "16/10/2026 16:50"}
+            ],
+            "dispositivos_moviles": [
+                {"dispositivoId": "ANDROID-SM-A546E-BEL01", "nombreDispositivo": "Samsung Galaxy A54 · Puerta Central", "marca": "Samsung", "modelo": "SM-A546E", "sistema": "Android 14 · SiGIC Accesos 1.0.5", "usuarioNombre": "Marcos Gómez — Jefe de Portería", "usuarioEmail": "porteria1@ibeltran.com.ar", "ipUltimoAcceso": "192.168.1.45", "ultimoAcceso": "Hace 1 min", "enLinea": True, "sesionActiva": 1},
+                {"dispositivoId": "ANDROID-MOTO-G84-BEL02", "nombreDispositivo": "Motorola Edge 40 · Acceso Lateral", "marca": "Motorola", "modelo": "XT2347-2", "sistema": "Android 14 · SiGIC Accesos 1.0.5", "usuarioNombre": "Carolina Vega — Acceso Principal", "usuarioEmail": "porteria2@ibeltran.com.ar", "ipUltimoAcceso": "192.168.1.48", "ultimoAcceso": "Hace 2 min", "enLinea": True, "sesionActiva": 1}
+            ],
+            "graduados": grads_list,
+            "butacas_especiales": {
+                "A11": {"tipo": "AUTORIDAD", "detalle": "Rectorado Beltrán"},
+                "A12": {"tipo": "AUTORIDAD", "detalle": "Secretaría Académica"},
+                "B11": {"tipo": "AUTORIDAD", "detalle": "Cuerpo Docente"},
+                "B12": {"tipo": "AUTORIDAD", "detalle": "Cuerpo Docente"},
             },
-            {
-                "id": 2,
-                "nombre": "Colación Beltrán 2026 — Especializaciones y Posgrados",
-                "fecha": "05 de Diciembre de 2026",
-                "hora": "19:00 hs",
-                "lugar": "Aula Magna Beltrán",
-                "aforo": 150,
-                "cupo_invitados": 2,
-                "activa": False
-            }
-        ],
-        "profesores": [
-            {"id": 1, "nombre": "Ing. Roberto Gómez", "cargo": "Director de Carrera", "carrera": "Tecnicatura Superior en Desarrollo de Software", "correo": "rgomez@ibeltran.com.ar"},
-            {"id": 2, "nombre": "Ing. Marcelo Domínguez", "cargo": "Coordinador de Robótica", "carrera": "Tecnicatura Superior en Automatización y Robótica", "correo": "mdominguez@ibeltran.com.ar"},
-            {"id": 3, "nombre": "Lic. Andrea Morales", "cargo": "Titular de Redes y Seguridad", "carrera": "Tecnicatura Superior en Redes e Infraestructura", "correo": "amorales@ibeltran.com.ar"},
-            {"id": 4, "nombre": "Mg. Carlos Santoro", "cargo": "Coordinador Ciencia de Datos", "carrera": "Tecnicatura Superior en Ciencia de Datos e IA", "correo": "csantoro@ibeltran.com.ar"},
-            {"id": 5, "nombre": "Esp. Laura Pereyra", "cargo": "Docente Ciberseguridad", "carrera": "Tecnicatura Superior en Ciberseguridad", "correo": "lpereyra@ibeltran.com.ar"}
-        ],
-        "operadores_porteria": [
-            {
-                "id": 1,
-                "nombre": "Marcos Gómez — Jefe de Portería",
-                "email": "porteria1@ibeltran.com.ar",
-                "rol": "PORTERIA",
-                "activo": True,
-                "autorizado": True,
-                "token": "PORTERIA-BELTRAN-2026-TK01",
-                "ultimo_login": "16/10/2026 17:30"
+            "smtp": {
+                "host": "smtp.gmail.com",
+                "port": "587",
+                "user": "colaciones@ibeltran.com.ar",
+                "password": "",
+                "from_email": "Colaciones Instituto Beltrán <colaciones@ibeltran.com.ar>",
+                "asunto": "Invitación Oficial al Acto de Colación 2026 — Instituto Tecnológico Beltrán"
             },
-            {
-                "id": 2,
-                "nombre": "Carolina Vega — Acceso Principal",
-                "email": "porteria2@ibeltran.com.ar",
-                "rol": "PORTERIA",
-                "activo": True,
-                "autorizado": True,
-                "token": "PORTERIA-BELTRAN-2026-TK02",
-                "ultimo_login": "16/10/2026 17:35"
-            },
-            {
-                "id": 3,
-                "nombre": "Secretaría Académica Beltrán",
-                "email": "academica@ibeltran.com.ar",
-                "rol": "ADMINISTRATIVO",
-                "activo": True,
-                "autorizado": True,
-                "token": "ADMIN-BELTRAN-2026-TK03",
-                "ultimo_login": "16/10/2026 16:50"
-            }
-        ],
-        "dispositivos_moviles": [
-            {
-                "dispositivoId": "ANDROID-SM-A546E-BEL01",
-                "nombreDispositivo": "Samsung Galaxy A54 · Puerta Central",
-                "marca": "Samsung",
-                "modelo": "SM-A546E",
-                "sistema": "Android 14 · SiGIC Accesos 1.0.5",
-                "usuarioNombre": "Marcos Gómez — Jefe de Portería",
-                "usuarioEmail": "porteria1@ibeltran.com.ar",
-                "ipUltimoAcceso": "192.168.1.45",
-                "ultimoAcceso": "Hace 1 min",
-                "enLinea": True,
-                "sesionActiva": 1
-            },
-            {
-                "dispositivoId": "ANDROID-MOTO-G84-BEL02",
-                "nombreDispositivo": "Motorola Edge 40 · Acceso Lateral",
-                "marca": "Motorola",
-                "modelo": "XT2347-2",
-                "sistema": "Android 14 · SiGIC Accesos 1.0.5",
-                "usuarioNombre": "Carolina Vega — Acceso Principal",
-                "usuarioEmail": "porteria2@ibeltran.com.ar",
-                "ipUltimoAcceso": "192.168.1.48",
-                "ultimoAcceso": "Hace 2 min",
-                "enLinea": True,
-                "sesionActiva": 1
-            }
-        ],
-        "graduados": [
-            {
-                "dni": "42123456", "nombre": "García, Juan Manuel", "legajo": "BEL-2026-101",
-                "correo": "juan.garcia@ibeltran.edu.ar", "telefono": "11-4521-9001",
-                "carrera": "Tecnicatura Superior en Desarrollo de Software", "promedio": "9.15",
-                "estado": "CONFIRMADO", "butaca": "A1", "otp_codigo": "482910",
-                "fecha_invitacion": "15/10/2026 09:30",
-                "credencial_enviada": True,
-                "entregador": "Ing. Roberto Gómez",
-                "invitados": [
-                    {"nombre": "García, Ricardo (Padre)", "dni": "18234567", "parentesco": "Padre", "presente": True},
-                    {"nombre": "López, María Elena (Madre)", "dni": "20123456", "parentesco": "Madre", "presente": True}
-                ],
-                "acreditado": True, "hora_ingreso": "17:42:10", "estado_escenario": "DIPLOMA ENTREGADO", "hora_diploma": "18:15:20"
-            },
-            {
-                "dni": "43234567", "nombre": "Martínez, Lucía Belén", "legajo": "BEL-2026-102",
-                "correo": "lucia.martinez@ibeltran.edu.ar", "telefono": "11-5210-3341",
-                "carrera": "Tecnicatura Superior en Automatización y Robótica", "promedio": "9.45",
-                "estado": "CONFIRMADO", "butaca": "A2", "otp_codigo": "739104",
-                "fecha_invitacion": "15/10/2026 09:30",
-                "credencial_enviada": True,
-                "entregador": "Ing. Marcelo Domínguez",
-                "invitados": [
-                    {"nombre": "Martínez, Jorge", "dni": "17998123", "parentesco": "Padre", "presente": True},
-                    {"nombre": "Martínez, Sofía", "dni": "45112233", "parentesco": "Hermana", "presente": True}
-                ],
-                "acreditado": True, "hora_ingreso": "17:45:02", "estado_escenario": "EN ESCENARIO", "hora_diploma": ""
-            },
-            {
-                "dni": "41987654", "nombre": "Rodríguez, Matías Alejandro", "legajo": "BEL-2026-103",
-                "correo": "matias.rodriguez@ibeltran.edu.ar", "telefono": "11-6002-1188",
-                "carrera": "Tecnicatura Superior en Redes e Infraestructura", "promedio": "8.75",
-                "estado": "CONFIRMADO", "butaca": "A3", "otp_codigo": "519283",
-                "fecha_invitacion": "15/10/2026 09:31",
-                "credencial_enviada": True,
-                "entregador": "Lic. Andrea Morales",
-                "invitados": [{"nombre": "Rodríguez, Ana", "dni": "21456789", "parentesco": "Madre", "presente": True}],
-                "acreditado": True, "hora_ingreso": "17:48:33", "estado_escenario": "EN SALA", "hora_diploma": ""
-            },
-            {
-                "dni": "44567890", "nombre": "Fernández, Camila Soledad", "legajo": "BEL-2026-104",
-                "correo": "camila.fernandez@ibeltran.edu.ar", "telefono": "11-3412-7789",
-                "carrera": "Tecnicatura Superior en Ciencia de Datos e IA", "promedio": "9.60",
-                "estado": "ACEPTADO", "butaca": "A4", "otp_codigo": "904123",
-                "fecha_invitacion": "15/10/2026 09:31",
-                "credencial_enviada": True,
-                "entregador": "Mg. Carlos Santoro",
-                "invitados": [
-                    {"nombre": "Fernández, Roberto", "dni": "16543210", "parentesco": "Padre", "presente": False},
-                    {"nombre": "Gómez, Marta", "dni": "19876543", "parentesco": "Madre", "presente": False}
-                ],
-                "acreditado": False, "hora_ingreso": "", "estado_escenario": "EN SALA", "hora_diploma": ""
-            },
-            {
-                "dni": "42876543", "nombre": "López, Tomás Ignacio", "legajo": "BEL-2026-105",
-                "correo": "tomas.lopez@ibeltran.edu.ar", "telefono": "11-4890-2211",
-                "carrera": "Tecnicatura Superior en Ciberseguridad", "promedio": "8.90",
-                "estado": "CONFIRMADO", "butaca": "B1", "otp_codigo": "661209",
-                "fecha_invitacion": "15/10/2026 09:32",
-                "credencial_enviada": True,
-                "entregador": "Esp. Laura Pereyra",
-                "invitados": [{"nombre": "López, Hernán", "dni": "22334455", "parentesco": "Padre", "presente": True}],
-                "acreditado": True, "hora_ingreso": "17:51:19", "estado_escenario": "EN SALA", "hora_diploma": ""
-            },
-            {
-                "dni": "43654321", "nombre": "González, Valentina Rocío", "legajo": "BEL-2026-106",
-                "correo": "valentina.gonzalez@ibeltran.edu.ar", "telefono": "11-5543-9900",
-                "carrera": "Tecnicatura Superior en Diseño y Desarrollo Web", "promedio": "9.30",
-                "estado": "CONFIRMADO", "butaca": "B2", "otp_codigo": "318475",
-                "fecha_invitacion": "15/10/2026 09:32",
-                "credencial_enviada": True,
-                "entregador": "Ing. Roberto Gómez",
-                "invitados": [{"nombre": "González, Claudia", "dni": "23445566", "parentesco": "Madre", "presente": False}],
-                "acreditado": False, "hora_ingreso": "", "estado_escenario": "EN SALA", "hora_diploma": ""
-            },
-            {
-                "dni": "42345678", "nombre": "Díaz, Agustín Ezequiel", "legajo": "BEL-2026-107",
-                "correo": "agustin.diaz@ibeltran.edu.ar", "telefono": "11-6789-4321",
-                "carrera": "Tecnicatura Superior en Desarrollo de Software", "promedio": "8.50",
-                "estado": "CONFIRMADO", "butaca": "B3", "otp_codigo": "847291",
-                "fecha_invitacion": "15/10/2026 09:33",
-                "credencial_enviada": False,
-                "entregador": "Ing. Roberto Gómez",
-                "invitados": [{"nombre": "Díaz, Carlos", "dni": "19001122", "parentesco": "Padre", "presente": False}],
-                "acreditado": False, "hora_ingreso": "", "estado_escenario": "EN SALA", "hora_diploma": ""
-            },
-            {
-                "dni": "44123789", "nombre": "Pérez, Sofía Ailén", "legajo": "BEL-2026-108",
-                "correo": "sofia.perez@ibeltran.edu.ar", "telefono": "11-3900-8877",
-                "carrera": "Tecnicatura Superior en Automatización y Robótica", "promedio": "9.05",
-                "estado": "CONFIRMADO", "butaca": "B4", "otp_codigo": "192837",
-                "fecha_invitacion": "15/10/2026 09:33",
-                "credencial_enviada": False,
-                "entregador": "Ing. Marcelo Domínguez",
-                "invitados": [{"nombre": "Pérez, Gustavo", "dni": "20887766", "parentesco": "Padre", "presente": False}],
-                "acreditado": False, "hora_ingreso": "", "estado_escenario": "EN SALA", "hora_diploma": ""
-            },
-            {
-                "dni": "43987123", "nombre": "Romero, Franco Damián", "legajo": "BEL-2026-109",
-                "correo": "franco.romero@ibeltran.edu.ar", "telefono": "11-4111-2233",
-                "carrera": "Tecnicatura Superior en Redes e Infraestructura", "promedio": "8.80",
-                "estado": "PENDIENTE", "butaca": "Sin asignar", "otp_codigo": "",
-                "fecha_invitacion": "—",
-                "credencial_enviada": False,
-                "entregador": "Sin asignar",
-                "invitados": [],
-                "acreditado": False, "hora_ingreso": "", "estado_escenario": "EN SALA", "hora_diploma": ""
-            },
-            {
-                "dni": "41765432", "nombre": "Torres, Florencia Denise", "legajo": "BEL-2026-110",
-                "correo": "florencia.torres@ibeltran.edu.ar", "telefono": "11-5666-7788",
-                "carrera": "Tecnicatura Superior en Ciencia de Datos e IA", "promedio": "9.50",
-                "estado": "INVITADO", "butaca": "C1", "otp_codigo": "554821",
-                "fecha_invitacion": "15/10/2026 10:05",
-                "credencial_enviada": False,
-                "entregador": "Mg. Carlos Santoro",
-                "invitados": [],
-                "acreditado": False, "hora_ingreso": "", "estado_escenario": "EN SALA", "hora_diploma": ""
-            },
-            {
-                "dni": "42567123", "nombre": "Acosta, Lucas Gabriel", "legajo": "BEL-2026-111",
-                "correo": "lucas.acosta@ibeltran.edu.ar", "telefono": "11-6222-3344",
-                "carrera": "Tecnicatura Superior en Ciberseguridad", "promedio": "8.65",
-                "estado": "CONFIRMADO", "butaca": "C2", "otp_codigo": "774190",
-                "fecha_invitacion": "15/10/2026 10:05",
-                "credencial_enviada": True,
-                "entregador": "Esp. Laura Pereyra",
-                "invitados": [{"nombre": "Acosta, Raúl", "dni": "18445566", "parentesco": "Padre", "presente": False}],
-                "acreditado": False, "hora_ingreso": "", "estado_escenario": "EN SALA", "hora_diploma": ""
-            },
-            {
-                "dni": "43876512", "nombre": "Benítez, Micaela Paula", "legajo": "BEL-2026-112",
-                "correo": "micaela.benitez@ibeltran.edu.ar", "telefono": "11-4999-0011",
-                "carrera": "Tecnicatura Superior en Diseño y Desarrollo Web", "promedio": "9.20",
-                "estado": "PENDIENTE", "butaca": "Sin asignar", "otp_codigo": "",
-                "fecha_invitacion": "—",
-                "credencial_enviada": False,
-                "entregador": "Sin asignar",
-                "invitados": [],
-                "acreditado": False, "hora_ingreso": "", "estado_escenario": "EN SALA", "hora_diploma": ""
-            }
-        ],
-        "butacas_especiales": {
-            "A11": {"tipo": "AUTORIDAD", "detalle": "Rectorado Beltrán"},
-            "A12": {"tipo": "AUTORIDAD", "detalle": "Secretaría Académica"},
-            "B11": {"tipo": "AUTORIDAD", "detalle": "Cuerpo Docente"},
-            "B12": {"tipo": "AUTORIDAD", "detalle": "Cuerpo Docente"},
-        },
-        "smtp": {
-            "host": "smtp.gmail.com",
-            "port": "587",
-            "user": "colaciones@ibeltran.com.ar",
-            "password": "",
-            "from_email": "Colaciones Instituto Beltrán <colaciones@ibeltran.com.ar>",
-            "asunto": "Invitación Oficial al Acto de Colación 2026 — Instituto Tecnológico Beltrán"
-        },
-        "eventos_en_vivo": [
-            {"hora": "18:15:20", "actor": "García, Juan Manuel", "rol": "Graduado · Butaca A1", "evento": "Diploma entregado en escenario"},
-            {"hora": "17:51:19", "actor": "López, Tomás Ignacio", "rol": "Graduado · Butaca B1 (+1 inv.)", "evento": "Ingreso acreditado en portería"},
-            {"hora": "17:48:33", "actor": "Rodríguez, Matías Alejandro", "rol": "Graduado · Butaca A3 (+1 inv.)", "evento": "Ingreso acreditado en portería"},
-            {"hora": "17:45:02", "actor": "Martínez, Lucía Belén", "rol": "Graduada · Butaca A2 (+2 inv.)", "evento": "Ingreso acreditado en portería"},
-            {"hora": "17:42:10", "actor": "García, Juan Manuel", "rol": "Graduado · Butaca A1 (+2 inv.)", "evento": "Ingreso acreditado en portería"}
-        ]
-    }
+            "eventos_en_vivo": [
+                {"hora": "18:15:20", "actor": "García, Juan Manuel", "rol": "Graduado · Butaca A1", "evento": "Diploma entregado en escenario"},
+                {"hora": "17:51:19", "actor": "López, Tomás Ignacio", "rol": "Graduado · Butaca B1 (+1 inv.)", "evento": "Ingreso acreditado en portería"},
+                {"hora": "17:48:33", "actor": "Rodríguez, Matías Alejandro", "rol": "Graduado · Butaca A3 (+1 inv.)", "evento": "Ingreso acreditado en portería"}
+            ]
+        }
 
 
 def cargar_db():
@@ -1039,6 +902,11 @@ def despachar_invitacion(dni, es_credencial=False):
         g["estado"] = "INVITADO"
 
     guardar_db(data)
+    if g.get("id"):
+        if es_credencial:
+            _sync_api_post(f"/api/egresados/{g['id']}/enviar-credencial", {})
+        else:
+            _sync_api_post(f"/api/egresados/{g['id']}/enviar-invitacion", {})
 
     smtp_cfg = data.get("smtp", {})
     if smtp_cfg.get("host") and smtp_cfg.get("user") and smtp_cfg.get("password") and g.get("correo"):
@@ -1112,6 +980,8 @@ def asignar_butaca_graduado(codigo_butaca, dni_graduado):
             g["butaca"] = codigo_butaca
             if g.get("estado") in ("PENDIENTE", "INVITADO", "ACEPTADO"):
                 g["estado"] = "CONFIRMADO"
+            if g.get("id"):
+                _sync_api_post(f"/api/egresados/{g['id']}/asientos", {"asiento_id": codigo_butaca})
     guardar_db(data)
     return True
 
@@ -1231,9 +1101,14 @@ def buscar_o_acreditar(busqueda, acreditar_inmediato=True, incluir_grupo=True):
             f"Graduado · Butaca {encontrado.get('butaca', 'S/A')} (+{cant_inv} acomp.)",
             "Ingreso grupal validado en portería"
         )
+        if encontrado.get("id"):
+            _sync_api_post(f"/api/egresados/{encontrado['id']}/presente", {"presente": True})
+            _sync_api_post("/api/acreditacion/validar", {"codigo": encontrado.get("dni")})
         return "AUTORIZADO_NUEVO", encontrado
     else:
         guardar_db(data)
+        if encontrado.get("id"):
+            _sync_api_post("/api/acreditacion/validar", {"codigo": encontrado.get("dni")})
         return "YA_ACREDITADO", encontrado
 
 
@@ -1379,3 +1254,54 @@ def _sync_api_post(endpoint, payload):
         except Exception:
             pass
     threading.Thread(target=_run, daemon=True).start()
+
+
+def cargar_datos():
+    return cargar_db()
+
+
+def guardar_datos(d):
+    return guardar_db(d)
+
+
+def listar_ceremonias():
+    return cargar_db().get("ceremonias", [])
+
+
+def obtener_ceremonia_activa():
+    ceremonias = listar_ceremonias()
+    for c in ceremonias:
+        if c.get("activa"):
+            return c
+    return ceremonias[0] if ceremonias else None
+
+
+def crear_ceremonia(datos):
+    data = cargar_db()
+    cers = data.setdefault("ceremonias", [])
+    cid = f"cer-{int(time.time()*1000)}"
+    nueva = {
+        "id": cid,
+        "nombre": datos.get("nombre", "Nueva Ceremonia"),
+        "fecha": datos.get("fecha", datetime.now().strftime("%Y-%m-%d")),
+        "hora": datos.get("hora", "18:00 hs"),
+        "lugar": datos.get("lugar", "Auditorio Central Beltrán"),
+        "aforo": int(datos.get("aforo", 200)),
+        "cupo_invitados": int(datos.get("cupo_invitados", 4)),
+        "activa": bool(datos.get("activa", False))
+    }
+    cers.append(nueva)
+    guardar_db(data)
+    _sync_api_post("/api/ceremonias", nueva)
+    return nueva
+
+
+def activar_ceremonia(ceremonia_id):
+    data = cargar_db()
+    cid_str = str(ceremonia_id)
+    for c in data.get("ceremonias", []):
+        c["activa"] = (str(c.get("id")) == cid_str)
+    guardar_db(data)
+    _sync_api_post(f"/api/ceremonias/{cid_str}/activar", {})
+    return True
+

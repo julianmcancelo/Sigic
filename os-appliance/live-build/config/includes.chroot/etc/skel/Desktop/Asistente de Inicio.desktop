@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Asistente de Inicio
+Comment=Asistente institucional de inicio de sesión y configuración
+Exec=/usr/local/bin/sigic-asistente
+Icon=/usr/share/pixmaps/sigic.png
+Terminal=false
+Categories=System;Office;
+StartupNotify=false
