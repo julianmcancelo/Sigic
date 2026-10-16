@@ -12,11 +12,15 @@
         <Filename>SiGIC.desktop</Filename>
         <Filename>1-Ceremonias.desktop</Filename>
         <Filename>2-Graduados.desktop</Filename>
+        <Filename>3-Convocatoria.desktop</Filename>
+        <Filename>4-Preparacion.desktop</Filename>
         <Filename>5-Acreditacion.desktop</Filename>
+        <Filename>6-EnVivo.desktop</Filename>
+        <Filename>7-Reportes.desktop</Filename>
         <Filename>8-Ajustes.desktop</Filename>
         <Filename>sigic-asistente.desktop</Filename>
-        <Filename>sigic-acerca-de.desktop</Filename>
-        <Filename>sigic-manual.desktop</Filename>
+        <Filename>Manual de Usuario.desktop</Filename>
+        <Filename>Acerca del Equipo.desktop</Filename>
         <Filename>xfce4-terminal.desktop</Filename>
         <Filename>chromium.desktop</Filename>
         <Filename>xfce4-session-logout.desktop</Filename>
@@ -26,12 +30,16 @@
         <Filename>SiGIC.desktop</Filename>
         <Filename>1-Ceremonias.desktop</Filename>
         <Filename>2-Graduados.desktop</Filename>
+        <Filename>3-Convocatoria.desktop</Filename>
+        <Filename>4-Preparacion.desktop</Filename>
         <Filename>5-Acreditacion.desktop</Filename>
+        <Filename>6-EnVivo.desktop</Filename>
+        <Filename>7-Reportes.desktop</Filename>
         <Filename>8-Ajustes.desktop</Filename>
         <Separator/>
         <Filename>sigic-asistente.desktop</Filename>
-        <Filename>sigic-acerca-de.desktop</Filename>
-        <Filename>sigic-manual.desktop</Filename>
+        <Filename>Manual de Usuario.desktop</Filename>
+        <Filename>Acerca del Equipo.desktop</Filename>
         <Separator/>
         <Filename>xfce4-terminal.desktop</Filename>
         <Filename>chromium.desktop</Filename>

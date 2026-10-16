@@ -2,8 +2,8 @@
 Version=1.0
 Type=Application
 Name=Convocatoria
-Comment=Despacho de invitaciones y accesos OTP
-Exec=chromium --lang=es-AR --app="http://localhost:3000/?modulo=convocatoria"
+Comment=Despacho masivo y confirmación de asistencia
+Exec=/usr/local/bin/sigic-convocatoria
 Icon=/usr/share/pixmaps/sigic-convocatoria.png
 Terminal=false
 Categories=Office;Education;System;

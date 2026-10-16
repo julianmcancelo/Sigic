@@ -28,22 +28,10 @@ gio set "$HOME/Desktop"/*.desktop metadata::trusted true 2>/dev/null || true
   xfdesktop --reload 2>/dev/null || true
 ) &
 
-# Lanzar el Asistente de Inicio de SiGIC OS
-# Prioriza el asistente nativo de sistema en GTK 3 y mantiene fallback a Chromium
-if command -v python3 >/dev/null 2>&1 && python3 -c "import gi; gi.require_version('Gtk', '3.0'); from gi.repository import Gtk" >/dev/null 2>&1; then
-  python3 /opt/sigic/asistente-os.py || exec chromium \
-    --no-first-run --no-default-browser-check --noerrdialogs \
-    --disable-infobars --disable-session-crashed-bubble \
-    --disable-web-security --allow-file-access-from-files \
-    --user-data-dir=/tmp/chromium-sigic \
-    --password-store=basic --lang=es-AR --start-fullscreen \
-    --app=file:///opt/sigic/bienvenida-os.html
-else
-  exec chromium \
-    --no-first-run --no-default-browser-check --noerrdialogs \
-    --disable-infobars --disable-session-crashed-bubble \
-    --disable-web-security --allow-file-access-from-files \
-    --user-data-dir=/tmp/chromium-sigic \
-    --password-store=basic --lang=es-AR --start-fullscreen \
-    --app=file:///opt/sigic/bienvenida-os.html
+# Lanzar el Asistente de Inicio de SiGIC (Python 3 + GTK 3)
+if [ -f "/opt/sigic/asistente-os.py" ]; then
+  python3 /opt/sigic/asistente-os.py || python3 /opt/sigic/portal.py
+elif [ -f "/opt/sigic/portal.py" ]; then
+  python3 /opt/sigic/portal.py
 fi
+

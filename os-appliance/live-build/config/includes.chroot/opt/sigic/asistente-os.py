@@ -618,22 +618,14 @@ class AsistenteSigic(Gtk.Window):
         token = respuesta_json.get("token", "")
         target_url = f"http://localhost:3000/?admin_token={token}"
 
-        # Lanzar Chromium a pantalla completa en la plataforma
+        # Lanzar el Portal Nativo GTK3 de SiGIC en el sistema
         try:
-            subprocess.Popen([
-                "chromium",
-                "--no-first-run",
-                "--no-default-browser-check",
-                "--noerrdialogs",
-                "--disable-infobars",
-                "--disable-session-crashed-bubble",
-                "--password-store=basic",
-                "--lang=es-AR",
-                "--start-fullscreen",
-                f"--app={target_url}"
-            ])
+            subprocess.Popen(["/usr/local/bin/sigic-portal"])
         except Exception as e:
-            print(f"Error lanzando Chromium: {e}")
+            try:
+                subprocess.Popen(["python3", "/opt/sigic/portal.py"])
+            except Exception as e2:
+                print(f"Error lanzando portal nativo: {e2}")
 
         time.sleep(0.5)
         GLib.idle_add(Gtk.main_quit)
