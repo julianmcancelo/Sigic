@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 Name=Manual de Usuario
-Comment=Manual técnico y de uso oficial Beltrán
+Comment=Guía oficial de uso y soporte técnico
 Exec=/usr/local/bin/sigic-manual
 Icon=/usr/share/pixmaps/sigic-manual.png
 Terminal=false

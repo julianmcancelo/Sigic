@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 Name=Convocatoria
-Comment=Despacho masivo y confirmación de asistencia
+Comment=Despacho de invitaciones y accesos OTP
 Exec=/usr/local/bin/sigic-convocatoria
 Icon=/usr/share/pixmaps/sigic-convocatoria.png
 Terminal=false

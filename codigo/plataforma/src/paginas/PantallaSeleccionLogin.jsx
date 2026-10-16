@@ -1,393 +1,742 @@
-import { useState } from 'react'
-import {
-  Users,
-  GraduationCap,
-  BookOpen,
-  Info,
-  LogIn,
-  KeyRound,
-  ShieldCheck,
-  Sparkles,
-  Settings,
-  Mail,
-  Lock,
-  ArrowRight,
-  AlertCircle,
-  CheckCircle2,
-  ScanLine
-} from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Settings, Users, GraduationCap, BookOpen, ChevronRight, Info, LogIn } from 'lucide-react'
 import { VERSION_LABEL } from '../lib/version'
-import { iniciarSesionAdmin } from '../servicios/api'
 
-export function PantallaSeleccionLogin({
-  onSeleccionarAdmin,
-  onSeleccionarEgresado,
-  onSeleccionarManual,
-  onLoginAdminExitoso,
-  onLoginGraduadoExitoso,
-  enMantenimiento,
-  modoDemo = false
-}) {
-  const [tabActiva, setTabActiva] = useState('admin') // 'admin' | 'graduado' | 'equipo'
-  
-  // Estado para el formulario de login administrativo
-  const [correo, setCorreo] = useState('admin@sigic.com')
-  const [clave, setClave] = useState('')
-  const [cargando, setCargando] = useState(false)
-  const [errorLogin, setErrorLogin] = useState('')
-  const [exitoLogin, setExitoLogin] = useState(false)
+export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresado, onSeleccionarManual, enMantenimiento, accesoOculto, modoDemo = false }) {
+  const [clickCount, setClickCount] = useState(0)
+  const [snapActivo, setSnapActivo] = useState(false)
+  const [revelado, setRevelado] = useState(false)
+  const [mostrarInfo, setMostrarInfo] = useState(false)
+  const [fraseTooltip, setFraseTooltip] = useState('SiGIC')
+  const canvasRef = useRef(null)
 
-  // Estado para el acceso de graduados
-  const [identificadorGraduado, setIdentificadorGraduado] = useState('')
+  useEffect(() => {
+    if (accesoOculto === false) {
+      setRevelado(true)
+    }
+  }, [accesoOculto])
+
+  useEffect(() => {
+    const frases = [
+      'Perfectamente equilibrado, como todo debe estar...',
+      'I love you 3000',
+      '¿De verdad creíste que era solo un logo?',
+      'El fin está cerca...',
+      'Iniciativa Vengadores activa.'
+    ]
+    const seleccionada = frases[Math.floor(Math.random() * frases.length)]
+    setFraseTooltip(seleccionada)
+  }, [])
+
+  function manejarClickLogo() {
+    if (revelado || snapActivo) return
+    const nuevoConteo = clickCount + 1
+    if (nuevoConteo >= 5) {
+      setSnapActivo(true)
+      
+      // La animación de desintegración dura 1.6 segundos
+      setTimeout(() => {
+        setSnapActivo(false)
+        setRevelado(true)
+      }, 1600)
+    } else {
+      setClickCount(nuevoConteo)
+    }
+  }
+
+  // Animación HTML5 Canvas para el efecto de polvo/cenizas de Thanos
+  useEffect(() => {
+    if (!snapActivo) return
+
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    
+    // Dimensiones que cubren la pantalla completa
+    canvas.width = window.innerWidth
+    canvas.height = window.innerHeight
+
+    const particles = []
+    
+    // Área aproximada de la tarjeta central a desintegrar (dinámica)
+    const cardWidth = Math.min(384, window.innerWidth - 32)
+    const cardHeight = Math.min(350, window.innerHeight - 32)
+    const startX = window.innerWidth / 2 - cardWidth / 2
+    const startY = window.innerHeight / 2 - cardHeight / 2
+
+    // Crear 1200 partículas de polvo
+    for (let i = 0; i < 1200; i++) {
+      const px = startX + Math.random() * cardWidth
+      const py = startY + Math.random() * cardHeight
+      
+      // Paleta de colores inspirada en la tarjeta clara (blanco, gris y detalles cian/índigo)
+      let color = '#ffffff'
+      const rand = Math.random()
+      if (rand < 0.4) color = '#cbd5e1' // slate-300
+      else if (rand < 0.6) color = '#0ea5e9' // cyan-500
+      else if (rand < 0.7) color = '#6366f1' // indigo-500
+
+      particles.push({
+        x: px,
+        y: py,
+        vx: (Math.random() - 0.2) * 1.8, // Flotar mayormente hacia la derecha
+        vy: -0.8 - Math.random() * 2.5, // Flotar hacia arriba
+        size: 0.8 + Math.random() * 2.2,
+        alpha: 1,
+        decay: 0.004 + Math.random() * 0.012,
+        color
+      })
+    }
+
+    let shockwaveRadius = 10
+    const maxShockwaveRadius = Math.max(window.innerWidth, window.innerHeight) * 0.8
+
+    let animFrameId
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      
+      // Dibujar onda de choque expansiva
+      if (shockwaveRadius < maxShockwaveRadius) {
+        ctx.save()
+        ctx.strokeStyle = `rgba(14, 165, 233, ${1 - (shockwaveRadius / maxShockwaveRadius)})`
+        ctx.lineWidth = 3
+        ctx.beginPath()
+        ctx.arc(window.innerWidth / 2, window.innerHeight / 2, shockwaveRadius, 0, Math.PI * 2)
+        ctx.stroke()
+        ctx.restore()
+        shockwaveRadius += 16
+      }
+
+      let active = 0
+      particles.forEach(p => {
+        if (p.alpha <= 0) return
+        active++
+
+        // Actualizar coordenadas y desvanecimiento
+        p.x += p.vx
+        p.y += p.vy
+        p.alpha -= p.decay
+
+        // Dibujar partícula circular
+        ctx.save()
+        ctx.globalAlpha = p.alpha
+        ctx.fillStyle = p.color
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2)
+        ctx.fill()
+        ctx.restore()
+      })
+
+      if (active > 0 || shockwaveRadius < maxShockwaveRadius) {
+        animFrameId = requestAnimationFrame(draw)
+      }
+    }
+
+    draw()
+
+    return () => cancelAnimationFrame(animFrameId)
+  }, [snapActivo])
 
   const equipo = [
-    { nombre: 'Julián Cancelo', rol: 'Coordinación & Full-Stack', hex: '#0284c7' },
-    { nombre: 'Alan Alexis Alfonso', rol: 'Arquitectura & Backend', hex: '#6366f1' },
-    { nombre: 'Sol Contreras V.', rol: 'Diseño UX & Frontend', hex: '#ec4899' },
-    { nombre: 'Matías Frassia', rol: 'Base de Datos & Seguridad', hex: '#f59e0b' },
-    { nombre: 'Luis Gabriel Santillán', rol: 'App Móvil & Testing', hex: '#10b981' },
+    { nombre: 'Alan Alexis Alfonso',     hex: '#0ea5e9' },
+    { nombre: 'Julián Cancelo',          hex: '#6366f1' },
+    { nombre: 'Sol Contreras V.',        hex: '#ec4899' },
+    { nombre: 'Matías Frassia',          hex: '#f59e0b' },
+    { nombre: 'Luis Gabriel Santillán',  hex: '#10b981' },
   ]
 
-  async function ejecutarLoginAdmin(e) {
-    if (e) e.preventDefault()
-    if (!correo.trim() || !clave) {
-      setErrorLogin('Por favor completá tu correo y contraseña.')
-      return
-    }
-
-    setCargando(true)
-    setErrorLogin('')
-    try {
-      const res = await iniciarSesionAdmin(correo.trim().toLowerCase(), clave)
-      setExitoLogin(true)
-      setTimeout(() => {
-        if (onLoginAdminExitoso && res?.usuario) {
-          onLoginAdminExitoso({
-            id: res.usuario.id,
-            nombre: res.usuario.nombre,
-            correo: res.usuario.email,
-            rol: res.usuario.rol
-          })
-        } else if (onSeleccionarAdmin) {
-          onSeleccionarAdmin()
-        }
-      }, 400)
-    } catch (err) {
-      setErrorLogin(err?.message || 'Credenciales incorrectas. Verificá tu correo y contraseña.')
-    } finally {
-      setCargando(false)
-    }
-  }
-
-  function autocompletar(tipo) {
-    setErrorLogin('')
-    if (tipo === 'admin') {
-      setCorreo('admin@sigic.com')
-      setClave('35230531')
-    } else if (tipo === 'soporte') {
-      setCorreo('soporte@sigic.com.ar')
-      setClave('35230531')
-    } else if (tipo === 'porteria') {
-      setCorreo('porteria@sigic.com')
-      setClave('35230531')
-    }
-  }
-
-  // Si está en mantenimiento
-  if (enMantenimiento) {
+  if (modoDemo) {
     return (
-      <main className="relative flex min-h-screen flex-col items-center justify-center p-4 bg-gradient-to-br from-slate-950 via-[#071626] to-[#030911] text-white">
-        <div className="relative z-10 flex flex-col items-center max-w-md w-full px-8 py-10 text-center bg-white/5 border border-white/10 rounded-[32px] backdrop-blur-xl shadow-2xl">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/20 text-amber-400 mb-6 border border-amber-500/30">
-            <Settings size={32} className="animate-[spin_6s_linear_infinite]" />
+      <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 py-16 text-slate-800 bg-gradient-to-tr from-slate-100 via-sky-50/50 to-blue-50/40">
+        <div className="absolute inset-0 pointer-events-none opacity-40 [background-image:radial-gradient(circle_at_20%_20%,rgba(56,189,248,.18),transparent_34%),radial-gradient(circle_at_80%_80%,rgba(99,102,241,.12),transparent_30%)]" />
+        <section className="relative z-10 w-full max-w-3xl text-center" aria-labelledby="demo-title">
+          <img src="/logo.png" alt="SiGIC" className="mx-auto h-20 w-20 rounded-2xl bg-white object-cover shadow-xl border border-slate-200/80 p-1" />
+          <p className="mt-7 text-xs font-black uppercase tracking-[0.25em] text-sky-600">Entorno de demostración</p>
+          <h1 id="demo-title" className="mt-3 text-4xl font-black tracking-tight text-slate-900 sm:text-5xl">¿Cómo querés ingresar?</h1>
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-slate-600">Elegí un perfil para recorrer SiGIC. No necesitás usuario ni contraseña y todos los datos son ficticios.</p>
+
+          <div className="mt-10 grid gap-4 sm:grid-cols-2">
+            <button onClick={onSeleccionarAdmin} className="group flex min-h-40 flex-col items-start justify-between rounded-3xl border border-slate-200/90 bg-white/90 p-6 text-left shadow-md shadow-slate-200/50 backdrop-blur transition hover:-translate-y-1 hover:border-sky-400 hover:shadow-xl hover:bg-white focus-visible:outline focus-visible:outline-4 focus-visible:outline-sky-300 cursor-pointer">
+              <span className="grid h-12 w-12 place-items-center rounded-2xl bg-sky-100 text-sky-700 group-hover:bg-sky-600 group-hover:text-white transition-colors"><Users size={24} aria-hidden="true" /></span>
+              <span><strong className="block text-xl text-slate-900">Administrador</strong><small className="mt-1 block text-sm text-slate-500">Gestionar graduados, ceremonias, ingresos y reportes</small></span>
+              <span className="flex items-center gap-1 text-xs font-black uppercase tracking-wider text-sky-600">Ingresar <ChevronRight size={15} aria-hidden="true" /></span>
+            </button>
+
+            <button onClick={onSeleccionarEgresado} className="group flex min-h-40 flex-col items-start justify-between rounded-3xl border border-slate-200/90 bg-white/90 p-6 text-left shadow-md shadow-slate-200/50 backdrop-blur transition hover:-translate-y-1 hover:border-emerald-400 hover:shadow-xl hover:bg-white focus-visible:outline focus-visible:outline-4 focus-visible:outline-emerald-300 cursor-pointer">
+              <span className="grid h-12 w-12 place-items-center rounded-2xl bg-emerald-100 text-emerald-700 group-hover:bg-emerald-600 group-hover:text-white transition-colors"><GraduationCap size={24} aria-hidden="true" /></span>
+              <span><strong className="block text-xl text-slate-900">Egresado</strong><small className="mt-1 block text-sm text-slate-500">Consultar invitación, acompañantes, credencial y ubicación</small></span>
+              <span className="flex items-center gap-1 text-xs font-black uppercase tracking-wider text-emerald-600">Ingresar <ChevronRight size={15} aria-hidden="true" /></span>
+            </button>
           </div>
-          <h1 className="text-2xl font-black tracking-tight mb-2">Sistema en Mantenimiento</h1>
-          <p className="text-xs text-slate-300 leading-relaxed">
-            Se están realizando tareas programadas de mantenimiento y actualización en el servidor. El acceso se restablecerá a la brevedad.
-          </p>
-          <div className="mt-8 text-[10px] uppercase font-bold tracking-widest text-slate-500">
-            Instituto Tecnológico Beltrán · SiGIC
-          </div>
-        </div>
+
+          <p className="mt-10 text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400 font-mono">{VERSION_LABEL}</p>
+        </section>
       </main>
     )
   }
 
+  const [opcionDiseno, setOpcionDiseno] = useState('opcion1') // 'opcion1' | 'opcion2' | 'opcion3'
+
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center p-4 sm:p-6 overflow-hidden bg-gradient-to-br from-slate-950 via-[#071a2e] to-[#02070f] text-slate-100 font-sans select-none">
-      {/* Resplandores de fondo institucional Azul Beltrán */}
-      <div className="absolute top-1/4 left-1/3 h-[500px] w-[500px] rounded-full bg-cyan-500/10 blur-[140px] pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/3 h-[450px] w-[450px] rounded-full bg-blue-600/10 blur-[140px] pointer-events-none" />
-
-      {/* Contenedor Principal (Tarjeta Enterprise) */}
-      <div className="relative z-10 w-full max-w-xl rounded-[32px] border border-white/12 bg-slate-900/80 shadow-[0_30px_90px_rgba(0,0,0,0.6),0_0_0_1px_rgba(255,255,255,0.06)] backdrop-blur-2xl overflow-hidden transition-all duration-300">
-        
-        {/* Encabezado Institucional */}
-        <header className="px-8 pt-8 pb-6 border-b border-white/8 text-center relative">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <img src="/logo-oficial.png" alt="SiGIC" className="h-14 w-auto object-contain drop-shadow-md" />
-          </div>
-          <span className="inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.25em] bg-cyan-500/15 text-cyan-300 border border-cyan-400/30 mb-2">
-            Instituto Tecnológico Beltrán
+    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden select-none text-slate-800 font-sans bg-gradient-to-tr from-slate-100 via-sky-50/40 to-blue-50/30 p-4">
+      {/* Selector interactivo de opciones de diseño (flotante superior) */}
+      {!revelado && !enMantenimiento && (
+        <div className="fixed top-5 right-5 z-40 flex items-center gap-1 bg-white/90 backdrop-blur-md p-1.5 rounded-full border border-slate-200/90 shadow-lg shadow-slate-900/5">
+          <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 pl-2.5 pr-1.5">
+            Diseño:
           </span>
-          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-            SiGIC <span className="text-cyan-400">Colaciones</span>
-          </h1>
-          <p className="text-xs text-slate-400 font-medium mt-1">
-            Sistema de Gestión Integral de Ceremonias de Graduación
-          </p>
-
-          {/* Navegación por Pestañas */}
-          <div className="mt-6 flex items-center justify-center gap-1.5 p-1 rounded-2xl bg-slate-950/60 border border-white/8">
-            <button
-              type="button"
-              onClick={() => { setTabActiva('admin'); setErrorLogin('') }}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                tabActiva === 'admin'
-                  ? 'bg-cyan-500 text-slate-950 shadow-md font-black shadow-cyan-500/20'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Users size={14} />
-              <span>Administración</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => { setTabActiva('graduado'); setErrorLogin('') }}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                tabActiva === 'graduado'
-                  ? 'bg-cyan-500 text-slate-950 shadow-md font-black shadow-cyan-500/20'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <GraduationCap size={14} />
-              <span>Graduados</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => { setTabActiva('equipo'); setErrorLogin('') }}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                tabActiva === 'equipo'
-                  ? 'bg-cyan-500 text-slate-950 shadow-md font-black shadow-cyan-500/20'
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Info size={14} />
-              <span>Equipo</span>
-            </button>
-          </div>
-        </header>
-
-        {/* Cuerpo de la Tarjeta */}
-        <div className="p-8">
-          
-          {/* PESTAÑA 1: ACCESO ADMINISTRATIVO DIRECTO */}
-          {tabActiva === 'admin' && (
-            <form onSubmit={ejecutarLoginAdmin} className="space-y-4">
-              {errorLogin && (
-                <div className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-semibold animate-fade-in">
-                  <AlertCircle size={16} className="shrink-0 text-rose-400" />
-                  <span>{errorLogin}</span>
-                </div>
-              )}
-
-              {exitoLogin && (
-                <div className="flex items-center gap-2.5 p-3.5 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold animate-fade-in">
-                  <CheckCircle2 size={16} className="shrink-0 text-emerald-400" />
-                  <span>Credenciales validadas. Ingresando a la plataforma...</span>
-                </div>
-              )}
-
-              <div>
-                <label className="block text-[11px] font-black uppercase tracking-wider text-slate-400 mb-1.5">
-                  Correo Electrónico Institucional
-                </label>
-                <div className="relative">
-                  <Mail size={16} className="absolute left-4 top-3.5 text-slate-500" />
-                  <input
-                    type="email"
-                    required
-                    value={correo}
-                    onChange={e => setCorreo(e.target.value)}
-                    placeholder="admin@sigic.com"
-                    className="w-full pl-11 pr-4 py-3 bg-slate-950/70 border border-white/10 rounded-2xl text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-black uppercase tracking-wider text-slate-400 mb-1.5">
-                  Contraseña de Acceso
-                </label>
-                <div className="relative">
-                  <Lock size={16} className="absolute left-4 top-3.5 text-slate-500" />
-                  <input
-                    type="password"
-                    required
-                    value={clave}
-                    onChange={e => setClave(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full pl-11 pr-4 py-3 bg-slate-950/70 border border-white/10 rounded-2xl text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all"
-                  />
-                </div>
-              </div>
-
-              {/* Botón Principal de Inicio de Sesión */}
-              <button
-                type="submit"
-                disabled={cargando || exitoLogin}
-                className="w-full mt-2 py-3.5 px-6 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-black text-sm tracking-wide shadow-lg shadow-cyan-500/25 transition-all duration-200 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
-              >
-                {cargando ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-slate-950/30 border-t-slate-950 rounded-full animate-spin" />
-                    <span>Validando acceso...</span>
-                  </>
-                ) : (
-                  <>
-                    <LogIn size={16} />
-                    <span>Iniciar Sesión en SiGIC</span>
-                  </>
-                )}
-              </button>
-
-              {/* Botones de Relleno Rápido (Ideales para Evaluación & Demostración) */}
-              <div className="pt-4 border-t border-white/8 text-center">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2.5">
-                  Accesos Rápidos de Evaluación (1 clic)
-                </p>
-                <div className="flex flex-wrap items-center justify-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => autocompletar('admin')}
-                    className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-300 transition-all cursor-pointer active:scale-95"
-                  >
-                    👑 Administrador
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => autocompletar('soporte')}
-                    className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-300 transition-all cursor-pointer active:scale-95"
-                  >
-                    🛠️ Soporte Técnico
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => autocompletar('porteria')}
-                    className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-xs font-semibold text-slate-300 transition-all cursor-pointer active:scale-95"
-                  >
-                    🚪 Portería & Acceso
-                  </button>
-                </div>
-              </div>
-            </form>
-          )}
-
-          {/* PESTAÑA 2: PORTAL DEL GRADUADO */}
-          {tabActiva === 'graduado' && (
-            <div className="space-y-5 animate-fade-in text-center">
-              <div className="p-4 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 text-left">
-                <h3 className="text-xs font-black uppercase tracking-wider text-cyan-300 mb-1">
-                  Autogestión de Colación
-                </h3>
-                <p className="text-xs text-slate-300 leading-relaxed">
-                  Si sos graduado, confirmá tu asistencia, seleccioná tus butacas en el anfiteatro, cargá acompañantes y generá tu credencial digital con código QR.
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-black uppercase tracking-wider text-slate-400 mb-1.5 text-left">
-                  DNI o Código de Invitación
-                </label>
-                <div className="relative">
-                  <KeyRound size={16} className="absolute left-4 top-3.5 text-slate-500" />
-                  <input
-                    type="text"
-                    value={identificadorGraduado}
-                    onChange={e => setIdentificadorGraduado(e.target.value)}
-                    placeholder="Ej: 42123456 o token OTP"
-                    className="w-full pl-11 pr-4 py-3 bg-slate-950/70 border border-white/10 rounded-2xl text-sm text-white placeholder-slate-600 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 transition-all"
-                  />
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-3 pt-2">
-                <button
-                  type="button"
-                  onClick={onSeleccionarEgresado}
-                  className="flex-1 py-3.5 px-6 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-sm tracking-wide shadow-lg shadow-emerald-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <GraduationCap size={18} />
-                  <span>Ingresar al Portal</span>
-                </button>
-              </div>
-
-              <div className="pt-4 border-t border-white/8">
-                <p className="text-xs text-slate-400">
-                  ¿Recibiste la invitación por correo? Hacé clic directamente en el enlace que te enviamos para ingresar sin contraseña.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* PESTAÑA 3: ACERCA DEL EQUIPO Y PROYECTO */}
-          {tabActiva === 'equipo' && (
-            <div className="space-y-4 animate-fade-in">
-              <div className="text-center mb-4">
-                <span className="text-[10px] font-black uppercase tracking-widest text-cyan-400">
-                  Práctica Profesionalizante 2026
-                </span>
-                <h3 className="text-base font-black text-white">Equipo de Desarrollo SiGIC</h3>
-                <p className="text-xs text-slate-400">Instituto Tecnológico Beltrán</p>
-              </div>
-
-              <div className="grid gap-2.5 sm:grid-cols-2">
-                {equipo.map((m, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/8 hover:bg-white/8 transition-colors"
-                  >
-                    <div
-                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl font-black text-xs text-white shadow-md"
-                      style={{ backgroundColor: m.hex }}
-                    >
-                      {m.nombre.slice(0, 2).toUpperCase()}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-white truncate">{m.nombre}</p>
-                      <p className="text-[10px] text-slate-400 truncate">{m.rol}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-slate-950/60 border border-white/8 text-center mt-3">
-                <span className="text-[10px] font-mono text-cyan-300">
-                  Debian 13 · Next.js 16 · PostgreSQL · React Native · Expo
-                </span>
-              </div>
-            </div>
-          )}
-
-        </div>
-
-        {/* Footer Institucional con Acceso al Manual */}
-        <footer className="px-8 py-4 bg-slate-950/80 border-t border-white/8 flex items-center justify-between text-xs text-slate-400">
           <button
             type="button"
-            onClick={onSeleccionarManual}
-            className="flex items-center gap-1.5 text-cyan-400 hover:text-cyan-300 font-bold transition-colors cursor-pointer"
+            onClick={() => setOpcionDiseno('opcion1')}
+            className={`px-3 py-1 text-xs font-bold rounded-full transition-all cursor-pointer ${
+              opcionDiseno === 'opcion1'
+                ? 'bg-slate-900 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-950 hover:bg-slate-100'
+            }`}
           >
-            <BookOpen size={14} />
-            <span>Manual de Usuario</span>
+            1. Minimalista
           </button>
+          <button
+            type="button"
+            onClick={() => setOpcionDiseno('opcion2')}
+            className={`px-3 py-1 text-xs font-bold rounded-full transition-all cursor-pointer ${
+              opcionDiseno === 'opcion2'
+                ? 'bg-slate-900 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-950 hover:bg-slate-100'
+            }`}
+          >
+            2. Doble Acceso
+          </button>
+          <button
+            type="button"
+            onClick={() => setOpcionDiseno('opcion3')}
+            className={`px-3 py-1 text-xs font-bold rounded-full transition-all cursor-pointer ${
+              opcionDiseno === 'opcion3'
+                ? 'bg-slate-900 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-950 hover:bg-slate-100'
+            }`}
+          >
+            3. Glass Card
+          </button>
+        </div>
+      )}
 
-          <span className="font-mono text-[10px] text-slate-500">
-            {VERSION_LABEL}
-          </span>
-        </footer>
+      {/* Fondo con gradiente claro y orbes suaves */}
+      <div className="absolute inset-0 pointer-events-none opacity-60 [background-image:radial-gradient(circle_at_20%_20%,rgba(56,189,248,.15),transparent_35%),radial-gradient(circle_at_80%_80%,rgba(99,102,241,.1),transparent_35%)]" />
 
-      </div>
+      {/* Orbes de luz decorativos de fondo */}
+      <div className="absolute top-1/3 left-1/4 h-[350px] w-[350px] rounded-full bg-sky-300/15 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-1/3 right-1/4 h-[350px] w-[350px] rounded-full bg-indigo-300/15 blur-[120px] pointer-events-none" />
+
+      {/* Canvas para partículas de Thanos */}
+      {snapActivo && (
+        <canvas 
+          ref={canvasRef} 
+          className="absolute inset-0 z-30 pointer-events-none" 
+        />
+      )}
+
+      {/* Modo Mantenimiento */}
+      {enMantenimiento && (
+        <div className="relative z-10 flex flex-col items-center max-w-sm w-full px-8 py-12 text-center bg-white/95 rounded-[32px] border border-slate-200/90 shadow-xl shadow-slate-200/50 animate-fade-in">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-100 text-amber-500 mb-6 shadow-inner">
+            <Settings size={32} className="animate-[spin_4s_linear_infinite]" />
+          </div>
+          
+          <h1 className="text-xl font-black text-slate-800 tracking-tight mb-2">
+            Modo Mantenimiento
+          </h1>
+          <p className="text-xs text-slate-500 font-medium leading-relaxed px-4">
+            Estamos realizando ajustes técnicos y mejoras en el servidor. El acceso a SiGIC se encuentra temporalmente suspendido.
+          </p>
+
+          <div className="mt-8 w-full border-t border-slate-200/60 pt-6">
+            <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">
+              Instituto Tecnológico Beltrán
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════════════════════ */}
+      {/* VARIANTE 1: MINIMALISTA ELEGANTE (Limpia, sobria, idéntica a la maqueta con glow) */}
+      {/* ════════════════════════════════════════════════════════════════════════════════ */}
+      {!revelado && !enMantenimiento && opcionDiseno === 'opcion1' && (
+        <div className={`relative z-10 flex flex-col items-center max-w-2xl w-full px-6 py-10 text-center transition-all animate-fade-in ${
+          snapActivo ? 'animate-thanos pointer-events-none' : ''
+        }`}>
+          
+          {/* Logo de SiGIC en tarjeta blanca con resplandor suave */}
+          <div 
+            onClick={manejarClickLogo}
+            className={`group relative mb-8 flex h-20 w-20 items-center justify-center rounded-2xl bg-white border border-slate-200/90 shadow-xl shadow-slate-200/70 p-2.5 cursor-pointer active:scale-95 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${
+              clickCount === 1 ? 'animate-shake-1' :
+              clickCount === 2 ? 'animate-shake-2' :
+              clickCount === 3 ? 'animate-shake-3' :
+              clickCount === 4 ? 'animate-shake-4' : ''
+            }`}
+            title={fraseTooltip}
+          >
+            <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-sky-400/20 to-blue-500/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
+            <img
+              src="/logo.png"
+              alt="SiGIC"
+              className="relative z-10 h-full w-full object-contain"
+            />
+          </div>
+
+          {/* Kicker Institucional */}
+          <p className="text-[11px] sm:text-xs font-black uppercase tracking-[0.2em] text-sky-600 mb-3.5">
+            Sistema de Gestión Integral de Ceremonias
+          </p>
+
+          {/* Título Monumental */}
+          <h1 className="text-4xl sm:text-6xl lg:text-[64px] font-black text-slate-900 tracking-tight leading-[1.1] max-w-2xl mx-auto">
+            Estamos preparando <br className="hidden sm:inline" /> algo importante.
+          </h1>
+
+          {/* Subtítulo */}
+          <p className="mt-4 text-sm sm:text-base text-slate-500 font-medium max-w-lg mx-auto leading-relaxed">
+            Muy pronto vas a poder conocer la plataforma completa de SiGIC.
+          </p>
+
+          {/* 2 Botones: [->] Ingresar y ● Próximamente */}
+          <div className="mt-8 flex items-center justify-center gap-3">
+            <button
+              type="button"
+              onClick={onSeleccionarAdmin}
+              className="inline-flex items-center gap-2 rounded-full bg-slate-950 hover:bg-blue-600 px-6 py-2.5 text-xs font-bold text-white shadow-md shadow-slate-950/15 hover:shadow-lg hover:shadow-blue-600/20 transition-all duration-200 active:scale-95 cursor-pointer group"
+            >
+              <LogIn size={15} className="group-hover:translate-x-0.5 transition-transform" />
+              <span>Ingresar</span>
+            </button>
+
+            <div className="inline-flex items-center gap-2 rounded-full border border-slate-200/90 bg-white/90 px-5 py-2.5 text-xs font-bold text-slate-700 shadow-2xs backdrop-blur-sm">
+              <span className="h-2 w-2 rounded-full bg-sky-500 animate-pulse" />
+              <span>Próximamente</span>
+            </div>
+          </div>
+
+          {/* Footer Minimalista */}
+          <div className="mt-16 text-center space-y-1">
+            <button
+              onClick={() => setMostrarInfo(true)}
+              className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400 hover:text-sky-600 transition-colors cursor-pointer"
+            >
+              Instituto Tecnológico Beltrán
+            </button>
+            <p className="text-[9px] font-bold text-slate-300 font-mono tracking-wider">{VERSION_LABEL}</p>
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════════════════════ */}
+      {/* VARIANTE 2: DOBLE ACCESO DIRECTO (Acceso claro para Admin y para Graduados)     */}
+      {/* ════════════════════════════════════════════════════════════════════════════════ */}
+      {!revelado && !enMantenimiento && opcionDiseno === 'opcion2' && (
+        <div className={`relative z-10 flex flex-col items-center max-w-2xl w-full px-6 py-10 text-center transition-all animate-fade-in ${
+          snapActivo ? 'animate-thanos pointer-events-none' : ''
+        }`}>
+          
+          {/* Badge superior de estado */}
+          <div className="inline-flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50/80 px-3.5 py-1 text-[11px] font-bold text-sky-700 mb-6 shadow-2xs">
+            <span className="h-2 w-2 rounded-full bg-sky-500 animate-pulse" />
+            <span>Próximo Lanzamiento Oficial · SiGIC 2026</span>
+          </div>
+
+          {/* Logo de SiGIC */}
+          <div 
+            onClick={manejarClickLogo}
+            className={`relative mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-white border border-slate-200/90 shadow-xl shadow-slate-200/70 p-2.5 cursor-pointer active:scale-95 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${
+              clickCount === 1 ? 'animate-shake-1' :
+              clickCount === 2 ? 'animate-shake-2' :
+              clickCount === 3 ? 'animate-shake-3' :
+              clickCount === 4 ? 'animate-shake-4' : ''
+            }`}
+            title={fraseTooltip}
+          >
+            <img src="/logo.png" alt="SiGIC" className="h-full w-full object-contain" />
+          </div>
+
+          {/* Kicker Institucional */}
+          <p className="text-[11px] sm:text-xs font-black uppercase tracking-[0.2em] text-sky-600 mb-3">
+            Instituto Tecnológico Beltrán
+          </p>
+
+          {/* Título */}
+          <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-black text-slate-900 tracking-tight leading-[1.1] max-w-xl mx-auto">
+            Estamos preparando algo importante.
+          </h1>
+
+          <p className="mt-4 text-sm text-slate-500 font-medium max-w-md mx-auto leading-relaxed">
+            Plataforma centralizada de colaciones. Elegí tu tipo de acceso para continuar:
+          </p>
+
+          {/* 2 Botones de Acción Diferenciados */}
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-3 w-full max-w-md">
+            <button
+              type="button"
+              onClick={onSeleccionarAdmin}
+              className="w-full sm:w-auto flex-1 inline-flex items-center justify-center gap-2.5 rounded-2xl bg-slate-950 hover:bg-slate-900 px-6 py-3.5 text-xs font-bold text-white shadow-md shadow-slate-950/15 transition-all duration-200 active:scale-98 cursor-pointer group"
+            >
+              <LogIn size={16} className="text-sky-400 group-hover:translate-x-0.5 transition-transform" />
+              <span>Acceso Administrativo</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={onSeleccionarEgresado}
+              className="w-full sm:w-auto flex-1 inline-flex items-center justify-center gap-2.5 rounded-2xl border border-slate-200/90 bg-white hover:bg-blue-50/50 hover:border-blue-300 px-6 py-3.5 text-xs font-bold text-slate-800 shadow-sm transition-all duration-200 active:scale-98 cursor-pointer group"
+            >
+              <GraduationCap size={16} className="text-blue-600 group-hover:scale-110 transition-transform" />
+              <span>Portal de Egresados</span>
+            </button>
+          </div>
+
+          {/* Footer Minimalista */}
+          <div className="mt-14 text-center space-y-1">
+            <button
+              onClick={() => setMostrarInfo(true)}
+              className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400 hover:text-sky-600 transition-colors cursor-pointer"
+            >
+              Prácticas Profesionalizantes III
+            </button>
+            <p className="text-[9px] font-bold text-slate-300 font-mono tracking-wider">{VERSION_LABEL}</p>
+          </div>
+        </div>
+      )}
+
+      {/* ════════════════════════════════════════════════════════════════════════════════ */}
+      {/* VARIANTE 3: HERO GLASS CARD (Caja Bento translúcida de software moderno)       */}
+      {/* ════════════════════════════════════════════════════════════════════════════════ */}
+      {!revelado && !enMantenimiento && opcionDiseno === 'opcion3' && (
+        <div className={`relative z-10 w-full max-w-xl p-8 sm:p-12 text-center rounded-[32px] border border-slate-200/80 bg-white/90 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.08),0_0_0_1px_rgba(255,255,255,0.9)] backdrop-blur-2xl transition-all animate-fade-in ${
+          snapActivo ? 'animate-thanos pointer-events-none' : ''
+        }`}>
+          
+          {/* Cabecera de la Tarjeta */}
+          <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-100">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                SiGIC · Plataforma Oficial
+              </span>
+            </div>
+            <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2.5 py-0.5 rounded-full">
+              Próximamente
+            </span>
+          </div>
+
+          {/* Logo Flotante */}
+          <div 
+            onClick={manejarClickLogo}
+            className={`relative mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-white border border-slate-200/90 shadow-lg p-2.5 cursor-pointer active:scale-95 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${
+              clickCount === 1 ? 'animate-shake-1' :
+              clickCount === 2 ? 'animate-shake-2' :
+              clickCount === 3 ? 'animate-shake-3' :
+              clickCount === 4 ? 'animate-shake-4' : ''
+            }`}
+            title={fraseTooltip}
+          >
+            <img src="/logo.png" alt="SiGIC" className="h-full w-full object-contain" />
+          </div>
+
+          {/* Título y descripción */}
+          <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight">
+            Estamos preparando algo importante.
+          </h1>
+
+          <p className="mt-3 text-xs sm:text-sm text-slate-500 font-medium max-w-md mx-auto leading-relaxed">
+            Muy pronto vas a poder conocer la plataforma completa de gestión de colaciones y pases digitales.
+          </p>
+
+          {/* 3 Micro Chips de Features */}
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-[11px] font-bold text-slate-600">
+            <span className="bg-slate-50 border border-slate-200/80 px-3 py-1 rounded-full">🎟️ Acreditación QR</span>
+            <span className="bg-slate-50 border border-slate-200/80 px-3 py-1 rounded-full">🏛️ Control de Butacas</span>
+            <span className="bg-slate-50 border border-slate-200/80 px-3 py-1 rounded-full">🎓 Padrón Digital</span>
+          </div>
+
+          {/* Botón Principal de Ingreso */}
+          <div className="mt-8 flex justify-center">
+            <button
+              type="button"
+              onClick={onSeleccionarAdmin}
+              className="inline-flex items-center gap-2 rounded-full bg-slate-950 hover:bg-blue-600 px-7 py-3 text-xs font-bold text-white shadow-md shadow-slate-950/15 hover:shadow-lg hover:shadow-blue-600/20 transition-all duration-200 active:scale-95 cursor-pointer group"
+            >
+              <LogIn size={15} className="group-hover:translate-x-0.5 transition-transform" />
+              <span>Ingresar al Sistema</span>
+            </button>
+          </div>
+
+          {/* Footer de Tarjeta */}
+          <div className="mt-8 pt-4 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400 font-medium">
+            <button
+              onClick={() => setMostrarInfo(true)}
+              className="hover:text-blue-600 transition-colors cursor-pointer"
+            >
+              Instituto Beltrán · Créditos
+            </button>
+            <span className="font-mono">{VERSION_LABEL}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Opciones de Login (Reveladas al hacer clic en Ingresar o con el Easter Egg) */}
+      {revelado && (
+        <div className="relative z-10 flex flex-col items-center max-w-sm w-full px-8 py-10 text-center bg-white/95 backdrop-blur-2xl border border-slate-200/90 rounded-[32px] shadow-[0_20px_60px_-15px_rgba(15,23,42,0.08)] animate-fade-slide-up">
+          
+          <div className="flex items-center justify-between w-full mb-5 pb-3 border-b border-slate-100">
+            <div className="text-left">
+              <p className="text-[10px] font-black uppercase tracking-wider text-sky-600">
+                Acceso a SiGIC
+              </p>
+              <h2 className="text-sm font-black text-slate-900">Seleccioná tu rol</h2>
+            </div>
+            <button
+              onClick={() => setRevelado(false)}
+              className="text-[11px] font-bold text-slate-400 hover:text-slate-600 px-2.5 py-1 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+            >
+              Volver
+            </button>
+          </div>
+          
+          <div className="w-full space-y-3 mb-6">
+            {/* Opción Admin */}
+            <button
+              onClick={onSeleccionarAdmin}
+              className="group relative flex w-full items-center gap-3.5 rounded-2xl border border-slate-200/90 bg-white p-4 transition-all hover:bg-sky-50/50 hover:border-sky-300 active:scale-[0.98] cursor-pointer text-left shadow-xs hover:shadow-md"
+            >
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-50 text-sky-600 transition-colors group-hover:bg-sky-600 group-hover:text-white shrink-0">
+                <Users size={20} />
+              </div>
+              <div>
+                <p className="text-xs font-black text-slate-900">Administrador</p>
+                <p className="text-[11px] text-slate-500 font-medium">Organizadores y directivos</p>
+              </div>
+              <ChevronRight size={15} className="absolute right-4 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-sky-500" />
+            </button>
+
+            {/* Opción Egresado */}
+            <button
+              onClick={onSeleccionarEgresado}
+              className="group relative flex w-full items-center gap-3.5 rounded-2xl border border-slate-200/90 bg-white p-4 transition-all hover:bg-emerald-50/50 hover:border-emerald-300 active:scale-[0.98] cursor-pointer text-left shadow-xs hover:shadow-md"
+            >
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 transition-colors group-hover:bg-emerald-600 group-hover:text-white shrink-0">
+                <GraduationCap size={20} />
+              </div>
+              <div>
+                <p className="text-xs font-black text-slate-900">Graduado</p>
+                <p className="text-[11px] text-slate-500 font-medium">Ingreso de invitados y datos</p>
+              </div>
+              <ChevronRight size={15} className="absolute right-4 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-emerald-500" />
+            </button>
+
+            {/* Opción Manual */}
+            <button
+              onClick={onSeleccionarManual}
+              className="group relative flex w-full items-center gap-3.5 rounded-2xl border border-slate-200/90 bg-white p-4 transition-all hover:bg-slate-50 hover:border-slate-300 active:scale-[0.98] cursor-pointer text-left shadow-xs hover:shadow-md"
+            >
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-slate-600 transition-colors group-hover:bg-slate-700 group-hover:text-white shrink-0">
+                <BookOpen size={20} />
+              </div>
+              <div>
+                <p className="text-xs font-black text-slate-900">Manual de Usuario</p>
+                <p className="text-[11px] text-slate-500 font-medium">Guías de uso del sistema</p>
+              </div>
+              <ChevronRight size={15} className="absolute right-4 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-slate-600" />
+            </button>
+          </div>
+
+          {/* Footer */}
+          <div className="text-center opacity-60">
+            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400">
+              Instituto Tecnológico Beltrán
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Información del Proyecto */}
+      {mostrarInfo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/30 p-4 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-xs rounded-[32px] border border-slate-155 bg-white/95 p-6 text-center shadow-2xl animate-fade-slide-up relative">
+            <div className="flex justify-center mb-2">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider bg-cyan-50 text-cyan-600 border border-cyan-100/50">
+                <Info size={10} /> Proyecto Académico
+              </span>
+            </div>
+
+            <h3 className="text-xs font-black uppercase tracking-[0.15em] text-slate-850">
+              Proyecto Integrador Final
+            </h3>
+            <p className="mt-0.5 text-[9px] font-bold uppercase tracking-widest text-slate-500">
+              PPT3 · Analista de Sistemas
+            </p>
+            <div className="my-3.5 h-[1px] bg-slate-100" />
+            
+            <p className="text-[11px] text-slate-500 font-semibold leading-relaxed mb-5">
+              SiGIC es el Sistema de Gestión de Ceremonias desarrollado como proyecto integrador para la materia de Prácticas Profesionalizantes 3 en el Instituto Beltrán.
+            </p>
+
+            <p className="text-[8px] font-black uppercase tracking-wider text-slate-400 mb-3">
+              Equipo de Desarrollo
+            </p>
+
+            {/* Grupo de Avatares Interactivos */}
+            <div className="flex justify-center -space-x-2.5 hover:-space-x-1.5 transition-all duration-300 py-3 mb-6">
+              {equipo.map((m, i) => {
+                const partes = m.nombre.split(' ')
+                const iniciales = (partes[0][0] + (partes[1] ? partes[1][0] : '')).toUpperCase()
+                
+                return (
+                  <div 
+                    key={i} 
+                    className="group relative flex h-10 w-10 items-center justify-center rounded-full border-2 border-white text-[11px] font-black text-white cursor-pointer shadow-md transition-all duration-300 hover:-translate-y-2 hover:scale-115 hover:z-30 hover:shadow-lg"
+                    style={{ 
+                      backgroundColor: m.hex,
+                      boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)' 
+                    }}
+                  >
+                    {iniciales}
+                    {/* Tooltip flotante */}
+                    <div className="absolute bottom-12 left-1/2 -translate-x-1/2 scale-75 opacity-0 pointer-events-none group-hover:scale-100 group-hover:opacity-100 transition-all duration-250 ease-elastic bg-slate-900 text-white px-3 py-1.5 rounded-2xl whitespace-nowrap shadow-xl border border-white/10 text-center z-50">
+                      <p className="text-[10px] font-bold tracking-wide leading-none">{m.nombre}</p>
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-1 w-1.5 h-1.5 rotate-45 bg-slate-900 border-r border-b border-white/10" />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            <button
+              onClick={() => setMostrarInfo(false)}
+              className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-bold rounded-xl transition-all cursor-pointer uppercase tracking-wider shadow-md hover:shadow-lg active:scale-98"
+            >
+              Cerrar
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Estilos CSS */}
+      <style>{`
+        .bg-radial-light {
+          background: radial-gradient(circle at center, #f8fafc 0%, #e2e8f0 100%);
+        }
+        
+        @keyframes float {
+          0%, 100% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-6px) rotate(1deg); }
+        }
+        
+        .logo-flotar {
+          animation: float 5s ease-in-out infinite;
+        }
+
+        .animate-spin-slow {
+          animation: spin 30s linear infinite;
+        }
+
+        .animate-spin-reverse {
+          animation: spin-reverse 35s linear infinite;
+        }
+
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+
+        @keyframes spin-reverse {
+          from { transform: rotate(360deg); }
+          to { transform: rotate(0deg); }
+        }
+
+        @keyframes fadeSlideUp {
+          from { opacity: 0; transform: translateY(15px) scale(0.96); }
+          to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .animate-fade-slide-up {
+          animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        .animate-fade-in {
+          animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        .ease-elastic {
+          transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Infinity Stones Shake & Glow Levels */
+        @keyframes shake-1 {
+          0%, 100% { transform: translate(0, 0) rotate(0deg); }
+          25% { transform: translate(0.5px, 0.5px) rotate(0.1deg); }
+          75% { transform: translate(-0.5px, -0.5px) rotate(-0.1deg); }
+        }
+        @keyframes shake-2 {
+          0%, 100% { transform: translate(0, 0) rotate(0deg); }
+          20% { transform: translate(1px, -1px) rotate(0.2deg); }
+          40% { transform: translate(-1px, 1.5px) rotate(-0.2deg); }
+          60% { transform: translate(1px, 1px) rotate(0.1deg); }
+          80% { transform: translate(-1.5px, -1px) rotate(-0.1deg); }
+        }
+        @keyframes shake-3 {
+          0%, 100% { transform: translate(0, 0) rotate(0deg); }
+          15% { transform: translate(2px, -2px) rotate(0.5deg); }
+          30% { transform: translate(-2px, 2px) rotate(-0.5deg); }
+          45% { transform: translate(2px, 2px) rotate(0.3deg); }
+          60% { transform: translate(-2px, -1.5px) rotate(-0.3deg); }
+          75% { transform: translate(1.5px, -2px) rotate(0.4deg); }
+          90% { transform: translate(-1.5px, 2px) rotate(-0.4deg); }
+        }
+        @keyframes shake-4 {
+          0%, 100% { transform: translate(0, 0) rotate(0deg); }
+          10% { transform: translate(3.5px, -3.5px) rotate(1.2deg); }
+          20% { transform: translate(-3.5px, 3.5px) rotate(-1.2deg); }
+          30% { transform: translate(3px, 3.5px) rotate(0.8deg); }
+          40% { transform: translate(-3.5px, -2.5px) rotate(-0.8deg); }
+          50% { transform: translate(2.5px, -3px) rotate(1.0deg); }
+          60% { transform: translate(-2.5px, 3.5px) rotate(-1.0deg); }
+          70% { transform: translate(3px, -2.5px) rotate(0.9deg); }
+          80% { transform: translate(-3.5px, 2.5px) rotate(-0.9deg); }
+          90% { transform: translate(2.5px, 3.5px) rotate(1.1deg); }
+        }
+
+        .animate-shake-1 { animation: shake-1 0.3s linear infinite; filter: drop-shadow(0 0 8px rgba(14, 165, 233, 0.4)); }
+        .animate-shake-2 { animation: shake-2 0.25s linear infinite; filter: drop-shadow(0 0 16px rgba(14, 165, 233, 0.65)); }
+        .animate-shake-3 { animation: shake-3 0.2s linear infinite; filter: drop-shadow(0 0 24px rgba(99, 102, 241, 0.85)); }
+        .animate-shake-4 { animation: shake-4 0.15s linear infinite; filter: drop-shadow(0 0 40px rgba(236, 72, 153, 0.95)); }
+
+        /* Efecto de desintegración de Thanos */
+        @keyframes thanosSnap {
+          0% {
+            transform: scale(1) translateY(0) rotate(0deg);
+            filter: blur(0px) brightness(1);
+            opacity: 1;
+          }
+          40% {
+            transform: scale(1.02) translateY(-4px) rotate(0.2deg);
+            filter: blur(2px) brightness(1.1);
+            opacity: 0.9;
+          }
+          100% {
+            transform: scale(0.88) translateY(-30px) rotate(1.5deg);
+            filter: blur(16px) brightness(0.6);
+            opacity: 0;
+          }
+        }
+
+        .animate-thanos {
+          animation: thanosSnap 1.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+      `}</style>
     </main>
   )
 }

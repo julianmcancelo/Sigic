@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 Name=Reportes
-Comment=Estadísticas y auditoría de colaciones
+Comment=Métricas, asistencia y exportación de datos
 Exec=/usr/local/bin/sigic-reportes
 Icon=/usr/share/pixmaps/sigic-reportes.png
 Terminal=false

@@ -28,9 +28,9 @@ systemctl enable sigic-server.service
 mkdir -p /etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml
 cp -r /etc/xdg/xfce4/xfconf/xfce-perchannel-xml/* /etc/skel/.config/xfce4/xfconf/xfce-perchannel-xml/ 2>/dev/null || true
 if [ -f /usr/share/backgrounds/sigic/fondo.png ]; then
-  find /usr/share/backgrounds/xfce -type f -exec cp /usr/share/backgrounds/sigic/fondo.png {} + 2>/dev/null || true
-  find /usr/share/images -name "*.png" -exec cp /usr/share/backgrounds/sigic/fondo.png {} + 2>/dev/null || true
-  find /usr/share/images -name "*.svg" -exec cp /usr/share/backgrounds/sigic/fondo.png {} + 2>/dev/null || true
+  find /usr/share/backgrounds/xfce -type f -exec cp /usr/share/backgrounds/sigic/fondo.png {} \; 2>/dev/null || true
+  find /usr/share/images -name "*.png" -exec cp /usr/share/backgrounds/sigic/fondo.png {} \; 2>/dev/null || true
+  find /usr/share/images -name "*.svg" -exec cp /usr/share/backgrounds/sigic/fondo.png {} \; 2>/dev/null || true
 fi
 
 # --- Iconos del sistema e identidad de escritorio ---
@@ -56,10 +56,23 @@ if [ -f /opt/sigic/logo.png ]; then
   gtk-update-icon-cache /usr/share/icons/hicolor 2>/dev/null || true
 fi
 
-# --- Accesos directos del escritorio ejecutables ---
+# --- Accesos directos del escritorio ejecutables y CONFIABLES (sin cartel de advertencia) ---
 chmod +x /etc/skel/Desktop/*.desktop 2>/dev/null || true
+mkdir -p /etc/skel/.config/xfce4/xfconf/xfce4-channel-xml
+mkdir -p /etc/xdg/xfce4/xfconf/xfce4-channel-xml
+cat > /etc/xdg/xfce4/xfconf/xfce4-channel-xml/thunar.xml <<'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<channel name="thunar" version="1.0">
+  <property name="misc-exec-shell-scripts-by-default" type="bool" value="true"/>
+</channel>
+EOF
+# Desactivar la verificación de lanzador no confiable en xfce4-desktop / thunar
+for f in /etc/skel/Desktop/*.desktop; do
+  [ -f "$f" ] && gio set "$f" "metadata::trusted" "yes" 2>/dev/null || true
+done
 
 # --- Quitar bloqueo de pantalla (equipo de exposición sin contraseña) ---
+
 apt-get purge -y light-locker xfce4-screensaver 2>/dev/null || true
 
 # --- Identidad del sistema ---

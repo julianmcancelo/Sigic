@@ -73,6 +73,7 @@ NEXT_TELEMETRY_DISABLED=1
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 DATABASE_URL=postgres://sigic:sigic@localhost:5432/sigic
 DB_SSL_INSECURE=1
+DEMO_MODE=true
 JWT_SECRET=$(openssl rand -hex 48)
 SIGIC_SETUP_KEY=35230531
 EOF

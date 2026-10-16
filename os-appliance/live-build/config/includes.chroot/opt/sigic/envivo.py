@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-SiGIC — Monitor de Ceremonia en Vivo
-Aplicación nativa GTK3 para el seguimiento en tiempo real del acto de colación.
+SiGIC — Monitor de Ceremonia en Vivo y Llamador de Escenario (Edición Compacta)
+Control interactivo de llamado al estrado, entrega de diplomas en tiempo real
+y bitácora de eventos conectada a sigic_db.py.
+Instituto Tecnológico Beltrán
 """
 
 import os
 import sys
-import json
-import urllib.request
-import threading
 from datetime import datetime
+
+sys.path.insert(0, "/opt/sigic")
+import sigic_db
 
 try:
     import gi
@@ -21,170 +23,317 @@ except Exception as err:
     print(f"Error cargando librerías GTK3: {err}")
     sys.exit(1)
 
-CSS_ESTILOS = b"""
-window.sigic-window {
-    background-color: #0b1523;
-}
 
-headerbar.sigic-headerbar {
-    background-color: #0f1c30;
-    border-bottom: 1px solid #1e293b;
-}
-
-.card-dark {
-    background-color: #111e33;
-    border: 1px solid #1e293b;
-    border-radius: 12px;
-    padding: 16px;
-}
-
-.live-badge {
-    background-color: #ef4444;
-    color: #ffffff;
-    font-size: 11px;
-    font-weight: 900;
-    border-radius: 6px;
-    padding: 4px 10px;
-}
-
-.metric-big {
-    font-size: 32px;
-    font-weight: 900;
-    color: #38bdf8;
-}
-
-.metric-lbl {
-    font-size: 11px;
-    font-weight: bold;
-    color: #94a3b8;
-}
-
-progressbar progress {
-    background-color: #0284c7;
-    border-radius: 6px;
-}
-
-progressbar trough {
-    background-color: #1e293b;
-    border-radius: 6px;
-}
-"""
-
-class EnVivoSigic(Gtk.Window):
+class EnVivoWindow(Gtk.Window):
     def __init__(self):
-        super().__init__(title="Monitor en Vivo de Ceremonia — SiGIC")
-        self.set_default_size(840, 560)
+        super().__init__(title="Monitor de Ceremonia en Vivo — SiGIC")
+        self.set_default_size(980, 550)
         self.set_position(Gtk.WindowPosition.CENTER)
         self.get_style_context().add_class("sigic-window")
 
         header = Gtk.HeaderBar()
         header.set_show_close_button(True)
-        header.props.title = "Monitor en Vivo"
-        header.props.subtitle = "Seguimiento en directo del acto de colación"
+        header.set_decoration_layout(":minimize,maximize,close")
+        header.props.title = "Monitor de Ceremonia en Vivo y Estrado"
+        header.props.subtitle = "Llamador de Escenario, Entrega de Diplomas y Bitácora en Tiempo Real"
         header.get_style_context().add_class("sigic-headerbar")
         self.set_titlebar(header)
 
-        badge = Gtk.Label(label="● EN VIVO")
-        badge.get_style_context().add_class("live-badge")
-        header.pack_end(badge)
+        for r in ["/opt/sigic/logo.png", "/usr/share/pixmaps/sigic.png"]:
+            if os.path.exists(r):
+                try:
+                    self.set_icon_from_file(r)
+                    pix = GdkPixbuf.Pixbuf.new_from_file_at_scale(r, 20, 20, True)
+                    img = Gtk.Image.new_from_pixbuf(pix)
+                    img.set_margin_start(4)
+                    header.pack_start(img)
+                    break
+                except Exception:
+                    pass
 
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=14)
-        vbox.set_margin_top(14)
-        vbox.set_margin_bottom(14)
-        vbox.set_margin_start(18)
-        vbox.set_margin_end(18)
+        btn_sig = Gtk.Button(label="Llamar Siguiente en Fila →")
+        btn_sig.get_style_context().add_class("btn-primary")
+        btn_sig.connect("clicked", self.on_llamar_siguiente)
+        header.pack_start(btn_sig)
+
+        self.lbl_reloj = Gtk.Label()
+        self.lbl_reloj.set_markup(f"<span foreground='#34d399' weight='heavy' size='10000'>● EN VIVO {datetime.now().strftime('%H:%M:%S')}</span>")
+        header.pack_end(self.lbl_reloj)
+
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        vbox.set_margin_top(8)
+        vbox.set_margin_bottom(8)
+        vbox.set_margin_start(12)
+        vbox.set_margin_end(12)
         self.add(vbox)
 
-        # Fila de métricas en directo
-        box_kpi = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
-        box_kpi.set_homogeneous(True)
+        # KPIs compactos
+        kpi_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        kpi_row.set_homogeneous(True)
+        self.lbl_k_acr, b1 = self._crear_kpi("ACREDITADOS EN SALA", "0", "Presentes en anfiteatro", "#38bdf8")
+        self.lbl_k_dip, b2 = self._crear_kpi("DIPLOMAS ENTREGADOS", "0", "Pasaron por escenario", "#34d399")
+        self.lbl_k_esp, b3 = self._crear_kpi("EN FILA DE LLAMADO", "0", "Pendientes de subir", "#fbbf24")
+        self.lbl_k_inv, b4 = self._crear_kpi("ACOMPAÑANTES EN SALA", "0", "Familiares ubicados", "#c084fc")
+        for b in (b1, b2, b3, b4):
+            kpi_row.pack_start(b, True, True, 0)
+        vbox.pack_start(kpi_row, False, False, 0)
 
-        self.k1 = self._crear_kpi("42 / 48", "Graduados en Sala", "87.5% de asistencia")
-        self.k2 = self._crear_kpi("126 / 144", "Invitados Ingresados", "Portería abierta")
-        self.k3 = self._crear_kpi("168 / 200", "Ocupación Total", "Anfiteatro Beltrán")
+        # Tarjeta destacada: Graduado Actualmente en el Escenario
+        stage_card = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
+        stage_card.get_style_context().add_class("hero-banner")
 
-        box_kpi.pack_start(self.k1, True, True, 0)
-        box_kpi.pack_start(self.k2, True, True, 0)
-        box_kpi.pack_start(self.k3, True, True, 0)
-        vbox.pack_start(box_kpi, False, False, 0)
+        info_stage = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+        lbl_tag = Gtk.Label(xalign=0)
+        lbl_tag.set_markup("<span foreground='#38bdf8' weight='heavy' size='8500'>ACTUALMENTE EN EL ESCENARIO PRINCIPAL</span>")
+        info_stage.pack_start(lbl_tag, False, False, 0)
 
-        # Barra de progreso general de acreditación
-        box_prog = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
-        box_prog.get_style_context().add_class("card-dark")
+        self.lbl_stage_nombre = Gtk.Label(xalign=0)
+        self.lbl_stage_nombre.set_markup("<span foreground='#ffffff' weight='heavy' size='14000'>Seleccioná un graduado o pulsá «Llamar Siguiente»</span>")
+        info_stage.pack_start(self.lbl_stage_nombre, False, False, 0)
 
-        lbl_pb = Gtk.Label(xalign=0)
-        lbl_pb.set_markup("<span foreground='#f8fafc' weight='heavy'>Avance de Acreditación de Sala (84%)</span>")
-        box_prog.pack_start(lbl_pb, False, False, 0)
+        self.lbl_stage_sub = Gtk.Label(xalign=0)
+        self.lbl_stage_sub.set_markup("<span foreground='#94a3b8' size='9200'>Carrera · Butaca · Persona que entrega el diploma</span>")
+        info_stage.pack_start(self.lbl_stage_sub, False, False, 0)
+        stage_card.pack_start(info_stage, True, True, 0)
 
-        self.pbar = Gtk.ProgressBar()
-        self.pbar.set_fraction(0.84)
-        box_prog.pack_start(self.pbar, False, False, 0)
-        vbox.pack_start(box_prog, False, False, 0)
+        btns_stage = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=6)
+        btns_stage.set_valign(Gtk.Align.CENTER)
 
-        # Flujo de últimas acreditaciones en tiempo real
-        scroll = Gtk.ScrolledWindow()
-        scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        scroll.get_style_context().add_class("card-dark")
+        btn_llamar = Gtk.Button(label="Llamar Seleccionado")
+        btn_llamar.get_style_context().add_class("btn-secondary")
+        btn_llamar.connect("clicked", self.on_llamar_seleccionado)
+        btns_stage.pack_start(btn_llamar, False, False, 0)
 
-        self.store = Gtk.ListStore(str, str, str, str)
-        self.tree = Gtk.TreeView(model=self.store)
-        self.tree.set_rules_hint(True)
+        btn_entregado = Gtk.Button(label="✓ Marcar Diploma Entregado")
+        btn_entregado.get_style_context().add_class("btn-emerald")
+        btn_entregado.connect("clicked", self.on_marcar_entregado)
+        btns_stage.pack_start(btn_entregado, False, False, 0)
 
-        cols = ["Hora Ingreso", "Nombre y Apellido", "Rol / Ubicación", "Estado Portería"]
-        for i, c in enumerate(cols):
-            renderer = Gtk.CellRendererText()
-            column = Gtk.TreeViewColumn(c, renderer, text=i)
-            self.tree.append_column(column)
+        stage_card.pack_end(btns_stage, False, False, 0)
+        vbox.pack_start(stage_card, False, False, 0)
 
-        scroll.add(self.tree)
-        vbox.pack_start(scroll, True, True, 0)
+        # Mitad inferior: Izquierda Cola de Graduados | Derecha Bitácora en Vivo
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        vbox.pack_start(hbox, True, True, 0)
 
-        self.cargar_datos_demo()
+        # Panel izquierdo: Lista de graduados para escenario
+        left_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        left_box.get_style_context().add_class("card-panel")
 
-    def _crear_kpi(self, val, tit, sub):
-        card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
-        card.get_style_context().add_class("card-dark")
-        lbl_v = Gtk.Label(xalign=0)
-        lbl_v.set_markup(f"<span foreground='#38bdf8' weight='heavy' size='20000'>{val}</span>")
-        card.pack_start(lbl_v, False, False, 0)
+        lbl_l = Gtk.Label(xalign=0)
+        lbl_l.set_markup("<span foreground='#f8fafc' weight='heavy' size='10000'>Orden de Llamado al Estrado y Entrega de Diplomas</span>")
+        left_box.pack_start(lbl_l, False, False, 0)
 
-        lbl_t = Gtk.Label(xalign=0)
-        lbl_t.set_markup(f"<span foreground='#94a3b8' weight='heavy' size='9000'>{tit.upper()}</span>")
-        card.pack_start(lbl_t, False, False, 0)
-
-        lbl_s = Gtk.Label(xalign=0)
-        lbl_s.set_markup(f"<small><span foreground='#64748b'>{sub}</span></small>")
-        card.pack_start(lbl_s, False, False, 0)
-        return card
-
-    def cargar_datos_demo(self):
-        items = [
-            ("18:14:22", "Álvarez Sofía", "Graduada — Butaca A-04", "Ingreso Validado QR"),
-            ("18:13:50", "Acompañante de Álvarez Sofía", "Invitado — Butaca E-08", "Ingreso Validado QR"),
-            ("18:12:10", "Benítez Lucas", "Graduado — Butaca A-05", "Ingreso Validado QR"),
-            ("18:10:04", "Castro Lucía", "Graduada — Butaca B-01", "Ingreso Validado QR"),
-            ("18:08:45", "Fernández Paula", "Graduada — Butaca B-02", "Ingreso Validado QR"),
-            ("18:05:12", "González Tomás", "Graduado — Butaca B-03", "Ingreso Validado QR"),
+        self.store_cola = Gtk.ListStore(int, str, str, str, str, str)
+        self.tree_cola = Gtk.TreeView(model=self.store_cola)
+        cols = [
+            ("Butaca", 1, 60),
+            ("Graduado", 2, 185),
+            ("Carrera", 3, 180),
+            ("Entrega Diploma", 4, 150),
+            ("Estado Estrado", 5, 115),
         ]
-        for row in items:
-            self.store.append(list(row))
+        for t, idx, w in cols:
+            r = Gtk.CellRendererText()
+            if idx == 1:
+                r.set_property("foreground", "#38bdf8")
+                r.set_property("weight", 700)
+            elif idx == 2:
+                r.set_property("weight", 700)
+            elif idx == 5:
+                r.set_property("foreground", "#34d399")
+                r.set_property("weight", 700)
+            c = Gtk.TreeViewColumn(t, r, text=idx)
+            c.set_min_width(w)
+            self.tree_cola.append_column(c)
 
-def aplicar_estilos():
-    try:
-        css_provider = Gtk.CssProvider()
-        css_provider.load_from_data(CSS_ESTILOS)
-        screen = Gdk.Screen.get_default()
-        if screen:
-            Gtk.StyleContext.add_provider_for_screen(screen, css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
-    except Exception as err:
-        print(f"Aviso CSS: {err}")
+        scr_c = Gtk.ScrolledWindow()
+        scr_c.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        scr_c.add(self.tree_cola)
+        left_box.pack_start(scr_c, True, True, 0)
+        hbox.pack_start(left_box, True, True, 0)
+
+        # Panel derecho: Feed de eventos en tiempo real
+        right_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        right_box.set_size_request(300, -1)
+        right_box.get_style_context().add_class("card-panel")
+
+        lbl_r = Gtk.Label(xalign=0)
+        lbl_r.set_markup("<span foreground='#f8fafc' weight='heavy' size='10000'>Bitácora de Eventos en Vivo</span>")
+        right_box.pack_start(lbl_r, False, False, 0)
+
+        self.store_ev = Gtk.ListStore(str, str, str)
+        tree_ev = Gtk.TreeView(model=self.store_ev)
+        for idx, (t, w) in enumerate([("Hora", 62), ("Tipo", 78), ("Detalle", 150)]):
+            r = Gtk.CellRendererText()
+            if idx == 0:
+                r.set_property("foreground", "#38bdf8")
+            elif idx == 1:
+                r.set_property("weight", 700)
+                r.set_property("foreground", "#34d399")
+            c = Gtk.TreeViewColumn(t, r, text=idx)
+            c.set_min_width(w)
+            tree_ev.append_column(c)
+
+        scr_e = Gtk.ScrolledWindow()
+        scr_e.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        scr_e.add(tree_ev)
+        right_box.pack_start(scr_e, True, True, 0)
+        hbox.pack_start(right_box, False, False, 0)
+
+        self.graduado_en_escenario_id = None
+        self.refrescar_panel()
+        GLib.timeout_add_seconds(1, self._tick_reloj)
+
+    def _crear_kpi(self, tit, val, sub, col):
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
+        box.get_style_context().add_class("kpi-card")
+        l1 = Gtk.Label(xalign=0)
+        l1.set_markup(f"<span foreground='#94a3b8' weight='bold' size='8000'>{tit}</span>")
+        l2 = Gtk.Label(xalign=0)
+        l2.set_markup(f"<span foreground='{col}' weight='heavy' size='13500'>{val}</span>")
+        l3 = Gtk.Label(xalign=0)
+        l3.set_markup(f"<span foreground='#64748b' size='8000'>{sub}</span>")
+        box.pack_start(l1, False, False, 0)
+        box.pack_start(l2, False, False, 0)
+        box.pack_start(l3, False, False, 0)
+        return l2, box
+
+    def _tick_reloj(self):
+        self.lbl_reloj.set_markup(f"<span foreground='#34d399' weight='heavy' size='10000'>● EN VIVO {datetime.now().strftime('%H:%M:%S')}</span>")
+        return True
+
+    def refrescar_panel(self):
+        resumen = sigic_db.obtener_resumen_global()
+        graduados = sigic_db.listar_graduados()
+
+        entregados = sum(1 for g in graduados if g.get("diploma_entregado"))
+        en_fila = len(graduados) - entregados
+
+        self.lbl_k_acr.set_markup(f"<span foreground='#38bdf8' weight='heavy' size='13500'>{resumen['acreditados']} / {resumen['total']}</span>")
+        self.lbl_k_dip.set_markup(f"<span foreground='#34d399' weight='heavy' size='13500'>{entregados}</span>")
+        self.lbl_k_esp.set_markup(f"<span foreground='#fbbf24' weight='heavy' size='13500'>{en_fila}</span>")
+        self.lbl_k_inv.set_markup(f"<span foreground='#c084fc' weight='heavy' size='13500'>{resumen['total_invitados']}</span>")
+
+        self.store_cola.clear()
+        en_escenario_obj = None
+        for g in graduados:
+            if g.get("en_escenario"):
+                est_txt = "EN ESCENARIO"
+                en_escenario_obj = g
+            elif g.get("diploma_entregado"):
+                est_txt = "ENTREGADO ✓"
+            elif g.get("acreditado"):
+                est_txt = "EN BUTACA"
+            else:
+                est_txt = "PENDIENTE"
+
+            self.store_cola.append([
+                int(g.get("id", 0)),
+                g.get("asiento", "-"),
+                g.get("nombre", ""),
+                g.get("carrera", ""),
+                g.get("entregador", "Docente Titular"),
+                est_txt,
+            ])
+
+        if not en_escenario_obj and graduados:
+            en_escenario_obj = next((g for g in graduados if not g.get("diploma_entregado")), graduados[0])
+
+        if en_escenario_obj:
+            self.graduado_en_escenario_id = int(en_escenario_obj.get("id", 0))
+            self.lbl_stage_nombre.set_markup(
+                f"<span foreground='#ffffff' weight='heavy' size='14000'>{en_escenario_obj.get('nombre')}</span>"
+            )
+            self.lbl_stage_sub.set_markup(
+                f"<span foreground='#38bdf8' weight='bold' size='9500'>{en_escenario_obj.get('carrera')}</span>   ·   "
+                f"<span foreground='#34d399' weight='bold' size='9500'>Butaca {en_escenario_obj.get('asiento', '-')}</span>   ·   "
+                f"<span foreground='#cbd5e1' size='9500'>Entrega: {en_escenario_obj.get('entregador', 'Autoridad Beltrán')}</span>"
+            )
+
+        self.store_ev.clear()
+        for ev in sigic_db.listar_eventos()[:30]:
+            self.store_ev.append([ev.get("hora", ""), ev.get("tipo", ""), ev.get("detalle", "")])
+
+    def _obtener_id_seleccionado(self):
+        sel = self.tree_cola.get_selection()
+        model, treeiter = sel.get_selected()
+        if treeiter:
+            return model[treeiter][0]
+        return self.graduado_en_escenario_id
+
+    def on_llamar_seleccionado(self, button):
+        gid = self._obtener_id_seleccionado()
+        if not gid:
+            return
+        datos = sigic_db.cargar_datos()
+        for g in datos.get("graduados", []):
+            g["en_escenario"] = (int(g.get("id", 0)) == int(gid))
+            if g["en_escenario"]:
+                datos.setdefault("eventos_envivo", []).insert(0, {
+                    "hora": datetime.now().strftime("%H:%M:%S"),
+                    "tipo": "ESCENARIO",
+                    "detalle": f"Subió al estrado: {g.get('nombre')} ({g.get('asiento', '-')})"
+                })
+        sigic_db.guardar_datos(datos)
+        self.refrescar_panel()
+
+    def on_marcar_entregado(self, button):
+        gid = self._obtener_id_seleccionado()
+        if not gid:
+            return
+        datos = sigic_db.cargar_datos()
+        for g in datos.get("graduados", []):
+            if int(g.get("id", 0)) == int(gid):
+                g["diploma_entregado"] = True
+                g["en_escenario"] = False
+                datos.setdefault("eventos_envivo", []).insert(0, {
+                    "hora": datetime.now().strftime("%H:%M:%S"),
+                    "tipo": "DIPLOMA",
+                    "detalle": f"Diploma entregado a {g.get('nombre')}"
+                })
+        sigic_db.guardar_datos(datos)
+        self.on_llamar_siguiente(None)
+
+    def on_llamar_siguiente(self, button):
+        datos = sigic_db.cargar_datos()
+        graduados = datos.get("graduados", [])
+        siguiente = next((g for g in graduados if not g.get("diploma_entregado") and not g.get("en_escenario")), None)
+        for g in graduados:
+            g["en_escenario"] = False
+        if siguiente:
+            siguiente["en_escenario"] = True
+            datos.setdefault("eventos_envivo", []).insert(0, {
+                "hora": datetime.now().strftime("%H:%M:%S"),
+                "tipo": "LLAMADO",
+                "detalle": f"Llamado al escenario: {siguiente.get('nombre')} ({siguiente.get('asiento', '-')})"
+            })
+        sigic_db.guardar_datos(datos)
+        self.refrescar_panel()
+
 
 def main():
-    win = EnVivoSigic()
-    aplicar_estilos()
+    try:
+        import gi
+        gi.require_version('Gtk', '3.0')
+        gi.require_version('Gdk', '3.0')
+        from gi.repository import Gtk, Gdk
+        settings = Gtk.Settings.get_default()
+        if settings:
+            settings.set_property("gtk-application-prefer-dark-theme", True)
+        provider = Gtk.CssProvider()
+        provider.load_from_data(sigic_db.CSS_SUITE_OSCURA)
+        screen = Gdk.Screen.get_default()
+        if screen:
+            Gtk.StyleContext.add_provider_for_screen(screen, provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+    except Exception as e:
+        print(f"Aviso CSS: {e}")
+    win = EnVivoWindow()
     win.connect("destroy", Gtk.main_quit)
     win.show_all()
     Gtk.main()
+
+
 
 if __name__ == "__main__":
     main()

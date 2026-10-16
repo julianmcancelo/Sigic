@@ -1,746 +1,830 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-SiGIC — Gestión y Padrón Oficial de Graduados
-Aplicación nativa GTK3 para búsqueda, alta individual, importación masiva y padrón oficial.
-Instituto Tecnológico Beltrán
+SiGIC — Gestión de Padrón de Graduados, Acompañantes, Entregadores y Credencial Digital QR
+Conectado en tiempo real a sigic_db.py
+Instituto Tecnológico Beltrán — Práctica Profesionalizante 2026
 """
 
+import gi
+gi.require_version('Gtk', '3.0')
+from gi.repository import Gtk, Gdk, GdkPixbuf, Pango
 import os
-import sys
 import csv
-import json
-import io
-import zipfile
-import xml.etree.ElementTree as ET
-import urllib.request
-import urllib.error
-import subprocess
-import threading
-
-try:
-    import gi
-    gi.require_version('Gtk', '3.0')
-    gi.require_version('Gdk', '3.0')
-    from gi.repository import Gtk, Gdk, GdkPixbuf, GLib
-except Exception as err:
-    print(f"Error cargando librerías GTK3: {err}")
-    sys.exit(1)
-
-CSS_ESTILOS = b"""
-window.sigic-window {
-    background-color: #f8fafc;
-}
-
-headerbar.sigic-headerbar {
-    background-color: #ffffff;
-    border-bottom: 1px solid #cbd5e1;
-}
-
-.search-field {
-    background-color: #ffffff;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    padding: 7px 12px;
-    font-size: 13px;
-    color: #0f172a;
-}
-
-.search-field:focus {
-    border-color: #0284c7;
-}
-
-button.btn-primary {
-    background-image: none;
-    background-color: #0284c7;
-    border-color: #0284c7;
-    color: #ffffff;
-    font-size: 12px;
-    font-weight: bold;
-    border-radius: 8px;
-    padding: 7px 14px;
-    border-width: 0px;
-}
-
-button.btn-primary:hover {
-    background-image: none;
-    background-color: #0369a1;
-}
-
-button.btn-secondary {
-    background-image: none;
-    background-color: #ffffff;
-    color: #334155;
-    font-size: 12px;
-    font-weight: bold;
-    border: 1px solid #cbd5e1;
-    border-radius: 8px;
-    padding: 7px 14px;
-}
-
-button.btn-secondary:hover {
-    background-image: none;
-    background-color: #f1f5f9;
-}
-
-button.btn-danger {
-    background-image: none;
-    background-color: #ffffff;
-    color: #dc2626;
-    font-size: 12px;
-    font-weight: bold;
-    border: 1px solid #fca5a5;
-    border-radius: 8px;
-    padding: 7px 12px;
-}
-
-button.btn-danger:hover {
-    background-image: none;
-    background-color: #fef2f2;
-}
-
-treeview {
-    background-color: #ffffff;
-    color: #0f172a;
-    font-size: 12px;
-}
-
-treeview:selected {
-    background-color: #0284c7;
-    color: #ffffff;
-}
-"""
-
-CARRERAS_BELTRAN = [
-    "Tecnicatura Superior en Desarrollo de Software",
-    "Tecnicatura Superior en Analista de Sistemas",
-    "Tecnicatura Superior en Automatización y Robótica",
-    "Tecnicatura Superior en Redes e Infraestructura",
-    "Tecnicatura Superior en Diseño y Desarrollo Web",
-    "Tecnicatura Superior en Ciencia de Datos e IA",
-    "Tecnicatura Superior en Ciberseguridad",
-    "Tecnicatura Superior en Higiene y Seguridad en el Trabajo",
-]
-
-COHORTE_MODELO = [
-    {"nombre": "García, Juan Manuel", "dni": "42123456", "legajo": "BEL-2024-101", "correo": "juan.garcia@sigic.demo.ar", "carrera": "Tecnicatura Superior en Desarrollo de Software", "promedio": "9.1", "estado": "CONFIRMADO", "butaca": "Fila A - Butaca 01"},
-    {"nombre": "Martínez, Lucía Belén", "dni": "43234567", "legajo": "BEL-2024-102", "correo": "lucia.martinez@sigic.demo.ar", "carrera": "Tecnicatura Superior en Automatización y Robótica", "promedio": "9.4", "estado": "CONFIRMADO", "butaca": "Fila A - Butaca 02"},
-    {"nombre": "Rodríguez, Matías Alejandro", "dni": "41987654", "legajo": "BEL-2024-103", "correo": "matias.rodriguez@sigic.demo.ar", "carrera": "Tecnicatura Superior en Redes e Infraestructura", "promedio": "8.7", "estado": "CONFIRMADO", "butaca": "Fila A - Butaca 03"},
-    {"nombre": "Fernández, Camila Soledad", "dni": "44567890", "legajo": "BEL-2024-104", "correo": "camila.fernandez@sigic.demo.ar", "carrera": "Tecnicatura Superior en Ciencia de Datos e IA", "promedio": "9.6", "estado": "ACEPTADO", "butaca": "Fila A - Butaca 04"},
-    {"nombre": "López, Tomás Ignacio", "dni": "42876543", "legajo": "BEL-2024-105", "correo": "tomas.lopez@sigic.demo.ar", "carrera": "Tecnicatura Superior en Ciberseguridad", "promedio": "8.9", "estado": "CONFIRMADO", "butaca": "Fila B - Butaca 01"},
-    {"nombre": "González, Valentina Rocío", "dni": "43654321", "legajo": "BEL-2024-106", "correo": "valentina.gonzalez@sigic.demo.ar", "carrera": "Tecnicatura Superior en Diseño y Desarrollo Web", "promedio": "9.3", "estado": "ACEPTADO", "butaca": "Fila B - Butaca 02"},
-    {"nombre": "Díaz, Agustín Ezequiel", "dni": "42345678", "legajo": "BEL-2024-107", "correo": "agustin.diaz@sigic.demo.ar", "carrera": "Tecnicatura Superior en Desarrollo de Software", "promedio": "8.5", "estado": "CONFIRMADO", "butaca": "Fila B - Butaca 03"},
-    {"nombre": "Pérez, Sofía Ailén", "dni": "44123789", "legajo": "BEL-2024-108", "correo": "sofia.perez@sigic.demo.ar", "carrera": "Tecnicatura Superior en Automatización y Robótica", "promedio": "9.0", "estado": "CONFIRMADO", "butaca": "Fila B - Butaca 04"},
-    {"nombre": "Romero, Franco Damián", "dni": "43987123", "legajo": "BEL-2024-109", "correo": "franco.romero@sigic.demo.ar", "carrera": "Tecnicatura Superior en Redes e Infraestructura", "promedio": "8.8", "estado": "PENDIENTE", "butaca": "Sin asignar"},
-    {"nombre": "Torres, Florencia Denise", "dni": "41765432", "legajo": "BEL-2024-110", "correo": "florencia.torres@sigic.demo.ar", "carrera": "Tecnicatura Superior en Ciencia de Datos e IA", "promedio": "9.5", "estado": "ACEPTADO", "butaca": "Fila C - Butaca 01"},
-    {"nombre": "Acosta, Lucas Gabriel", "dni": "42567123", "legajo": "BEL-2024-111", "correo": "lucas.acosta@sigic.demo.ar", "carrera": "Tecnicatura Superior en Ciberseguridad", "promedio": "8.6", "estado": "CONFIRMADO", "butaca": "Fila C - Butaca 02"},
-    {"nombre": "Benítez, Micaela Paula", "dni": "43876512", "legajo": "BEL-2024-112", "correo": "micaela.benitez@sigic.demo.ar", "carrera": "Tecnicatura Superior en Diseño y Desarrollo Web", "promedio": "9.2", "estado": "CONFIRMADO", "butaca": "Fila C - Butaca 03"}
-]
+import sigic_db
 
 
-class DialogoNuevoGraduado(Gtk.Dialog):
-    """Diálogo emergente para la carga individual de un alumno."""
-    def __init__(self, parent):
-        super().__init__(title="Nuevo Graduado — SiGIC Beltrán", transient_for=parent, flags=0)
-        self.set_default_size(480, 420)
-        self.set_resizable(False)
+def cargar_svg_pixbuf(svg_str, size=165):
+    loader = GdkPixbuf.PixbufLoader.new_with_type('svg')
+    loader.set_size(size, size)
+    loader.write(svg_str.encode('utf-8'))
+    loader.close()
+    return loader.get_pixbuf()
 
-        box_content = self.get_content_area()
-        box_content.set_spacing(10)
-        box_content.set_margin_top(16)
-        box_content.set_margin_bottom(16)
-        box_content.set_margin_start(20)
-        box_content.set_margin_end(20)
 
-        lbl_tit = Gtk.Label(xalign=0)
-        lbl_tit.set_markup("<span foreground='#0f172a' weight='heavy' size='13000'>Ficha de Ingreso al Padrón Oficial</span>\n<small><span foreground='#64748b'>Completá los datos requeridos para registrar al egresado.</span></small>")
-        box_content.pack_start(lbl_tit, False, False, 4)
+class DialogoGraduado(Gtk.Dialog):
+    """Formulario modal para alta o edición de un graduado."""
+    def __init__(self, parent, datos_existentes=None):
+        titulo = "Editar Ficha del Graduado" if datos_existentes else "Registrar Nuevo Graduado en Padrón"
+        super().__init__(title=titulo, transient_for=parent, flags=0)
+        self.add_buttons(
+            "Cancelar", Gtk.ResponseType.CANCEL,
+            "Guardar Graduado", Gtk.ResponseType.OK
+        )
+        self.set_default_size(540, 470)
+        self.set_border_width(14)
 
-        grid = Gtk.Grid()
-        grid.set_column_spacing(12)
-        grid.set_row_spacing(10)
-        box_content.pack_start(grid, True, True, 0)
+        btn_ok = self.get_widget_for_response(Gtk.ResponseType.OK)
+        if btn_ok:
+            btn_ok.get_style_context().add_class("btn-primary")
 
-        # Campos
-        self.ent_nombre = Gtk.Entry()
-        self.ent_nombre.set_placeholder_text("Ej: García, Juan Manuel")
+        box = self.get_content_area()
+        box.set_spacing(10)
+
+        lbl_head = Gtk.Label(xalign=0)
+        lbl_head.set_markup(
+            f"<span font='13' weight='bold' foreground='#f8fafc'>{titulo}</span>\n"
+            "<span font='9.5' foreground='#94a3b8'>Complete los datos académicos, contacto, butaca y estado de confirmación.</span>"
+        )
+        box.pack_start(lbl_head, False, False, 4)
+
+        grid = Gtk.Grid(column_spacing=12, row_spacing=10)
+        box.pack_start(grid, True, True, 4)
+
+        d = datos_existentes or {}
 
         self.ent_dni = Gtk.Entry()
-        self.ent_dni.set_placeholder_text("Ej: 42123456 (solo números)")
+        self.ent_dni.set_placeholder_text("Ej: 42123456")
+        self.ent_dni.set_text(d.get("dni", ""))
+
+        self.ent_nombre = Gtk.Entry()
+        self.ent_nombre.set_placeholder_text("Ej: Apellido, Nombre Completo")
+        self.ent_nombre.set_text(d.get("nombre", ""))
+        self.ent_nombre.set_hexpand(True)
 
         self.ent_legajo = Gtk.Entry()
-        self.ent_legajo.set_placeholder_text("Ej: BEL-2024-101")
+        self.ent_legajo.set_placeholder_text("Ej: BEL-2026-115")
+        self.ent_legajo.set_text(d.get("legajo", ""))
 
         self.ent_correo = Gtk.Entry()
-        self.ent_correo.set_placeholder_text("Ej: juan.garcia@gmail.com")
+        self.ent_correo.set_placeholder_text("graduado@ibeltran.edu.ar")
+        self.ent_correo.set_text(d.get("correo", ""))
 
-        self.combo_carrera = Gtk.ComboBoxText()
-        for c in CARRERAS_BELTRAN:
-            self.combo_carrera.append_text(c)
-        self.combo_carrera.set_active(0)
+        self.ent_telefono = Gtk.Entry()
+        self.ent_telefono.set_placeholder_text("11-4000-0000")
+        self.ent_telefono.set_text(d.get("telefono", ""))
+
+        self.cmb_carrera = Gtk.ComboBoxText()
+        carrera_actual = d.get("carrera", sigic_db.CARRERAS_BELTRAN[0])
+        idx_c = 0
+        for i, c in enumerate(sigic_db.CARRERAS_BELTRAN):
+            self.cmb_carrera.append_text(c)
+            if c == carrera_actual:
+                idx_c = i
+        self.cmb_carrera.set_active(idx_c)
 
         self.ent_promedio = Gtk.Entry()
-        self.ent_promedio.set_placeholder_text("Ej: 8.75 (opcional)")
+        self.ent_promedio.set_placeholder_text("Ej: 8.75")
+        self.ent_promedio.set_text(str(d.get("promedio", "8.50")))
 
-        filas = [
-            ("Apellido y Nombre *", self.ent_nombre),
-            ("DNI *", self.ent_dni),
-            ("Legajo Institucional", self.ent_legajo),
-            ("Correo Electrónico *", self.ent_correo),
-            ("Carrera / Titulación *", self.combo_carrera),
-            ("Promedio Académico", self.ent_promedio)
+        self.cmb_estado = Gtk.ComboBoxText()
+        estados = ["PENDIENTE", "INVITADO", "ACEPTADO", "CONFIRMADO", "RECHAZADO"]
+        est_actual = d.get("estado", "CONFIRMADO")
+        idx_e = 0
+        for i, est in enumerate(estados):
+            self.cmb_estado.append_text(est)
+            if est == est_actual:
+                idx_e = i
+        self.cmb_estado.set_active(idx_e)
+
+        self.ent_butaca = Gtk.Entry()
+        self.ent_butaca.set_placeholder_text("Ej: A5 o Sin asignar")
+        self.ent_butaca.set_text(d.get("butaca", "Sin asignar"))
+
+        self.cmb_entregador = Gtk.ComboBoxText()
+        profs = [p.get("nombre") for p in sigic_db.cargar_db().get("profesores", [])]
+        opciones_ent = ["Sin asignar"] + profs + ["Familiar / Acompañante Directo"]
+        ent_actual = d.get("entregador", "Sin asignar")
+        if ent_actual not in opciones_ent:
+            opciones_ent.append(ent_actual)
+        idx_ent = 0
+        for i, op in enumerate(opciones_ent):
+            self.cmb_entregador.append_text(op)
+            if op == ent_actual:
+                idx_ent = i
+        self.cmb_entregador.set_active(idx_ent)
+
+        campos = [
+            ("DNI / Documento (*):", self.ent_dni),
+            ("Apellido y Nombre (*):", self.ent_nombre),
+            ("Legajo Institucional:", self.ent_legajo),
+            ("Correo Electrónico:", self.ent_correo),
+            ("Teléfono Móvil:", self.ent_telefono),
+            ("Carrera / Tecnicatura:", self.cmb_carrera),
+            ("Promedio Académico:", self.ent_promedio),
+            ("Estado de Asistencia:", self.cmb_estado),
+            ("Butaca Asignada:", self.ent_butaca),
+            ("Entregador de Diploma:", self.cmb_entregador),
         ]
 
-        for i, (etiqueta, widget) in enumerate(filas):
+        for idx, (etiqueta, widget) in enumerate(campos):
             lbl = Gtk.Label(label=etiqueta, xalign=0)
             lbl.get_style_context().add_class("field-label")
-            grid.attach(lbl, 0, i, 1, 1)
-            widget.set_hexpand(True)
-            grid.attach(widget, 1, i, 1, 1)
+            grid.attach(lbl, 0, idx, 1, 1)
+            grid.attach(widget, 1, idx, 1, 1)
 
-        self.add_button("Cancelar", Gtk.ResponseType.CANCEL)
-        btn_guardar = self.add_button("Guardar en Padrón", Gtk.ResponseType.OK)
-        btn_guardar.get_style_context().add_class("btn-primary")
         self.show_all()
 
     def obtener_datos(self):
-        carrera = self.combo_carrera.get_active_text() or "Tecnicatura Beltrán"
         return {
+            "dni": self.ent_dni.get_text().strip(),
             "nombre": self.ent_nombre.get_text().strip(),
-            "dni": self.ent_dni.get_text().strip().replace(".", "").replace(" ", ""),
             "legajo": self.ent_legajo.get_text().strip(),
             "correo": self.ent_correo.get_text().strip(),
-            "carrera": carrera,
-            "promedio": self.ent_promedio.get_text().strip()
+            "telefono": self.ent_telefono.get_text().strip(),
+            "carrera": self.cmb_carrera.get_active_text() or sigic_db.CARRERAS_BELTRAN[0],
+            "promedio": self.ent_promedio.get_text().strip() or "8.00",
+            "estado": self.cmb_estado.get_active_text() or "PENDIENTE",
+            "butaca": self.ent_butaca.get_text().strip() or "Sin asignar",
+            "entregador": self.cmb_entregador.get_active_text() or "Sin asignar",
         }
 
 
-class GraduadosSigic(Gtk.Window):
+class DialogoInvitadosEntregador(Gtk.Dialog):
+    """Modal para gestionar acompañantes (alta/baja con DNI y parentesco) y entregador de diploma."""
+    def __init__(self, parent, graduado):
+        super().__init__(
+            title=f"Grupo Familiar y Entregador — {graduado.get('nombre', '')}",
+            transient_for=parent,
+            flags=0
+        )
+        self.add_buttons("Guardar y Cerrar", Gtk.ResponseType.OK)
+        self.set_default_size(640, 480)
+        self.set_border_width(14)
+        self.graduado = graduado
+        self.invitados = list(graduado.get("invitados", []))
+
+        btn_ok = self.get_widget_for_response(Gtk.ResponseType.OK)
+        if btn_ok:
+            btn_ok.get_style_context().add_class("btn-primary")
+
+        box = self.get_content_area()
+        box.set_spacing(10)
+
+        head = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3)
+        lbl_t = Gtk.Label(xalign=0)
+        lbl_t.set_markup(
+            f"<span font='13' weight='bold' foreground='#f8fafc'>Acompañantes y Entregador de Diploma</span>\n"
+            f"<span font='9.5' foreground='#38bdf8'>Graduado/a: {graduado.get('nombre')} · DNI {graduado.get('dni')} · Butaca {graduado.get('butaca', 'S/A')}</span>"
+        )
+        head.pack_start(lbl_t, False, False, 0)
+        box.pack_start(head, False, False, 0)
+
+        # Selector de entregador
+        card_ent = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        card_ent.get_style_context().add_class("panel-card")
+        lbl_e = Gtk.Label(label="Docente / Familiar que entrega el Diploma:", xalign=0)
+        lbl_e.get_style_context().add_class("field-label")
+        self.cmb_ent = Gtk.ComboBoxText()
+        profs = [p.get("nombre") for p in sigic_db.cargar_db().get("profesores", [])]
+        opciones = ["Sin asignar"] + profs + ["Familiar / Acompañante en Escenario"]
+        actual_ent = graduado.get("entregador", "Sin asignar")
+        if actual_ent not in opciones:
+            opciones.append(actual_ent)
+        for i, op in enumerate(opciones):
+            self.cmb_ent.append_text(op)
+            if op == actual_ent:
+                self.cmb_ent.set_active(i)
+        card_ent.pack_start(lbl_e, False, False, 0)
+        card_ent.pack_start(self.cmb_ent, True, True, 0)
+        box.pack_start(card_ent, False, False, 0)
+
+        # Formulario para agregar acompañante
+        card_add = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        card_add.get_style_context().add_class("panel-card")
+        self.ent_inv_nom = Gtk.Entry()
+        self.ent_inv_nom.set_placeholder_text("Apellido y Nombre del Acompañante...")
+        self.ent_inv_nom.set_hexpand(True)
+        self.ent_inv_dni = Gtk.Entry()
+        self.ent_inv_dni.set_placeholder_text("DNI")
+        self.ent_inv_dni.set_width_chars(11)
+        self.cmb_parentesco = Gtk.ComboBoxText()
+        for p in ["Padre / Madre", "Pareja / Cónyuge", "Hermano/a", "Hijo/a", "Abuelo/a", "Familiar / Invitado"]:
+            self.cmb_parentesco.append_text(p)
+        self.cmb_parentesco.set_active(0)
+
+        btn_add = Gtk.Button(label="+ Agregar Acompañante")
+        btn_add.get_style_context().add_class("btn-emerald")
+        btn_add.connect("clicked", self.on_agregar_invitado)
+
+        card_add.pack_start(self.ent_inv_nom, True, True, 0)
+        card_add.pack_start(self.ent_inv_dni, False, False, 0)
+        card_add.pack_start(self.cmb_parentesco, False, False, 0)
+        card_add.pack_start(btn_add, False, False, 0)
+        box.pack_start(card_add, False, False, 0)
+
+        # Tabla de acompañantes registrados
+        self.store = Gtk.ListStore(str, str, str, str)
+        self.tree = Gtk.TreeView(model=self.store)
+        for i, (tit, w) in enumerate([("Nombre del Acompañante", 250), ("DNI", 110), ("Vínculo", 130), ("Estado Ingreso", 110)]):
+            r = Gtk.CellRendererText()
+            if i == 0:
+                r.set_property("weight", Pango.Weight.BOLD)
+            col = Gtk.TreeViewColumn(tit, r, text=i)
+            col.set_min_width(w)
+            self.tree.append_column(col)
+
+        scroll = Gtk.ScrolledWindow()
+        scroll.set_vexpand(True)
+        scroll.add(self.tree)
+        box.pack_start(scroll, True, True, 0)
+
+        bar_bot = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        self.lbl_cupo = Gtk.Label(xalign=0)
+        btn_del = Gtk.Button(label="Quitar Acompañante Seleccionado")
+        btn_del.get_style_context().add_class("btn-danger")
+        btn_del.connect("clicked", self.on_quitar_invitado)
+        bar_bot.pack_start(self.lbl_cupo, True, True, 0)
+        bar_bot.pack_end(btn_del, False, False, 0)
+        box.pack_start(bar_bot, False, False, 0)
+
+        self.refrescar_tabla()
+        self.show_all()
+
+    def refrescar_tabla(self):
+        self.store.clear()
+        for inv in self.invitados:
+            est = "PRESENTE" if inv.get("presente") else "HABILITADO"
+            self.store.append([
+                inv.get("nombre", ""),
+                inv.get("dni", "—"),
+                inv.get("parentesco", "Familiar"),
+                est
+            ])
+        self.lbl_cupo.set_markup(
+            f"<span font='9.5' foreground='#94a3b8'>Acompañantes registrados en el pase grupal: <b>{len(self.invitados)}</b></span>"
+        )
+
+    def on_agregar_invitado(self, _btn):
+        nom = self.ent_inv_nom.get_text().strip()
+        dni = self.ent_inv_dni.get_text().strip()
+        par = self.cmb_parentesco.get_active_text() or "Familiar"
+        if not nom:
+            return
+        self.invitados.append({
+            "nombre": nom,
+            "dni": dni or "S/D",
+            "parentesco": par,
+            "presente": False
+        })
+        self.ent_inv_nom.set_text("")
+        self.ent_inv_dni.set_text("")
+        self.refrescar_tabla()
+
+    def on_quitar_invitado(self, _btn):
+        sel = self.tree.get_selection()
+        model, treeiter = sel.get_selected()
+        if treeiter:
+            path = model.get_path(treeiter)
+            idx = path.get_indices()[0]
+            if 0 <= idx < len(self.invitados):
+                self.invitados.pop(idx)
+                self.refrescar_tabla()
+
+
+class DialogoCredencialQR(Gtk.Dialog):
+    """Réplica nativa GTK3 del ModalCredencial.jsx con código QR real escaneable."""
+    def __init__(self, parent, graduado):
+        super().__init__(
+            title=f"Credencial Digital & Pase Grupal — {graduado.get('nombre', '')}",
+            transient_for=parent,
+            flags=0
+        )
+        self.set_default_size(690, 440)
+        self.set_border_width(14)
+        self.graduado = graduado
+
+        box = self.get_content_area()
+        box.set_spacing(12)
+
+        # Cabecera modal
+        head = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        lbl_h = Gtk.Label(xalign=0)
+        lbl_h.set_markup(
+            "<span font='8.5' weight='bold' foreground='#34d399'>PADRÓN OFICIAL HABILITADO · PASE GRUPAL QR</span>\n"
+            "<span font='14' weight='bold' foreground='#f8fafc'>Credencial Digital e Ingreso a Colación</span>"
+        )
+        head.pack_start(lbl_h, True, True, 0)
+        box.pack_start(head, False, False, 0)
+
+        # Tarjeta de credencial (2 columnas: datos a la izquierda, QR escaneable a la derecha)
+        card = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=18)
+        card.get_style_context().add_class("panel-card-active")
+
+        col_izq = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        col_izq.set_hexpand(True)
+
+        cer = sigic_db.obtener_resumen_global()["ceremonia_activa"]
+        lbl_inst = Gtk.Label(xalign=0)
+        lbl_inst.set_markup(
+            f"<span font='10' weight='bold' foreground='#38bdf8'>SiGIC · INSTITUTO TECNOLÓGICO BELTRÁN</span>\n"
+            f"<span font='8.5' foreground='#94a3b8'>{cer.get('nombre', 'Ceremonia de Graduación')}</span>"
+        )
+        col_izq.pack_start(lbl_inst, False, False, 0)
+
+        lbl_nom = Gtk.Label(xalign=0)
+        lbl_nom.set_markup(
+            f"<span font='8' weight='bold' foreground='#64748b'>GRADUADO/A TITULAR</span>\n"
+            f"<span font='16' weight='bold' foreground='#ffffff'>{graduado.get('nombre', '').upper()}</span>\n"
+            f"<span font='10' weight='bold' foreground='#38bdf8'>{graduado.get('carrera', '')}</span>"
+        )
+        col_izq.pack_start(lbl_nom, False, False, 2)
+
+        token_val = graduado.get("otp_codigo") or graduado.get("legajo") or graduado.get("dni")
+        lbl_meta = Gtk.Label(xalign=0)
+        lbl_meta.set_markup(
+            f"<span font='9.5' foreground='#cbd5e1'>"
+            f"<b>Legajo:</b> {graduado.get('legajo', '—')}    ·    "
+            f"<b>Documento DNI:</b> {graduado.get('dni', '—')}    ·    "
+            f"<b>Token OTP:</b> <span foreground='#34d399'>{token_val}</span>"
+            f"</span>"
+        )
+        col_izq.pack_start(lbl_meta, False, False, 2)
+
+        invs = graduado.get("invitados", [])
+        invs_txt = ", ".join([i.get("nombre", "") for i in invs]) if invs else "Sin acompañantes adicionales registrados"
+        lbl_ubic = Gtk.Label(xalign=0)
+        lbl_ubic.set_line_wrap(True)
+        lbl_ubic.set_max_width_chars(52)
+        lbl_ubic.set_markup(
+            f"<span font='9.5' weight='bold' foreground='#fbbf24'>UBICACIÓN Y GRUPO HABILITADO EN ANFITEATRO:</span>\n"
+            f"<span font='10' foreground='#f8fafc'>• Butaca Graduado: <b>{graduado.get('butaca', 'General')}</b>   |   "
+            f"Entregador: <b>{graduado.get('entregador', 'Sin asignar')}</b></span>\n"
+            f"<span font='9' foreground='#94a3b8'>• Acompañantes ({len(invs)}): {invs_txt}</span>"
+        )
+        col_izq.pack_start(lbl_ubic, False, False, 4)
+
+        lbl_pie = Gtk.Label(xalign=0)
+        lbl_pie.set_markup(
+            f"<span font='8.5' foreground='#64748b'>Fecha: {cer.get('fecha', '28 Nov 2026')} ({cer.get('hora', '18:00 hs')}) · {cer.get('lugar', 'Anfiteatro Central')}</span>"
+        )
+        col_izq.pack_end(lbl_pie, False, False, 0)
+
+        # Columna derecha: QR Code SVG real
+        col_der = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6)
+        col_der.set_valign(Gtk.Align.CENTER)
+
+        qr_payload = sigic_db.obtener_payload_qr_graduado(graduado)
+        qr_svg = sigic_db.generar_qr_svg(qr_payload, size=170, fg="#0f172a", bg="#ffffff")
+
+        qr_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
+        qr_box.get_style_context().add_class("qr-frame-white")
+        img_qr = Gtk.Image.new_from_pixbuf(cargar_svg_pixbuf(qr_svg, 170))
+        qr_box.pack_start(img_qr, False, False, 0)
+        col_der.pack_start(qr_box, False, False, 0)
+
+        lbl_qr_cap = Gtk.Label()
+        lbl_qr_cap.set_justify(Gtk.Justification.CENTER)
+        lbl_qr_cap.set_markup(
+            "<span font='8.5' weight='bold' foreground='#34d399'>PASE GRUPAL ESCANEABLE</span>\n"
+            "<span font='7.5' foreground='#94a3b8'>Válido para App Móvil Portería\ny Lector Óptico USB</span>"
+        )
+        col_der.pack_start(lbl_qr_cap, False, False, 0)
+
+        card.pack_start(col_izq, True, True, 0)
+        card.pack_end(col_der, False, False, 0)
+        box.pack_start(card, True, True, 0)
+
+        # Botonera inferior de acciones reales
+        actions = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        self.lbl_msg = Gtk.Label(xalign=0)
+        actions.pack_start(self.lbl_msg, True, True, 0)
+
+        btn_mail = Gtk.Button(label="Enviar Credencial por Email")
+        btn_mail.get_style_context().add_class("btn-secondary")
+        btn_mail.connect("clicked", self.on_enviar_email)
+        actions.pack_start(btn_mail, False, False, 0)
+
+        btn_export = Gtk.Button(label="Exportar Credencial Imprimible (HTML/PDF)")
+        btn_export.get_style_context().add_class("btn-emerald")
+        btn_export.connect("clicked", self.on_exportar_credencial, qr_svg)
+        actions.pack_start(btn_export, False, False, 0)
+
+        btn_close = Gtk.Button(label="Cerrar")
+        btn_close.get_style_context().add_class("btn-primary")
+        btn_close.connect("clicked", lambda _b: self.response(Gtk.ResponseType.OK))
+        actions.pack_start(btn_close, False, False, 0)
+
+        box.pack_start(actions, False, False, 0)
+        self.show_all()
+
+    def on_enviar_email(self, _btn):
+        ok, token = sigic_db.despachar_invitacion(self.graduado.get("dni"), es_credencial=True)
+        if ok:
+            self.lbl_msg.set_markup(
+                f"<span font='9.5' weight='bold' foreground='#34d399'>Credencial QR enviada a {self.graduado.get('correo')}</span>"
+            )
+
+    def on_exportar_credencial(self, _btn, qr_svg):
+        desktop = os.path.expanduser("~/Desktop")
+        if not os.path.exists(desktop):
+            desktop = os.path.expanduser("~")
+        dni = self.graduado.get("dni", "graduado")
+        ruta = os.path.join(desktop, f"Credencial_SiGIC_{dni}.html")
+        cer = sigic_db.obtener_resumen_global()["ceremonia_activa"]
+        invs = self.graduado.get("invitados", [])
+        invs_li = "".join([f"<li><b>{i.get('nombre')}</b> (DNI {i.get('dni')})</li>" for i in invs]) or "<li>Sin acompañantes registrados</li>"
+        html = f"""<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><title>Credencial SiGIC - {self.graduado.get('nombre')}</title>
+<style>
+body {{ font-family: 'Segoe UI', Arial, sans-serif; background: #0f172a; color: #0f172a; padding: 30px; }}
+.card {{ max-width: 680px; margin: 0 auto; background: #ffffff; border-radius: 24px; padding: 28px; display: flex; justify-content: space-between; gap: 24px; border-left: 10px solid #0284c7; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }}
+.tag {{ background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 8px; font-size: 11px; font-weight: 800; text-transform: uppercase; }}
+h1 {{ margin: 8px 0 4px 0; font-size: 26px; text-transform: uppercase; }}
+.meta {{ font-size: 13px; color: #334155; margin: 10px 0; }}
+.seat {{ background: #0284c7; color: #fff; padding: 6px 12px; border-radius: 8px; font-weight: bold; display: inline-block; margin-top: 8px; }}
+.qr-box {{ text-align: center; border: 2px solid #e2e8f0; border-radius: 18px; padding: 14px; }}
+</style></head><body>
+<div class="card">
+  <div>
+    <span class="tag">SiGIC · Padrón Oficial Habilitado</span>
+    <h1>{self.graduado.get('nombre')}</h1>
+    <div style="color:#0284c7;font-weight:bold;">{self.graduado.get('carrera')}</div>
+    <div class="meta"><b>DNI:</b> {self.graduado.get('dni')} · <b>Legajo:</b> {self.graduado.get('legajo')} · <b>Token:</b> {self.graduado.get('otp_codigo') or self.graduado.get('legajo')}</div>
+    <div class="seat">BUTACA ASIGNADA: {self.graduado.get('butaca', 'General')}</div>
+    <div class="meta"><b>Entregador de Diploma:</b> {self.graduado.get('entregador', 'Sin asignar')}</div>
+    <div class="meta"><b>Acompañantes habilitados ({len(invs)}):</b><ul>{invs_li}</ul></div>
+    <div style="font-size:11px;color:#64748b;margin-top:12px;">{cer.get('nombre')} · {cer.get('fecha')} · {cer.get('lugar')}</div>
+  </div>
+  <div class="qr-box">
+    {qr_svg}
+    <div style="font-size:11px;font-weight:bold;color:#059669;margin-top:8px;">PASE GRUPAL QR</div>
+  </div>
+</div>
+</body></html>"""
+        with open(ruta, "w", encoding="utf-8") as f:
+            f.write(html)
+        self.lbl_msg.set_markup(
+            f"<span font='9.5' weight='bold' foreground='#38bdf8'>Guardada en: {ruta}</span>"
+        )
+
+
+class VentanaGraduados(Gtk.Window):
     def __init__(self):
-        super().__init__(title="Padrón de Graduados — SiGIC")
-        self.set_default_size(960, 600)
+        super().__init__(title="SiGIC — Gestión de Padrón de Graduados")
+        self.set_default_size(980, 560)
         self.set_position(Gtk.WindowPosition.CENTER)
         self.get_style_context().add_class("sigic-window")
 
-        self.graduados_todos = []
+        self.aplicar_estilos()
+        self.crear_headerbar()
 
-        # HeaderBar institucional
-        header = Gtk.HeaderBar()
-        header.set_show_close_button(True)
-        header.props.title = "Padrón Oficial de Graduados"
-        header.props.subtitle = "Instituto Tecnológico Beltrán"
-        header.get_style_context().add_class("sigic-headerbar")
-        self.set_titlebar(header)
+        root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
+        root.set_margin_top(8)
+        root.set_margin_bottom(8)
+        root.set_margin_start(12)
+        root.set_margin_end(12)
+        self.add(root)
 
-        # Botón Nuevo Graduado (Primario)
-        btn_nuevo = Gtk.Button()
-        lbl_n = Gtk.Label()
-        lbl_n.set_markup("<span foreground='#ffffff' weight='heavy'>+ Nuevo Graduado</span>")
-        btn_nuevo.add(lbl_n)
-        btn_nuevo.get_style_context().add_class("btn-primary")
-        btn_nuevo.connect("clicked", self.on_abrir_nuevo_graduado)
-        header.pack_start(btn_nuevo)
+        # === BARRA DE MÉTRICAS (KPIs) ===
+        kpi_grid = Gtk.Grid(column_spacing=8, row_spacing=6, column_homogeneous=True)
+        root.pack_start(kpi_grid, False, False, 0)
 
-        # Botón Importar Excel / CSV
-        btn_importar = Gtk.Button()
-        lbl_imp = Gtk.Label()
-        lbl_imp.set_markup("<span foreground='#0f172a' weight='bold'>Importar Excel / CSV</span>")
-        btn_importar.add(lbl_imp)
-        btn_importar.get_style_context().add_class("btn-secondary")
-        btn_importar.connect("clicked", self.on_importar_archivo)
-        header.pack_start(btn_importar)
+        self.lbl_kpi_total = Gtk.Label(xalign=0)
+        self.lbl_kpi_conf = Gtk.Label(xalign=0)
+        self.lbl_kpi_inv = Gtk.Label(xalign=0)
+        self.lbl_kpi_butacas = Gtk.Label(xalign=0)
 
-        # Botón Cargar Cohorte Modelo
-        btn_demo = Gtk.Button()
-        lbl_demo = Gtk.Label()
-        lbl_demo.set_markup("<span foreground='#0284c7' weight='bold'>Cohorte Modelo</span>")
-        btn_demo.add(lbl_demo)
-        btn_demo.get_style_context().add_class("btn-secondary")
-        btn_demo.connect("clicked", self.on_cargar_cohorte_modelo)
-        header.pack_end(btn_demo)
-
-        # Botón Plantilla
-        btn_plantilla = Gtk.Button()
-        lbl_plan = Gtk.Label()
-        lbl_plan.set_markup("<span foreground='#64748b' weight='bold'>Descargar Plantilla CSV</span>")
-        btn_plantilla.add(lbl_plan)
-        btn_plantilla.get_style_context().add_class("btn-secondary")
-        btn_plantilla.connect("clicked", self.on_descargar_plantilla)
-        header.pack_end(btn_plantilla)
-
-        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        vbox.set_margin_top(12)
-        vbox.set_margin_bottom(12)
-        vbox.set_margin_start(16)
-        vbox.set_margin_end(16)
-        self.add(vbox)
-
-        # Barra superior con búsqueda, filtro y botón eliminar
-        box_top = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-
-        self.ent_buscar = Gtk.SearchEntry()
-        self.ent_buscar.set_placeholder_text("Buscar por DNI, apellido, nombre o carrera...")
-        self.ent_buscar.get_style_context().add_class("search-field")
-        self.ent_buscar.connect("search-changed", self.on_filtrar)
-        box_top.pack_start(self.ent_buscar, True, True, 0)
-
-        btn_eliminar = Gtk.Button()
-        lbl_del = Gtk.Label()
-        lbl_del.set_markup("<span foreground='#dc2626' weight='bold'>Eliminar Seleccionado</span>")
-        btn_eliminar.add(lbl_del)
-        btn_eliminar.get_style_context().add_class("btn-danger")
-        btn_eliminar.connect("clicked", self.on_eliminar_seleccionado)
-        box_top.pack_start(btn_eliminar, False, False, 0)
-
-        btn_refrescar = Gtk.Button()
-        lbl_r = Gtk.Label()
-        lbl_r.set_markup("<span foreground='#334155' weight='bold'>Actualizar</span>")
-        btn_refrescar.add(lbl_r)
-        btn_refrescar.get_style_context().add_class("btn-secondary")
-        btn_refrescar.connect("clicked", lambda b: self.cargar_datos())
-        box_top.pack_start(btn_refrescar, False, False, 0)
-
-        vbox.pack_start(box_top, False, False, 0)
-
-        # Tabla de Graduados (ListStore + TreeView)
-        # Columnas: DNI, Nombre y Apellido, Carrera, Estado, Ubicación, Correo, ID
-        self.modelo = Gtk.ListStore(str, str, str, str, str, str, str)
-        self.modelo_filtrado = self.modelo.filter_new()
-        self.modelo_filtrado.set_visible_func(self.filtro_func)
-
-        self.treeview = Gtk.TreeView(model=self.modelo_filtrado)
-        self.treeview.set_rules_hint(True)
-        self.treeview.set_enable_search(False)
-
-        columnas = [
-            ("DNI", 0, 100),
-            ("Apellido y Nombre", 1, 210),
-            ("Carrera / Especialidad", 2, 230),
-            ("Estado", 3, 110),
-            ("Ubicación Asignada", 4, 140),
-            ("Correo Electrónico", 5, 170)
+        kpis = [
+            ("TOTAL EN PADRÓN", self.lbl_kpi_total, "Egresados registrados", "kpi-cyan"),
+            ("CONFIRMADOS", self.lbl_kpi_conf, "Asistencia confirmada", "kpi-emerald"),
+            ("ACOMPAÑANTES", self.lbl_kpi_inv, "Invitados en grupos", "kpi-violet"),
+            ("BUTACAS ASIGNADAS", self.lbl_kpi_butacas, "Ubicaciones listas", "kpi-amber"),
         ]
 
-        for titulo, col_id, ancho in columnas:
-            renderizador = Gtk.CellRendererText()
-            if col_id in (0, 3):
-                renderizador.props.weight = 700
-            col = Gtk.TreeViewColumn(titulo, renderizador, text=col_id)
+        for idx, (tit, lbl_val, sub, cls) in enumerate(kpis):
+            box_k = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3)
+            box_k.get_style_context().add_class("kpi-box")
+            box_k.get_style_context().add_class(cls)
+            l_t = Gtk.Label(xalign=0)
+            l_t.set_markup(f"<span font='8.5' weight='bold' foreground='#94a3b8'>{tit}</span>")
+            l_s = Gtk.Label(xalign=0)
+            l_s.set_markup(f"<span font='8.5' foreground='#64748b'>{sub}</span>")
+            box_k.pack_start(l_t, False, False, 0)
+            box_k.pack_start(lbl_val, False, False, 0)
+            box_k.pack_start(l_s, False, False, 0)
+            kpi_grid.attach(box_k, idx, 0, 1, 1)
+
+        # === BARRA DE HERRAMIENTAS Y ACCIONES ===
+        toolbar = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
+        toolbar.get_style_context().add_class("panel-card")
+        root.pack_start(toolbar, False, False, 0)
+
+        self.entry_buscar = Gtk.Entry()
+        self.entry_buscar.set_placeholder_text("Buscar por DNI, Apellido, Legajo o Carrera...")
+        self.entry_buscar.get_style_context().add_class("search-field")
+        self.entry_buscar.set_width_chars(28)
+        self.entry_buscar.connect("changed", lambda _e: self.refrescar_vista())
+        toolbar.pack_start(self.entry_buscar, True, True, 0)
+
+        self.cmb_filtro_carrera = Gtk.ComboBoxText()
+        self.cmb_filtro_carrera.append_text("Todas las Carreras")
+        for c in sigic_db.CARRERAS_BELTRAN:
+            self.cmb_filtro_carrera.append_text(c)
+        self.cmb_filtro_carrera.set_active(0)
+        self.cmb_filtro_carrera.connect("changed", lambda _c: self.refrescar_vista())
+        toolbar.pack_start(self.cmb_filtro_carrera, False, False, 0)
+
+        btn_nuevo = Gtk.Button(label="+ Nuevo Graduado")
+        btn_nuevo.get_style_context().add_class("btn-primary")
+        btn_nuevo.connect("clicked", self.on_nuevo_graduado)
+        toolbar.pack_start(btn_nuevo, False, False, 0)
+
+        btn_editar = Gtk.Button(label="Editar Ficha")
+        btn_editar.get_style_context().add_class("btn-secondary")
+        btn_editar.connect("clicked", self.on_editar_graduado)
+        toolbar.pack_start(btn_editar, False, False, 0)
+
+        btn_grupo = Gtk.Button(label="Acompañantes / Entregador")
+        btn_grupo.get_style_context().add_class("btn-secondary")
+        btn_grupo.connect("clicked", self.on_gestionar_grupo)
+        toolbar.pack_start(btn_grupo, False, False, 0)
+
+        btn_qr = Gtk.Button(label="Credencial QR")
+        btn_qr.get_style_context().add_class("btn-emerald")
+        btn_qr.connect("clicked", self.on_ver_credencial_qr)
+        toolbar.pack_start(btn_qr, False, False, 0)
+
+        btn_importar = Gtk.Button(label="Importar CSV")
+        btn_importar.get_style_context().add_class("btn-secondary")
+        btn_importar.connect("clicked", self.on_importar_csv)
+        toolbar.pack_start(btn_importar, False, False, 0)
+
+        # === TABLA PRINCIPAL DE GRADUADOS ===
+        table_card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=0)
+        table_card.get_style_context().add_class("panel-card")
+        root.pack_start(table_card, True, True, 0)
+
+        # Columnas: DNI, Apellido y Nombre, Legajo, Carrera, Estado, Butaca, Acompañantes, Entregador, Token OTP
+        self.store = Gtk.ListStore(str, str, str, str, str, str, str, str, str)
+        self.tree = Gtk.TreeView(model=self.store)
+        self.tree.set_headers_visible(True)
+        self.tree.connect("row-activated", lambda _t, _p, _c: self.on_ver_credencial_qr(None))
+
+        columnas = [
+            ("DNI", 0, 85),
+            ("Apellido y Nombre", 1, 195),
+            ("Legajo", 2, 105),
+            ("Carrera / Tecnicatura", 3, 235),
+            ("Estado", 4, 100),
+            ("Butaca", 5, 70),
+            ("Grupo", 6, 75),
+            ("Entregador Diploma", 7, 155),
+            ("Token OTP", 8, 85),
+        ]
+
+        for titulo, idx, min_w in columnas:
+            renderer = Gtk.CellRendererText()
+            if idx == 1:
+                renderer.set_property("weight", Pango.Weight.BOLD)
+            col = Gtk.TreeViewColumn(titulo, renderer, text=idx)
+            col.set_min_width(min_w)
             col.set_resizable(True)
-            col.set_min_width(ancho)
-            self.treeview.append_column(col)
+            col.set_sort_column_id(idx)
+            self.tree.append_column(col)
 
         scroll = Gtk.ScrolledWindow()
         scroll.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        scroll.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
-        scroll.add(self.treeview)
-        vbox.pack_start(scroll, True, True, 0)
+        scroll.set_vexpand(True)
+        scroll.add(self.tree)
+        table_card.pack_start(scroll, True, True, 0)
 
-        # Barra inferior
-        box_bottom = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
-        self.lbl_total = Gtk.Label(xalign=0)
-        self.lbl_total.set_markup("<span foreground='#64748b' weight='bold'>Cargando registros...</span>")
-        box_bottom.pack_start(self.lbl_total, True, True, 0)
+        # === PIE DE VENTANA ===
+        footer = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
+        footer.get_style_context().add_class("footer-panel")
+        root.pack_start(footer, False, False, 0)
 
-        vbox.pack_start(box_bottom, False, False, 0)
+        self.lbl_status = Gtk.Label(xalign=0)
+        footer.pack_start(self.lbl_status, True, True, 0)
 
-        self.cargar_datos()
+        btn_plantilla = Gtk.Button(label="Descargar Plantilla CSV")
+        btn_plantilla.get_style_context().add_class("btn-secondary")
+        btn_plantilla.connect("clicked", self.on_descargar_plantilla)
+        footer.pack_end(btn_plantilla, False, False, 0)
 
-    def filtro_func(self, model, iter, data):
-        query = self.ent_buscar.get_text().strip().lower()
-        if not query:
-            return True
-        for col in range(6):
-            val = model.get_value(iter, col)
-            if val and query in str(val).lower():
-                return True
-        return False
+        btn_demo = Gtk.Button(label="Restaurar Cohorte Modelo")
+        btn_demo.get_style_context().add_class("btn-secondary")
+        btn_demo.connect("clicked", self.on_restaurar_cohorte)
+        footer.pack_end(btn_demo, False, False, 0)
 
-    def on_filtrar(self, entry):
-        self.modelo_filtrado.refilter()
-        self.actualizar_conteo_visible()
+        btn_vaciar = Gtk.Button(label="Vaciar Padrón")
+        btn_vaciar.get_style_context().add_class("btn-danger")
+        btn_vaciar.connect("clicked", self.on_vaciar_padron)
+        footer.pack_end(btn_vaciar, False, False, 0)
 
-    def actualizar_conteo_visible(self):
-        total = len(self.graduados_todos)
-        self.lbl_total.set_markup(f"<span foreground='#0284c7' weight='heavy'>● {total} graduados en padrón</span> · <small><span foreground='#64748b'>Filtro en tiempo real activo</span></small>")
+        btn_eliminar = Gtk.Button(label="Eliminar Seleccionado")
+        btn_eliminar.get_style_context().add_class("btn-danger")
+        btn_eliminar.connect("clicked", self.on_eliminar_seleccionado)
+        footer.pack_end(btn_eliminar, False, False, 0)
 
-    def cargar_datos(self):
-        threading.Thread(target=self._hilo_carga, daemon=True).start()
+        self.refrescar_vista()
 
-    def _hilo_carga(self):
-        url = "http://localhost:3000/api/egresados"
-        datos = []
-        try:
-            req = urllib.request.Request(url, timeout=3)
-            with urllib.request.urlopen(req) as resp:
-                res = json.loads(resp.read().decode())
-                items = res.get("graduados") or res.get("egresados") or []
-                for g in items:
-                    datos.append((
-                        str(g.get("dni", "—")),
-                        f"{g.get('apellido', '')}, {g.get('nombre', '')}".strip(" ,") if g.get('apellido') else str(g.get('nombre', '—')),
-                        str(g.get("carrera", "Tecnicatura Beltrán")),
-                        str(g.get("estado", "PENDIENTE")).upper(),
-                        str(g.get("butaca") or "Sin asignar"),
-                        str(g.get("correo") or "—"),
-                        str(g.get("id", ""))
-                    ))
-        except Exception:
-            pass
+    def aplicar_estilos(self):
+        provider = Gtk.CssProvider()
+        provider.load_from_data(sigic_db.CSS_SUITE_OSCURA)
+        Gtk.StyleContext.add_provider_for_screen(
+            Gdk.Screen.get_default(), provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        )
 
-        if not datos:
-            for g in COHORTE_MODELO:
-                datos.append((
-                    g["dni"],
-                    g["nombre"],
-                    g["carrera"],
-                    g["estado"],
-                    g["butaca"],
-                    g["correo"],
-                    ""
-                ))
+    def crear_headerbar(self):
+        hb = Gtk.HeaderBar()
+        hb.set_show_close_button(True)
+        hb.set_title("Gestión de Padrón de Graduados, Acompañantes y Credenciales QR")
+        hb.set_subtitle("SiGIC · Alta Individual, Importación Excel/CSV, Entregadores y Pase Grupal QR")
+        hb.get_style_context().add_class("sigic-headerbar")
+        self.set_titlebar(hb)
 
-        self.graduados_todos = datos
-        GLib.idle_add(self._actualizar_tabla, datos)
+    def obtener_graduado_seleccionado(self):
+        sel = self.tree.get_selection()
+        model, treeiter = sel.get_selected()
+        if not treeiter:
+            grads = sigic_db.listar_graduados()
+            return grads[0] if grads else None
+        dni = model[treeiter][0]
+        return sigic_db.obtener_graduado_por_dni(dni)
 
-    def _actualizar_tabla(self, datos):
-        self.modelo.clear()
-        for fila in datos:
-            self.modelo.append(list(fila))
-        self.actualizar_conteo_visible()
+    def refrescar_vista(self):
+        graduados = sigic_db.listar_graduados()
+        filtro_texto = self.entry_buscar.get_text().strip().lower()
+        filtro_carrera = self.cmb_filtro_carrera.get_active_text()
 
-    def on_abrir_nuevo_graduado(self, button):
-        dlg = DialogoNuevoGraduado(self)
+        self.store.clear()
+        visibles = 0
+
+        for g in graduados:
+            if filtro_carrera and filtro_carrera != "Todas las Carreras":
+                if g.get("carrera") != filtro_carrera:
+                    continue
+            if filtro_texto:
+                blob = f"{g.get('dni','')} {g.get('nombre','')} {g.get('legajo','')} {g.get('carrera','')} {g.get('correo','')}".lower()
+                if filtro_texto not in blob:
+                    continue
+
+            invs = g.get("invitados", [])
+            self.store.append([
+                g.get("dni", ""),
+                g.get("nombre", ""),
+                g.get("legajo", ""),
+                g.get("carrera", ""),
+                g.get("estado", "PENDIENTE"),
+                g.get("butaca", "Sin asignar"),
+                f"{len(invs)} acomp.",
+                g.get("entregador", "Sin asignar"),
+                g.get("otp_codigo", "—") or "—"
+            ])
+            visibles += 1
+
+        res = sigic_db.obtener_resumen_global()
+        self.lbl_kpi_total.set_markup(f"<span font='18' weight='bold' foreground='#38bdf8'>{res['total_graduados']}</span>")
+        self.lbl_kpi_conf.set_markup(f"<span font='18' weight='bold' foreground='#34d399'>{res['confirmados']}</span>")
+        self.lbl_kpi_inv.set_markup(f"<span font='18' weight='bold' foreground='#c084fc'>{res['acompanantes']}</span>")
+        self.lbl_kpi_butacas.set_markup(f"<span font='18' weight='bold' foreground='#fbbf24'>{res['butacas_graduados']}</span>")
+
+        self.lbl_status.set_markup(
+            f"<span font='9.5' foreground='#94a3b8'>Mostrando <b>{visibles}</b> de <b>{len(graduados)}</b> graduados (doble clic sobre una fila para abrir su Credencial QR).</span>"
+        )
+
+    def on_nuevo_graduado(self, _btn):
+        dlg = DialogoGraduado(self)
         resp = dlg.run()
         if resp == Gtk.ResponseType.OK:
-            datos = dlg.obtener_datos()
-            dlg.destroy()
-            if not datos["nombre"] or not datos["dni"]:
-                self.mostrar_alerta("Campos Requeridos", "Debe ingresar al menos el Apellido/Nombre y el DNI.")
-                return
-            threading.Thread(target=self._hilo_guardar_nuevo, args=(datos,), daemon=True).start()
-        else:
-            dlg.destroy()
+            nuevo = dlg.obtener_datos()
+            if nuevo["dni"] and nuevo["nombre"]:
+                sigic_db.guardar_graduado(nuevo)
+                self.refrescar_vista()
+        dlg.destroy()
 
-    def _hilo_guardar_nuevo(self, datos):
-        url = "http://localhost:3000/api/egresados"
-        guardado_api = False
-        try:
-            payload = json.dumps(datos).encode("utf-8")
-            req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
-            with urllib.request.urlopen(req, timeout=4) as resp:
-                if resp.status in (200, 201):
-                    guardado_api = True
-        except Exception as err:
-            print(f"Aviso API al guardar: {err}")
+    def on_editar_graduado(self, _btn):
+        g = self.obtener_graduado_seleccionado()
+        if not g:
+            return
+        dlg = DialogoGraduado(self, datos_existentes=g)
+        resp = dlg.run()
+        if resp == Gtk.ResponseType.OK:
+            actualizado = dlg.obtener_datos()
+            if actualizado["dni"] and actualizado["nombre"]:
+                sigic_db.guardar_graduado(actualizado, dni_original=g.get("dni"))
+                self.refrescar_vista()
+        dlg.destroy()
 
-        nueva_fila = (
-            datos["dni"],
-            datos["nombre"],
-            datos["carrera"],
-            "SIN_INVITAR",
-            "Sin asignar",
-            datos["correo"],
-            ""
+    def on_gestionar_grupo(self, _btn):
+        g = self.obtener_graduado_seleccionado()
+        if not g:
+            return
+        dlg = DialogoInvitadosEntregador(self, g)
+        resp = dlg.run()
+        if resp == Gtk.ResponseType.OK:
+            g["invitados"] = dlg.invitados
+            g["entregador"] = dlg.cmb_ent.get_active_text() or "Sin asignar"
+            sigic_db.guardar_graduado(g, dni_original=g.get("dni"))
+            self.refrescar_vista()
+        dlg.destroy()
+
+    def on_ver_credencial_qr(self, _btn):
+        g = self.obtener_graduado_seleccionado()
+        if not g:
+            return
+        dlg = DialogoCredencialQR(self, g)
+        dlg.run()
+        dlg.destroy()
+        self.refrescar_vista()
+
+    def on_eliminar_seleccionado(self, _btn):
+        sel = self.tree.get_selection()
+        model, treeiter = sel.get_selected()
+        if not treeiter:
+            return
+        dni = model[treeiter][0]
+        sigic_db.eliminar_graduado(dni)
+        self.refrescar_vista()
+
+    def on_vaciar_padron(self, _btn):
+        sigic_db.vaciar_padron()
+        self.refrescar_vista()
+
+    def on_restaurar_cohorte(self, _btn):
+        sigic_db.restaurar_cohorte_modelo()
+        self.refrescar_vista()
+
+    def on_descargar_plantilla(self, _btn):
+        desktop = os.path.expanduser("~/Desktop")
+        if not os.path.exists(desktop):
+            desktop = os.path.expanduser("~")
+        ruta = os.path.join(desktop, "plantilla_padron_sigic.csv")
+        with open(ruta, "w", encoding="utf-8", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["dni", "nombre", "legajo", "correo", "telefono", "carrera", "promedio", "estado", "butaca", "entregador"])
+            writer.writerow([
+                "45111222", "Sánchez, Mariano Nicolás", "BEL-2026-201",
+                "mariano.sanchez@ibeltran.edu.ar", "11-5000-1234",
+                "Tecnicatura Superior en Desarrollo de Software", "9.10", "CONFIRMADO", "C3", "Ing. Roberto Gómez"
+            ])
+        self.lbl_status.set_markup(
+            f"<span font='9.5' foreground='#34d399'><b>Plantilla exportada en:</b> {ruta}</span>"
         )
-        self.graduados_todos.insert(0, nueva_fila)
-        GLib.idle_add(self._insertar_graduado_en_tabla, nueva_fila, guardado_api)
 
-    def _insertar_graduado_en_tabla(self, fila, guardado_api):
-        self.modelo.prepend(list(fila))
-        self.actualizar_conteo_visible()
-        self.mostrar_alerta(
-            "Graduado Ingresado",
-            f"Se registró exitosamente a {fila[1]} (DNI {fila[0]}) en el padrón oficial."
-        )
-
-    def on_importar_archivo(self, button):
+    def on_importar_csv(self, _btn):
         dlg = Gtk.FileChooserDialog(
-            title="Seleccionar Archivo de Graduados (Excel o CSV)",
+            title="Seleccionar archivo CSV de Padrón de Graduados",
             parent=self,
             action=Gtk.FileChooserAction.OPEN
         )
-        dlg.add_buttons("Cancelar", Gtk.ResponseType.CANCEL, "Importar Padrón", Gtk.ResponseType.OK)
-
+        dlg.add_buttons(
+            Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
+            Gtk.STOCK_OPEN, Gtk.ResponseType.OK
+        )
         filtro = Gtk.FileFilter()
-        filtro.set_name("Planillas de Graduados (*.csv, *.tsv, *.xlsx, *.txt)")
+        filtro.set_name("Archivos CSV / Planillas (*.csv)")
         filtro.add_pattern("*.csv")
-        filtro.add_pattern("*.tsv")
-        filtro.add_pattern("*.xlsx")
         filtro.add_pattern("*.txt")
         dlg.add_filter(filtro)
 
-        filtro_todos = Gtk.FileFilter()
-        filtro_todos.set_name("Todos los archivos")
-        filtro_todos.add_pattern("*")
-        dlg.add_filter(filtro_todos)
-
-        resp = dlg.run()
-        ruta = dlg.get_filename()
-        dlg.destroy()
-
-        if resp == Gtk.ResponseType.OK and ruta:
-            threading.Thread(target=self._hilo_procesar_archivo, args=(ruta,), daemon=True).start()
-
-    def _hilo_procesar_archivo(self, ruta):
-        nuevos = []
-        try:
-            # Procesamiento de CSV / TSV / Texto delimitado
-            if not ruta.lower().endswith(".xlsx"):
-                with open(ruta, "r", encoding="utf-8", errors="replace") as f:
-                    contenido = f.read()
-                
-                # Detectar separador
-                delimitador = ","
-                if "\t" in contenido.splitlines()[0]:
-                    delimitador = "\t"
-                elif ";" in contenido.splitlines()[0]:
-                    delimitador = ";"
-
-                lector = csv.DictReader(io.StringIO(contenido), delimiter=delimitador)
-                for fila in lector:
-                    # Mapeo flexible de cabeceras
-                    nombre = fila.get("nombre") or fila.get("Nombre") or fila.get("NOMBRE") or fila.get("Nombre Completo") or fila.get("Apellido y Nombre") or ""
-                    dni = fila.get("dni") or fila.get("DNI") or fila.get("documento") or fila.get("Documento") or ""
-                    legajo = fila.get("legajo") or fila.get("Legajo") or fila.get("LEGAJO") or ""
-                    correo = fila.get("correo") or fila.get("Correo") or fila.get("email") or fila.get("Email") or ""
-                    carrera = fila.get("carrera") or fila.get("Carrera") or fila.get("CARRERA") or "Tecnicatura Beltrán"
-                    promedio = fila.get("promedio") or fila.get("Promedio") or ""
-
-                    if nombre and dni:
-                        nuevos.append({
-                            "nombre": nombre.strip(),
-                            "dni": str(dni).strip().replace(".", "").replace(" ", ""),
-                            "legajo": str(legajo).strip(),
-                            "correo": str(correo).strip(),
-                            "carrera": str(carrera).strip(),
-                            "promedio": str(promedio).strip()
-                        })
-            else:
-                # Lectura de XLSX nativa en Python usando zipfile y XML
-                with zipfile.ZipFile(ruta, 'r') as z:
-                    # Extraer shared strings
-                    strings = []
-                    if 'xl/sharedStrings.xml' in z.namelist():
-                        tree = ET.fromstring(z.read('xl/sharedStrings.xml'))
-                        for elem in tree.iter():
-                            if elem.tag.endswith('t') and elem.text:
-                                strings.append(elem.text)
-
-                    # Leer sheet1.xml
-                    if 'xl/worksheets/sheet1.xml' in z.namelist():
-                        sheet_tree = ET.fromstring(z.read('xl/worksheets/sheet1.xml'))
-                        rows = []
-                        for row in sheet_tree.iter('{http://schemas.openxmlformats.org/spreadsheetml/2006/main}row'):
-                            valores_fila = []
-                            for c in row.iter('{http://schemas.openxmlformats.org/spreadsheetml/2006/main}c'):
-                                t = c.attrib.get('t')
-                                v = c.find('{http://schemas.openxmlformats.org/spreadsheetml/2006/main}v')
-                                if v is not None and v.text:
-                                    if t == 's':
-                                        idx = int(v.text)
-                                        valores_fila.append(strings[idx] if idx < len(strings) else "")
-                                    else:
-                                        valores_fila.append(v.text)
-                            if valores_fila:
-                                rows.append(valores_fila)
-
-                        if len(rows) > 1:
-                            cabeceras = [str(h).lower() for h in rows[0]]
-                            for r in rows[1:]:
-                                d = {}
-                                for i, h in enumerate(cabeceras):
-                                    if i < len(r):
-                                        d[h] = r[i]
-                                nombre = d.get("nombre") or d.get("nombre completo") or d.get("apellido y nombre") or (r[0] if len(r) > 0 else "")
-                                dni = d.get("dni") or d.get("documento") or (r[1] if len(r) > 1 else "")
-                                legajo = d.get("legajo") or (r[2] if len(r) > 2 else "")
-                                correo = d.get("correo") or d.get("email") or (r[3] if len(r) > 3 else "")
-                                carrera = d.get("carrera") or (r[4] if len(r) > 4 else "Tecnicatura Beltrán")
-                                if nombre and dni:
-                                    nuevos.append({
-                                        "nombre": str(nombre).strip(),
-                                        "dni": str(dni).strip().replace(".", "").replace(" ", ""),
-                                        "legajo": str(legajo).strip(),
-                                        "correo": str(correo).strip(),
-                                        "carrera": str(carrera).strip()
-                                    })
-        except Exception as err:
-            GLib.idle_add(self.mostrar_alerta, "Error de Importación", f"No se pudo leer el archivo: {err}")
-            return
-
-        if not nuevos:
-            GLib.idle_add(self.mostrar_alerta, "Sin Registros Válidos", "No se encontraron filas con Nombre y DNI en la planilla seleccionada.")
-            return
-
-        # Enviar masivamente a la API local
-        url = "http://localhost:3000/api/egresados/importar"
-        try:
-            payload = json.dumps({"egresados": nuevos}).encode("utf-8")
-            req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
-            urllib.request.urlopen(req, timeout=5)
-        except Exception as err:
-            print(f"Aviso API bulk: {err}")
-
-        GLib.idle_add(self._aplicar_importacion, nuevos)
-
-    def _aplicar_importacion(self, nuevos):
-        dnis_existentes = {f[0] for f in self.graduados_todos}
-        agregados = 0
-        for n in nuevos:
-            if n["dni"] not in dnis_existentes:
-                fila = (
-                    n["dni"],
-                    n["nombre"],
-                    n.get("carrera", "Tecnicatura Beltrán"),
-                    "SIN_INVITAR",
-                    "Sin asignar",
-                    n.get("correo", "—"),
-                    ""
+        if dlg.run() == Gtk.ResponseType.OK:
+            ruta = dlg.get_filename()
+            importados = 0
+            try:
+                with open(ruta, "r", encoding="utf-8-sig") as f:
+                    reader = csv.DictReader(f)
+                    for row in reader:
+                        dni = (row.get("dni") or row.get("DNI") or "").strip()
+                        nom = (row.get("nombre") or row.get("Nombre") or "").strip()
+                        if dni and nom:
+                            sigic_db.guardar_graduado({
+                                "dni": dni,
+                                "nombre": nom,
+                                "legajo": (row.get("legajo") or f"BEL-2026-{importados+150}").strip(),
+                                "correo": (row.get("correo") or "").strip(),
+                                "telefono": (row.get("telefono") or "").strip(),
+                                "carrera": (row.get("carrera") or sigic_db.CARRERAS_BELTRAN[0]).strip(),
+                                "promedio": (row.get("promedio") or "8.00").strip(),
+                                "estado": (row.get("estado") or "PENDIENTE").strip().upper(),
+                                "butaca": (row.get("butaca") or "Sin asignar").strip(),
+                                "entregador": (row.get("entregador") or "Sin asignar").strip(),
+                            })
+                            importados += 1
+                self.refrescar_vista()
+                self.lbl_status.set_markup(
+                    f"<span font='9.5' foreground='#34d399'><b>Importación exitosa:</b> {importados} graduados incorporados al padrón.</span>"
                 )
-                self.graduados_todos.append(fila)
-                self.modelo.append(list(fila))
-                dnis_existentes.add(n["dni"])
-                agregados += 1
-
-        self.actualizar_conteo_visible()
-        self.mostrar_alerta(
-            "Importación Completada",
-            f"Se incorporaron exitosamente {agregados} graduados de {len(nuevos)} registros de la planilla."
-        )
-
-    def on_cargar_cohorte_modelo(self, button):
-        nuevos = []
-        dnis_existentes = {f[0] for f in self.graduados_todos}
-        for g in COHORTE_MODELO:
-            if g["dni"] not in dnis_existentes:
-                nuevos.append(g)
-
-        if not nuevos:
-            self.mostrar_alerta("Cohorte Modelo", "Todos los alumnos de la cohorte modelo ya están presentes en el padrón.")
-            return
-
-        threading.Thread(target=self._hilo_guardar_bulk, args=(nuevos,), daemon=True).start()
-
-    def _hilo_guardar_bulk(self, nuevos):
-        url = "http://localhost:3000/api/egresados/importar"
-        try:
-            payload = json.dumps({"egresados": nuevos}).encode("utf-8")
-            req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
-            urllib.request.urlopen(req, timeout=4)
-        except Exception:
-            pass
-
-        filas = []
-        for g in nuevos:
-            filas.append((
-                g["dni"],
-                g["nombre"],
-                g["carrera"],
-                g["estado"],
-                g["butaca"],
-                g["correo"],
-                ""
-            ))
-        GLib.idle_add(self._agregar_filas_a_tabla, filas)
-
-    def _agregar_filas_a_tabla(self, filas):
-        for f in filas:
-            self.graduados_todos.append(f)
-            self.modelo.append(list(f))
-        self.actualizar_conteo_visible()
-        self.mostrar_alerta("Cohorte Modelo Cargada", f"Se cargaron {len(filas)} graduados de ejemplo del Instituto Beltrán.")
-
-    def on_descargar_plantilla(self, button):
-        home = os.path.expanduser("~")
-        dest_dir = os.path.join(home, "Desktop")
-        if not os.path.exists(dest_dir):
-            dest_dir = os.path.join(home, "Escritorio")
-        if not os.path.exists(dest_dir):
-            dest_dir = home
-
-        ruta_csv = os.path.join(dest_dir, "Plantilla_Padron_SiGIC.csv")
-        try:
-            with open(ruta_csv, "w", encoding="utf-8", newline="") as f:
-                escritor = csv.writer(f, delimiter=";")
-                escritor.writerow(["Nombre Completo", "DNI", "Legajo", "Correo", "Carrera", "Promedio", "Año"])
-                escritor.writerow(["García Juan Manuel", "40123456", "LEG-2024-001", "juan.garcia@gmail.com", "Desarrollo de Software", "9.1", "2024"])
-                escritor.writerow(["Martínez Lucía Belén", "41234567", "LEG-2024-002", "lucia.martinez@gmail.com", "Automatización y Robótica", "9.4", "2024"])
-                escritor.writerow(["Rodríguez Matías", "39987654", "LEG-2024-003", "matias.rodriguez@gmail.com", "Redes e Infraestructura", "8.7", "2024"])
-
-            self.mostrar_alerta(
-                "Plantilla Guardada",
-                f"La plantilla CSV fue guardada en:\n{ruta_csv}\n\nPodés abrirla y completarla con Microsoft Excel o LibreOffice Calc."
-            )
-        except Exception as err:
-            self.mostrar_alerta("Error", f"No se pudo guardar la plantilla: {err}")
-
-    def on_eliminar_seleccionado(self, button):
-        selection = self.treeview.get_selection()
-        model, treeiter = selection.get_selected()
-        if not treeiter:
-            self.mostrar_alerta("Aviso", "Seleccioná primero un graduado en la tabla para eliminarlo.")
-            return
-
-        dni = model.get_value(treeiter, 0)
-        nombre = model.get_value(treeiter, 1)
-
-        dlg = Gtk.MessageDialog(
-            transient_for=self,
-            flags=0,
-            message_type=Gtk.MessageType.QUESTION,
-            buttons=Gtk.ButtonsType.YES_NO,
-            text=f"¿Desea eliminar a {nombre}?"
-        )
-        dlg.format_secondary_text(f"DNI: {dni}\nSe quitará del padrón oficial y se liberarán sus butacas.")
-        resp = dlg.run()
-        dlg.destroy()
-
-        if resp == Gtk.ResponseType.YES:
-            # Eliminar localmente de la lista y modelo
-            self.graduados_todos = [g for g in self.graduados_todos if g[0] != dni]
-            self.modelo.remove(model.convert_iter_to_child_iter(treeiter))
-            self.actualizar_conteo_visible()
-
-            # Enviar delete a la API
-            def _hilo_del():
-                try:
-                    url = f"http://localhost:3000/api/egresados?dni={dni}"
-                    req = urllib.request.Request(url, method="DELETE")
-                    urllib.request.urlopen(req, timeout=3)
-                except Exception:
-                    pass
-            threading.Thread(target=_hilo_del, daemon=True).start()
-
-    def mostrar_alerta(self, titulo, mensaje):
-        dlg = Gtk.MessageDialog(
-            transient_for=self,
-            flags=0,
-            message_type=Gtk.MessageType.INFO,
-            buttons=Gtk.ButtonsType.OK,
-            text=titulo
-        )
-        dlg.format_secondary_text(mensaje)
-        dlg.run()
+            except Exception as e:
+                self.lbl_status.set_markup(
+                    f"<span font='9.5' foreground='#f43f5e'>Error al importar CSV: {e}</span>"
+                )
         dlg.destroy()
 
 
-def aplicar_estilos():
-    try:
-        css_provider = Gtk.CssProvider()
-        css_provider.load_from_data(CSS_ESTILOS)
-        screen = Gdk.Screen.get_default()
-        if screen:
-            Gtk.StyleContext.add_provider_for_screen(screen, css_provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
-    except Exception as e:
-        print(f"Aviso CSS: {e}")
-
-def main():
-    win = GraduadosSigic()
-    aplicar_estilos()
+if __name__ == "__main__":
+    win = VentanaGraduados()
     win.connect("destroy", Gtk.main_quit)
     win.show_all()
     Gtk.main()
-
-if __name__ == "__main__":
-    main()

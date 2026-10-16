@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 Name=Preparación
-Comment=Disposición de butacas y docentes entregadores
+Comment=Mapeo y asignación de butacas del anfiteatro
 Exec=/usr/local/bin/sigic-preparacion
 Icon=/usr/share/pixmaps/sigic-preparacion.png
 Terminal=false

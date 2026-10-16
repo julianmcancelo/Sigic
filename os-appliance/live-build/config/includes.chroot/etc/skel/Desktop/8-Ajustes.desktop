@@ -2,7 +2,7 @@
 Version=1.0
 Type=Application
 Name=Ajustes
-Comment=Configuración de red, modo mantenimiento y sistema
+Comment=Configuración de fondos oficiales, mantenimiento y sistema
 Exec=/usr/local/bin/sigic-ajustes
 Icon=/usr/share/pixmaps/sigic-ajustes.png
 Terminal=false
