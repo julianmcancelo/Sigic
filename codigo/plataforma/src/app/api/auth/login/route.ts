@@ -49,11 +49,30 @@ export async function POST(req: NextRequest) {
     }
 
     // 1. Buscar usuario en base de datos PostgreSQL
-    const result = await query(
+    let result = await query(
       'SELECT id, nombre, email, password_hash, rol, activo, session_version FROM usuarios_sistema WHERE email = $1 AND activo = 1',
       [emailLimpio]
     );
-    const usuario = result.rows[0];
+    let usuario = result.rows[0];
+
+    // Fallback a cuentas alias del administrador principal si no se encuentra por correo exacto
+    if (!usuario) {
+      const ALIASES_DEV: Record<string, string[]> = {
+        'jcancelo.dev@gmail.com': ['juliancancelo@gmail.com', 'julianmcancelo@gmail.com'],
+        'julianmcancelo@gmail.com': ['juliancancelo@gmail.com', 'jcancelo.dev@gmail.com'],
+        'juliancancelo@gmail.com': ['julianmcancelo@gmail.com', 'jcancelo.dev@gmail.com'],
+      };
+      const posibles = ALIASES_DEV[emailLimpio];
+      if (posibles) {
+        const fallbackRes = await query(
+          'SELECT id, nombre, email, password_hash, rol, activo, session_version FROM usuarios_sistema WHERE email = ANY($1::text[]) AND activo = 1 ORDER BY ultimo_login DESC NULLS LAST LIMIT 1',
+          [posibles]
+        );
+        if (fallbackRes.rows[0]) {
+          usuario = fallbackRes.rows[0];
+        }
+      }
+    }
 
     if (!usuario || !ROLES_OPERACION.includes(usuario.rol)) {
       return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
@@ -64,8 +83,6 @@ export async function POST(req: NextRequest) {
     if (!passwordValido) {
       return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
     }
-
-
 
     // El personal de portería puede iniciar sesión si tiene al menos una ceremonia
     // asignada. Las operaciones de acreditación validan aparte la ceremonia activa.

@@ -497,14 +497,14 @@ function App() {
         const response = await originalFetch(...args)
         
         const esRutaAuth = url.includes('/verificar-otp') || 
-                           url.includes('/auth/login') || 
+                           url.includes('/auth/') || 
                            url.includes('/egresados/token/') ||
                            url.includes('/solicitar-otp')
 
         const token = obtenerTokenSesion()
         const esBypass = token.startsWith('bypass-')
 
-        if ((response.status === 401 || response.status === 403) && !esRutaAuth && !esBypass) {
+        if (token && (response.status === 401 || response.status === 403) && !esRutaAuth && !esBypass) {
           // No cerrar la sesión si el admin está en modo preview del egresado
           const esAdminPreview = sessionStorage.getItem('sigic_admin_preview') === '1'
           if (!esAdminPreview) {

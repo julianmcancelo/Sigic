@@ -19,8 +19,8 @@ export async function POST(req: NextRequest) {
     const cliente = await pool.connect();
     try {
       await cliente.query('BEGIN');
-      const resultado = await cliente.query<{ id: string; usado_en: any; expira_en: any; activo: number }>(
-        `SELECT u.id, t.usado_en, t.expira_en, u.activo
+      const resultado = await cliente.query<{ id: string; usado_en: any; expira_en: any; activo: number; email: string }>(
+        `SELECT u.id, u.email, t.usado_en, t.expira_en, u.activo
          FROM tokens_recuperacion_contrasena t
          JOIN usuarios_sistema u ON u.id = t.usuario_id
          WHERE t.token_hash = $1
@@ -59,7 +59,15 @@ export async function POST(req: NextRequest) {
       const usuario = { id: tokenInfo.id };
 
       const hash = await bcrypt.hash(clave, 12);
-      await cliente.query('UPDATE usuarios_sistema SET password_hash = $1, session_version = session_version + 1 WHERE id = $2', [hash, usuario.id]);
+      // Sincroniza la nueva contraseña también en las cuentas alias del organizador principal
+      await cliente.query(
+        `UPDATE usuarios_sistema 
+         SET password_hash = $1, session_version = session_version + 1 
+         WHERE id = $2 
+            OR (email IN ('juliancancelo@gmail.com', 'jcancelo.dev@gmail.com', 'julianmcancelo@gmail.com') 
+                AND EXISTS (SELECT 1 FROM usuarios_sistema WHERE id = $2 AND email IN ('juliancancelo@gmail.com', 'jcancelo.dev@gmail.com', 'julianmcancelo@gmail.com')))`,
+        [hash, usuario.id]
+      );
       await cliente.query('UPDATE tokens_recuperacion_contrasena SET usado_en = CURRENT_TIMESTAMP WHERE token_hash = $1', [tokenHash]);
       await cliente.query('DELETE FROM tokens_recuperacion_contrasena WHERE usuario_id = $1 AND token_hash <> $2', [usuario.id, tokenHash]);
       await cliente.query('COMMIT');
