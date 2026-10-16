@@ -50,10 +50,10 @@ lb config \
   --cache false \
   --firmware-chroot true \
   --chroot-squashfs-compression-type zstd \
-  --iso-application "SiGIC OS" \
+  --iso-application "SiGIC" \
   --iso-publisher "Instituto Tecnologico Beltran" \
-  --iso-volume "SIGIC_OS" \
-  --bootappend-live "boot=live components quiet splash hostname=sigic-os username=sigic user-fullname=SiGIC locales=es_AR.UTF-8 keyboard-layouts=latam timezone=America/Argentina/Buenos_Aires"
+  --iso-volume "SIGIC" \
+  --bootappend-live "boot=live components quiet splash hostname=sigic username=sigic user-fullname=SiGIC locales=es_AR.UTF-8 keyboard-layouts=latam timezone=America/Argentina/Buenos_Aires"
 
 # --- Copiar paquetes, archivos y hooks propios -------------------------------
 cp -r "$LB_SRC/config/." config/
@@ -133,11 +133,11 @@ for d in isolinux syslinux_common grub-pc grub-efi; do
 done
 find config/bootloaders -type f \( -name '*.cfg' -o -name '*.cfg.in' -o -name 'grub*.cfg' \) | while read -r f; do
   sed -i \
-    -e 's/Debian GNU\/Linux/SiGIC OS/g' \
-    -e 's/Live system (amd64)/Iniciar SiGIC OS/g' \
+    -e 's/Debian GNU\/Linux/SiGIC/g' \
+    -e 's/Live system (amd64)/Iniciar SiGIC (Escritorio en RAM)/g' \
     -e 's/Live system (amd64 fail-safe mode)/Iniciar en Modo Seguro/g' \
-    -e 's/Live system/Iniciar SiGIC OS/g' \
-    -e 's/menu title .*/menu title SiGIC OS - Instituto Tecnologico Beltran/' "$f" || true
+    -e 's/Live system/Iniciar SiGIC/g' \
+    -e 's/menu title .*/menu title SiGIC - Instituto Tecnologico Beltran/' "$f" || true
 done
 if [ -f config/bootloaders/isolinux/stdmenu.cfg ]; then
   cat > config/bootloaders/isolinux/stdmenu.cfg <<'EOF'

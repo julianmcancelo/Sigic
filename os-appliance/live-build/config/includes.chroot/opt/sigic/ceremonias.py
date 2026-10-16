@@ -2,13 +2,15 @@
 # -*- coding: utf-8 -*-
 """
 SiGIC — Gestión Nativa de Ceremonias de Colación
-Aplicación nativa GTK3 para consultar y gestionar actos institucionales.
+Aplicación nativa GTK3 para consultar, crear y activar actos institucionales.
+Instituto Tecnológico Beltrán
 """
 
 import os
 import sys
 import json
 import urllib.request
+import urllib.error
 import subprocess
 import threading
 
@@ -23,7 +25,7 @@ except Exception as err:
 
 CSS_ESTILOS = b"""
 window.sigic-window {
-    background-color: #f1f5f9;
+    background-color: #f8fafc;
 }
 
 headerbar.sigic-headerbar {
@@ -51,14 +53,13 @@ button.btn-primary {
     font-size: 12px;
     font-weight: bold;
     border-radius: 8px;
-    padding: 8px 16px;
+    padding: 7px 14px;
     border-width: 0px;
 }
 
 button.btn-primary:hover {
     background-image: none;
     background-color: #0369a1;
-    border-color: #0369a1;
 }
 
 button.btn-secondary {
@@ -69,12 +70,12 @@ button.btn-secondary {
     font-weight: bold;
     border: 1px solid #cbd5e1;
     border-radius: 8px;
-    padding: 8px 16px;
+    padding: 7px 14px;
 }
 
 button.btn-secondary:hover {
     background-image: none;
-    background-color: #f8fafc;
+    background-color: #f1f5f9;
 }
 """
 
@@ -101,12 +102,87 @@ CEREMONIAS_DEMO = [
     }
 ]
 
+
+class DialogoNuevaCeremonia(Gtk.Dialog):
+    """Diálogo emergente para crear un nuevo acto de colación."""
+    def __init__(self, parent):
+        super().__init__(title="Nueva Ceremonia — SiGIC Beltrán", transient_for=parent, flags=0)
+        self.set_default_size(460, 360)
+        self.set_resizable(False)
+
+        box_content = self.get_content_area()
+        box_content.set_spacing(10)
+        box_content.set_margin_top(16)
+        box_content.set_margin_bottom(16)
+        box_content.set_margin_start(20)
+        box_content.set_margin_end(20)
+
+        lbl_tit = Gtk.Label(xalign=0)
+        lbl_tit.set_markup("<span foreground='#0f172a' weight='heavy' size='13000'>Programar Acto de Colación</span>\n<small><span foreground='#64748b'>Configurá la fecha, sede y aforo de la nueva colación.</span></small>")
+        box_content.pack_start(lbl_tit, False, False, 4)
+
+        grid = Gtk.Grid()
+        grid.set_column_spacing(12)
+        grid.set_row_spacing(10)
+        box_content.pack_start(grid, True, True, 0)
+
+        self.ent_nombre = Gtk.Entry()
+        self.ent_nombre.set_placeholder_text("Ej: Colación Beltrán 2026")
+
+        self.ent_fecha = Gtk.Entry()
+        self.ent_fecha.set_placeholder_text("Ej: 28 de Noviembre de 2026")
+
+        self.ent_hora = Gtk.Entry()
+        self.ent_hora.set_placeholder_text("Ej: 18:00 hs")
+
+        self.ent_lugar = Gtk.Entry()
+        self.ent_lugar.set_placeholder_text("Ej: Anfiteatro Central Beltrán")
+
+        self.ent_aforo = Gtk.Entry()
+        self.ent_aforo.set_text("200")
+
+        filas = [
+            ("Nombre del Acto *", self.ent_nombre),
+            ("Fecha *", self.ent_fecha),
+            ("Hora *", self.ent_hora),
+            ("Lugar / Sede *", self.ent_lugar),
+            ("Aforo de Butacas", self.ent_aforo)
+        ]
+
+        for i, (etiqueta, widget) in enumerate(filas):
+            lbl = Gtk.Label(label=etiqueta, xalign=0)
+            grid.attach(lbl, 0, i, 1, 1)
+            widget.set_hexpand(True)
+            grid.attach(widget, 1, i, 1, 1)
+
+        self.add_button("Cancelar", Gtk.ResponseType.CANCEL)
+        btn_crear = self.add_button("Crear Ceremonia", Gtk.ResponseType.OK)
+        btn_crear.get_style_context().add_class("btn-primary")
+        self.show_all()
+
+    def obtener_datos(self):
+        try:
+            aforo = int(self.ent_aforo.get_text().strip())
+        except ValueError:
+            aforo = 200
+        return {
+            "nombre": self.ent_nombre.get_text().strip(),
+            "fecha": self.ent_fecha.get_text().strip(),
+            "hora": self.ent_hora.get_text().strip(),
+            "lugar": self.ent_lugar.get_text().strip(),
+            "aforo": aforo,
+            "activa": False
+        }
+
+
 class CeremoniasSigic(Gtk.Window):
     def __init__(self):
         super().__init__(title="Ceremonias de Colación — SiGIC")
-        self.set_default_size(780, 520)
+        self.set_default_size(840, 560)
         self.set_position(Gtk.WindowPosition.CENTER)
         self.get_style_context().add_class("sigic-window")
+
+        self.ceremonias = []
 
         # HeaderBar institucional
         header = Gtk.HeaderBar()
@@ -116,6 +192,22 @@ class CeremoniasSigic(Gtk.Window):
         header.get_style_context().add_class("sigic-headerbar")
         self.set_titlebar(header)
 
+        btn_nueva = Gtk.Button()
+        lbl_nc = Gtk.Label()
+        lbl_nc.set_markup("<span foreground='#ffffff' weight='heavy'>+ Nueva Ceremonia</span>")
+        btn_nueva.add(lbl_nc)
+        btn_nueva.get_style_context().add_class("btn-primary")
+        btn_nueva.connect("clicked", self.on_abrir_nueva_ceremonia)
+        header.pack_start(btn_nueva)
+
+        btn_act = Gtk.Button()
+        lbl_a = Gtk.Label()
+        lbl_a.set_markup("<span foreground='#334155' weight='bold'>Actualizar</span>")
+        btn_act.add(lbl_a)
+        btn_act.get_style_context().add_class("btn-secondary")
+        btn_act.connect("clicked", lambda b: self.cargar_ceremonias())
+        header.pack_end(btn_act)
+
         vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=14)
         vbox.set_margin_top(14)
         vbox.set_margin_bottom(14)
@@ -123,20 +215,11 @@ class CeremoniasSigic(Gtk.Window):
         vbox.set_margin_end(18)
         self.add(vbox)
 
-        # Encabezado con botón de recarga
+        # Encabezado informativo
         box_top = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=12)
         lbl_info = Gtk.Label(xalign=0)
-        lbl_info.set_markup("<span foreground='#0f172a' weight='heavy' size='12000'>Actos Institucionales Registrados</span>\n<small><span foreground='#64748b'>Visualizá y gestioná el evento de colación activo en el sistema.</span></small>")
+        lbl_info.set_markup("<span foreground='#0f172a' weight='heavy' size='12000'>Actos Institucionales Registrados</span>\n<small><span foreground='#64748b'>Visualizá, programá y activá las ceremonias de graduación del Beltrán.</span></small>")
         box_top.pack_start(lbl_info, True, True, 0)
-
-        btn_web = Gtk.Button()
-        lbl_w = Gtk.Label()
-        lbl_w.set_markup("<span foreground='#334155' weight='bold'>Actualizar</span>")
-        btn_web.add(lbl_w)
-        btn_web.get_style_context().add_class("btn-secondary")
-        btn_web.connect("clicked", lambda b: self.cargar_ceremonias())
-        box_top.pack_start(btn_web, False, False, 0)
-
         vbox.pack_start(box_top, False, False, 0)
 
         # Contenedor scrolleable para las tarjetas
@@ -163,8 +246,9 @@ class CeremoniasSigic(Gtk.Window):
             pass
 
         if not items:
-            items = CEREMONIAS_DEMO
+            items = list(CEREMONIAS_DEMO)
 
+        self.ceremonias = items
         GLib.idle_add(self._renderizar_ceremonias, items)
 
     def _renderizar_ceremonias(self, items):
@@ -179,18 +263,25 @@ class CeremoniasSigic(Gtk.Window):
             if es_activa:
                 card.get_style_context().add_class("activa")
 
-            # Fila superior de la tarjeta: Título + Badge de Estado
+            # Fila superior de la tarjeta: Título + Badge de Estado / Botón Activar
             box_h = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
             lbl_tit = Gtk.Label(xalign=0)
             lbl_tit.set_markup(f"<span foreground='#0f172a' weight='heavy' size='11500'>{c.get('nombre', 'Acto de Colación')}</span>")
             box_h.pack_start(lbl_tit, True, True, 0)
 
-            badge = Gtk.Label()
             if es_activa:
+                badge = Gtk.Label()
                 badge.set_markup("<span foreground='#0284c7' weight='heavy'>● CEREMONIA ACTIVA</span>")
+                box_h.pack_start(badge, False, False, 0)
             else:
-                badge.set_markup("<span foreground='#64748b' weight='bold'>PROGRAMADA</span>")
-            box_h.pack_start(badge, False, False, 0)
+                btn_activar = Gtk.Button()
+                lbl_ac = Gtk.Label()
+                lbl_ac.set_markup("<span foreground='#0284c7' weight='bold'>Activar como Principal</span>")
+                btn_activar.add(lbl_ac)
+                btn_activar.get_style_context().add_class("btn-secondary")
+                btn_activar.connect("clicked", self.on_activar_ceremonia, c)
+                box_h.pack_start(btn_activar, False, False, 0)
+
             card.pack_start(box_h, False, False, 0)
 
             # Detalles
@@ -212,6 +303,63 @@ class CeremoniasSigic(Gtk.Window):
             self.box_cards.pack_start(card, False, False, 0)
 
         self.box_cards.show_all()
+
+    def on_abrir_nueva_ceremonia(self, button):
+        dlg = DialogoNuevaCeremonia(self)
+        resp = dlg.run()
+        if resp == Gtk.ResponseType.OK:
+            datos = dlg.obtener_datos()
+            dlg.destroy()
+            if not datos["nombre"]:
+                self.mostrar_alerta("Campo Requerido", "Debe ingresar el nombre del acto de colación.")
+                return
+            threading.Thread(target=self._hilo_guardar_ceremonia, args=(datos,), daemon=True).start()
+        else:
+            dlg.destroy()
+
+    def _hilo_guardar_ceremonia(self, datos):
+        url = "http://localhost:3000/api/ceremonias"
+        try:
+            payload = json.dumps(datos).encode("utf-8")
+            req = urllib.request.Request(url, data=payload, headers={"Content-Type": "application/json"}, method="POST")
+            urllib.request.urlopen(req, timeout=4)
+        except Exception as err:
+            print(f"Aviso API al crear ceremonia: {err}")
+
+        datos["id"] = len(self.ceremonias) + 1
+        datos["graduados"] = 0
+        self.ceremonias.append(datos)
+        GLib.idle_add(self._renderizar_ceremonias, self.ceremonias)
+        GLib.idle_add(self.mostrar_alerta, "Ceremonia Programada", f"Se ha registrado el acto «{datos['nombre']}».")
+
+    def on_activar_ceremonia(self, button, ceremonia):
+        cid = ceremonia.get("id")
+        for c in self.ceremonias:
+            c["activa"] = (c.get("id") == cid)
+        self._renderizar_ceremonias(self.ceremonias)
+
+        def _hilo_act():
+            try:
+                url = f"http://localhost:3000/api/ceremonias/{cid}/activar"
+                req = urllib.request.Request(url, method="PUT")
+                urllib.request.urlopen(req, timeout=3)
+            except Exception:
+                pass
+        threading.Thread(target=_hilo_act, daemon=True).start()
+        self.mostrar_alerta("Ceremonia Activada", f"«{ceremonia.get('nombre')}» es ahora la ceremonia activa del sistema.")
+
+    def mostrar_alerta(self, titulo, mensaje):
+        dlg = Gtk.MessageDialog(
+            transient_for=self,
+            flags=0,
+            message_type=Gtk.MessageType.INFO,
+            buttons=Gtk.ButtonsType.OK,
+            text=titulo
+        )
+        dlg.format_secondary_text(mensaje)
+        dlg.run()
+        dlg.destroy()
+
 
 def aplicar_estilos():
     try:
