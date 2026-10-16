@@ -145,11 +145,11 @@ class EnVivoSigic(Gtk.Window):
         card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
         card.get_style_context().add_class("card-dark")
         lbl_v = Gtk.Label(xalign=0)
-        lbl_v.set_markup(f"<span class='metric-big'>{val}</span>")
+        lbl_v.set_markup(f"<span foreground='#38bdf8' weight='heavy' size='20000'>{val}</span>")
         card.pack_start(lbl_v, False, False, 0)
 
         lbl_t = Gtk.Label(xalign=0)
-        lbl_t.set_markup(f"<span class='metric-lbl'>{tit.upper()}</span>")
+        lbl_t.set_markup(f"<span foreground='#94a3b8' weight='heavy' size='9000'>{tit.upper()}</span>")
         card.pack_start(lbl_t, False, False, 0)
 
         lbl_s = Gtk.Label(xalign=0)

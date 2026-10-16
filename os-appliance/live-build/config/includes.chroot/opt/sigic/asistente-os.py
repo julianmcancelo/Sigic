@@ -299,7 +299,7 @@ class AsistenteSigic(Gtk.Window):
         box_feats = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
         for f in features:
             lbl_f = Gtk.Label(xalign=0)
-            lbl_f.set_markup(f"<span foreground='#00e5ff'>✓</span>  <span class='feature-item'>{f}</span>")
+            lbl_f.set_markup(f"<span foreground='#00e5ff'>✓</span>  <span foreground='#e2e8f0' weight='bold'>{f}</span>")
             box_feats.pack_start(lbl_f, False, False, 0)
         sidebar.pack_start(box_feats, False, False, 4)
 

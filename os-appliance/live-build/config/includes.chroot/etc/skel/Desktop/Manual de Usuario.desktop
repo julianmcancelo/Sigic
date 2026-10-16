@@ -7,4 +7,4 @@ Exec=/usr/local/bin/sigic-manual
 Icon=/usr/share/pixmaps/sigic-manual.png
 Terminal=false
 Categories=Office;Education;System;
-StartupNotify=true
+StartupNotify=false

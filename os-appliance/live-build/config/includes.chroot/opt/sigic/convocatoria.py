@@ -142,6 +142,7 @@ class ConvocatoriaSigic(Gtk.Window):
         self.store = Gtk.ListStore(str, str, str, str, str)
         self.tree = Gtk.TreeView(model=self.store)
         self.tree.set_rules_hint(True)
+        self.tree.set_enable_search(False)
 
         cols = ["Graduado", "Carrera", "Correo Electrónico", "Estado Invitación", "Fecha Envío"]
         for i, c in enumerate(cols):
@@ -164,9 +165,9 @@ class ConvocatoriaSigic(Gtk.Window):
         card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
         card.get_style_context().add_class("card-white")
         lbl_n = Gtk.Label(xalign=0)
-        lbl_n.set_markup(f"<span class='kpi-num'>{num}</span>")
+        lbl_n.set_markup(f"<span foreground='#0284c7' weight='heavy' size='18000'>{num}</span>")
         lbl_l = Gtk.Label(xalign=0)
-        lbl_l.set_markup(f"<span class='kpi-lbl'>{lbl.upper()}</span>")
+        lbl_l.set_markup(f"<span foreground='#64748b' weight='heavy' size='9000'>{lbl.upper()}</span>")
         card.pack_start(lbl_n, False, False, 0)
         card.pack_start(lbl_l, False, False, 0)
         return card

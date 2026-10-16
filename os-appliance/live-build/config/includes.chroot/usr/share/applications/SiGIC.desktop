@@ -7,4 +7,4 @@ Exec=/usr/local/bin/sigic-portal
 Icon=/usr/share/pixmaps/sigic.png
 Terminal=false
 Categories=Office;Education;System;
-StartupNotify=true
+StartupNotify=false

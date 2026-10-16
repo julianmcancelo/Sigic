@@ -283,14 +283,14 @@ class PanelAjustesSigic(Gtk.Window):
 
         box_root.pack_start(card_serv, False, False, 0)
 
-        # Botón para abrir la plataforma en el navegador
+        # Botón para abrir el Centro de Control nativo
         box_actions = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
         btn_abrir_plat = Gtk.Button()
         lbl_plat = Gtk.Label()
-        lbl_plat.set_markup("<span foreground='#ffffff' weight='heavy'>Abrir Plataforma en Navegador</span>")
+        lbl_plat.set_markup("<span foreground='#ffffff' weight='heavy'>Abrir Centro de Control</span>")
         btn_abrir_plat.add(lbl_plat)
         btn_abrir_plat.get_style_context().add_class("btn-primary")
-        btn_abrir_plat.connect("clicked", lambda b: subprocess.Popen(["chromium", "--start-maximized", "http://localhost:3000/"]))
+        btn_abrir_plat.connect("clicked", lambda b: subprocess.Popen(["/usr/local/bin/sigic-portal"]))
         box_actions.pack_start(btn_abrir_plat, False, False, 0)
 
         box_root.pack_start(box_actions, False, False, 0)
@@ -315,15 +315,19 @@ class PanelAjustesSigic(Gtk.Window):
             pass
 
     def consultar_estado_servicios(self):
-        try:
-            req = urllib.request.Request("http://localhost:3000/api/configuracion", timeout=3)
-            with urllib.request.urlopen(req) as resp:
-                data = json.loads(resp.read().decode())
-                maint = data.get("modo_mantenimiento") == "true" or data.get("modo_mantenimiento") is True
-                GLib.idle_add(self.sw_mantenimiento.set_active, maint)
-                GLib.idle_add(self.badge_web.set_markup, "<span foreground='#059669' weight='bold'>● ACTIVO</span>")
-        except Exception:
-            GLib.idle_add(self.badge_web.set_markup, "<span foreground='#dc2626' weight='bold'>● DETENIDO</span>")
+        import time
+        for _ in range(6):
+            try:
+                req = urllib.request.Request("http://localhost:3000/api/configuracion", timeout=3)
+                with urllib.request.urlopen(req) as resp:
+                    data = json.loads(resp.read().decode())
+                    maint = data.get("modo_mantenimiento") == "true" or data.get("modo_mantenimiento") is True
+                    GLib.idle_add(self.sw_mantenimiento.set_active, maint)
+                    GLib.idle_add(self.badge_web.set_markup, "<span foreground='#059669' weight='bold'>● ACTIVO</span>")
+                    return
+            except Exception:
+                time.sleep(1.5)
+        GLib.idle_add(self.badge_web.set_markup, "<span foreground='#dc2626' weight='bold'>● DETENIDO</span>")
 
     def crear_pestana_sistema(self):
         box_root = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=14)

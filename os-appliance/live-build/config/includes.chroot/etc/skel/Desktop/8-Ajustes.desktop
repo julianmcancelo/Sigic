@@ -7,4 +7,4 @@ Exec=/usr/local/bin/sigic-ajustes
 Icon=/usr/share/pixmaps/sigic-ajustes.png
 Terminal=false
 Categories=Office;Education;System;
-StartupNotify=true
+StartupNotify=false

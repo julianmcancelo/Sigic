@@ -193,11 +193,11 @@ class PortalSigic(Gtk.Window):
             card.get_style_context().add_class("bento-card")
 
             lbl_t = Gtk.Label(xalign=0)
-            lbl_t.set_markup(f"<span class='bento-title'>{titulo}</span>")
+            lbl_t.set_markup(f"<span foreground='#f8fafc' weight='bold' size='11500'>{titulo}</span>")
             card.pack_start(lbl_t, False, False, 0)
 
             lbl_d = Gtk.Label(xalign=0)
-            lbl_d.set_markup(f"<span class='bento-desc'>{desc}</span>")
+            lbl_d.set_markup(f"<span foreground='#94a3b8' size='9500'>{desc}</span>")
             lbl_d.set_line_wrap(True)
             card.pack_start(lbl_d, True, True, 0)
 
@@ -217,7 +217,7 @@ class PortalSigic(Gtk.Window):
 
         # Footer institucional
         lbl_foot = Gtk.Label()
-        lbl_foot.set_markup("<small><span class='footer-system'>Instituto Tecnológico Beltrán · Práctica Profesionalizante 2026 · Cancelo Julián · Alfonso Alan Alexis · Contreras Villalba Sol Heilin · Frassia Matías · Santillán Luis Gabriel</span></small>")
+        lbl_foot.set_markup("<small><span foreground='#475569'>Instituto Tecnológico Beltrán · Práctica Profesionalizante 2026 · Cancelo Julián · Alfonso Alan Alexis · Contreras Villalba Sol Heilin · Frassia Matías · Santillán Luis Gabriel</span></small>")
         vbox.pack_start(lbl_foot, False, False, 0)
 
         self.cargar_metricas_background()
@@ -226,15 +226,15 @@ class PortalSigic(Gtk.Window):
         card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3)
         card.get_style_context().add_class("bento-card")
         lbl_l = Gtk.Label(xalign=0)
-        lbl_l.set_markup(f"<span class='bento-label'>{label.upper()}</span>")
+        lbl_l.set_markup(f"<span foreground='#64748b' weight='bold' size='9000'>{label.upper()}</span>")
         card.pack_start(lbl_l, False, False, 0)
 
         lbl_v = Gtk.Label(xalign=0)
-        lbl_v.set_markup(f"<span class='bento-metric'>{valor}</span>")
+        lbl_v.set_markup(f"<span foreground='#38bdf8' weight='heavy' size='18000'>{valor}</span>")
         card.pack_start(lbl_v, False, False, 0)
 
         lbl_s = Gtk.Label(xalign=0)
-        lbl_s.set_markup(f"<small><span class='bento-desc'>{sub}</span></small>")
+        lbl_s.set_markup(f"<small><span foreground='#94a3b8'>{sub}</span></small>")
         card.pack_start(lbl_s, False, False, 0)
         return card
 

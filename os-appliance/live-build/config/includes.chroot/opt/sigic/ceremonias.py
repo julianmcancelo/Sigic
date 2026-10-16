@@ -131,10 +131,10 @@ class CeremoniasSigic(Gtk.Window):
 
         btn_web = Gtk.Button()
         lbl_w = Gtk.Label()
-        lbl_w.set_markup("<span foreground='#334155' weight='bold'>Abrir en Plataforma</span>")
+        lbl_w.set_markup("<span foreground='#334155' weight='bold'>Actualizar</span>")
         btn_web.add(lbl_w)
         btn_web.get_style_context().add_class("btn-secondary")
-        btn_web.connect("clicked", lambda b: subprocess.Popen(["chromium", "--start-maximized", "http://localhost:3000/?modulo=gestion-ceremonias"]))
+        btn_web.connect("clicked", lambda b: self.cargar_ceremonias())
         box_top.pack_start(btn_web, False, False, 0)
 
         vbox.pack_start(box_top, False, False, 0)

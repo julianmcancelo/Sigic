@@ -7,4 +7,4 @@ Exec=chromium --lang=es-AR --app="http://localhost:3000/manual"
 Icon=/usr/share/pixmaps/sigic-manual.png
 Terminal=false
 Categories=Help;
-StartupNotify=true
+StartupNotify=false

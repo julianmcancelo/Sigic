@@ -143,13 +143,6 @@ class GraduadosSigic(Gtk.Window):
         btn_refrescar.connect("clicked", lambda b: self.cargar_datos())
         box_top.pack_start(btn_refrescar, False, False, 0)
 
-        btn_web = Gtk.Button()
-        lbl_w = Gtk.Label()
-        lbl_w.set_markup("<span foreground='#334155' weight='bold'>Abrir en Plataforma</span>")
-        btn_web.add(lbl_w)
-        btn_web.get_style_context().add_class("btn-secondary")
-        btn_web.connect("clicked", lambda b: subprocess.Popen(["chromium", "--start-maximized", "http://localhost:3000/?modulo=gestion-graduados"]))
-        box_top.pack_start(btn_web, False, False, 0)
 
         vbox.pack_start(box_top, False, False, 0)
 

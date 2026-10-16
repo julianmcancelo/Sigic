@@ -7,4 +7,4 @@ Exec=python3 /opt/sigic/asistente-os.py
 Icon=/usr/share/pixmaps/sigic.png
 Terminal=false
 Categories=System;
-StartupNotify=true
+StartupNotify=false

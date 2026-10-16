@@ -7,4 +7,4 @@ Exec=/usr/local/bin/sigic-acerca-de
 Icon=/usr/share/pixmaps/sigic-equipo.png
 Terminal=false
 Categories=System;Help;
-StartupNotify=true
+StartupNotify=false

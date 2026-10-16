@@ -164,15 +164,15 @@ class ReportesSigic(Gtk.Window):
         card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2)
         card.get_style_context().add_class("card-white")
         lbl_n = Gtk.Label(xalign=0)
-        lbl_n.set_markup(f"<span class='kpi-num'>{num}</span>")
+        lbl_n.set_markup(f"<span foreground='#0284c7' weight='heavy' size='18000'>{num}</span>")
         card.pack_start(lbl_n, False, False, 0)
 
         lbl_t = Gtk.Label(xalign=0)
-        lbl_t.set_markup(f"<span class='kpi-lbl'>{tit.upper()}</span>")
+        lbl_t.set_markup(f"<span foreground='#64748b' weight='heavy' size='9000'>{tit.upper()}</span>")
         card.pack_start(lbl_t, False, False, 0)
 
         lbl_s = Gtk.Label(xalign=0)
-        lbl_s.set_markup(f"<small><span foreground='#64748b'>{sub}</span></small>")
+        lbl_s.set_markup(f"<small><span foreground='#94a3b8'>{sub}</span></small>")
         card.pack_start(lbl_s, False, False, 0)
         return card
 
