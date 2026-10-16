@@ -1,0 +1,59 @@
+name: Compilar SiGIC OS Ubuntu Live Edition (ISO)
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Versión del Appliance Ubuntu (ej: 24.04.1)'
+        required: true
+        default: '24.04.1'
+
+jobs:
+  build-ubuntu-iso:
+    name: Compilar ISO Ubuntu Live (Casper + XFCE en RAM)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout del Repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js para compilar SiGIC Web
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: codigo/plataforma/package-lock.json
+
+      - name: Compilar Plataforma SiGIC Web (Standalone para el appliance)
+        env:
+          JWT_SECRET: "clave_temporal_solo_para_compilar_sigic_2026_beltran_0123456789"
+          DATABASE_URL: "postgres://sigic:sigic@localhost:5432/sigic"
+          NEXT_TELEMETRY_DISABLED: 1
+        run: |
+          cd codigo/plataforma
+          npm ci --legacy-peer-deps
+          npm run build
+          DESTINO="$GITHUB_WORKSPACE/os-appliance/sigic-build"
+          rm -rf "$DESTINO"
+          mkdir -p "$DESTINO/.next"
+          cp -a .next/standalone/. "$DESTINO/"
+          cp -r public "$DESTINO/public"
+          cp -r .next/static "$DESTINO/.next/static"
+          node "$GITHUB_WORKSPACE/os-appliance/build_visual_assets.js"
+          ls -la "$DESTINO"
+
+      - name: Generar la ISO SiGIC OS Ubuntu Live (Noble 24.04 LTS)
+        env:
+          SIGIC_VERSION: "${{ github.event.inputs.version }}"
+        run: |
+          chmod +x os-appliance/ubuntu-live/build.sh
+          bash os-appliance/ubuntu-live/build.sh
+
+      - name: Subir ISO Ubuntu como Artifact de GitHub Actions
+        uses: actions/upload-artifact@v4
+        with:
+          name: sigic-os-ubuntu-live-iso
+          path: os-appliance/sigic-os-ubuntu-24.04-amd64.iso
+          retention-days: 14
+          compression-level: 0
