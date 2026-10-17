@@ -605,6 +605,44 @@ export async function eliminarProfesor(id: string | number) {
   return true;
 }
 
+// -------------------------------------------------------------
+// GESTIÓN ACADÉMICA (CARRERAS Y MATERIAS)
+// -------------------------------------------------------------
+export async function obtenerCarreras() {
+  const res = await fetchDeduplicado(`${BASE_CLASSIC}/carreras`, { headers: cabeceras() });
+  if (!res.ok) throw new Error('No se pudo cargar la lista de carreras');
+  return res.json();
+}
+
+export async function crearCarrera(datos: { nombre: string; sigla?: string; duracion_anios?: number }) {
+  const res = await fetch(`${BASE_CLASSIC}/carreras`, {
+    method: 'POST',
+    headers: cabeceras(),
+    body: JSON.stringify(datos)
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo guardar la carrera');
+  return json;
+}
+
+export async function obtenerMaterias(carreraId?: string) {
+  const param = carreraId ? `?carrera_id=${encodeURIComponent(carreraId)}` : '';
+  const res = await fetchDeduplicado(`${BASE_CLASSIC}/materias${param}`, { headers: cabeceras() });
+  if (!res.ok) throw new Error('No se pudieron cargar las materias');
+  return res.json();
+}
+
+export async function crearMateria(datos: { carrera_id: string; nombre: string; anio_cursada: number; profesor_titular_id?: string | null }) {
+  const res = await fetch(`${BASE_CLASSIC}/materias`, {
+    method: 'POST',
+    headers: cabeceras(),
+    body: JSON.stringify(datos)
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo guardar la materia');
+  return json;
+}
+
 export async function obtenerEntregadoresDeGraduado(graduadoId: string | number) {
   const res = await fetch(`${BASE_CLASSIC}/entregadores/graduado/${graduadoId}`, { headers: cabeceras() });
   if (!res.ok) throw new Error('No se pudieron cargar los entregadores del graduado');

@@ -217,12 +217,38 @@ async function ejecutarInicializacion() {
     await client.query("ALTER TABLE egresados ADD COLUMN IF NOT EXISTS asiento_solicitado_id VARCHAR(30)");
     await client.query("ALTER TABLE egresados ADD COLUMN IF NOT EXISTS estado_asignacion_butacas VARCHAR(30) NOT NULL DEFAULT 'SIN_SOLICITUD'");
     await client.query("ALTER TABLE invitados ADD COLUMN IF NOT EXISTS asiento_solicitado_id VARCHAR(30)");
+    await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS correo_personal TEXT');
+    await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS telefono TEXT');
     await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS perfil_finalizado_en TIMESTAMP');
     await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS aviso_edicion_enviado_en TIMESTAMP');
     await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS edicion_habilitada_hasta TIMESTAMP');
     await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS edicion_habilitada_motivo TEXT');
     await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS presente BOOLEAN DEFAULT FALSE');
     await client.query('ALTER TABLE egresados ADD COLUMN IF NOT EXISTS fecha_presente TIMESTAMP');
+
+    // Módulo Académico: Carreras y Materias vinculadas
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS carreras (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        nombre VARCHAR(200) NOT NULL UNIQUE,
+        sigla VARCHAR(50),
+        duracion_anios INTEGER DEFAULT 3,
+        activa SMALLINT DEFAULT 1,
+        creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE TABLE IF NOT EXISTS materias (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        carrera_id UUID NOT NULL REFERENCES carreras(id) ON DELETE CASCADE,
+        nombre VARCHAR(200) NOT NULL,
+        anio_cursada INTEGER NOT NULL DEFAULT 1,
+        profesor_titular_id UUID REFERENCES profesores(id) ON DELETE SET NULL,
+        activa SMALLINT DEFAULT 1,
+        creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(carrera_id, nombre)
+      );
+      CREATE INDEX IF NOT EXISTS idx_materias_carrera ON materias(carrera_id);
+    `);
+
     // El teléfono es útil para la operación, pero no debe impedir registrar un acompañante.
     await client.query('ALTER TABLE invitados ALTER COLUMN telefono DROP NOT NULL');
     await client.query(`

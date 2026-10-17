@@ -692,6 +692,41 @@ export async function GET(
     }
 
     // -------------------------------------------------------------
+    // CARRERAS Y MATERIAS (GESTIÓN ACADÉMICA)
+    // -------------------------------------------------------------
+    if (path === 'carreras') {
+      const result = await query(`
+        SELECT c.*,
+          COUNT(DISTINCT m.id)::int AS total_materias,
+          COUNT(DISTINCT e.id)::int AS total_graduados
+        FROM carreras c
+        LEFT JOIN materias m ON m.carrera_id = c.id
+        LEFT JOIN egresados e ON UPPER(TRIM(COALESCE(e.carrera, ''))) = UPPER(TRIM(c.nombre))
+        GROUP BY c.id
+        ORDER BY c.activa DESC, c.nombre ASC
+      `);
+      return NextResponse.json(result.rows, { headers });
+    }
+
+    if (path === 'materias') {
+      const carreraId = req.nextUrl?.searchParams?.get('carrera_id');
+      let sql = `
+        SELECT m.*, c.nombre AS carrera_nombre, p.nombre AS profesor_nombre
+        FROM materias m
+        INNER JOIN carreras c ON c.id = m.carrera_id
+        LEFT JOIN profesores p ON p.id = m.profesor_titular_id
+      `;
+      const params: any[] = [];
+      if (carreraId) {
+        sql += ` WHERE m.carrera_id = $1 `;
+        params.push(carreraId);
+      }
+      sql += ` ORDER BY m.anio_cursada ASC, m.nombre ASC`;
+      const result = await query(sql, params);
+      return NextResponse.json(result.rows, { headers });
+    }
+
+    // -------------------------------------------------------------
     // ENTREGADORES
     // -------------------------------------------------------------
     if (slug[0] === 'entregadores' && slug[1] === 'graduado' && slug[2]) {
@@ -1887,6 +1922,49 @@ export async function POST(
     }
 
     // -------------------------------------------------------------
+    // CARRERAS Y MATERIAS (POST / CREACIÓN)
+    // -------------------------------------------------------------
+    if (path === 'carreras') {
+      const isPersonal = await esPersonalValido(req, ROLES_GESTION);
+      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+
+      const { nombre, sigla, duracion_anios } = body;
+      if (!nombre || !String(nombre).trim()) {
+        return NextResponse.json({ error: 'El nombre de la carrera es obligatorio' }, { status: 400, headers });
+      }
+
+      const duracion = parseInt(duracion_anios, 10) || 3;
+      const result = await query(
+        `INSERT INTO carreras (nombre, sigla, duracion_anios, activa)
+         VALUES ($1, $2, $3, 1)
+         ON CONFLICT (nombre) DO UPDATE SET sigla = EXCLUDED.sigla, duracion_anios = EXCLUDED.duracion_anios, activa = 1
+         RETURNING *`,
+        [nombre.trim(), sigla ? String(sigla).trim().toUpperCase() : null, duracion]
+      );
+      return NextResponse.json(result.rows[0], { status: 201, headers });
+    }
+
+    if (path === 'materias') {
+      const isPersonal = await esPersonalValido(req, ROLES_GESTION);
+      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+
+      const { carrera_id, nombre, anio_cursada, profesor_titular_id } = body;
+      if (!carrera_id || !nombre || !String(nombre).trim()) {
+        return NextResponse.json({ error: 'Carrera y nombre de la materia son obligatorios' }, { status: 400, headers });
+      }
+
+      const anio = parseInt(anio_cursada, 10) || 1;
+      const result = await query(
+        `INSERT INTO materias (carrera_id, nombre, anio_cursada, profesor_titular_id, activa)
+         VALUES ($1, $2, $3, $4, 1)
+         ON CONFLICT (carrera_id, nombre) DO UPDATE SET anio_cursada = EXCLUDED.anio_cursada, profesor_titular_id = EXCLUDED.profesor_titular_id, activa = 1
+         RETURNING *`,
+        [carrera_id, nombre.trim(), anio, profesor_titular_id || null]
+      );
+      return NextResponse.json(result.rows[0], { status: 201, headers });
+    }
+
+    // -------------------------------------------------------------
     // ENTREGADORES
     // -------------------------------------------------------------
     if (path === 'entregadores') {
@@ -2396,18 +2474,24 @@ export async function POST(
       const promNum = (promedio && !isNaN(parseFloat(String(promedio).replace(',', '.')))) ? parseFloat(String(promedio).replace(',', '.')) : null;
       const token = body.token || crypto.randomBytes(4).toString('hex').toUpperCase();
 
+      const { correo_personal, telefono } = body;
+      const correoPersonalLimpio = correo_personal ? String(correo_personal).trim().toLowerCase() : null;
+      const telefonoLimpio = telefono ? String(telefono).trim() : null;
+
       const result = await query(
         `INSERT INTO egresados (
-           nombre, legajo, dni, correo, token, ceremonia_id, carrera, anio_inscripcion, promedio,
+           nombre, legajo, dni, correo, correo_personal, telefono, token, ceremonia_id, carrera, anio_inscripcion, promedio,
            identidad_corrobada_en, estado, estado_flujo
          ) VALUES (
-           $1, $2, $3, $4, $5, $6, $7, $8, $9, CURRENT_TIMESTAMP, 'PENDIENTE', 'SIN_INVITAR'
+           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, CURRENT_TIMESTAMP, 'PENDIENTE', 'SIN_INVITAR'
          ) RETURNING *`,
         [
           nombre.trim(), 
           legajo?.trim() || '',
           dniLimpio,
           correo ? correo.trim().toLowerCase() : null, 
+          correoPersonalLimpio,
+          telefonoLimpio,
           token, 
           ceremoniaIdFinal,
           carrera ? carrera.trim() : null, 
