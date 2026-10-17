@@ -4,12 +4,14 @@ import {
   LogOut, Search, Bell, Eye, Edit3, CheckCircle2, AlertTriangle, 
   XCircle, LayoutGrid, HelpCircle, Map, BarChart3, Award, UserCheck, TrendingUp, 
   Shield, Server, Send, Armchair, Activity, QrCode, ScanLine, ArrowRight, ChevronRight,
-  Monitor
+  Monitor, Palette
 } from 'lucide-react'
 import { BASE, cabeceras } from '../../servicios/api'
 import { useSincronizacion, emitirCambioSync } from '../../lib/sync'
 import { obtenerDetalleClima } from '../../utilidades/clima'
 import { CloudSun } from 'lucide-react'
+import { FONDOS_DISPONIBLES } from '../../datos/fondos-pantalla'
+import { ModalPersonalizarFondo } from '../../componentes/ModalPersonalizarFondo'
 
 
 // Importación de sub-vistas operativas del sistema.
@@ -194,13 +196,30 @@ export function PantallaBienvenidaPro({
   const [pronosticoClima, setPronosticoClima] = useState(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [fondoId, setFondoId] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('sigic_fondo') || 'beltran' : 'beltran'))
+  const [cuadriculaActiva, setCuadriculaActiva] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('sigic_cuadricula') !== 'false' : true))
+  const [marcaAguaActiva, setMarcaAguaActiva] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('sigic_marca_agua') !== 'false' : true))
+  const [mostrarModalFondo, setMostrarModalFondo] = useState(false)
+
+  const fondoConfig = FONDOS_DISPONIBLES.find(f => f.id === fondoId) || FONDOS_DISPONIBLES[0]
 
   useEffect(() => {
     const handleFondo = (e) => {
       if (e.detail) setFondoId(e.detail)
     }
+    const handleCuadricula = (e) => {
+      if (typeof e.detail === 'boolean') setCuadriculaActiva(e.detail)
+    }
+    const handleMarcaAgua = (e) => {
+      if (typeof e.detail === 'boolean') setMarcaAguaActiva(e.detail)
+    }
     window.addEventListener('sigic-fondo-cambiado', handleFondo)
-    return () => window.removeEventListener('sigic-fondo-cambiado', handleFondo)
+    window.addEventListener('sigic-cuadricula-cambiada', handleCuadricula)
+    window.addEventListener('sigic-marca-agua-cambiada', handleMarcaAgua)
+    return () => {
+      window.removeEventListener('sigic-fondo-cambiado', handleFondo)
+      window.removeEventListener('sigic-cuadricula-cambiada', handleCuadricula)
+      window.removeEventListener('sigic-marca-agua-cambiada', handleMarcaAgua)
+    }
   }, [])
 
   useEffect(() => {
@@ -334,22 +353,43 @@ export function PantallaBienvenidaPro({
 
   return (
     <div 
-      className="relative min-h-screen flex font-sans bg-[#F8FAFC] text-slate-800"
+      className="relative min-h-screen flex font-sans text-slate-800 transition-colors duration-500 overflow-x-hidden"
       style={{
-        fontFamily: 'Inter, system-ui, sans-serif'
+        fontFamily: 'Inter, system-ui, sans-serif',
+        backgroundColor: fondoConfig.tipo === 'claro' ? '#F8FAFC' : '#0B1320'
       }}
     >
-      {/* Sutil gradiente de fondo ambiental */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-sky-50/50 via-[#F8FAFC] to-[#F8FAFC] z-0" />
-
-      {/* Rejilla decorativa ultra sutil */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.025] z-0"
+      {/* Gradiente dinámico reactivo al tema elegido */}
+      <div 
+        className="pointer-events-none absolute inset-0 z-0 transition-opacity duration-700" 
         style={{
-          backgroundImage: 'radial-gradient(circle, #0f172a 1px, transparent 1px)',
-          backgroundSize: '28px 28px',
+          background: fondoConfig.tipo === 'claro'
+            ? `radial-gradient(ellipse at top, ${fondoConfig.colores[0]}40, #F8FAFC 70%)`
+            : `radial-gradient(ellipse at top, ${fondoConfig.colores[1]}55, ${fondoConfig.colores[0]} 70%)`,
+          opacity: 0.95
         }}
       />
+
+      {/* Cuadrícula Tecnológica configurable */}
+      {cuadriculaActiva && (
+        <div
+          className="pointer-events-none absolute inset-0 z-0 transition-opacity duration-500"
+          style={{
+            backgroundImage: `linear-gradient(${fondoConfig.colorPrincipal}18 1px, transparent 1px), linear-gradient(90deg, ${fondoConfig.colorPrincipal}18 1px, transparent 1px)`,
+            backgroundSize: '36px 36px',
+            maskImage: 'linear-gradient(to bottom, black, transparent 90%)'
+          }}
+        />
+      )}
+
+      {/* Marca de Agua Beltrán configurable */}
+      {marcaAguaActiva && (
+        <div className="sigic-watermark" aria-hidden="true" style={{ opacity: 0.06 }}>
+          <img src="/logo-oficial.png" alt="" />
+          <span>SIGIC</span>
+          <small>Sistema Integral de Gestión Institucional</small>
+        </div>
+      )}
 
       {/* Backdrop overlay for mobile sidebar */}
       {sidebarOpen && (
@@ -490,6 +530,16 @@ export function PantallaBienvenidaPro({
                 <span className="hidden sm:inline">Escritorio OS</span>
               </button>
             )}
+
+            {/* Personalizar Fondo & Estilo */}
+            <button
+              onClick={() => setMostrarModalFondo(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-[9.5px] font-black uppercase tracking-wider text-slate-700 hover:bg-slate-100 transition active:scale-95 cursor-pointer shadow-xs"
+              title="Personalizar tema de color, fondo y efectos visuales"
+            >
+              <Palette size={12} className="text-amber-500" />
+              <span className="hidden sm:inline">Tema & Fondo</span>
+            </button>
 
             {/* Notification */}
             <button className="relative p-2 rounded-xl hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition cursor-pointer">
@@ -1099,6 +1149,29 @@ export function PantallaBienvenidaPro({
           50% { transform: translate(-20px, 20px); }
         }
       `}</style>
+      {mostrarModalFondo && (
+        <ModalPersonalizarFondo
+          fondoActual={fondoId}
+          alCambiarFondo={(id) => {
+            setFondoId(id)
+            localStorage.setItem('sigic_fondo', id)
+            window.dispatchEvent(new CustomEvent('sigic-fondo-cambiado', { detail: id }))
+          }}
+          cuadriculaActiva={cuadriculaActiva}
+          alCambiarCuadricula={(activo) => {
+            setCuadriculaActiva(activo)
+            localStorage.setItem('sigic_cuadricula', String(activo))
+            window.dispatchEvent(new CustomEvent('sigic-cuadricula-cambiada', { detail: activo }))
+          }}
+          marcaAguaActiva={marcaAguaActiva}
+          alCambiarMarcaAgua={(activo) => {
+            setMarcaAguaActiva(activo)
+            localStorage.setItem('sigic_marca_agua', String(activo))
+            window.dispatchEvent(new CustomEvent('sigic-marca-agua-cambiada', { detail: activo }))
+          }}
+          onCerrar={() => setMostrarModalFondo(false)}
+        />
+      )}
     </div>
   )
 }

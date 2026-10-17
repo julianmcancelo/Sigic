@@ -472,22 +472,53 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
                 {FONDOS_DISPONIBLES.map(f => {
                   const activo = fondoId === f.id
                   return (
                     <button
                       key={f.id}
                       onClick={() => handleCambiarFondo(f.id)}
-                      className={`flex items-center gap-2.5 p-2.5 rounded-xl border text-left transition cursor-pointer ${
-                        activo ? 'border-sky-500 bg-sky-50/50 shadow-xs ring-1 ring-sky-500' : 'border-slate-200 bg-white hover:border-slate-300'
+                      className={`group relative flex items-center gap-3 p-3 rounded-2xl border text-left transition-all duration-200 cursor-pointer ${
+                        activo 
+                          ? 'border-sky-500 bg-sky-50/80 shadow-md ring-2 ring-sky-500/20 scale-[1.01]' 
+                          : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-xs hover:bg-slate-50/50'
                       }`}
                     >
-                      <div className="h-7 w-7 rounded-lg border border-slate-300 shrink-0" style={{ backgroundColor: f.color }} />
-                      <div className="min-w-0">
-                        <p className="text-xs font-bold text-slate-800 truncate">{f.nombre}</p>
-                        <p className="text-[8px] text-slate-400">{f.descripcion || 'Tema visual'}</p>
+                      <div 
+                        className="h-10 w-10 rounded-xl border border-slate-300/80 shadow-xs shrink-0 flex items-center justify-center relative overflow-hidden" 
+                        style={{ 
+                          background: `linear-gradient(135deg, ${f.colores[0]}, ${f.colores[1]})` 
+                        }}
+                      >
+                        <span 
+                          className="w-3 h-3 rounded-full border border-white/60 shadow-xs" 
+                          style={{ backgroundColor: f.colorPrincipal }}
+                        />
                       </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-1">
+                          <p className="text-xs font-black text-slate-800 truncate">{f.nombre}</p>
+                          {f.badge && (
+                            <span 
+                              className="text-[8px] font-black uppercase tracking-wider px-1.5 py-0.2 rounded-md shrink-0 border"
+                              style={{
+                                backgroundColor: `${f.colorPrincipal}18`,
+                                color: f.colorPrincipal,
+                                borderColor: `${f.colorPrincipal}35`
+                              }}
+                            >
+                              {f.badge}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[9px] text-slate-400 line-clamp-2 mt-0.5 leading-snug">{f.descripcion || 'Tema visual'}</p>
+                      </div>
+                      {activo && (
+                        <div className="absolute top-2 right-2 flex items-center justify-center w-4 h-4 rounded-full bg-sky-500 text-white">
+                          <Check size={10} strokeWidth={3} />
+                        </div>
+                      )}
                     </button>
                   )
                 })}
