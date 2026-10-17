@@ -15,6 +15,7 @@ import {
 
 import { BASE, cabeceras } from '../servicios/api'
 import { HeaderGlobal } from '../componentes/HeaderGlobal'
+import { FONDOS_DISPONIBLES, obtenerTemaActual } from '../datos/fondos-pantalla'
 
 // ─── Colores del sistema ───────────────────────────────────────
 const DARK   = '#2A3448'
@@ -379,6 +380,33 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
 
   const [climaInfo, setClimaInfo] = useState(null)
 
+  // ── Gestión dinámica de temas y fondos para la Versión 1 ──
+  const [fondoId, setFondoId] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('sigic_fondo') || 'beltran' : 'beltran'))
+  const [cuadriculaActiva, setCuadriculaActiva] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('sigic_cuadricula') !== 'false' : true))
+  const [marcaAguaActiva, setMarcaAguaActiva] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('sigic_marca_agua') !== 'false' : true))
+
+  const fondoConfig = FONDOS_DISPONIBLES.find(f => f.id === fondoId) || FONDOS_DISPONIBLES[0]
+
+  useEffect(() => {
+    const handleFondo = (e) => {
+      if (e.detail) setFondoId(e.detail)
+    }
+    const handleCuadricula = (e) => {
+      if (typeof e.detail === 'boolean') setCuadriculaActiva(e.detail)
+    }
+    const handleMarcaAgua = (e) => {
+      if (typeof e.detail === 'boolean') setMarcaAguaActiva(e.detail)
+    }
+    window.addEventListener('sigic-fondo-cambiado', handleFondo)
+    window.addEventListener('sigic-cuadricula-cambiada', handleCuadricula)
+    window.addEventListener('sigic-marca-agua-cambiada', handleMarcaAgua)
+    return () => {
+      window.removeEventListener('sigic-fondo-cambiado', handleFondo)
+      window.removeEventListener('sigic-cuadricula-cambiada', handleCuadricula)
+      window.removeEventListener('sigic-marca-agua-cambiada', handleMarcaAgua)
+    }
+  }, [])
+
   // ── Reloj en tiempo real (segundero activo) ──
   useEffect(() => {
     const t = setInterval(() => setFechaActual(new Date()), 1000)
@@ -594,16 +622,53 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
   }
 
   return (
-    <div className="min-h-screen" style={{ background: BG }}>
-
-      <HeaderGlobal 
-        titulo="Inicio administrativo"
-        subtitulo="Panel Clásico SiGIC"
-        usuario={usuario}
-        onCerrarSesion={onCerrarSesion}
-        onCambiarVersion={onCambiarVersion}
-        onCambiarEstiloInterfaz={onCambiarEstiloInterfaz}
+    <div 
+      className="relative min-h-screen font-sans transition-colors duration-500 overflow-x-hidden" 
+      style={{ 
+        backgroundColor: fondoConfig.tipo === 'claro' ? '#F8FAFC' : '#0B1320' 
+      }}
+    >
+      {/* Gradiente dinámico reactivo al tema elegido */}
+      <div 
+        className="pointer-events-none absolute inset-0 z-0 transition-opacity duration-700" 
+        style={{
+          background: fondoConfig.tipo === 'claro'
+            ? `radial-gradient(ellipse at top, ${fondoConfig.colores[0]}40, #F8FAFC 70%)`
+            : `radial-gradient(ellipse at top, ${fondoConfig.colores[1]}55, ${fondoConfig.colores[0]} 70%)`,
+          opacity: 0.95
+        }}
       />
+
+      {/* Cuadrícula Tecnológica configurable */}
+      {cuadriculaActiva && (
+        <div
+          className="pointer-events-none absolute inset-0 z-0 transition-opacity duration-500"
+          style={{
+            backgroundImage: `linear-gradient(${fondoConfig.colorPrincipal}18 1px, transparent 1px), linear-gradient(90deg, ${fondoConfig.colorPrincipal}18 1px, transparent 1px)`,
+            backgroundSize: '36px 36px',
+            maskImage: 'linear-gradient(to bottom, black, transparent 90%)'
+          }}
+        />
+      )}
+
+      {/* Marca de Agua Beltrán configurable */}
+      {marcaAguaActiva && (
+        <div className="sigic-watermark" aria-hidden="true" style={{ opacity: 0.05 }}>
+          <img src="/logo-oficial.png" alt="" />
+          <span>SIGIC</span>
+          <small>Sistema Integral de Gestión Institucional</small>
+        </div>
+      )}
+
+      <div className="relative z-10">
+        <HeaderGlobal 
+          titulo="Inicio administrativo"
+          subtitulo="Panel Clásico SiGIC"
+          usuario={usuario}
+          onCerrarSesion={onCerrarSesion}
+          onCambiarVersion={onCambiarVersion}
+          onCambiarEstiloInterfaz={onCambiarEstiloInterfaz}
+        />
 
       {/* ══ CONTENIDO ════════════════════════════════════════════ */}
       <main className="mx-auto max-w-7xl px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6 pb-24">
@@ -808,6 +873,7 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
         descripcion="Vas a salir del sistema. Podés volver a ingresar cuando quieras."
         textoConfirmar="Sí, cerrar sesión"
       />
+      </div>
     </div>
   )
 }

@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
-import { LogOut, ArrowLeft, User, LayoutGrid } from 'lucide-react'
+import { LogOut, ArrowLeft, User, LayoutGrid, Palette } from 'lucide-react'
 import { ModalConfirmacion } from './ModalConfirmacion'
+import { ModalPersonalizarFondo } from './ModalPersonalizarFondo'
+import { aplicarTemaGlobal } from '../datos/fondos-pantalla'
 
 /**
  * HeaderGlobal PRO: Cabecera maestra para toda la plataforma SiGIC.
@@ -16,6 +18,10 @@ export function HeaderGlobal({
   onCambiarEstiloInterfaz = null
 }) {
   const [modalAbierto, setModalAbierto] = useState(false)
+  const [modalFondoAbierto, setModalFondoAbierto] = useState(false)
+  const [fondoId, setFondoId] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('sigic_fondo') || 'beltran' : 'beltran'))
+  const [cuadriculaActiva, setCuadriculaActiva] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('sigic_cuadricula') !== 'false' : true))
+  const [marcaAguaActiva, setMarcaAguaActiva] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('sigic_marca_agua') !== 'false' : true))
   const [scrolled, setScrolled] = useState(false)
 
   // Efecto para detectar scroll y añadir sombra al header dinámicamente
@@ -26,6 +32,50 @@ export function HeaderGlobal({
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  // Sincronización en vivo del tema
+  useEffect(() => {
+    const handleFondo = (e) => {
+      if (e.detail) {
+        setFondoId(e.detail)
+        aplicarTemaGlobal(e.detail)
+      }
+    }
+    const handleCuadricula = (e) => {
+      if (typeof e.detail === 'boolean') setCuadriculaActiva(e.detail)
+    }
+    const handleMarcaAgua = (e) => {
+      if (typeof e.detail === 'boolean') setMarcaAguaActiva(e.detail)
+    }
+
+    window.addEventListener('sigic-fondo-cambiado', handleFondo)
+    window.addEventListener('sigic-cuadricula-cambiada', handleCuadricula)
+    window.addEventListener('sigic-marca-agua-cambiada', handleMarcaAgua)
+    return () => {
+      window.removeEventListener('sigic-fondo-cambiado', handleFondo)
+      window.removeEventListener('sigic-cuadricula-cambiada', handleCuadricula)
+      window.removeEventListener('sigic-marca-agua-cambiada', handleMarcaAgua)
+    }
+  }, [])
+
+  const handleCambiarFondo = (nuevoFondo) => {
+    setFondoId(nuevoFondo)
+    localStorage.setItem('sigic_fondo', nuevoFondo)
+    aplicarTemaGlobal(nuevoFondo)
+    window.dispatchEvent(new CustomEvent('sigic-fondo-cambiado', { detail: nuevoFondo }))
+  }
+
+  const handleCambiarCuadricula = (valor) => {
+    setCuadriculaActiva(valor)
+    localStorage.setItem('sigic_cuadricula', String(valor))
+    window.dispatchEvent(new CustomEvent('sigic-cuadricula-cambiada', { detail: valor }))
+  }
+
+  const handleCambiarMarcaAgua = (valor) => {
+    setMarcaAguaActiva(valor)
+    localStorage.setItem('sigic_marca_agua', String(valor))
+    window.dispatchEvent(new CustomEvent('sigic-marca-agua-cambiada', { detail: valor }))
+  }
 
   return (
     <header 
@@ -104,6 +154,17 @@ export function HeaderGlobal({
             </button>
           )}
 
+          {/* Personalizar Fondo & Tema */}
+          <button
+            onClick={() => setModalFondoAbierto(true)}
+            className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-[9px] sm:text-[9.5px] font-black uppercase tracking-wider text-slate-700 hover:bg-slate-100 transition active:scale-95 cursor-pointer shadow-xs"
+            title="Personalizar tema de color y fondo"
+          >
+            <Palette size={12} className="text-amber-500 shrink-0" />
+            <span className="hidden md:inline">Tema & Fondo</span>
+            <span className="md:hidden">Tema</span>
+          </button>
+
           {/* Perfil del Operador */}
           {usuario && (
             <div className="hidden lg:flex items-center gap-3 px-4 py-2 rounded-2xl bg-slate-50/80 border border-slate-100 hover:bg-slate-100 transition-colors cursor-default">
@@ -143,6 +204,19 @@ export function HeaderGlobal({
           titulo="Finalizar Sesión"
           descripcion="¿Estás seguro que deseas salir del panel de control? Los servicios seguirán activos en segundo plano."
           textoConfirmar="Sí, cerrar sesión"
+        />
+      )}
+
+      {/* Modal de Personalización de Tema & Fondo */}
+      {modalFondoAbierto && (
+        <ModalPersonalizarFondo
+          fondoActual={fondoId}
+          alCambiarFondo={handleCambiarFondo}
+          cuadriculaActiva={cuadriculaActiva}
+          alCambiarCuadricula={handleCambiarCuadricula}
+          marcaAguaActiva={marcaAguaActiva}
+          alCambiarMarcaAgua={handleCambiarMarcaAgua}
+          onCerrar={() => setModalFondoAbierto(false)}
         />
       )}
     </header>

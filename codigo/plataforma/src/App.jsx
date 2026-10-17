@@ -11,9 +11,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, CalendarPlus, RefreshCw, Shield, Server, Search, Power, Bell, Wifi, Volume2, ChevronRight, ChevronUp, ArrowRight, LayoutGrid, LayoutDashboard, X, Minus, Maximize2, Square, Copy, Sun, Moon, MousePointer2, Lock, ClipboardCheck, Activity, Send, ListChecks, ScrollText, Sparkles, Armchair, Award, QrCode, Palette, ExternalLink, Info, BookOpen } from 'lucide-react'
 
-// Importación de Modal de Fondo y Acerca de
 import { ModalPersonalizarFondo } from './componentes/ModalPersonalizarFondo'
 import { ModalAcercaDe } from './componentes/ModalAcercaDe'
+import { FONDOS_DISPONIBLES, aplicarTemaGlobal, obtenerTemaActual } from './datos/fondos-pantalla'
 
 // Importación de Páginas
 import { PaginaInicioSesion } from './paginas/PaginaInicioSesion'
@@ -25,6 +25,7 @@ import { PantallaSeleccionLogin } from './paginas/PantallaSeleccionLogin'
 import { AsistenteSetup } from './paginas/AsistenteSetup'
 import { PantallaAceptacion } from './paginas/PantallaAceptacion'
 import { ManualUsuarioWeb } from './paginas/ManualUsuarioWeb'
+import { LandingPageNerdearlaStyle } from './paginas/LandingPageNerdearlaStyle'
 import { PantallaBienvenidaPro, TITULOS_PANTALLAS } from './paginas/operacion/PantallaBienvenidaPro'
 import { HeaderGlobal } from './componentes/HeaderGlobal'
 import { PanelReportes } from './paginas/operacion/PanelReportes'
@@ -224,6 +225,8 @@ function App() {
 
   const [vistaLogin, setVistaLogin] = useState(() => {
     const p = window.location.pathname
+    const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null
+    if (p === '/landing' || p === '/evento' || p === '/nerd' || params?.get('vista') === 'landing') return 'landing'
     if (p === '/manual') return 'manual'
     if (p === '/admin') {
       if (typeof window !== 'undefined' && localStorage.getItem('acceso_directo_admin') === 'false') {
@@ -254,6 +257,39 @@ function App() {
       window.removeEventListener('sigic-abrir-menu', handleAbrirMenu)
     }
   }, [])
+
+  const [fondoIdGlobal, setFondoIdGlobal] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('sigic_fondo') || 'beltran' : 'beltran'))
+  const [cuadriculaActivaGlobal, setCuadriculaActivaGlobal] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('sigic_cuadricula') !== 'false' : true))
+  const [marcaAguaActivaGlobal, setMarcaAguaActivaGlobal] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('sigic_marca_agua') !== 'false' : true))
+
+  // Sincronización reactiva del tema en toda la aplicación
+  useEffect(() => {
+    aplicarTemaGlobal(fondoIdGlobal)
+
+    const handleFondo = (e) => {
+      if (e.detail) {
+        setFondoIdGlobal(e.detail)
+        aplicarTemaGlobal(e.detail)
+      }
+    }
+    const handleCuadricula = (e) => {
+      if (typeof e.detail === 'boolean') setCuadriculaActivaGlobal(e.detail)
+    }
+    const handleMarcaAgua = (e) => {
+      if (typeof e.detail === 'boolean') setMarcaAguaActivaGlobal(e.detail)
+    }
+
+    window.addEventListener('sigic-fondo-cambiado', handleFondo)
+    window.addEventListener('sigic-cuadricula-cambiada', handleCuadricula)
+    window.addEventListener('sigic-marca-agua-cambiada', handleMarcaAgua)
+    return () => {
+      window.removeEventListener('sigic-fondo-cambiado', handleFondo)
+      window.removeEventListener('sigic-cuadricula-cambiada', handleCuadricula)
+      window.removeEventListener('sigic-marca-agua-cambiada', handleMarcaAgua)
+    }
+  }, [fondoIdGlobal])
+
+  const temaConfigGlobal = obtenerTemaActual(fondoIdGlobal)
 
   async function sincronizarEntornoCeremonia() {
     const ceremonia = await obtenerCeremoniaActiva()
@@ -1129,6 +1165,15 @@ function App() {
             onVolver={() => setPantallaAdmin('bienvenida')}
           />
         )
+      } else if (pantallaAdmin === 'landing-page') {
+        contenido = (
+          <LandingPageNerdearlaStyle
+            onIrAEgresado={() => modoDemoActivo ? manejarLoginGraduadoExitoso(EGRESADA_DEMO) : setVistaLogin('graduado')}
+            onIrAAdmin={() => setPantallaAdmin('bienvenida')}
+            onIrAManual={() => setPantallaAdmin('manual-usuario')}
+            onVolver={() => setPantallaAdmin('bienvenida')}
+          />
+        )
       } else {
         contenido = (
           <PantallaBienvenida
@@ -1149,24 +1194,63 @@ function App() {
       if (estiloInterfaz === 'dashboard' && versionAdmin === 'clasica' && pantallaAdmin !== 'bienvenida') {
         const tituloModulo = TITULOS_PANTALLAS[pantallaAdmin] || 'Módulo del Sistema'
         contenido = (
-          <div className="min-h-screen bg-[#F8FAFC]">
-            <HeaderGlobal
-              titulo={tituloModulo}
-              subtitulo="Gestión Institucional"
-              usuario={adminUser}
-              onVolver={() => setPantallaAdmin('bienvenida')}
-              onCerrarSesion={cerrarSesionAdmin}
-              onCambiarVersion={() => {
-                setVersionAdmin('pro')
-                localStorage.setItem('version_admin', 'pro')
+          <div 
+            className="relative min-h-screen transition-colors duration-500 overflow-x-hidden font-sans"
+            style={{
+              backgroundColor: temaConfigGlobal.tipo === 'claro' ? '#F8FAFC' : '#0B1320'
+            }}
+          >
+            {/* Gradiente dinámico reactivo al tema elegido */}
+            <div 
+              className="pointer-events-none absolute inset-0 z-0 transition-opacity duration-700" 
+              style={{
+                background: temaConfigGlobal.tipo === 'claro'
+                  ? `radial-gradient(ellipse at top, ${temaConfigGlobal.colores[0]}40, #F8FAFC 70%)`
+                  : `radial-gradient(ellipse at top, ${temaConfigGlobal.colores[1]}55, ${temaConfigGlobal.colores[0]} 70%)`,
+                opacity: 0.95
               }}
-              onCambiarEstiloInterfaz={() => cambiarEstiloInterfaz('escritorio')}
             />
-            <main className="max-w-7xl mx-auto px-2.5 sm:px-6 py-4 sm:py-8">
-              <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-3.5 sm:p-6">
-                {contenido}
+
+            {/* Cuadrícula Tecnológica configurable */}
+            {cuadriculaActivaGlobal && (
+              <div
+                className="pointer-events-none absolute inset-0 z-0 transition-opacity duration-500"
+                style={{
+                  backgroundImage: `linear-gradient(${temaConfigGlobal.colorPrincipal}18 1px, transparent 1px), linear-gradient(90deg, ${temaConfigGlobal.colorPrincipal}18 1px, transparent 1px)`,
+                  backgroundSize: '36px 36px',
+                  maskImage: 'linear-gradient(to bottom, black, transparent 90%)'
+                }}
+              />
+            )}
+
+            {/* Marca de Agua Beltrán configurable */}
+            {marcaAguaActivaGlobal && (
+              <div className="sigic-watermark" aria-hidden="true" style={{ opacity: 0.05 }}>
+                <img src="/logo-oficial.png" alt="" />
+                <span>SIGIC</span>
+                <small>Sistema Integral de Gestión Institucional</small>
               </div>
-            </main>
+            )}
+
+            <div className="relative z-10">
+              <HeaderGlobal
+                titulo={tituloModulo}
+                subtitulo="Gestión Institucional"
+                usuario={adminUser}
+                onVolver={() => setPantallaAdmin('bienvenida')}
+                onCerrarSesion={cerrarSesionAdmin}
+                onCambiarVersion={() => {
+                  setVersionAdmin('pro')
+                  localStorage.setItem('version_admin', 'pro')
+                }}
+                onCambiarEstiloInterfaz={() => cambiarEstiloInterfaz('escritorio')}
+              />
+              <main className="max-w-7xl mx-auto px-2.5 sm:px-6 py-4 sm:py-8">
+                <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-3.5 sm:p-6 backdrop-blur-xs">
+                  {contenido}
+                </div>
+              </main>
+            </div>
           </div>
         )
       }
@@ -1196,6 +1280,15 @@ function App() {
         onVolver={() => setVistaLogin(null)} 
       />
     )
+  } else if (vistaLogin === 'landing') {
+    contenido = (
+      <LandingPageNerdearlaStyle
+        onIrAEgresado={() => modoDemoActivo ? manejarLoginGraduadoExitoso(EGRESADA_DEMO) : setVistaLogin('graduado')}
+        onIrAAdmin={() => setVistaLogin('admin')}
+        onIrAManual={() => setVistaLogin('manual')}
+        onVolver={() => setVistaLogin(null)}
+      />
+    )
   }
 
   // CASO E.1: acceso administrativo directo, sin portada de bienvenida
@@ -1217,6 +1310,7 @@ function App() {
         onSeleccionarAdmin={() => setVistaLogin('admin')}
         onSeleccionarEgresado={() => setVistaLogin('graduado')}
         onSeleccionarManual={() => setVistaLogin('manual')}
+        onSeleccionarLanding={() => setVistaLogin('landing')}
         onLoginAdminExitoso={manejarLoginAdminExitoso}
         onLoginGraduadoExitoso={manejarLoginGraduadoExitoso}
       />
@@ -1255,6 +1349,7 @@ function App() {
         onAlternarModoDemo={alternarModoDemo}
         onSimularAdmin={manejarLoginAdminExitoso}
         onSimularEgresado={manejarLoginGraduadoExitoso}
+        onAbrirLanding={() => setVistaLogin('landing')}
         onLimpiar={limpiarTodo}
         onIniciarDemo={iniciarDemostracionCompleta}
         estiloInterfaz={estiloInterfaz}
@@ -1289,6 +1384,7 @@ function App() {
             { id: 'seleccion-asientos', titulo: 'Anfiteatro', icono: MapPin, color: 'bg-orange-500' },
             { id: 'manual-usuario', titulo: 'Manual Oficial', icono: BookOpen, color: 'bg-sky-600' },
             { id: 'acerca-de', titulo: 'Acerca de SiGIC', icono: Info, color: 'bg-indigo-600' },
+            { id: 'landing-page', titulo: 'Landing Evento (Nerdearla)', icono: Sparkles, color: 'bg-cyan-500' },
           ]}
           usuario={adminUser}
           ceremonia={ceremoniaActiva}
@@ -1408,6 +1504,7 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
     { id: 'ajustes', titulo: 'Ajustes', icono: Settings, color: 'bg-slate-500', escritorio: esAdministrativo },
     { id: 'seleccion-asientos', titulo: 'Anfiteatro', icono: MapPin, color: 'bg-orange-500', escritorio: false },
     { id: 'manual-usuario', titulo: 'Manual Oficial', icono: BookOpen, color: 'bg-sky-600', escritorio: true },
+    { id: 'landing-page', titulo: 'Landing Evento', icono: Sparkles, color: 'bg-cyan-500', escritorio: true },
     { id: 'acerca-de', titulo: 'Acerca de SiGIC', icono: Info, color: 'bg-indigo-600', escritorio: true },
     { id: 'cambiar-dashboard', titulo: 'Dashboard Web', icono: LayoutDashboard, color: 'bg-sky-600', escritorio: true },
     ...(modoDemo ? [{ id: 'operaciones-demo', titulo: 'Operaciones', icono: ClipboardCheck, color: 'bg-slate-500', escritorio: false }] : []),
