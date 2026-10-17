@@ -19,7 +19,9 @@ const directivaScripts = process.env.NODE_ENV === 'production'
   : "script-src 'self' 'unsafe-inline' 'unsafe-eval'";
 
 const nextConfig: NextConfig = {
-  output: 'standalone',
+  // En Vercel no se debe usar 'standalone' porque Vercel Serverless gestiona su propio tracing nativo.
+  // 'standalone' se utiliza para compilar el appliance OS local o Docker.
+  ...(process.env.VERCEL ? {} : { output: 'standalone' }),
   poweredByHeader: false,
 
   async headers() {
