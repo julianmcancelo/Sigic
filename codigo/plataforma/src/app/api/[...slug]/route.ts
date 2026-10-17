@@ -686,7 +686,28 @@ export async function GET(
       const cached = obtenerCache('profesores:activos');
       if (cached) return NextResponse.json(cached, { headers });
 
-      const result = await query('SELECT * FROM profesores WHERE activo = 1 ORDER BY nombre');
+      const result = await query(`
+        SELECT p.*,
+               COALESCE(
+                 JSON_AGG(
+                   JSON_BUILD_OBJECT(
+                     'id', m.id,
+                     'nombre', m.nombre,
+                     'anio_cursada', m.anio_cursada,
+                     'carrera', c.nombre,
+                     'carrera_sigla', c.sigla
+                   ) ORDER BY m.anio_cursada, m.nombre
+                 ) FILTER (WHERE m.id IS NOT NULL),
+                 '[]'::json
+               ) AS materias_asignadas,
+               COUNT(m.id)::int AS total_materias_asignadas
+        FROM profesores p
+        LEFT JOIN materias m ON m.profesor_titular_id = p.id AND m.activa = 1
+        LEFT JOIN carreras c ON c.id = m.carrera_id
+        WHERE p.activo = 1
+        GROUP BY p.id
+        ORDER BY p.nombre
+      `);
       guardarCache('profesores:activos', result.rows, 60);
       return NextResponse.json(result.rows, { headers });
     }
@@ -1908,7 +1929,7 @@ export async function POST(
       const isPersonal = await esPersonalValido(req, ROLES_GESTION);
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
-      const { nombre, dni, materia } = body;
+      const { nombre, dni, materia, materias_ids } = body;
       if (!nombre) {
         return NextResponse.json({ error: 'El nombre del profesor es obligatorio' }, { status: 400, headers });
       }
@@ -1917,8 +1938,17 @@ export async function POST(
         'INSERT INTO profesores (nombre, dni, materia) VALUES ($1, $2, $3) RETURNING *',
         [nombre.trim(), dni ? dni.trim() : null, materia ? materia.trim() : null]
       );
+      const nuevoProf = result.rows[0];
+
+      if (Array.isArray(materias_ids) && materias_ids.length > 0) {
+        await query(
+          'UPDATE materias SET profesor_titular_id = $1 WHERE id = ANY($2::text[])',
+          [nuevoProf.id, materias_ids]
+        );
+      }
+
       invalidarCache('profesores:*');
-      return NextResponse.json(result.rows[0], { status: 201, headers });
+      return NextResponse.json(nuevoProf, { status: 201, headers });
     }
 
     // -------------------------------------------------------------
@@ -2955,6 +2985,8 @@ export async function PUT(
       if (body.dni !== undefined) { campos.push(`dni = $${i++}`); valores.push(body.dni.replace(/\D/g, '')); }
       if (body.legajo !== undefined) { campos.push(`legajo = $${i++}`); valores.push(body.legajo?.trim() || null); }
       if (body.correo !== undefined) { campos.push(`correo = $${i++}`); valores.push(body.correo?.trim() || null); }
+      if (body.correo_personal !== undefined) { campos.push(`correo_personal = $${i++}`); valores.push(body.correo_personal?.trim() || null); }
+      if (body.telefono !== undefined) { campos.push(`telefono = $${i++}`); valores.push(body.telefono?.trim() || null); }
       if (body.carrera !== undefined) { campos.push(`carrera = $${i++}`); valores.push(body.carrera?.trim() || null); }
       if (body.anio_inscripcion !== undefined) { campos.push(`anio_inscripcion = $${i++}`); valores.push(body.anio_inscripcion || null); }
       if (body.promedio !== undefined) { campos.push(`promedio = $${i++}`); valores.push(body.promedio || null); }
@@ -3188,7 +3220,7 @@ export async function PUT(
       const isPersonal = await esPersonalValido(req, ROLES_GESTION);
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
-      const { nombre, dni, materia } = body;
+      const { nombre, dni, materia, materias_ids } = body;
       if (!nombre) {
         return NextResponse.json({ error: 'El nombre del profesor es obligatorio' }, { status: 400, headers });
       }
@@ -3200,6 +3232,17 @@ export async function PUT(
 
       if (result.rowCount === 0) {
         return NextResponse.json({ error: 'Profesor no encontrado' }, { status: 404, headers });
+      }
+
+      if (Array.isArray(materias_ids)) {
+        // Desvincular las que ya no tenga y vincular las nuevas
+        await query('UPDATE materias SET profesor_titular_id = NULL WHERE profesor_titular_id = $1', [id]);
+        if (materias_ids.length > 0) {
+          await query(
+            'UPDATE materias SET profesor_titular_id = $1 WHERE id = ANY($2::text[])',
+            [id, materias_ids]
+          );
+        }
       }
 
       invalidarCache('profesores:*');
