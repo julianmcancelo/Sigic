@@ -1,0 +1,2 @@
+delete --force "/sources/setup.exe"
+delete --force "/setup.exe"

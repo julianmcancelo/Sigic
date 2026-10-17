@@ -1,0 +1,5 @@
+add "D:\Sigic\os\windows-live\personalizacion\winpeshl.ini" "/Windows/System32/winpeshl.ini"
+add "D:\Sigic\os\windows-live\personalizacion\startnet.cmd" "/Windows/System32/startnet.cmd"
+add "D:\Sigic\os\windows-live\personalizacion\winpe_wallpaper.bmp" "/Windows/System32/winpe.bmp"
+add "D:\Sigic\os\windows-live\payload\Iniciar-SiGIC-OS.bat" "/SiGIC/Iniciar-SiGIC-OS.bat"
+add "D:\Sigic\os\windows-live\personalizacion\logo-oficial.png" "/SiGIC/logo.png"
