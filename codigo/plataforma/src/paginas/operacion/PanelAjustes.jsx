@@ -3,7 +3,7 @@ import {
   Settings, Save, RefreshCw, Building2, Users, MapPin, 
   Globe, Shield, ChevronRight, LogOut, LayoutGrid, Monitor, SlidersHorizontal,
   Fingerprint, CheckCircle2, Mail, Send, CircleCheck, CircleAlert,
-  Palette, Check, Grid, Layers, Sparkles, GraduationCap, BookOpen, Plus, Trash2, Edit3, Award
+  Palette, Check, Grid, Layers, Sparkles, GraduationCap, BookOpen, Plus, Trash2, Edit3, Award, X
 } from 'lucide-react'
 import { 
   obtenerAjustes, actualizarAjuste, enviarCorreoPrueba,
