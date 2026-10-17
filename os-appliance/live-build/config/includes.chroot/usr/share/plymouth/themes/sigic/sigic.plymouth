@@ -1,8 +1,0 @@
-[Plymouth Theme]
-Name=SiGIC OS Splash
-Description=Tema oficial de inicio de SiGIC - Instituto Tecnologico Beltran
-ModuleName=script
-
-[script]
-ImageDir=/usr/share/plymouth/themes/sigic
-ScriptFile=/usr/share/plymouth/themes/sigic/sigic.script

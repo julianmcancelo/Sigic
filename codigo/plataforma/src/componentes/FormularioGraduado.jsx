@@ -238,7 +238,7 @@ export function FormularioGraduado({ onCreado, onCancelar, enModal = false }) {
             label="Nombre completo"
             valor={form.nombre}
             onChange={(v) => setForm((p) => ({ ...p, nombre: v }))}
-            placeholder="Juan Cancelo"
+            placeholder="Ej. Gómez María Belén"
             icon={Users}
           />
           <InputCampo
@@ -257,7 +257,7 @@ export function FormularioGraduado({ onCreado, onCancelar, enModal = false }) {
                 setMostrarModalIdentidad(true)
               }
             }}
-            placeholder="35230531"
+            placeholder="Ej. 42123456"
             icon={Users}
             inputMode="numeric"
             maxLength={10}
@@ -266,7 +266,7 @@ export function FormularioGraduado({ onCreado, onCancelar, enModal = false }) {
             label="Correo (Opcional)"
             valor={form.correo}
             onChange={(v) => setForm((p) => ({ ...p, correo: v }))}
-            placeholder="juan@ejemplo.com"
+            placeholder="alumno@itbeltran.com.ar"
             icon={Mail}
           />
 
@@ -275,7 +275,7 @@ export function FormularioGraduado({ onCreado, onCancelar, enModal = false }) {
               label="Legajo"
               valor={form.legajo}
               onChange={(v) => setForm((p) => ({ ...p, legajo: v }))}
-              placeholder="227067"
+              placeholder="TSAS-2025-0101"
               icon={CheckCircle2}
             />
           )}

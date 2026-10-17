@@ -1,7 +1,0 @@
-[Desktop Entry]
-Type=Application
-Name=SiGIC
-Comment=Abrir SiGIC al iniciar sesión
-Exec=/usr/local/bin/sigic-iniciar
-Terminal=false
-X-GNOME-Autostart-enabled=true

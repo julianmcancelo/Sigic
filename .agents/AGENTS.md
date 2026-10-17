@@ -144,21 +144,13 @@ d:/Sigic/
 │   │           ├── formatear-fecha.js
 │   │           └── validar-formulario-login.js
 │   │
-│   └── movil-reactnative/               # ══ APP MÓVIL (PORTERÍA) ══
-│       ├── package.json
-│       ├── app.json                      # Configuración Expo
-│       ├── babel.config.js
-│       ├── metro.config.js
-│       └── src/
-│           ├── app/
-│           │   ├── _layout.tsx
-│           │   ├── index.tsx             # Pantalla principal del escáner
-│           │   └── explore.tsx
-│           ├── components/               # Componentes UI de la app
-│           ├── constants/theme.ts
-│           ├── hooks/
-│           ├── services/api.ts           # Comunicación con el backend
-│           └── global.css
+│   └── movil_flutter/                   # ══ APP MÓVIL OFICIAL (PORTERÍA) ══
+│       ├── pubspec.yaml                 # Dependencias Flutter
+│       ├── lib/                         # Código fuente Dart / Flutter
+│       │   ├── main.dart                # Punto de entrada
+│       │   ├── screens/                 # Vistas (Escáner QR, Acreditación)
+│       │   └── services/                # Conexión con API de SiGIC
+│       └── android/                     # Configuración y Gradle de compilación Android
 ```
 
 ---
