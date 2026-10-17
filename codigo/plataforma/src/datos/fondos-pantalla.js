@@ -4,6 +4,17 @@
  */
 export const FONDOS_DISPONIBLES = [
   {
+    id: 'original',
+    nombre: 'SiGIC Clásico (Original)',
+    descripcion: 'La estética limpia y original de SiGIC: fondo Slate claro con contrastes institucionales navy y cyan.',
+    tipo: 'claro',
+    colores: ['#0d1b2e', '#173654', '#0ea5e9'],
+    colorPrincipal: '#0ea5e9',
+    colorAcentoLight: '#e0f2fe',
+    colorAcentoBorder: '#7dd3fc',
+    badge: 'Original'
+  },
+  {
     id: 'beltran',
     nombre: 'Azul Beltrán (Oficial)',
     descripcion: 'Identidad institucional profunda con resplandor cian y estética aeroespacial.',
