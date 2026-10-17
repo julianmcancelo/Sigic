@@ -3,7 +3,7 @@ import {
   Armchair, Sparkles, Users, Layers, Save, RotateCcw,
   CheckCircle2, AlertCircle, Search, ArrowRight, UserCheck,
   Download, Layout, ShieldCheck, ChevronRight, ChevronLeft,
-  X, Info, GraduationCap, ZoomIn, ZoomOut, Check, Award, RefreshCw, ScrollText
+  X, Info, GraduationCap, ZoomIn, ZoomOut, Check, Award, RefreshCw, ScrollText, Scale
 } from 'lucide-react'
 import {
   BASE,
@@ -345,38 +345,38 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
   return (
     <div className="font-sans space-y-2.5 max-w-7xl mx-auto pb-4">
       
-      {/* HEADER ULTRA COMPACTO */}
-      <header className="rounded-xl bg-slate-900 px-4 py-2.5 text-white shadow-sm flex flex-wrap items-center justify-between gap-2.5 border border-slate-800">
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-400/20 text-sky-400 flex items-center justify-center shrink-0">
-            <Armchair size={17} />
+      {/* HEADER INTEGRADO */}
+      <header className="rounded-2xl bg-slate-900 px-4 py-3 text-white shadow-xs flex flex-wrap items-center justify-between gap-3 border border-slate-800">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-400/20 text-sky-400 flex items-center justify-center shrink-0">
+            <Armchair size={20} />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h2 className="text-sm font-black tracking-tight truncate">
+              <h2 className="text-base sm:text-lg font-black tracking-tight truncate">
                 Distribución y Asignación de Butacas
               </h2>
               {ceremonia && (
-                <span className="text-[9.5px] font-bold text-slate-300 bg-white/10 px-1.5 py-0.5 rounded shrink-0 truncate max-w-[140px]">
+                <span className="text-xs font-bold text-slate-300 bg-white/10 px-2 py-0.5 rounded-lg shrink-0 truncate max-w-[160px]">
                   {ceremonia.nombre}
                 </span>
               )}
             </div>
-            <p className="text-[10px] text-slate-400 font-medium truncate">
-              Auto-Seating inteligente, mapa de auditorio y control de sectores
+            <p className="text-xs text-slate-400 font-medium truncate mt-0.5">
+              Auto-Seating inteligente, mapa del anfiteatro y distribución de sectores.
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex items-center gap-2 shrink-0 flex-wrap">
           <button
             id="btn-auto-asignar-butacas"
             type="button"
             onClick={() => setMostrarModalAutoAsignar(true)}
             disabled={autoAsignando || graduados.length === 0}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white px-3 py-1.5 text-[11px] font-black shadow-xs transition active:scale-95 disabled:opacity-40 cursor-pointer"
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white px-3.5 py-2 text-xs font-black shadow-xs transition active:scale-95 disabled:opacity-40 cursor-pointer"
           >
-            {autoAsignando ? <Sparkles size={13} className="animate-spin" /> : <Sparkles size={13} />}
+            {autoAsignando ? <Sparkles size={14} className="animate-spin" /> : <Sparkles size={14} />}
             <span>{autoAsignando ? 'Auto-asignando...' : 'Auto-Asignar Butacas'}</span>
           </button>
 
@@ -384,9 +384,9 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
             type="button"
             onClick={guardarMapa}
             disabled={guardando}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-white/10 hover:bg-white/15 text-white px-2.5 py-1.5 text-[11px] font-bold transition active:scale-95 cursor-pointer disabled:opacity-40"
+            className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 text-white px-3 py-2 text-xs font-bold transition active:scale-95 cursor-pointer disabled:opacity-40"
           >
-            <Save size={12} />
+            <Save size={14} />
             <span>{guardando ? 'Guardando...' : 'Guardar Mapa'}</span>
           </button>
 
@@ -422,102 +422,102 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
         </div>
       )}
 
-      {/* KPI STATS BAR COMPACTO */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-        <div className="p-2.5 bg-white rounded-xl border border-slate-200/80 shadow-2xs flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
-            <Layers size={14} />
+      {/* KPI STATS BAR */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+            <Layers size={18} />
           </div>
           <div className="min-w-0">
-            <p className="text-[8.5px] font-black text-slate-400 uppercase tracking-widest truncate">Capacidad</p>
-            <p className="text-xs font-black text-slate-900 leading-tight truncate">{totalCapacidad} butacas</p>
+            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Capacidad</p>
+            <p className="text-sm sm:text-base font-black text-slate-900 leading-tight truncate">{totalCapacidad} butacas</p>
           </div>
         </div>
 
-        <div className="p-2.5 bg-white rounded-xl border border-slate-200/80 shadow-2xs flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-            <UserCheck size={14} />
+        <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+            <UserCheck size={18} />
           </div>
           <div className="min-w-0">
-            <p className="text-[8.5px] font-black text-indigo-600 uppercase tracking-widest truncate">Graduados</p>
-            <p className="text-xs font-black text-slate-900 leading-tight truncate">
-              {graduadosConAsiento.length} <span className="text-[10px] text-slate-400 font-bold">/ {graduados.length}</span>
+            <p className="text-xs font-bold text-indigo-700 uppercase tracking-wider truncate">Graduados</p>
+            <p className="text-sm sm:text-base font-black text-slate-900 leading-tight truncate">
+              {graduadosConAsiento.length} <span className="text-xs text-slate-400 font-bold">/ {graduados.length}</span>
             </p>
           </div>
         </div>
 
-        <div className="p-2.5 bg-white rounded-xl border border-slate-200/80 shadow-2xs flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-            <Users size={14} />
+        <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+            <Users size={18} />
           </div>
           <div className="min-w-0">
-            <p className="text-[8.5px] font-black text-amber-600 uppercase tracking-widest truncate">Acompañantes</p>
-            <p className="text-xs font-black text-slate-900 leading-tight truncate">
-              {invitadosConAsiento.length} <span className="text-[10px] text-slate-400 font-bold">/ {invitados.length}</span>
+            <p className="text-xs font-bold text-amber-700 uppercase tracking-wider truncate">Acompañantes</p>
+            <p className="text-sm sm:text-base font-black text-slate-900 leading-tight truncate">
+              {invitadosConAsiento.length} <span className="text-xs text-slate-400 font-bold">/ {invitados.length}</span>
             </p>
           </div>
         </div>
 
-        <div className="p-2.5 bg-white rounded-xl border border-slate-200/80 shadow-2xs flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
-            <Armchair size={14} />
+        <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
+            <Armchair size={18} />
           </div>
           <div className="min-w-0">
-            <p className="text-[8.5px] font-black text-sky-600 uppercase tracking-widest truncate">Ocupadas</p>
-            <p className="text-xs font-black text-slate-900 leading-tight truncate">{totalOcupados} asientos</p>
+            <p className="text-xs font-bold text-sky-700 uppercase tracking-wider truncate">Ocupadas</p>
+            <p className="text-sm sm:text-base font-black text-slate-900 leading-tight truncate">{totalOcupados} asientos</p>
           </div>
         </div>
 
-        <div className="p-2.5 bg-white rounded-xl border border-slate-200/80 shadow-2xs flex items-center gap-2.5 col-span-2 sm:col-span-1">
-          <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-            <CheckCircle2 size={14} />
+        <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3 col-span-2 sm:col-span-1">
+          <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <CheckCircle2 size={18} />
           </div>
           <div className="min-w-0">
-            <p className="text-[8.5px] font-black text-emerald-600 uppercase tracking-widest truncate">Disponibles</p>
-            <p className="text-xs font-black text-slate-900 leading-tight truncate">{disponibles} libres</p>
+            <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider truncate">Disponibles</p>
+            <p className="text-sm sm:text-base font-black text-slate-900 leading-tight truncate">{disponibles} libres</p>
           </div>
         </div>
       </div>
 
-      {/* PESTAÑAS DE NAVEGACIÓN COMPACTAS */}
-      <div className="flex items-center justify-between border-b border-slate-200/80 pb-1 pt-0.5">
-        <div className="flex gap-1 bg-slate-100/90 p-0.5 rounded-lg">
+      {/* PESTAÑAS DE NAVEGACIÓN */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between border-b border-slate-200/80 pb-2 pt-1 gap-2">
+        <div className="flex gap-1.5 bg-slate-100/90 p-1 rounded-xl overflow-x-auto [scrollbar-width:none]">
           <button
             type="button"
             onClick={() => setPestana('mapa')}
-            className={`px-3 py-1 rounded-md text-[11px] font-black transition cursor-pointer flex items-center gap-1.5 ${
-              pestana === 'mapa' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900'
+            className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 sm:gap-2 shrink-0 ${
+              pestana === 'mapa' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900'
             }`}
           >
-            <Armchair size={13} className={pestana === 'mapa' ? 'text-sky-500' : ''} />
-            Mapa Interactivo
+            <Armchair size={15} className={pestana === 'mapa' ? 'text-sky-500' : ''} />
+            <span>Mapa Interactivo</span>
           </button>
 
           <button
             type="button"
             onClick={() => setPestana('graduados')}
-            className={`px-3 py-1 rounded-md text-[11px] font-black transition cursor-pointer flex items-center gap-1.5 ${
-              pestana === 'graduados' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900'
+            className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 sm:gap-2 shrink-0 ${
+              pestana === 'graduados' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900'
             }`}
           >
-            <Users size={13} className={pestana === 'graduados' ? 'text-indigo-600' : ''} />
-            Padrón y Butacas ({graduados.length})
+            <Users size={15} className={pestana === 'graduados' ? 'text-indigo-600' : ''} />
+            <span>Padrón y Butacas ({graduados.length})</span>
           </button>
 
           <button
             type="button"
             onClick={() => setPestana('estructura')}
-            className={`px-3 py-1 rounded-md text-[11px] font-black transition cursor-pointer flex items-center gap-1.5 ${
-              pestana === 'estructura' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-900'
+            className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 sm:gap-2 shrink-0 ${
+              pestana === 'estructura' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900'
             }`}
           >
-            <Layout size={13} className={pestana === 'estructura' ? 'text-sky-600' : ''} />
-            Estructura & Presets
+            <Layout size={15} className={pestana === 'estructura' ? 'text-sky-600' : ''} />
+            <span>Estructura & Presets</span>
           </button>
         </div>
 
         {pestana === 'mapa' && (
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap justify-between sm:justify-end">
             {/* Switch Protocolar de Fórmulas de Jura */}
             <button
               type="button"
@@ -538,7 +538,7 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
               </span>
             </button>
 
-            <div className="h-4 w-px bg-slate-200" />
+            <div className="h-4 w-px bg-slate-200 hidden sm:block" />
 
             <div className="flex items-center gap-1">
               <button
@@ -625,7 +625,7 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
               <div className="w-full mb-2 p-2.5 rounded-xl bg-gradient-to-r from-amber-500/10 via-sky-500/10 to-transparent border border-amber-300/80 flex flex-wrap items-center justify-between gap-2 text-xs animate-in fade-in duration-200">
                 <div className="flex items-center gap-2">
                   <span className="w-6 h-6 rounded-lg bg-amber-500 text-slate-950 font-black flex items-center justify-center text-[10px] shrink-0 shadow-2xs">
-                    ⚖️
+                    <Scale size={13} />
                   </span>
                   <div>
                     <p className="font-black text-slate-900 leading-none flex items-center gap-1.5">
@@ -792,7 +792,7 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
                     : 'bg-white border border-amber-300 text-amber-900 hover:bg-amber-50/50'
                 }`}
               >
-                <span>✝️ Dios y Patria</span>
+                <span>Dios y Patria</span>
                 <span className="text-[8.5px] font-black px-1 py-0.2 rounded bg-amber-200 text-amber-900">{totalDiosYPatria}</span>
               </button>
               <button
@@ -804,7 +804,7 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
                     : 'bg-white border border-sky-300 text-sky-900 hover:bg-sky-50/50'
                 }`}
               >
-                <span>🏛️ Por la Patria</span>
+                <span>Por la Patria</span>
                 <span className="text-[8.5px] font-black px-1 py-0.2 rounded bg-sky-200 text-sky-900">{totalPorLaPatria}</span>
               </button>
             </div>
@@ -852,11 +852,11 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
                         <td className="py-2 px-3">
                           {esDios ? (
                             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-black bg-blue-50 text-blue-900 border border-amber-400/80 shadow-2xs">
-                              ✝️ Dios y Patria
+                              Dios y Patria
                             </span>
                           ) : esPatria ? (
                             <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-black bg-sky-50 text-sky-900 border border-sky-300 shadow-2xs">
-                              🏛️ Por la Patria
+                              Por la Patria
                             </span>
                           ) : (
                             <span className="text-slate-400 italic text-[9.5px]">Sin definir</span>

@@ -6,7 +6,7 @@ import {
   Users, GraduationCap, Armchair, Clock, UserCheck, RefreshCw, Volume2, 
   VolumeX, ShieldCheck, ArrowRight, Sparkles, Check, Accessibility, CalendarDays,
   Smartphone, Download, Radio, Shield, Copy, CheckCheck, Globe, Wifi, KeyRound,
-  ExternalLink, Layers
+  ExternalLink, Layers, Laptop, Activity
 } from 'lucide-react'
 import { 
   buscarAcreditacion, 
@@ -134,12 +134,12 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
   const [historialIngresos, setHistorialIngresos] = useState([])
   const [mostrarResumenFinal, setMostrarResumenFinal] = useState(false)
 
-  // Modalidad de Acreditación: 'flutter' (por defecto) o 'respaldo_web'
-  const [modalidad, setModalidad] = useState('flutter')
+  const [modalidad, setModalidad] = useState('flutter') // 'flutter' | 'respaldo_web' | 'monitor'
   const [dispositivosMoviles, setDispositivosMoviles] = useState([])
   const [cargandoDispositivos, setCargandoDispositivos] = useState(false)
   const [copiadoApk, setCopiadoApk] = useState(false)
   const [copiadoServidor, setCopiadoServidor] = useState(false)
+  const [editandoUrlServidor, setEditandoUrlServidor] = useState(false)
   const [urlApk, setUrlApk] = useState(() => {
     if (typeof window !== 'undefined') {
       return `${window.location.origin}/descargas/SIGIC-Porteria-1.0.5.apk`
@@ -148,6 +148,8 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
   })
   const [urlServidor, setUrlServidor] = useState(() => {
     if (typeof window !== 'undefined') {
+      const host = window.location.hostname
+      // Si estamos en localhost, sugerir que para conectar móviles conviene la IP local o la URL pública
       return `${window.location.origin}/api`
     }
     return 'https://sigic.com.ar/api'
@@ -642,7 +644,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                   >
                     {ceremoniasDisponibles.map((c) => (
                       <option key={c.id} value={c.id} className="bg-slate-900 text-white">
-                        {c.nombre} {c.activa === 1 || c.activa === true ? '★' : ''}
+                        {c.nombre} {c.activa === 1 || c.activa === true ? '(Activa)' : ''}
                       </option>
                     ))}
                   </select>
@@ -727,6 +729,57 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
         )}
       </div>
 
+      {/* BARRA DE PESTAÑAS Y MODALIDADES */}
+      <div className="max-w-7xl mx-auto mt-4 flex items-center justify-between border-b border-slate-800 pb-3 gap-3 overflow-x-auto">
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setModalidad('flutter')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black transition cursor-pointer ${
+              modalidad === 'flutter'
+                ? 'bg-sky-500 text-slate-950 shadow-md shadow-sky-500/20'
+                : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 border border-slate-700/60'
+            }`}
+          >
+            <Smartphone size={15} />
+            <span>Acreditación Móvil (App Flutter)</span>
+            {dispositivosMoviles.length > 0 && (
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            )}
+          </button>
+
+          <button
+            onClick={() => setModalidad('respaldo_web')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black transition cursor-pointer ${
+              modalidad === 'respaldo_web'
+                ? 'bg-sky-500 text-slate-950 shadow-md shadow-sky-500/20'
+                : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 border border-slate-700/60'
+            }`}
+          >
+            <Laptop size={15} />
+            <span>Puesto de Mesa (USB / DNI)</span>
+          </button>
+
+          <button
+            onClick={() => setModalidad('monitor')}
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black transition cursor-pointer ${
+              modalidad === 'monitor'
+                ? 'bg-sky-500 text-slate-950 shadow-md shadow-sky-500/20'
+                : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 border border-slate-700/60'
+            }`}
+          >
+            <Activity size={15} />
+            <span>Monitor de Sala & Feed</span>
+          </button>
+        </div>
+
+        <div className="hidden md:flex items-center gap-3 text-xs text-slate-400">
+          <span>Aforo Presente:</span>
+          <span className="font-mono font-black text-emerald-400 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800">
+            {stats?.presentes || 0} / {stats?.totalInvitados ? (stats.totalInvitados + (stats.totalEgresados || 0)) : '—'}
+          </span>
+        </div>
+      </div>
+
       {/* VISTA FLUTTER: SIMPLE, LIMPIA Y AMIGABLE */}
       {modalidad === 'flutter' && (
         <main className="max-w-5xl mx-auto space-y-6 my-6">
@@ -756,7 +809,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
               </div>
 
               <p className="text-xs text-slate-300 font-medium leading-relaxed max-w-xs">
-                Escaneá este código con la cámara del celular Android para descargar el archivo APK oficial.
+                Escaneá este código con la cámara del celular Android para descargar el archivo APK oficial de portería.
               </p>
 
               <a
@@ -769,7 +822,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
             </div>
 
             {/* PASO 2: CONEXIÓN */}
-            <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col items-center text-center space-y-5">
+            <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col items-center text-center space-y-4">
               <div className="flex items-center gap-2">
                 <span className="w-6 h-6 rounded-full bg-emerald-400 text-slate-950 font-black text-xs flex items-center justify-center">2</span>
                 <h3 className="text-base font-black text-white">Conectar e Iniciar</h3>
@@ -780,17 +833,61 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
               </div>
 
               <p className="text-xs text-slate-300 font-medium leading-relaxed max-w-xs">
-                Abrí la app en el celular y apuntá la cámara a este código para conectar la ceremonia sin contraseñas.
+                Abrí la app en el celular y apuntá la cámara a este código para conectar con la ceremonia activa.
               </p>
 
-              <div className="w-full py-3 px-4 rounded-2xl bg-slate-900/80 border border-slate-700 text-cyan-300 font-mono text-[11px] font-bold truncate">
-                {urlServidor}
+              {/* CONFIGURADOR DE URL DEL SERVIDOR (EVITA LOCALHOST SI EL CELULAR ESTÁ EN RED WI-FI) */}
+              <div className="w-full space-y-2">
+                <div className="flex items-center justify-between text-[11px] text-slate-400 px-1">
+                  <span>URL de Enlace para la App Móvil:</span>
+                  <button
+                    onClick={() => setEditandoUrlServidor(!editandoUrlServidor)}
+                    className="text-sky-400 hover:text-sky-300 underline font-semibold cursor-pointer"
+                  >
+                    {editandoUrlServidor ? 'Fijar URL' : 'Ajustar IP/Host'}
+                  </button>
+                </div>
+
+                {editandoUrlServidor ? (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={urlServidor}
+                      onChange={(e) => setUrlServidor(e.target.value)}
+                      placeholder="http://192.168.1.50:3000/api"
+                      className="flex-1 bg-slate-950 border border-sky-500 text-cyan-300 font-mono text-xs px-3 py-2 rounded-xl outline-none"
+                    />
+                    <button
+                      onClick={() => setEditandoUrlServidor(false)}
+                      className="px-3 py-2 bg-emerald-500 text-slate-950 font-bold text-xs rounded-xl"
+                    >
+                      Listo
+                    </button>
+                  </div>
+                ) : (
+                  <div 
+                    onClick={() => copiarTexto(urlServidor, 'servidor')}
+                    className="w-full py-2.5 px-3 rounded-2xl bg-slate-900/80 border border-slate-700 text-cyan-300 font-mono text-[11px] font-bold truncate cursor-pointer hover:border-slate-600 transition flex items-center justify-between"
+                    title="Click para copiar URL"
+                  >
+                    <span className="truncate">{urlServidor}</span>
+                    <span className="text-[10px] text-slate-400 shrink-0 ml-2">
+                      {copiadoServidor ? '¡Copiado!' : 'Copiar'}
+                    </span>
+                  </div>
+                )}
+
+                {urlServidor.includes('localhost') && (
+                  <p className="text-[10px] text-amber-400 font-medium bg-amber-500/10 border border-amber-500/20 rounded-xl p-2 text-left">
+                    <strong>Atención Wi-Fi:</strong> Tu navegador apunta a <code>localhost</code>. Para que celulares reales se conecten, hacé clic en "Ajustar IP/Host" y poné la IP local de tu PC (ej: <code>http://192.168.1.X:3000/api</code>).
+                  </p>
+                )}
               </div>
             </div>
 
           </div>
 
-          {/* BARRA INFERIOR DE ESTADO Y MÉTRICAS */}
+          {/* BARRA INFERIOR DE ESTADO Y ACCESOS RÁPIDOS */}
           <div className="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 text-xs">
             <div className="flex items-center gap-3">
               <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -807,11 +904,10 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
               </span>
               <span>·</span>
               <button
-                id="btn-abrir-escaner-respaldo"
                 onClick={() => setModalidad('respaldo_web')}
-                className="text-sky-400 hover:text-sky-300 underline cursor-pointer text-xs"
+                className="text-sky-400 hover:text-sky-300 underline cursor-pointer text-xs font-bold"
               >
-                Abrir escáner web de respaldo
+                Abrir puesto de mesa web
               </button>
             </div>
           </div>
@@ -1109,6 +1205,96 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
 
           </div>
 
+        </main>
+      )}
+
+      {/* VISTA 3: MONITOR DE SALA & FEED DE INGRESOS EN TIEMPO REAL */}
+      {modalidad === 'monitor' && (
+        <main className="max-w-7xl mx-auto space-y-6 my-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 shadow-lg">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Aforo Presente</span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-black text-emerald-400">{stats?.presentes || 0}</span>
+                <span className="text-xs font-bold text-slate-400">
+                  / {stats?.totalInvitados ? (stats.totalInvitados + (stats.totalEgresados || 0)) : '—'}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400 mt-2 font-medium">Graduados e invitados dentro del recinto</p>
+            </div>
+
+            <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 shadow-lg">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Graduados Presentes</span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-black text-sky-400">{stats?.egresadosPresentes || stats?.presentes || 0}</span>
+                <span className="text-xs font-bold text-slate-400">/ {stats?.totalEgresados || '—'}</span>
+              </div>
+              <p className="text-[11px] text-slate-400 mt-2 font-medium">Titulares acreditados para entrega</p>
+            </div>
+
+            <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 shadow-lg">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Terminales Móviles</span>
+              <div className="flex items-baseline gap-2">
+                <span className="text-3xl font-black text-indigo-400">{dispositivosMoviles.length}</span>
+                <span className="text-xs font-bold text-slate-400">celular(es)</span>
+              </div>
+              <p className="text-[11px] text-slate-400 mt-2 font-medium">Equipos de portería sincronizando</p>
+            </div>
+
+            <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 shadow-lg">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Estado del Padrón</span>
+              <div className="flex items-baseline gap-2">
+                <span className={`text-xl font-black ${estaOnline ? 'text-emerald-400' : 'text-amber-400'}`}>
+                  {estaOnline ? 'Online (En Línea)' : 'Offline (Local)'}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-400 mt-2 font-medium">
+                {pendientesOffline > 0 ? `${pendientesOffline} en cola offline` : 'Base de datos sincronizada'}
+              </p>
+            </div>
+          </div>
+
+          {/* FEED EN TIEMPO REAL */}
+          <div className="bg-slate-800/80 border border-slate-700/80 rounded-3xl p-6 shadow-xl space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-700">
+              <div className="flex items-center gap-2">
+                <Activity size={18} className="text-sky-400" />
+                <h3 className="text-sm font-black text-white">Registro de Actividad en Puerta</h3>
+              </div>
+              <span className="text-xs text-slate-400 font-semibold">
+                Mostrando últimos {historialIngresos.length} accesos
+              </span>
+            </div>
+
+            {historialIngresos.length > 0 ? (
+              <div className="space-y-2.5 max-h-[450px] overflow-y-auto pr-2">
+                {historialIngresos.map((item) => (
+                  <div key={item.id} className="p-3.5 bg-slate-900/70 border border-slate-750 rounded-2xl flex items-center justify-between gap-3 animate-in fade-in">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                        <CheckCircle2 size={16} />
+                      </div>
+                      <div>
+                        <strong className="text-xs font-bold text-white block">{item.nombre}</strong>
+                        <span className="text-[10px] text-slate-400 font-medium">
+                          {item.rol} · Butaca: <strong className="text-amber-300">{item.asiento}</strong>
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-[11px] font-mono text-slate-400 font-semibold bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-700 shrink-0">
+                      {item.hora}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="py-12 text-center text-slate-500 space-y-2">
+                <Users size={32} className="mx-auto text-slate-600" />
+                <p className="text-xs font-medium">Aún no se registraron ingresos en esta sesión.</p>
+                <p className="text-[11px] text-slate-600">A medida que la app Flutter o el puesto de mesa acredite, aparecerán aquí al instante.</p>
+              </div>
+            )}
+          </div>
         </main>
       )}
 

@@ -452,9 +452,9 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
 
           {/* 3 Micro Chips de Features */}
           <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-[11px] font-bold text-slate-600">
-            <span className="bg-slate-50 border border-slate-200/80 px-3 py-1 rounded-full">🎟️ Acreditación QR</span>
-            <span className="bg-slate-50 border border-slate-200/80 px-3 py-1 rounded-full">🏛️ Control de Butacas</span>
-            <span className="bg-slate-50 border border-slate-200/80 px-3 py-1 rounded-full">🎓 Padrón Digital</span>
+            <span className="bg-slate-50 border border-slate-200/80 px-3 py-1 rounded-full">Acreditación QR</span>
+            <span className="bg-slate-50 border border-slate-200/80 px-3 py-1 rounded-full">Control de Butacas</span>
+            <span className="bg-slate-50 border border-slate-200/80 px-3 py-1 rounded-full">Padrón Digital</span>
           </div>
 
           {/* Botón Principal de Ingreso */}

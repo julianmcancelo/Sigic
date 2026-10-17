@@ -1,7 +1,7 @@
 'use client'
 
 import React, { forwardRef, useEffect, useRef, useState } from 'react'
-import { Search, X, ArrowUpRight, ChevronRight, CalendarDays, Power, LayoutGrid, Clock } from 'lucide-react'
+import { Search, X, ArrowUpRight, ChevronRight, CalendarDays, Power, LayoutGrid, Clock, LayoutDashboard, Sparkles } from 'lucide-react'
 import './menu-inicio.css'
 
 const informacion = {
@@ -24,10 +24,30 @@ const informacion = {
 }
 const normalizar = valor => String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 
-export const MenuInicio = forwardRef(function MenuInicio({ aplicaciones, usuario, ceremonia, ventanas = [], onAbrir, onCerrar, onCerrarSesion }, ref) {
+export const MenuInicio = forwardRef(function MenuInicio({ 
+  aplicaciones = [], 
+  usuario, 
+  ceremonia, 
+  ventanas = [], 
+  onAbrir, 
+  onCerrar, 
+  onCerrarSesion, 
+  onCambiarEstiloInterfaz, 
+  onCambiarVersion, 
+  versionAdmin,
+  esModal = false
+}, ref) {
   const [busqueda, setBusqueda] = useState('')
   const buscador = useRef(null)
-  useEffect(() => { buscador.current?.focus() }, [])
+  useEffect(() => { 
+    buscador.current?.focus() 
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onCerrar?.()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onCerrar])
+
   const disponibles = aplicaciones.filter(app => app.id !== 'bienvenida')
   const termino = normalizar(busqueda.trim())
   const resultados = disponibles.filter(app => normalizar(`${app.titulo} ${(informacion[app.id] || []).join(' ')}`).includes(termino))
@@ -48,23 +68,81 @@ export const MenuInicio = forwardRef(function MenuInicio({ aplicaciones, usuario
   function acceso(app) {
     const Icono = app.icono
     const abierto = ventanas.includes(app.id)
-    return <button key={app.id} data-start-app onClick={() => onAbrir(app.id)} className="sg-start-app" title={informacion[app.id]?.[1]}>
+    return <button key={app.id} data-start-app onClick={() => { onAbrir(app.id); if (esModal) onCerrar?.() }} className="sg-start-app" title={informacion[app.id]?.[1]}>
       <span className={`sg-start-icon ${app.color}`}><Icono size={18} /></span>
       <span className="sg-start-app-copy"><strong>{app.titulo}</strong><small>{informacion[app.id]?.[1]}</small></span>
       {abierto ? <span className="sg-start-open" aria-label="Ventana abierta" title="Ventana abierta" /> : <ChevronRight size={13} className="sg-start-arrow" />}
     </button>
   }
 
-  return <section ref={ref} id="sigic-menu-inicio" className="sigic-start-menu sg-start" role="dialog" aria-label="Menú de inicio" onKeyDown={navegarConTeclado}>
-    <header className="sg-start-heading"><span><LayoutGrid size={17} /><strong>Tu espacio de trabajo</strong></span><button onClick={onCerrar} aria-label="Cerrar menú de inicio"><X size={17} /></button></header>
-    <div className="sg-start-search"><Search size={17} /><input ref={buscador} aria-label="Buscar módulos" placeholder="Buscar módulos, personas, permisos…" value={busqueda} onChange={e => setBusqueda(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && resultados[0]) { e.preventDefault(); onAbrir(resultados[0].id) } }} />{busqueda ? <button aria-label="Limpiar búsqueda" onClick={() => { setBusqueda(''); buscador.current?.focus() }}><X size={15} /></button> : <kbd>Ctrl K</kbd>}</div>
-    <div className="sg-start-scroll">
+  const contenidoMenu = (
+    <section 
+      ref={ref} 
+      id="sigic-menu-inicio" 
+      className={`sigic-start-menu sg-start ${esModal ? 'sg-start-modal-window' : ''}`} 
+      role="dialog" 
+      aria-label="Menú de inicio" 
+      onKeyDown={navegarConTeclado}
+      onClick={e => e.stopPropagation()}
+    >
+      <header className="sg-start-heading"><span><LayoutGrid size={17} /><strong>Tu espacio de trabajo</strong></span><button onClick={onCerrar} aria-label="Cerrar menú de inicio"><X size={17} /></button></header>
+      <div className="sg-start-search"><Search size={17} /><input ref={buscador} aria-label="Buscar módulos" placeholder="Buscar módulos, personas, permisos…" value={busqueda} onChange={e => setBusqueda(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && resultados[0]) { e.preventDefault(); onAbrir(resultados[0].id); if (esModal) onCerrar?.() } }} />{busqueda ? <button aria-label="Limpiar búsqueda" onClick={() => { setBusqueda(''); buscador.current?.focus() }}><X size={15} /></button> : <kbd>Ctrl K</kbd>}</div>
+      <div className="sg-start-scroll">
       {!termino && <>
         <div className="sg-start-event"><CalendarDays size={16} /><span><small>Ceremonia activa</small><strong title={ceremonia?.nombre}>{ceremonia?.nombre || 'Todavía no seleccionaste una ceremonia'}</strong></span><button onClick={() => onAbrir('gestion-ceremonias')}>{ceremonia ? 'Cambiar' : 'Elegir'}<ArrowUpRight size={13} /></button></div>
+        {!esModal && onCambiarEstiloInterfaz && (
+          <button
+            type="button"
+            className="sg-start-mode-switch"
+            onClick={() => {
+              onCerrar?.()
+              onCambiarEstiloInterfaz('dashboard')
+            }}
+            title="Volver a la interfaz web con navegación lateral"
+          >
+            <span className="sg-start-icon bg-sky-600">
+              <LayoutDashboard size={18} />
+            </span>
+            <span className="sg-start-mode-switch-copy">
+              <strong>Volver a Dashboard Web</strong>
+              <small>Vista estándar de gestión institucional ({versionAdmin === 'pro' ? 'Pro' : 'Clásica'})</small>
+            </span>
+            <ArrowUpRight size={14} className="sg-start-arrow text-sky-400" />
+          </button>
+        )}
         {continuar && <button className="sg-start-resume" onClick={() => onAbrir(continuar.id)}><Clock size={17} /><span><small>{ultima ? 'Retomar trabajo' : 'Siguiente paso'}</small><strong>{continuar.titulo}</strong></span><ArrowUpRight size={17} /></button>}
       </>}
       {termino ? <div><div className="sg-start-label"><span>Resultados</span><small>{resultados.length} módulos</small></div><div className="sg-start-grid">{resultados.map(acceso)}</div>{!resultados.length && <div className="sg-start-empty"><Search size={25} /><strong>No encontramos ese módulo</strong><span>Probá con «permisos», «QR» o «graduados».</span><button onClick={() => setBusqueda('')}>Ver todos los accesos</button></div>}</div> : grupos.map(grupo => <div key={grupo}><div className="sg-start-label"><span>{grupo}</span></div><div className="sg-start-grid">{disponibles.filter(app => informacion[app.id]?.[0] === grupo).map(acceso)}</div></div>)}
     </div>
-    <footer className="sg-start-footer"><span className="sg-start-avatar">{(usuario?.nombre || 'A').slice(0, 1).toUpperCase()}</span><span className="sg-start-user"><strong>{usuario?.nombre || 'Administrativo'}</strong><small>{usuario?.rol === 'PORTERIA' ? 'Portería' : 'Administrativo'}</small></span><button onClick={() => { onAbrir('bienvenida'); onCerrar() }} aria-label="Mostrar escritorio" title="Mostrar escritorio"><LayoutGrid size={17} /></button><button onClick={onCerrarSesion} aria-label="Cerrar sesión" title="Cerrar sesión"><Power size={17} /></button></footer>
+    <footer className="sg-start-footer">
+      <span className="sg-start-avatar">{(usuario?.nombre || 'A').slice(0, 1).toUpperCase()}</span>
+      <span className="sg-start-user"><strong>{usuario?.nombre || 'Administrativo'}</strong><small>{usuario?.rol === 'PORTERIA' ? 'Portería' : 'Administrativo'}</small></span>
+      {!esModal && onCambiarEstiloInterfaz && (
+        <button
+          onClick={() => {
+            onCerrar?.()
+            onCambiarEstiloInterfaz('dashboard')
+          }}
+          aria-label="Volver a Dashboard Web"
+          title="Volver a Dashboard Web"
+          className="text-sky-400 hover:text-sky-300"
+        >
+          <LayoutDashboard size={17} />
+        </button>
+      )}
+      <button onClick={() => { onAbrir('bienvenida'); onCerrar?.() }} aria-label="Mostrar escritorio" title="Mostrar escritorio"><LayoutGrid size={17} /></button>
+      <button onClick={onCerrarSesion} aria-label="Cerrar sesión" title="Cerrar sesión"><Power size={17} /></button>
+    </footer>
   </section>
+  )
+
+  if (esModal) {
+    return (
+      <div className="sg-start-modal-backdrop" onClick={onCerrar}>
+        {contenidoMenu}
+      </div>
+    )
+  }
+
+  return contenidoMenu
 })

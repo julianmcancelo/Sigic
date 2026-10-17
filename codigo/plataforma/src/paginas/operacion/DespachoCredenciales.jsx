@@ -168,13 +168,13 @@ export function DespachoCredenciales({
     <div className="h-full flex flex-col font-sans select-none overflow-hidden bg-slate-50/60">
       
       {/* 1. ENCABEZADO COMPACTO DE MÓDULO (IDENTICO A PREPARACION Y GRADUADOS) */}
-      <header className="shrink-0 p-3 sm:px-4 bg-slate-900 text-white flex items-center justify-between gap-3 shadow-xs border-b border-slate-800">
+      <header className="shrink-0 p-3 sm:px-4 bg-slate-900 text-white flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-xs border-b border-slate-800">
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="w-8 h-8 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-500/30 flex items-center justify-center shrink-0">
             <QrCode size={16} />
           </div>
           <div className="min-w-0">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-sm font-black tracking-tight truncate">
                 Emisión y Despacho de Credenciales QR
               </h1>
@@ -191,13 +191,13 @@ export function DespachoCredenciales({
         </div>
 
         {/* BOTONES DE ACCION PRINCIPAL */}
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
           <button
             type="button"
             id="btn-despachar-masivo-top"
             onClick={ejecutarDespachoMasivo}
             disabled={enviandoMasivo || graduadosConfirmados.length === 0}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white px-3 py-1.5 text-[11px] font-black shadow-xs transition active:scale-95 disabled:opacity-40 cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white px-2.5 sm:px-3 py-1.5 text-[11px] font-black shadow-xs transition active:scale-95 disabled:opacity-40 cursor-pointer"
           >
             {enviandoMasivo ? <RefreshCw size={12} className="animate-spin" /> : <Send size={12} />}
             <span>{enviandoMasivo ? 'Despachando...' : `Despachar a Todos (${graduadosConfirmados.length})`}</span>
@@ -210,7 +210,8 @@ export function DespachoCredenciales({
             title="Imprimir padrón con códigos QR"
           >
             <Printer size={12} />
-            <span>Imprimir Padrón</span>
+            <span className="hidden sm:inline">Imprimir Padrón</span>
+            <span className="sm:hidden">Imprimir</span>
           </button>
 
           {onNavegar && (
@@ -218,7 +219,7 @@ export function DespachoCredenciales({
               type="button"
               id="btn-continuar-porteria"
               onClick={() => onNavegar('control-ingreso')}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-500/80 px-3 py-1.5 text-[11px] font-black transition active:scale-95 cursor-pointer shadow-xs"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-500/80 px-2.5 sm:px-3 py-1.5 text-[11px] font-black transition active:scale-95 cursor-pointer shadow-xs"
             >
               <ShieldCheck size={12} />
               <span>Acreditación</span>
@@ -348,7 +349,7 @@ export function DespachoCredenciales({
         {/* TABLA PRINCIPAL DE DESPACHO */}
         <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-slate-700">
+            <table className="w-full text-left text-xs text-slate-700 min-w-[680px]">
               <thead className="bg-slate-50/80 border-b border-slate-200/80 text-[9.5px] font-black uppercase tracking-wider text-slate-500">
                 <tr>
                   <th className="py-2.5 px-3">Graduado / DNI</th>

@@ -201,61 +201,65 @@ export function GestionProfesores({ usuario, onVolver, onCerrarSesion, sinHeader
 
   return (
     <div className="font-sans">
-      {/* HEADER INTEGRADO COMPACTO */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-100">
+      {/* HEADER INTEGRADO */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 pb-4 border-b border-slate-100">
         <div>
-          <h2 className="text-base font-black tracking-tight" style={{ color: DARK }}>Gestión de Docentes y Padrinos</h2>
-          <p className="text-[9.5px] font-bold text-slate-400 uppercase tracking-widest">Plantel Docente Disponible para Diplomas</p>
+          {!sinHeader && (
+            <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">Gestión de Docentes y Padrinos</h2>
+          )}
+          <p className="text-xs font-semibold text-slate-500">
+            Plantel docente disponible para la entrega protocolar de diplomas.
+          </p>
         </div>
         
         <div className="flex items-center gap-2 shrink-0">
           <button
             id="btn-importar-docentes"
             onClick={() => setMostrarModalImportar(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all active:scale-95 shadow-2xs cursor-pointer"
+            className="inline-flex items-center gap-2 px-3.5 py-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-xs cursor-pointer"
           >
-            <FileSpreadsheet size={13} className="text-emerald-600" /> Importar Excel
+            <FileSpreadsheet size={15} className="text-emerald-600" /> Importar Excel
           </button>
           <button
             id="btn-agregar-profesor"
             onClick={abrirFormularioNuevo}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all active:scale-95 shadow-2xs cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition-all active:scale-95 shadow-xs cursor-pointer"
           >
-            <PlusCircle size={13} /> Agregar Docente
+            <PlusCircle size={15} /> Agregar Docente
           </button>
         </div>
       </div>
 
-      {/* TARJETAS DE MÉTRICAS COMPACTAS */}
+      {/* TARJETAS DE MÉTRICAS */}
       {!cargando && (
-        <div className="grid grid-cols-3 gap-3 mb-4">
-          <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-2xs flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-sky-50 flex items-center justify-center text-sky-500 shrink-0">
-              <Award size={18} />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mb-5">
+          <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs flex items-center gap-3.5">
+            <div className="h-10 w-10 rounded-xl bg-sky-50 flex items-center justify-center text-sky-600 shrink-0">
+              <Award size={20} />
             </div>
             <div className="min-w-0">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest truncate">Total Docentes</p>
-              <h4 className="text-base font-black text-slate-800 leading-tight">{profesores.length}</h4>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Total Docentes</p>
+              <h4 className="text-xl font-black text-slate-900 leading-tight">{profesores.length}</h4>
             </div>
           </div>
           
-          <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-2xs flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-500 shrink-0">
-              <BookOpen size={18} />
+          <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs flex items-center gap-3.5">
+            <div className="h-10 w-10 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shrink-0">
+              <BookOpen size={20} />
             </div>
             <div className="min-w-0">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest truncate">Materias</p>
-              <h4 className="text-base font-black text-slate-800 leading-tight">{materiasUnicas}</h4>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Materias Registradas</p>
+              <h4 className="text-xl font-black text-slate-900 leading-tight">{materiasUnicas}</h4>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl p-3 border border-slate-100 shadow-2xs flex items-center gap-3">
-            <div className="h-9 w-9 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-500 shrink-0">
-              <UserCheck size={18} />
+          <div className="bg-white rounded-2xl p-4 border border-slate-200/80 shadow-xs flex items-center gap-3.5">
+            <div className="h-10 w-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600 shrink-0">
+              <UserCheck size={20} />
             </div>
             <div className="min-w-0">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest truncate">Activos</p>
-              <h4 className="text-base font-black text-slate-800 leading-tight">{profesores.length} Disponibles</h4>
+              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Disponibilidad</p>
+              <h4 className="text-xl font-black text-slate-900 leading-tight">{profesores.length} Activos</h4>
             </div>
           </div>
         </div>
@@ -446,52 +450,52 @@ export function GestionProfesores({ usuario, onVolver, onCerrarSesion, sinHeader
               >
                 <div>
                   {/* Fila Superior: Inicial + Badge de Depto */}
-                  <div className="flex justify-between items-start gap-2 mb-2">
-                    <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="flex justify-between items-start gap-2 mb-2.5">
+                    <div className="flex items-center gap-3 min-w-0">
                       <div 
-                        className="h-8 w-8 rounded-lg bg-gradient-to-br from-[#0EA5E9] to-indigo-600 flex items-center justify-center text-white font-black text-xs shadow-2xs shrink-0 select-none"
+                        className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#0EA5E9] to-indigo-600 flex items-center justify-center text-white font-black text-sm shadow-xs shrink-0 select-none"
                       >
                         {profesor.nombre?.charAt(0)?.toUpperCase() || '?'}
                       </div>
                       <div className="min-w-0">
-                        <h3 className="font-black text-slate-800 text-xs tracking-tight truncate group-hover:text-sky-600 transition-colors">
+                        <h3 className="font-bold text-slate-900 text-sm tracking-tight truncate group-hover:text-sky-600 transition-colors">
                           {profesor.nombre}
                         </h3>
                         {profesor.dni && (
-                          <p className="text-[9px] font-bold text-slate-400 font-mono leading-none mt-0.5">
+                          <p className="text-xs font-medium text-slate-400 font-mono leading-none mt-0.5">
                             DNI: {profesor.dni}
                           </p>
                         )}
                       </div>
                     </div>
 
-                    <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-wider border shrink-0 ${badgeDepto}`}>
+                    <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider border shrink-0 ${badgeDepto}`}>
                       {depto}
                     </span>
                   </div>
 
                   {/* Materia y Carrera */}
-                  <div className="space-y-1 mt-2.5 pt-2 border-t border-slate-100">
+                  <div className="space-y-1.5 mt-2.5 pt-2.5 border-t border-slate-100">
                     {materia && (
-                      <p className="text-[10.5px] font-bold text-slate-700 flex items-center gap-1.5 truncate" title={materia}>
-                        <BookOpen size={11} className="text-sky-500 shrink-0" />
+                      <p className="text-xs font-semibold text-slate-700 flex items-center gap-2 truncate" title={materia}>
+                        <BookOpen size={13} className="text-sky-500 shrink-0" />
                         <span className="truncate">{materia}</span>
                       </p>
                     )}
 
                     {carrera && (
-                      <p className="text-[9px] font-bold text-slate-400 truncate" title={carrera}>
-                        Carrera: <span className="text-slate-600 font-medium">{carrera}</span>
+                      <p className="text-xs font-medium text-slate-400 truncate" title={carrera}>
+                        Carrera: <span className="text-slate-600 font-semibold">{carrera}</span>
                       </p>
                     )}
                   </div>
                 </div>
 
                 {/* Acciones en la parte inferior */}
-                <div className="mt-3 pt-2 border-t border-slate-100 flex justify-between items-center">
+                <div className="mt-3.5 pt-2.5 border-t border-slate-100 flex justify-between items-center">
                   <div className="flex items-center gap-1.5">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Padrino Activo</span>
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Padrino Activo</span>
                   </div>
 
                   <div className="flex gap-1">

@@ -361,7 +361,7 @@ function BienvenidaBasica({ usuario, onCerrarSesion }) {
   )
 }
 
-export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambiarVersion }) {
+export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambiarVersion, onCambiarEstiloInterfaz }) {
   const [fechaActual, setFechaActual]       = useState(() => new Date())
   const [temperatura, setTemperatura]       = useState(null)
   const [modalPermisos, setModalPermisos]   = useState(false)
@@ -392,21 +392,52 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
     return () => clearInterval(intervalo)
   }, [])
 
-  // ── Geolocalización de clima ──
+  // ── Geolocalización de clima (con detección segura de permisos) ──
   useEffect(() => {
-    if (typeof window !== 'undefined' && 'geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          actualizarPermiso('ubicacion', 'granted')
-          cargarClima(pos.coords.latitude, pos.coords.longitude)
-        },
-        () => {
-          cargarClima(ubicacionPorDefecto.latitud, ubicacionPorDefecto.longitud)
+    let montado = true
+
+    async function obtenerUbicacionSegura() {
+      if (typeof window === 'undefined' || !('geolocation' in navigator)) {
+        if (montado) cargarClima(ubicacionPorDefecto.latitud, ubicacionPorDefecto.longitud)
+        return
+      }
+
+      try {
+        // Verificar Permissions-Policy o estado de permisos antes de llamar para evitar violación de política
+        if ('permissions' in navigator && navigator.permissions.query) {
+          try {
+            const estado = await navigator.permissions.query({ name: 'geolocation' })
+            if (estado.state === 'denied') {
+              if (montado) {
+                actualizarPermiso('ubicacion', 'denied')
+                cargarClima(ubicacionPorDefecto.latitud, ubicacionPorDefecto.longitud)
+              }
+              return
+            }
+          } catch {
+            // Si la consulta falla (e.g. política restrictiva), continuar de forma segura
+          }
         }
-      )
-    } else {
-      cargarClima(ubicacionPorDefecto.latitud, ubicacionPorDefecto.longitud)
+
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            if (!montado) return
+            actualizarPermiso('ubicacion', 'granted')
+            cargarClima(pos.coords.latitude, pos.coords.longitude)
+          },
+          () => {
+            if (!montado) return
+            cargarClima(ubicacionPorDefecto.latitud, ubicacionPorDefecto.longitud)
+          },
+          { timeout: 4000, maximumAge: 600000 }
+        )
+      } catch {
+        if (montado) cargarClima(ubicacionPorDefecto.latitud, ubicacionPorDefecto.longitud)
+      }
     }
+
+    obtenerUbicacionSegura()
+    return () => { montado = false }
   }, [])
 
   async function cargarClima(lat, lon) {
@@ -476,8 +507,6 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
 
 
   const esSoporte = usuario?.correo && usuario.correo.toLowerCase() === 'soporte@ibeltran.com.ar'
-
-  return <BienvenidaBasica usuario={usuario} onCerrarSesion={onCerrarSesion} />
 
   // Accesos rápidos del panel
   const accesos = [
@@ -569,29 +598,32 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
 
       <HeaderGlobal 
         titulo="Inicio administrativo"
+        subtitulo="Panel Clásico SiGIC"
         usuario={usuario}
         onCerrarSesion={onCerrarSesion}
+        onCambiarVersion={onCambiarVersion}
+        onCambiarEstiloInterfaz={onCambiarEstiloInterfaz}
       />
 
       {/* ══ CONTENIDO ════════════════════════════════════════════ */}
-      <main className="mx-auto max-w-7xl px-5 py-6 lg:px-8 pb-24">
-        <div className="flex flex-col gap-6">
+      <main className="mx-auto max-w-7xl px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6 pb-24">
+        <div className="flex flex-col gap-4 sm:gap-6">
 
-          <section className="relative overflow-hidden rounded-[32px] border border-slate-200 bg-gradient-to-br from-[#0d1b2e] via-[#173654] to-[#0b2437] px-7 py-7 text-white shadow-xl shadow-slate-900/10">
+          <section className="relative overflow-hidden rounded-[28px] sm:rounded-[32px] border border-slate-200 bg-gradient-to-br from-[#0d1b2e] via-[#173654] to-[#0b2437] p-5 sm:p-7 text-white shadow-xl shadow-slate-900/10">
             <div className="absolute -right-16 -top-24 h-64 w-64 rounded-full bg-cyan-400/15 blur-3xl" />
-            <div className="relative flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-              <div className="flex items-start gap-4">
-                <img src="/logo-oficial.png" alt="Logo de SIGIC" className="h-14 w-14 rounded-2xl object-cover shadow-lg shadow-cyan-900/30" />
+            <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3.5 sm:gap-4">
+                <img src="/logo-oficial.png" alt="Logo de SIGIC" className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl object-cover shadow-lg shadow-cyan-900/30 shrink-0" />
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-300">Bienvenido al espacio de trabajo</p>
-                  <h2 className="mt-1 text-2xl font-black tracking-tight md:text-3xl">Esto es SIGIC</h2>
-                  <p className="mt-2 max-w-2xl text-xs font-medium leading-relaxed text-white/65">El Sistema Integral de Gestión Institucional que organiza ceremonias de colación, graduados, invitados, acreditaciones, ubicaciones y accesos desde un único lugar.</p>
+                  <h2 className="mt-1 text-xl sm:text-2xl lg:text-3xl font-black tracking-tight">Esto es SIGIC</h2>
+                  <p className="mt-1.5 max-w-2xl text-xs font-medium leading-relaxed text-white/65">El Sistema Integral de Gestión Institucional que organiza ceremonias de colación, graduados, invitados, acreditaciones, ubicaciones y accesos desde un único lugar.</p>
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-2 text-center text-[9px] font-bold text-white/70">
-                <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-3"><span className="block text-lg font-black text-cyan-300">01</span>Planificar</div>
-                <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-3"><span className="block text-lg font-black text-cyan-300">02</span>Organizar</div>
-                <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-3"><span className="block text-lg font-black text-cyan-300">03</span>Controlar</div>
+              <div className="grid grid-cols-3 gap-2 text-center text-[9px] font-bold text-white/70 w-full lg:w-auto">
+                <div className="rounded-xl border border-white/10 bg-white/5 px-2.5 sm:px-3 py-2.5 sm:py-3"><span className="block text-base sm:text-lg font-black text-cyan-300">01</span>Planificar</div>
+                <div className="rounded-xl border border-white/10 bg-white/5 px-2.5 sm:px-3 py-2.5 sm:py-3"><span className="block text-base sm:text-lg font-black text-cyan-300">02</span>Organizar</div>
+                <div className="rounded-xl border border-white/10 bg-white/5 px-2.5 sm:px-3 py-2.5 sm:py-3"><span className="block text-base sm:text-lg font-black text-cyan-300">03</span>Controlar</div>
               </div>
             </div>
           </section>
@@ -601,32 +633,32 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
             
             {/* Bienvenida y ceremonia activa */}
             <section
-              className="lg:col-span-3 bg-white border border-slate-100 shadow-md shadow-slate-100/50 rounded-[32px] overflow-hidden"
+              className="lg:col-span-3 bg-white border border-slate-100 shadow-md shadow-slate-100/50 rounded-[28px] sm:rounded-[32px] overflow-hidden"
             >
-              <div className="relative p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 h-full min-h-[190px]">
+              <div className="relative p-5 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 h-full min-h-[190px]">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500/[0.02] rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none"></div>
                 
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-sky-500 mb-2">Todo listo para comenzar</p>
-                  <h1 className="text-3xl md:text-4xl font-black text-slate-800 tracking-tight leading-tight">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-sky-500 mb-1.5 sm:mb-2">Todo listo para comenzar</p>
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-800 tracking-tight leading-tight">
                     Hola, {usuario?.nombre?.split(' ')?.[0] || 'Administrador'}
                   </h1>
-                  <p className="mt-2 text-sm font-semibold text-slate-400">Estás trabajando en <strong className="text-slate-700">{ceremoniaActiva?.nombre || config.nombre_evento || 'la ceremonia principal'}</strong>.</p>
+                  <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm font-semibold text-slate-400">Estás trabajando en <strong className="text-slate-700">{ceremoniaActiva?.nombre || config.nombre_evento || 'la ceremonia principal'}</strong>.</p>
 
-                  <div className="mt-4 flex flex-wrap gap-2 text-[11px] font-bold text-slate-500">
+                  <div className="mt-3.5 sm:mt-4 flex flex-wrap gap-2 text-[10.5px] sm:text-[11px] font-bold text-slate-500">
                     <span className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-full">
-                      <Calendar size={13} className="text-sky-500" />
+                      <Calendar size={13} className="text-sky-500 shrink-0" />
                       {ceremoniaActiva ? new Date(ceremoniaActiva.fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}
                     </span>
                     <span className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-full">
-                      <MapPin size={13} className="text-sky-500" />
+                      <MapPin size={13} className="text-sky-500 shrink-0" />
                       {ceremoniaActiva?.lugar || 'Sede Beltrán'}
                     </span>
                   </div>
                 </div>
 
-                <div className="flex flex-col items-stretch md:items-end justify-center gap-3">
-                  <div className="flex items-center gap-2.5 rounded-2xl bg-emerald-50 border border-emerald-100 px-4.5 py-2">
+                <div className="flex flex-col items-stretch md:items-end justify-center gap-3 shrink-0">
+                  <div className="inline-flex self-start md:self-end items-center gap-2.5 rounded-2xl bg-emerald-50 border border-emerald-100 px-3.5 sm:px-4.5 py-1.5 sm:py-2">
                     <span className="relative flex h-2 w-2">
                       <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
                       <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
@@ -636,10 +668,10 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
                     </span>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-2 w-full">
-                    <button onClick={() => onNavegar('control-ingreso')} className="flex items-center justify-center gap-2 rounded-xl bg-sky-500 px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-white shadow-md shadow-sky-500/20 transition hover:bg-sky-600 active:scale-95">
+                    <button onClick={() => onNavegar('control-ingreso')} className="flex items-center justify-center gap-2 rounded-xl bg-sky-500 px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-white shadow-md shadow-sky-500/20 transition hover:bg-sky-600 active:scale-95 cursor-pointer">
                       <ScanLine size={14} /> Controlar ingresos
                     </button>
-                    <button onClick={() => onNavegar('gestion-graduados')} className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-slate-600 transition hover:border-sky-200 hover:text-sky-600 active:scale-95">
+                    <button onClick={() => onNavegar('gestion-graduados')} className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-slate-600 transition hover:border-sky-200 hover:text-sky-600 active:scale-95 cursor-pointer">
                       <Users size={14} /> Ver graduados
                     </button>
                   </div>

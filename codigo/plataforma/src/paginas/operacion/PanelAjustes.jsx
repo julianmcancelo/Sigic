@@ -168,7 +168,7 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
     { id: 'plataforma', nombre: 'Plataforma', detalle: 'Acceso y comportamiento general', icono: SlidersHorizontal },
     { id: 'apariencia', nombre: 'Fondo & Estilos', detalle: 'Fondo de pantalla y temas visuales', icono: Palette },
     { id: 'identidad', nombre: 'Identidad', detalle: 'Institución y presentación', icono: Building2 },
-    { id: 'ceremonia', nombre: 'Ceremonia', detalle: 'Reglas del evento activo', icono: LayoutGrid },
+    { id: 'ceremonia', nombre: 'Plantilla de Eventos', detalle: 'Cupos y reglas por defecto', icono: LayoutGrid },
     { id: 'correo', nombre: 'Correo', detalle: 'Comprobar envíos de la demo', icono: Mail },
   ]
 
@@ -252,15 +252,17 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
       {seccionActiva === 'ceremonia' && <div className="mb-6 bg-slate-900 rounded-2xl p-6 text-white shadow-sm flex flex-col md:flex-row justify-between items-center gap-4 relative overflow-hidden">
         <div className="absolute right-[-20px] top-[-20px] w-24 h-24 bg-sky-500/10 rounded-full blur-2xl pointer-events-none" />
         <div className="relative z-10 space-y-1">
-          <span className="text-[8px] font-black uppercase tracking-widest text-sky-400 block">Ceremonia Seleccionada</span>
-          <h2 className="text-base font-black tracking-tight">{ceremoniaActiva?.nombre || 'General'}</h2>
-          <p className="text-slate-405 text-[10px] font-semibold">Las configuraciones modificadas impactarán en este entorno de colación.</p>
+          <span className="text-[8px] font-black uppercase tracking-widest text-sky-400 block">Plantilla & Evento Activo</span>
+          <h2 className="text-base font-black tracking-tight">{ceremoniaActiva?.nombre ? `En Curso: ${ceremoniaActiva.nombre}` : 'Valores Institucionales por Defecto'}</h2>
+          <p className="text-slate-400 text-[11px] font-medium max-w-xl">
+            Cada ceremonia administra su propio padrón de graduados y cupos independientes. Los ajustes aquí definen los valores predeterminados para nuevas colaciones.
+          </p>
         </div>
         <button 
           onClick={() => onNavegar('ceremonias')}
-          className="relative z-10 bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border border-white/10 flex items-center gap-1.5"
+          className="relative z-10 bg-sky-500 hover:bg-sky-400 text-slate-950 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all shadow-md shadow-sky-500/20 flex items-center gap-1.5 cursor-pointer shrink-0"
         >
-          Administrar Ceremonias <ChevronRight size={13} />
+          Gestionar Ceremonias <ChevronRight size={14} />
         </button>
       </div>}
 

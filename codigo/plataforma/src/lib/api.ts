@@ -155,8 +155,9 @@ export async function obtenerGraduados(ceremoniaId: string | number | null = nul
   const res = await fetchDeduplicado(`${BASE_CLASSIC}/egresados${params}`, { headers: cabeceras() });
   if (!res.ok) throw new Error('No se pudo establecer conexión con el servidor de graduados');
   const graduados = await res.json();
-  // Compatibilidad con entornos que aún no aplican el parámetro en el backend.
-  // Nunca debemos mezclar el padrón de dos ceremonias en la interfaz.
+  if (ceremoniaId === 'todas' || ceremoniaId === 'general' || ceremoniaId === 'global') {
+    return Array.isArray(graduados) ? graduados : [];
+  }
   return ceremoniaId
     ? graduados.filter((graduado: any) => String(graduado.ceremonia_id) === String(ceremoniaId))
     : graduados;
@@ -438,6 +439,17 @@ export async function activarCeremonia(id: string | number) {
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error || 'No se pudo activar la ceremonia');
+  return json;
+}
+
+export async function actualizarCeremonia(id: string | number, datos: any) {
+  const res = await fetch(`${BASE_CLASSIC}/ceremonias/${id}`, {
+    method: 'PUT',
+    headers: cabeceras(),
+    body: JSON.stringify(datos)
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo actualizar la información de la ceremonia');
   return json;
 }
 

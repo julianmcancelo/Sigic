@@ -11,7 +11,9 @@ export function HeaderGlobal({
   subtitulo = "Módulo del Sistema",
   usuario = null,
   onVolver = null, 
-  onCerrarSesion = null
+  onCerrarSesion = null,
+  onCambiarVersion = null,
+  onCambiarEstiloInterfaz = null
 }) {
   const [modalAbierto, setModalAbierto] = useState(false)
   const [scrolled, setScrolled] = useState(false)
@@ -59,18 +61,18 @@ export function HeaderGlobal({
             <kbd className="hidden lg:inline text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/10 text-white/80">Ctrl K</kbd>
           </button>
           
-          <div className="flex items-center">
+          <div className="flex items-center min-w-0">
             {/* Branding Logo Oficial */}
-            <div className="flex items-center gap-2 pr-3 sm:pr-5 border-r border-slate-200/60">
-              <img src="/logo-oficial.png" alt="SiGIC Oficial" className="h-10 sm:h-12 md:h-14 w-auto object-contain drop-shadow-md" />
+            <div className="flex items-center gap-1.5 sm:gap-2 pr-2 sm:pr-5 border-r border-slate-200/60 shrink-0">
+              <img src="/logo-oficial.png" alt="SiGIC Oficial" className="h-8 sm:h-11 md:h-12 w-auto object-contain drop-shadow-md" />
             </div>
 
             {/* Título de la Página Actual */}
-            <div className="pl-3 sm:pl-5 hidden sm:block">
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 leading-none mb-1">
+            <div className="pl-2 sm:pl-5 hidden sm:block min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 leading-none mb-1 truncate">
                 {subtitulo}
               </p>
-              <h2 className="text-[15px] font-black text-slate-800 tracking-tight leading-none">
+              <h2 className="text-[14px] sm:text-[15px] font-black text-slate-800 tracking-tight leading-none truncate">
                 {titulo}
               </h2>
             </div>
@@ -78,8 +80,30 @@ export function HeaderGlobal({
         </div>
 
         {/* BLOQUE DERECHO: Perfil de Usuario y Acciones */}
-        <div className="flex items-center gap-4">
-          
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+          {onCambiarVersion && (
+            <button
+              onClick={onCambiarVersion}
+              className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-[9px] sm:text-[9.5px] font-black uppercase tracking-wider text-slate-700 hover:bg-slate-100 transition active:scale-95 cursor-pointer shadow-xs"
+              title="Cambiar al diseño Pro (con barra lateral)"
+            >
+              <LayoutGrid size={12} className="text-sky-500 shrink-0" />
+              <span className="hidden md:inline">Versión 2 (Pro)</span>
+              <span className="md:hidden">V2</span>
+            </button>
+          )}
+
+          {onCambiarEstiloInterfaz && (
+            <button
+              onClick={onCambiarEstiloInterfaz}
+              className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-[9px] sm:text-[9.5px] font-black uppercase tracking-wider text-slate-700 hover:bg-slate-100 transition active:scale-95 cursor-pointer shadow-xs"
+              title="Cambiar a modo Escritorio OS"
+            >
+              <span className="hidden md:inline">Escritorio OS</span>
+              <span className="md:hidden">OS</span>
+            </button>
+          )}
+
           {/* Perfil del Operador */}
           {usuario && (
             <div className="hidden lg:flex items-center gap-3 px-4 py-2 rounded-2xl bg-slate-50/80 border border-slate-100 hover:bg-slate-100 transition-colors cursor-default">
@@ -97,11 +121,11 @@ export function HeaderGlobal({
           {onCerrarSesion && (
             <button
               onClick={() => setModalAbierto(true)}
-              className="flex items-center gap-2 rounded-2xl bg-slate-900 px-5 py-2.5 text-[11px] font-black uppercase tracking-widest text-white transition-all duration-300 hover:bg-red-500 hover:shadow-xl hover:shadow-red-500/20 active:scale-95"
+              className="flex items-center gap-1.5 sm:gap-2 rounded-2xl bg-slate-900 px-3 sm:px-5 py-2 sm:py-2.5 text-[10px] sm:text-[11px] font-black uppercase tracking-widest text-white transition-all duration-300 hover:bg-red-500 hover:shadow-xl hover:shadow-red-500/20 active:scale-95"
               title="Cerrar sesión segura"
             >
-              <LogOut size={16} className="opacity-90" />
-              <span className="hidden sm:inline">Salir</span>
+              <LogOut size={15} className="opacity-90 shrink-0" />
+              <span className="hidden xs:inline sm:inline">Salir</span>
             </button>
           )}
         </div>

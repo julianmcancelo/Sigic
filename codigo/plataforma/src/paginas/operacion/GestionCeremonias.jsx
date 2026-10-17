@@ -2,9 +2,10 @@ import { useState, useEffect } from 'react'
 import { 
   Plus, Calendar, MapPin, Users, Trash2, 
   CheckCircle2, X, PlusCircle, ArrowRight, LayoutTemplate, Send, Radio, Flag, ListChecks,
-  ClipboardList, UserPlus, Armchair, ScanLine, BarChart3, PlayCircle, LoaderCircle, Clock
+  ClipboardList, UserPlus, Armchair, ScanLine, BarChart3, PlayCircle, LoaderCircle, Clock,
+  Edit3, Search, Sparkles, Check, AlertCircle, Archive, ShieldCheck
 } from 'lucide-react'
-import { obtenerCeremonias, crearCeremonia, activarCeremonia, eliminarCeremonia, actualizarEstadoCeremonia } from '../../lib/api'
+import { obtenerCeremonias, crearCeremonia, activarCeremonia, actualizarCeremonia, eliminarCeremonia, actualizarEstadoCeremonia } from '../../lib/api'
 import { useConfirmacion } from '../../componentes/ModalConfirmacion'
 
 const ACCENT = '#0EA5E9'
@@ -24,6 +25,9 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
   const [ceremonias, setCeremonias] = useState([])
   const [cargando, setCargando] = useState(true)
   const [mostrarForm, setMostrarForm] = useState(false)
+  const [ceremoniaEditando, setCeremoniaEditando] = useState(null)
+  const [filtroPestana, setFiltroPestana] = useState('todas') // 'todas' | 'activas' | 'proximas' | 'finalizadas'
+  const [busqueda, setBusqueda] = useState('')
   const [nuevoEvento, setNuevoEvento] = useState({
     nombre: '', fecha: '', lugar: 'Sede Beltrán', max_invitados: 4, fecha_limite_confirmacion: ''
   })
@@ -103,18 +107,54 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
     }
   }
 
-  async function handleAvanzar(c) {
-    const indice = ETAPAS.findIndex(([id]) => id === estadoCeremonia(c))
-    const siguiente = ETAPAS[Math.min(indice + 1, ETAPAS.length - 1)]?.[0]
-    if (!siguiente || siguiente === estadoCeremonia(c)) return
-    setActualizandoId(c.id)
+  function abrirEditar(ceremonia) {
+    setCeremoniaEditando({
+      id: ceremonia.id,
+      nombre: ceremonia.nombre || '',
+      fecha: ceremonia.fecha ? String(ceremonia.fecha).slice(0, 10) : '',
+      lugar: ceremonia.lugar || 'Sede Beltrán',
+      max_invitados: ceremonia.max_invitados || 4,
+      fecha_limite_confirmacion: ceremonia.fecha_limite_confirmacion ? String(ceremonia.fecha_limite_confirmacion).slice(0, 16) : ''
+    })
+  }
+
+  async function handleGuardarEdicion(e) {
+    e.preventDefault()
+    if (!ceremoniaEditando?.id) return
     try {
-      await actualizarEstadoCeremonia(c.id, siguiente)
-      setMensaje({ tipo: 'exito', texto: siguiente === 'FINALIZADA' ? 'Ceremonia finalizada y archivada' : `Etapa actualizada: ${ETAPAS.find(([id]) => id === siguiente)?.[1]}` })
-      cargar()
-      if (siguiente === 'FINALIZADA' && onCambioCeremonia) onCambioCeremonia()
+      await actualizarCeremonia(ceremoniaEditando.id, {
+        nombre: ceremoniaEditando.nombre,
+        fecha: ceremoniaEditando.fecha,
+        lugar: ceremoniaEditando.lugar,
+        max_invitados: Number(ceremoniaEditando.max_invitados),
+        fecha_limite_confirmacion: ceremoniaEditando.fecha_limite_confirmacion || null
+      })
+      setMensaje({ tipo: 'exito', texto: 'Ceremonia actualizada correctamente' })
+      setCeremoniaEditando(null)
+      await cargar()
+      if (onCambioCeremonia) onCambioCeremonia()
     } catch (err) {
-      setMensaje({ tipo: 'error', texto: err.message })
+      setMensaje({ tipo: 'error', texto: err.message || 'Error al actualizar ceremonia' })
+    }
+  }
+
+  async function handleFinalizarCeremonia(ceremonia) {
+    const confirmado = await confirmar({
+      titulo: 'Finalizar y Concluir Ceremonia',
+      descripcion: `¿Estás seguro de que deseas cerrar "${ceremonia.nombre}"? La ceremonia pasará al archivo histórico institucional y se liberará el entorno operativo. Todos los datos y estadísticas se preservarán.`,
+      textoConfirmar: 'Sí, finalizar ceremonia',
+      tipo: 'peligro'
+    })
+    if (!confirmado) return
+
+    setActualizandoId(ceremonia.id)
+    try {
+      await actualizarEstadoCeremonia(ceremonia.id, 'FINALIZADA')
+      setMensaje({ tipo: 'exito', texto: `Ceremonia "${ceremonia.nombre}" finalizada y archivada correctamente.` })
+      await cargar()
+      if (onCambioCeremonia) onCambioCeremonia()
+    } catch (err) {
+      setMensaje({ tipo: 'error', texto: err.message || 'Error al finalizar ceremonia' })
     } finally {
       setActualizandoId(null)
     }
@@ -122,19 +162,23 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
 
   return (
     <div className="font-sans">
-      {/* HEADER INTEGRADO PRO */}
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+      {/* HEADER INTEGRADO */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 pb-4 border-b border-slate-100">
         <div>
-          <h2 className="text-lg font-black tracking-tight" style={{ color: DARK }}>Gestión de Ceremonias</h2>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Multi-Hábitat & Entornos de Grado</p>
+          {!sinHeader && (
+            <h2 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">Gestión de Ceremonias</h2>
+          )}
+          <p className="text-xs font-semibold text-slate-500">
+            Administración de actos de colación, sedes y entornos de grado activos.
+          </p>
         </div>
         
         <button
           id="btn-nueva-ceremonia"
           onClick={() => setMostrarForm(true)}
-          className="flex items-center gap-1.5 px-4 py-2 bg-sky-500 text-white rounded-full text-[10px] font-black uppercase tracking-wider hover:bg-sky-600 transition-all active:scale-95 shadow-sm cursor-pointer"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-black uppercase tracking-wider transition-all active:scale-95 shadow-xs cursor-pointer shrink-0"
         >
-          <PlusCircle size={14} /> Nueva Ceremonia
+          <PlusCircle size={15} /> Nueva Ceremonia
         </button>
       </div>
 
@@ -153,6 +197,56 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
         </div>
       )}
 
+      {/* BARRA DE HERRAMIENTAS: PESTAÑAS Y BUSCADOR */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 mb-6">
+        {/* Pestañas de ciclo de vida */}
+        <div className="flex items-center gap-1.5 p-1 bg-slate-100/80 rounded-2xl border border-slate-200/60 overflow-x-auto">
+          {[
+            { id: 'todas', label: 'Todas', count: ceremonias.length },
+            { id: 'activas', label: 'En Curso / Activa', count: ceremonias.filter(c => c.activa === 1 || c.activa === true).length },
+            { id: 'proximas', label: 'Próximas / Borrador', count: ceremonias.filter(c => !c.activa && estadoCeremonia(c) !== 'FINALIZADA').length },
+            { id: 'finalizadas', label: 'Finalizadas / Archivo', count: ceremonias.filter(c => estadoCeremonia(c) === 'FINALIZADA').length },
+          ].map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setFiltroPestana(tab.id)}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
+                filtroPestana === tab.id
+                  ? 'bg-white text-slate-900 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-800 hover:bg-white/50'
+              }`}
+            >
+              <span>{tab.label}</span>
+              <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                filtroPestana === tab.id ? 'bg-sky-100 text-sky-700' : 'bg-slate-200/70 text-slate-600'
+              }`}>
+                {tab.count}
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* Buscador interactivo */}
+        <div className="relative sm:w-64">
+          <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            type="text"
+            value={busqueda}
+            onChange={e => setBusqueda(e.target.value)}
+            placeholder="Buscar por nombre o sede..."
+            className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-9 pr-8 py-2 text-xs font-medium text-slate-700 placeholder-slate-400 focus:outline-none focus:border-sky-500 focus:bg-white transition"
+          />
+          {busqueda && (
+            <button
+              onClick={() => setBusqueda('')}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+            >
+              <X size={13} />
+            </button>
+          )}
+        </div>
+      </div>
+
       {cargando ? (
         <div className="flex flex-col items-center justify-center py-24 select-none">
           <div className="relative w-14 h-14 flex items-center justify-center mb-4">
@@ -166,219 +260,297 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
           </div>
           <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 animate-pulse">Sincronizando Entornos...</p>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {ceremonias.map(c => (
-            <div 
-              key={c.id} 
-              className={`relative bg-white rounded-xl p-4 transition-all duration-200 border flex flex-col justify-between ${
-                c.activa 
-                  ? 'border-sky-500 shadow-sm ring-1 ring-sky-500/20' 
-                  : 'border-slate-200/80 hover:border-slate-300 hover:shadow-sm'
-              }`}
-            >
-              {/* Highlight superior para activo */}
-              {!!c.activa && (
-                <div className="absolute inset-x-0 top-0 h-1 rounded-t-xl bg-gradient-to-r from-sky-400 to-indigo-500" />
-              )}
+      ) : (() => {
+        const ceremoniasFiltradas = ceremonias.filter(c => {
+          if (filtroPestana === 'activas' && !(c.activa === 1 || c.activa === true)) return false
+          if (filtroPestana === 'proximas' && (c.activa === 1 || c.activa === true || estadoCeremonia(c) === 'FINALIZADA')) return false
+          if (filtroPestana === 'finalizadas' && estadoCeremonia(c) !== 'FINALIZADA') return false
+          if (busqueda.trim()) {
+            const query = busqueda.toLowerCase()
+            const matchNombre = (c.nombre || '').toLowerCase().includes(query)
+            const matchLugar = (c.lugar || '').toLowerCase().includes(query)
+            if (!matchNombre && !matchLugar) return false
+          }
+          return true
+        })
 
-              <div>
-                <div className="flex justify-between items-center mb-3">
-                  <div className={`px-2 py-0.5 rounded-full flex items-center gap-1.5 text-[8.5px] font-black uppercase tracking-wider ${
-                    c.activa ? 'bg-sky-50 text-sky-600 border border-sky-200/60' : 'bg-slate-100 text-slate-500'
-                  }`}>
-                    <span className={`h-1.5 w-1.5 rounded-full ${c.activa ? 'bg-sky-500 animate-pulse' : 'bg-slate-400'}`} />
-                    {c.activa ? 'Entorno Activo' : 'Inactivo'}
-                  </div>
-                  
-                  {!c.activa && (
-                    <button 
-                      onClick={() => handleEliminar(c.id)}
-                      className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                      title="Eliminar Ceremonia"
-                    >
-                      <Trash2 size={13} />
-                    </button>
-                  )}
-                </div>
-
-                <div className="mb-3">
-                  <h3 className="text-sm font-extrabold tracking-tight leading-snug mb-2 truncate" title={c.nombre} style={{ color: DARK }}>
-                    {c.nombre}
-                  </h3>
-                  
-                  <div className="grid grid-cols-1 gap-1 text-[11px] text-slate-600">
-                    <div className="flex items-center gap-1.5 truncate">
-                      <Calendar size={12} className="text-sky-500 shrink-0" />
-                      <span className="truncate">
-                        {new Date(c.fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' })}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center gap-1.5 truncate">
-                      <MapPin size={12} className="text-sky-500 shrink-0" />
-                      <span className="truncate">{c.lugar}</span>
-                    </div>
-                    
-                    <div className="flex items-center gap-1.5 truncate">
-                      <Users size={12} className="text-sky-500 shrink-0" />
-                      <span>{c.max_invitados} invitados permitidos</span>
-                    </div>
-
-                    {c.fecha_limite_confirmacion && (
-                      <div className="flex items-center gap-1.5 truncate">
-                        <Clock size={12} className="text-amber-500 shrink-0" />
-                        <span className="text-amber-700 font-medium truncate">
-                          Cierre: {new Date(c.fecha_limite_confirmacion).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} hs
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Visualización de fases y progreso */}
-                {(() => {
-                  const estado = estadoCeremonia(c)
-                  const indice = ETAPAS.findIndex(([id]) => id === estado)
-                  const graduados = Number(c.total_egresados || 0)
-                  const plano = Boolean(c.plano_configurado)
-                  const invitaciones = Number(c.invitaciones_enviadas || 0)
-
-                  const tareas = [
-                    { ok: graduados > 0, texto: graduados ? `${graduados} graduados` : 'Cargar graduados', destino: 'gestion-graduados', paso: 'Paso 2' },
-                    { ok: invitaciones >= graduados && graduados > 0, texto: graduados > 0 && invitaciones >= graduados ? `${invitaciones}/${graduados} invitaciones` : 'Enviar invitaciones', destino: 'convocatoria', paso: 'Paso 3' },
-                    { ok: plano, texto: plano ? 'Plano listo' : 'Configurar butacas', destino: 'preparacion-ceremonia', paso: 'Paso 4' },
-                  ]
-
-                  return (
-                    <div className="mb-3 rounded-xl border border-slate-100 bg-slate-50/70 p-2.5 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="flex items-center gap-1 text-[8.5px] font-black uppercase tracking-wider text-slate-600">
-                          <ListChecks size={12} className="text-sky-500" /> {ETAPAS[indice]?.[1] || 'Borrador'}
-                        </span>
-                        <span className="text-[8.5px] font-bold text-slate-400">{indice + 1}/6</span>
-                      </div>
-
-                      <div className="flex gap-1">
-                        {ETAPAS.map(([id], paso) => (
-                          <span key={id} className={`h-1 flex-1 rounded-full ${paso <= indice ? 'bg-sky-500' : 'bg-slate-200'}`} />
-                        ))}
-                      </div>
-
-                      <div className="space-y-1 pt-0.5">
-                        {tareas.map(t => (
-                          <button
-                            key={t.paso}
-                            onClick={() => onNavegar?.(t.destino)}
-                            className="w-full flex items-center justify-between px-2 py-1.5 rounded-lg bg-white hover:bg-sky-50/80 border border-slate-100 hover:border-sky-200 transition text-left text-[10px] font-medium text-slate-600 cursor-pointer group"
-                          >
-                            <span className="flex items-center gap-1.5 truncate">
-                              <CheckCircle2 size={12} className={t.ok ? 'text-emerald-500 shrink-0' : 'text-slate-300 shrink-0'} />
-                              <span className="truncate">{t.texto}</span>
-                            </span>
-                            <span className="text-[8px] font-bold uppercase text-slate-400 group-hover:text-sky-600 flex items-center shrink-0">
-                              Ir <ArrowRight size={9} className="ml-0.5" />
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )
-                })()}
+        if (ceremoniasFiltradas.length === 0) {
+          return (
+            <div className="bg-slate-50/60 border border-dashed border-slate-200 rounded-3xl p-12 text-center space-y-3">
+              <div className="w-12 h-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+                <Search size={22} />
               </div>
-
-              {c.activa ? (
-                <div className="space-y-1.5 pt-2 border-t border-slate-100">
-                  {(() => {
-                    const graduados = Number(c.total_egresados || 0)
-                    const plano = Boolean(c.plano_configurado)
-                    const invitaciones = Number(c.invitaciones_enviadas || 0)
-
-                    if (estadoCeremonia(c) === 'FINALIZADA') {
-                      return (
-                        <div className="w-full text-center py-2 bg-slate-100 text-slate-500 rounded-lg text-[9px] font-black uppercase tracking-wider">
-                          Ceremonia archivada
-                        </div>
-                      )
-                    }
-
-                    if (graduados === 0) {
-                      return (
-                        <button
-                          id="btn-paso2-cargar-graduados"
-                          onClick={() => onNavegar?.('gestion-graduados')}
-                          className="w-full flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white py-2 rounded-lg font-bold text-[9.5px] uppercase tracking-wider shadow-sm transition active:scale-98 cursor-pointer"
-                        >
-                          <UserPlus size={13} /> Cargar Graduados (Excel) <ArrowRight size={11} />
-                        </button>
-                      )
-                    }
-
-                    if (invitaciones < graduados) {
-                      return (
-                        <button
-                          id="btn-paso3-convocatoria"
-                          onClick={() => onNavegar?.('convocatoria')}
-                          className="w-full flex items-center justify-center gap-1.5 bg-sky-600 hover:bg-sky-500 text-white py-2 rounded-lg font-bold text-[9.5px] uppercase tracking-wider shadow-sm transition active:scale-98 cursor-pointer"
-                        >
-                          <Send size={13} /> Enviar Convocatoria <ArrowRight size={11} />
-                        </button>
-                      )
-                    }
-
-                    if (!plano) {
-                      return (
-                        <button
-                          id="btn-paso4-preparacion"
-                          onClick={() => onNavegar?.('preparacion-ceremonia')}
-                          className="w-full flex items-center justify-center gap-1.5 bg-sky-600 hover:bg-sky-500 text-white py-2 rounded-lg font-bold text-[9.5px] uppercase tracking-wider shadow-sm transition active:scale-98 cursor-pointer"
-                        >
-                          <Armchair size={13} /> Configurar Butacas <ArrowRight size={11} />
-                        </button>
-                      )
-                    }
-
-                    return (
-                      <button
-                        id="btn-paso-control-ingreso"
-                        onClick={() => onNavegar?.('control-ingreso')}
-                        className="w-full flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white py-2 rounded-lg font-bold text-[9.5px] uppercase tracking-wider shadow-sm transition active:scale-98 cursor-pointer"
-                      >
-                        <ScanLine size={13} /> Control de Ingreso <ArrowRight size={11} />
-                      </button>
-                    )
-                  })()}
-
-                  <button 
-                    onClick={() => setAsistenteId(c.id)} 
-                    className="flex w-full items-center justify-center gap-1.5 bg-slate-50 hover:bg-slate-100 py-1.5 text-[8.5px] font-bold uppercase tracking-wider text-slate-600 transition-all rounded-lg border border-slate-200/60 cursor-pointer"
-                  >
-                    <ClipboardList size={11} className="text-sky-600" /> Asistente de Fases
-                  </button>
-                </div>
-              ) : (
+              <h3 className="text-sm font-black text-slate-700">No se encontraron ceremonias</h3>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                {busqueda ? 'No hay eventos que coincidan con la búsqueda actual.' : 'No hay ceremonias en esta categoría.'}
+              </p>
+              {busqueda && (
                 <button
-                  onClick={() => handleActivar(c.id)}
-                  className="w-full bg-slate-900 hover:bg-sky-600 text-white py-2 rounded-lg text-[9.5px] font-bold uppercase tracking-wider transition-all active:scale-98 cursor-pointer"
+                  onClick={() => setBusqueda('')}
+                  className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-bold transition cursor-pointer"
                 >
-                  Activar Entorno
+                  Limpiar búsqueda
                 </button>
               )}
             </div>
-          ))}
-          
-          {/* CARD AGREGAR RÁPIDO */}
-          <button 
-            onClick={() => setMostrarForm(true)}
-            className="flex flex-col items-center justify-center gap-2 bg-slate-50/40 rounded-xl border-2 border-dashed border-slate-200 p-4 hover:bg-white hover:border-sky-300 hover:shadow-sm transition-all group min-h-[160px] cursor-pointer"
-          >
-            <div className="w-8 h-8 bg-white border border-slate-100 rounded-lg flex items-center justify-center text-slate-400 group-hover:text-sky-500 group-hover:rotate-90 transition-all duration-300 shadow-xs">
-              <Plus size={16} />
-            </div>
-            <p className="text-[8.5px] font-bold uppercase tracking-widest text-slate-400 group-hover:text-sky-500">Nuevo Entorno</p>
-          </button>
-        </div>
-      )}
+          )
+        }
+
+        return (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {ceremoniasFiltradas.map(c => {
+              const esFinalizada = estadoCeremonia(c) === 'FINALIZADA'
+              const graduados = Number(c.total_egresados || 0)
+              const plano = Boolean(c.plano_configurado)
+              const invitaciones = Number(c.invitaciones_enviadas || 0)
+
+              return (
+                <div 
+                  key={c.id} 
+                  className={`relative bg-white rounded-2xl p-5 transition-all duration-200 border flex flex-col justify-between ${
+                    c.activa 
+                      ? 'border-sky-500 shadow-md ring-1 ring-sky-500/20' 
+                      : esFinalizada
+                      ? 'border-slate-200 bg-slate-50/40 opacity-90'
+                      : 'border-slate-200/80 hover:border-slate-300 hover:shadow-sm'
+                  }`}
+                >
+                  {/* Highlight superior para activo */}
+                  {!!c.activa && (
+                    <div className="absolute inset-x-0 top-0 h-1.5 rounded-t-2xl bg-gradient-to-r from-sky-400 to-indigo-500" />
+                  )}
+
+                  <div>
+                    <div className="flex justify-between items-center mb-3">
+                      <div className={`px-2.5 py-1 rounded-full flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider ${
+                        c.activa 
+                          ? 'bg-sky-50 text-sky-700 border border-sky-200/80' 
+                          : esFinalizada
+                          ? 'bg-slate-100 text-slate-600 border border-slate-200'
+                          : 'bg-emerald-50 text-emerald-700 border border-emerald-200/80'
+                      }`}>
+                        <span className={`h-1.5 w-1.5 rounded-full ${c.activa ? 'bg-sky-500 animate-pulse' : esFinalizada ? 'bg-slate-400' : 'bg-emerald-500'}`} />
+                        {c.activa ? 'Entorno Activo' : esFinalizada ? 'Finalizada / Archivo' : 'En Preparación'}
+                      </div>
+                      
+                      <div className="flex items-center gap-1">
+                        {/* Botón Editar Ceremonia */}
+                        <button
+                          onClick={() => abrirEditar(c)}
+                          className="p-1.5 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition-colors cursor-pointer"
+                          title="Editar información de la ceremonia"
+                        >
+                          <Edit3 size={14} />
+                        </button>
+
+                        {!c.activa && (
+                          <button 
+                            onClick={() => handleEliminar(c.id)}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                            title="Eliminar Ceremonia"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="mb-3">
+                      <h3 className="text-base font-extrabold tracking-tight leading-snug mb-2 truncate" title={c.nombre} style={{ color: DARK }}>
+                        {c.nombre}
+                      </h3>
+                      
+                      <div className="grid grid-cols-1 gap-1.5 text-xs text-slate-600">
+                        <div className="flex items-center gap-2 truncate">
+                          <Calendar size={13} className="text-sky-500 shrink-0" />
+                          <span className="truncate">
+                            {new Date(c.fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </span>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 truncate">
+                          <MapPin size={13} className="text-sky-500 shrink-0" />
+                          <span className="truncate">{c.lugar}</span>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 truncate">
+                          <Users size={13} className="text-sky-500 shrink-0" />
+                          <span>{c.max_invitados} invitados permitidos</span>
+                        </div>
+
+                        {c.fecha_limite_confirmacion && (
+                          <div className="flex items-center gap-2 truncate">
+                            <Clock size={13} className="text-amber-500 shrink-0" />
+                            <span className="text-amber-700 font-medium truncate">
+                              Cierre: {new Date(c.fecha_limite_confirmacion).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} hs
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Métrica de Padrón Aislado Exclusivo */}
+                    <div className="mb-3 px-3 py-2 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">Padrón de este acto:</span>
+                      <strong className="font-extrabold text-slate-800">
+                        {graduados} {graduados === 1 ? 'graduado' : 'graduados'}
+                      </strong>
+                    </div>
+
+                    {/* Visualización de fases y progreso */}
+                    {(() => {
+                      const estado = estadoCeremonia(c)
+                      const indice = ETAPAS.findIndex(([id]) => id === estado)
+
+                      const tareas = [
+                        { ok: graduados > 0, texto: graduados ? `${graduados} graduados cargados` : 'Cargar graduados', destino: 'gestion-graduados', paso: 'Paso 2' },
+                        { ok: invitaciones >= graduados && graduados > 0, texto: graduados > 0 && invitaciones >= graduados ? `${invitaciones}/${graduados} convocatorias` : 'Enviar invitaciones', destino: 'convocatoria', paso: 'Paso 3' },
+                        { ok: plano, texto: plano ? 'Plano y butacas listas' : 'Configurar butacas', destino: 'preparacion-ceremonia', paso: 'Paso 4' },
+                      ]
+
+                      return (
+                        <div className="mb-3 rounded-xl border border-slate-100 bg-slate-50/70 p-2.5 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="flex items-center gap-1 text-[8.5px] font-black uppercase tracking-wider text-slate-600">
+                              <ListChecks size={12} className="text-sky-500" /> {ETAPAS[indice]?.[1] || 'Borrador'}
+                            </span>
+                            <span className="text-[8.5px] font-bold text-slate-400">{indice + 1}/6</span>
+                          </div>
+
+                          <div className="flex gap-1">
+                            {ETAPAS.map(([id], paso) => (
+                              <span key={id} className={`h-1 flex-1 rounded-full ${paso <= indice ? (esFinalizada ? 'bg-slate-400' : 'bg-sky-500') : 'bg-slate-200'}`} />
+                            ))}
+                          </div>
+
+                          <div className="space-y-1 pt-0.5">
+                            {tareas.map(t => (
+                              <button
+                                key={t.paso}
+                                onClick={() => onNavegar?.(t.destino)}
+                                className="w-full flex items-center justify-between px-2 py-1.5 rounded-lg bg-white hover:bg-sky-50/80 border border-slate-100 hover:border-sky-200 transition text-left text-[10px] font-medium text-slate-600 cursor-pointer group"
+                              >
+                                <span className="flex items-center gap-1.5 truncate">
+                                  <CheckCircle2 size={12} className={t.ok ? 'text-emerald-500 shrink-0' : 'text-slate-300 shrink-0'} />
+                                  <span className="truncate">{t.texto}</span>
+                                </span>
+                                <span className="text-[8px] font-bold uppercase text-slate-400 group-hover:text-sky-600 flex items-center shrink-0">
+                                  Ir <ArrowRight size={9} className="ml-0.5" />
+                                </span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )
+                    })()}
+                  </div>
+
+                  {c.activa ? (
+                    <div className="space-y-1.5 pt-2 border-t border-slate-100">
+                      {(() => {
+                        if (esFinalizada) {
+                          return (
+                            <div className="w-full text-center py-2 bg-slate-100 text-slate-500 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center justify-center gap-1.5">
+                              <Archive size={13} /> Ceremonia Archivada
+                            </div>
+                          )
+                        }
+
+                        if (graduados === 0) {
+                          return (
+                            <button
+                              id="btn-paso2-cargar-graduados"
+                              onClick={() => onNavegar?.('gestion-graduados')}
+                              className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-xs transition active:scale-98 cursor-pointer"
+                            >
+                              <UserPlus size={14} /> Cargar Graduados (Excel) <ArrowRight size={12} />
+                            </button>
+                          )
+                        }
+
+                        if (invitaciones < graduados) {
+                          return (
+                            <button
+                              id="btn-paso3-convocatoria"
+                              onClick={() => onNavegar?.('convocatoria')}
+                              className="w-full flex items-center justify-center gap-2 bg-sky-600 hover:bg-sky-500 text-white py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-xs transition active:scale-98 cursor-pointer"
+                            >
+                              <Send size={14} /> Enviar Convocatoria <ArrowRight size={12} />
+                            </button>
+                          )
+                        }
+
+                        if (!plano) {
+                          return (
+                            <button
+                              id="btn-paso4-preparacion"
+                              onClick={() => onNavegar?.('preparacion-ceremonia')}
+                              className="w-full flex items-center justify-center gap-2 bg-sky-600 hover:bg-sky-500 text-white py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-xs transition active:scale-98 cursor-pointer"
+                            >
+                              <Armchair size={14} /> Configurar Butacas <ArrowRight size={12} />
+                            </button>
+                          )
+                        }
+
+                        return (
+                          <button
+                            id="btn-paso-control-ingreso"
+                            onClick={() => onNavegar?.('control-ingreso')}
+                            className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 rounded-xl font-bold text-xs uppercase tracking-wider shadow-xs transition active:scale-98 cursor-pointer"
+                          >
+                            <ScanLine size={14} /> Control de Ingreso <ArrowRight size={12} />
+                          </button>
+                        )
+                      })()}
+
+                      <div className="grid grid-cols-2 gap-1.5 pt-0.5">
+                        <button 
+                          onClick={() => setAsistenteId(c.id)} 
+                          className="flex items-center justify-center gap-1.5 bg-slate-50 hover:bg-slate-100 py-2 text-[11px] font-bold text-slate-700 transition-all rounded-xl border border-slate-200/80 cursor-pointer"
+                        >
+                          <ClipboardList size={13} className="text-sky-600" /> Fases
+                        </button>
+
+                        {!esFinalizada && (
+                          <button
+                            onClick={() => handleFinalizarCeremonia(c)}
+                            disabled={actualizandoId === c.id}
+                            className="flex items-center justify-center gap-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 py-2 text-[11px] font-bold transition-all rounded-xl border border-rose-200 cursor-pointer disabled:opacity-50"
+                            title="Concluir ceremonia y pasar a archivo histórico"
+                          >
+                            <Archive size={13} /> Finalizar
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="pt-2 border-t border-slate-100 space-y-1.5">
+                      <button
+                        onClick={() => handleActivar(c.id)}
+                        disabled={cambiando}
+                        className="w-full bg-slate-900 hover:bg-sky-600 text-white py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider transition-all active:scale-98 cursor-pointer shadow-xs"
+                      >
+                        Activar Entorno
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+            
+            {/* CARD AGREGAR RÁPIDO */}
+            <button 
+              onClick={() => setMostrarForm(true)}
+              className="flex flex-col items-center justify-center gap-2 bg-slate-50/40 rounded-2xl border-2 border-dashed border-slate-200 p-6 hover:bg-white hover:border-sky-300 hover:shadow-sm transition-all group min-h-[220px] cursor-pointer"
+            >
+              <div className="w-10 h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center text-slate-400 group-hover:text-sky-500 group-hover:rotate-90 transition-all duration-300 shadow-xs">
+                <Plus size={18} />
+              </div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-sky-500">Nuevo Entorno</p>
+            </button>
+          </div>
+        )
+      })()}
 
       {/* MODAL NUEVA CEREMONIA */}
       {mostrarForm && (
@@ -482,6 +654,100 @@ export function GestionCeremonias({ onVolver, onCambioCeremonia, onNavegar, sinH
                   className="flex-1 bg-slate-900 hover:bg-sky-500 text-white py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-98 cursor-pointer"
                 >
                   Crear
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL EDITAR CEREMONIA */}
+      {ceremoniaEditando && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl shadow-xl w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto animate-in zoom-in-95 duration-200 border border-slate-100">
+            <div className="bg-gradient-to-r from-slate-900 to-sky-900 p-6 text-white relative">
+              <h2 className="text-lg font-black tracking-tight">Editar Ceremonia</h2>
+              <p className="text-sky-300 text-[8.5px] font-bold uppercase tracking-[0.25em]">Modificar parámetros del acto</p>
+              
+              <button 
+                onClick={() => setCeremoniaEditando(null)} 
+                className="absolute top-4 right-4 p-1 hover:bg-white/10 rounded-full transition-colors cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleGuardarEdicion} className="p-6 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Nombre de la Ceremonia</label>
+                <input 
+                  required 
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-semibold focus:border-sky-500 focus:bg-white transition-all outline-none" 
+                  value={ceremoniaEditando.nombre} 
+                  onChange={e => setCeremoniaEditando({...ceremoniaEditando, nombre: e.target.value})}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Fecha del Evento</label>
+                  <input 
+                    required type="date" 
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-semibold focus:border-sky-500 focus:bg-white transition-all outline-none" 
+                    value={ceremoniaEditando.fecha} 
+                    onChange={e => setCeremoniaEditando({...ceremoniaEditando, fecha: e.target.value})}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Máximo Invitados</label>
+                  <input 
+                    type="number" 
+                    min="1"
+                    max="10"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-semibold focus:border-sky-500 focus:bg-white transition-all outline-none" 
+                    value={ceremoniaEditando.max_invitados} 
+                    onChange={e => setCeremoniaEditando({...ceremoniaEditando, max_invitados: e.target.value})}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Sede / Ubicación</label>
+                <input 
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-semibold focus:border-sky-500 focus:bg-white transition-all outline-none" 
+                  value={ceremoniaEditando.lugar} 
+                  onChange={e => setCeremoniaEditando({...ceremoniaEditando, lugar: e.target.value})}
+                />
+              </div>
+
+              <div className="space-y-1.5 pt-1">
+                <div className="flex items-center justify-between">
+                  <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1 flex items-center gap-1">
+                    <Clock size={11} className="text-amber-500" /> Fecha Límite de Confirmación
+                  </label>
+                  <span className="text-[8.5px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">Opcional</span>
+                </div>
+                <input 
+                  type="datetime-local"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-semibold focus:border-sky-500 focus:bg-white transition-all outline-none" 
+                  value={ceremoniaEditando.fecha_limite_confirmacion} 
+                  onChange={e => setCeremoniaEditando({...ceremoniaEditando, fecha_limite_confirmacion: e.target.value})}
+                />
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                <button 
+                  type="button" 
+                  onClick={() => setCeremoniaEditando(null)} 
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-500 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all cursor-pointer"
+                >
+                  Cancelar
+                </button>
+                <button 
+                  type="submit" 
+                  className="flex-1 bg-sky-600 hover:bg-sky-500 text-white py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all active:scale-98 cursor-pointer shadow-md shadow-sky-600/20"
+                >
+                  Guardar Cambios
                 </button>
               </div>
             </form>

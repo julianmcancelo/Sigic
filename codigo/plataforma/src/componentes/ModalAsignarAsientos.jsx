@@ -430,9 +430,9 @@ export function ModalAsignarAsientos({
                         {persona.tipo === 'egresado'
                           ? `Graduado titular${
                               (graduado.formula_juramento || '').toUpperCase().includes('DIOS')
-                                ? ' · ✝️ Jura: Dios y Patria'
+                                ? ' · Jura: Dios y Patria'
                                 : (graduado.formula_juramento || '').toUpperCase() === 'PATRIA'
-                                  ? ' · 🏛️ Jura: Por la Patria'
+                                  ? ' · Jura: Por la Patria'
                                   : ''
                             }`
                           : persona.esPadrino

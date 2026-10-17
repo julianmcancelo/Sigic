@@ -3,17 +3,21 @@ import {
   GraduationCap, Calendar, CalendarPlus, Users, FileSpreadsheet, Settings, 
   LogOut, Search, Bell, Eye, Edit3, CheckCircle2, AlertTriangle, 
   XCircle, LayoutGrid, HelpCircle, Map, BarChart3, Award, UserCheck, TrendingUp, 
-  Shield, Server, Send, Armchair, Activity, QrCode, ScanLine, ArrowRight, ChevronRight
+  Shield, Server, Send, Armchair, Activity, QrCode, ScanLine, ArrowRight, ChevronRight,
+  Monitor
 } from 'lucide-react'
 import { BASE, cabeceras } from '../../servicios/api'
 import { useSincronizacion, emitirCambioSync } from '../../lib/sync'
 import { obtenerDetalleClima } from '../../utilidades/clima'
 import { CloudSun } from 'lucide-react'
 
+
 // Importación de sub-vistas operativas del sistema.
 import { GestionCeremonias } from './GestionCeremonias'
 import { GestionGraduados } from './GestionGraduados'
 import { GestionConvocatoria } from './GestionConvocatoria'
+import { PreparacionCeremonia } from './PreparacionCeremonia'
+import { DespachoCredenciales } from './DespachoCredenciales'
 import { GestionProfesores } from './GestionProfesores'
 import { ControlIngreso } from './ControlIngreso'
 import { EditorAnfiteatro } from './EditorAnfiteatro'
@@ -23,6 +27,57 @@ import { PanelReportes } from './PanelReportes'
 import { ManualUsuarioWeb } from '../ManualUsuarioWeb'
 import { GestionPorteria } from './GestionPorteria'
 import { CentroControl } from './CentroControl'
+
+export const TITULOS_PANTALLAS = {
+  'bienvenida': 'Panel de Control',
+  'gestion-ceremonias': 'Gestión de Ceremonias',
+  'gestion-graduados': 'Padrón de Graduados',
+  'convocatoria': 'Convocatoria & Invitaciones',
+  'preparacion-ceremonia': 'Preparación de Ceremonia',
+  'despacho-credenciales': 'Despacho de Credenciales',
+  'seleccion-asientos': 'Editor de Anfiteatro',
+  'control-ingreso': 'Control de Ingreso & Acreditación',
+  'estado-ceremonia': 'Ceremonia en Vivo',
+  'panel-reportes': 'Reportes & Estadísticas',
+  'gestion-profesores': 'Cuerpo Docente & Autoridades',
+  'gestion-porteria': 'Seguridad & Portería',
+  'centro-control': 'Centro de Control e Infraestructura',
+  'ajustes': 'Configuración del Sistema',
+  'manual-usuario': 'Manual de Usuario'
+}
+
+export const CANONICAL_MAP = {
+  'dashboard': 'bienvenida',
+  'bienvenida': 'bienvenida',
+  'ceremonias': 'gestion-ceremonias',
+  'gestion-ceremonias': 'gestion-ceremonias',
+  'estudiantes': 'gestion-graduados',
+  'gestion-graduados': 'gestion-graduados',
+  'convocatoria': 'convocatoria',
+  'preparacion-ceremonia': 'preparacion-ceremonia',
+  'preparacion': 'preparacion-ceremonia',
+  'despacho-credenciales': 'despacho-credenciales',
+  'credenciales': 'despacho-credenciales',
+  'asistente-operativo': 'asistente-operativo',
+  'butacas': 'seleccion-asientos',
+  'seleccion-asientos': 'seleccion-asientos',
+  'acreditacion': 'control-ingreso',
+  'control-ingreso': 'control-ingreso',
+  'envivo': 'estado-ceremonia',
+  'estado-ceremonia': 'estado-ceremonia',
+  'profesores': 'gestion-profesores',
+  'gestion-profesores': 'gestion-profesores',
+  'reportes': 'panel-reportes',
+  'panel-reportes': 'panel-reportes',
+  'seguridad': 'gestion-porteria',
+  'gestion-porteria': 'gestion-porteria',
+  'infraestructura': 'centro-control',
+  'centro-control': 'centro-control',
+  'configuracion': 'ajustes',
+  'ajustes': 'ajustes',
+  'manual': 'manual-usuario',
+  'manual-usuario': 'manual-usuario',
+}
 
 
 // ─── Colores del sistema (Identical to Version 1) ─────────────────
@@ -52,59 +107,63 @@ function useContador(destino, duracion = 800) {
 }
 
 // ─── Stat card individual ──────────────────────────────────────
-function StatCard({ icono: Icono, etiqueta, valor, color = ACCENT, sufijo = '', descripcion, barra }) {
+function StatCard({ icono: Icono, etiqueta, valor, color = ACCENT, bgIcono = 'bg-sky-50 text-sky-600 border-sky-100', sufijo = '', descripcion, barra }) {
   const contado = useContador(typeof valor === 'number' ? valor : 0)
 
   return (
     <div
-      className="relative overflow-hidden rounded-[24px] p-4 sm:p-6 flex flex-col gap-1 transition-all hover:scale-[1.02] duration-300 bg-white border"
-      style={{
-        borderColor: 'rgba(16,185,129,0.1)',
-        boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)',
-      }}
+      className="relative overflow-hidden rounded-2xl p-5 sm:p-6 flex flex-col justify-between transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 bg-white border border-slate-200/80 shadow-xs group"
     >
-      {/* Ícono decorativo fondo */}
-      <div className="pointer-events-none absolute top-4 right-4 opacity-[0.1]" style={{ color }}>
-        <Icono size={42} />
+      {/* Top row: Etiqueta + Icono en badge redondeado */}
+      <div className="flex items-center justify-between gap-3 mb-2">
+        <span className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400">
+          {etiqueta}
+        </span>
+        <div className={`h-9 w-9 rounded-xl flex items-center justify-center border transition-transform duration-300 group-hover:scale-105 shadow-xs shrink-0 ${bgIcono}`}>
+          <Icono size={17} />
+        </div>
       </div>
-      {/* Glow */}
-      <div
-        className="pointer-events-none absolute -bottom-6 -right-6 h-24 w-24 rounded-full blur-[30px]"
-        style={{ background: color, opacity: 0.12 }}
-      />
 
-      {/* Número */}
-      <p
-        className="text-2xl sm:text-3xl md:text-[2.6rem] font-black leading-none tabular-nums"
-        style={{ color, letterSpacing: '-0.02em' }}
-      >
-        {contado}{sufijo}
-      </p>
+      {/* Main stat number */}
+      <div>
+        <p className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900 tabular-nums leading-none">
+          {contado}{sufijo}
+        </p>
 
-      {/* Etiqueta */}
-      <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
-        {etiqueta}
-      </p>
-
-      {/* Descripción opcional */}
-      {descripcion && (
-        <p className="text-[10px] mt-0.5 font-medium text-slate-400">{descripcion}</p>
-      )}
+        {descripcion && (
+          <p className="text-[11px] font-medium text-slate-500 mt-1.5">{descripcion}</p>
+        )}
+      </div>
 
       {/* Barra de progreso opcional */}
       {barra !== undefined && (
-        <div className="mt-3 h-2 w-full rounded-full overflow-hidden bg-slate-50">
-          <div
-            className="h-full rounded-full transition-all duration-1000"
-            style={{ width: `${barra}%`, background: `linear-gradient(90deg, ${color}, #34d399)` }}
-          />
+        <div className="mt-3.5 pt-2.5 border-t border-slate-100">
+          <div className="flex items-center justify-between text-[9.5px] font-bold text-slate-400 mb-1">
+            <span>Aforo previsto</span>
+            <span className="text-slate-700">{barra}%</span>
+          </div>
+          <div className="h-2 w-full rounded-full overflow-hidden bg-slate-100">
+            <div
+              className="h-full rounded-full transition-all duration-1000"
+              style={{ width: `${Math.min(barra, 100)}%`, background: `linear-gradient(90deg, ${color}, #10b981)` }}
+            />
+          </div>
         </div>
       )}
     </div>
   )
 }
 
-export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion, onNavegar, onCambiarVersion, onCambioCeremonia }) {
+export function PantallaBienvenidaPro({ 
+  usuario, 
+  ceremoniaActiva, 
+  onCerrarSesion, 
+  onNavegar, 
+  onCambiarVersion, 
+  onCambioCeremonia, 
+  onCambiarEstiloInterfaz,
+  pantallaActual = 'bienvenida'
+}) {
   const fechaActual = new Date()
   const diasSemana = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado']
   const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
@@ -118,7 +177,18 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
   const [graduados, setGraduados] = useState([])
   const [cargando, setCargando] = useState(true)
   const [busqueda, setBusqueda] = useState('')
-  const [vistaActiva, setVistaActiva] = useState('dashboard') // Control de vistas del panel
+  const [vistaInterna, setVistaInterna] = useState('bienvenida')
+  const vistaActiva = CANONICAL_MAP[pantallaActual] || CANONICAL_MAP[vistaInterna] || 'bienvenida'
+
+  const manejarNavegar = (destino) => {
+    const destinoCanonico = CANONICAL_MAP[destino] || destino
+    setVistaInterna(destinoCanonico)
+    setSidebarOpen(false)
+    if (typeof onNavegar === 'function') {
+      onNavegar(destinoCanonico)
+    }
+  }
+
   const [ceremonias, setCeremonias] = useState([])
   const [cambiando, setCambiando] = useState(false)
   const [pronosticoClima, setPronosticoClima] = useState(null)
@@ -228,64 +298,56 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
   ).slice(0, 6) // Mostrar los primeros 6 para coincidir con la maqueta
 
   // Helper para renderizar los items de navegación con el estado activo correcto
-  function renderMenuItem(Icon, label, vistaTarget) {
-    const esActivo = vistaActiva === vistaTarget
+  function renderMenuItem(Icon, label, vistaTarget, badge = null) {
+    const targetCanonico = CANONICAL_MAP[vistaTarget] || vistaTarget
+    const esActivo = vistaActiva === targetCanonico
     return (
       <button 
-        onClick={() => {
-          setVistaActiva(vistaTarget)
-          setSidebarOpen(false)
-        }}
-        className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-xs font-bold border text-left"
-        style={esActivo ? {
-          background: `${ACCENT}14`,
-          borderColor: `${ACCENT}33`,
-          color: ACCENT,
-          boxShadow: `0 4px 12px ${ACCENT}08`
-        } : {
-          background: 'transparent',
-          borderColor: 'transparent',
-          color: '#78909c'
-        }}
-        onMouseEnter={e => {
-          if (!esActivo) {
-            e.currentTarget.style.color = DARK
-            e.currentTarget.style.background = '#f8fafc'
-          }
-        }}
-        onMouseLeave={e => {
-          if (!esActivo) {
-            e.currentTarget.style.color = '#78909c'
-            e.currentTarget.style.background = 'transparent'
-          }
-        }}
+        key={vistaTarget}
+        type="button"
+        onClick={() => manejarNavegar(targetCanonico)}
+        className={`w-full group flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all duration-200 text-xs font-semibold text-left cursor-pointer ${
+          esActivo
+            ? 'bg-sky-50 text-sky-700 font-bold border border-sky-200 shadow-xs'
+            : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent'
+        }`}
       >
-        <Icon size={16} style={{ color: esActivo ? ACCENT : 'inherit' }} /> {label}
+        <div className="flex items-center gap-3 min-w-0">
+          <Icon 
+            size={16} 
+            className={`shrink-0 transition-transform duration-200 group-hover:scale-110 ${
+              esActivo ? 'text-sky-600' : 'text-slate-400 group-hover:text-slate-600'
+            }`} 
+          />
+          <span className="truncate">{label}</span>
+        </div>
+        {badge && (
+          <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold ${
+            esActivo ? 'bg-sky-200/70 text-sky-800' : 'bg-slate-100 text-slate-500'
+          }`}>
+            {badge}
+          </span>
+        )}
       </button>
     )
   }
 
   return (
     <div 
-      className={`relative min-h-screen flex overflow-hidden font-sans sigic-wallpaper-${fondoId}`}
+      className="relative min-h-screen flex font-sans bg-[#F8FAFC] text-slate-800"
       style={{
         fontFamily: 'Inter, system-ui, sans-serif'
       }}
     >
-      {/* Orbes de fondo */}
-      <div className="orbe orbe-1"></div>
-      <div className="orbe orbe-2"></div>
-      <div className="orbe orbe-3"></div>
+      {/* Sutil gradiente de fondo ambiental */}
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-sky-50/50 via-[#F8FAFC] to-[#F8FAFC] z-0" />
 
-      {/* Línea superior decorativa */}
-      <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-transparent via-[#0EA5E9] to-transparent opacity-30 z-20" />
-
-      {/* Rejilla decorativa */}
+      {/* Rejilla decorativa ultra sutil */}
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.03] z-0"
+        className="pointer-events-none absolute inset-0 opacity-[0.025] z-0"
         style={{
-          backgroundImage: 'radial-gradient(circle, #090d16 1px, transparent 1px)',
-          backgroundSize: '30px 30px',
+          backgroundImage: 'radial-gradient(circle, #0f172a 1px, transparent 1px)',
+          backgroundSize: '28px 28px',
         }}
       />
 
@@ -299,59 +361,63 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
 
       {/* ================= SIDEBAR ================= */}
       <aside 
-        className={`fixed lg:static inset-y-0 left-0 w-60 bg-white flex flex-col z-40 shrink-0 select-none shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-transform duration-300 transform ${
+        className={`fixed lg:static inset-y-0 left-0 w-64 bg-white flex flex-col z-40 shrink-0 select-none border-r border-slate-200/80 shadow-[2px_0_16px_rgba(0,0,0,0.02)] transition-transform duration-300 transform ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
-        style={{ borderRight: `1px solid rgba(41,171,226,0.12)` }}
       >
-        {/* Logo */}
-        <div className="p-6 border-b flex items-center gap-3" style={{ borderBottomColor: '#f1f5f9' }}>
-          <div className="h-9 w-9 rounded-xl flex items-center justify-center overflow-hidden shrink-0 border border-slate-100 shadow-sm bg-slate-50">
-            <img src="/logo-oficial.png" alt="Logo" className="h-8 w-auto object-contain" />
+        {/* Logo Institucional */}
+        <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl flex items-center justify-center overflow-hidden shrink-0 border border-slate-100 shadow-xs bg-slate-50/80">
+              <img src="/logo-oficial.png" alt="Logo" className="h-8 w-auto object-contain" />
+            </div>
+            <div>
+              <span className="font-black tracking-tight text-lg text-slate-900 block leading-tight">SiGIC</span>
+              <span className="block text-[9px] font-bold tracking-wider text-sky-600 uppercase">Gestión de Actos</span>
+            </div>
           </div>
-          <div>
-            <span className="font-black tracking-tight text-lg" style={{ color: DARK }}>SiGIC</span>
-            <span className="block text-[8px] font-bold tracking-widest uppercase" style={{ color: ACCENT }}>V2</span>
-          </div>
+          <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 uppercase tracking-widest">
+            PRO
+          </span>
         </div>
 
         {/* Navigation Items */}
-        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-          {renderMenuItem(LayoutGrid, 'Panel Principal', 'dashboard')}
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
+          {renderMenuItem(LayoutGrid, 'Panel Principal', 'bienvenida')}
 
           {!esSoporte && (
             <>
-              <div className="pt-3 pb-1 px-3">
-                <span className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">Circuito de Colación</span>
+              <div className="pt-4 pb-1.5 px-3">
+                <span className="text-[9.5px] font-black uppercase tracking-[0.18em] text-slate-400">Circuito de Colación</span>
               </div>
-              {renderMenuItem(CalendarPlus, '1. Inicializar', 'ceremonias')}
-              {renderMenuItem(GraduationCap, '2. Graduados', 'estudiantes')}
+              {renderMenuItem(CalendarPlus, '1. Inicializar', 'gestion-ceremonias')}
+              {renderMenuItem(GraduationCap, '2. Graduados', 'gestion-graduados', `${graduados.length || 0}`)}
               {renderMenuItem(Send, '3. Convocatoria', 'convocatoria')}
-              {renderMenuItem(Armchair, '4. Butacas', 'butacas')}
-              {renderMenuItem(ScanLine, '5. Acreditación', 'acreditacion')}
-              {renderMenuItem(Activity, '6. En Vivo', 'envivo')}
+              {renderMenuItem(Armchair, '4. Butacas', 'seleccion-asientos')}
+              {renderMenuItem(ScanLine, '5. Acreditación', 'control-ingreso')}
+              {renderMenuItem(Activity, '6. En Vivo', 'estado-ceremonia')}
             </>
           )}
 
-          <div className="pt-3 pb-1 px-3">
-            <span className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">Gestión & Control</span>
+          <div className="pt-4 pb-1.5 px-3">
+            <span className="text-[9.5px] font-black uppercase tracking-[0.18em] text-slate-400">Gestión & Control</span>
           </div>
-          {!esSoporte && renderMenuItem(Award, 'Docentes', 'profesores')}
-          {!esSoporte && renderMenuItem(BarChart3, 'Reportes', 'reportes')}
-          {renderMenuItem(Shield, 'Seguridad', 'seguridad')}
-          {esSoporte && renderMenuItem(Server, 'Centro de Control', 'infraestructura')}
-          {!esSoporte && renderMenuItem(Settings, 'Configuración', 'configuracion')}
-          {renderMenuItem(HelpCircle, 'Manual de Ayuda', 'manual')}
+          {!esSoporte && renderMenuItem(Award, 'Docentes', 'gestion-profesores')}
+          {!esSoporte && renderMenuItem(BarChart3, 'Reportes', 'panel-reportes')}
+          {renderMenuItem(Shield, 'Seguridad', 'gestion-porteria')}
+          {esSoporte && renderMenuItem(Server, 'Centro de Control', 'centro-control')}
+          {!esSoporte && renderMenuItem(Settings, 'Configuración', 'ajustes')}
+          {renderMenuItem(HelpCircle, 'Manual de Ayuda', 'manual-usuario')}
         </nav>
 
-
         {/* Logout */}
-        <div className="p-4 border-t" style={{ borderTopColor: '#f1f5f9' }}>
+        <div className="p-3 border-t border-slate-100">
           <button 
+            type="button"
             onClick={onCerrarSesion}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-rose-500 hover:bg-rose-50 transition-all text-xs font-bold cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-all text-xs font-bold cursor-pointer"
           >
-            <LogOut size={16} /> Cerrar Sesión
+            <LogOut size={15} /> Cerrar Sesión
           </button>
         </div>
       </aside>
@@ -360,14 +426,13 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
       <div className="flex-1 flex flex-col min-w-0 z-10 overflow-y-auto">
         {/* Top Navbar */}
         <header 
-          className="h-16 bg-white/80 backdrop-blur-md px-4 md:px-8 flex items-center justify-between gap-4 border-b"
-          style={{ borderBottomColor: '#f1f5f9' }}
+          className="h-16 bg-white/90 backdrop-blur-md px-4 sm:px-6 md:px-8 flex items-center justify-between gap-4 border-b border-slate-200/80 sticky top-0 z-30 shadow-xs"
         >
           <div className="flex items-center gap-3">
             {/* Hamburger Menu Button */}
             <button 
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition active:scale-95"
+              className="lg:hidden p-2 rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition active:scale-95 cursor-pointer"
               title="Abrir menú"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2.5">
@@ -375,78 +440,74 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
               </svg>
             </button>
 
-            <div className="hidden sm:flex items-center gap-2">
-              <span className="font-bold text-sm" style={{ color: DARK }}>SiGIC</span>
-              <span className="opacity-20" style={{ color: DARK }}>|</span>
-              <span className="text-xs font-medium" style={{ color: '#78909c' }}>Panel de Control</span>
+            <div className="hidden sm:flex items-center gap-2 text-xs">
+              <button
+                type="button"
+                onClick={() => manejarNavegar('bienvenida')}
+                className="font-black text-slate-800 hover:text-sky-600 transition cursor-pointer"
+              >
+                SiGIC
+              </button>
+              <span className="text-slate-300">/</span>
+              <span className="font-semibold text-slate-600">
+                {TITULOS_PANTALLAS[vistaActiva] || 'Panel de Control'}
+              </span>
             </div>
           </div>
 
           {/* Search Bar */}
-          <div className="hidden sm:block relative max-w-md w-40 md:w-64">
-            <Search size={14} className="absolute left-3.5 top-1/2 transform -translate-y-1/2" style={{ color: '#78909c' }} />
+          <div className="hidden sm:block relative max-w-xs w-full">
+            <Search size={14} className="absolute left-3.5 top-1/2 transform -translate-y-1/2 text-slate-400" />
             <input 
               type="text" 
-              placeholder="Buscar graduado..."
+              placeholder="Buscar graduado, DNI o carrera..."
               value={busqueda}
               onChange={e => setBusqueda(e.target.value)}
-              className="w-full bg-slate-50 border rounded-full py-1.5 pl-9 pr-4 text-[10px] outline-none transition-all placeholder-slate-400"
-              style={{
-                borderColor: '#e2e8f0',
-                color: DARK
-              }}
-              onFocus={e => e.currentTarget.style.borderColor = ACCENT}
-              onBlur={e => e.currentTarget.style.borderColor = '#e2e8f0'}
+              className="w-full bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 focus:border-sky-500 rounded-full py-1.5 pl-9 pr-4 text-xs text-slate-800 outline-none transition-all placeholder-slate-400 shadow-xs"
             />
           </div>
 
           {/* Right Section */}
-          <div className="flex items-center gap-3.5">
+          <div className="flex items-center gap-2.5">
             {/* Version Toggle */}
             <button
               onClick={onCambiarVersion}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border bg-slate-50 text-[9px] font-black uppercase tracking-wider transition active:scale-95 cursor-pointer shadow-sm"
-              style={{
-                borderColor: '#e2e8f0',
-                color: DARK
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'}
-              onMouseLeave={e => e.currentTarget.style.background = '#f8fafc'}
-              title="Cambiar al diseño clásico (Centrado)"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-[9.5px] font-black uppercase tracking-wider text-slate-700 hover:bg-slate-100 transition active:scale-95 cursor-pointer shadow-xs"
+              title="Cambiar al diseño centrado clásico"
             >
-              <LayoutGrid size={12} style={{ color: ACCENT }} />
+              <LayoutGrid size={12} className="text-sky-500" />
               <span className="hidden sm:inline">Versión 1 (Clásica)</span>
             </button>
 
+            {/* Alternar a Escritorio OS */}
+            {onCambiarEstiloInterfaz && (
+              <button
+                onClick={onCambiarEstiloInterfaz}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-[9.5px] font-black uppercase tracking-wider text-slate-700 hover:bg-slate-100 transition active:scale-95 cursor-pointer shadow-xs"
+                title="Cambiar al formato de Escritorio OS con ventanas"
+              >
+                <Monitor size={12} className="text-indigo-500" />
+                <span className="hidden sm:inline">Escritorio OS</span>
+              </button>
+            )}
+
             {/* Notification */}
-            <button className="relative p-1.5 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition">
+            <button className="relative p-2 rounded-xl hover:bg-slate-100 text-slate-500 hover:text-slate-800 transition cursor-pointer">
               <Bell size={16} />
-              <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-rose-500" />
+              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-rose-500 ring-2 ring-white" />
             </button>
 
             {/* Profile */}
-            <div className="flex items-center gap-2.5 pl-3.5 border-l border-slate-200">
+            <div className="flex items-center gap-2.5 pl-2.5 border-l border-slate-200">
               <div className="hidden md:block text-right select-none">
                 <span className="block text-[8px] font-bold uppercase tracking-wider text-slate-400">Operador</span>
-                <span className="block text-xs font-black leading-tight text-[#2A3448]">{usuario?.nombre || 'Julian Cancelo'}</span>
+                <span className="block text-xs font-black leading-tight text-slate-800">{usuario?.nombre || 'Julian Cancelo'}</span>
               </div>
               <div 
-                className="h-9 w-9 rounded-xl flex items-center justify-center font-black text-white text-sm border shadow-sm select-none shrink-0"
-                style={{
-                  background: `linear-gradient(135deg, ${ACCENT} 0%, #4f46e5 100%)`,
-                  borderColor: 'rgba(255,255,255,0.1)'
-                }}
+                className="h-8 w-8 rounded-xl flex items-center justify-center font-black text-white text-xs shadow-xs select-none shrink-0 bg-gradient-to-tr from-sky-500 to-indigo-600"
               >
                 {usuario?.nombre?.charAt(0)?.toUpperCase() || 'J'}
               </div>
-
-              {/* SALIR Button */}
-              <button 
-                onClick={onCerrarSesion}
-                className="hidden md:flex items-center gap-1 px-4 py-2 bg-[#0d1b2e] hover:bg-slate-800 text-white rounded-xl text-[9px] font-black uppercase tracking-wider transition-all active:scale-95 shadow-sm cursor-pointer ml-1"
-              >
-                + Salir
-              </button>
             </div>
           </div>
         </header>
@@ -455,75 +516,66 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
         <main className="p-4 sm:p-6 md:p-8 space-y-6 pb-24">
           
           {/* VISTA 1: DASHBOARD */}
-          {vistaActiva === 'dashboard' && (
+          {vistaActiva === 'bienvenida' && (
             <>
               {/* Active Ceremony Card */}
               <div 
-                className="rounded-[32px] border border-white p-10 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden shadow-lg shadow-slate-200/50 bg-white"
+                className="rounded-[32px] border border-white p-6 sm:p-8 md:p-10 flex flex-col md:flex-row md:items-center justify-between gap-6 relative overflow-hidden shadow-lg shadow-slate-200/50 bg-white"
               >
                 <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500/5 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none" />
                 
                 <div className="space-y-1 relative z-10">
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#0EA5E9] block mb-1">
-                    Hábitat Activo
-                  </span>
-                  <div className="flex items-center gap-4 flex-wrap">
-                    <h1 className="text-4xl font-black tracking-tight" style={{ color: DARK }}>
-                      <span className="bg-gradient-to-r from-sky-500 to-indigo-700 bg-clip-text text-transparent">
-                        {ceremoniaActiva?.nombre || 'PRUEBA'}
-                      </span>
-                    </h1>
-                    
-                    {/* Acceso Rápido Dropdown */}
-                    <div className="relative inline-flex items-center group/select">
-                      <select 
-                        value={ceremoniaActiva?.id || ''}
-                        onChange={e => {
-                          if (e.target.value !== ceremoniaActiva?.id) {
-                            cambiarCeremonia(e.target.value)
-                          }
-                        }}
-                        className="appearance-none bg-slate-50 hover:bg-slate-100 text-[#2A3448] text-[9.5px] font-black uppercase tracking-wider pl-3.5 pr-8 py-1.5 rounded-full border border-slate-200 outline-none transition-all active:scale-95 cursor-pointer shadow-sm"
-                        style={{ color: DARK }}
-                      >
-                        {ceremonias.map(c => (
-                          <option key={c.id} value={c.id}>
-                            {c.activa ? '(Activa) ' : ''}{c.nombre}
-                          </option>
-                        ))}
-                      </select>
-                      <span className="pointer-events-none absolute right-3 text-slate-400 group-hover/select:text-slate-600 transition-colors">
-                        <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24">
-                          <path d="M7 10l5 5 5-5z"/>
-                        </svg>
-                      </span>
-                    </div>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#0EA5E9]">
+                      Ceremonia Activa
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200/60 px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider text-emerald-700">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      En Línea
+                    </span>
                   </div>
-                  <div className="mt-2.5 text-[11px] font-bold text-slate-400 flex items-center gap-3.5 flex-wrap">
-                    <span className="flex items-center gap-1.5"><Calendar size={13} style={{ color: ACCENT }} /> {ceremoniaActiva ? new Date(ceremoniaActiva.fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'long' }) : '—'}</span>
-                    <span className="opacity-25">|</span>
-                    <span className="flex items-center gap-1.5"><Map size={13} style={{ color: ACCENT }} /> {ceremoniaActiva?.lugar || 'Sede Beltrán'}</span>
+
+                  <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-slate-900">
+                    <span className="bg-gradient-to-r from-sky-600 to-indigo-700 bg-clip-text text-transparent">
+                      {ceremoniaActiva?.nombre || 'Ceremonia de Graduación'}
+                    </span>
+                  </h1>
+
+                  <div className="mt-2 text-xs font-semibold text-slate-500 flex items-center gap-3.5 flex-wrap">
+                    <span className="flex items-center gap-1.5 text-slate-600">
+                      <Calendar size={14} className="text-sky-500" />
+                      {ceremoniaActiva ? new Date(ceremoniaActiva.fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Fecha a definir'}
+                    </span>
+                    <span className="text-slate-300">•</span>
+                    <span className="flex items-center gap-1.5 text-slate-600">
+                      <Map size={14} className="text-sky-500" />
+                      {ceremoniaActiva?.lugar || 'Sede Beltrán'}
+                    </span>
                   </div>
                 </div>
 
-                <div className="flex flex-col items-end gap-2.5 shrink-0 relative z-10">
-                  <div className="flex items-center gap-2.5 rounded-2xl bg-emerald-50/50 border border-emerald-100 px-4 py-2 shadow-sm">
-                    <span className="relative flex h-2 w-2">
-                      <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#10b981] opacity-60" />
-                      <span className="relative inline-flex h-2 w-2 rounded-full bg-[#10b981]" />
-                    </span>
-                    <span className="text-[9px] font-black uppercase tracking-wider text-emerald-700">
-                      Sesión activa
+                <div className="flex flex-col sm:flex-row md:flex-col items-start md:items-end gap-3 shrink-0 relative z-10">
+                  {/* Selector de Ceremonia */}
+                  <div className="relative inline-flex items-center group/select">
+                    <select 
+                      value={ceremoniaActiva?.id || ''}
+                      onChange={e => {
+                        if (e.target.value !== ceremoniaActiva?.id) {
+                          cambiarCeremonia(e.target.value)
+                        }
+                      }}
+                      className="appearance-none bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold pl-3.5 pr-8 py-2 rounded-xl border border-slate-200 outline-none transition-all cursor-pointer shadow-xs"
+                    >
+                      {ceremonias.map(c => (
+                        <option key={c.id} value={c.id}>
+                          {c.activa ? '★ (Activa) ' : ''}{c.nombre}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="pointer-events-none absolute right-3 text-slate-400 group-hover/select:text-slate-600 transition-colors">
+                      <ChevronRight size={13} className="rotate-90" />
                     </span>
                   </div>
-
-                  <button
-                    onClick={onCambiarVersion}
-                    className="flex items-center gap-1.5 bg-[#0d1b2e] hover:bg-slate-800 text-white text-[9px] font-black uppercase tracking-wider px-4 py-2 rounded-full border border-slate-700 active:scale-95 transition-all shadow-md cursor-pointer"
-                    title="Cambiar al diseño clásico (Centrado)"
-                  >
-                    <LayoutGrid size={12} style={{ color: ACCENT }} /> Versión 1 (Clásica)
-                  </button>
 
                   <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                     {textoFecha}
@@ -545,16 +597,13 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
                       Seguí el orden cronológico para organizar el acto sin omitir ninguna etapa institucional.
                     </p>
                   </div>
-                  <span className="text-[10px] font-bold text-slate-400">
-                    Ceremonia: <strong className="text-slate-700">{ceremoniaActiva?.nombre || 'En configuración'}</strong>
-                  </span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
                   {/* PASO 1 */}
                   <button
-                    onClick={() => setVistaActiva('ceremonias')}
-                    className="text-left p-4 rounded-2xl border transition-all duration-200 hover:scale-[1.02] cursor-pointer bg-slate-50/70 hover:bg-white border-slate-200/70 hover:border-indigo-300 hover:shadow-md group"
+                    onClick={() => manejarNavegar('gestion-ceremonias')}
+                    className="text-left p-4 rounded-2xl border transition-all duration-200 hover:-translate-y-0.5 cursor-pointer bg-slate-50/70 hover:bg-white border-slate-200/70 hover:border-indigo-300 hover:shadow-md group"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-[10px] font-black text-indigo-600 font-mono">01. INICIAR</span>
@@ -566,8 +615,8 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
 
                   {/* PASO 2 */}
                   <button
-                    onClick={() => setVistaActiva('estudiantes')}
-                    className="text-left p-4 rounded-2xl border transition-all duration-200 hover:scale-[1.02] cursor-pointer bg-slate-50/70 hover:bg-white border-slate-200/70 hover:border-emerald-300 hover:shadow-md group"
+                    onClick={() => manejarNavegar('gestion-graduados')}
+                    className="text-left p-4 rounded-2xl border transition-all duration-200 hover:-translate-y-0.5 cursor-pointer bg-slate-50/70 hover:bg-white border-slate-200/70 hover:border-emerald-300 hover:shadow-md group"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-[10px] font-black text-emerald-600 font-mono">02. PADRÓN</span>
@@ -579,8 +628,8 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
 
                   {/* PASO 3 */}
                   <button
-                    onClick={() => setVistaActiva('convocatoria')}
-                    className="text-left p-4 rounded-2xl border transition-all duration-200 hover:scale-[1.02] cursor-pointer bg-slate-50/70 hover:bg-white border-slate-200/70 hover:border-blue-300 hover:shadow-md group"
+                    onClick={() => manejarNavegar('convocatoria')}
+                    className="text-left p-4 rounded-2xl border transition-all duration-200 hover:-translate-y-0.5 cursor-pointer bg-slate-50/70 hover:bg-white border-slate-200/70 hover:border-blue-300 hover:shadow-md group"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-[10px] font-black text-blue-600 font-mono">03. CONVOCAR</span>
@@ -592,8 +641,8 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
 
                   {/* PASO 4 */}
                   <button
-                    onClick={() => setVistaActiva('butacas')}
-                    className="text-left p-4 rounded-2xl border transition-all duration-200 hover:scale-[1.02] cursor-pointer bg-slate-50/70 hover:bg-white border-slate-200/70 hover:border-cyan-300 hover:shadow-md group"
+                    onClick={() => manejarNavegar('seleccion-asientos')}
+                    className="text-left p-4 rounded-2xl border transition-all duration-200 hover:-translate-y-0.5 cursor-pointer bg-slate-50/70 hover:bg-white border-slate-200/70 hover:border-cyan-300 hover:shadow-md group"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-[10px] font-black text-cyan-600 font-mono">04. BUTACAS</span>
@@ -605,8 +654,8 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
 
                   {/* PASO 5 */}
                   <button
-                    onClick={() => setVistaActiva('acreditacion')}
-                    className="text-left p-4 rounded-2xl border transition-all duration-200 hover:scale-[1.02] cursor-pointer bg-slate-50/70 hover:bg-white border-slate-200/70 hover:border-amber-300 hover:shadow-md group"
+                    onClick={() => manejarNavegar('control-ingreso')}
+                    className="text-left p-4 rounded-2xl border transition-all duration-200 hover:-translate-y-0.5 cursor-pointer bg-slate-50/70 hover:bg-white border-slate-200/70 hover:border-amber-300 hover:shadow-md group"
                   >
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-[10px] font-black text-amber-600 font-mono">05. EN VIVO</span>
@@ -625,21 +674,24 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
                   etiqueta="Graduados"
                   valor={stats?.totalEgresados ?? 0}
                   descripcion="Registrados en el sistema"
-                  color={ACCENT}
+                  color="#0284c7"
+                  bgIcono="bg-sky-50 text-sky-600 border-sky-100"
                 />
                 <StatCard
                   icono={Users}
                   etiqueta="Invitados totales"
                   valor={stats?.totalInvitados ?? 0}
                   descripcion="Entre todos los graduados"
-                  color={ACCENT}
+                  color="#7c3aed"
+                  bgIcono="bg-violet-50 text-violet-600 border-violet-100"
                 />
                 <StatCard
                   icono={UserCheck}
                   etiqueta="Ingresados"
                   valor={stats?.presentes ?? 0}
                   descripcion="Invitados presentes hoy"
-                  color="#10b981"
+                  color="#059669"
+                  bgIcono="bg-emerald-50 text-emerald-600 border-emerald-100"
                 />
                 <StatCard
                   icono={TrendingUp}
@@ -647,7 +699,8 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
                   valor={stats?.porcentajeOcupacion ?? 0}
                   sufijo="%"
                   descripcion="Del aforo total esperado"
-                  color={ACCENT}
+                  color="#d97706"
+                  bgIcono="bg-amber-50 text-amber-600 border-amber-100"
                   barra={stats?.porcentajeOcupacion ?? 0}
                 />
               </div>
@@ -730,7 +783,7 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
                                 <td className="p-4 pr-6 text-right">
                                   <div className="flex gap-2 justify-end">
                                     <button 
-                                      onClick={() => setVistaActiva('estudiantes')}
+                                      onClick={() => manejarNavegar('gestion-graduados')}
                                       className="p-1.5 rounded-lg transition"
                                       style={{ color: '#78909c' }}
                                       onMouseEnter={e => e.currentTarget.style.color = ACCENT}
@@ -740,7 +793,7 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
                                       <Eye size={13} />
                                     </button>
                                     <button 
-                                      onClick={() => setVistaActiva('estudiantes')}
+                                      onClick={() => manejarNavegar('gestion-graduados')}
                                       className="p-1.5 rounded-lg transition"
                                       style={{ color: '#78909c' }}
                                       onMouseEnter={e => e.currentTarget.style.color = 'indigo'}
@@ -825,125 +878,157 @@ export function PantallaBienvenidaPro({ usuario, ceremoniaActiva, onCerrarSesion
             </>
           )}
 
-          {/* VISTA 2: CEREMONIAS */}
-          {vistaActiva === 'ceremonias' && (
-            <GestionCeremonias 
-              sinHeader={true} 
-              onVolver={() => setVistaActiva('dashboard')} 
-              onCambioCeremonia={cargarDatos}
-              onNavegar={(destino) => {
-                if (destino === 'gestion-graduados') setVistaActiva('estudiantes')
-                else if (destino === 'convocatoria') setVistaActiva('convocatoria')
-                else if (typeof onNavegar === 'function') onNavegar(destino)
-              }}
-            />
+          {/* VISTA: CEREMONIAS */}
+          {vistaActiva === 'gestion-ceremonias' && (
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-6">
+              <GestionCeremonias 
+                sinHeader={true} 
+                onVolver={() => manejarNavegar('bienvenida')} 
+                onCambioCeremonia={cargarDatos}
+                onNavegar={manejarNavegar}
+              />
+            </div>
           )}
 
-          {/* VISTA 3: ESTUDIANTES */}
-          {vistaActiva === 'estudiantes' && (
-            <GestionGraduados 
-              usuario={usuario}
-              sinHeader={true} 
-              onVolver={() => setVistaActiva('dashboard')}
-              onCerrarSesion={onCerrarSesion}
-              onNavegar={onNavegar}
-            />
+          {/* VISTA: GRADUADOS */}
+          {vistaActiva === 'gestion-graduados' && (
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-6">
+              <GestionGraduados 
+                usuario={usuario}
+                ceremoniaActiva={ceremoniaActiva}
+                sinHeader={true} 
+                onVolver={() => manejarNavegar('bienvenida')}
+                onCerrarSesion={onCerrarSesion}
+                onNavegar={manejarNavegar}
+                formato="dashboard"
+              />
+            </div>
           )}
 
-          {/* VISTA CONVOCATORIA */}
+          {/* VISTA: CONVOCATORIA */}
           {vistaActiva === 'convocatoria' && (
             <GestionConvocatoria
-              ceremoniaActiva={ceremonias.find(c => c.id === ceremoniaSeleccionada) || ceremonias.find(c => c.activa === 1)}
-              onVolver={() => setVistaActiva('dashboard')}
-              onNavegar={(pantalla) => setVistaActiva(pantalla)}
-            />
-          )}
-
-          {/* VISTA 4: PROFESORES */}
-          {vistaActiva === 'profesores' && (
-            <GestionProfesores
+              ceremoniaActiva={ceremoniaActiva}
               usuario={usuario}
-              sinHeader={true}
-              onVolver={() => setVistaActiva('dashboard')}
-              onCerrarSesion={onCerrarSesion}
+              onVolver={() => manejarNavegar('bienvenida')}
+              onNavegar={manejarNavegar}
             />
           )}
 
-          {/* VISTA 5: ACREDITACION */}
-          {vistaActiva === 'acreditacion' && (
+          {/* VISTA: PREPARACION */}
+          {vistaActiva === 'preparacion-ceremonia' && (
+            <PreparacionCeremonia
+              ceremoniaActiva={ceremoniaActiva}
+              onVolver={() => manejarNavegar('bienvenida')}
+              onNavegar={manejarNavegar}
+            />
+          )}
+
+          {/* VISTA: DESPACHO CREDENCIALES */}
+          {vistaActiva === 'despacho-credenciales' && (
+            <DespachoCredenciales
+              ceremoniaActiva={ceremoniaActiva}
+              usuario={usuario}
+              onVolver={() => manejarNavegar('bienvenida')}
+              onNavegar={manejarNavegar}
+            />
+          )}
+
+          {/* VISTA: PROFESORES */}
+          {vistaActiva === 'gestion-profesores' && (
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-6">
+              <GestionProfesores
+                usuario={usuario}
+                sinHeader={true}
+                onVolver={() => manejarNavegar('bienvenida')}
+                onCerrarSesion={onCerrarSesion}
+              />
+            </div>
+          )}
+
+          {/* VISTA: ACREDITACION */}
+          {vistaActiva === 'control-ingreso' && (
             <ControlIngreso 
               sinHeader={true}
-              onVolver={() => setVistaActiva('dashboard')}
+              usuario={usuario}
+              onVolver={() => manejarNavegar('bienvenida')}
               onCerrarSesion={onCerrarSesion}
             />
           )}
 
-
-
-          {/* VISTA EN VIVO */}
-          {vistaActiva === 'envivo' && (
+          {/* VISTA: EN VIVO */}
+          {vistaActiva === 'estado-ceremonia' && (
             <EstadoCeremonia
-              onVolver={() => setVistaActiva('dashboard')}
-              onNavegar={setVistaActiva}
+              onVolver={() => manejarNavegar('bienvenida')}
+              onNavegar={manejarNavegar}
             />
           )}
 
-          {/* VISTA 6: BUTACAS */}
-          {vistaActiva === 'butacas' && (
+          {/* VISTA: BUTACAS */}
+          {vistaActiva === 'seleccion-asientos' && (
             <EditorAnfiteatro 
               sinHeader={true}
-              onVolver={() => setVistaActiva('dashboard')}
+              onVolver={() => manejarNavegar('bienvenida')}
               ceremoniaId={ceremoniaActiva?.id}
             />
           )}
 
-          {/* VISTA 7: REPORTES */}
-          {vistaActiva === 'reportes' && (
-            <PanelReportes 
-              usuario={usuario}
-              sinHeader={true}
-              onVolver={() => setVistaActiva('dashboard')}
-              onCerrarSesion={onCerrarSesion}
-            />
+          {/* VISTA: REPORTES */}
+          {vistaActiva === 'panel-reportes' && (
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-6">
+              <PanelReportes 
+                usuario={usuario}
+                sinHeader={true}
+                onVolver={() => manejarNavegar('bienvenida')}
+                onCerrarSesion={onCerrarSesion}
+              />
+            </div>
           )}
 
-          {/* VISTA 8: CONFIGURACION */}
-          {vistaActiva === 'configuracion' && (
-            <PanelAjustes 
-              usuario={usuario}
-              sinHeader={true}
-              onVolver={() => setVistaActiva('dashboard')}
-              onCerrarSesion={onCerrarSesion}
-              onNavegar={setVistaActiva}
-              ceremoniaActiva={ceremoniaActiva}
-            />
+          {/* VISTA: CONFIGURACION */}
+          {vistaActiva === 'ajustes' && (
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-6">
+              <PanelAjustes 
+                usuario={usuario}
+                sinHeader={true}
+                onVolver={() => manejarNavegar('bienvenida')}
+                onCerrarSesion={onCerrarSesion}
+                onNavegar={manejarNavegar}
+                ceremoniaActiva={ceremoniaActiva}
+              />
+            </div>
           )}
 
-          {/* VISTA SEGURIDAD */}
-          {vistaActiva === 'seguridad' && (
-            <GestionPorteria 
-              usuario={usuario}
-              onVolver={() => setVistaActiva('dashboard')}
-              onCerrarSesion={onCerrarSesion}
-            />
+          {/* VISTA: SEGURIDAD */}
+          {vistaActiva === 'gestion-porteria' && (
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-6">
+              <GestionPorteria 
+                usuario={usuario}
+                onVolver={() => manejarNavegar('bienvenida')}
+                onCerrarSesion={onCerrarSesion}
+              />
+            </div>
           )}
 
-          {/* VISTA INFRAESTRUCTURA / CENTRO CONTROL */}
-          {vistaActiva === 'infraestructura' && (
-            <CentroControl 
-              usuario={usuario}
-              onVolver={() => setVistaActiva('dashboard')}
-              onCerrarSesion={onCerrarSesion}
-            />
+          {/* VISTA: INFRAESTRUCTURA / CENTRO CONTROL */}
+          {vistaActiva === 'centro-control' && (
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-6">
+              <CentroControl 
+                usuario={usuario}
+                onVolver={() => manejarNavegar('bienvenida')}
+                onCerrarSesion={onCerrarSesion}
+              />
+            </div>
           )}
 
-
-          {/* VISTA 9: MANUAL */}
-          {vistaActiva === 'manual' && (
-            <ManualUsuarioWeb 
-              sinHeader={true}
-              onVolver={() => setVistaActiva('dashboard')}
-            />
+          {/* VISTA: MANUAL */}
+          {vistaActiva === 'manual-usuario' && (
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-5 sm:p-6">
+              <ManualUsuarioWeb 
+                sinHeader={true}
+                onVolver={() => manejarNavegar('bienvenida')}
+              />
+            </div>
           )}
 
         </main>

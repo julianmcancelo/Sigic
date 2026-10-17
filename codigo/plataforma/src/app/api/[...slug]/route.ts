@@ -1145,9 +1145,12 @@ export async function GET(
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
       const ceremoniaId = req.nextUrl.searchParams.get('ceremoniaId');
-      const condicionCeremonia = ceremoniaId 
-        ? '(e.ceremonia_id = $1)' 
-        : '(c.activa = 1 OR e.ceremonia_id IS NULL OR e.ceremonia_id = (SELECT id FROM ceremonias WHERE activa = 1 ORDER BY fecha DESC, id DESC LIMIT 1))';
+      const esPadronGeneral = Boolean(ceremoniaId === 'todas' || ceremoniaId === 'general' || ceremoniaId === 'global');
+      const condicionCeremonia = esPadronGeneral
+        ? 'TRUE'
+        : (ceremoniaId 
+          ? '(e.ceremonia_id = $1)' 
+          : '(c.activa = 1 OR e.ceremonia_id IS NULL OR e.ceremonia_id = (SELECT id FROM ceremonias WHERE activa = 1 ORDER BY fecha DESC, id DESC LIMIT 1))');
 
       const queryStr = `
         SELECT 
@@ -1171,7 +1174,7 @@ export async function GET(
         WHERE ${condicionCeremonia}
         ORDER BY e.nombre
       `;
-      const result = await query(queryStr, ceremoniaId ? [ceremoniaId] : []);
+      const result = await query(queryStr, (!esPadronGeneral && ceremoniaId) ? [ceremoniaId] : []);
       return NextResponse.json(result.rows, { headers });
     }
 

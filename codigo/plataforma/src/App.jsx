@@ -9,7 +9,7 @@
  * 3. Si rechaza → Inhabilitado, se cierra sesión automáticamente
  */
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, CalendarPlus, RefreshCw, Shield, Server, Search, Power, Bell, Wifi, Volume2, ChevronRight, ChevronUp, ArrowRight, LayoutGrid, X, Minus, Maximize2, Square, Copy, Sun, Moon, MousePointer2, Lock, ClipboardCheck, Activity, Send, ListChecks, ScrollText, Sparkles, Armchair, Award, QrCode, Palette, ExternalLink, Info, BookOpen } from 'lucide-react'
+import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, CalendarPlus, RefreshCw, Shield, Server, Search, Power, Bell, Wifi, Volume2, ChevronRight, ChevronUp, ArrowRight, LayoutGrid, LayoutDashboard, X, Minus, Maximize2, Square, Copy, Sun, Moon, MousePointer2, Lock, ClipboardCheck, Activity, Send, ListChecks, ScrollText, Sparkles, Armchair, Award, QrCode, Palette, ExternalLink, Info, BookOpen } from 'lucide-react'
 
 // Importación de Modal de Fondo y Acerca de
 import { ModalPersonalizarFondo } from './componentes/ModalPersonalizarFondo'
@@ -25,7 +25,8 @@ import { PantallaSeleccionLogin } from './paginas/PantallaSeleccionLogin'
 import { AsistenteSetup } from './paginas/AsistenteSetup'
 import { PantallaAceptacion } from './paginas/PantallaAceptacion'
 import { ManualUsuarioWeb } from './paginas/ManualUsuarioWeb'
-import { PantallaBienvenidaPro } from './paginas/operacion/PantallaBienvenidaPro'
+import { PantallaBienvenidaPro, TITULOS_PANTALLAS } from './paginas/operacion/PantallaBienvenidaPro'
+import { HeaderGlobal } from './componentes/HeaderGlobal'
 import { PanelReportes } from './paginas/operacion/PanelReportes'
 import { GestionPorteria } from './paginas/operacion/GestionPorteria'
 import { CentroControl } from './paginas/operacion/CentroControl'
@@ -176,7 +177,21 @@ function App() {
     }
   )
 
-  // ─── 3. ESTADO DE NAVEGACIÓN ───
+  // ─── 3. ESTADO DE NAVEGACIÓN Y DISEÑO ───
+  const [estiloInterfaz, setEstiloInterfaz] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('sigic_estilo_interfaz') || 'dashboard'
+    }
+    return 'dashboard'
+  })
+
+  const cambiarEstiloInterfaz = (nuevoEstilo) => {
+    setEstiloInterfaz(nuevoEstilo)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sigic_estilo_interfaz', nuevoEstilo)
+    }
+  }
+
   const [pantallaAdmin, setPantallaAdmin] = useState(() => {
     if (typeof window !== 'undefined') {
       const moduloSolicitado = new URLSearchParams(window.location.search).get('modulo')
@@ -185,7 +200,8 @@ function App() {
       }
       try {
         const u = JSON.parse(localStorage.getItem('admin_user') || 'null');
-        if (u?.rol === 'ADMINISTRATIVO') {
+        const estilo = localStorage.getItem('sigic_estilo_interfaz') || 'dashboard';
+        if (estilo === 'escritorio' && u?.rol === 'ADMINISTRATIVO') {
           return 'centro-control';
         }
         if (u && (u.rol === 'PORTERIA' || u.rol === 'SEGURIDAD')) {
@@ -198,7 +214,7 @@ function App() {
     return 'bienvenida';
   })
   const [versionAdmin, setVersionAdmin] = useState(
-    () => localStorage.getItem('version_admin') || 'clasica'
+    () => (typeof window !== 'undefined' ? localStorage.getItem('version_admin') : 'pro') || 'pro'
   )
 
   const [dockPosicion, setDockPosicion] = useState(
@@ -220,6 +236,24 @@ function App() {
   })
 
   const [ceremoniaActiva, setCeremoniaActiva] = useState(null)
+  const [menuInicioGlobalAbierto, setMenuInicioGlobalAbierto] = useState(false)
+
+  // Escuchar eventos globales de Ctrl+K y apertura de menú en cualquier pantalla
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        setMenuInicioGlobalAbierto(abierto => !abierto)
+      }
+    }
+    const handleAbrirMenu = () => setMenuInicioGlobalAbierto(abierto => !abierto)
+    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('sigic-abrir-menu', handleAbrirMenu)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('sigic-abrir-menu', handleAbrirMenu)
+    }
+  }, [])
 
   async function sincronizarEntornoCeremonia() {
     const ceremonia = await obtenerCeremoniaActiva()
@@ -647,7 +681,7 @@ function App() {
       guardarTokenSesion(tokenBypass)
     }
     if (datosNormalizados?.rol === 'ADMINISTRATIVO') {
-      setPantallaAdmin('centro-control')
+      setPantallaAdmin(estiloInterfaz === 'dashboard' ? 'bienvenida' : 'centro-control')
     } else if (datosNormalizados && (datosNormalizados.rol === 'PORTERIA' || datosNormalizados.rol === 'SEGURIDAD')) {
       setPantallaAdmin('control-ingreso')
     } else {
@@ -947,141 +981,175 @@ function App() {
 
   // CASO C: El usuario es Administrador logueado
   else if (adminActivo) {
-    if (pantallaAdmin === 'operaciones-demo' && modoDemoActivo) {
-      contenido = <CentroOperacionesDemo onNavegar={setPantallaAdmin} />
-    } else if (pantallaAdmin === 'estado-ceremonia') {
-      contenido = <EstadoCeremonia onVolver={() => setPantallaAdmin('bienvenida')} onNavegar={setPantallaAdmin} />
-    } else if (pantallaAdmin === 'gestion-graduados') {
+    if (estiloInterfaz === 'dashboard' && versionAdmin === 'pro') {
       contenido = (
-        <GestionGraduados
-          usuario={adminUser}
-          ceremoniaActiva={ceremoniaActiva}
-          onVolver={() => setPantallaAdmin('bienvenida')}
-          onCerrarSesion={cerrarSesionAdmin}
-          onNavegar={setPantallaAdmin}
-        />
-      )
-    } else if (pantallaAdmin === 'convocatoria') {
-      contenido = <GestionConvocatoria onNavegar={setPantallaAdmin} ceremoniaActiva={ceremoniaActiva} />
-    } else if (pantallaAdmin === 'preparacion-ceremonia') {
-      contenido = <PreparacionCeremonia onNavegar={setPantallaAdmin} ceremoniaActiva={ceremoniaActiva} />
-    } else if (pantallaAdmin === 'despacho-credenciales') {
-      contenido = <DespachoCredenciales onNavegar={setPantallaAdmin} ceremoniaActiva={ceremoniaActiva} usuario={adminUser} />
-    } else if (pantallaAdmin === 'asistente-operativo') {
-      contenido = <AsistenteOperativoCeremonia onNavegar={setPantallaAdmin} />
-    } else if (pantallaAdmin === 'control-ingreso' || adminUser?.rol === 'PORTERIA' || adminUser?.rol === 'SEGURIDAD') {
-      contenido = (
-        <ControlIngreso
-          usuario={adminUser}
-          onVolver={adminUser?.rol === 'PORTERIA' || adminUser?.rol === 'SEGURIDAD' ? null : () => setPantallaAdmin('bienvenida')}
-          onCerrarSesion={cerrarSesionAdmin}
-        />
-      )
-    } else if (pantallaAdmin === 'seleccion-asientos') {
-      contenido = (
-        <EditorAnfiteatro
-          onVolver={() => setPantallaAdmin('bienvenida')}
-          ceremoniaId={ceremoniaActiva?.id}
-        />
-      )
-    } else if (pantallaAdmin === 'ajustes') {
-      contenido = (
-        <PanelAjustes
-          usuario={adminUser}
-          onVolver={() => setPantallaAdmin('bienvenida')}
-          onCerrarSesion={cerrarSesionAdmin}
-          onNavegar={setPantallaAdmin}
-          ceremoniaActiva={ceremoniaActiva}
-        />
-      )
-    } else if (pantallaAdmin === 'gestion-ceremonias') {
-      contenido = (
-        <GestionCeremonias
-          onVolver={() => setPantallaAdmin('bienvenida')}
-          onNavegar={setPantallaAdmin}
-          onCambioCeremonia={sincronizarEntornoCeremonia}
-        />
-      )
-    } else if (pantallaAdmin === 'gestion-profesores') {
-      contenido = (
-        <GestionProfesores
-          usuario={adminUser}
-          onVolver={() => setPantallaAdmin('bienvenida')}
-          onCerrarSesion={cerrarSesionAdmin}
-        />
-      )
-    } else if (pantallaAdmin === 'panel-reportes') {
-      contenido = (
-        <PanelReportes
-          usuario={adminUser}
-          onVolver={() => setPantallaAdmin('bienvenida')}
-          onCerrarSesion={cerrarSesionAdmin}
-        />
-      )
-    } else if (pantallaAdmin === 'gestion-porteria') {
-      contenido = (
-        <GestionPorteria
-          usuario={adminUser}
-          onVolver={() => setPantallaAdmin('bienvenida')}
-          onCerrarSesion={cerrarSesionAdmin}
-        />
-      )
-    } else if (pantallaAdmin === 'centro-control') {
-      if (adminUser?.rol === 'ADMINISTRATIVO') {
-        contenido = (
-          <CentroControl
-            usuario={adminUser}
-            onVolver={() => setPantallaAdmin('bienvenida')}
-            onCerrarSesion={cerrarSesionAdmin}
-          />
-        )
-      } else {
-        contenido = (
-          <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC]">
-            <div className="text-center p-8 rounded-[32px] bg-white border border-slate-100 shadow-xl max-w-sm">
-              <h2 className="text-lg font-black text-red-500 mb-2">Acceso Denegado</h2>
-              <p className="text-xs text-slate-500 font-semibold mb-4 leading-relaxed">Esta sección está restringida exclusivamente para el personal de soporte técnico autorizado.</p>
-              <button 
-                onClick={() => setPantallaAdmin('bienvenida')}
-                className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-all cursor-pointer"
-              >
-                Volver al Inicio
-              </button>
-            </div>
-          </div>
-        )
-      }
-    } else if (pantallaAdmin === 'manual-usuario') {
-      contenido = (
-        <ManualUsuarioWeb
-          onVolver={() => setPantallaAdmin('bienvenida')}
-        />
-      )
-    } else {
-      contenido = versionAdmin === 'clasica' ? (
-        <PantallaBienvenida
-          usuario={adminUser}
-          ceremoniaActiva={ceremoniaActiva}
-          onCerrarSesion={cerrarSesionAdmin}
-          onNavegar={setPantallaAdmin}
-          onCambiarVersion={() => {
-            setVersionAdmin('pro')
-            localStorage.setItem('version_admin', 'pro')
-          }}
-        />
-      ) : (
         <PantallaBienvenidaPro
           usuario={adminUser}
           ceremoniaActiva={ceremoniaActiva}
           onCerrarSesion={cerrarSesionAdmin}
+          pantallaActual={pantallaAdmin}
           onNavegar={setPantallaAdmin}
           onCambiarVersion={() => {
             setVersionAdmin('clasica')
             localStorage.setItem('version_admin', 'clasica')
           }}
           onCambioCeremonia={sincronizarEntornoCeremonia}
+          onCambiarEstiloInterfaz={() => cambiarEstiloInterfaz('escritorio')}
         />
       )
+    } else {
+      if (pantallaAdmin === 'operaciones-demo' && modoDemoActivo) {
+        contenido = <CentroOperacionesDemo onNavegar={setPantallaAdmin} />
+      } else if (pantallaAdmin === 'estado-ceremonia') {
+        contenido = <EstadoCeremonia onVolver={() => setPantallaAdmin('bienvenida')} onNavegar={setPantallaAdmin} />
+      } else if (pantallaAdmin === 'gestion-graduados') {
+        contenido = (
+          <GestionGraduados
+            usuario={adminUser}
+            ceremoniaActiva={ceremoniaActiva}
+            onVolver={() => setPantallaAdmin('bienvenida')}
+            onCerrarSesion={cerrarSesionAdmin}
+            onNavegar={setPantallaAdmin}
+            formato={estiloInterfaz}
+          />
+        )
+      } else if (pantallaAdmin === 'convocatoria') {
+        contenido = <GestionConvocatoria onNavegar={setPantallaAdmin} ceremoniaActiva={ceremoniaActiva} usuario={adminUser} />
+      } else if (pantallaAdmin === 'preparacion-ceremonia') {
+        contenido = <PreparacionCeremonia onNavegar={setPantallaAdmin} ceremoniaActiva={ceremoniaActiva} />
+      } else if (pantallaAdmin === 'despacho-credenciales') {
+        contenido = <DespachoCredenciales onNavegar={setPantallaAdmin} ceremoniaActiva={ceremoniaActiva} usuario={adminUser} />
+      } else if (pantallaAdmin === 'asistente-operativo') {
+        contenido = <AsistenteOperativoCeremonia onNavegar={setPantallaAdmin} />
+      } else if (pantallaAdmin === 'control-ingreso' || adminUser?.rol === 'PORTERIA' || adminUser?.rol === 'SEGURIDAD') {
+        contenido = (
+          <ControlIngreso
+            usuario={adminUser}
+            onVolver={adminUser?.rol === 'PORTERIA' || adminUser?.rol === 'SEGURIDAD' ? null : () => setPantallaAdmin('bienvenida')}
+            onCerrarSesion={cerrarSesionAdmin}
+          />
+        )
+      } else if (pantallaAdmin === 'seleccion-asientos') {
+        contenido = (
+          <EditorAnfiteatro
+            onVolver={() => setPantallaAdmin('bienvenida')}
+            ceremoniaId={ceremoniaActiva?.id}
+          />
+        )
+      } else if (pantallaAdmin === 'ajustes') {
+        contenido = (
+          <PanelAjustes
+            usuario={adminUser}
+            onVolver={() => setPantallaAdmin('bienvenida')}
+            onCerrarSesion={cerrarSesionAdmin}
+            onNavegar={setPantallaAdmin}
+            ceremoniaActiva={ceremoniaActiva}
+          />
+        )
+      } else if (pantallaAdmin === 'gestion-ceremonias') {
+        contenido = (
+          <GestionCeremonias
+            onVolver={() => setPantallaAdmin('bienvenida')}
+            onNavegar={setPantallaAdmin}
+            onCambioCeremonia={sincronizarEntornoCeremonia}
+          />
+        )
+      } else if (pantallaAdmin === 'gestion-profesores') {
+        contenido = (
+          <GestionProfesores
+            usuario={adminUser}
+            onVolver={() => setPantallaAdmin('bienvenida')}
+            onCerrarSesion={cerrarSesionAdmin}
+          />
+        )
+      } else if (pantallaAdmin === 'panel-reportes') {
+        contenido = (
+          <PanelReportes
+            usuario={adminUser}
+            onVolver={() => setPantallaAdmin('bienvenida')}
+            onCerrarSesion={cerrarSesionAdmin}
+          />
+        )
+      } else if (pantallaAdmin === 'gestion-porteria') {
+        contenido = (
+          <GestionPorteria
+            usuario={adminUser}
+            onVolver={() => setPantallaAdmin('bienvenida')}
+            onCerrarSesion={cerrarSesionAdmin}
+          />
+        )
+      } else if (pantallaAdmin === 'centro-control') {
+        if (adminUser?.rol === 'ADMINISTRATIVO') {
+          contenido = (
+            <CentroControl
+              usuario={adminUser}
+              onVolver={() => setPantallaAdmin('bienvenida')}
+              onCerrarSesion={cerrarSesionAdmin}
+            />
+          )
+        } else {
+          contenido = (
+            <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC]">
+              <div className="text-center p-8 rounded-[32px] bg-white border border-slate-100 shadow-xl max-w-sm">
+                <h2 className="text-lg font-black text-red-500 mb-2">Acceso Denegado</h2>
+                <p className="text-xs text-slate-500 font-semibold mb-4 leading-relaxed">Esta sección está restringida exclusivamente para el personal de soporte técnico autorizado.</p>
+                <button 
+                  onClick={() => setPantallaAdmin('bienvenida')}
+                  className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition-all cursor-pointer"
+                >
+                  Volver al Inicio
+                </button>
+              </div>
+            </div>
+          )
+        }
+      } else if (pantallaAdmin === 'manual-usuario') {
+        contenido = (
+          <ManualUsuarioWeb
+            onVolver={() => setPantallaAdmin('bienvenida')}
+          />
+        )
+      } else {
+        contenido = (
+          <PantallaBienvenida
+            usuario={adminUser}
+            ceremoniaActiva={ceremoniaActiva}
+            onCerrarSesion={cerrarSesionAdmin}
+            onNavegar={setPantallaAdmin}
+            onCambiarVersion={() => {
+              setVersionAdmin('pro')
+              localStorage.setItem('version_admin', 'pro')
+            }}
+            onCambiarEstiloInterfaz={() => cambiarEstiloInterfaz('escritorio')}
+          />
+        )
+      }
+
+      // En diseño clásico Web: envolver sub-pantallas con HeaderGlobal + contenedor centrado
+      if (estiloInterfaz === 'dashboard' && versionAdmin === 'clasica' && pantallaAdmin !== 'bienvenida') {
+        const tituloModulo = TITULOS_PANTALLAS[pantallaAdmin] || 'Módulo del Sistema'
+        contenido = (
+          <div className="min-h-screen bg-[#F8FAFC]">
+            <HeaderGlobal
+              titulo={tituloModulo}
+              subtitulo="Gestión Institucional"
+              usuario={adminUser}
+              onVolver={() => setPantallaAdmin('bienvenida')}
+              onCerrarSesion={cerrarSesionAdmin}
+              onCambiarVersion={() => {
+                setVersionAdmin('pro')
+                localStorage.setItem('version_admin', 'pro')
+              }}
+              onCambiarEstiloInterfaz={() => cambiarEstiloInterfaz('escritorio')}
+            />
+            <main className="max-w-7xl mx-auto px-2.5 sm:px-6 py-4 sm:py-8">
+              <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-3.5 sm:p-6">
+                {contenido}
+              </div>
+            </main>
+          </div>
+        )
+      }
     }
   }
 
@@ -1135,17 +1203,26 @@ function App() {
     )
   }
 
-  const contenidoDeEscritorio = adminActivo ? (
+  const contenidoDeEscritorio = (adminActivo && estiloInterfaz === 'escritorio') ? (
     <EscritorioSIGIC
       pantallaActual={pantallaAdmin}
       onNavegar={setPantallaAdmin}
       usuario={adminUser}
       onCerrarSesion={cerrarSesionAdmin}
       modoDemo={modoDemoActivo}
+      onCambiarEstiloInterfaz={cambiarEstiloInterfaz}
+      versionAdmin={versionAdmin}
+      onCambiarVersion={(version) => {
+        const nueva = version || (versionAdmin === 'pro' ? 'clasica' : 'pro')
+        setVersionAdmin(nueva)
+        localStorage.setItem('version_admin', nueva)
+      }}
     >
       {contenido}
     </EscritorioSIGIC>
-  ) : contenido
+  ) : (
+    contenido
+  )
 
   return (
     <>
@@ -1160,6 +1237,8 @@ function App() {
         onSimularEgresado={manejarLoginGraduadoExitoso}
         onLimpiar={limpiarTodo}
         onIniciarDemo={iniciarDemostracionCompleta}
+        estiloInterfaz={estiloInterfaz}
+        onAlternarEstiloInterfaz={() => cambiarEstiloInterfaz(estiloInterfaz === 'dashboard' ? 'escritorio' : 'dashboard')}
       />}
 
       {/* Orquestador de Piloto Automático y Showcase en Vivo */}
@@ -1169,11 +1248,54 @@ function App() {
           onFinalizarDemo={finalizarDemostracionCompleta}
         />
       )}
+
+      {/* Menú SiGIC Modal Global para toda la plataforma */}
+      {adminActivo && menuInicioGlobalAbierto && estiloInterfaz !== 'escritorio' && (
+        <MenuInicio
+          esModal={true}
+          aplicaciones={[
+            { id: 'bienvenida', titulo: 'Inicio', icono: Home, color: 'bg-sky-500' },
+            { id: 'gestion-ceremonias', titulo: 'Ceremonias', icono: CalendarPlus, color: 'bg-indigo-500' },
+            { id: 'gestion-graduados', titulo: 'Graduados', icono: GraduationCap, color: 'bg-emerald-500' },
+            { id: 'convocatoria', titulo: 'Convocatoria', icono: Send, color: 'bg-blue-500' },
+            { id: 'preparacion-ceremonia', titulo: 'Preparación', icono: Armchair, color: 'bg-cyan-600' },
+            { id: 'despacho-credenciales', titulo: 'Credenciales', icono: QrCode, color: 'bg-blue-600' },
+            { id: 'control-ingreso', titulo: 'Acreditación', icono: ScanLine, color: 'bg-amber-500' },
+            { id: 'estado-ceremonia', titulo: 'En vivo', icono: Activity, color: 'bg-teal-500' },
+            { id: 'panel-reportes', titulo: 'Reportes', icono: BarChart3, color: 'bg-purple-500' },
+            { id: 'gestion-profesores', titulo: 'Docentes', icono: Award, color: 'bg-indigo-500' },
+            { id: 'gestion-porteria', titulo: 'Seguridad', icono: Shield, color: 'bg-violet-500' },
+            { id: 'ajustes', titulo: 'Ajustes', icono: Settings, color: 'bg-slate-500' },
+            { id: 'seleccion-asientos', titulo: 'Anfiteatro', icono: MapPin, color: 'bg-orange-500' },
+            { id: 'manual-usuario', titulo: 'Manual Oficial', icono: BookOpen, color: 'bg-sky-600' },
+            { id: 'acerca-de', titulo: 'Acerca de SiGIC', icono: Info, color: 'bg-indigo-600' },
+          ]}
+          usuario={adminUser}
+          ceremonia={ceremoniaActiva}
+          onAbrir={(id) => {
+            setMenuInicioGlobalAbierto(false)
+            if (id === 'cambiar-dashboard') {
+              cambiarEstiloInterfaz('dashboard')
+            } else {
+              setPantallaAdmin(id)
+            }
+          }}
+          onCerrar={() => setMenuInicioGlobalAbierto(false)}
+          onCerrarSesion={cerrarSesionAdmin}
+          onCambiarEstiloInterfaz={cambiarEstiloInterfaz}
+          onCambiarVersion={(version) => {
+            const nueva = version || (versionAdmin === 'pro' ? 'clasica' : 'pro')
+            setVersionAdmin(nueva)
+            localStorage.setItem('version_admin', nueva)
+          }}
+          versionAdmin={versionAdmin}
+        />
+      )}
     </>
   )
 }
 
-function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerrarSesion, modoDemo }) {
+function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerrarSesion, modoDemo, onCambiarEstiloInterfaz, versionAdmin, onCambiarVersion }) {
   // La versión instalada ya tiene ventana y controles nativos: no replicamos un navegador dentro de ella.
   const esAplicacionNativa = typeof window !== 'undefined' && Boolean(window.__TAURI_INTERNALS__)
   const [inicioAbierto, setInicioAbierto] = useState(false)
@@ -1267,6 +1389,7 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
     { id: 'seleccion-asientos', titulo: 'Anfiteatro', icono: MapPin, color: 'bg-orange-500', escritorio: false },
     { id: 'manual-usuario', titulo: 'Manual Oficial', icono: BookOpen, color: 'bg-sky-600', escritorio: true },
     { id: 'acerca-de', titulo: 'Acerca de SiGIC', icono: Info, color: 'bg-indigo-600', escritorio: true },
+    { id: 'cambiar-dashboard', titulo: 'Dashboard Web', icono: LayoutDashboard, color: 'bg-sky-600', escritorio: true },
     ...(modoDemo ? [{ id: 'operaciones-demo', titulo: 'Operaciones', icono: ClipboardCheck, color: 'bg-slate-500', escritorio: false }] : []),
   ]
   const accesos = aplicaciones.filter(app => app.escritorio)
@@ -1477,6 +1600,12 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
       setMenuContextual(null)
       return
     }
+    if (id === 'cambiar-dashboard') {
+      setInicioAbierto(false)
+      setMenuContextual(null)
+      onCambiarEstiloInterfaz?.('dashboard')
+      return
+    }
     const yaEstabaAbierta = ventanasAbiertas.includes(id)
     setVentanasAbiertas(ventanas => [...ventanas.filter(item => item !== id), id])
     setVentanasCerrandose(ventanas => ventanas.filter(item => item !== id))
@@ -1636,7 +1765,32 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
           <div><p className="sigic-brand">SIGIC</p><p className="sigic-subbrand">Sistema Integral de Gestión Institucional</p></div>
         </div>
         <div className="sigic-active-ceremony" title={ceremoniaActiva ? `Entorno activo: ${ceremoniaActiva.nombre}` : 'No hay una ceremonia activa'}><Calendar size={13} /><div><span>Entorno activo</span><strong>{ceremoniaActiva?.nombre || 'Sin ceremonia activa'}</strong></div>{ceremoniaActiva?.fecha && <small>{new Date(`${ceremoniaActiva.fecha}T12:00:00`).toLocaleDateString('es-AR', { day: '2-digit', month: 'short' })}</small>}</div>
-        <div className="hidden items-center gap-5 text-white/60 md:flex"><span className="text-[10px] uppercase tracking-[.24em]">Sesión segura</span><div className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_12px_#34d399]" /></div>
+        <div className="flex items-center gap-2.5 sm:gap-3 ml-auto">
+          {onCambiarEstiloInterfaz && (
+            <button
+              onClick={() => onCambiarEstiloInterfaz('dashboard')}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/35 text-sky-100 border border-sky-400/40 text-xs font-bold transition-all shadow-sm hover:shadow-sky-500/20 cursor-pointer active:scale-95"
+              title="Cambiar a la interfaz web con barra lateral"
+            >
+              <LayoutDashboard size={14} className="text-sky-300" />
+              <span>Volver a Dashboard Web</span>
+            </button>
+          )}
+          {onCambiarVersion && (
+            <button
+              onClick={() => onCambiarVersion()}
+              className="hidden lg:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-white/80 hover:text-white border border-white/15 text-xs font-medium transition-all cursor-pointer"
+              title="Alternar entre versión Pro y Clásica del Dashboard"
+            >
+              <Sparkles size={13} className="text-amber-300" />
+              <span>{versionAdmin === 'pro' ? 'Versión Pro' : 'Versión Clásica'}</span>
+            </button>
+          )}
+          <div className="hidden items-center gap-2 text-white/60 md:flex pl-2 border-l border-white/10">
+            <span className="text-[10px] uppercase tracking-[.24em]">Sesión segura</span>
+            <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_12px_#34d399]" />
+          </div>
+        </div>
       </header>
       <section className="sigic-os-workspace">
         <div className="sigic-os-shortcuts">
@@ -1780,6 +1934,9 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
           onAbrir={abrirVentana}
           onCerrar={() => { setInicioAbierto(false); inicioBotonRef.current?.focus() }}
           onCerrarSesion={onCerrarSesion}
+          onCambiarEstiloInterfaz={onCambiarEstiloInterfaz}
+          onCambiarVersion={onCambiarVersion}
+          versionAdmin={versionAdmin}
         />
       )}
       <footer className="sigic-taskbar">
@@ -1787,7 +1944,19 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
         <div className="sigic-task-divider" />
         <button onClick={() => abrirVentana('bienvenida')} className="sigic-task-app" title="Escritorio SIGIC"><Home size={15} /><span>Escritorio SIGIC</span></button>
         <div className="sigic-open-tasks">{ventanasAbiertas.map(id => { const app = aplicaciones.find(item => item.id === id); const IconoTarea = app?.icono || LayoutGrid; return <button key={id} onClick={() => manejarClickTarea(id)} className={`sigic-open-task ${id === pantallaActual && !ventanasMinimizadas.includes(id) ? 'is-current' : ''} ${ventanasMinimizadas.includes(id) ? 'is-minimized' : ''}`} title={`${app?.titulo || 'SIGIC'}${ventanasMinimizadas.includes(id) ? ' (minimizada)' : ''}`}><IconoTarea size={13} />{app?.titulo || 'SIGIC'}</button> })}</div>
-        <div className="ml-auto flex items-center gap-3 text-white/65">
+        <div className="ml-auto flex items-center gap-2 sm:gap-3 text-white/65">
+          {onCambiarEstiloInterfaz && (
+            <button
+              type="button"
+              onClick={() => onCambiarEstiloInterfaz('dashboard')}
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-sky-500/20 hover:bg-sky-500/35 text-sky-200 border border-sky-400/40 text-xs font-semibold transition-all cursor-pointer shadow-xs active:scale-95"
+              title="Volver a Modo Dashboard Web"
+              aria-label="Modo Dashboard"
+            >
+              <LayoutDashboard size={13} className="text-sky-300" />
+              <span className="hidden sm:inline">Dashboard Web</span>
+            </button>
+          )}
           <button onClick={() => setMostrarModalFondo(true)} className="sigic-theme-button" title="Personalizar fondo de pantalla y estilos" aria-label="Personalizar fondo"><Palette size={15} /></button>
           <button onClick={cambiarTema} className="sigic-theme-button" aria-label={`Cambiar a modo ${tema === 'oscuro' ? 'claro' : 'oscuro'}`}>{tema === 'oscuro' ? <Sun size={15} /> : <Moon size={15} />}</button>
           <Bell size={15} />
@@ -1808,6 +1977,12 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
         <div className="sigic-context-menu" style={{ left: menuContextual.x, top: menuContextual.y }} onClick={evento => evento.stopPropagation()}>
           <p className="sigic-context-title"><MousePointer2 size={13} /> Acciones del escritorio</p>
           <button onClick={() => abrirVentana('bienvenida')}><LayoutGrid size={14} /> Abrir escritorio SIGIC</button>
+          {onCambiarEstiloInterfaz && (
+            <button onClick={() => { setMenuContextual(null); onCambiarEstiloInterfaz('dashboard') }}><LayoutDashboard size={14} /> Volver a Modo Dashboard Web</button>
+          )}
+          {onCambiarVersion && (
+            <button onClick={() => { setMenuContextual(null); onCambiarVersion() }}><Sparkles size={14} /> Alternar Versión ({versionAdmin === 'pro' ? 'Usar Clásica' : 'Usar Pro'})</button>
+          )}
           <button onClick={() => { setMenuContextual(null); setMostrarModalFondo(true) }}><Palette size={14} /> Cambiar fondo de pantalla...</button>
           <button onClick={cambiarTema}>{tema === 'oscuro' ? <Sun size={14} /> : <Moon size={14} />} Cambiar a modo {tema === 'oscuro' ? 'claro' : 'oscuro'}</button>
           <button onClick={() => setInicioAbierto(true)}><Search size={14} /> Buscar una aplicación</button>

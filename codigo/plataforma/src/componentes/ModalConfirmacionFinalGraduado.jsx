@@ -85,7 +85,7 @@ export function ModalConfirmacionFinalGraduado({
               Al confirmar, tu registro quedará guardado oficialmente. <strong>Podés volver a ingresar y hacer cambios en tus acompañantes o padrinos en cualquier momento antes de la fecha de cierre</strong>.
             </p>
             <p className="text-[11px] text-sky-800/80 leading-snug font-medium pt-1 border-t border-sky-200/60">
-              💡 <em>Importante: Si alguno de tus acompañantes no podrá asistir, por favor retiralo del sistema antes del cierre para que la institución pueda liberar ese espacio en el auditorio.</em>
+              <em>Importante: Si alguno de tus acompañantes no podrá asistir, por favor retiralo del sistema antes del cierre para que la institución pueda liberar ese espacio en el auditorio.</em>
             </p>
           </div>
 

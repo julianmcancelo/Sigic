@@ -16,7 +16,9 @@ export function ControlExpositor({
   onSimularAdmin, 
   onSimularEgresado, 
   onLimpiar, 
-  onIniciarDemo 
+  onIniciarDemo,
+  estiloInterfaz = 'dashboard',
+  onAlternarEstiloInterfaz
 }) {
   const [abierto, setAbierto] = useState(false)
   const panelRef = useRef(null)
@@ -73,6 +75,23 @@ export function ControlExpositor({
               {modoDemoActivo ? 'Modo Demo' : 'Modo Real'}
             </button>
           </div>
+
+          {/* Selector de Estilo de Interfaz (Web Dashboard vs Escritorio OS) */}
+          {onAlternarEstiloInterfaz && (
+            <div className="flex items-center justify-between px-3 py-2 bg-slate-50 border-b border-slate-100">
+              <span className="text-[10px] font-bold text-slate-600">
+                Diseño visual:
+              </span>
+              <button
+                type="button"
+                onClick={onAlternarEstiloInterfaz}
+                className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider transition active:scale-95 cursor-pointer bg-sky-100 text-sky-800 border border-sky-300 hover:bg-sky-200"
+                title="Clic para alternar entre formato Web Dashboard y Escritorio OS"
+              >
+                {estiloInterfaz === 'dashboard' ? 'Dashboard Web' : 'Escritorio OS'}
+              </button>
+            </div>
+          )}
 
           <div className="space-y-1.5 p-2">
             {modoDemoActivo ? (
