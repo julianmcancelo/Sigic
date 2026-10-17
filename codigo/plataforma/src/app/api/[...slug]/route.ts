@@ -1728,6 +1728,15 @@ export async function POST(
         }
 
         await client.query('COMMIT');
+
+        await registrarAuditoria({
+          accion: 'AUTO_ASIGNAR_BUTACAS',
+          entidad: 'configuracion_anfiteatro',
+          entidadId: String(ceremoniaId),
+          detalles: { asignadosEgresados, asignadosInvitados, criterio, prioridadJuramento },
+          req
+        });
+
         return NextResponse.json({
           ok: true,
           mensaje: `Distribución inteligente completada: ${asignadosEgresados} graduados y ${asignadosInvitados} acompañantes ubicados en el auditorio.`,
@@ -1774,6 +1783,14 @@ export async function POST(
       invalidarCache('ceremonias');
       invalidarCache('ceremonias:activa');
       invalidarCache('setup:status');
+
+      await registrarAuditoria({
+        accion: 'CREAR_CEREMONIA',
+        entidad: 'ceremonias',
+        entidadId: id,
+        detalles: { nombre: nombre.trim(), fecha: fecha.trim(), lugar: lugar?.trim() || 'Sede Beltrán' },
+        req
+      });
 
       return NextResponse.json({ ok: true, mensaje: 'Ceremonia creada con éxito', id }, { status: 201, headers });
     }
@@ -2521,6 +2538,14 @@ export async function POST(
         await client.query('COMMIT');
         invalidarCache('egresados:*');
 
+        await registrarAuditoria({
+          accion: 'IMPORTAR_GRADUADOS',
+          entidad: 'egresados',
+          entidadId: String(ceremoniaIdDestino),
+          detalles: { importados: exitosos.length, conflictos: conflictos.length, total: egresadosLista.length },
+          req
+        });
+
         return NextResponse.json({
           ok: true,
           importados: exitosos.length,
@@ -2970,6 +2995,18 @@ export async function PUT(
         invalidarCache('configuracion');
         invalidarCache('anfiteatro');
         invalidarCache('setup:status');
+
+        await registrarAuditoria({
+          usuarioId: usuario?.id,
+          usuarioCorreo: usuario?.email,
+          rol: usuario?.rol,
+          accion: 'ACTIVAR_CEREMONIA',
+          entidad: 'ceremonias',
+          entidadId: id,
+          detalles: { ceremoniaId: id },
+          req
+        });
+
         return NextResponse.json({ ok: true, mensaje: 'Ceremonia activada correctamente' }, { headers });
       } catch (error) {
         await client.query('ROLLBACK');
@@ -3183,6 +3220,14 @@ export async function PUT(
         }
         return NextResponse.json({ error: 'Graduado no encontrado' }, { status: 404, headers });
       }
+      await registrarAuditoria({
+        accion: 'ACREDITACION_INGRESO_GRADUADO',
+        entidad: 'egresados',
+        entidadId: id,
+        detalles: { nombre: result.rows[0]?.nombre, dni: result.rows[0]?.dni, asiento: result.rows[0]?.asiento_id },
+        req
+      });
+
       return NextResponse.json({ ok: true, yaAcreditado: false, mensaje: 'Ingreso del graduado confirmado', graduado: result.rows[0] }, { headers });
     }
 

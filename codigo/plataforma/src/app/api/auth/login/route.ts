@@ -6,6 +6,7 @@ import { inicializarBaseDatos } from '@/lib/schema';
 
 import { verificarRateLimit } from '@/lib/rate-limit';
 import { ROLES_OPERACION } from '@/lib/auth-middleware';
+import { registrarAuditoria } from '@/lib/auditoria';
 
 /**
  * POST /api/auth/login
@@ -96,8 +97,18 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. Actualizar fecha del último login
+    // 3. Actualizar fecha del último login y registrar auditoría
     await query('UPDATE usuarios_sistema SET ultimo_login = CURRENT_TIMESTAMP WHERE id = $1', [usuario.id]);
+    await registrarAuditoria({
+      usuarioId: usuario.id,
+      usuarioCorreo: usuario.email,
+      rol: usuario.rol,
+      accion: 'INICIO_SESION',
+      entidad: 'usuarios_sistema',
+      entidadId: usuario.id,
+      detalles: { metodo: 'credenciales_password', nombre: usuario.nombre },
+      req
+    });
 
     // 4. Firmar token JWT de sesión (8 horas de vida)
     const token = firmar({
