@@ -179,6 +179,7 @@ Las actualizaciones OTA en producción se gestionan con Shorebird. Ver [`codigo/
 | Archivo | Contenido |
 |---|---|
 | [`docs/MANUAL.md`](docs/MANUAL.md) | Manual de usuario completo (Administradores, Egresados y Portería) |
+| [`docs/ESQUEMA_BASE_DE_DATOS.md`](docs/ESQUEMA_BASE_DE_DATOS.md) | Diagrama Entidad-Relación (ER), diccionario de datos y script DDL de PostgreSQL |
 | [`CHANGELOG.md`](CHANGELOG.md) | Historial detallado de versiones y cambios |
 | [`codigo/plataforma/README.md`](codigo/plataforma/README.md) | Documentación técnica de la plataforma web |
 | [`codigo/movil_flutter/README.md`](codigo/movil_flutter/README.md) | Documentación de la app móvil Flutter |
