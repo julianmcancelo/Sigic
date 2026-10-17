@@ -168,7 +168,7 @@ function BentoStatCard({ icono: Icono, etiqueta, valor, color = ACCENT, descripc
 }
 
 // ─── Bento Tarjeta Reloj y Clima ────────────────────────────────
-function TarjetaRelojClima({ climaInfo, fechaActual, textoTemp }) {
+function TarjetaRelojClima({ climaInfo, fechaActual, textoTemp, fondoConfig }) {
   const diaSemana = fechaActual.toLocaleDateString('es-AR', { weekday: 'long' })
   const dia = fechaActual.getDate()
   const mes = fechaActual.toLocaleDateString('es-AR', { month: 'long' })
@@ -179,16 +179,29 @@ function TarjetaRelojClima({ climaInfo, fechaActual, textoTemp }) {
   const detalleClima = climaInfo ? obtenerDetalleClima(climaInfo.codigoClima) : { icono: CloudSun, descripcion: 'Cargando clima...' }
   const IconoClima = detalleClima.icono
 
+  const colorPrincipal = fondoConfig?.colorPrincipal || ACCENT
+  const fondoGradiente = fondoConfig?.colores 
+    ? `linear-gradient(135deg, ${fondoConfig.colores[0]} 0%, ${fondoConfig.colores[1]} 60%, ${fondoConfig.colorPrincipal}40 100%)`
+    : 'linear-gradient(135deg, #0d1b2e 0%, #1a2d45 50%, #2A3448 100%)'
+
   return (
     <div
-      className="relative overflow-hidden rounded-[32px] p-6 flex flex-col justify-between text-white shadow-xl shadow-slate-900/10 min-h-[190px]"
+      className="relative overflow-hidden rounded-[32px] p-6 flex flex-col justify-between text-white shadow-xl shadow-slate-900/10 min-h-[190px] border border-white/10 transition-all duration-500"
       style={{
-        background: 'linear-gradient(135deg, #0d1b2e 0%, #1a2d45 50%, #2A3448 100%)',
+        background: fondoGradiente,
       }}
     >
       {/* Efectos de luz decorativos de fondo */}
-      <div className="absolute inset-0 pointer-events-none opacity-20 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-sky-400 via-transparent to-transparent blur-xl" />
-      <div className="absolute bottom-0 left-0 w-32 h-32 rounded-full pointer-events-none bg-sky-500/10 blur-2xl" />
+      <div 
+        className="absolute inset-0 pointer-events-none opacity-30 blur-xl transition-all duration-500" 
+        style={{
+          background: `radial-gradient(circle at top right, ${colorPrincipal}, transparent 70%)`
+        }}
+      />
+      <div 
+        className="absolute bottom-0 left-0 w-32 h-32 rounded-full pointer-events-none blur-2xl opacity-20" 
+        style={{ background: colorPrincipal }}
+      />
 
       {/* Cabecera: Reloj */}
       <div className="relative flex items-baseline justify-between">
@@ -196,38 +209,50 @@ function TarjetaRelojClima({ climaInfo, fechaActual, textoTemp }) {
           <span className="text-4xl font-black tracking-tight tabular-nums">
             {horaHHmm}
           </span>
-          <span className="text-md font-bold text-sky-450/85 ml-1 tabular-nums animate-pulse">
+          <span 
+            className="text-md font-bold ml-1 tabular-nums animate-pulse"
+            style={{ color: colorPrincipal }}
+          >
             :{horaSS}
           </span>
         </div>
-        <div className="flex items-center gap-1.5 bg-white/5 border border-white/10 rounded-full px-3 py-1">
+        <div className="flex items-center gap-1.5 bg-white/10 border border-white/15 rounded-full px-3 py-1 backdrop-blur-xs">
           <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-sky-400 opacity-70" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-sky-400" />
+            <span 
+              className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-70"
+              style={{ backgroundColor: colorPrincipal }}
+            />
+            <span 
+              className="relative inline-flex h-2 w-2 rounded-full"
+              style={{ backgroundColor: colorPrincipal }}
+            />
           </span>
-          <span className="text-[9px] font-black uppercase tracking-wider text-sky-300">En Vivo</span>
+          <span className="text-[9px] font-black uppercase tracking-wider text-white/90">En Vivo</span>
         </div>
       </div>
 
       {/* Pie: Fecha y Clima */}
       <div className="relative mt-4">
-        <p className="text-[12px] font-black uppercase tracking-widest text-white/50 leading-none mb-1">
+        <p className="text-[12px] font-black uppercase tracking-widest text-white/60 leading-none mb-1">
           {diaSemana}
         </p>
-        <p className="text-[16px] font-black leading-tight text-white/90">
+        <p className="text-[16px] font-black leading-tight text-white/95">
           {dia} de {mes}
         </p>
         
         {/* Info del Clima */}
-        <div className="mt-3 flex items-center gap-2 bg-white/5 border border-white/10 rounded-2xl p-2">
-          <div className="p-1 rounded-lg bg-sky-500/20 text-sky-350">
+        <div className="mt-3 flex items-center gap-2 bg-white/10 border border-white/15 rounded-2xl p-2 backdrop-blur-xs">
+          <div 
+            className="p-1.5 rounded-lg flex items-center justify-center"
+            style={{ backgroundColor: `${colorPrincipal}25`, color: colorPrincipal }}
+          >
             <IconoClima size={16} className="animate-pulse" />
           </div>
           <div className="min-w-0">
             <p className="text-[11px] font-black leading-none text-white truncate">
               {textoTemp}
             </p>
-            <p className="text-[8px] font-bold text-white/40 uppercase tracking-wider truncate mt-0.5">
+            <p className="text-[8px] font-bold text-white/60 uppercase tracking-wider truncate mt-0.5">
               {detalleClima.descripcion}
             </p>
           </div>
@@ -238,12 +263,19 @@ function TarjetaRelojClima({ climaInfo, fechaActual, textoTemp }) {
 }
 
 // ─── Bento Tarjeta Cronograma / Agenda ──────────────────────────
-function TarjetaCronograma({ proximas, backendOnline }) {
+function TarjetaCronograma({ proximas, backendOnline, colorPrincipal = ACCENT }) {
   return (
     <div className="bg-white border border-slate-100 shadow-md shadow-slate-100/50 rounded-[32px] p-6 flex flex-col justify-between h-full min-h-[350px]">
       <div>
         <div className="flex items-center gap-2 mb-4">
-          <div className="p-1.5 rounded-lg bg-sky-50 text-sky-600 border border-sky-100">
+          <div 
+            className="p-1.5 rounded-lg border"
+            style={{ 
+              backgroundColor: `${colorPrincipal}15`, 
+              color: colorPrincipal,
+              borderColor: `${colorPrincipal}30`
+            }}
+          >
             <Clock size={16} className="animate-pulse" />
           </div>
           <span className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-450">Agenda</span>
@@ -258,8 +290,11 @@ function TarjetaCronograma({ proximas, backendOnline }) {
         ) : (
           <div className="space-y-3">
             {proximas.map(p => (
-              <div key={p.id} className="group flex items-center gap-3 bg-slate-50/70 hover:bg-sky-50/50 border border-slate-100 hover:border-sky-100 p-2.5 rounded-2xl transition-all duration-200">
-                <div className="bg-white text-sky-600 border border-slate-100 group-hover:border-sky-100 w-10 h-10 rounded-xl flex flex-col items-center justify-center text-[10px] font-black leading-tight flex-shrink-0">
+              <div key={p.id} className="group flex items-center gap-3 bg-slate-50/70 hover:bg-slate-100/70 border border-slate-100 hover:border-slate-200 p-2.5 rounded-2xl transition-all duration-200">
+                <div 
+                  className="bg-white border border-slate-150 w-10 h-10 rounded-xl flex flex-col items-center justify-center text-[10px] font-black leading-tight flex-shrink-0"
+                  style={{ color: colorPrincipal }}
+                >
                   <span className="text-[12px]">{new Date(p.fecha).getDate()}</span>
                   <span className="text-[8px] uppercase tracking-tighter text-slate-400">{new Date(p.fecha).toLocaleDateString('es-AR', { month: 'short' })}</span>
                 </div>
@@ -285,7 +320,7 @@ function TarjetaCronograma({ proximas, backendOnline }) {
 }
 
 // ─── Botón de acceso rápido grande ─────────────────────────────
-function AccesoGrande({ icono: Icono, titulo, descripcion, pantalla, badge, destacado, onClick }) {
+function AccesoGrande({ icono: Icono, titulo, descripcion, pantalla, badge, destacado, onClick, colorPrincipal = ACCENT }) {
   const disponible = !!pantalla
   return (
     <button
@@ -294,16 +329,19 @@ function AccesoGrande({ icono: Icono, titulo, descripcion, pantalla, badge, dest
       className={`group relative overflow-hidden rounded-[24px] border p-5 text-left transition-all duration-300 ${
         disponible
           ? destacado
-            ? 'bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 text-white hover:border-sky-400 hover:shadow-xl hover:shadow-sky-900/20 hover:-translate-y-0.5 cursor-pointer'
-            : 'bg-white border-slate-100 hover:border-sky-300 hover:shadow-lg hover:shadow-sky-100/60 hover:-translate-y-0.5 cursor-pointer'
+            ? 'bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 text-white hover:shadow-xl hover:-translate-y-0.5 cursor-pointer'
+            : 'bg-white border-slate-100 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer'
           : 'bg-slate-50/50 border-slate-100 opacity-55 cursor-default'
       }`}
+      style={disponible ? {
+        borderColor: undefined,
+      } : undefined}
     >
       {/* Destello de fondo en hover */}
       {disponible && (
         <div
-          className="pointer-events-none absolute -top-8 -right-8 h-24 w-24 rounded-full blur-[32px] opacity-0 transition-opacity duration-500 group-hover:opacity-20"
-          style={{ background: ACCENT }}
+          className="pointer-events-none absolute -top-8 -right-8 h-24 w-24 rounded-full blur-[32px] opacity-0 transition-opacity duration-500 group-hover:opacity-25"
+          style={{ background: colorPrincipal }}
         />
       )}
 
@@ -312,10 +350,15 @@ function AccesoGrande({ icono: Icono, titulo, descripcion, pantalla, badge, dest
         className={`mb-3.5 flex h-11 w-11 items-center justify-center rounded-xl transition-all duration-350 ${
           disponible
             ? destacado
-              ? 'bg-white/10 text-sky-300 border border-white/10 group-hover:bg-sky-500 group-hover:text-white group-hover:scale-110'
-              : 'bg-sky-50 text-sky-500 border border-sky-100 group-hover:bg-sky-500 group-hover:text-white group-hover:scale-110'
+              ? 'border border-white/10 group-hover:text-white group-hover:scale-110'
+              : 'border group-hover:text-white group-hover:scale-110'
             : 'bg-slate-100 text-slate-400 border border-slate-200'
         }`}
+        style={disponible ? {
+          backgroundColor: destacado ? 'rgba(255,255,255,0.08)' : `${colorPrincipal}15`,
+          color: colorPrincipal,
+          borderColor: destacado ? 'rgba(255,255,255,0.1)' : `${colorPrincipal}30`
+        } : undefined}
       >
         <Icono size={20} />
       </div>
@@ -327,7 +370,12 @@ function AccesoGrande({ icono: Icono, titulo, descripcion, pantalla, badge, dest
         </p>
         {badge && (
           <span
-            className={`rounded-full px-2 py-0.5 text-[8.5px] font-black uppercase tracking-wider ${destacado ? 'bg-sky-400/15 border border-sky-300/20 text-sky-300' : 'bg-sky-50 border border-sky-100 text-sky-600'}`}
+            className="rounded-full px-2 py-0.5 text-[8.5px] font-black uppercase tracking-wider border"
+            style={{
+              backgroundColor: `${colorPrincipal}18`,
+              borderColor: `${colorPrincipal}35`,
+              color: colorPrincipal
+            }}
           >
             {badge}
           </span>
@@ -343,7 +391,8 @@ function AccesoGrande({ icono: Icono, titulo, descripcion, pantalla, badge, dest
       {disponible && (
         <ChevronRight
           size={14}
-          className={`absolute bottom-4 right-4 transition-all duration-300 group-hover:translate-x-1 ${destacado ? 'text-sky-300/70 group-hover:text-sky-300' : 'text-sky-400/40 group-hover:text-sky-500'}`}
+          className="absolute bottom-4 right-4 transition-all duration-300 group-hover:translate-x-1"
+          style={{ color: colorPrincipal }}
         />
       )}
     </button>
@@ -674,21 +723,40 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
       <main className="mx-auto max-w-7xl px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6 pb-24">
         <div className="flex flex-col gap-4 sm:gap-6">
 
-          <section className="relative overflow-hidden rounded-[28px] sm:rounded-[32px] border border-slate-200 bg-gradient-to-br from-[#0d1b2e] via-[#173654] to-[#0b2437] p-5 sm:p-7 text-white shadow-xl shadow-slate-900/10">
-            <div className="absolute -right-16 -top-24 h-64 w-64 rounded-full bg-cyan-400/15 blur-3xl" />
+          <section 
+            className="relative overflow-hidden rounded-[28px] sm:rounded-[32px] border border-slate-200/40 p-5 sm:p-7 text-white shadow-xl shadow-slate-900/10 transition-all duration-500"
+            style={{
+              background: `linear-gradient(135deg, ${fondoConfig.colores[0]} 0%, ${fondoConfig.colores[1]} 65%, ${fondoConfig.colorPrincipal}30 100%)`
+            }}
+          >
+            <div 
+              className="absolute -right-16 -top-24 h-64 w-64 rounded-full blur-3xl opacity-20 pointer-events-none transition-all duration-500" 
+              style={{ background: fondoConfig.colorPrincipal }}
+            />
             <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3.5 sm:gap-4">
-                <img src="/logo-oficial.png" alt="Logo de SIGIC" className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl object-cover shadow-lg shadow-cyan-900/30 shrink-0" />
+                <img src="/logo-oficial.png" alt="Logo de SIGIC" className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl object-cover shadow-lg shrink-0 border border-white/10" />
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-cyan-300">Bienvenido al espacio de trabajo</p>
+                  <p 
+                    className="text-[10px] font-black uppercase tracking-[0.22em]"
+                    style={{ color: fondoConfig.colorPrincipal }}
+                  >
+                    Bienvenido al espacio de trabajo
+                  </p>
                   <h2 className="mt-1 text-xl sm:text-2xl lg:text-3xl font-black tracking-tight">Esto es SIGIC</h2>
-                  <p className="mt-1.5 max-w-2xl text-xs font-medium leading-relaxed text-white/65">El Sistema Integral de Gestión Institucional que organiza ceremonias de colación, graduados, invitados, acreditaciones, ubicaciones y accesos desde un único lugar.</p>
+                  <p className="mt-1.5 max-w-2xl text-xs font-medium leading-relaxed text-white/75">El Sistema Integral de Gestión Institucional que organiza ceremonias de colación, graduados, invitados, acreditaciones, ubicaciones y accesos desde un único lugar.</p>
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-2 text-center text-[9px] font-bold text-white/70 w-full lg:w-auto">
-                <div className="rounded-xl border border-white/10 bg-white/5 px-2.5 sm:px-3 py-2.5 sm:py-3"><span className="block text-base sm:text-lg font-black text-cyan-300">01</span>Planificar</div>
-                <div className="rounded-xl border border-white/10 bg-white/5 px-2.5 sm:px-3 py-2.5 sm:py-3"><span className="block text-base sm:text-lg font-black text-cyan-300">02</span>Organizar</div>
-                <div className="rounded-xl border border-white/10 bg-white/5 px-2.5 sm:px-3 py-2.5 sm:py-3"><span className="block text-base sm:text-lg font-black text-cyan-300">03</span>Controlar</div>
+              <div className="grid grid-cols-3 gap-2 text-center text-[9px] font-bold text-white/80 w-full lg:w-auto">
+                <div className="rounded-xl border border-white/15 bg-white/10 px-2.5 sm:px-3 py-2.5 sm:py-3 backdrop-blur-xs">
+                  <span className="block text-base sm:text-lg font-black" style={{ color: fondoConfig.colorPrincipal }}>01</span>Planificar
+                </div>
+                <div className="rounded-xl border border-white/15 bg-white/10 px-2.5 sm:px-3 py-2.5 sm:py-3 backdrop-blur-xs">
+                  <span className="block text-base sm:text-lg font-black" style={{ color: fondoConfig.colorPrincipal }}>02</span>Organizar
+                </div>
+                <div className="rounded-xl border border-white/15 bg-white/10 px-2.5 sm:px-3 py-2.5 sm:py-3 backdrop-blur-xs">
+                  <span className="block text-base sm:text-lg font-black" style={{ color: fondoConfig.colorPrincipal }}>03</span>Controlar
+                </div>
               </div>
             </div>
           </section>
@@ -701,10 +769,18 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
               className="lg:col-span-3 bg-white border border-slate-100 shadow-md shadow-slate-100/50 rounded-[28px] sm:rounded-[32px] overflow-hidden"
             >
               <div className="relative p-5 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 h-full min-h-[190px]">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-sky-500/[0.02] rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none"></div>
+                <div 
+                  className="absolute top-0 right-0 w-64 h-64 rounded-full -mr-32 -mt-32 blur-3xl pointer-events-none opacity-20"
+                  style={{ background: fondoConfig.colorPrincipal }}
+                />
                 
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-sky-500 mb-1.5 sm:mb-2">Todo listo para comenzar</p>
+                  <p 
+                    className="text-[10px] font-black uppercase tracking-[0.2em] mb-1.5 sm:mb-2"
+                    style={{ color: fondoConfig.colorPrincipal }}
+                  >
+                    Todo listo para comenzar
+                  </p>
                   <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-800 tracking-tight leading-tight">
                     Hola, {usuario?.nombre?.split(' ')?.[0] || 'Administrador'}
                   </h1>
@@ -712,11 +788,11 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
 
                   <div className="mt-3.5 sm:mt-4 flex flex-wrap gap-2 text-[10.5px] sm:text-[11px] font-bold text-slate-500">
                     <span className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-full">
-                      <Calendar size={13} className="text-sky-500 shrink-0" />
+                      <Calendar size={13} style={{ color: fondoConfig.colorPrincipal }} className="shrink-0" />
                       {ceremoniaActiva ? new Date(ceremoniaActiva.fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}
                     </span>
                     <span className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-full">
-                      <MapPin size={13} className="text-sky-500 shrink-0" />
+                      <MapPin size={13} style={{ color: fondoConfig.colorPrincipal }} className="shrink-0" />
                       {ceremoniaActiva?.lugar || 'Sede Beltrán'}
                     </span>
                   </div>
@@ -733,10 +809,17 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
                     </span>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-2 w-full">
-                    <button onClick={() => onNavegar('control-ingreso')} className="flex items-center justify-center gap-2 rounded-xl bg-sky-500 px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-white shadow-md shadow-sky-500/20 transition hover:bg-sky-600 active:scale-95 cursor-pointer">
+                    <button 
+                      onClick={() => onNavegar('control-ingreso')} 
+                      className="flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-white shadow-md transition active:scale-95 cursor-pointer hover:opacity-90"
+                      style={{ 
+                        backgroundColor: fondoConfig.colorPrincipal,
+                        boxShadow: `0 4px 14px ${fondoConfig.colorPrincipal}40`
+                      }}
+                    >
                       <ScanLine size={14} /> Controlar ingresos
                     </button>
-                    <button onClick={() => onNavegar('gestion-graduados')} className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-slate-600 transition hover:border-sky-200 hover:text-sky-600 active:scale-95 cursor-pointer">
+                    <button onClick={() => onNavegar('gestion-graduados')} className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-slate-600 transition hover:border-slate-300 hover:text-slate-800 active:scale-95 cursor-pointer">
                       <Users size={14} /> Ver graduados
                     </button>
                   </div>
@@ -749,6 +832,7 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
               climaInfo={climaInfo}
               fechaActual={fechaActual}
               textoTemp={textoTemp}
+              fondoConfig={fondoConfig}
             />
 
           </div>
@@ -771,14 +855,14 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
                   icono={GraduationCap}
                   etiqueta="Graduados"
                   valor={stats?.totalEgresados ?? 0}
-                  color="#3b82f6"
+                  color={fondoConfig.colorPrincipal}
                   descripcion="Registrados en esta ceremonia"
                 />
                 <BentoStatCard
                   icono={Users}
                   etiqueta="Invitados totales"
                   valor={stats?.totalInvitados ?? 0}
-                  color="#6366f1"
+                  color={fondoConfig.colores[1] || '#6366f1'}
                   descripcion="Acompañantes asignados"
                 />
                 <BentoStatCard
@@ -792,7 +876,7 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
                   icono={TrendingUp}
                   etiqueta="Ocupación"
                   valor={stats?.porcentajeOcupacion ?? 0}
-                  color="#0ea5e9"
+                  color={fondoConfig.colorPrincipal}
                   descripcion="Porcentaje de asistencia"
                   circularValue={stats?.porcentajeOcupacion ?? 0}
                 />
@@ -809,7 +893,14 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
             >
               <div>
                 <div className="flex items-center gap-2 px-6 py-4.5 border-b border-slate-50 bg-slate-50/20">
-                  <div className="flex h-[24px] w-[24px] items-center justify-center rounded-lg bg-sky-50 text-sky-500 border border-sky-100">
+                  <div 
+                    className="flex h-[24px] w-[24px] items-center justify-center rounded-lg border"
+                    style={{ 
+                      backgroundColor: `${fondoConfig.colorPrincipal}15`, 
+                      color: fondoConfig.colorPrincipal,
+                      borderColor: `${fondoConfig.colorPrincipal}30`
+                    }}
+                  >
                     <LayoutGrid size={13} />
                   </div>
                   <div>
@@ -831,6 +922,7 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
                         key={a.titulo}
                         {...a}
                         onClick={onNavegar}
+                        colorPrincipal={fondoConfig.colorPrincipal}
                       />
                     ))}
                 </div>
@@ -840,7 +932,10 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
               <div className="px-6 py-4 border-t border-slate-50 bg-slate-50/10 flex items-center justify-between text-[11px] text-slate-400 font-semibold">
                 <span>SiGIC · Administración de ceremonias</span>
                 <span className="flex items-center gap-1.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-sky-500 animate-pulse" />
+                  <span 
+                    className="h-1.5 w-1.5 rounded-full animate-pulse" 
+                    style={{ backgroundColor: fondoConfig.colorPrincipal }}
+                  />
                   Sistema disponible
                 </span>
               </div>
@@ -850,6 +945,7 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
             <TarjetaCronograma
               proximas={proximas}
               backendOnline={backendOnline}
+              colorPrincipal={fondoConfig.colorPrincipal}
             />
 
           </div>

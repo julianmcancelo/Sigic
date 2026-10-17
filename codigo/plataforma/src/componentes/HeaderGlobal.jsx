@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { LogOut, ArrowLeft, User, LayoutGrid, Palette } from 'lucide-react'
 import { ModalConfirmacion } from './ModalConfirmacion'
 import { ModalPersonalizarFondo } from './ModalPersonalizarFondo'
-import { aplicarTemaGlobal } from '../datos/fondos-pantalla'
+import { aplicarTemaGlobal, obtenerTemaActual } from '../datos/fondos-pantalla'
 
 /**
  * HeaderGlobal PRO: Cabecera maestra para toda la plataforma SiGIC.
@@ -77,6 +77,8 @@ export function HeaderGlobal({
     window.dispatchEvent(new CustomEvent('sigic-marca-agua-cambiada', { detail: valor }))
   }
 
+  const temaActual = obtenerTemaActual(fondoId)
+
   return (
     <header 
       className={`sticky top-0 z-50 w-full transition-all duration-300 ${
@@ -84,6 +86,9 @@ export function HeaderGlobal({
           ? 'bg-white/80 backdrop-blur-xl border-b border-slate-200/50 shadow-[0_4px_30px_-10px_rgba(0,0,0,0.05)]' 
           : 'bg-white border-b border-slate-100'
       }`}
+      style={{
+        borderTop: `3px solid ${temaActual?.colorPrincipal || '#0ea5e9'}`
+      }}
     >
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 sm:px-6 py-3 sm:py-4">
         
