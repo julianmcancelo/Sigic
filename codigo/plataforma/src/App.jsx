@@ -51,7 +51,7 @@ import { AsistenteOperativoCeremonia } from './componentes/AsistenteOperativoCer
 import { MenuInicio } from './componentes/MenuInicio'
 
 // Servicios
-import { validarToken, obtenerCeremoniaActiva, obtenerEstadoSetup, responderInvitacion, limpiarTokenSesion, guardarTokenSesion, obtenerTokenSesion, obtenerAjustes, actualizarAjuste, cerrarSesionServidor } from './servicios/api'
+import { validarToken, obtenerCeremoniaActiva, obtenerEstadoSetup, responderInvitacion, limpiarTokenSesion, guardarTokenSesion, obtenerTokenSesion, obtenerAjustes, actualizarAjuste, cerrarSesionServidor, validarSesionLocal } from './servicios/api'
 import { generarDatosDemoAleatorios, obtenerDatosDemoActuales, limpiarDatosDemo } from './lib/generador-datos-demo'
 import { demoSandbox } from './lib/demo-sandbox'
 
@@ -446,6 +446,26 @@ function App() {
         setRequiereSetup(estado.requiereConfiguracionInicial)
         
         if (!estado.requiereConfiguracionInicial) {
+          // Handshake de sesión: validar si la sesión local guardada sigue vigente en el servidor
+          const tokenActual = obtenerTokenSesion()
+          const sesionAdminLocal = typeof window !== 'undefined' && localStorage.getItem('sesion_admin') === 'true'
+          if (sesionAdminLocal && tokenActual && !tokenActual.startsWith('bypass-')) {
+            try {
+              const resSesion = await validarSesionLocal()
+              if (resSesion?.usuario) {
+                setAdminUser(resSesion.usuario)
+                localStorage.setItem('admin_user', JSON.stringify(resSesion.usuario))
+              }
+            } catch (errSesion) {
+              console.warn('La sesión guardada ya no es válida en el servidor tras el reinicio. Limpiando credenciales obsoletas.')
+              localStorage.removeItem('sesion_admin')
+              localStorage.removeItem('admin_user')
+              limpiarTokenSesion()
+              setAdminActivo(false)
+              setAdminUser({ nombre: '', correo: '' })
+            }
+          }
+
           const c = await obtenerCeremoniaActiva()
           setCeremoniaActiva(c)
 

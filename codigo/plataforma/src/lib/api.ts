@@ -11,7 +11,7 @@ const CLAVE_TOKEN = 'sigic_token';
 export function guardarTokenSesion(token: string) {
   if (token && typeof window !== 'undefined') {
     sessionStorage.setItem(CLAVE_TOKEN, token);
-    localStorage.removeItem(CLAVE_TOKEN);
+    localStorage.setItem(CLAVE_TOKEN, token);
   }
 }
 
@@ -27,13 +27,13 @@ export function obtenerTokenSesion() {
   const tokenSesion = sessionStorage.getItem(CLAVE_TOKEN) || '';
   if (tokenSesion) return tokenSesion;
 
-  // Migra una sesión anterior al almacenamiento aislado por pestaña.
-  const tokenAnterior = localStorage.getItem(CLAVE_TOKEN) || '';
-  if (tokenAnterior) {
-    sessionStorage.setItem(CLAVE_TOKEN, tokenAnterior);
-    localStorage.removeItem(CLAVE_TOKEN);
+  // Si no está en sessionStorage (nueva pestaña o reinicio de navegador), recuperar de localStorage
+  const tokenLocal = localStorage.getItem(CLAVE_TOKEN) || '';
+  if (tokenLocal) {
+    sessionStorage.setItem(CLAVE_TOKEN, tokenLocal);
+    return tokenLocal;
   }
-  return tokenAnterior;
+  return '';
 }
 
 const peticionesEnVuelo = new Map<string, Promise<Response>>();

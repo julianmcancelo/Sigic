@@ -1,11 +1,13 @@
 import crypto from 'crypto';
 
-let SECRETO = process.env.JWT_SECRET;
+// Secreto criptográfico persistente. En desarrollo, si process.env.JWT_SECRET no carga a tiempo,
+// usamos un secreto estático determinado para que un reinicio de Turbopack no invalide los tokens.
+const SECRETO_FALLBACK_DEV = 'sigic_development_persistent_secret_key_2026_itb_beltran_99887766';
+let SECRETO = process.env.JWT_SECRET || (process.env.NODE_ENV === 'production' ? null : SECRETO_FALLBACK_DEV);
+
 if (!SECRETO || SECRETO.length < 32) {
   if (process.env.NODE_ENV === 'production') throw new Error('JWT_SECRET debe tener al menos 32 caracteres.');
-  SECRETO = crypto.randomBytes(48).toString('hex');
-  console.warn('JWT_SECRET no está definido (o es muy corto) en .env.local.');
-  console.warn('  Se generó un secreto temporal para el inicio de sesión.');
+  SECRETO = SECRETO_FALLBACK_DEV;
 }
 
 function base64url(buffer: Buffer | string): string {
