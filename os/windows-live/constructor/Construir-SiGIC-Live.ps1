@@ -76,6 +76,12 @@ $dirSys32 = Join-Path $DirectorioMontaje "Windows\System32"
 Copy-Item "d:\Sigic\os\windows-live\personalizacion\winpeshl.ini" -Destination $dirSys32 -Force
 Copy-Item "d:\Sigic\os\windows-live\personalizacion\startnet.cmd" -Destination $dirSys32 -Force
 
+# Inyectar Fondo de pantalla oficial de SiGIC OS (reemplazo de winpe.bmp)
+$rutaBmp = "d:\Sigic\os\windows-live\personalizacion\winpe_wallpaper.bmp"
+if (Test-Path $rutaBmp) {
+    Copy-Item $rutaBmp -Destination (Join-Path $dirSys32 "winpe.bmp") -Force
+}
+
 # 6. Desmontar y guardar cambios
 Write-Host "[6/6] Guardando imagen optimizada en memoria RAM (boot.wim)..." -ForegroundColor Green
 dism /Unmount-Image /MountDir:"$DirectorioMontaje" /Commit
