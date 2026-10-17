@@ -130,3 +130,6 @@ dist-apk/
 os-appliance/
 *.iso
 ~$*
+
+padron_*.xlsx
+datos_alumnos/

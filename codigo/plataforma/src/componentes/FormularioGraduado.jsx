@@ -8,12 +8,12 @@ import { buscarGraduadoPorDNI, crearGraduado, obtenerAjustes, obtenerCeremoniaAc
 import { InputCampo } from './InputCampo'
 
 const CARRERAS_PREDETERMINADAS = [
-  { id: 'Analista de Sistemas', nombre: 'Analista de Sistemas', iniciales: 'TSAS' },
-  { id: 'Desarrollo de Software', nombre: 'Desarrollo de Software', iniciales: 'TSDS' },
-  { id: 'Automatización y Robótica', nombre: 'Automatización y Robótica', iniciales: 'TSAR' },
-  { id: 'Redes e Infraestructura', nombre: 'Redes e Infraestructura', iniciales: 'TSRI' },
-  { id: 'Diseño y Desarrollo Web', nombre: 'Diseño y Desarrollo Web', iniciales: 'TSDW' },
-  { id: 'Higiene y Seguridad en el Trabajo', nombre: 'Higiene y Seguridad en el Trabajo', iniciales: 'TSHST' },
+  { id: 'Ciencia de Datos e IA', nombre: 'Tecnicatura Superior en Ciencia de Datos e Inteligencia Artificial', iniciales: 'TSCDIA' },
+  { id: 'Análisis de Sistemas', nombre: 'Tecnicatura Superior en Análisis de Sistemas', iniciales: 'TSAS' },
+  { id: 'Higiene y Seguridad', nombre: 'Tecnicatura Superior en Higiene, Seguridad y Ambiente Laboral', iniciales: 'TSHSAL' },
+  { id: 'Diseño Industrial', nombre: 'Tecnicatura Superior en Diseño Industrial', iniciales: 'TSDI' },
+  { id: 'Automatización y Robótica', nombre: 'Tecnicatura Superior en Automatización y Robótica', iniciales: 'TSAR' },
+  { id: 'Desarrollo de Software', nombre: 'Tecnicatura Superior en Desarrollo de Software', iniciales: 'TSDS' },
 ]
 
 function normalizarTexto(txt) {
