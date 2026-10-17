@@ -800,18 +800,18 @@ function AsistenteAdministrativoCeremonia({ ceremonia, actualizando, onCerrar, o
   const pasos = [
     { etiqueta: 'Datos', listo: true, icono: ClipboardList, detalle: 'Ceremonia creada y activa.', accion: 'Ver configuración', destino: 'gestion-ceremonias' },
     { etiqueta: 'Padrón', listo: graduados > 0, icono: UserPlus, detalle: graduados ? `${graduados} graduados cargados.` : 'Cargá el primer graduado o importá el padrón.', accion: 'Cargar graduados', destino: 'gestion-graduados' },
-    { etiqueta: 'Butacas', listo: Boolean(ceremonia.plano_configurado), icono: Armchair, detalle: ceremonia.plano_configurado ? 'Plano y reglas configurados.' : 'Definí el plano antes de ubicar grupos.', accion: 'Configurar plano', destino: 'seleccion-asientos' },
     { etiqueta: 'Convocatoria', listo: graduados > 0 && invitaciones >= graduados, icono: Send, detalle: graduados ? `${invitaciones}/${graduados} invitaciones enviadas.` : 'Disponible al cargar el padrón.', accion: 'Gestionar invitaciones', destino: 'convocatoria' },
+    { etiqueta: 'Butacas', listo: Boolean(ceremonia.plano_configurado), icono: Armchair, detalle: ceremonia.plano_configurado ? 'Plano y reglas configurados.' : 'Definí el plano y ubicá a los confirmados.', accion: 'Configurar plano', destino: 'seleccion-asientos' },
     { etiqueta: 'Operación', listo: estado === 'EN_VIVO' || estado === 'FINALIZADA', icono: ScanLine, detalle: estado === 'EN_VIVO' ? 'Acreditación abierta.' : 'Revisá el padrón y las butacas.', accion: estado === 'EN_VIVO' ? 'Abrir acreditación' : 'Ver preparación', destino: estado === 'EN_VIVO' ? 'control-ingreso' : 'preparacion-ceremonia' },
     { etiqueta: 'Cierre', listo: estado === 'FINALIZADA', icono: Flag, detalle: estado === 'FINALIZADA' ? 'Acta operativa archivada.' : 'Cerrá cuando termine la ceremonia.', accion: 'Ver seguimiento', destino: 'estado-ceremonia' }
   ]
   const siguiente = ETAPAS[Math.min(indice + 1, ETAPAS.length - 1)]?.[1]
   const bloqueo = estado === 'CONFIGURACION' && !graduados
     ? { mensaje: 'Antes de convocar, cargá al menos un graduado.', destino: 'gestion-graduados', accion: 'Cargar padrón' }
-    : estado === 'CONVOCATORIA' && !ceremonia.plano_configurado
-      ? { mensaje: 'Antes de preparar, definí el plano de butacas.', destino: 'seleccion-asientos', accion: 'Configurar plano' }
-      : estado === 'PREPARACION' && invitaciones < graduados
-        ? { mensaje: `Faltan ${graduados - invitaciones} invitaciones por enviar.`, destino: 'convocatoria', accion: 'Enviar invitaciones' }
+    : estado === 'CONVOCATORIA' && invitaciones < graduados
+      ? { mensaje: `Faltan enviar ${graduados - invitaciones} invitaciones de convocatoria.`, destino: 'convocatoria', accion: 'Enviar invitaciones' }
+      : estado === 'PREPARACION' && !ceremonia.plano_configurado
+        ? { mensaje: 'Antes de operar, definí el plano de butacas y asignación.', destino: 'seleccion-asientos', accion: 'Configurar butacas' }
         : null
 
   return <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/55 p-3 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby="asistente-ceremonia-titulo">
