@@ -66,7 +66,10 @@ SiGIC/
 │   ├── plataforma/              # Plataforma Web y API Serverless (Next.js + Neon PostgreSQL)
 │   ├── movil_flutter/           # App de portería (Flutter + Shorebird OTA)
 │   └── landing/                 # Sitio institucional estático
-├── MANUAL.md                    # Manual de usuario (Administración, Egresados y Portería)
+├── docs/                        # Manuales, guías de despliegue y seguridad
+│   ├── MANUAL.md                # Manual de usuario (Administración, Egresados y Portería)
+│   ├── DEPLOY_LINUX.md          # Guía de despliegue en Linux / Appliance
+│   └── SEGURIDAD.md             # Políticas de seguridad y roles
 ├── CHANGELOG.md                 # Historial de versiones y cambios
 ├── README.md                    # Este archivo
 └── .gitignore
@@ -176,7 +179,8 @@ Las actualizaciones OTA en producción se gestionan con Shorebird. Ver [`codigo/
 
 | Archivo | Contenido |
 |---|---|
-| [`MANUAL.md`](MANUAL.md) | Manual de usuario completo (Administradores, Egresados y Portería) |
+| [`docs/MANUAL.md`](docs/MANUAL.md) | Manual de usuario completo (Administradores, Egresados y Portería) |
+| [`docs/DEPLOY_LINUX.md`](docs/DEPLOY_LINUX.md) | Guía de despliegue y puesta en marcha sobre Linux / Appliance |
 | [`CHANGELOG.md`](CHANGELOG.md) | Historial detallado de versiones y cambios |
 | [`codigo/plataforma/README.md`](codigo/plataforma/README.md) | Documentación técnica de la plataforma web |
 | [`codigo/movil_flutter/README.md`](codigo/movil_flutter/README.md) | Documentación de la app móvil Flutter |
