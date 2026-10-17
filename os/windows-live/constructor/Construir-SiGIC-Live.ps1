@@ -48,15 +48,26 @@ Copy-Item "$letraIso\bootmgr.efi" -Destination $CarpetaDestino -Force -ErrorActi
 
 # 3. Copiar boot.wim (WinPE)
 Write-Host "[3/6] Extrayendo imagen de recuperacion y entorno en memoria (boot.wim)..." -ForegroundColor Green
-Copy-Item "$letraIso\sources\boot.wim" -Destination (Join-Path $CarpetaDestino "sources\boot.wim") -Force
+$rutaBootWim = Join-Path $CarpetaDestino "sources\boot.wim"
+Copy-Item "$letraIso\sources\boot.wim" -Destination $rutaBootWim -Force
 
 # Desmontar ISO de Windows
 Dismount-DiskImage -ImagePath $IsoOrigen | Out-Null
 Write-Host "      ISO desmontada con exito." -ForegroundColor Gray
 
+# Quitar atributo Read-Only heredado de la ISO (CAUSA DEL ERROR 0xc1510111)
+Set-ItemProperty -Path $rutaBootWim -Name IsReadOnly -Value $false
+attrib -r -s -h "$rutaBootWim"
+
+# Limpieza preventiva de montajes residuales de DISM
+dism /Cleanup-Wim | Out-Null
+
 # 4. Modificar boot.wim con DISM para inyectar SiGIC OS
 Write-Host "[4/6] Montando boot.wim con DISM..." -ForegroundColor Green
-if (Test-Path $DirectorioMontaje) { Remove-Item $DirectorioMontaje -Recurse -Force }
+if (Test-Path $DirectorioMontaje) { 
+    dism /Unmount-Image /MountDir:"$DirectorioMontaje" /Discard 2>$null | Out-Null
+    Remove-Item $DirectorioMontaje -Recurse -Force -ErrorAction SilentlyContinue 
+}
 New-Item -ItemType Directory -Force -Path $DirectorioMontaje | Out-Null
 
 # El índice 2 suele ser el Setup/WinPE interactivo
