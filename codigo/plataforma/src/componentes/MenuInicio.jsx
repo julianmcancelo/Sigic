@@ -2,6 +2,7 @@
 
 import React, { forwardRef, useEffect, useRef, useState } from 'react'
 import { Search, X, ArrowUpRight, ChevronRight, CalendarDays, Power, LayoutGrid, Clock, LayoutDashboard, Sparkles } from 'lucide-react'
+import { AnimatedThemeToggler } from './AnimatedThemeToggler'
 import './menu-inicio.css'
 
 const informacion = {
@@ -20,6 +21,8 @@ const informacion = {
   'seleccion-asientos': ['Organizar', 'Distribución del espacio', 'anfiteatro mapa butacas'],
   'manual-usuario': ['Ayuda y Soporte', 'Guía y documentación oficial', 'manual documentacion ayuda soporte guia'],
   'acerca-de': ['Ayuda y Soporte', 'Créditos y equipo Beltrán', 'acerca de version equipo beltran creditos'],
+  'actualizar-sigic': ['Administrar', 'Actualización Dinámica de SiGIC', 'actualizar actualizar-sigic update parche version usb red'],
+  'landing-page': ['General', 'Landing Page Evento estilo Nerdearla', 'landing evento nerdearla web cronograma'],
   'operaciones-demo': ['Administrar', 'Herramientas de demostración', 'demo prueba'],
 }
 const normalizar = valor => String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
@@ -130,6 +133,9 @@ export const MenuInicio = forwardRef(function MenuInicio({
           <LayoutDashboard size={17} />
         </button>
       )}
+      <div className="flex items-center px-1">
+        <AnimatedThemeToggler size="sm" />
+      </div>
       <button onClick={() => { onAbrir('bienvenida'); onCerrar?.() }} aria-label="Mostrar escritorio" title="Mostrar escritorio"><LayoutGrid size={17} /></button>
       <button onClick={onCerrarSesion} aria-label="Cerrar sesión" title="Cerrar sesión"><Power size={17} /></button>
     </footer>

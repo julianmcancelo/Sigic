@@ -15,6 +15,7 @@ export function ControlExpositor({
   onAlternarModoDemo,
   onSimularAdmin, 
   onSimularEgresado, 
+  onAbrirLanding,
   onLimpiar, 
   onIniciarDemo,
   estiloInterfaz = 'dashboard',
@@ -124,6 +125,16 @@ export function ControlExpositor({
                   <GraduationCap size={13} className="text-emerald-600 shrink-0" aria-hidden="true" />
                   <span className="text-[11px] font-bold truncate">Simular Egresada (Julieta)</span>
                 </button>
+
+                {onAbrirLanding && (
+                  <button 
+                    onClick={() => ejecutar(onAbrirLanding)} 
+                    className="flex w-full items-center gap-2 rounded-md border border-cyan-200 bg-cyan-50/60 px-2 py-1.5 text-left text-cyan-900 hover:bg-cyan-100 transition cursor-pointer"
+                  >
+                    <Sparkles size={13} className="text-cyan-600 shrink-0" aria-hidden="true" />
+                    <span className="text-[11px] font-bold truncate">Landing Page (Nerdearla)</span>
+                  </button>
+                )}
 
                 {/* Alternar a Modo Real */}
                 <button

@@ -198,7 +198,7 @@ export function ModalAcercaDe({ abierto, onCerrar, onAbrirManual }) {
           {pestana === 'modulos' && (
             <div className="space-y-3">
               <p className="text-xs text-slate-300 leading-relaxed">
-                SiGIC OS Appliance está construido sobre una arquitectura desacoplada de alto rendimiento:
+                SiGIC está construido sobre una arquitectura desacoplada de alto rendimiento:
               </p>
               <div className="p-3 rounded-xl bg-slate-900/60 border border-white/5 space-y-2 text-xs">
                 <div className="flex justify-between border-b border-white/5 pb-1.5">
@@ -218,8 +218,8 @@ export function ModalAcercaDe({ abierto, onCerrar, onAbrirManual }) {
                   <span className="text-white font-mono">React Native + Expo Router</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-400 font-bold">Sistema Operativo</span>
-                  <span className="text-sky-300 font-mono">SiGIC OS (Debian Live XFCE)</span>
+                  <span className="text-slate-400 font-bold">Entorno Institucional</span>
+                  <span className="text-sky-300 font-mono">SiGIC Live (Debian XFCE)</span>
                 </div>
               </div>
             </div>

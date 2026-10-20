@@ -12,11 +12,18 @@ echo [*] Inicializando subsistema WinPE...
 wpeinit
 
 echo [*] Configurando red y servicios...
+wpeutil InitializeNetwork
 ipconfig /renew >nul 2>&1
 
 echo [*] Iniciando entorno de aplicacion SiGIC...
 if exist "X:\SiGIC\Iniciar-SiGIC-OS.bat" (
     call "X:\SiGIC\Iniciar-SiGIC-OS.bat"
-) else (
-    echo [!] SiGIC Appliance en memoria listo.
 )
+
+:: Mantener la consola abierta permanentemente para que WinPE no se apague
+:BUCLE_SISTEMA
+echo.
+echo [*] Consola administrativa de SiGIC OS activa.
+cmd.exe
+goto BUCLE_SISTEMA
+

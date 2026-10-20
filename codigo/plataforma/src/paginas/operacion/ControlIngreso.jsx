@@ -6,7 +6,8 @@ import {
   Users, GraduationCap, Armchair, Clock, UserCheck, RefreshCw, Volume2, 
   VolumeX, ShieldCheck, ArrowRight, Sparkles, Check, Accessibility, CalendarDays,
   Smartphone, Download, Radio, Shield, Copy, CheckCheck, Globe, Wifi, KeyRound,
-  ExternalLink, Layers, Laptop, Activity
+  ExternalLink, Layers, Laptop, Activity, Zap, Play, Trash2, Server, HelpCircle,
+  CheckCircle, Signal, BatteryCharging, Info, Sliders, ChevronDown
 } from 'lucide-react'
 import { 
   buscarAcreditacion, 
@@ -20,7 +21,8 @@ import {
   descargarManifiestoAcreditacion,
   sincronizarLoteAcreditacion,
   obtenerDispositivosMoviles,
-  desvincularDispositivoAdmin
+  desvincularDispositivoAdmin,
+  obtenerRedLocal
 } from '../../servicios/api'
 import { 
   guardarManifiestoOffline, 
@@ -137,19 +139,24 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
   const [modalidad, setModalidad] = useState('flutter') // 'flutter' | 'respaldo_web' | 'monitor'
   const [dispositivosMoviles, setDispositivosMoviles] = useState([])
   const [cargandoDispositivos, setCargandoDispositivos] = useState(false)
+  const [desvinculandoId, setDesvinculandoId] = useState(null)
   const [copiadoApk, setCopiadoApk] = useState(false)
   const [copiadoServidor, setCopiadoServidor] = useState(false)
+  const [copiadoComando, setCopiadoComando] = useState(false)
   const [editandoUrlServidor, setEditandoUrlServidor] = useState(false)
+  const [redLocalInfo, setRedLocalInfo] = useState(null)
+  const [simulandoEscaneo, setSimulandoEscaneo] = useState(false)
+  const [pingStatus, setPingStatus] = useState('idle') // 'idle' | 'testing' | 'ok' | 'error'
+  const [pingLatencia, setPingLatencia] = useState(null)
+
   const [urlApk, setUrlApk] = useState(() => {
     if (typeof window !== 'undefined') {
-      return `${window.location.origin}/descargas/SIGIC-Porteria-1.0.5.apk`
+      return `${window.location.origin}/descargas/SIGIC-Porteria-1.0.7.apk`
     }
-    return 'https://sigic.com.ar/descargas/SIGIC-Porteria-1.0.5.apk'
+    return 'https://sigic.com.ar/descargas/SIGIC-Porteria-1.0.7.apk'
   })
   const [urlServidor, setUrlServidor] = useState(() => {
     if (typeof window !== 'undefined') {
-      const host = window.location.hostname
-      // Si estamos en localhost, sugerir que para conectar móviles conviene la IP local o la URL pública
       return `${window.location.origin}/api`
     }
     return 'https://sigic.com.ar/api'
@@ -159,6 +166,26 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
   const inputBusquedaRef = useRef(null)
   const bufferTecladoRef = useRef('')
   const ultimoKeyTimeRef = useRef(0)
+
+  // Cargar información de red local (IPs del servidor)
+  async function cargarRedLocal() {
+    try {
+      const data = await obtenerRedLocal()
+      if (data && data.ok) {
+        setRedLocalInfo(data)
+        // Si el cliente está en localhost y el servidor detectó una IP de red local sugerida, auto-sugerir
+        if (typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+          if (data.ipRecomendada && data.ipRecomendada !== '127.0.0.1') {
+            const puerto = window.location.port || data.puerto || '3000'
+            const sugerida = `http://${data.ipRecomendada}:${puerto}/api`
+            setUrlServidor(sugerida)
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('No se pudo detectar red local:', e)
+    }
+  }
 
   async function cargarDispositivos() {
     setCargandoDispositivos(true)
@@ -172,12 +199,80 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
     }
   }
 
+  async function handleDesvincularTerminal(dispositivoId) {
+    if (!dispositivoId) return
+    const confirmar = window.confirm('¿Seguro que deseas desvincular este dispositivo móvil?')
+    if (!confirmar) return
+
+    setDesvinculandoId(dispositivoId)
+    try {
+      await desvincularDispositivoAdmin(dispositivoId)
+      await cargarDispositivos()
+      setMensajeAccion({ tipo: 'exito', texto: 'Terminal móvil desvinculada exitosamente.' })
+      reproducirSonido('exito')
+    } catch (err) {
+      console.error('Error al desvincular:', err)
+      setMensajeAccion({ tipo: 'advertencia', texto: err.message || 'No se pudo desvincular el dispositivo.' })
+      reproducirSonido('advertencia')
+    } finally {
+      setDesvinculandoId(null)
+    }
+  }
+
+  // Probar conectividad con el endpoint del servidor
+  async function probarConexionServidor() {
+    setPingStatus('testing')
+    const inicio = Date.now()
+    try {
+      const endpoint = urlServidor.endsWith('/api') ? `${urlServidor}/estado` : `${urlServidor}`
+      const res = await fetch(endpoint, { method: 'GET', cache: 'no-store' })
+      const delta = Date.now() - inicio
+      setPingLatencia(delta)
+      if (res.ok) {
+        setPingStatus('ok')
+        reproducirSonido('exito')
+      } else {
+        setPingStatus('error')
+        reproducirSonido('advertencia')
+      }
+    } catch {
+      setPingStatus('error')
+      setPingLatencia(null)
+      reproducirSonido('advertencia')
+    }
+    setTimeout(() => {
+      setPingStatus('idle')
+    }, 4500)
+  }
+
+  // Simular un escaneo de prueba para verificar pipeline
+  async function simularEscaneoDePrueba() {
+    setSimulandoEscaneo(true)
+    try {
+      // Buscar el primer egresado de la ceremonia si existe
+      const manif = obtenerManifiestoOffline()
+      let codigoPrueba = 'EG-DEMO-001'
+      if (manif && Array.isArray(manif.egresados) && manif.egresados.length > 0) {
+        codigoPrueba = manif.egresados[0].dni || manif.egresados[0].codigo || 'EG-DEMO-001'
+      }
+      await ejecutarBusqueda(codigoPrueba)
+      setMensajeAccion({ tipo: 'exito', texto: `Simulación completada con código: ${codigoPrueba}` })
+    } catch (err) {
+      setMensajeAccion({ tipo: 'advertencia', texto: 'Error al simular escaneo.' })
+    } finally {
+      setSimulandoEscaneo(false)
+    }
+  }
+
   function copiarTexto(texto, tipo) {
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
       navigator.clipboard.writeText(texto)
       if (tipo === 'apk') {
         setCopiadoApk(true)
         setTimeout(() => setCopiadoApk(false), 2000)
+      } else if (tipo === 'comando') {
+        setCopiadoComando(true)
+        setTimeout(() => setCopiadoComando(false), 2000)
       } else {
         setCopiadoServidor(true)
         setTimeout(() => setCopiadoServidor(false), 2000)
@@ -261,6 +356,13 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
 
   useEffect(() => {
     cargarEntorno()
+    cargarRedLocal()
+    cargarDispositivos()
+
+    // Intervalo de sondeo periódico de terminales móviles activas
+    const intervalDispositivos = setInterval(() => {
+      cargarDispositivos()
+    }, 7000)
 
     const handleOnline = () => {
       setEstaOnline(true)
@@ -274,6 +376,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
     window.addEventListener('offline', handleOffline)
 
     return () => {
+      clearInterval(intervalDispositivos)
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
     }
@@ -780,71 +883,186 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
         </div>
       </div>
 
-      {/* VISTA FLUTTER: SIMPLE, LIMPIA Y AMIGABLE */}
+      {/* VISTA FLUTTER: CENTRO DE GESTIÓN Y SINCRONIZACIÓN MÓVIL PORTERÍA */}
       {modalidad === 'flutter' && (
-        <main className="max-w-5xl mx-auto space-y-6 my-6">
+        <main className="max-w-6xl mx-auto space-y-7 my-6 px-3 sm:px-0">
           
-          {/* ENCABEZADO AMIGABLE */}
-          <div className="text-center space-y-2 max-w-xl mx-auto">
-            <h2 className="text-xl sm:text-2xl font-black text-white">
-              Acreditación Móvil en Puerta
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-400 font-medium">
-              Todo el control de ingreso se realiza desde la aplicación Flutter instalada en los celulares de portería.
-            </p>
+          {/* BANNER PRINCIPAL / HERO MODERNO */}
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900/90 to-sky-950/40 border border-slate-800 p-6 sm:p-8 shadow-2xl backdrop-blur-xl">
+            <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
+
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="space-y-2.5 max-w-2xl">
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs font-black tracking-wide">
+                    <Smartphone size={14} className="text-sky-400" />
+                    <span>SiGIC Accesos · Flutter Engine v1.0.7</span>
+                  </span>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[11px] font-bold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    Cámara 60 FPS & Offline Sync
+                  </span>
+                </div>
+
+                <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                  Control de Acreditación Móvil en Puerta
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-300/90 font-medium leading-relaxed">
+                  Terminales de mano para guardias y recepcionistas. Escaneo ultrarrápido de credenciales QR, validación instantánea de butacas oficiales y sincronización automática bidireccional.
+                </p>
+              </div>
+
+              {/* ACCIONES RÁPIDAS DEL PANEL SUPERIOR */}
+              <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 shrink-0">
+                <button
+                  onClick={probarConexionServidor}
+                  disabled={pingStatus === 'testing'}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-xs font-bold transition active:scale-95 cursor-pointer ${
+                    pingStatus === 'ok'
+                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+                      : pingStatus === 'error'
+                      ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                      : 'bg-slate-800/80 hover:bg-slate-800 text-slate-200 border-slate-700'
+                  }`}
+                  title="Verifica que el endpoint sea alcanzable por los teléfonos"
+                >
+                  <Activity size={15} className={pingStatus === 'testing' ? 'animate-spin text-sky-400' : ''} />
+                  <span>
+                    {pingStatus === 'testing' ? 'Probando...' : pingStatus === 'ok' ? `En línea (${pingLatencia}ms)` : pingStatus === 'error' ? 'Fallo de ping' : 'Test Ping'}
+                  </span>
+                </button>
+
+                <button
+                  onClick={simularEscaneoDePrueba}
+                  disabled={simulandoEscaneo}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-400 hover:to-cyan-400 text-slate-950 text-xs font-black shadow-lg shadow-sky-500/20 transition active:scale-95 cursor-pointer"
+                  title="Simula un escaneo exitoso sin necesidad de un celular físico"
+                >
+                  <Play size={14} className={simulandoEscaneo ? 'animate-spin' : ''} />
+                  <span>Simular Acreditación</span>
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* 2 PASOS VISUALES GRANDES Y CLAROS */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* 2 PASOS VISUALES REDISEÑADOS CON GLASSMORPHISM Y ALTO CONTRASTE */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
-            {/* PASO 1: DESCARGA */}
-            <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col items-center text-center space-y-5">
-              <div className="flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-sky-500 text-slate-950 font-black text-xs flex items-center justify-center">1</span>
-                <h3 className="text-base font-black text-white">Descargar Aplicación</h3>
+            {/* PASO 1: INSTALACIÓN DEL APK OFICIAL */}
+            <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-7 shadow-xl flex flex-col justify-between space-y-6 relative overflow-hidden group hover:border-slate-700 transition">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-7 h-7 rounded-xl bg-sky-500/20 border border-sky-500/40 text-sky-400 font-black text-xs flex items-center justify-center">
+                      1
+                    </span>
+                    <div>
+                      <h3 className="text-base font-black text-white">Instalar Aplicación</h3>
+                      <p className="text-[11px] text-slate-400">Android APK Oficial · Listo para producción</p>
+                    </div>
+                  </div>
+                  <span className="px-2.5 py-1 rounded-lg bg-slate-800 text-sky-300 text-[11px] font-mono font-bold border border-slate-700">
+                    v1.0.7 · 74 MB
+                  </span>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-5 bg-slate-950/60 p-4 rounded-2xl border border-slate-800/80">
+                  <div className="p-3 bg-white rounded-2xl shadow-xl shrink-0 group-hover:scale-105 transition-transform duration-300">
+                    <QRCodeSVG value={urlApk} size={135} level="M" />
+                  </div>
+
+                  <div className="space-y-2.5 text-center sm:text-left">
+                    <p className="text-xs text-slate-200 font-semibold leading-snug">
+                      Apuntá la cámara nativa de cualquier Android a este código para iniciar la descarga.
+                    </p>
+                    <div className="space-y-1 text-[11px] text-slate-400">
+                      <p className="flex items-center justify-center sm:justify-start gap-1.5">
+                        <CheckCircle size={13} className="text-emerald-400 shrink-0" />
+                        <span>Sin Play Store requerida (Instalación local)</span>
+                      </p>
+                      <p className="flex items-center justify-center sm:justify-start gap-1.5">
+                        <CheckCircle size={13} className="text-emerald-400 shrink-0" />
+                        <span>Compatible con Android 7.0 o superior</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className="p-4 bg-white rounded-2xl shadow-lg border border-slate-200">
-                <QRCodeSVG value={urlApk} size={160} level="M" />
+              <div className="space-y-3 pt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <a
+                    href="/descargas/SIGIC-Porteria-1.0.7.apk"
+                    download="SIGIC-Porteria-1.0.7.apk"
+                    className="py-3 px-4 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-black text-xs transition active:scale-95 shadow-lg shadow-sky-500/20 flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <Download size={15} />
+                    <span>Descargar APK</span>
+                  </a>
+
+                  <button
+                    onClick={() => copiarTexto(urlApk, 'apk')}
+                    className="py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 text-xs font-bold transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    {copiadoApk ? <CheckCheck size={15} className="text-emerald-400" /> : <Copy size={15} />}
+                    <span>{copiadoApk ? '¡Enlace Copiado!' : 'Copiar Enlace'}</span>
+                  </button>
+                </div>
+
+                <p className="text-[10px] text-slate-500 text-center">
+                  ¿Descarga bloqueada? Al abrir el APK seleccioná <em>"Instalar de todas formas"</em> o permití orígenes desconocidos.
+                </p>
               </div>
-
-              <p className="text-xs text-slate-300 font-medium leading-relaxed max-w-xs">
-                Escaneá este código con la cámara del celular Android para descargar el archivo APK oficial de portería.
-              </p>
-
-              <a
-                href="/descargas/SIGIC-Porteria-1.0.5.apk"
-                download="SIGIC-Porteria-1.0.5.apk"
-                className="w-full py-3 px-4 rounded-2xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-black text-xs transition active:scale-95 shadow-md shadow-sky-500/20 flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <Download size={16} /> Descargar APK Directo
-              </a>
             </div>
 
-            {/* PASO 2: CONEXIÓN */}
-            <div className="bg-slate-800/90 border border-slate-700/80 rounded-3xl p-6 sm:p-8 shadow-xl flex flex-col items-center text-center space-y-4">
-              <div className="flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-emerald-400 text-slate-950 font-black text-xs flex items-center justify-center">2</span>
-                <h3 className="text-base font-black text-white">Conectar e Iniciar</h3>
+            {/* PASO 2: VINCULACIÓN Y ENLACE DE RED CON AUTO-DETECCIÓN */}
+            <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-7 shadow-xl flex flex-col justify-between space-y-6 relative overflow-hidden group hover:border-slate-700 transition">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-7 h-7 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 font-black text-xs flex items-center justify-center">
+                      2
+                    </span>
+                    <div>
+                      <h3 className="text-base font-black text-white">Vincular Celular a la Ceremonia</h3>
+                      <p className="text-[11px] text-slate-400">Escaneá desde la App Móvil SiGIC</p>
+                    </div>
+                  </div>
+                  <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-[11px] font-mono font-bold border border-emerald-500/30 flex items-center gap-1.5">
+                    <Wifi size={12} />
+                    {urlServidor.includes('localhost') ? 'Localhost' : 'Red Local Wi-Fi'}
+                  </span>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-5 bg-slate-950/60 p-4 rounded-2xl border border-slate-800/80">
+                  <div className="p-3 bg-white rounded-2xl shadow-xl shrink-0 group-hover:scale-105 transition-transform duration-300">
+                    <QRCodeSVG value={`sigic-config:${urlServidor}`} size={135} level="H" />
+                  </div>
+
+                  <div className="space-y-2.5 text-center sm:text-left flex-1 min-w-0">
+                    <p className="text-xs text-slate-200 font-semibold leading-snug">
+                      Abrí la app en el celular y apuntá su escáner a este QR para conectarse inmediatamente.
+                    </p>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      El celular y esta PC deben estar en la misma red Wi-Fi o punto de acceso compartido.
+                    </p>
+                  </div>
+                </div>
               </div>
 
-              <div className="p-4 bg-white rounded-2xl shadow-lg border border-slate-200">
-                <QRCodeSVG value={`sigic-config:${urlServidor}`} size={160} level="H" />
-              </div>
-
-              <p className="text-xs text-slate-300 font-medium leading-relaxed max-w-xs">
-                Abrí la app en el celular y apuntá la cámara a este código para conectar con la ceremonia activa.
-              </p>
-
-              {/* CONFIGURADOR DE URL DEL SERVIDOR (EVITA LOCALHOST SI EL CELULAR ESTÁ EN RED WI-FI) */}
-              <div className="w-full space-y-2">
-                <div className="flex items-center justify-between text-[11px] text-slate-400 px-1">
-                  <span>URL de Enlace para la App Móvil:</span>
+              {/* SELECTOR / CONFIGURADOR DE IP RÁPIDO */}
+              <div className="space-y-2.5 pt-1">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-slate-400 font-bold flex items-center gap-1.5">
+                    <Server size={13} className="text-cyan-400" />
+                    <span>Host API Destino:</span>
+                  </span>
                   <button
                     onClick={() => setEditandoUrlServidor(!editandoUrlServidor)}
-                    className="text-sky-400 hover:text-sky-300 underline font-semibold cursor-pointer"
+                    className="text-sky-400 hover:text-sky-300 font-bold text-xs underline cursor-pointer"
                   >
-                    {editandoUrlServidor ? 'Fijar URL' : 'Ajustar IP/Host'}
+                    {editandoUrlServidor ? 'Cerrar edición' : 'Editar manualmente'}
                   </button>
                 </div>
 
@@ -854,12 +1072,12 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                       type="text"
                       value={urlServidor}
                       onChange={(e) => setUrlServidor(e.target.value)}
-                      placeholder="http://192.168.1.50:3000/api"
-                      className="flex-1 bg-slate-950 border border-sky-500 text-cyan-300 font-mono text-xs px-3 py-2 rounded-xl outline-none"
+                      placeholder="http://192.168.0.90:3000/api"
+                      className="flex-1 bg-slate-950 border border-sky-500 text-cyan-300 font-mono text-xs px-3.5 py-2.5 rounded-xl outline-none"
                     />
                     <button
                       onClick={() => setEditandoUrlServidor(false)}
-                      className="px-3 py-2 bg-emerald-500 text-slate-950 font-bold text-xs rounded-xl"
+                      className="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs rounded-xl cursor-pointer"
                     >
                       Listo
                     </button>
@@ -867,40 +1085,212 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                 ) : (
                   <div 
                     onClick={() => copiarTexto(urlServidor, 'servidor')}
-                    className="w-full py-2.5 px-3 rounded-2xl bg-slate-900/80 border border-slate-700 text-cyan-300 font-mono text-[11px] font-bold truncate cursor-pointer hover:border-slate-600 transition flex items-center justify-between"
+                    className="w-full py-2.5 px-3.5 rounded-xl bg-slate-950 border border-slate-800 text-cyan-300 font-mono text-xs font-bold truncate cursor-pointer hover:border-slate-700 transition flex items-center justify-between"
                     title="Click para copiar URL"
                   >
                     <span className="truncate">{urlServidor}</span>
-                    <span className="text-[10px] text-slate-400 shrink-0 ml-2">
+                    <span className="text-[11px] text-slate-400 shrink-0 ml-2 font-sans font-semibold">
                       {copiadoServidor ? '¡Copiado!' : 'Copiar'}
                     </span>
                   </div>
                 )}
 
+                {/* SUGERENCIAS RÁPIDAS DE IPs DETECTADAS */}
+                {redLocalInfo && Array.isArray(redLocalInfo.interfaces) && redLocalInfo.interfaces.length > 0 && (
+                  <div className="space-y-1.5 pt-1">
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                      IPs detectadas en esta computadora (1-clic para aplicar):
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {redLocalInfo.interfaces.map((iface) => {
+                        const puerto = typeof window !== 'undefined' ? (window.location.port || '3000') : '3000'
+                        const targetUrl = `http://${iface.ip}:${puerto}/api`
+                        const esActual = urlServidor === targetUrl
+                        return (
+                          <button
+                            key={iface.ip}
+                            onClick={() => setUrlServidor(targetUrl)}
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold border transition cursor-pointer flex items-center gap-1.5 ${
+                              esActual
+                                ? 'bg-sky-500/20 text-sky-300 border-sky-500/40 shadow-sm'
+                                : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700 hover:bg-slate-800'
+                            }`}
+                          >
+                            <Wifi size={11} className={iface.recomendada ? 'text-emerald-400' : 'text-slate-400'} />
+                            <span>{iface.ip}</span>
+                            {iface.recomendada && (
+                              <span className="text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-300 font-sans">
+                                Wi-Fi
+                              </span>
+                            )}
+                          </button>
+                        )
+                      })}
+
+                      <button
+                        onClick={() => {
+                          const base = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'
+                          setUrlServidor(`${base}/api`)
+                        }}
+                        className={`px-2.5 py-1 rounded-lg text-[11px] font-mono font-bold border transition cursor-pointer ${
+                          urlServidor.includes('localhost')
+                            ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                            : 'bg-slate-950 text-slate-400 border-slate-800 hover:border-slate-700'
+                        }`}
+                      >
+                        localhost
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {urlServidor.includes('localhost') && (
-                  <p className="text-[10px] text-amber-400 font-medium bg-amber-500/10 border border-amber-500/20 rounded-xl p-2 text-left">
-                    <strong>Atención Wi-Fi:</strong> Tu navegador apunta a <code>localhost</code>. Para que celulares reales se conecten, hacé clic en "Ajustar IP/Host" y poné la IP local de tu PC (ej: <code>http://192.168.1.X:3000/api</code>).
-                  </p>
+                  <div className="text-[11px] text-amber-300/90 font-medium bg-amber-500/10 border border-amber-500/20 rounded-xl p-3 flex items-start gap-2.5">
+                    <AlertTriangle size={15} className="text-amber-400 shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="text-amber-300">Aviso sobre "localhost":</strong> El celular no podrá conectarse si el QR tiene <code>localhost</code> (porque intentará conectarse a sí mismo). Seleccioná una de las IPs locales detectadas arriba (ej: <code>{redLocalInfo?.ipRecomendada || '192.168.0.90'}</code>) para que conecte por Wi-Fi.
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
 
           </div>
 
+          {/* SECCIÓN 3: FLOTA DE TERMINALES MÓVILES VINCULADAS EN VIVO */}
+          <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-7 shadow-xl space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2.5">
+                  <Radio size={18} className="text-emerald-400 animate-pulse" />
+                  <h3 className="text-lg font-black text-white">Terminales Móviles de Portería</h3>
+                  <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 text-xs font-bold border border-slate-700">
+                    {dispositivosMoviles.length} vinculada(s)
+                  </span>
+                </div>
+                <p className="text-xs text-slate-400 font-medium">
+                  Dispositivos autorizados que actualmente pueden acreditar invitados y graduados en los accesos.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <button
+                  onClick={cargarDispositivos}
+                  disabled={cargandoDispositivos}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-200 transition active:scale-95 cursor-pointer"
+                >
+                  <RefreshCw size={13} className={cargandoDispositivos ? 'animate-spin' : ''} />
+                  <span>Refrescar</span>
+                </button>
+              </div>
+            </div>
+
+            {dispositivosMoviles.length === 0 ? (
+              <div className="text-center py-10 space-y-3 bg-slate-950/40 rounded-2xl border border-dashed border-slate-800">
+                <div className="w-12 h-12 rounded-2xl bg-slate-800/80 border border-slate-700 text-slate-400 flex items-center justify-center mx-auto">
+                  <Smartphone size={24} />
+                </div>
+                <div className="space-y-1 max-w-sm mx-auto">
+                  <h4 className="text-sm font-bold text-white">Ningún celular conectado todavía</h4>
+                  <p className="text-xs text-slate-400">
+                    Instalá la app en el teléfono de portería y escaneá el código QR del <strong>Paso 2</strong> para que aparezca aquí en tiempo real.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {dispositivosMoviles.map((dev) => {
+                  const enLinea = Boolean(dev.enLinea)
+                  const desvinculando = desvinculandoId === dev.dispositivoId
+
+                  return (
+                    <div
+                      key={dev.dispositivoId || Math.random()}
+                      className="bg-slate-950/70 border border-slate-800 hover:border-slate-700 rounded-2xl p-4 flex flex-col justify-between space-y-3 transition"
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-9 h-9 rounded-xl bg-sky-500/10 border border-sky-500/30 text-sky-400 flex items-center justify-center shrink-0">
+                              <Smartphone size={18} />
+                            </div>
+                            <div className="min-w-0">
+                              <h4 className="text-xs font-black text-white truncate">
+                                {dev.nombreDispositivo || dev.modelo || 'Terminal Android'}
+                              </h4>
+                              <p className="text-[11px] text-slate-400 truncate">
+                                {dev.usuarioNombre || dev.usuarioEmail || 'Operador de Portería'}
+                              </p>
+                            </div>
+                          </div>
+
+                          <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
+                            enLinea
+                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                              : 'bg-slate-800 text-slate-400 border border-slate-700'
+                          }`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${enLinea ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`} />
+                            {enLinea ? 'En línea' : 'Inactivo'}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 text-[11px] pt-1 border-t border-slate-800/80">
+                          <div>
+                            <span className="text-slate-500 block">Sistema:</span>
+                            <span className="text-slate-300 font-semibold truncate block">
+                              {dev.sistema || 'Android'} {dev.versionSistema ? `(${dev.versionSistema.slice(0, 10)})` : ''}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-slate-500 block">Versión App:</span>
+                            <span className="text-slate-300 font-mono font-semibold truncate block">
+                              {dev.versionApp || '1.0.7'}
+                            </span>
+                          </div>
+                          <div className="col-span-2">
+                            <span className="text-slate-500 block">IP Registrada:</span>
+                            <span className="text-cyan-300 font-mono text-[10px] truncate block">
+                              {dev.ipUltimoAcceso || '—'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between">
+                        <span className="text-[10px] text-slate-500">
+                          Último ping: {dev.ultimoAcceso ? new Date(dev.ultimoAcceso).toLocaleTimeString() : 'Reciente'}
+                        </span>
+
+                        <button
+                          onClick={() => handleDesvincularTerminal(dev.dispositivoId)}
+                          disabled={desvinculando}
+                          className="text-[11px] text-rose-400 hover:text-rose-300 font-bold flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-rose-500/10 transition cursor-pointer"
+                        >
+                          <Trash2 size={12} />
+                          <span>{desvinculando ? 'Desvinculando...' : 'Desvincular'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
           {/* BARRA INFERIOR DE ESTADO Y ACCESOS RÁPIDOS */}
-          <div className="bg-slate-800/60 border border-slate-700/60 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 text-xs">
+          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 text-xs">
             <div className="flex items-center gap-3">
               <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
               <span className="font-bold text-slate-200">
                 {dispositivosMoviles.length > 0 
-                  ? `${dispositivosMoviles.length} celular(es) acreditando en vivo` 
-                  : 'Esperando conexión de celulares de portería'}
+                  ? `${dispositivosMoviles.length} terminal(es) móvil(es) sincronizada(s) con la ceremonia activa` 
+                  : 'Sistema a la espera de conexiones móviles en puerta'}
               </span>
             </div>
 
             <div className="flex items-center gap-4 text-slate-400 font-semibold">
               <span>
-                Ingresados: <strong className="text-emerald-400 font-bold">{stats?.presentes || 0}</strong> de {stats?.totalInvitados ? (stats.totalInvitados + (stats.totalEgresados || 0)) : '—'}
+                Ingresados al momento: <strong className="text-emerald-400 font-black">{stats?.presentes || 0}</strong> de {stats?.totalInvitados ? (stats.totalInvitados + (stats.totalEgresados || 0)) : '—'}
               </span>
               <span>·</span>
               <button

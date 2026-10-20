@@ -18,7 +18,7 @@ export function ModalPreviewCorreo({
   const [mensajePrueba, setMensajePrueba] = useState(null)
 
   const nombreGraduado = graduadoEjemplo?.nombre || 'García, Sofía Milagros'
-  const carreraGraduado = graduadoEjemplo?.carrera || 'Tecnicatura Superior en Desarrollo de Software'
+  const carreraGraduado = graduadoEjemplo?.carrera || 'Tecnicatura Superior en Analista de Sistemas'
   const tokenGraduado = graduadoEjemplo?.token || 'sigic-demo-token-9988'
   const fechaCeremonia = ceremonia?.fecha 
     ? new Date(`${ceremonia.fecha}T12:00:00`).toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })

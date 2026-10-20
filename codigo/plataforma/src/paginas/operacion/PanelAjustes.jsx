@@ -10,6 +10,7 @@ import {
   obtenerCarreras, crearCarrera, obtenerMaterias, crearMateria, obtenerProfesores
 } from '../../servicios/api'
 import { FONDOS_DISPONIBLES } from '../../datos/fondos-pantalla'
+import { AnimatedThemeToggler } from '../../componentes/AnimatedThemeToggler'
 
 const INTERRUPTORES_ACTIVOS_POR_DEFECTO = { modo_mantenimiento: false }
 
@@ -466,10 +467,16 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
           {seccionActiva === 'apariencia' && (
             <section className="space-y-3">
               <div className="flex items-center justify-between ml-1">
-                <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">Tema y Fondo</span>
-                <span className="text-[9px] font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full">
-                  {FONDOS_DISPONIBLES.find(f => f.id === fondoId)?.nombre || 'Azul Beltrán'}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">Tema y Fondo</span>
+                  <span className="text-[9px] font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full">
+                    {FONDOS_DISPONIBLES.find(f => f.id === fondoId)?.nombre || 'Azul Beltrán'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-slate-500 hidden sm:inline">Modo Día/Noche:</span>
+                  <AnimatedThemeToggler size="sm" />
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">

@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Palette, Check, Sparkles, X, Sun, Moon, Eye, Layers, Grid, Sliders } from 'lucide-react'
 import { FONDOS_DISPONIBLES } from '../datos/fondos-pantalla'
+import { AnimatedThemeToggler } from './AnimatedThemeToggler'
 
 export function ModalPersonalizarFondo({ 
   fondoActual = 'beltran', 
@@ -49,12 +50,17 @@ export function ModalPersonalizarFondo({
               <p className="text-xs text-slate-400 font-medium">Elegí el estilo visual y los efectos del escritorio institucional</p>
             </div>
           </div>
-          <button
-            onClick={onCerrar}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition cursor-pointer"
-          >
-            <X size={18} />
-          </button>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center px-1">
+              <AnimatedThemeToggler size="sm" />
+            </div>
+            <button
+              onClick={onCerrar}
+              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition cursor-pointer"
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
 
         {/* GRILLA DE FONDOS DISPONIBLES */}

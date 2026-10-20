@@ -144,8 +144,12 @@ export function aplicarTemaGlobal(id = 'beltran') {
   if (tema.tipo === 'claro') {
     document.body.classList.add('sigic-mode-light')
     document.body.classList.remove('sigic-mode-dark')
+    root.classList.remove('dark')
+    root.classList.add('light')
   } else {
     document.body.classList.add('sigic-mode-dark')
     document.body.classList.remove('sigic-mode-light')
+    root.classList.add('dark')
+    root.classList.remove('light')
   }
 }

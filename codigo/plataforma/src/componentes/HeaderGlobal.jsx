@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
-import { LogOut, ArrowLeft, User, LayoutGrid, Palette } from 'lucide-react'
+import { LogOut, ArrowLeft, User, LayoutGrid, Palette, ArrowUpCircle } from 'lucide-react'
+import { ModalActualizarSigic } from './ModalActualizarSigic'
 import { ModalConfirmacion } from './ModalConfirmacion'
 import { ModalPersonalizarFondo } from './ModalPersonalizarFondo'
+import { AnimatedThemeToggler } from './AnimatedThemeToggler'
 import { aplicarTemaGlobal, obtenerTemaActual } from '../datos/fondos-pantalla'
 
 /**
@@ -19,6 +21,7 @@ export function HeaderGlobal({
 }) {
   const [modalAbierto, setModalAbierto] = useState(false)
   const [modalFondoAbierto, setModalFondoAbierto] = useState(false)
+  const [modalActualizarAbierto, setModalActualizarAbierto] = useState(false)
   const [fondoId, setFondoId] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('sigic_fondo') || 'beltran' : 'beltran'))
   const [cuadriculaActiva, setCuadriculaActiva] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('sigic_cuadricula') !== 'false' : true))
   const [marcaAguaActiva, setMarcaAguaActiva] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('sigic_marca_agua') !== 'false' : true))
@@ -135,39 +138,21 @@ export function HeaderGlobal({
         </div>
 
         {/* BLOQUE DERECHO: Perfil de Usuario y Acciones */}
-        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-          {onCambiarVersion && (
-            <button
-              onClick={onCambiarVersion}
-              className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-[9px] sm:text-[9.5px] font-black uppercase tracking-wider text-slate-700 hover:bg-slate-100 transition active:scale-95 cursor-pointer shadow-xs"
-              title="Cambiar al diseño Pro (con barra lateral)"
-            >
-              <LayoutGrid size={12} className="text-sky-500 shrink-0" />
-              <span className="hidden md:inline">Versión 2 (Pro)</span>
-              <span className="md:hidden">V2</span>
-            </button>
-          )}
-
-          {onCambiarEstiloInterfaz && (
-            <button
-              onClick={onCambiarEstiloInterfaz}
-              className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-[9px] sm:text-[9.5px] font-black uppercase tracking-wider text-slate-700 hover:bg-slate-100 transition active:scale-95 cursor-pointer shadow-xs"
-              title="Cambiar a modo Escritorio OS"
-            >
-              <span className="hidden md:inline">Escritorio OS</span>
-              <span className="md:hidden">OS</span>
-            </button>
-          )}
+        <div className="flex items-center gap-2.5 sm:gap-3.5 shrink-0">
+          
+          {/* Switch de Tema Animado Día/Noche */}
+          <div className="flex items-center">
+            <AnimatedThemeToggler size="sm" />
+          </div>
 
           {/* Personalizar Fondo & Tema */}
           <button
             onClick={() => setModalFondoAbierto(true)}
-            className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-[9px] sm:text-[9.5px] font-black uppercase tracking-wider text-slate-700 hover:bg-slate-100 transition active:scale-95 cursor-pointer shadow-xs"
-            title="Personalizar tema de color y fondo"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border border-slate-200/80 bg-slate-50/80 hover:bg-white text-slate-700 hover:text-amber-600 hover:border-amber-400/50 text-[10px] font-bold tracking-tight transition-all duration-200 active:scale-95 cursor-pointer shadow-xs"
+            title="Personalizar tema de color y fondo institucional"
           >
-            <Palette size={12} className="text-amber-500 shrink-0" />
-            <span className="hidden md:inline">Tema & Fondo</span>
-            <span className="md:hidden">Tema</span>
+            <Palette size={13} className="text-amber-500 shrink-0" />
+            <span className="hidden sm:inline">Tema & Fondo</span>
           </button>
 
           {/* Perfil del Operador */}
@@ -224,6 +209,11 @@ export function HeaderGlobal({
           onCerrar={() => setModalFondoAbierto(false)}
         />
       )}
+          {/* Modal de Actualización Dinámica SiGIC */}
+      <ModalActualizarSigic
+        abierto={modalActualizarAbierto}
+        onCerrar={() => setModalActualizarAbierto(false)}
+      />
     </header>
   )
 }

@@ -29,8 +29,7 @@ import {
 } from '../../servicios/api'
 import { QRCodeSVG } from 'qrcode.react'
 import { useSincronizacion, emitirCambioSync } from '../../lib/sync'
-import './seguridad.css'
-
+// Eliminar import './seguridad.css' ya que se usan clases nativas de Tailwind CSS
 const DARK = '#0F172A'
 const normalizarBusqueda = valor => String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
 
@@ -438,6 +437,7 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
   const porterosActivos = usuarios.filter(u => Number(u.activo) === 1).length
   const dispositivosEnLinea = dispositivos.filter(d => d.enLinea).length
   const dispositivosTotales = dispositivos.length
+  const usuariosSinPermiso = usuarios.filter(u => u.rol === 'PORTERIA' && !autorizadosMap[String(u.id)]).length
 
   const personalVisible = usuarios.filter(u => {
     const coincide = normalizarBusqueda(`${u.nombre} ${u.email} ${u.rol}`).includes(normalizarBusqueda(busqueda.trim()))
@@ -457,51 +457,668 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
     return coincide
   })
 
-  return (
-    <div className="sigic-security">
-      <header className="sg-sec-header">
-        <div className="sg-sec-title">{onVolver && <button className="sg-icon-button" onClick={onVolver} aria-label="Volver al inicio"><ArrowLeft size={18} /></button>}<span className="sg-sec-emblem"><ShieldCheck size={22} /></span><div><h1>Seguridad</h1><p>Personal, permisos y dispositivos.</p></div></div>
-        <div className="sg-sec-actions"><button className="sg-button" onClick={refrescarTodo} disabled={cargando || cargandoDispositivos} aria-label="Actualizar seguridad"><RefreshCw size={15} className={cargando || cargandoDispositivos ? 'animate-spin' : ''} /><span>Actualizar</span></button><button className="sg-button sg-button-primary" onClick={() => setMostrarModalNuevo(true)}><UserPlus size={15} />Nuevo personal</button></div>
-      </header>
+  const ceremoniaActual = ceremonias.find(c => String(c.id) === String(ceremoniaSeleccionadaId))
 
-      <div className="sg-sec-summary" aria-label="Resumen de seguridad">
-        <button onClick={() => { setPestañaActiva('personal'); setFiltro('todos'); setBusqueda('') }}><Users size={17} /><strong>{usuarios.length}</strong><span>Personas</span></button>
-        <button onClick={() => { setPestañaActiva('personal'); setFiltro('activos'); setBusqueda('') }}><ShieldCheck size={17} /><strong>{porterosActivos}</strong><span>Cuentas activas</span></button>
-        <button onClick={() => { setPestañaActiva('personal'); setFiltro('sin-acceso'); setBusqueda('') }}><KeyRound size={17} /><strong>{usuarios.filter(u => u.rol === 'PORTERIA' && !autorizadosMap[String(u.id)]).length}</strong><span>Sin permiso en ceremonia</span></button>
-        <button onClick={() => { setPestañaActiva('dispositivos'); setBusqueda('') }}><Smartphone size={17} /><strong>{dispositivosEnLinea}</strong><span>Dispositivos en línea</span></button>
+  return (
+    <div className="font-sans space-y-6">
+      {/* HEADER INTEGRADO */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-200/80">
+        <div className="flex items-center gap-3.5">
+          {onVolver && (
+            <button 
+              onClick={onVolver} 
+              className="p-2.5 rounded-xl border border-slate-200 bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition active:scale-95 shadow-2xs cursor-pointer"
+              aria-label="Volver al panel"
+            >
+              <ArrowLeft size={18} />
+            </button>
+          )}
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-600 to-indigo-600 text-white flex items-center justify-center shadow-md shadow-sky-500/20 shrink-0">
+            <ShieldCheck size={24} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
+                Seguridad y Accesos Móviles
+              </h1>
+              <span className="text-[10px] font-black uppercase tracking-wider bg-sky-50 text-sky-700 border border-sky-200/80 px-2 py-0.5 rounded-md">
+                Control Institucional
+              </span>
+            </div>
+            <p className="text-xs font-semibold text-slate-500 mt-0.5">
+              Gestión de personal de portería, asignación de permisos por ceremonia y terminales móviles conectadas.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2.5 shrink-0">
+          <button 
+            onClick={refrescarTodo} 
+            disabled={cargando || cargandoDispositivos}
+            className="inline-flex items-center gap-2 px-3.5 py-2.5 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-bold transition active:scale-95 shadow-2xs cursor-pointer disabled:opacity-50"
+          >
+            <RefreshCw size={15} className={cargando || cargandoDispositivos ? 'animate-spin text-sky-500' : 'text-slate-500'} />
+            <span>Actualizar</span>
+          </button>
+          <button 
+            onClick={() => setMostrarModalNuevo(true)}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-sky-600 text-white rounded-xl text-xs font-bold transition active:scale-95 shadow-md shadow-slate-900/10 cursor-pointer"
+          >
+            <UserPlus size={15} />
+            <span>Nuevo Personal</span>
+          </button>
+        </div>
       </div>
 
-      {error && <div className="sg-notice sg-notice-error" role="alert"><AlertCircle size={17} /><span>{error}</span><button onClick={() => setError(null)} aria-label="Cerrar error"><X size={15} /></button></div>}
-      {exito && <div className="sg-notice sg-notice-success" role="status"><CheckCircle2 size={17} /><span>{exito}</span><button onClick={() => setExito(null)} aria-label="Cerrar aviso"><X size={15} /></button></div>}
+      {/* TARJETAS DE MÉTRICAS BENTO */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
+        <button 
+          onClick={() => { setPestañaActiva('personal'); setFiltro('todos'); setBusqueda('') }}
+          className={`p-4.5 rounded-2xl border text-left transition-all active:scale-[0.99] cursor-pointer group flex flex-col justify-between ${
+            pestañaActiva === 'personal' && filtro === 'todos'
+              ? 'bg-gradient-to-br from-sky-50/90 to-white border-sky-300 shadow-xs ring-1 ring-sky-400/20'
+              : 'bg-white border-slate-200/80 hover:border-slate-300 shadow-2xs'
+          }`}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Total Personal</span>
+            <div className="w-9 h-9 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-600 group-hover:scale-110 transition-transform">
+              <Users size={18} />
+            </div>
+          </div>
+          <div>
+            <div className="text-2xl font-black text-slate-900 tracking-tight">{usuarios.length}</div>
+            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">Operadores y gestión</p>
+          </div>
+        </button>
 
-      <nav className="sg-sec-tabs" aria-label="Secciones de seguridad">
-        <button aria-pressed={pestañaActiva === 'personal'} onClick={() => { setPestañaActiva('personal'); setBusqueda('') }}><Users size={16} />Personal y permisos<span>{usuarios.length}</span></button>
-        <button aria-pressed={pestañaActiva === 'dispositivos'} onClick={() => { setPestañaActiva('dispositivos'); setBusqueda('') }}><Smartphone size={16} />Dispositivos<span>{dispositivosTotales}</span></button>
-      </nav>
+        <button 
+          onClick={() => { setPestañaActiva('personal'); setFiltro('activos'); setBusqueda('') }}
+          className={`p-4.5 rounded-2xl border text-left transition-all active:scale-[0.99] cursor-pointer group flex flex-col justify-between ${
+            pestañaActiva === 'personal' && filtro === 'activos'
+              ? 'bg-gradient-to-br from-emerald-50/90 to-white border-emerald-300 shadow-xs ring-1 ring-emerald-400/20'
+              : 'bg-white border-slate-200/80 hover:border-slate-300 shadow-2xs'
+          }`}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Cuentas Activas</span>
+            <div className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
+              <CheckCircle2 size={18} />
+            </div>
+          </div>
+          <div>
+            <div className="text-2xl font-black text-emerald-700 tracking-tight">{porterosActivos}</div>
+            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">Habilitados para operar</p>
+          </div>
+        </button>
 
-      {pestañaActiva === 'personal' && <section className="sg-sec-panel" aria-label="Personal y permisos">
-        <div className="sg-sec-eventbar"><CalendarDays size={18} /><label><span>Permisos para la ceremonia</span><select aria-label="Ceremonia para permisos" value={ceremoniaSeleccionadaId} disabled={cargandoCeremonias || procesandoLote || guardandoAutorizacion !== null} onChange={e => setCeremoniaSeleccionadaId(e.target.value)}>{!ceremonias.length && <option value="">{cargandoCeremonias ? 'Cargando ceremonias…' : 'Sin ceremonias disponibles'}</option>}{ceremonias.map(c => <option key={c.id} value={c.id}>{c.nombre}{c.activa ? ' · Activa' : ''}</option>)}</select></label><details className="sg-sec-bulk"><summary>Acciones en lote<ChevronRight size={14} /></summary><div><button onClick={handleAutorizarTodos} disabled={!ceremoniaSeleccionadaId || procesandoLote || cargandoAutorizaciones}>Autorizar personal activo</button><button className="sg-danger-text" onClick={handleDesautorizarTodos} disabled={!ceremoniaSeleccionadaId || procesandoLote || cargandoAutorizaciones}>Quitar permisos de la ceremonia</button></div></details></div>
-        <div className="sg-sec-toolbar"><div className="sg-sec-search"><Search size={16} /><input aria-label="Buscar personal" placeholder="Buscar por nombre, correo o rol…" value={busqueda} onChange={e => setBusqueda(e.target.value)} />{busqueda && <button onClick={() => setBusqueda('')} aria-label="Limpiar búsqueda de personal"><X size={14} /></button>}</div><select aria-label="Filtrar personal" value={filtro} onChange={e => setFiltro(e.target.value)}><option value="todos">Todo el personal</option><option value="administrativos">Administrativos</option><option value="porteria">Portería</option><option value="activos">Cuentas activas</option><option value="autorizados">Con acceso a esta ceremonia</option><option value="sin-acceso">Portería sin permiso</option><option value="inactivos">Cuentas bloqueadas</option></select></div>
-        <div className="sg-sec-list-meta"><span>{personalVisible.length} de {usuarios.length} personas</span><span>{cargandoAutorizaciones ? 'Actualizando permisos…' : 'Seleccioná una persona para ver sus opciones'}</span></div>
-        {cargando ? <div className="sg-sec-empty" role="status"><RefreshCw className="animate-spin" size={24} /><strong>Cargando personal…</strong></div> : !personalVisible.length ? <div className="sg-sec-empty"><Search size={26} /><strong>{usuarios.length ? 'Nadie coincide con estos filtros' : 'Tu equipo empieza acá'}</strong><p>{usuarios.length ? 'Probá otro nombre o mostrá todo el personal.' : 'Registrá a quienes van a administrar y acreditar la ceremonia.'}</p><button className="sg-button" onClick={() => usuarios.length ? (setBusqueda(''), setFiltro('todos')) : setMostrarModalNuevo(true)}>{usuarios.length ? 'Limpiar filtros' : 'Agregar personal'}</button></div> : <div className="sg-sec-list">
-          <div className="sg-sec-columns" aria-hidden="true"><span>Persona</span><span>Rol</span><span>Acceso a la ceremonia</span><span /></div>
-          {personalVisible.map(u => {
-            const activo = Number(u.activo) === 1
-            const administrativo = u.rol === 'ADMINISTRATIVO'
-            const autorizado = !!autorizadosMap[String(u.id)]
-            const expandido = String(personalExpandido) === String(u.id)
-            return <article className={`sg-sec-person ${expandido ? 'is-expanded' : ''}`} key={u.id}>
-              <div className="sg-sec-row"><button className="sg-sec-identity" onClick={() => setPersonalExpandido(expandido ? null : u.id)} aria-expanded={expandido} aria-controls={`personal-detalle-${u.id}`}><span className={`sg-sec-avatar ${!activo ? 'is-blocked' : ''}`}>{u.nombre?.charAt(0)?.toUpperCase() || 'P'}</span><span><strong>{u.nombre}{String(u.id) === String(usuario?.id) && <small>Vos</small>}</strong><small>{u.email}</small></span></button><span className={`sg-sec-role ${administrativo ? 'is-admin' : ''}`}>{administrativo ? 'Administrativo' : 'Portería'}</span><div className="sg-sec-access">{!activo ? <span className="sg-sec-blocked"><Lock size={13} />Cuenta bloqueada</span> : administrativo ? <span className="sg-sec-global"><ShieldCheck size={14} />Acceso de gestión</span> : <button className={`sg-sec-permission ${autorizado ? 'is-allowed' : ''}`} onClick={() => handleToggleAutorizacion(u.id)} disabled={!ceremoniaSeleccionadaId || cargandoAutorizaciones || guardandoAutorizacion !== null || procesandoLote} aria-pressed={autorizado} aria-label={`${autorizado ? 'Quitar permiso a' : 'Autorizar a'} ${u.nombre} en la ceremonia seleccionada`}>{guardandoAutorizacion === u.id ? <RefreshCw size={14} className="animate-spin" /> : autorizado ? <CheckCircle2 size={14} /> : <KeyRound size={14} />}{autorizado ? 'Autorizado' : 'Autorizar'}</button>}</div><button className="sg-icon-button sg-sec-expand" aria-label={`${expandido ? 'Ocultar' : 'Ver'} opciones de ${u.nombre}`} aria-expanded={expandido} onClick={() => setPersonalExpandido(expandido ? null : u.id)}><ChevronRight size={17} /></button></div>
-              {expandido && <div className="sg-sec-detail" id={`personal-detalle-${u.id}`}><div className="sg-sec-detail-heading"><label>Rol del personal<select aria-label={`Rol de ${u.nombre}`} value={u.rol} onChange={e => handleCambiarRol(u.id, e.target.value)}><option value="ADMINISTRATIVO">Administrativo</option><option value="PORTERIA">Portería</option></select></label><div><span>Último ingreso</span><strong>{u.ultimo_login ? new Date(u.ultimo_login).toLocaleString('es-AR') : 'Todavía no inició sesión'}</strong></div><span className={`sg-sec-account-state ${activo ? 'is-active' : ''}`}>{activo ? 'Cuenta activa' : 'Cuenta bloqueada'}</span></div>
-                {administrativo ? <p className="sg-sec-help"><ShieldCheck size={15} />El personal administrativo gestiona todas las ceremonias.</p> : <div className="sg-sec-assigned"><span>Ceremonias autorizadas</span><div>{ceremonias.map(c => { const asignada = (u.ceremoniasAutorizadas || []).map(String).includes(String(c.id)); return <button key={c.id} aria-pressed={asignada} onClick={() => handleToggleAutorizacion(u.id, c.id)} disabled={!activo || guardandoAutorizacion !== null || procesandoLote || cargandoAutorizaciones}>{asignada ? <Check size={13} /> : <span className="sg-sec-unchecked" />}{c.nombre}</button> })}{!ceremonias.length && <small>No hay ceremonias para asignar.</small>}</div></div>}
-                <div className="sg-sec-detail-actions"><button className="sg-button" onClick={() => handleEnviarInvitacion(u.id, u.email)} disabled={enviandoInvitacionId === u.id || !activo}><Mail size={14} />{enviandoInvitacionId === u.id ? 'Enviando…' : 'Enviar invitación'}</button>{!administrativo && <button className="sg-button" onClick={() => handleGenerarQR(u)} disabled={!activo}><QrCode size={14} />Pase QR</button>}<button className="sg-button" onClick={() => handleToggleEstado(u.id, Number(u.activo))}>{activo ? <Lock size={14} /> : <Unlock size={14} />}{activo ? 'Bloquear cuenta' : 'Reactivar cuenta'}</button><button className="sg-icon-button sg-danger-text" onClick={() => handleEliminarUsuario(u.id, u.nombre)} disabled={eliminandoId === u.id} aria-label={`Eliminar a ${u.nombre}`} title="Eliminar persona"><Trash2 size={16} /></button></div>
-              </div>}
-            </article>
-          })}
-        </div>}
-      </section>}
+        <button 
+          onClick={() => { setPestañaActiva('personal'); setFiltro('sin-acceso'); setBusqueda('') }}
+          className={`p-4.5 rounded-2xl border text-left transition-all active:scale-[0.99] cursor-pointer group flex flex-col justify-between ${
+            pestañaActiva === 'personal' && filtro === 'sin-acceso'
+              ? 'bg-gradient-to-br from-amber-50/90 to-white border-amber-300 shadow-xs ring-1 ring-amber-400/20'
+              : 'bg-white border-slate-200/80 hover:border-slate-300 shadow-2xs'
+          }`}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Sin Permiso</span>
+            <div className="w-9 h-9 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 group-hover:scale-110 transition-transform">
+              <KeyRound size={18} />
+            </div>
+          </div>
+          <div>
+            <div className="text-2xl font-black text-amber-700 tracking-tight">{usuariosSinPermiso}</div>
+            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">En ceremonia activa</p>
+          </div>
+        </button>
 
-      {pestañaActiva === 'dispositivos' && <section className="sg-sec-panel" aria-label="Dispositivos vinculados"><div className="sg-sec-device-header"><div><h2>Dispositivos vinculados</h2><p>Equipos que usan SiGIC Accesos.</p></div><span className="sg-sec-account-state is-active">{dispositivosEnLinea} en línea</span></div><div className="sg-sec-toolbar"><div className="sg-sec-search"><Search size={16} /><input aria-label="Buscar dispositivos" value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar dispositivo o persona…" />{busqueda && <button onClick={() => setBusqueda('')} aria-label="Limpiar búsqueda de dispositivos"><X size={14} /></button>}</div></div>{cargandoDispositivos ? <div className="sg-sec-empty" role="status"><RefreshCw size={24} className="animate-spin" /><strong>Cargando dispositivos…</strong></div> : !dispositivosVisibles.length ? <div className="sg-sec-empty"><Smartphone size={26} /><strong>{busqueda ? 'No encontramos ese dispositivo' : 'Todavía no hay dispositivos'}</strong><p>{busqueda ? 'Probá con el nombre de la persona o del equipo.' : 'Aparecerán cuando el personal inicie sesión en la app móvil.'}</p></div> : <div className="sg-sec-devices">{dispositivosVisibles.map(d => <article key={d.dispositivoId}><span className="sg-sec-device-icon"><Smartphone size={20} /></span><button className="sg-sec-device-name" onClick={() => setDispositivoSeleccionado(d)}><strong>{d.nombreDispositivo || d.modelo || d.marca || 'Dispositivo móvil'}</strong><small>{d.usuarioNombre || 'Sin usuario'} · {d.sistema || 'Sistema no informado'}</small></button><span className={`sg-sec-account-state ${d.enLinea ? 'is-active' : ''}`}>{d.enLinea ? 'En línea' : Number(d.sesionActiva) === 1 ? 'Sin conexión' : 'Sesión cerrada'}</span><button className="sg-icon-button" onClick={() => setDispositivoSeleccionado(d)} aria-label={`Ver dispositivo ${d.nombreDispositivo || d.modelo || d.dispositivoId}`}><ChevronRight size={17} /></button></article>)}</div>}</section>}
+        <button 
+          onClick={() => { setPestañaActiva('dispositivos'); setBusqueda('') }}
+          className={`p-4.5 rounded-2xl border text-left transition-all active:scale-[0.99] cursor-pointer group flex flex-col justify-between ${
+            pestañaActiva === 'dispositivos'
+              ? 'bg-gradient-to-br from-indigo-50/90 to-white border-indigo-300 shadow-xs ring-1 ring-indigo-400/20'
+              : 'bg-white border-slate-200/80 hover:border-slate-300 shadow-2xs'
+          }`}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Terminales Móviles</span>
+            <div className="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform">
+              <Smartphone size={18} />
+            </div>
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <div className="text-2xl font-black text-indigo-900 tracking-tight">{dispositivosEnLinea}</div>
+              <span className="text-xs font-bold text-slate-400">/ {dispositivosTotales} tot.</span>
+            </div>
+            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">Enlazados a la app Flutter</p>
+          </div>
+        </button>
+      </div>
+
+      {/* NOTIFICACIONES Y AVISOS */}
+      {error && (
+        <div className="flex items-center justify-between gap-3 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-bold animate-in fade-in">
+          <div className="flex items-center gap-2.5">
+            <AlertCircle size={18} className="text-rose-600 shrink-0" />
+            <span>{error}</span>
+          </div>
+          <button onClick={() => setError(null)} className="p-1 text-rose-500 hover:text-rose-800 rounded-lg hover:bg-rose-100 cursor-pointer">
+            <X size={15} />
+          </button>
+        </div>
+      )}
+
+      {exito && (
+        <div className="flex items-center justify-between gap-3 p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold animate-in fade-in">
+          <div className="flex items-center gap-2.5">
+            <CheckCircle2 size={18} className="text-emerald-600 shrink-0" />
+            <span>{exito}</span>
+          </div>
+          <button onClick={() => setExito(null)} className="p-1 text-emerald-500 hover:text-emerald-800 rounded-lg hover:bg-emerald-100 cursor-pointer">
+            <X size={15} />
+          </button>
+        </div>
+      )}
+
+      {/* NAVEGACIÓN POR PESTAÑAS */}
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-0">
+        <button
+          onClick={() => { setPestañaActiva('personal'); setBusqueda('') }}
+          className={`flex items-center gap-2.5 px-4 py-3 text-xs font-black border-b-2 transition-all cursor-pointer ${
+            pestañaActiva === 'personal'
+              ? 'border-sky-600 text-sky-700 bg-sky-50/50 rounded-t-xl'
+              : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'
+          }`}
+        >
+          <Users size={16} />
+          <span>Personal y Permisos</span>
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+            pestañaActiva === 'personal' ? 'bg-sky-200/70 text-sky-900' : 'bg-slate-100 text-slate-600'
+          }`}>
+            {usuarios.length}
+          </span>
+        </button>
+
+        <button
+          onClick={() => { setPestañaActiva('dispositivos'); setBusqueda('') }}
+          className={`flex items-center gap-2.5 px-4 py-3 text-xs font-black border-b-2 transition-all cursor-pointer ${
+            pestañaActiva === 'dispositivos'
+              ? 'border-sky-600 text-sky-700 bg-sky-50/50 rounded-t-xl'
+              : 'border-transparent text-slate-500 hover:text-slate-800 hover:border-slate-300'
+          }`}
+        >
+          <Smartphone size={16} />
+          <span>Dispositivos Móviles</span>
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+            pestañaActiva === 'dispositivos' ? 'bg-sky-200/70 text-sky-900' : 'bg-slate-100 text-slate-600'
+          }`}>
+            {dispositivosTotales}
+          </span>
+        </button>
+      </div>
+
+      {/* PESTAÑA 1: PERSONAL Y PERMISOS */}
+      {pestañaActiva === 'personal' && (
+        <div className="bg-white rounded-3xl border border-slate-200/80 shadow-2xs overflow-hidden">
+          {/* BARRA DE CEREMONIA & ACCIONES EN LOTE */}
+          <div className="p-4 sm:p-5 bg-gradient-to-r from-slate-50 via-sky-50/30 to-slate-50 border-b border-slate-200/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5 flex-1 min-w-0">
+              <div className="w-10 h-10 rounded-xl bg-white border border-slate-200 shadow-2xs flex items-center justify-center text-sky-600 shrink-0">
+                <CalendarDays size={20} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400">
+                  Ceremonia bajo control
+                </span>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <select 
+                    aria-label="Ceremonia para permisos" 
+                    value={ceremoniaSeleccionadaId} 
+                    disabled={cargandoCeremonias || procesandoLote || guardandoAutorizacion !== null} 
+                    onChange={e => setCeremoniaSeleccionadaId(e.target.value)}
+                    className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-black text-slate-800 outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-400/20 cursor-pointer max-w-sm truncate shadow-2xs"
+                  >
+                    {!ceremonias.length && <option value="">{cargandoCeremonias ? 'Cargando ceremonias…' : 'Sin ceremonias disponibles'}</option>}
+                    {ceremonias.map(c => (
+                      <option key={c.id} value={c.id}>
+                        {c.nombre} {c.activa ? '· Activa en Puesto' : ''}
+                      </option>
+                    ))}
+                  </select>
+                  {ceremoniaActual?.activa && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-black shrink-0">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      Activa
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* ACCIONES EN LOTE */}
+            <div className="flex items-center gap-2 shrink-0">
+              <button 
+                onClick={handleAutorizarTodos} 
+                disabled={!ceremoniaSeleccionadaId || procesandoLote || cargandoAutorizaciones}
+                className="inline-flex items-center gap-1.5 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-bold transition active:scale-95 cursor-pointer disabled:opacity-50"
+                title="Habilitar a todo el personal activo en esta ceremonia"
+              >
+                <CheckCircle2 size={14} className="text-emerald-600" />
+                <span>Autorizar Todos</span>
+              </button>
+
+              <button 
+                onClick={handleDesautorizarTodos} 
+                disabled={!ceremoniaSeleccionadaId || procesandoLote || cargandoAutorizaciones}
+                className="inline-flex items-center gap-1.5 px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 rounded-xl text-xs font-bold transition active:scale-95 cursor-pointer disabled:opacity-50"
+                title="Revocar acceso a esta ceremonia a todo el personal"
+              >
+                <XCircle size={14} className="text-rose-600" />
+                <span>Revocar Todos</span>
+              </button>
+            </div>
+          </div>
+
+          {/* BARRA DE BÚSQUEDA Y FILTROS */}
+          <div className="p-4 sm:p-5 border-b border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="relative w-full sm:max-w-md">
+              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              <input 
+                aria-label="Buscar personal" 
+                placeholder="Buscar por nombre, correo electrónico o rol…" 
+                value={busqueda} 
+                onChange={e => setBusqueda(e.target.value)}
+                className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-sky-500 rounded-xl pl-10 pr-9 py-2.5 text-xs font-semibold text-slate-800 outline-none transition"
+              />
+              {busqueda && (
+                <button 
+                  onClick={() => setBusqueda('')} 
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <select 
+                aria-label="Filtrar personal" 
+                value={filtro} 
+                onChange={e => setFiltro(e.target.value)}
+                className="w-full sm:w-auto bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-700 outline-none focus:border-sky-500 cursor-pointer shadow-2xs"
+              >
+                <option value="todos">Todos ({usuarios.length})</option>
+                <option value="porteria">Solo Portería ({usuarios.filter(u => u.rol === 'PORTERIA').length})</option>
+                <option value="administrativos">Administrativos ({usuarios.filter(u => u.rol === 'ADMINISTRATIVO').length})</option>
+                <option value="activos">Cuentas Activas ({porterosActivos})</option>
+                <option value="autorizados">Autorizados en Ceremonia</option>
+                <option value="sin-acceso">Portería Sin Permiso ({usuariosSinPermiso})</option>
+                <option value="inactivos">Bloqueados ({usuarios.length - porterosActivos})</option>
+              </select>
+            </div>
+          </div>
+
+          {/* LISTA DE PERSONAL */}
+          {cargando ? (
+            <div className="py-20 flex flex-col items-center justify-center text-slate-400">
+              <RefreshCw className="animate-spin text-sky-500 mb-3" size={32} />
+              <p className="text-xs font-bold text-slate-600">Cargando plantel de seguridad...</p>
+            </div>
+          ) : !personalVisible.length ? (
+            <div className="py-16 text-center max-w-sm mx-auto px-4">
+              <div className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 mx-auto mb-3">
+                <Search size={24} />
+              </div>
+              <h3 className="text-sm font-black text-slate-800">
+                {usuarios.length ? 'Sin coincidencias para los filtros aplicados' : 'No hay personal registrado aún'}
+              </h3>
+              <p className="text-xs text-slate-500 mt-1 mb-4">
+                {usuarios.length ? 'Probá con otro término de búsqueda o restablecé los filtros.' : 'Comenzá agregando operadores para acreditar el ingreso a las ceremonias.'}
+              </p>
+              <button 
+                onClick={() => usuarios.length ? (setBusqueda(''), setFiltro('todos')) : setMostrarModalNuevo(true)}
+                className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-sky-600 transition shadow-sm cursor-pointer"
+              >
+                {usuarios.length ? 'Limpiar Filtros' : 'Registrar Primer Operador'}
+              </button>
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-100">
+              {/* ENCABEZADOS DE COLUMNA */}
+              <div className="hidden sm:grid grid-cols-12 gap-4 px-6 py-3 bg-slate-50/80 text-[10px] font-black uppercase tracking-wider text-slate-400 border-b border-slate-100">
+                <span className="col-span-5">Personal / Cuenta</span>
+                <span className="col-span-2">Rol</span>
+                <span className="col-span-3">Acceso en Ceremonia</span>
+                <span className="col-span-2 text-right">Opciones</span>
+              </div>
+
+              {personalVisible.map(u => {
+                const activo = Number(u.activo) === 1
+                const administrativo = u.rol === 'ADMINISTRATIVO'
+                const autorizado = !!autorizadosMap[String(u.id)]
+                const expandido = String(personalExpandido) === String(u.id)
+
+                return (
+                  <article key={u.id} className={`transition-colors ${expandido ? 'bg-sky-50/30' : 'hover:bg-slate-50/60'}`}>
+                    {/* FILA PRINCIPAL */}
+                    <div className="p-4 sm:px-6 sm:py-3.5 grid grid-cols-1 sm:grid-cols-12 gap-3 sm:gap-4 items-center">
+                      {/* IDENTIDAD */}
+                      <div className="sm:col-span-5 flex items-center gap-3.5 min-w-0">
+                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-sm shrink-0 border ${
+                          !activo 
+                            ? 'bg-slate-100 text-slate-400 border-slate-200' 
+                            : administrativo 
+                              ? 'bg-indigo-50 text-indigo-700 border-indigo-100 shadow-2xs' 
+                              : 'bg-sky-50 text-sky-700 border-sky-100 shadow-2xs'
+                        }`}>
+                          {u.nombre?.charAt(0)?.toUpperCase() || 'P'}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-black text-slate-900 truncate">
+                              {u.nombre}
+                            </span>
+                            {String(u.id) === String(usuario?.id) && (
+                              <span className="px-1.5 py-0.5 rounded-md bg-sky-100 text-sky-800 text-[9px] font-black uppercase">
+                                Vos
+                              </span>
+                            )}
+                          </div>
+                          <span className="block text-[11px] font-semibold text-slate-400 truncate">
+                            {u.email}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* ROL */}
+                      <div className="sm:col-span-2">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border ${
+                          administrativo
+                            ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                            : 'bg-sky-50 text-sky-700 border-sky-200'
+                        }`}>
+                          {administrativo ? 'Administrativo' : 'Portería'}
+                        </span>
+                      </div>
+
+                      {/* ACCESO EN CEREMONIA SELECCIONADA */}
+                      <div className="sm:col-span-3">
+                        {!activo ? (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-600">
+                            <Lock size={13} />
+                            <span>Bloqueado</span>
+                          </span>
+                        ) : administrativo ? (
+                          <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600">
+                            <ShieldCheck size={14} className="text-indigo-600" />
+                            <span>Gestión Total</span>
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => handleToggleAutorizacion(u.id)}
+                            disabled={!ceremoniaSeleccionadaId || cargandoAutorizaciones || guardandoAutorizacion !== null || procesandoLote}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition active:scale-95 cursor-pointer border ${
+                              autorizado
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                                : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
+                            }`}
+                          >
+                            {guardandoAutorizacion === u.id ? (
+                              <RefreshCw size={13} className="animate-spin text-sky-600" />
+                            ) : autorizado ? (
+                              <CheckCircle2 size={13} className="text-emerald-600" />
+                            ) : (
+                              <KeyRound size={13} className="text-slate-400" />
+                            )}
+                            <span>{autorizado ? 'Habilitado' : 'Sin permiso'}</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {/* ACCIONES Y BOTÓN EXPANDIR */}
+                      <div className="sm:col-span-2 flex items-center justify-end gap-2">
+                        {!administrativo && activo && (
+                          <button 
+                            onClick={() => handleGenerarQR(u)} 
+                            className="p-2 rounded-xl text-slate-500 hover:text-sky-600 hover:bg-sky-50 transition active:scale-95 cursor-pointer"
+                            title="Generar Pase QR de acceso móvil"
+                          >
+                            <QrCode size={16} />
+                          </button>
+                        )}
+                        <button 
+                          onClick={() => setPersonalExpandido(expandido ? null : u.id)} 
+                          className={`p-2 rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition active:scale-95 cursor-pointer ${
+                            expandido ? 'bg-slate-100 text-slate-800 rotate-90' : ''
+                          }`}
+                          title="Ver detalle y permisos del operador"
+                        >
+                          <ChevronRight size={17} />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* DETALLE EXPANDIBLE (ACORDEÓN ELEGANTE) */}
+                    {expandido && (
+                      <div className="px-6 py-5 bg-slate-50/70 border-t border-slate-200/60 animate-in fade-in duration-150 space-y-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                          <div>
+                            <label className="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">
+                              Cambiar Rol de Sistema
+                            </label>
+                            <select 
+                              value={u.rol} 
+                              onChange={e => handleCambiarRol(u.id, e.target.value)}
+                              className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 outline-none focus:border-sky-500 cursor-pointer shadow-2xs"
+                            >
+                              <option value="ADMINISTRATIVO">Administrativo</option>
+                              <option value="PORTERIA">Portería</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">
+                              Último Ingreso
+                            </span>
+                            <div className="text-xs font-bold text-slate-700 py-2">
+                              {u.ultimo_login ? new Date(u.ultimo_login).toLocaleString('es-AR') : 'Nunca inició sesión'}
+                            </div>
+                          </div>
+
+                          <div>
+                            <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-1">
+                              Estado de la Cuenta
+                            </span>
+                            <div className="py-1.5">
+                              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold ${
+                                activo ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
+                              }`}>
+                                <span className={`w-2 h-2 rounded-full ${activo ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                                {activo ? 'Cuenta Habilitada' : 'Cuenta Bloqueada'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* MATRIZ DE CEREMONIAS ASIGNADAS */}
+                        {!administrativo && (
+                          <div className="pt-2 border-t border-slate-200/60">
+                            <span className="block text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">
+                              Ceremonias en las que está habilitado este operador
+                            </span>
+                            <div className="flex flex-wrap gap-2">
+                              {ceremonias.map(c => {
+                                const asignada = (u.ceremoniasAutorizadas || []).map(String).includes(String(c.id))
+                                return (
+                                  <button
+                                    key={c.id}
+                                    onClick={() => handleToggleAutorizacion(u.id, c.id)}
+                                    disabled={!activo || guardandoAutorizacion !== null || procesandoLote || cargandoAutorizaciones}
+                                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition active:scale-95 cursor-pointer border ${
+                                      asignada
+                                        ? 'bg-sky-50 border-sky-300 text-sky-800'
+                                        : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300'
+                                    }`}
+                                  >
+                                    {asignada ? <Check size={13} className="text-sky-600" /> : <span className="w-3 h-3 rounded border border-slate-300" />}
+                                    <span>{c.nombre}</span>
+                                  </button>
+                                )
+                              })}
+                              {!ceremonias.length && <span className="text-xs text-slate-400">No hay ceremonias cargadas.</span>}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* ACCIONES DE GESTIÓN */}
+                        <div className="pt-3 border-t border-slate-200/60 flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <button 
+                              onClick={() => handleEnviarInvitacion(u.id, u.email)} 
+                              disabled={enviandoInvitacionId === u.id || !activo}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold transition active:scale-95 cursor-pointer shadow-2xs disabled:opacity-50"
+                            >
+                              <Mail size={14} className="text-slate-500" />
+                              <span>{enviandoInvitacionId === u.id ? 'Enviando…' : 'Enviar Invitación'}</span>
+                            </button>
+
+                            <button 
+                              onClick={() => handleToggleEstado(u.id, Number(u.activo))}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 rounded-xl text-xs font-bold transition active:scale-95 cursor-pointer shadow-2xs"
+                            >
+                              {activo ? <Lock size={14} className="text-amber-600" /> : <Unlock size={14} className="text-emerald-600" />}
+                              <span>{activo ? 'Bloquear Cuenta' : 'Reactivar Cuenta'}</span>
+                            </button>
+                          </div>
+
+                          <button 
+                            onClick={() => handleEliminarUsuario(u.id, u.nombre)} 
+                            disabled={eliminandoId === u.id}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition active:scale-95 cursor-pointer"
+                          >
+                            <Trash2 size={14} />
+                            <span>Eliminar</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </article>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* PESTAÑA 2: DISPOSITIVOS MÓVILES */}
+      {pestañaActiva === 'dispositivos' && (
+        <div className="bg-white rounded-3xl border border-slate-200/80 shadow-2xs overflow-hidden">
+          {/* HEADER DE FLOTA */}
+          <div className="p-4 sm:p-5 bg-gradient-to-r from-slate-50 via-indigo-50/20 to-slate-50 border-b border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 className="text-base font-black text-slate-900">Flota de Escáneres Móviles</h2>
+              <p className="text-xs font-semibold text-slate-500 mt-0.5">
+                Dispositivos Android / iOS que ejecutan la app SiGIC Accesos.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-black">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                {dispositivosEnLinea} en línea ahora
+              </span>
+            </div>
+          </div>
+
+          {/* BUSCADOR */}
+          <div className="p-4 sm:p-5 border-b border-slate-100">
+            <div className="relative w-full max-w-md">
+              <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+              <input 
+                aria-label="Buscar dispositivos" 
+                value={busqueda} 
+                onChange={e => setBusqueda(e.target.value)} 
+                placeholder="Buscar por terminal, marca o nombre del operador…" 
+                className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-sky-500 rounded-xl pl-10 pr-9 py-2.5 text-xs font-semibold text-slate-800 outline-none transition"
+              />
+              {busqueda && (
+                <button 
+                  onClick={() => setBusqueda('')} 
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                >
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* LISTADO DE DISPOSITIVOS */}
+          {cargandoDispositivos ? (
+            <div className="py-20 flex flex-col items-center justify-center text-slate-400">
+              <RefreshCw className="animate-spin text-sky-500 mb-3" size={32} />
+              <p className="text-xs font-bold text-slate-600">Sincronizando estado de terminales...</p>
+            </div>
+          ) : !dispositivosVisibles.length ? (
+            <div className="py-16 text-center max-w-sm mx-auto px-4">
+              <div className="w-14 h-14 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center text-slate-400 mx-auto mb-3">
+                <Smartphone size={24} />
+              </div>
+              <h3 className="text-sm font-black text-slate-800">
+                {busqueda ? 'No encontramos ese dispositivo' : 'Aún no hay terminales enlazadas'}
+              </h3>
+              <p className="text-xs text-slate-500 mt-1">
+                {busqueda ? 'Probá con otro nombre de equipo o persona.' : 'Los teléfonos aparecerán aquí automáticamente al iniciar sesión en SiGIC Accesos.'}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 sm:p-5">
+              {dispositivosVisibles.map(d => (
+                <article 
+                  key={d.dispositivoId} 
+                  className="p-4 rounded-2xl border border-slate-200 bg-white hover:border-slate-300 hover:shadow-2xs transition-all flex items-center justify-between gap-3"
+                >
+                  <div className="flex items-center gap-3.5 min-w-0">
+                    <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border ${
+                      d.enLinea 
+                        ? 'bg-emerald-50 text-emerald-600 border-emerald-100 shadow-2xs' 
+                        : 'bg-slate-50 text-slate-400 border-slate-200'
+                    }`}>
+                      <Smartphone size={22} />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <strong className="text-xs font-black text-slate-900 truncate">
+                          {d.nombreDispositivo || d.modelo || d.marca || 'Terminal Móvil'}
+                        </strong>
+                        <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${
+                          d.enLinea 
+                            ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
+                            : Number(d.sesionActiva) === 1 
+                              ? 'bg-amber-50 text-amber-700 border border-amber-200' 
+                              : 'bg-slate-100 text-slate-500'
+                        }`}>
+                          {d.enLinea ? 'En Línea' : Number(d.sesionActiva) === 1 ? 'Standby' : 'Sesión Cerrada'}
+                        </span>
+                      </div>
+                      <p className="text-[11px] font-semibold text-slate-500 truncate mt-0.5">
+                        Operador: <strong className="text-slate-700">{d.usuarioNombre || 'Sin asignar'}</strong> · {d.sistema || 'Android / iOS'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={() => setDispositivoSeleccionado(d)} 
+                    className="p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-slate-800 transition active:scale-95 shrink-0 cursor-pointer shadow-2xs"
+                    title="Ver telemetría y diagnóstico"
+                  >
+                    <ChevronRight size={17} />
+                  </button>
+                </article>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ======================================================== */}
       {/* MODAL: DETALLE DIAGNÓSTICO DEL DISPOSITIVO */}

@@ -449,65 +449,93 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion, pestanaForzada }
           </div>
         )}
 
-        {/* Resumen Compacto de Ceremonia */}
-        <section className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
-            <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Fecha</p>
-            <p className="mt-1 flex items-center gap-1.5 text-xs font-bold text-slate-700">
-              <CalendarDays size={14} className="text-sky-500" /> {fechaCeremonia}
+        {/* Resumen Compacto de Ceremonia (Mobile-First Minimalista) */}
+        <section className="mt-4 sm:mt-6 grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+          <div className="rounded-2xl border border-slate-100 bg-white p-3 sm:p-4 shadow-2xs">
+            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Fecha</span>
+            <p className="mt-1 flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-800">
+              <CalendarDays size={13} className="text-sky-500 shrink-0" /> 
+              <span className="truncate">{fechaCeremonia}</span>
             </p>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
-            <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Lugar</p>
-            <p className="mt-1 flex items-center gap-1.5 text-xs font-bold text-slate-700 truncate">
-              <MapPin size={14} className="text-indigo-500" /> {lugarCeremonia}
+          <div className="rounded-2xl border border-slate-100 bg-white p-3 sm:p-4 shadow-2xs">
+            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Lugar</span>
+            <p className="mt-1 flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-800">
+              <MapPin size={13} className="text-indigo-500 shrink-0" /> 
+              <span className="truncate">{lugarCeremonia}</span>
             </p>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
-            <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Juramento</p>
-            <p className="mt-1 flex items-center gap-1.5 text-xs font-bold text-slate-700 truncate">
-              <ScrollText size={14} className="text-sky-500" />
-              {FORMULAS_JURAMENTO[graduado?.formula_juramento]?.etiquetaCorta || 'Por la Patria'}
+          <div className="rounded-2xl border border-slate-100 bg-white p-3 sm:p-4 shadow-2xs">
+            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Juramento</span>
+            <p className="mt-1 flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-800">
+              <ScrollText size={13} className="text-sky-500 shrink-0" />
+              <span className="truncate">{FORMULAS_JURAMENTO[graduado?.formula_juramento]?.etiquetaCorta || 'Por la Patria'}</span>
             </p>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs">
-            <p className="text-[10px] font-black uppercase tracking-wider text-slate-400">Padrinos</p>
-            <p className="mt-1 flex items-center gap-1.5 text-xs font-bold text-slate-700">
-              <GraduationCap size={14} className="text-purple-500" />
-              {entregadores.length > 0 ? `${entregadores.length}/3 asignados` : 'Pendiente'}
+          <div className="rounded-2xl border border-slate-100 bg-white p-3 sm:p-4 shadow-2xs">
+            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">Padrinos</span>
+            <p className="mt-1 flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-800">
+              <GraduationCap size={13} className="text-purple-500 shrink-0" />
+              <span className="truncate">{entregadores.length > 0 ? `${entregadores.length}/3 asignados` : 'Sin asignar'}</span>
             </p>
           </div>
         </section>
 
-        {/* Pestañas de Navegación */}
-        <nav className="mt-6 flex border-b border-slate-200 overflow-x-auto">
+        {/* Pestañas de Navegación Segmentadas (Pills horizontales modernas para móviles) */}
+        <nav className="mt-4 sm:mt-6 flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
           <button
             id="tab-graduado-juramento"
             onClick={() => { setPestana('juramento'); limpiarForm(); }}
-            className={`flex items-center gap-2 border-b-2 px-4 py-3 text-xs font-black transition shrink-0 cursor-pointer ${pestana === 'juramento' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-400 hover:text-slate-700'}`}
+            className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-xs font-black transition-all shrink-0 cursor-pointer ${
+              pestana === 'juramento' 
+                ? 'bg-slate-900 text-white shadow-sm' 
+                : 'bg-white border border-slate-100 text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+            }`}
           >
-            <ScrollText size={16} /> Juramento ({FORMULAS_JURAMENTO[graduado?.formula_juramento]?.etiquetaCorta || 'Por la Patria'})
+            <ScrollText size={14} /> 
+            <span>Juramento</span>
           </button>
           <button
             id="tab-graduado-acompanantes"
             onClick={() => { setPestana('invitados'); limpiarForm(); }}
-            className={`flex items-center gap-2 border-b-2 px-4 py-3 text-xs font-black transition shrink-0 cursor-pointer ${pestana === 'invitados' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-400 hover:text-slate-700'}`}
+            className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-xs font-black transition-all shrink-0 cursor-pointer ${
+              pestana === 'invitados' 
+                ? 'bg-slate-900 text-white shadow-sm' 
+                : 'bg-white border border-slate-100 text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+            }`}
           >
-            <Users size={16} /> Acompañantes ({invitados.length})
+            <Users size={14} /> 
+            <span>Acompañantes</span>
+            <span className={`text-[10px] px-1.5 py-0.2 rounded-md ${pestana === 'invitados' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>
+              {invitados.length}
+            </span>
           </button>
           <button
             id="tab-graduado-padrinos"
             onClick={() => setPestana('entregadores')}
-            className={`flex items-center gap-2 border-b-2 px-4 py-3 text-xs font-black transition shrink-0 cursor-pointer ${pestana === 'entregadores' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-400 hover:text-slate-700'}`}
+            className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-xs font-black transition-all shrink-0 cursor-pointer ${
+              pestana === 'entregadores' 
+                ? 'bg-slate-900 text-white shadow-sm' 
+                : 'bg-white border border-slate-100 text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+            }`}
           >
-            <GraduationCap size={16} /> Padrinos ({entregadores.length}/3)
+            <GraduationCap size={14} /> 
+            <span>Padrinos</span>
+            <span className={`text-[10px] px-1.5 py-0.2 rounded-md ${pestana === 'entregadores' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>
+              {entregadores.length}/3
+            </span>
           </button>
           <button
             id="tab-graduado-credencial"
             onClick={() => setPestana('credencial')}
-            className={`flex items-center gap-2 border-b-2 px-4 py-3 text-xs font-black transition shrink-0 cursor-pointer ${pestana === 'credencial' ? 'border-sky-500 text-sky-600' : 'border-transparent text-slate-400 hover:text-slate-700'}`}
+            className={`inline-flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-xs font-black transition-all shrink-0 cursor-pointer ${
+              pestana === 'credencial' 
+                ? 'bg-slate-900 text-white shadow-sm' 
+                : 'bg-white border border-slate-100 text-slate-500 hover:text-slate-900 hover:bg-slate-50'
+            }`}
           >
-            <QrCode size={16} /> Credencial Digital
+            <QrCode size={14} /> 
+            <span>Credencial Digital</span>
           </button>
         </nav>
 

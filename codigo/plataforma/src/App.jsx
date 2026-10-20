@@ -9,10 +9,12 @@
  * 3. Si rechaza → Inhabilitado, se cierra sesión automáticamente
  */
 import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, CalendarPlus, RefreshCw, Shield, Server, Search, Power, Bell, Wifi, Volume2, ChevronRight, ChevronUp, ArrowRight, LayoutGrid, LayoutDashboard, X, Minus, Maximize2, Square, Copy, Sun, Moon, MousePointer2, Lock, ClipboardCheck, Activity, Send, ListChecks, ScrollText, Sparkles, Armchair, Award, QrCode, Palette, ExternalLink, Info, BookOpen } from 'lucide-react'
+import { Home, ScanLine, Users, GraduationCap, MapPin, BarChart3, Settings, Calendar, CalendarPlus, RefreshCw, Shield, Server, Search, Power, Bell, Wifi, Volume2, ChevronRight, ChevronUp, ArrowRight, LayoutGrid, LayoutDashboard, X, Minus, Maximize2, Square, Copy, Sun, Moon, MousePointer2, Lock, ClipboardCheck, Activity, Send, ListChecks, ScrollText, Sparkles, Armchair, Award, QrCode, Palette, ExternalLink, Info, BookOpen, ArrowUpCircle } from 'lucide-react'
 
 import { ModalPersonalizarFondo } from './componentes/ModalPersonalizarFondo'
 import { ModalAcercaDe } from './componentes/ModalAcercaDe'
+import { ModalActualizarSigic } from './componentes/ModalActualizarSigic'
+import { AnimatedThemeToggler } from './componentes/AnimatedThemeToggler'
 import { FONDOS_DISPONIBLES, aplicarTemaGlobal, obtenerTemaActual } from './datos/fondos-pantalla'
 
 // Importación de Páginas
@@ -215,7 +217,7 @@ function App() {
     return 'bienvenida';
   })
   const [versionAdmin, setVersionAdmin] = useState(
-    () => (typeof window !== 'undefined' ? localStorage.getItem('version_admin') : 'pro') || 'pro'
+    () => (typeof window !== 'undefined' ? localStorage.getItem('version_admin') || 'clasica' : 'clasica')
   )
 
   const [dockPosicion, setDockPosicion] = useState(
@@ -240,6 +242,7 @@ function App() {
 
   const [ceremoniaActiva, setCeremoniaActiva] = useState(null)
   const [menuInicioGlobalAbierto, setMenuInicioGlobalAbierto] = useState(false)
+  const [mostrarModalActualizar, setMostrarModalActualizar] = useState(false)
 
   // Escuchar eventos globales de Ctrl+K y apertura de menú en cualquier pantalla
   useEffect(() => {
@@ -1383,6 +1386,7 @@ function App() {
             { id: 'ajustes', titulo: 'Ajustes', icono: Settings, color: 'bg-slate-500' },
             { id: 'seleccion-asientos', titulo: 'Anfiteatro', icono: MapPin, color: 'bg-orange-500' },
             { id: 'manual-usuario', titulo: 'Manual Oficial', icono: BookOpen, color: 'bg-sky-600' },
+            { id: 'actualizar-sigic', titulo: 'Actualizar SiGIC', icono: ArrowUpCircle, color: 'bg-emerald-600' },
             { id: 'acerca-de', titulo: 'Acerca de SiGIC', icono: Info, color: 'bg-indigo-600' },
             { id: 'landing-page', titulo: 'Landing Evento (Nerdearla)', icono: Sparkles, color: 'bg-cyan-500' },
           ]}
@@ -1392,6 +1396,8 @@ function App() {
             setMenuInicioGlobalAbierto(false)
             if (id === 'cambiar-dashboard') {
               cambiarEstiloInterfaz('dashboard')
+            } else if (id === 'actualizar-sigic') {
+              setMostrarModalActualizar(true)
             } else {
               setPantallaAdmin(id)
             }
@@ -1405,6 +1411,12 @@ function App() {
             localStorage.setItem('version_admin', nueva)
           }}
           versionAdmin={versionAdmin}
+        />
+      )}
+      {mostrarModalActualizar && (
+        <ModalActualizarSigic
+          abierto={mostrarModalActualizar}
+          onCerrar={() => setMostrarModalActualizar(false)}
         />
       )}
     </>
@@ -1422,6 +1434,7 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
   const [marcaAguaActiva, setMarcaAguaActiva] = useState(() => localStorage.getItem('sigic_marca_agua') !== 'false')
   const [mostrarModalFondo, setMostrarModalFondo] = useState(false)
   const [mostrarModalAcercaDe, setMostrarModalAcercaDe] = useState(false)
+  const [mostrarModalActualizarLocal, setMostrarModalActualizarLocal] = useState(false)
 
   const cambiarFondo = (nuevoFondo) => {
     setFondoId(nuevoFondo)
@@ -1504,6 +1517,7 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
     { id: 'ajustes', titulo: 'Ajustes', icono: Settings, color: 'bg-slate-500', escritorio: esAdministrativo },
     { id: 'seleccion-asientos', titulo: 'Anfiteatro', icono: MapPin, color: 'bg-orange-500', escritorio: false },
     { id: 'manual-usuario', titulo: 'Manual Oficial', icono: BookOpen, color: 'bg-sky-600', escritorio: true },
+    { id: 'actualizar-sigic', titulo: 'Actualizar SiGIC', icono: ArrowUpCircle, color: 'bg-emerald-600', escritorio: true },
     { id: 'landing-page', titulo: 'Landing Evento', icono: Sparkles, color: 'bg-cyan-500', escritorio: true },
     { id: 'acerca-de', titulo: 'Acerca de SiGIC', icono: Info, color: 'bg-indigo-600', escritorio: true },
     { id: 'cambiar-dashboard', titulo: 'Dashboard Web', icono: LayoutDashboard, color: 'bg-sky-600', escritorio: true },
@@ -1713,6 +1727,12 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
     }
     if (id === 'acerca-de') {
       setMostrarModalAcercaDe(true)
+      setInicioAbierto(false)
+      setMenuContextual(null)
+      return
+    }
+    if (id === 'actualizar-sigic') {
+      setMostrarModalActualizarLocal(true)
       setInicioAbierto(false)
       setMenuContextual(null)
       return
@@ -2075,7 +2095,9 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
             </button>
           )}
           <button onClick={() => setMostrarModalFondo(true)} className="sigic-theme-button" title="Personalizar fondo de pantalla y estilos" aria-label="Personalizar fondo"><Palette size={15} /></button>
-          <button onClick={cambiarTema} className="sigic-theme-button" aria-label={`Cambiar a modo ${tema === 'oscuro' ? 'claro' : 'oscuro'}`}>{tema === 'oscuro' ? <Sun size={15} /> : <Moon size={15} />}</button>
+          <div className="flex items-center px-1">
+            <AnimatedThemeToggler size="sm" />
+          </div>
           <Bell size={15} />
           <Wifi size={15} />
           <Volume2 size={15} />
@@ -2130,6 +2152,12 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
             setMostrarModalAcercaDe(false)
             abrirVentana('manual-usuario')
           }}
+        />
+      )}
+      {mostrarModalActualizarLocal && (
+        <ModalActualizarSigic
+          abierto={mostrarModalActualizarLocal}
+          onCerrar={() => setMostrarModalActualizarLocal(false)}
         />
       )}
     </main>

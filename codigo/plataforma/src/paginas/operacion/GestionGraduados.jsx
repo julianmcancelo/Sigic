@@ -4,7 +4,7 @@ import {
   Users, Search, Upload, Trash2, X, Link2, CreditCard,
   UserX, CheckCircle2, Clock, AlertCircle, Armchair, Send, PlusCircle, BadgeCheck, Edit3, MoreHorizontal,
   FileSpreadsheet, Download, ArrowRight, UserPlus, Sparkles, Award, LayoutGrid, List, Mail, Check,
-  GraduationCap
+  GraduationCap, Phone, Calendar
 } from 'lucide-react'
 import * as XLSX from 'xlsx'
 
@@ -13,7 +13,8 @@ import {
   eliminarGraduado,
   vaciarGraduados,
   obtenerInvitados, 
-  corroborarGraduado, actualizarGraduado, buscarHistorialGraduados
+  corroborarGraduado, actualizarGraduado, buscarHistorialGraduados,
+  obtenerCarreras
 } from '../../servicios/api'
 import { useSincronizacion, emitirCambioSync } from '../../lib/sync'
 
@@ -23,6 +24,7 @@ import { FormularioGraduado } from '../../componentes/FormularioGraduado'
 import { ModalImportar } from '../../componentes/ModalImportar'
 import { ModalAsignarAsientos } from '../../componentes/ModalAsignarAsientos'
 import { useConfirmacion } from '../../componentes/ModalConfirmacion'
+import { InputCampo } from '../../componentes/InputCampo'
 
 const ESTADOS_FLUJO = {
   SIN_INVITAR:       { etiqueta: 'Sin invitar',        color: 'bg-slate-100 text-slate-700 border border-slate-200',   iconKey: 'SIN_INVITAR' },
@@ -1165,10 +1167,274 @@ export function GestionGraduados({
   )
 }
 
+const CARRERAS_PREDETERMINADAS_MODAL = [
+  { id: 'Analista de Sistemas', nombre: 'Tecnicatura Superior en Analista de Sistemas', iniciales: 'TSAS' },
+  { id: 'Ciencia de Datos e IA', nombre: 'Tecnicatura Superior en Ciencia de Datos e Inteligencia Artificial', iniciales: 'TSCDIA' },
+  { id: 'Higiene y Seguridad', nombre: 'Tecnicatura Superior en Higiene, Seguridad y Ambiente Laboral', iniciales: 'TSHSAL' },
+  { id: 'Diseño Industrial', nombre: 'Tecnicatura Superior en Diseño Industrial', iniciales: 'TSDI' },
+  { id: 'Automatización y Robótica', nombre: 'Tecnicatura Superior en Automatización y Robótica', iniciales: 'TSAR' },
+  { id: 'Desarrollo de Software', nombre: 'Tecnicatura Superior en Analista de Sistemas', iniciales: 'TSAS' },
+]
+
 function ModalEditarGraduado({ graduado, onCerrar, onGuardar }) {
-  const [form, setForm] = useState({ nombre: graduado.nombre || '', dni: graduado.dni || '', legajo: graduado.legajo || '', correo: graduado.correo || '', carrera: graduado.carrera || '', promedio: graduado.promedio || '' })
+  const [form, setForm] = useState({
+    nombre: graduado.nombre || '',
+    dni: graduado.dni || '',
+    legajo: graduado.legajo || '',
+    correo: graduado.correo || '',
+    correo_personal: graduado.correo_personal || '',
+    telefono: graduado.telefono || '',
+    carrera: graduado.carrera || '',
+    anio_inscripcion: graduado.anio_inscripcion || '',
+    promedio: graduado.promedio !== null && graduado.promedio !== undefined ? graduado.promedio : ''
+  })
+  const [carrerasDisponibles, setCarrerasDisponibles] = useState(CARRERAS_PREDETERMINADAS_MODAL)
+  const [esOtraCarrera, setEsOtraCarrera] = useState(false)
   const [guardando, setGuardando] = useState(false)
-  async function enviar(evento) { evento.preventDefault(); setGuardando(true); try { await onGuardar(form) } catch (error) { alert(error.message) } finally { setGuardando(false) } }
-  const campo = (clave, etiqueta, tipo = 'text') => <label className="grid gap-1 text-[10px] font-bold uppercase tracking-wider text-slate-500"><span>{etiqueta}</span><input type={tipo} value={form[clave]} onChange={e => setForm(actual => ({ ...actual, [clave]: e.target.value }))} className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-800 outline-none focus:border-sky-400" /></label>
-  return <div className="fixed inset-0 z-[70] grid place-items-center bg-slate-950/45 p-4 backdrop-blur-sm"><form onSubmit={enviar} className="w-full max-w-lg rounded-2xl bg-white p-5 shadow-2xl"><div className="mb-5 flex items-start justify-between"><div><p className="text-[10px] font-black uppercase tracking-[.16em] text-sky-600">Edición administrativa</p><h3 className="mt-1 text-lg font-black text-slate-900">Actualizar graduado</h3></div><button type="button" onClick={onCerrar} className="text-slate-400 hover:text-slate-900"><X size={20} /></button></div><div className="grid gap-3 sm:grid-cols-2">{campo('nombre', 'Nombre completo')}{campo('dni', 'DNI', 'text')}{campo('legajo', 'Legajo')}{campo('correo', 'Correo', 'email')}{campo('carrera', 'Carrera')}{campo('promedio', 'Promedio', 'number')}</div><div className="mt-5 flex justify-end gap-2"><button type="button" onClick={onCerrar} className="px-4 py-2 text-xs font-bold text-slate-500">Cancelar</button><button disabled={guardando} className="rounded-lg bg-slate-900 px-4 py-2 text-xs font-black text-white disabled:opacity-50">{guardando ? 'Guardando...' : 'Guardar cambios'}</button></div></form></div>
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    async function cargarCarreras() {
+      try {
+        const lista = await obtenerCarreras().catch(() => [])
+        if (Array.isArray(lista) && lista.length > 0) {
+          const mapeadas = lista.map(c => ({
+            id: c.id,
+            nombre: c.nombre,
+            iniciales: c.sigla || ''
+          }))
+          setCarrerasDisponibles(mapeadas)
+          const existe = mapeadas.some(c => c.nombre.toLowerCase() === (graduado.carrera || '').toLowerCase())
+          if (!existe && graduado.carrera) {
+            setEsOtraCarrera(true)
+          }
+        } else if (graduado.carrera) {
+          const existePre = CARRERAS_PREDETERMINADAS_MODAL.some(c => c.nombre.toLowerCase() === graduado.carrera.toLowerCase())
+          if (!existePre) setEsOtraCarrera(true)
+        }
+      } catch (err) {
+        console.error('Error al cargar carreras en modal de edición:', err)
+      }
+    }
+    cargarCarreras()
+  }, [graduado])
+
+  const sugerirCorreoInstitucional = () => {
+    const d = form.dni.replace(/\D/g, '')
+    if (d) {
+      setForm(p => ({ ...p, correo: `${d}@itbeltran.com.ar` }))
+    }
+  }
+
+  async function enviar(evento) {
+    evento.preventDefault()
+    if (!form.nombre.trim()) {
+      setError('El nombre completo es requerido.')
+      return
+    }
+    if (!form.dni.trim()) {
+      setError('El DNI es requerido.')
+      return
+    }
+    setError('')
+    setGuardando(true)
+    try {
+      await onGuardar({
+        ...form,
+        dni: form.dni.replace(/\D/g, ''),
+        promedio: form.promedio === '' ? null : form.promedio,
+        anio_inscripcion: form.anio_inscripcion === '' ? null : Number(form.anio_inscripcion)
+      })
+    } catch (err) {
+      setError(err.message || 'Error al actualizar graduado')
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-[70] grid place-items-center bg-slate-950/50 p-4 backdrop-blur-sm animate-in fade-in duration-200">
+      <form onSubmit={enviar} className="w-full max-w-xl rounded-3xl bg-white p-6 shadow-2xl border border-slate-100 flex flex-col gap-4">
+        
+        {/* Cabecera */}
+        <div className="flex items-start justify-between border-b border-slate-100 pb-3">
+          <div>
+            <span className="text-[10px] font-black uppercase tracking-[0.18em] text-sky-600 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-100">
+              Edición Administrativa
+            </span>
+            <h3 className="mt-1.5 text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+              Actualizar graduado
+            </h3>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">
+              Modifica los datos académicos o de contacto del egresado.
+            </p>
+          </div>
+          <button 
+            type="button" 
+            onClick={onCerrar} 
+            className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-800 transition-colors"
+          >
+            <X size={20} />
+          </button>
+        </div>
+
+        {error && (
+          <div className="rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2 text-xs font-semibold text-rose-700 animate-in fade-in">
+            {error}
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          {/* Nombre y DNI */}
+          <InputCampo
+            label="Nombre Completo *"
+            valor={form.nombre}
+            onChange={(v) => setForm(p => ({ ...p, nombre: v }))}
+            placeholder="Ej. Cancelo Julian"
+            icon={Users}
+          />
+          <InputCampo
+            label="DNI *"
+            valor={form.dni}
+            onChange={(v) => setForm(p => ({ ...p, dni: v }))}
+            placeholder="Ej. 35230531"
+            icon={BadgeCheck}
+          />
+
+          {/* Legajo y Teléfono */}
+          <InputCampo
+            label="Legajo"
+            valor={form.legajo}
+            onChange={(v) => setForm(p => ({ ...p, legajo: v }))}
+            placeholder="Ej. TSAS-2025-0100"
+            icon={GraduationCap}
+          />
+          <InputCampo
+            label="Teléfono / WhatsApp"
+            valor={form.telefono}
+            onChange={(v) => setForm(p => ({ ...p, telefono: v }))}
+            placeholder="Ej. 11 3456-7890"
+            icon={Phone}
+            type="tel"
+          />
+
+          {/* Correo Institucional con botón de sugerencia rápida */}
+          <div className="sm:col-span-2">
+            <div className="flex items-center justify-between mb-1 ml-1">
+              <label className="text-[9px] font-black uppercase tracking-[0.16em] text-slate-400">
+                Correo Institucional
+              </label>
+              {form.dni && !form.correo && (
+                <button 
+                  type="button" 
+                  onClick={sugerirCorreoInstitucional}
+                  className="text-[9px] font-bold text-sky-600 hover:text-sky-800 transition-colors"
+                >
+                  + Beltrán (@itbeltran.com.ar)
+                </button>
+              )}
+            </div>
+            <InputCampo
+              valor={form.correo}
+              onChange={(v) => setForm(p => ({ ...p, correo: v }))}
+              placeholder="35230531@itbeltran.com.ar"
+              icon={Mail}
+              type="email"
+            />
+          </div>
+
+          {/* Correo Personal */}
+          <div className="sm:col-span-2">
+            <InputCampo
+              label="Correo Personal (Opcional)"
+              valor={form.correo_personal}
+              onChange={(v) => setForm(p => ({ ...p, correo_personal: v }))}
+              placeholder="ejemplo@gmail.com"
+              icon={Mail}
+              type="email"
+            />
+          </div>
+
+          {/* Carrera */}
+          <div className="sm:col-span-2">
+            <label className="text-[9px] font-black uppercase tracking-[0.16em] text-slate-400 ml-1 mb-1 block">
+              Carrera de Graduación
+            </label>
+            <div className="relative">
+              <select
+                value={esOtraCarrera ? '__OTRA__' : form.carrera}
+                onChange={(e) => {
+                  const val = e.target.value
+                  if (val === '__OTRA__') {
+                    setEsOtraCarrera(true)
+                    setForm(p => ({ ...p, carrera: '' }))
+                  } else {
+                    setEsOtraCarrera(false)
+                    setForm(p => ({ ...p, carrera: val }))
+                  }
+                }}
+                className="w-full appearance-none rounded-xl border border-slate-200 bg-white py-2.5 pl-3.5 pr-8 text-xs sm:text-sm font-semibold text-slate-800 outline-none transition-all focus:border-sky-500 focus:ring-3 focus:ring-sky-500/10 cursor-pointer"
+              >
+                <option value="">-- Seleccionar Carrera --</option>
+                {carrerasDisponibles.map(c => (
+                  <option key={c.id || c.nombre} value={c.nombre}>
+                    {c.nombre} {c.iniciales ? `(${c.iniciales})` : ''}
+                  </option>
+                ))}
+                <option value="__OTRA__">+ Otra carrera (personalizada)...</option>
+              </select>
+              <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-xs">
+                ▼
+              </div>
+            </div>
+            {esOtraCarrera && (
+              <div className="mt-2 animate-in fade-in">
+                <InputCampo
+                  label="Nombre de la carrera"
+                  valor={form.carrera}
+                  onChange={(v) => setForm(p => ({ ...p, carrera: v }))}
+                  placeholder="Ej. Tecnicatura Superior en Logística"
+                  icon={GraduationCap}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Promedio y Año de Inscripción */}
+          <InputCampo
+            label="Promedio General"
+            valor={form.promedio}
+            onChange={(v) => setForm(p => ({ ...p, promedio: v }))}
+            placeholder="Ej. 9.00"
+            icon={Award}
+          />
+          <InputCampo
+            label="Año de Inscripción"
+            valor={form.anio_inscripcion}
+            onChange={(v) => setForm(p => ({ ...p, anio_inscripcion: v }))}
+            placeholder="Ej. 2022"
+            icon={Calendar}
+          />
+        </div>
+
+        {/* Acciones */}
+        <div className="mt-2 flex items-center justify-end gap-2.5 border-t border-slate-100 pt-4">
+          <button 
+            type="button" 
+            onClick={onCerrar} 
+            className="rounded-xl px-4 py-2.5 text-xs font-bold text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-colors"
+          >
+            Cancelar
+          </button>
+          <button 
+            type="submit" 
+            disabled={guardando} 
+            className="rounded-xl bg-slate-900 px-5 py-2.5 text-xs font-black text-white hover:bg-sky-600 transition-all shadow-md shadow-slate-900/10 disabled:opacity-50 cursor-pointer"
+          >
+            {guardando ? 'Guardando...' : 'Guardar cambios'}
+          </button>
+        </div>
+      </form>
+    </div>
+  )
 }

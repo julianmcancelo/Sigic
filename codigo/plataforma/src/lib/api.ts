@@ -390,6 +390,16 @@ export async function obtenerDispositivosMoviles() {
   return json;
 }
 
+export async function obtenerRedLocal() {
+  try {
+    const res = await fetch(`${BASE_CLASSIC}/sistema/red-local`, { headers: cabeceras() });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
 export async function actualizarAjuste(clave: string, valor: string | number | boolean) {
   const res = await fetch(`${BASE_CLASSIC}/configuracion/${clave}`, {
     method: 'PUT',
@@ -942,6 +952,26 @@ export async function actualizarGraduadoEnEstrado(ceremoniaId: string, graduado:
     body: JSON.stringify({ ceremoniaId, graduado })
   });
   return res.json();
+}
+
+export async function consultarActualizacionSistema() {
+  try {
+    const res = await fetch(`${BASE_CLASSIC}/sistema/actualizacion`, { headers: cabeceras() });
+    if (!res.ok) return { actualizacionDisponible: false };
+    return res.json();
+  } catch (e) {
+    return { actualizacionDisponible: false };
+  }
+}
+
+export async function ejecutarActualizacionSistema() {
+  const res = await fetch(`${BASE_CLASSIC}/sistema/actualizar`, {
+    method: 'POST',
+    headers: cabeceras(),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'No se pudo iniciar la actualización.');
+  return data;
 }
 
 export async function obtenerRegistrosAuditoria(entidad?: string, limite = 100) {

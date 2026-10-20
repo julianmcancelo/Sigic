@@ -133,3 +133,26 @@ os-appliance/
 
 padron_*.xlsx
 datos_alumnos/
+
+# Archivos temporales de scripts y artefactos de construcción ISO/VM
+*.vdi
+*.7z
+*.zip
+*.tar.gz
+*.bin
+*.com
+*.ps1
+!codigo/plataforma/scripts/*.ps1
+build_iso_master.sh
+diagnostico_iso.sh
+instalar_wallpapers_vm.sh
+ver_fondo_actual.sh
+generar_fondos_todos.js
+os/7zbin/
+os/iso_modificada/
+os/test_extract/
+os/test_extract_ini/
+os/windows-live/constructor/ventoy_extracted/
+os/windows-live/constructor/wimlib/
+os/windows-live/temp_build/
+SiGIC_Escritorio/

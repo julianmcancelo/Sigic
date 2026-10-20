@@ -337,10 +337,21 @@ npx expo start       # Iniciar Expo dev server
 
 ---
 
-## 12. Notas para el Asistente
+## 12. Notas y Reglas Permanentes Críticas
 
-- El interceptor de fetch en `App.jsx` ignora errores 401 cuando el token empieza con `bypass-` (tokens del Expositor).
+- **Carrera Institucional Oficial**: La carrera es obligatoriamente **Tecnicatura Superior en Analista de Sistemas** (NUNCA "Desarrollo de Software"). Debe reflejarse siempre en el "Acerca de", pies institucionales, datos por defecto, formularios y documentación.
+- **Nomenclatura Oficial del Sistema**: Se denomina estrictamente **SiGIC** o **Sistema de Gestión Institucional de Colaciones**. Se debe **eliminar siempre el sufijo "OS"** (no usar "SiGIC OS").
+- **Fondos de Pantalla Institucionales Beltrán (10 Temas)**:
+  - Ubicación en plataforma: `public/wallpapers/`
+  - Ubicación en entorno en vivo: `/usr/share/backgrounds/sigic/`
+  - Variantes: `beltran.jpg` (oficial activo), `original.jpg`, `aurora.jpg`, `carbon.jpg`, `ceremonial.jpg`, `cybergrid.jpg`, `sunset.jpg`, `emerald.jpg`, `sapphire.jpg`, `alabaster.jpg`.
+  - Acceso directo para selección en escritorio: `FONDOS-BELTRAN.desktop` (`cambiar_fondo.desktop`).
+- **Mecanismo de Actualización Dinámica**:
+  - Script: `/usr/local/bin/sigic-actualizar` (`codigo/plataforma/public/sigic-actualizar.sh`).
+  - Permite actualizar en caliente desde USB (`SIGIC_UPDATE/sigic-web-bundle.tar.gz`) o desde repositorio sin necesidad de recompilar la ISO completa.
+- **Intercepción y Sesión**: El interceptor de fetch en `App.jsx` ignora errores 401 cuando el token empieza con `bypass-` (tokens del Expositor).
 - `[...slug]/route.ts` es el **catch-all** que maneja TODA la API. Cualquier endpoint nuevo se agrega ahí.
 - Las imágenes del manual van en `public/manual/` para la web y se referencian con paths relativos (`/manual/archivo.png`).
 - Al hacer cambios, siempre verificar con `npm run build` que compila correctamente antes de pushear.
 - PowerShell usa `;` como separador de comandos, no `&&`.
+

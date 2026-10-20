@@ -46,7 +46,7 @@ export async function GET() {
       ok: true,
       inicializado: total > 0,
       requiereSetup: total === 0,
-      sistema: 'SiGIC OS',
+      sistema: 'SiGIC',
       institucion: 'Instituto Tecnológico Beltrán'
     }, { headers: CORS_HEADERS });
   } catch (error: any) {
@@ -131,7 +131,7 @@ export async function POST(req: NextRequest) {
 
       return NextResponse.json({
         ok: true,
-        mensaje: 'SiGIC OS y plataforma inicializados con éxito',
+        mensaje: 'SiGIC y plataforma inicializados con éxito',
         token,
         usuario: { id: usuarioId, nombre, email, rol: 'ADMINISTRATIVO' }
       }, { headers: CORS_HEADERS });

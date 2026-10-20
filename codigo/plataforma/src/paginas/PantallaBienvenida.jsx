@@ -133,22 +133,22 @@ function BentoStatCard({ icono: Icono, etiqueta, valor, color = ACCENT, descripc
 
   return (
     <div
-      className="relative overflow-hidden rounded-[28px] p-4 sm:p-6 flex items-center justify-between transition-all hover:scale-[1.02] duration-300 bg-white border border-slate-100 shadow-md shadow-slate-100/50"
+      className="relative overflow-hidden rounded-[28px] p-5 sm:p-6 flex items-center justify-between transition-all hover:scale-[1.02] duration-300 bg-white border border-slate-200/90 shadow-md shadow-slate-200/40 hover:shadow-xl hover:shadow-slate-300/40"
     >
       {/* Contenido izquierdo */}
-      <div className="flex-1 min-w-0 pr-2">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="p-1.5 rounded-lg bg-slate-50 border border-slate-150" style={{ color }}>
-            <Icono size={16} />
+      <div className="flex-1 min-w-0 pr-3">
+        <div className="flex items-center gap-2 mb-2.5">
+          <div className="p-2 rounded-xl bg-slate-100/90 border border-slate-200 shadow-2xs" style={{ color }}>
+            <Icono size={17} strokeWidth={2.5} />
           </div>
-          <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-450 truncate">
+          <p className="text-[10.5px] font-black uppercase tracking-[0.16em] text-slate-700 truncate">
             {etiqueta}
           </p>
         </div>
-        <p className="text-2xl sm:text-3xl md:text-[2.1rem] font-black leading-none tracking-tight text-slate-800 tabular-nums my-1">
+        <p className="text-3xl sm:text-4xl font-black leading-none tracking-tight text-slate-900 tabular-nums my-1.5">
           {circularValue !== undefined ? `${contado}%` : contado}
         </p>
-        <p className="text-[11px] font-semibold text-slate-400 truncate">
+        <p className="text-xs font-semibold text-slate-600 truncate mt-1">
           {descripcion}
         </p>
       </div>
@@ -157,10 +157,9 @@ function BentoStatCard({ icono: Icono, etiqueta, valor, color = ACCENT, descripc
       {circularValue !== undefined ? (
         <CircularProgress valor={valor} color={color} size={80} strokeWidth={8} />
       ) : (
-        <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50 border border-slate-100">
-          <Icono size={26} style={{ color, opacity: 0.8 }} />
-          {/* Sutil resplandor de fondo */}
-          <div className="absolute inset-0 rounded-2xl opacity-[0.08] blur-md" style={{ background: color }} />
+        <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50 border border-slate-200/80 shadow-inner shrink-0">
+          <Icono size={28} style={{ color }} strokeWidth={2.2} />
+          <div className="absolute inset-0 rounded-2xl opacity-10 blur-sm" style={{ background: color }} />
         </div>
       )}
     </div>
@@ -180,79 +179,69 @@ function TarjetaRelojClima({ climaInfo, fechaActual, textoTemp, fondoConfig }) {
   const IconoClima = detalleClima.icono
 
   const colorPrincipal = fondoConfig?.colorPrincipal || ACCENT
-  const fondoGradiente = fondoConfig?.colores 
-    ? `linear-gradient(135deg, ${fondoConfig.colores[0]} 0%, ${fondoConfig.colores[1]} 60%, ${fondoConfig.colorPrincipal}40 100%)`
-    : 'linear-gradient(135deg, #0d1b2e 0%, #1a2d45 50%, #2A3448 100%)'
 
   return (
     <div
-      className="relative overflow-hidden rounded-[32px] p-6 flex flex-col justify-between text-white shadow-xl shadow-slate-900/10 min-h-[190px] border border-white/10 transition-all duration-500"
-      style={{
-        background: fondoGradiente,
-      }}
+      className="relative overflow-hidden rounded-[32px] p-6 flex flex-col justify-between text-white shadow-xl shadow-slate-950/20 min-h-[190px] border border-slate-800 bg-[#091524] transition-all duration-500"
     >
       {/* Efectos de luz decorativos de fondo */}
       <div 
-        className="absolute inset-0 pointer-events-none opacity-30 blur-xl transition-all duration-500" 
+        className="absolute inset-0 pointer-events-none opacity-40 blur-xl transition-all duration-500" 
         style={{
           background: `radial-gradient(circle at top right, ${colorPrincipal}, transparent 70%)`
         }}
       />
       <div 
-        className="absolute bottom-0 left-0 w-32 h-32 rounded-full pointer-events-none blur-2xl opacity-20" 
-        style={{ background: colorPrincipal }}
+        className="absolute bottom-0 left-0 w-32 h-32 rounded-full pointer-events-none blur-2xl opacity-25" 
+        style={{ background: '#0ea5e9' }}
       />
 
       {/* Cabecera: Reloj */}
       <div className="relative flex items-baseline justify-between">
         <div>
-          <span className="text-4xl font-black tracking-tight tabular-nums">
+          <span className="text-4xl sm:text-5xl font-black tracking-tight tabular-nums text-white drop-shadow-md">
             {horaHHmm}
           </span>
           <span 
-            className="text-md font-bold ml-1 tabular-nums animate-pulse"
-            style={{ color: colorPrincipal }}
+            className="text-lg sm:text-xl font-bold ml-1.5 tabular-nums text-cyan-400 drop-shadow-sm"
           >
             :{horaSS}
           </span>
         </div>
-        <div className="flex items-center gap-1.5 bg-white/10 border border-white/15 rounded-full px-3 py-1 backdrop-blur-xs">
+        <div className="flex items-center gap-1.5 bg-white/10 border border-white/20 rounded-full px-3 py-1 backdrop-blur-md shadow-xs">
           <span className="relative flex h-2 w-2">
             <span 
-              className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-70"
-              style={{ backgroundColor: colorPrincipal }}
+              className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 bg-cyan-400"
             />
             <span 
-              className="relative inline-flex h-2 w-2 rounded-full"
-              style={{ backgroundColor: colorPrincipal }}
+              className="relative inline-flex h-2 w-2 rounded-full bg-cyan-400"
             />
           </span>
-          <span className="text-[9px] font-black uppercase tracking-wider text-white/90">En Vivo</span>
+          <span className="text-[10px] font-black uppercase tracking-wider text-cyan-200">En Vivo</span>
         </div>
       </div>
 
       {/* Pie: Fecha y Clima */}
       <div className="relative mt-4">
-        <p className="text-[12px] font-black uppercase tracking-widest text-white/60 leading-none mb-1">
+        <p className="text-[11px] font-black uppercase tracking-widest text-cyan-300 leading-none mb-1">
           {diaSemana}
         </p>
-        <p className="text-[16px] font-black leading-tight text-white/95">
+        <p className="text-lg font-black leading-tight text-white capitalize">
           {dia} de {mes}
         </p>
         
         {/* Info del Clima */}
-        <div className="mt-3 flex items-center gap-2 bg-white/10 border border-white/15 rounded-2xl p-2 backdrop-blur-xs">
+        <div className="mt-3 flex items-center gap-2.5 bg-white/10 border border-white/15 rounded-2xl p-2.5 backdrop-blur-md">
           <div 
-            className="p-1.5 rounded-lg flex items-center justify-center"
-            style={{ backgroundColor: `${colorPrincipal}25`, color: colorPrincipal }}
+            className="p-1.5 rounded-xl flex items-center justify-center bg-cyan-500/20 text-cyan-300 border border-cyan-400/30"
           >
-            <IconoClima size={16} className="animate-pulse" />
+            <IconoClima size={18} className="animate-pulse" />
           </div>
           <div className="min-w-0">
-            <p className="text-[11px] font-black leading-none text-white truncate">
+            <p className="text-xs font-black leading-none text-white truncate">
               {textoTemp}
             </p>
-            <p className="text-[8px] font-bold text-white/60 uppercase tracking-wider truncate mt-0.5">
+            <p className="text-[9px] font-bold text-cyan-200/80 uppercase tracking-wider truncate mt-0.5">
               {detalleClima.descripcion}
             </p>
           </div>
@@ -723,39 +712,47 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
       <main className="mx-auto max-w-7xl px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6 pb-24">
         <div className="flex flex-col gap-4 sm:gap-6">
 
+          {/* Hero Banner Principal con contraste premium adaptive */}
           <section 
-            className="relative overflow-hidden rounded-[28px] sm:rounded-[32px] border border-slate-200/40 p-5 sm:p-7 text-white shadow-xl shadow-slate-900/10 transition-all duration-500"
-            style={{
-              background: `linear-gradient(135deg, ${fondoConfig.colores[0]} 0%, ${fondoConfig.colores[1]} 65%, ${fondoConfig.colorPrincipal}30 100%)`
-            }}
+            className="relative overflow-hidden rounded-[28px] sm:rounded-[32px] border border-slate-200/80 p-5 sm:p-7 shadow-xl shadow-slate-900/5 transition-all duration-500 bg-white/90 backdrop-blur-xl"
           >
+            {/* Resplandor decorativo de marca de fondo */}
             <div 
-              className="absolute -right-16 -top-24 h-64 w-64 rounded-full blur-3xl opacity-20 pointer-events-none transition-all duration-500" 
+              className="absolute -right-16 -top-24 h-64 w-64 rounded-full blur-3xl opacity-15 pointer-events-none transition-all duration-500" 
               style={{ background: fondoConfig.colorPrincipal }}
             />
+            <div 
+              className="absolute -left-12 -bottom-20 h-56 w-56 rounded-full blur-3xl opacity-10 pointer-events-none transition-all duration-500" 
+              style={{ background: fondoConfig.colores[0] || '#0ea5e9' }}
+            />
+
             <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3.5 sm:gap-4">
-                <img src="/logo-oficial.png" alt="Logo de SIGIC" className="h-12 w-12 sm:h-14 sm:w-14 rounded-2xl object-cover shadow-lg shrink-0 border border-white/10" />
+                <div className="p-2 sm:p-2.5 rounded-2xl bg-slate-900 text-white shadow-md shadow-slate-950/15 shrink-0 border border-slate-800">
+                  <img src="/logo-oficial.png" alt="Logo de SIGIC" className="h-10 w-10 sm:h-12 sm:w-12 object-contain" />
+                </div>
                 <div>
-                  <p 
-                    className="text-[10px] font-black uppercase tracking-[0.22em]"
-                    style={{ color: fondoConfig.colorPrincipal }}
-                  >
-                    Bienvenido al espacio de trabajo
-                  </p>
-                  <h2 className="mt-1 text-xl sm:text-2xl lg:text-3xl font-black tracking-tight">Esto es SIGIC</h2>
-                  <p className="mt-1.5 max-w-2xl text-xs font-medium leading-relaxed text-white/75">El Sistema Integral de Gestión Institucional que organiza ceremonias de colación, graduados, invitados, acreditaciones, ubicaciones y accesos desde un único lugar.</p>
+                  <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-sky-50 border border-sky-100 mb-1.5">
+                    <span className="h-1.5 w-1.5 rounded-full bg-sky-500 animate-pulse" />
+                    <p 
+                      className="text-[9.5px] font-black uppercase tracking-[0.2em] text-sky-700"
+                    >
+                      Bienvenido al espacio de trabajo
+                    </p>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 tracking-tight">Esto es SIGIC</h2>
+                  <p className="mt-1 max-w-2xl text-xs sm:text-[13px] font-medium leading-relaxed text-slate-600">El Sistema Integral de Gestión Institucional que organiza ceremonias de colación, graduados, invitados, acreditaciones, ubicaciones y accesos desde un único lugar.</p>
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-2 text-center text-[9px] font-bold text-white/80 w-full lg:w-auto">
-                <div className="rounded-xl border border-white/15 bg-white/10 px-2.5 sm:px-3 py-2.5 sm:py-3 backdrop-blur-xs">
-                  <span className="block text-base sm:text-lg font-black" style={{ color: fondoConfig.colorPrincipal }}>01</span>Planificar
+              <div className="grid grid-cols-3 gap-2.5 text-center text-[10px] font-bold text-slate-700 w-full lg:w-auto shrink-0">
+                <div className="rounded-2xl border border-slate-200/80 bg-slate-50/80 px-3 sm:px-4 py-2.5 sm:py-3 shadow-xs hover:border-sky-300 transition-colors">
+                  <span className="block text-lg sm:text-xl font-black text-sky-600">01</span>Planificar
                 </div>
-                <div className="rounded-xl border border-white/15 bg-white/10 px-2.5 sm:px-3 py-2.5 sm:py-3 backdrop-blur-xs">
-                  <span className="block text-base sm:text-lg font-black" style={{ color: fondoConfig.colorPrincipal }}>02</span>Organizar
+                <div className="rounded-2xl border border-slate-200/80 bg-slate-50/80 px-3 sm:px-4 py-2.5 sm:py-3 shadow-xs hover:border-sky-300 transition-colors">
+                  <span className="block text-lg sm:text-xl font-black text-indigo-600">02</span>Organizar
                 </div>
-                <div className="rounded-xl border border-white/15 bg-white/10 px-2.5 sm:px-3 py-2.5 sm:py-3 backdrop-blur-xs">
-                  <span className="block text-base sm:text-lg font-black" style={{ color: fondoConfig.colorPrincipal }}>03</span>Controlar
+                <div className="rounded-2xl border border-slate-200/80 bg-slate-50/80 px-3 sm:px-4 py-2.5 sm:py-3 shadow-xs hover:border-sky-300 transition-colors">
+                  <span className="block text-lg sm:text-xl font-black text-emerald-600">03</span>Controlar
                 </div>
               </div>
             </div>
@@ -765,8 +762,7 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             
             {/* Bienvenida y ceremonia activa */}
-            <section
-              className="lg:col-span-3 bg-white border border-slate-100 shadow-md shadow-slate-100/50 rounded-[28px] sm:rounded-[32px] overflow-hidden"
+            <section className="lg:col-span-3 bg-white border border-slate-200/90 shadow-md shadow-slate-200/40 rounded-[28px] sm:rounded-[32px] overflow-hidden"
             >
               <div className="relative p-5 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 h-full min-h-[190px]">
                 <div 
@@ -784,14 +780,14 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
                   <h1 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-800 tracking-tight leading-tight">
                     Hola, {usuario?.nombre?.split(' ')?.[0] || 'Administrador'}
                   </h1>
-                  <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm font-semibold text-slate-400">Estás trabajando en <strong className="text-slate-700">{ceremoniaActiva?.nombre || config.nombre_evento || 'la ceremonia principal'}</strong>.</p>
+                  <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm font-semibold text-slate-600">Estás trabajando en <strong className="text-slate-900">{ceremoniaActiva?.nombre || config.nombre_evento || 'la ceremonia principal'}</strong>.</p>
 
                   <div className="mt-3.5 sm:mt-4 flex flex-wrap gap-2 text-[10.5px] sm:text-[11px] font-bold text-slate-500">
-                    <span className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-full">
+                    <span className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3.5 py-1.5 rounded-full text-slate-700">
                       <Calendar size={13} style={{ color: fondoConfig.colorPrincipal }} className="shrink-0" />
                       {ceremoniaActiva ? new Date(ceremoniaActiva.fecha).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' }) : '—'}
                     </span>
-                    <span className="flex items-center gap-1.5 bg-slate-50 border border-slate-100 px-3 py-1.5 rounded-full">
+                    <span className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3.5 py-1.5 rounded-full text-slate-700">
                       <MapPin size={13} style={{ color: fondoConfig.colorPrincipal }} className="shrink-0" />
                       {ceremoniaActiva?.lugar || 'Sede Beltrán'}
                     </span>

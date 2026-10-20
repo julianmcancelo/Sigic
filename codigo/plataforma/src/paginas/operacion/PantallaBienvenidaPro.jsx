@@ -4,7 +4,7 @@ import {
   LogOut, Search, Bell, Eye, Edit3, CheckCircle2, AlertTriangle, 
   XCircle, LayoutGrid, HelpCircle, Map, BarChart3, Award, UserCheck, TrendingUp, 
   Shield, Server, Send, Armchair, Activity, QrCode, ScanLine, ArrowRight, ChevronRight,
-  Monitor, Palette
+  Monitor, Palette, ArrowUpCircle
 } from 'lucide-react'
 import { BASE, cabeceras } from '../../servicios/api'
 import { useSincronizacion, emitirCambioSync } from '../../lib/sync'
@@ -12,6 +12,8 @@ import { obtenerDetalleClima } from '../../utilidades/clima'
 import { CloudSun } from 'lucide-react'
 import { FONDOS_DISPONIBLES } from '../../datos/fondos-pantalla'
 import { ModalPersonalizarFondo } from '../../componentes/ModalPersonalizarFondo'
+import { ModalActualizarSigic } from '../../componentes/ModalActualizarSigic'
+import { AnimatedThemeToggler } from '../../componentes/AnimatedThemeToggler'
 
 
 // Importación de sub-vistas operativas del sistema.
@@ -27,6 +29,7 @@ import { EstadoCeremonia } from './EstadoCeremonia'
 import { PanelAjustes } from './PanelAjustes'
 import { PanelReportes } from './PanelReportes'
 import { ManualUsuarioWeb } from '../ManualUsuarioWeb'
+import { LandingPageNerdearlaStyle } from '../LandingPageNerdearlaStyle'
 import { GestionPorteria } from './GestionPorteria'
 import { CentroControl } from './CentroControl'
 
@@ -45,7 +48,8 @@ export const TITULOS_PANTALLAS = {
   'gestion-porteria': 'Seguridad & Portería',
   'centro-control': 'Centro de Control e Infraestructura',
   'ajustes': 'Configuración del Sistema',
-  'manual-usuario': 'Manual de Usuario'
+  'manual-usuario': 'Manual de Usuario',
+  'landing-page': 'Landing Page (Nerdearla)'
 }
 
 export const CANONICAL_MAP = {
@@ -79,6 +83,8 @@ export const CANONICAL_MAP = {
   'ajustes': 'ajustes',
   'manual': 'manual-usuario',
   'manual-usuario': 'manual-usuario',
+  'landing': 'landing-page',
+  'landing-page': 'landing-page',
 }
 
 
@@ -199,6 +205,7 @@ export function PantallaBienvenidaPro({
   const [cuadriculaActiva, setCuadriculaActiva] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('sigic_cuadricula') !== 'false' : true))
   const [marcaAguaActiva, setMarcaAguaActiva] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('sigic_marca_agua') !== 'false' : true))
   const [mostrarModalFondo, setMostrarModalFondo] = useState(false)
+  const [mostrarModalActualizar, setMostrarModalActualizar] = useState(false)
 
   const fondoConfig = FONDOS_DISPONIBLES.find(f => f.id === fondoId) || FONDOS_DISPONIBLES[0]
 
@@ -508,36 +515,19 @@ export function PantallaBienvenidaPro({
           </div>
 
           {/* Right Section */}
-          <div className="flex items-center gap-2.5">
-            {/* Version Toggle */}
-            <button
-              onClick={onCambiarVersion}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-[9.5px] font-black uppercase tracking-wider text-slate-700 hover:bg-slate-100 transition active:scale-95 cursor-pointer shadow-xs"
-              title="Cambiar al diseño centrado clásico"
-            >
-              <LayoutGrid size={12} className="text-sky-500" />
-              <span className="hidden sm:inline">Versión 1 (Clásica)</span>
-            </button>
-
-            {/* Alternar a Escritorio OS */}
-            {onCambiarEstiloInterfaz && (
-              <button
-                onClick={onCambiarEstiloInterfaz}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-[9.5px] font-black uppercase tracking-wider text-slate-700 hover:bg-slate-100 transition active:scale-95 cursor-pointer shadow-xs"
-                title="Cambiar al formato de Escritorio OS con ventanas"
-              >
-                <Monitor size={12} className="text-indigo-500" />
-                <span className="hidden sm:inline">Escritorio OS</span>
-              </button>
-            )}
+          <div className="flex items-center gap-2.5 sm:gap-3.5">
+            {/* Switch de Tema Animado Día/Noche */}
+            <div className="flex items-center">
+              <AnimatedThemeToggler size="sm" />
+            </div>
 
             {/* Personalizar Fondo & Estilo */}
             <button
               onClick={() => setMostrarModalFondo(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-slate-200 bg-slate-50 text-[9.5px] font-black uppercase tracking-wider text-slate-700 hover:bg-slate-100 transition active:scale-95 cursor-pointer shadow-xs"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl border border-slate-200/80 bg-slate-50/80 hover:bg-white text-slate-700 hover:text-amber-600 hover:border-amber-400/50 text-[10px] font-bold tracking-tight transition-all duration-200 active:scale-95 cursor-pointer shadow-xs"
               title="Personalizar tema de color, fondo y efectos visuales"
             >
-              <Palette size={12} className="text-amber-500" />
+              <Palette size={13} className="text-amber-500 shrink-0" />
               <span className="hidden sm:inline">Tema & Fondo</span>
             </button>
 
@@ -1081,6 +1071,18 @@ export function PantallaBienvenidaPro({
             </div>
           )}
 
+          {/* VISTA: LANDING PAGE ESTILO NERDEARLA */}
+          {vistaActiva === 'landing-page' && (
+            <div className="rounded-3xl overflow-hidden border border-slate-800 shadow-2xl">
+              <LandingPageNerdearlaStyle
+                onIrAEgresado={() => window.open('/?vista=graduado', '_blank')}
+                onIrAAdmin={() => manejarNavegar('bienvenida')}
+                onIrAManual={() => manejarNavegar('manual-usuario')}
+                onVolver={() => manejarNavegar('bienvenida')}
+              />
+            </div>
+          )}
+
         </main>
       </div>
 
@@ -1170,6 +1172,12 @@ export function PantallaBienvenidaPro({
             window.dispatchEvent(new CustomEvent('sigic-marca-agua-cambiada', { detail: activo }))
           }}
           onCerrar={() => setMostrarModalFondo(false)}
+        />
+      )}
+      {mostrarModalActualizar && (
+        <ModalActualizarSigic
+          abierto={mostrarModalActualizar}
+          onCerrar={() => setMostrarModalActualizar(false)}
         />
       )}
     </div>

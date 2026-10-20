@@ -19,13 +19,13 @@ export function ModalImportar({ onCerrar, onCompletado, onActualizarPadron, grad
 
   const cargarPadronDemo = () => {
     const cohorteModelo = [
-      { nombre: 'García Juan Manuel', dni: '42123456', legajo: 'BEL-2024-101', correo: 'juan.garcia@sigic.demo.ar', carrera: 'Tecnicatura Superior en Desarrollo de Software', anio_inscripcion: 2024, promedio: 9.1 },
+      { nombre: 'García Juan Manuel', dni: '42123456', legajo: 'BEL-2024-101', correo: 'juan.garcia@sigic.demo.ar', carrera: 'Tecnicatura Superior en Analista de Sistemas', anio_inscripcion: 2024, promedio: 9.1 },
       { nombre: 'Martínez Lucía Belén', dni: '43234567', legajo: 'BEL-2024-102', correo: 'lucia.martinez@sigic.demo.ar', carrera: 'Tecnicatura Superior en Automatización y Robótica', anio_inscripcion: 2024, promedio: 9.4 },
       { nombre: 'Rodríguez Matías Alejandro', dni: '41987654', legajo: 'BEL-2024-103', correo: 'matias.rodriguez@sigic.demo.ar', carrera: 'Tecnicatura Superior en Redes e Infraestructura', anio_inscripcion: 2024, promedio: 8.7 },
       { nombre: 'Fernández Camila Soledad', dni: '44567890', legajo: 'BEL-2024-104', correo: 'camila.fernandez@sigic.demo.ar', carrera: 'Tecnicatura Superior en Ciencia de Datos e IA', anio_inscripcion: 2024, promedio: 9.6 },
       { nombre: 'López Tomás Ignacio', dni: '42876543', legajo: 'BEL-2024-105', correo: 'tomas.lopez@sigic.demo.ar', carrera: 'Tecnicatura Superior en Ciberseguridad', anio_inscripcion: 2024, promedio: 8.9 },
       { nombre: 'González Valentina Rocío', dni: '43654321', legajo: 'BEL-2024-106', correo: 'valentina.gonzalez@sigic.demo.ar', carrera: 'Tecnicatura Superior en Diseño y Desarrollo Web', anio_inscripcion: 2024, promedio: 9.3 },
-      { nombre: 'Díaz Agustín Ezequiel', dni: '42345678', legajo: 'BEL-2024-107', correo: 'agustin.diaz@sigic.demo.ar', carrera: 'Tecnicatura Superior en Desarrollo de Software', anio_inscripcion: 2024, promedio: 8.5 },
+      { nombre: 'Díaz Agustín Ezequiel', dni: '42345678', legajo: 'BEL-2024-107', correo: 'agustin.diaz@sigic.demo.ar', carrera: 'Tecnicatura Superior en Analista de Sistemas', anio_inscripcion: 2024, promedio: 8.5 },
       { nombre: 'Pérez Sofía Ailén', dni: '44123789', legajo: 'BEL-2024-108', correo: 'sofia.perez@sigic.demo.ar', carrera: 'Tecnicatura Superior en Automatización y Robótica', anio_inscripcion: 2024, promedio: 9.0 },
       { nombre: 'Romero Franco Damián', dni: '43987123', legajo: 'BEL-2024-109', correo: 'franco.romero@sigic.demo.ar', carrera: 'Tecnicatura Superior en Redes e Infraestructura', anio_inscripcion: 2024, promedio: 8.8 },
       { nombre: 'Torres Florencia Denise', dni: '41765432', legajo: 'BEL-2024-110', correo: 'florencia.torres@sigic.demo.ar', carrera: 'Tecnicatura Superior en Ciencia de Datos e IA', anio_inscripcion: 2024, promedio: 9.5 },
