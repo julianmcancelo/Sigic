@@ -653,6 +653,20 @@ export async function crearMateria(datos: { carrera_id: string; nombre: string; 
   return json;
 }
 
+export async function obtenerEstudiantesHabilitados(carreras?: string[], busqueda?: string) {
+  const params = new URLSearchParams();
+  if (carreras && carreras.length > 0) {
+    params.set('carreras', carreras.join(','));
+  }
+  if (busqueda && busqueda.trim()) {
+    params.set('q', busqueda.trim());
+  }
+  const queryStr = params.toString() ? `?${params.toString()}` : '';
+  const res = await fetchDeduplicado(`${BASE_CLASSIC}/estudiantes-habilitados${queryStr}`, { headers: cabeceras() });
+  if (!res.ok) throw new Error('No se pudo cargar la nómina de estudiantes habilitados');
+  return res.json();
+}
+
 export async function obtenerEntregadoresDeGraduado(graduadoId: string | number) {
   const res = await fetch(`${BASE_CLASSIC}/entregadores/graduado/${graduadoId}`, { headers: cabeceras() });
   if (!res.ok) throw new Error('No se pudieron cargar los entregadores del graduado');

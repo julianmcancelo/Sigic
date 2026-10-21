@@ -75,7 +75,24 @@
 .sg-start-search input::placeholder { color: #89a2b5; }
 .sg-start-search kbd { white-space: nowrap; font-size: 9px; padding: 2px 4px; border: 1px solid #ffffff26; border-radius: 4px; }
 .sg-start-search button { display: grid; place-items: center; }
-.sg-start-scroll { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 0 12px 13px; scrollbar-width: thin; scrollbar-color: #4c6377 transparent; }
+.sg-start-scroll {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 12px 24px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(140, 171, 191, 0.4) transparent;
+}
+.sg-start-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.sg-start-scroll::-webkit-scrollbar-thumb {
+  background: rgba(140, 171, 191, 0.35);
+  border-radius: 6px;
+}
+.sg-start-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(140, 171, 191, 0.55);
+}
 .sg-start-event { display: flex; align-items: center; gap: 10px; padding: 5px 6px 12px; color: #9db8cb; }
 .sg-start-event > span { min-width: 0; flex: 1; }
 .sg-start-event small, .sg-start-event strong, .sg-start-resume small, .sg-start-resume strong { display: block; }
@@ -99,4 +116,161 @@
 .sg-start-mode-switch-copy strong { display: block; color: #f0f9ff; font-size: 12px; font-weight: 650; }
 .sg-start-mode-switch-copy small { display: block; color: #94a3b8; font-size: 10px; margin-top: 1px; }
 .sg-start-mode-switch:hover { border-color: #38bdf8; background: linear-gradient(110deg, rgba(14, 116, 144, 0.55), rgba(15, 23, 42, 0.8)); transform: translateY(-1px); }
+/* Adaptación Dinámica al Modo Claro */
+.sigic-theme-claro .sigic-os-shell .sigic-start-menu.sg-start,
+.sigic-theme-claro .sg-start,
+[data-theme="claro"] .sg-start,
+.theme-claro .sg-start {
+  color: #173044 !important;
+  background: rgba(255, 255, 255, 0.94) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-color: rgba(25, 80, 100, 0.2) !important;
+  box-shadow: 0 25px 70px rgba(15, 35, 55, 0.2), 0 0 0 1px rgba(25, 80, 100, 0.1) !important;
+}
+
+.sigic-theme-claro .sg-start-heading > span,
+[data-theme="claro"] .sg-start-heading > span {
+  color: #0d4f67 !important;
+}
+
+.sigic-theme-claro .sg-start-heading strong,
+[data-theme="claro"] .sg-start-heading strong {
+  color: #0f172a !important;
+}
+
+.sigic-theme-claro .sg-start-heading button,
+.sigic-theme-claro .sg-start-footer > button,
+[data-theme="claro"] .sg-start-heading button,
+[data-theme="claro"] .sg-start-footer > button {
+  color: #475569 !important;
+}
+
+.sigic-theme-claro .sg-start-heading button:hover,
+.sigic-theme-claro .sg-start-footer > button:hover,
+[data-theme="claro"] .sg-start-heading button:hover,
+[data-theme="claro"] .sg-start-footer > button:hover {
+  background: rgba(25, 80, 100, 0.08) !important;
+  color: #0f172a !important;
+}
+
+.sigic-theme-claro .sg-start-search,
+[data-theme="claro"] .sg-start-search {
+  color: #334155 !important;
+  background: rgba(241, 245, 249, 0.9) !important;
+  border-color: #cbd5e1 !important;
+}
+
+.sigic-theme-claro .sg-start-search input,
+[data-theme="claro"] .sg-start-search input {
+  color: #0f172a !important;
+}
+
+.sigic-theme-claro .sg-start-search input::placeholder,
+[data-theme="claro"] .sg-start-search input::placeholder {
+  color: #94a3b8 !important;
+}
+
+.sigic-theme-claro .sg-start-search kbd,
+[data-theme="claro"] .sg-start-search kbd {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #64748b !important;
+}
+
+.sigic-theme-claro .sg-start-scroll,
+[data-theme="claro"] .sg-start-scroll {
+  scrollbar-color: rgba(100, 116, 139, 0.4) transparent;
+}
+.sigic-theme-claro .sg-start-scroll::-webkit-scrollbar-thumb,
+[data-theme="claro"] .sg-start-scroll::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.3);
+}
+.sigic-theme-claro .sg-start-scroll::-webkit-scrollbar-thumb:hover,
+[data-theme="claro"] .sg-start-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.5);
+}
+
+.sigic-theme-claro .sg-start-event,
+[data-theme="claro"] .sg-start-event {
+  color: #0284c7 !important;
+}
+
+.sigic-theme-claro .sg-start-event small,
+[data-theme="claro"] .sg-start-event small {
+  color: #64748b !important;
+}
+
+.sigic-theme-claro .sg-start-event strong,
+[data-theme="claro"] .sg-start-event strong {
+  color: #0f172a !important;
+}
+
+.sigic-theme-claro .sg-start-event button,
+[data-theme="claro"] .sg-start-event button {
+  color: #0284c7 !important;
+}
+
+.sigic-theme-claro .sg-start-resume,
+[data-theme="claro"] .sg-start-resume {
+  background: linear-gradient(110deg, #e0f2fe, #f0f9ff) !important;
+  border-color: #7dd3fc !important;
+  color: #0369a1 !important;
+}
+
+.sigic-theme-claro .sg-start-resume small,
+[data-theme="claro"] .sg-start-resume small {
+  color: #0284c7 !important;
+}
+
+.sigic-theme-claro .sg-start-resume strong,
+[data-theme="claro"] .sg-start-resume strong {
+  color: #0c4a6e !important;
+}
+
+.sigic-theme-claro .sg-start-label,
+[data-theme="claro"] .sg-start-label {
+  color: #64748b !important;
+}
+
+.sigic-theme-claro .sg-start-app:hover,
+.sigic-theme-claro .sg-start-app:focus-visible,
+[data-theme="claro"] .sg-start-app:hover,
+[data-theme="claro"] .sg-start-app:focus-visible {
+  background: rgba(241, 245, 249, 0.9) !important;
+  border-color: #e2e8f0 !important;
+}
+
+.sigic-theme-claro .sg-start-app-copy strong,
+[data-theme="claro"] .sg-start-app-copy strong {
+  color: #0f172a !important;
+}
+
+.sigic-theme-claro .sg-start-app-copy small,
+[data-theme="claro"] .sg-start-app-copy small {
+  color: #64748b !important;
+}
+
+.sigic-theme-claro .sg-start-footer,
+[data-theme="claro"] .sg-start-footer {
+  border-top-color: #e2e8f0 !important;
+  background: rgba(248, 250, 252, 0.95) !important;
+}
+
+.sigic-theme-claro .sg-start-avatar,
+[data-theme="claro"] .sg-start-avatar {
+  background: #bae6fd !important;
+  color: #0369a1 !important;
+}
+
+.sigic-theme-claro .sg-start-user strong,
+[data-theme="claro"] .sg-start-user strong {
+  color: #0f172a !important;
+}
+
+.sigic-theme-claro .sg-start-user small,
+[data-theme="claro"] .sg-start-user small {
+  color: #64748b !important;
+}
+
 @media (max-width: 500px) { .sg-start-grid { grid-template-columns: 1fr; }.sg-start-app { min-height: 54px; }.sg-start-search kbd { display: none; } }

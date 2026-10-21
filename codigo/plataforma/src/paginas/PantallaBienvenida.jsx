@@ -1,15 +1,18 @@
 import { useEffect, useState, useRef } from 'react'
 import { ModalPermisos } from '../componentes/ModalPermisos'
 import { ModalConfirmacion } from '../componentes/ModalConfirmacion'
+import { ModalCrearCircuito } from '../componentes/ModalCrearCircuito'
 import { ubicacionPorDefecto } from '../datos/ubicacion-por-defecto'
 import { consultarClimaActual, obtenerDetalleClima } from '../utilidades/clima'
 import { obtenerTextoMes } from '../utilidades/formatear-fecha'
 import dayjs from 'dayjs'
 import {
-  CloudSun, LogOut, Users, MapPin, QrCode, ScanLine,
+  CloudSun, LogOut, Users, MapPin, QrCode, ScanLine, CalendarPlus, Armchair, CheckCircle2, ArrowRight, Sparkles,
   GraduationCap, UserCheck, Clock, TrendingUp, Activity,
   ChevronRight, Wifi, WifiOff, FileImage, Settings, LayoutGrid,
-  Calendar, Server, Shield, Sparkles, Send, ListChecks, BarChart3
+  Calendar, Server, Shield, Send, ListChecks, BarChart3,
+  Eye, EyeOff, ChevronDown, ChevronUp, Maximize2, Minimize2,
+  List, Grid3X3, StretchHorizontal
 } from 'lucide-react'
 
 
@@ -133,33 +136,33 @@ function BentoStatCard({ icono: Icono, etiqueta, valor, color = ACCENT, descripc
 
   return (
     <div
-      className="relative overflow-hidden rounded-[28px] p-5 sm:p-6 flex items-center justify-between transition-all hover:scale-[1.02] duration-300 bg-white border border-slate-200/90 shadow-md shadow-slate-200/40 hover:shadow-xl hover:shadow-slate-300/40"
+      className="relative overflow-hidden rounded-2xl p-4 sm:p-4.5 flex items-center justify-between transition-all hover:scale-[1.01] duration-300 bg-white border border-slate-200/90 shadow-sm shadow-slate-200/50 hover:shadow-md hover:shadow-slate-300/40"
     >
       {/* Contenido izquierdo */}
-      <div className="flex-1 min-w-0 pr-3">
-        <div className="flex items-center gap-2 mb-2.5">
-          <div className="p-2 rounded-xl bg-slate-100/90 border border-slate-200 shadow-2xs" style={{ color }}>
-            <Icono size={17} strokeWidth={2.5} />
+      <div className="flex-1 min-w-0 pr-2.5">
+        <div className="flex items-center gap-2 mb-1.5">
+          <div className="p-1.5 rounded-lg bg-slate-100/90 border border-slate-200 shadow-2xs" style={{ color }}>
+            <Icono size={15} strokeWidth={2.5} />
           </div>
-          <p className="text-[10.5px] font-black uppercase tracking-[0.16em] text-slate-700 truncate">
+          <p className="text-[10px] font-black uppercase tracking-[0.14em] text-slate-700 truncate">
             {etiqueta}
           </p>
         </div>
-        <p className="text-3xl sm:text-4xl font-black leading-none tracking-tight text-slate-900 tabular-nums my-1.5">
+        <p className="text-2xl sm:text-3xl font-black leading-none tracking-tight text-slate-900 tabular-nums my-1">
           {circularValue !== undefined ? `${contado}%` : contado}
         </p>
-        <p className="text-xs font-semibold text-slate-600 truncate mt-1">
+        <p className="text-[11px] font-semibold text-slate-500 truncate mt-0.5" title={descripcion}>
           {descripcion}
         </p>
       </div>
 
       {/* Gráfico circular o elemento visual a la derecha */}
       {circularValue !== undefined ? (
-        <CircularProgress valor={valor} color={color} size={80} strokeWidth={8} />
+        <CircularProgress valor={valor} color={color} size={64} strokeWidth={6} />
       ) : (
-        <div className="relative flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50 border border-slate-200/80 shadow-inner shrink-0">
-          <Icono size={28} style={{ color }} strokeWidth={2.2} />
-          <div className="absolute inset-0 rounded-2xl opacity-10 blur-sm" style={{ background: color }} />
+        <div className="relative flex h-12 w-12 items-center justify-center rounded-xl bg-slate-50 border border-slate-200/80 shadow-inner shrink-0">
+          <Icono size={22} style={{ color }} strokeWidth={2.2} />
+          <div className="absolute inset-0 rounded-xl opacity-10 blur-xs" style={{ background: color }} />
         </div>
       )}
     </div>
@@ -308,9 +311,126 @@ function TarjetaCronograma({ proximas, backendOnline, colorPrincipal = ACCENT })
   )
 }
 
-// ─── Botón de acceso rápido grande ─────────────────────────────
-function AccesoGrande({ icono: Icono, titulo, descripcion, pantalla, badge, destacado, onClick, colorPrincipal = ACCENT }) {
-  const disponible = !!pantalla
+// ─── Botón de acceso rápido grande (adaptable a vistas: 'comoda', 'compacta', 'lista') ─────
+function AccesoGrande({ icono: Icono, titulo, descripcion, pantalla, badge, destacado, onClick, colorPrincipal = ACCENT, modoVista = 'comoda' }) {
+  const disponible = !pantalla ? false : true;
+
+  // 1. MODO LISTA COMPRIMIDO
+  if (modoVista === 'lista') {
+    return (
+      <button
+        type="button"
+        onClick={() => disponible && onClick(pantalla)}
+        className={`group relative flex items-center justify-between p-3 rounded-2xl border transition-all duration-200 hover:-translate-y-0.5 cursor-pointer text-left ${
+          destacado
+            ? 'bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-slate-700 text-white shadow-sm'
+            : 'bg-white hover:bg-slate-50/80 border-slate-200/80 hover:border-slate-300 shadow-2xs'
+        }`}
+      >
+        <div className="flex items-center gap-3 min-w-0 pr-2">
+          <div
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border transition-transform duration-200 group-hover:scale-105"
+            style={{
+              backgroundColor: destacado ? 'rgba(255,255,255,0.1)' : `${colorPrincipal}15`,
+              color: destacado ? '#ffffff' : colorPrincipal,
+              borderColor: destacado ? 'rgba(255,255,255,0.15)' : `${colorPrincipal}30`
+            }}
+          >
+            <Icono size={17} />
+          </div>
+
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <span className={`text-xs font-black truncate ${destacado ? 'text-white' : 'text-slate-800'}`}>
+                {titulo}
+              </span>
+              {badge && (
+                <span
+                  className="rounded-full px-2 py-0.2 text-[8px] font-black uppercase tracking-wider border shrink-0"
+                  style={{
+                    backgroundColor: destacado ? 'rgba(255,255,255,0.12)' : `${colorPrincipal}15`,
+                    borderColor: destacado ? 'rgba(255,255,255,0.2)' : `${colorPrincipal}30`,
+                    color: destacado ? '#ffffff' : colorPrincipal
+                  }}
+                >
+                  {badge}
+                </span>
+              )}
+            </div>
+            <p className={`text-[10.5px] truncate font-medium ${destacado ? 'text-slate-300' : 'text-slate-400'}`}>
+              {descripcion}
+            </p>
+          </div>
+        </div>
+
+        <div className="shrink-0 pl-2">
+          <ChevronRight
+            size={14}
+            className={`transition-transform duration-200 group-hover:translate-x-1 ${destacado ? 'text-slate-300' : 'text-slate-400'}`}
+          />
+        </div>
+      </button>
+    );
+  }
+
+  // 2. MODO COMPACTO (cuadros medianos muy estéticos)
+  if (modoVista === 'compacta') {
+    return (
+      <button
+        type="button"
+        onClick={() => disponible && onClick(pantalla)}
+        className={`group relative overflow-hidden rounded-2xl border p-3.5 sm:p-4 text-left transition-all duration-200 hover:-translate-y-0.5 cursor-pointer flex flex-col justify-between ${
+          destacado
+            ? 'bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 text-white shadow-md'
+            : 'bg-white hover:bg-slate-50/70 border-slate-200/80 hover:border-slate-300 shadow-2xs hover:shadow-xs'
+        }`}
+      >
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <div
+              className="flex h-9 w-9 items-center justify-center rounded-xl transition-all group-hover:scale-105"
+              style={{
+                backgroundColor: destacado ? 'rgba(255,255,255,0.1)' : `${colorPrincipal}15`,
+                color: destacado ? '#ffffff' : colorPrincipal,
+                borderColor: destacado ? 'rgba(255,255,255,0.15)' : `${colorPrincipal}30`
+              }}
+            >
+              <Icono size={17} />
+            </div>
+
+            {badge && (
+              <span
+                className="rounded-full px-2 py-0.5 text-[8px] font-black uppercase tracking-wider border"
+                style={{
+                  backgroundColor: destacado ? 'rgba(255,255,255,0.12)' : `${colorPrincipal}15`,
+                  borderColor: destacado ? 'rgba(255,255,255,0.2)' : `${colorPrincipal}30`,
+                  color: destacado ? '#ffffff' : colorPrincipal
+                }}
+              >
+                {badge}
+              </span>
+            )}
+          </div>
+
+          <h4 className={`text-[12.5px] font-black leading-snug truncate ${destacado ? 'text-white' : 'text-slate-800'}`}>
+            {titulo}
+          </h4>
+          <p className={`text-[10.5px] font-medium mt-1 leading-snug line-clamp-2 ${destacado ? 'text-slate-300' : 'text-slate-400'}`}>
+            {descripcion}
+          </p>
+        </div>
+
+        <div className={`mt-3 flex items-center justify-between pt-1.5 border-t border-slate-100/60 text-[9.5px] font-bold ${
+          destacado ? 'text-slate-400' : 'text-slate-400'
+        }`}>
+          <span>Abrir módulo</span>
+          <ChevronRight size={12} className="transition-transform group-hover:translate-x-1" />
+        </div>
+      </button>
+    );
+  }
+
+  // 3. MODO CÓMODO / EXPANDIDO (Original pulido)
   return (
     <button
       type="button"
@@ -319,12 +439,9 @@ function AccesoGrande({ icono: Icono, titulo, descripcion, pantalla, badge, dest
         disponible
           ? destacado
             ? 'bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 text-white hover:shadow-xl hover:-translate-y-0.5 cursor-pointer'
-            : 'bg-white border-slate-100 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer'
+            : 'bg-white border-slate-200/90 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer'
           : 'bg-slate-50/50 border-slate-100 opacity-55 cursor-default'
       }`}
-      style={disponible ? {
-        borderColor: undefined,
-      } : undefined}
     >
       {/* Destello de fondo en hover */}
       {disponible && (
@@ -400,11 +517,248 @@ function BienvenidaBasica({ usuario, onCerrarSesion }) {
   )
 }
 
+
+// ─── Circuito Operativo Guiado (Paso a Paso Cronológico) ────────
+function CircuitoOperativoPasos({ ceremonia, onNavegar, onAbrirCrearCircuito, onIniciarModoPrueba, colorPrincipal }) {
+  const [expandido, setExpandido] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('sigic_circuito_expandido') !== 'false' : true));
+
+  const totalEgresados = Number(ceremonia?.total_egresados || 0);
+  const invitacionesEnviadas = Number(ceremonia?.invitaciones_enviadas || 0);
+  const egresadosConfirmados = Number(ceremonia?.egresados_confirmados || 0);
+  const respuestasPendientes = Number(ceremonia?.respuestas_pendientes || 0);
+  const planoConfigurado = Boolean(ceremonia?.plano_configurado || ceremonia?.egresados_con_butaca);
+  const estadoOperativo = ceremonia?.estado_operativo;
+
+  // Evaluación de estado de cada paso
+  const paso1Completado = Boolean(ceremonia?.id);
+  const paso2Completado = totalEgresados > 0;
+  const paso3Completado = totalEgresados > 0 && invitacionesEnviadas >= totalEgresados;
+  const paso4Completado = planoConfigurado;
+  const paso5Completado = estadoOperativo === 'FINALIZADA';
+
+  // Determinación de paso activo sugerido
+  let pasoActivo = 1;
+  if (!paso1Completado) pasoActivo = 1;
+  else if (!paso2Completado) pasoActivo = 2;
+  else if (!paso3Completado) pasoActivo = 3;
+  else if (!paso4Completado) pasoActivo = 4;
+  else pasoActivo = 5;
+
+  const pasos = [
+    {
+      numero: '01',
+      etiqueta: 'INICIAR',
+      titulo: 'Ceremonia',
+      detalle: ceremonia?.nombre ? (ceremonia.nombre.length > 24 ? ceremonia.nombre.slice(0, 24) + '...' : ceremonia.nombre) : 'Fecha, lugar y cupos',
+      destino: 'gestion-ceremonias',
+      icono: CalendarPlus,
+      color: 'indigo',
+      completado: paso1Completado,
+      activo: pasoActivo === 1
+    },
+    {
+      numero: '02',
+      etiqueta: 'PADRÓN',
+      titulo: 'Graduados',
+      detalle: totalEgresados > 0 ? `${totalEgresados} graduados cargados` : 'Importar nómina Excel',
+      destino: 'gestion-graduados',
+      icono: GraduationCap,
+      color: 'emerald',
+      completado: paso2Completado,
+      activo: pasoActivo === 2
+    },
+    {
+      numero: '03',
+      etiqueta: 'CONVOCAR',
+      titulo: 'Invitaciones',
+      detalle: invitacionesEnviadas > 0 ? `${invitacionesEnviadas} enviadas (${egresadosConfirmados} confirmados)` : 'Despachar correos OTP',
+      destino: 'convocatoria',
+      icono: Send,
+      color: 'blue',
+      completado: paso3Completado,
+      activo: pasoActivo === 3
+    },
+    {
+      numero: '04',
+      etiqueta: 'BUTACAS',
+      titulo: 'Anfiteatro',
+      detalle: planoConfigurado ? 'Distribución asignada' : 'Auto-Seating en 1 clic',
+      destino: 'seleccion-asientos',
+      icono: Armchair,
+      color: 'cyan',
+      completado: paso4Completado,
+      activo: pasoActivo === 4
+    },
+    {
+      numero: '05',
+      etiqueta: 'EN VIVO',
+      titulo: 'Acreditación',
+      detalle: estadoOperativo === 'FINALIZADA' ? 'Ceremonia concluida' : 'Escáner QR y portería',
+      destino: 'control-ingreso',
+      icono: ScanLine,
+      color: 'amber',
+      completado: paso5Completado,
+      activo: pasoActivo === 5
+    }
+  ];
+
+  return (
+    <div className={`bg-white border border-slate-200/90 rounded-[28px] sm:rounded-[32px] shadow-md shadow-slate-200/30 transition-all duration-300 ${
+      expandido ? 'p-5 sm:p-6' : 'p-4 sm:p-5'
+    }`}>
+      <div className={`flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all duration-300 ${
+        expandido ? 'pb-4 mb-5 border-b border-slate-100' : 'pb-0 mb-0'
+      }`}>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="flex h-2 w-2 rounded-full bg-sky-500 animate-pulse" />
+            <h3 className="text-xs sm:text-[13px] font-black uppercase tracking-wider text-slate-800">
+              Circuito Operativo de Colación
+            </h3>
+            <span className="text-[9.5px] px-2.5 py-0.5 rounded-full bg-sky-50 text-sky-700 font-bold border border-sky-200">
+              Paso a Paso Oficial
+            </span>
+          </div>
+          <p className="text-[11px] font-medium text-slate-500 mt-1">
+            Seguí el orden cronológico institucional para completar la organización de la ceremonia de principio a fin.
+          </p>
+        </div>
+
+        {/* Acciones Rápidas: Tamaño, Modo Prueba y Nuevo Circuito */}
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Botón para Agrandar / Achicar con animación estilo interruptor */}
+          <button
+            type="button"
+            onClick={() => {
+              const nuevo = !expandido;
+              setExpandido(nuevo);
+              if (typeof window !== 'undefined') {
+                localStorage.setItem('sigic_circuito_expandido', String(nuevo));
+              }
+            }}
+            className="group flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50/80 hover:bg-slate-100 text-slate-700 text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-2xs"
+            title={expandido ? "Achicar vista del circuito" : "Agrandar vista del circuito"}
+          >
+            {/* Indicador animado */}
+            <div className={`w-5 h-5 rounded-lg flex items-center justify-center transition-colors duration-300 ${
+              expandido ? 'bg-sky-100 text-sky-700' : 'bg-slate-200 text-slate-600'
+            }`}>
+              {expandido ? (
+                <Minimize2 size={12} className="transition-transform duration-300 group-hover:scale-110" />
+              ) : (
+                <Maximize2 size={12} className="transition-transform duration-300 group-hover:scale-110" />
+              )}
+            </div>
+            <span className="text-[11px] font-black uppercase tracking-wider text-slate-700">
+              {expandido ? 'Achicar' : 'Agrandar'}
+            </span>
+          </button>
+
+          {onIniciarModoPrueba && (
+            <button
+              type="button"
+              onClick={onIniciarModoPrueba}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-indigo-200 bg-indigo-50/70 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-2xs"
+              title="Cargar circuito simulado con datos de prueba realistas"
+            >
+              <Sparkles size={13} className="text-indigo-600" />
+              <span>Modo Prueba</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={onAbrirCrearCircuito}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-sky-600 text-white text-xs font-black shadow-md shadow-slate-900/10 transition-all active:scale-95 cursor-pointer"
+            title="Crear y activar un nuevo circuito de colación"
+          >
+            <CalendarPlus size={13} />
+            <span>+ Nuevo Circuito</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Grid de Pasos con transición fluida al agrandar / achicar */}
+      <div className={`transition-all duration-500 ease-in-out overflow-hidden ${
+        expandido ? 'opacity-100 max-h-[1000px] mt-0' : 'opacity-100 max-h-[800px] mt-4'
+      }`}>
+        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 transition-all duration-300 ${
+          expandido ? 'gap-3.5' : 'gap-2'
+        }`}>
+          {pasos.map((paso, idx) => {
+            const Icono = paso.icono;
+            return (
+              <button
+                key={paso.numero}
+                type="button"
+                onClick={() => onNavegar(paso.destino)}
+                className={`group relative text-left rounded-2xl border transition-all duration-300 hover:-translate-y-1 cursor-pointer ${
+                  expandido ? 'p-4' : 'p-2.5 sm:p-3'
+                } ${
+                  paso.activo
+                    ? 'bg-gradient-to-b from-sky-50/80 to-white border-sky-300 shadow-md ring-2 ring-sky-500/20'
+                    : paso.completado
+                    ? 'bg-slate-50/80 hover:bg-white border-slate-200/80 hover:border-slate-300 hover:shadow-sm'
+                    : 'bg-white hover:bg-slate-50/60 border-slate-200/60 hover:border-slate-300'
+                }`}
+              >
+                {/* Badge superior */}
+                <div className={`flex items-center justify-between ${expandido ? 'mb-2.5' : 'mb-1.5'}`}>
+                  <span className={`text-[10px] font-black font-mono tracking-wider ${
+                    paso.activo ? 'text-sky-600' : paso.completado ? 'text-emerald-600' : 'text-slate-400'
+                  }`}>
+                    {paso.numero}. {paso.etiqueta}
+                  </span>
+                  
+                  {paso.completado ? (
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 shadow-2xs">
+                      <CheckCircle2 size={13} strokeWidth={2.5} />
+                    </span>
+                  ) : paso.activo ? (
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-sky-100 text-sky-600 shadow-2xs animate-pulse">
+                      <span className="h-2 w-2 rounded-full bg-sky-500" />
+                    </span>
+                  ) : (
+                    <Icono size={15} className="text-slate-300 group-hover:text-slate-500 transition-colors" />
+                  )}
+                </div>
+
+                {/* Título */}
+                <h4 className={`font-black text-slate-800 tracking-tight group-hover:text-sky-600 transition-colors ${
+                  expandido ? 'text-[13px]' : 'text-xs'
+                }`}>
+                  {paso.titulo}
+                </h4>
+
+                {/* Detalle (en modo achicado se muestra resumido o en 1 línea) */}
+                <p className={`font-medium text-slate-500 leading-snug ${
+                  expandido ? 'text-[10.5px] mt-1 line-clamp-2' : 'text-[10px] mt-0.5 truncate'
+                }`}>
+                  {paso.detalle}
+                </p>
+
+                {/* Flecha indicadora */}
+                <div className={`flex items-center justify-between border-t border-slate-100/80 text-[10px] font-bold text-slate-400 group-hover:text-sky-600 ${
+                  expandido ? 'mt-3 pt-2' : 'mt-2 pt-1.5'
+                }`}>
+                  <span>{paso.activo ? 'Ir al paso' : paso.completado ? 'Revisar' : 'Configurar'}</span>
+                  <ArrowRight size={12} className="transition-transform group-hover:translate-x-1" />
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambiarVersion, onCambiarEstiloInterfaz }) {
   const [fechaActual, setFechaActual]       = useState(() => new Date())
   const [temperatura, setTemperatura]       = useState(null)
   const [modalPermisos, setModalPermisos]   = useState(false)
   const [modalSesion, setModalSesion]       = useState(false)
+  const [modalCrearCircuito, setModalCrearCircuito] = useState(false)
   const [permisos, setPermisos]             = useState({ ubicacion: 'prompt', notificaciones: 'prompt' })
 
   // Stats, Config y Ceremonias
@@ -413,6 +767,8 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
   const [ceremonias, setCeremonias]         = useState([])
   const [cargandoStats, setCargandoStats]   = useState(true)
   const [backendOnline, setBackendOnline]   = useState(true)
+  const [mostrarMetricas, setMostrarMetricas] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('sigic_mostrar_metricas') !== 'false' : true))
+  const [modoVistaAccesos, setModoVistaAccesos] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('sigic_vista_accesos') || 'comoda' : 'comoda'))
 
   const logoInstitucional = '/footer.png'
 
@@ -712,51 +1068,16 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
       <main className="mx-auto max-w-7xl px-3.5 sm:px-6 lg:px-8 py-4 sm:py-6 pb-24">
         <div className="flex flex-col gap-4 sm:gap-6">
 
-          {/* Hero Banner Principal con contraste premium adaptive */}
-          <section 
-            className="relative overflow-hidden rounded-[28px] sm:rounded-[32px] border border-slate-200/80 p-5 sm:p-7 shadow-xl shadow-slate-900/5 transition-all duration-500 bg-white/90 backdrop-blur-xl"
-          >
-            {/* Resplandor decorativo de marca de fondo */}
-            <div 
-              className="absolute -right-16 -top-24 h-64 w-64 rounded-full blur-3xl opacity-15 pointer-events-none transition-all duration-500" 
-              style={{ background: fondoConfig.colorPrincipal }}
-            />
-            <div 
-              className="absolute -left-12 -bottom-20 h-56 w-56 rounded-full blur-3xl opacity-10 pointer-events-none transition-all duration-500" 
-              style={{ background: fondoConfig.colores[0] || '#0ea5e9' }}
-            />
-
-            <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3.5 sm:gap-4">
-                <div className="p-2 sm:p-2.5 rounded-2xl bg-slate-900 text-white shadow-md shadow-slate-950/15 shrink-0 border border-slate-800">
-                  <img src="/logo-oficial.png" alt="Logo de SIGIC" className="h-10 w-10 sm:h-12 sm:w-12 object-contain" />
-                </div>
-                <div>
-                  <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-sky-50 border border-sky-100 mb-1.5">
-                    <span className="h-1.5 w-1.5 rounded-full bg-sky-500 animate-pulse" />
-                    <p 
-                      className="text-[9.5px] font-black uppercase tracking-[0.2em] text-sky-700"
-                    >
-                      Bienvenido al espacio de trabajo
-                    </p>
-                  </div>
-                  <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 tracking-tight">Esto es SIGIC</h2>
-                  <p className="mt-1 max-w-2xl text-xs sm:text-[13px] font-medium leading-relaxed text-slate-600">El Sistema Integral de Gestión Institucional que organiza ceremonias de colación, graduados, invitados, acreditaciones, ubicaciones y accesos desde un único lugar.</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-2.5 text-center text-[10px] font-bold text-slate-700 w-full lg:w-auto shrink-0">
-                <div className="rounded-2xl border border-slate-200/80 bg-slate-50/80 px-3 sm:px-4 py-2.5 sm:py-3 shadow-xs hover:border-sky-300 transition-colors">
-                  <span className="block text-lg sm:text-xl font-black text-sky-600">01</span>Planificar
-                </div>
-                <div className="rounded-2xl border border-slate-200/80 bg-slate-50/80 px-3 sm:px-4 py-2.5 sm:py-3 shadow-xs hover:border-sky-300 transition-colors">
-                  <span className="block text-lg sm:text-xl font-black text-indigo-600">02</span>Organizar
-                </div>
-                <div className="rounded-2xl border border-slate-200/80 bg-slate-50/80 px-3 sm:px-4 py-2.5 sm:py-3 shadow-xs hover:border-sky-300 transition-colors">
-                  <span className="block text-lg sm:text-xl font-black text-emerald-600">03</span>Controlar
-                </div>
-              </div>
-            </div>
-          </section>
+          {/* CIRCUITO OPERATIVO GUIADO PASO A PASO (Reemplaza el banner estático) */}
+          <CircuitoOperativoPasos
+            ceremonia={ceremoniaActiva}
+            onNavegar={onNavegar}
+            onAbrirCrearCircuito={() => setModalCrearCircuito(true)}
+            onIniciarModoPrueba={() => {
+              window.dispatchEvent(new CustomEvent('sigic-iniciar-demo'));
+            }}
+            colorPrincipal={fondoConfig.colorPrincipal}
+          />
 
           {/* PRIMERA FILA BENTO: Saludo (3/4) + Clima y Reloj (1/4) */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -833,51 +1154,110 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
 
           </div>
 
-          {/* SEGUNDA FILA BENTO: Tarjetas de estadísticas (4 columnas uniformes) */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {!backendOnline ? (
-              <div
-                className="col-span-1 sm:col-span-2 lg:col-span-4 flex items-center gap-3.5 rounded-[28px] border px-6 py-5 bg-red-50 border-red-150 text-red-500"
+          {/* BARRA DE CONTROL DE MÉTRICAS (TOGGLE VISIBILIDAD) */}
+          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-black uppercase tracking-wider text-slate-500">
+                Indicadores en Tiempo Real
+              </span>
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                const nuevo = !mostrarMetricas;
+                setMostrarMetricas(nuevo);
+                if (typeof window !== 'undefined') {
+                  localStorage.setItem('sigic_mostrar_metricas', String(nuevo));
+                }
+              }}
+              className="group flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/80 hover:bg-white border border-slate-200/80 shadow-2xs hover:shadow-xs transition-all duration-300 text-slate-600 hover:text-slate-900 cursor-pointer backdrop-blur-md active:scale-95"
+              title={mostrarMetricas ? "Ocultar panel de métricas" : "Mostrar panel de métricas"}
+            >
+              {/* Interruptor animado estilo slider similar al Theme Toggler */}
+              <div 
+                className={`relative w-8 h-4.5 rounded-full transition-colors duration-300 flex items-center p-0.5 ${
+                  mostrarMetricas ? 'bg-sky-500' : 'bg-slate-300'
+                }`}
               >
-                <WifiOff size={20} className="animate-bounce" />
-                <div>
-                  <p className="text-[13px] font-black uppercase tracking-wide">Servidor Desconectado</p>
-                  <p className="text-[11px] font-semibold text-red-400 mt-0.5">Por favor, ejecutá el comando de backend para obtener métricas reales.</p>
+                <div 
+                  className={`w-3.5 h-3.5 rounded-full bg-white shadow-xs transition-transform duration-300 flex items-center justify-center ${
+                    mostrarMetricas ? 'translate-x-3.5' : 'translate-x-0'
+                  }`}
+                >
+                  {mostrarMetricas ? (
+                    <Eye size={9} className="text-sky-600" />
+                  ) : (
+                    <EyeOff size={9} className="text-slate-400" />
+                  )}
                 </div>
               </div>
-            ) : (
-              <>
-                <BentoStatCard
-                  icono={GraduationCap}
-                  etiqueta="Graduados"
-                  valor={stats?.totalEgresados ?? 0}
-                  color={fondoConfig.colorPrincipal}
-                  descripcion="Registrados en esta ceremonia"
-                />
-                <BentoStatCard
-                  icono={Users}
-                  etiqueta="Invitados totales"
-                  valor={stats?.totalInvitados ?? 0}
-                  color={fondoConfig.colores[1] || '#6366f1'}
-                  descripcion="Acompañantes asignados"
-                />
-                <BentoStatCard
-                  icono={UserCheck}
-                  etiqueta="Ingresados"
-                  valor={stats?.presentes ?? 0}
-                  color="#10b981"
-                  descripcion="Check-in completados"
-                />
-                <BentoStatCard
-                  icono={TrendingUp}
-                  etiqueta="Ocupación"
-                  valor={stats?.porcentajeOcupacion ?? 0}
-                  color={fondoConfig.colorPrincipal}
-                  descripcion="Porcentaje de asistencia"
-                  circularValue={stats?.porcentajeOcupacion ?? 0}
-                />
-              </>
-            )}
+
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-700">
+                {mostrarMetricas ? 'Ocultar Cuadros' : 'Mostrar Cuadros'}
+              </span>
+
+              <ChevronDown 
+                size={13} 
+                className={`text-slate-400 transition-transform duration-300 ${mostrarMetricas ? 'rotate-180' : 'rotate-0'}`} 
+              />
+            </button>
+          </div>
+
+          {/* SEGUNDA FILA BENTO: Tarjetas de estadísticas (4 columnas uniformes y comprimidas) */}
+          <div 
+            className={`transition-all duration-500 ease-in-out overflow-hidden ${
+              mostrarMetricas 
+                ? 'opacity-100 max-h-[600px] transform translate-y-0' 
+                : 'opacity-0 max-h-0 pointer-events-none transform -translate-y-3'
+            }`}
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 pt-1">
+              {!backendOnline ? (
+                <div
+                  className="col-span-1 sm:col-span-2 lg:col-span-4 flex items-center gap-3.5 rounded-2xl border px-5 py-4 bg-red-50 border-red-150 text-red-500"
+                >
+                  <WifiOff size={18} className="animate-bounce" />
+                  <div>
+                    <p className="text-[12px] font-black uppercase tracking-wide">Servidor Desconectado</p>
+                    <p className="text-[10.5px] font-semibold text-red-400 mt-0.5">Por favor, ejecutá el comando de backend para obtener métricas reales.</p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <BentoStatCard
+                    icono={GraduationCap}
+                    etiqueta="Graduados"
+                    valor={stats?.totalEgresados ?? 0}
+                    color={fondoConfig.colorPrincipal}
+                    descripcion="Registrados en ceremonia"
+                  />
+                  <BentoStatCard
+                    icono={Users}
+                    etiqueta="Invitados totales"
+                    valor={stats?.totalInvitados ?? 0}
+                    color={fondoConfig.colores[1] || '#6366f1'}
+                    descripcion="Acompañantes asignados"
+                  />
+                  <BentoStatCard
+                    icono={UserCheck}
+                    etiqueta="Ingresados"
+                    valor={stats?.presentes ?? 0}
+                    color="#10b981"
+                    descripcion="Check-in completados"
+                  />
+                  <BentoStatCard
+                    icono={TrendingUp}
+                    etiqueta="Ocupación"
+                    valor={stats?.porcentajeOcupacion ?? 0}
+                    color={fondoConfig.colorPrincipal}
+                    descripcion="Porcentaje de asistencia"
+                    circularValue={stats?.porcentajeOcupacion ?? 0}
+                  />
+                </>
+              )}
+            </div>
           </div>
 
           {/* TERCERA FILA BENTO: Accesos Rápidos (3/4) + Agenda / Timeline (1/4) */}
@@ -888,24 +1268,86 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
               className="lg:col-span-3 bg-white border border-slate-100 shadow-md shadow-slate-100/50 rounded-[32px] overflow-hidden flex flex-col justify-between"
             >
               <div>
-                <div className="flex items-center gap-2 px-6 py-4.5 border-b border-slate-50 bg-slate-50/20">
-                  <div 
-                    className="flex h-[24px] w-[24px] items-center justify-center rounded-lg border"
-                    style={{ 
-                      backgroundColor: `${fondoConfig.colorPrincipal}15`, 
-                      color: fondoConfig.colorPrincipal,
-                      borderColor: `${fondoConfig.colorPrincipal}30`
-                    }}
-                  >
-                    <LayoutGrid size={13} />
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-6 py-4 border-b border-slate-100 bg-slate-50/40">
+                  <div className="flex items-center gap-2.5">
+                    <div 
+                      className="flex h-[26px] w-[26px] items-center justify-center rounded-lg border"
+                      style={{ 
+                        backgroundColor: `${fondoConfig.colorPrincipal}15`, 
+                        color: fondoConfig.colorPrincipal,
+                        borderColor: `${fondoConfig.colorPrincipal}30`
+                      }}
+                    >
+                      <LayoutGrid size={14} />
+                    </div>
+                    <div>
+                      <span className="block text-[12px] font-black text-slate-800">¿Qué necesitás hacer?</span>
+                      <span className="block text-[9.5px] font-semibold text-slate-400 mt-0.5">Elegí una opción para continuar</span>
+                    </div>
                   </div>
-                  <div>
-                    <span className="block text-[12px] font-black text-slate-700">¿Qué necesitás hacer?</span>
-                    <span className="block text-[9px] font-semibold text-slate-400 mt-0.5">Elegí una opción para continuar</span>
+
+                  {/* Selector Animado de Formas de Vista (Cómoda, Compacta, Lista) */}
+                  <div className="flex items-center bg-slate-200/80 p-1 rounded-xl border border-slate-200 shadow-2xs gap-1 self-start sm:self-auto">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setModoVistaAccesos('comoda');
+                        if (typeof window !== 'undefined') localStorage.setItem('sigic_vista_accesos', 'comoda');
+                      }}
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                        modoVistaAccesos === 'comoda'
+                          ? 'bg-white text-slate-900 shadow-xs'
+                          : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                      title="Vista Cómoda (Tarjetas Grandes)"
+                    >
+                      <Grid3X3 size={12} />
+                      <span className="hidden sm:inline">Cómoda</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setModoVistaAccesos('compacta');
+                        if (typeof window !== 'undefined') localStorage.setItem('sigic_vista_accesos', 'compacta');
+                      }}
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                        modoVistaAccesos === 'compacta'
+                          ? 'bg-white text-slate-900 shadow-xs'
+                          : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                      title="Vista Compacta (Tarjetas Medianas)"
+                    >
+                      <LayoutGrid size={12} />
+                      <span className="hidden sm:inline">Compacta</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setModoVistaAccesos('lista');
+                        if (typeof window !== 'undefined') localStorage.setItem('sigic_vista_accesos', 'lista');
+                      }}
+                      className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all duration-200 cursor-pointer ${
+                        modoVistaAccesos === 'lista'
+                          ? 'bg-white text-slate-900 shadow-xs'
+                          : 'text-slate-500 hover:text-slate-800'
+                      }`}
+                      title="Vista de Lista Comprimida (Filas Elegantes)"
+                    >
+                      <List size={12} />
+                      <span className="hidden sm:inline">Lista</span>
+                    </button>
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
+                <div className={`transition-all duration-300 ${
+                  modoVistaAccesos === 'lista'
+                    ? 'grid grid-cols-1 sm:grid-cols-2 gap-2.5 p-4 sm:p-5'
+                    : modoVistaAccesos === 'compacta'
+                    ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-4 sm:p-5'
+                    : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-6'
+                }`}>
                   {accesos
                     .filter(a => {
                       if (esSoporte) {
@@ -919,6 +1361,7 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
                         {...a}
                         onClick={onNavegar}
                         colorPrincipal={fondoConfig.colorPrincipal}
+                        modoVista={modoVistaAccesos}
                       />
                     ))}
                 </div>
@@ -956,6 +1399,19 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
         onSolicitarUbicacion={solicitarUbicacion}
         onSolicitarNotificaciones={solicitarNotificaciones}
         onContinuar={() => setModalPermisos(false)}
+      />
+      <ModalCrearCircuito
+        abierto={modalCrearCircuito}
+        onCerrar={() => setModalCrearCircuito(false)}
+        onCircuitoCreado={(nueva) => {
+          cargarDatos();
+          if (nueva) {
+            window.dispatchEvent(new CustomEvent('sigic-ceremonia-cambiada', { detail: nueva }));
+          }
+        }}
+        onIniciarModoPrueba={() => {
+          window.dispatchEvent(new CustomEvent('sigic-iniciar-demo'));
+        }}
       />
       <ModalConfirmacion
         abierto={modalSesion}

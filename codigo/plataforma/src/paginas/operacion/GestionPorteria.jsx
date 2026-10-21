@@ -7,7 +7,8 @@ import {
   Search, Mail, Smartphone, CalendarDays, Eye, Cpu, 
   Check, XCircle, Users, Wifi, Globe, Trash2, PowerOff,
   Radio, Sparkles, Copy, CheckCheck, ExternalLink, KeyRound,
-  Info, Laptop, Tablet, Clock, Activity, ShieldCheck, ChevronRight
+  Info, Laptop, Tablet, Clock, Activity, ShieldCheck, ChevronRight,
+  Maximize2, Minimize2, ChevronDown, ChevronUp, SlidersHorizontal
 } from 'lucide-react'
 import { 
   obtenerUsuarios, 
@@ -63,6 +64,8 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
   // Búsqueda y filtros
   const [busqueda, setBusqueda] = useState('')
   const [filtro, setFiltro] = useState('todos')
+  const [modoComprimido, setModoComprimido] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('sigic_porteria_comprimido') === 'true' : false))
+  const [mostrarStats, setMostrarStats] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('sigic_porteria_stats') !== 'false' : true))
 
   // Modales
   const [mostrarModalNuevo, setMostrarModalNuevo] = useState(false)
@@ -492,6 +495,21 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
         </div>
 
         <div className="flex items-center gap-2.5 shrink-0">
+          {/* Botón para Ocultar / Mostrar Cuadros de Métricas */}
+          <button 
+            type="button"
+            onClick={() => {
+              const nuevo = !mostrarStats;
+              setMostrarStats(nuevo);
+              if (typeof window !== 'undefined') localStorage.setItem('sigic_porteria_stats', String(nuevo));
+            }}
+            className="inline-flex items-center gap-1.5 px-3 py-2 bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 rounded-xl text-xs font-bold transition active:scale-95 shadow-2xs cursor-pointer"
+            title={mostrarStats ? "Ocultar tarjetas de métricas" : "Mostrar tarjetas de métricas"}
+          >
+            {mostrarStats ? <Eye size={14} className="text-slate-500" /> : <Eye size={14} className="text-sky-600" />}
+            <span className="hidden sm:inline">{mostrarStats ? 'Ocultar Métricas' : 'Ver Métricas'}</span>
+          </button>
+
           <button 
             onClick={refrescarTodo} 
             disabled={cargando || cargandoDispositivos}
@@ -510,90 +528,94 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
         </div>
       </div>
 
-      {/* TARJETAS DE MÉTRICAS BENTO */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-        <button 
-          onClick={() => { setPestañaActiva('personal'); setFiltro('todos'); setBusqueda('') }}
-          className={`p-4.5 rounded-2xl border text-left transition-all active:scale-[0.99] cursor-pointer group flex flex-col justify-between ${
-            pestañaActiva === 'personal' && filtro === 'todos'
-              ? 'bg-gradient-to-br from-sky-50/90 to-white border-sky-300 shadow-xs ring-1 ring-sky-400/20'
-              : 'bg-white border-slate-200/80 hover:border-slate-300 shadow-2xs'
-          }`}
-        >
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Total Personal</span>
-            <div className="w-9 h-9 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-600 group-hover:scale-110 transition-transform">
-              <Users size={18} />
+      {/* TARJETAS DE MÉTRICAS BENTO CON COLAPSO FLUIDO */}
+      <div className={`transition-all duration-400 ease-in-out overflow-hidden ${
+        mostrarStats ? 'opacity-100 max-h-[500px]' : 'opacity-0 max-h-0 pointer-events-none'
+      }`}>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5 pt-0.5">
+          <button 
+            onClick={() => { setPestañaActiva('personal'); setFiltro('todos'); setBusqueda('') }}
+            className={`p-4 rounded-2xl border text-left transition-all active:scale-[0.99] cursor-pointer group flex flex-col justify-between ${
+              pestañaActiva === 'personal' && filtro === 'todos'
+                ? 'bg-gradient-to-br from-sky-50/90 to-white border-sky-300 shadow-xs ring-1 ring-sky-400/20'
+                : 'bg-white border-slate-200/80 hover:border-slate-300 shadow-2xs'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2.5">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Total Personal</span>
+              <div className="w-8 h-8 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-600 group-hover:scale-110 transition-transform">
+                <Users size={16} />
+              </div>
             </div>
-          </div>
-          <div>
-            <div className="text-2xl font-black text-slate-900 tracking-tight">{usuarios.length}</div>
-            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">Operadores y gestión</p>
-          </div>
-        </button>
+            <div>
+              <div className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">{usuarios.length}</div>
+              <p className="text-[11px] font-semibold text-slate-500 mt-0.5">Operadores y gestión</p>
+            </div>
+          </button>
 
-        <button 
-          onClick={() => { setPestañaActiva('personal'); setFiltro('activos'); setBusqueda('') }}
-          className={`p-4.5 rounded-2xl border text-left transition-all active:scale-[0.99] cursor-pointer group flex flex-col justify-between ${
-            pestañaActiva === 'personal' && filtro === 'activos'
-              ? 'bg-gradient-to-br from-emerald-50/90 to-white border-emerald-300 shadow-xs ring-1 ring-emerald-400/20'
-              : 'bg-white border-slate-200/80 hover:border-slate-300 shadow-2xs'
-          }`}
-        >
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Cuentas Activas</span>
-            <div className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
-              <CheckCircle2 size={18} />
+          <button 
+            onClick={() => { setPestañaActiva('personal'); setFiltro('activos'); setBusqueda('') }}
+            className={`p-4 rounded-2xl border text-left transition-all active:scale-[0.99] cursor-pointer group flex flex-col justify-between ${
+              pestañaActiva === 'personal' && filtro === 'activos'
+                ? 'bg-gradient-to-br from-emerald-50/90 to-white border-emerald-300 shadow-xs ring-1 ring-emerald-400/20'
+                : 'bg-white border-slate-200/80 hover:border-slate-300 shadow-2xs'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2.5">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Cuentas Activas</span>
+              <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform">
+                <CheckCircle2 size={16} />
+              </div>
             </div>
-          </div>
-          <div>
-            <div className="text-2xl font-black text-emerald-700 tracking-tight">{porterosActivos}</div>
-            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">Habilitados para operar</p>
-          </div>
-        </button>
+            <div>
+              <div className="text-xl sm:text-2xl font-black text-emerald-700 tracking-tight">{porterosActivos}</div>
+              <p className="text-[11px] font-semibold text-slate-500 mt-0.5">Habilitados para operar</p>
+            </div>
+          </button>
 
-        <button 
-          onClick={() => { setPestañaActiva('personal'); setFiltro('sin-acceso'); setBusqueda('') }}
-          className={`p-4.5 rounded-2xl border text-left transition-all active:scale-[0.99] cursor-pointer group flex flex-col justify-between ${
-            pestañaActiva === 'personal' && filtro === 'sin-acceso'
-              ? 'bg-gradient-to-br from-amber-50/90 to-white border-amber-300 shadow-xs ring-1 ring-amber-400/20'
-              : 'bg-white border-slate-200/80 hover:border-slate-300 shadow-2xs'
-          }`}
-        >
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Sin Permiso</span>
-            <div className="w-9 h-9 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 group-hover:scale-110 transition-transform">
-              <KeyRound size={18} />
+          <button 
+            onClick={() => { setPestañaActiva('personal'); setFiltro('sin-acceso'); setBusqueda('') }}
+            className={`p-4 rounded-2xl border text-left transition-all active:scale-[0.99] cursor-pointer group flex flex-col justify-between ${
+              pestañaActiva === 'personal' && filtro === 'sin-acceso'
+                ? 'bg-gradient-to-br from-amber-50/90 to-white border-amber-300 shadow-xs ring-1 ring-amber-400/20'
+                : 'bg-white border-slate-200/80 hover:border-slate-300 shadow-2xs'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2.5">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Sin Permiso</span>
+              <div className="w-8 h-8 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center text-amber-600 group-hover:scale-110 transition-transform">
+                <KeyRound size={16} />
+              </div>
             </div>
-          </div>
-          <div>
-            <div className="text-2xl font-black text-amber-700 tracking-tight">{usuariosSinPermiso}</div>
-            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">En ceremonia activa</p>
-          </div>
-        </button>
+            <div>
+              <div className="text-xl sm:text-2xl font-black text-amber-700 tracking-tight">{usuariosSinPermiso}</div>
+              <p className="text-[11px] font-semibold text-slate-500 mt-0.5">En ceremonia activa</p>
+            </div>
+          </button>
 
-        <button 
-          onClick={() => { setPestañaActiva('dispositivos'); setBusqueda('') }}
-          className={`p-4.5 rounded-2xl border text-left transition-all active:scale-[0.99] cursor-pointer group flex flex-col justify-between ${
-            pestañaActiva === 'dispositivos'
-              ? 'bg-gradient-to-br from-indigo-50/90 to-white border-indigo-300 shadow-xs ring-1 ring-indigo-400/20'
-              : 'bg-white border-slate-200/80 hover:border-slate-300 shadow-2xs'
-          }`}
-        >
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Terminales Móviles</span>
-            <div className="w-9 h-9 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform">
-              <Smartphone size={18} />
+          <button 
+            onClick={() => { setPestañaActiva('dispositivos'); setBusqueda('') }}
+            className={`p-4 rounded-2xl border text-left transition-all active:scale-[0.99] cursor-pointer group flex flex-col justify-between ${
+              pestañaActiva === 'dispositivos'
+                ? 'bg-gradient-to-br from-indigo-50/90 to-white border-indigo-300 shadow-xs ring-1 ring-indigo-400/20'
+                : 'bg-white border-slate-200/80 hover:border-slate-300 shadow-2xs'
+            }`}
+          >
+            <div className="flex items-center justify-between mb-2.5">
+              <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Terminales Móviles</span>
+              <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 group-hover:scale-110 transition-transform">
+                <Smartphone size={16} />
+              </div>
             </div>
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <div className="text-2xl font-black text-indigo-900 tracking-tight">{dispositivosEnLinea}</div>
-              <span className="text-xs font-bold text-slate-400">/ {dispositivosTotales} tot.</span>
+            <div>
+              <div className="flex items-center gap-2">
+                <div className="text-xl sm:text-2xl font-black text-indigo-900 tracking-tight">{dispositivosEnLinea}</div>
+                <span className="text-xs font-bold text-slate-400">/ {dispositivosTotales} tot.</span>
+              </div>
+              <p className="text-[11px] font-semibold text-slate-500 mt-0.5">Enlazados a la app Flutter</p>
             </div>
-            <p className="text-[11px] font-semibold text-slate-500 mt-0.5">Enlazados a la app Flutter</p>
-          </div>
-        </button>
+          </button>
+        </div>
       </div>
 
       {/* NOTIFICACIONES Y AVISOS */}
@@ -742,6 +764,25 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
             </div>
 
             <div className="flex items-center gap-2 w-full sm:w-auto">
+              {/* Botón para alternar modo comprimido de filas */}
+              <button
+                type="button"
+                onClick={() => {
+                  const nuevo = !modoComprimido;
+                  setModoComprimido(nuevo);
+                  if (typeof window !== 'undefined') localStorage.setItem('sigic_porteria_comprimido', String(nuevo));
+                }}
+                className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer shadow-2xs active:scale-95 ${
+                  modoComprimido
+                    ? 'bg-sky-50 border-sky-300 text-sky-800'
+                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`}
+                title={modoComprimido ? "Cambiar a filas amplias" : "Cambiar a filas comprimidas"}
+              >
+                {modoComprimido ? <Minimize2 size={13} className="text-sky-600" /> : <Maximize2 size={13} className="text-slate-500" />}
+                <span className="hidden sm:inline">{modoComprimido ? 'Comprimido' : 'Normal'}</span>
+              </button>
+
               <select 
                 aria-label="Filtrar personal" 
                 value={filtro} 
@@ -802,10 +843,16 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                 return (
                   <article key={u.id} className={`transition-colors ${expandido ? 'bg-sky-50/30' : 'hover:bg-slate-50/60'}`}>
                     {/* FILA PRINCIPAL */}
-                    <div className="p-4 sm:px-6 sm:py-3.5 grid grid-cols-1 sm:grid-cols-12 gap-3 sm:gap-4 items-center">
+                    <div className={`grid grid-cols-1 sm:grid-cols-12 gap-3 sm:gap-4 items-center transition-all ${
+                      modoComprimido 
+                        ? 'p-2.5 sm:px-6 sm:py-2' 
+                        : 'p-4 sm:px-6 sm:py-3.5'
+                    }`}>
                       {/* IDENTIDAD */}
-                      <div className="sm:col-span-5 flex items-center gap-3.5 min-w-0">
-                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-sm shrink-0 border ${
+                      <div className="sm:col-span-5 flex items-center gap-3 min-w-0">
+                        <div className={`rounded-xl flex items-center justify-center font-black shrink-0 border transition-all ${
+                          modoComprimido ? 'w-8 h-8 text-xs' : 'w-10 h-10 text-sm rounded-2xl'
+                        } ${
                           !activo 
                             ? 'bg-slate-100 text-slate-400 border-slate-200' 
                             : administrativo 
@@ -816,16 +863,16 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                         </div>
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
-                            <span className="text-xs font-black text-slate-900 truncate">
+                            <span className={`font-black text-slate-900 truncate ${modoComprimido ? 'text-[11.5px]' : 'text-xs'}`}>
                               {u.nombre}
                             </span>
                             {String(u.id) === String(usuario?.id) && (
-                              <span className="px-1.5 py-0.5 rounded-md bg-sky-100 text-sky-800 text-[9px] font-black uppercase">
+                              <span className="px-1.5 py-0.2 rounded-md bg-sky-100 text-sky-800 text-[8.5px] font-black uppercase">
                                 Vos
                               </span>
                             )}
                           </div>
-                          <span className="block text-[11px] font-semibold text-slate-400 truncate">
+                          <span className={`block font-semibold text-slate-400 truncate ${modoComprimido ? 'text-[10px]' : 'text-[11px]'}`}>
                             {u.email}
                           </span>
                         </div>
@@ -833,7 +880,9 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
 
                       {/* ROL */}
                       <div className="sm:col-span-2">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-wider border ${
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 rounded-lg text-[9.5px] font-black uppercase tracking-wider border ${
+                          modoComprimido ? 'py-0.5' : 'py-1'
+                        } ${
                           administrativo
                             ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
                             : 'bg-sky-50 text-sky-700 border-sky-200'
@@ -858,7 +907,9 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                           <button
                             onClick={() => handleToggleAutorizacion(u.id)}
                             disabled={!ceremoniaSeleccionadaId || cargandoAutorizaciones || guardandoAutorizacion !== null || procesandoLote}
-                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition active:scale-95 cursor-pointer border ${
+                            className={`inline-flex items-center gap-1.5 px-3 rounded-xl text-xs font-bold transition active:scale-95 cursor-pointer border ${
+                              modoComprimido ? 'py-1 text-[11px]' : 'py-1.5 text-xs'
+                            } ${
                               autorizado
                                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
                                 : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200'
@@ -877,24 +928,28 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                       </div>
 
                       {/* ACCIONES Y BOTÓN EXPANDIR */}
-                      <div className="sm:col-span-2 flex items-center justify-end gap-2">
+                      <div className="sm:col-span-2 flex items-center justify-end gap-1.5">
                         {!administrativo && activo && (
                           <button 
                             onClick={() => handleGenerarQR(u)} 
-                            className="p-2 rounded-xl text-slate-500 hover:text-sky-600 hover:bg-sky-50 transition active:scale-95 cursor-pointer"
+                            className={`rounded-xl text-slate-500 hover:text-sky-600 hover:bg-sky-50 transition active:scale-95 cursor-pointer ${
+                              modoComprimido ? 'p-1.5' : 'p-2'
+                            }`}
                             title="Generar Pase QR de acceso móvil"
                           >
-                            <QrCode size={16} />
+                            <QrCode size={modoComprimido ? 14 : 16} />
                           </button>
                         )}
                         <button 
                           onClick={() => setPersonalExpandido(expandido ? null : u.id)} 
-                          className={`p-2 rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition active:scale-95 cursor-pointer ${
+                          className={`rounded-xl text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition active:scale-95 cursor-pointer ${
+                            modoComprimido ? 'p-1.5' : 'p-2'
+                          } ${
                             expandido ? 'bg-slate-100 text-slate-800 rotate-90' : ''
                           }`}
                           title="Ver detalle y permisos del operador"
                         >
-                          <ChevronRight size={17} />
+                          <ChevronRight size={modoComprimido ? 15 : 17} />
                         </button>
                       </div>
                     </div>

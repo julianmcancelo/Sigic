@@ -79,35 +79,31 @@ const CSS_CONTENT = `
   height: 2px;
   width: 2px;
   border-radius: 50%;
-  right: 22%;
-  top: 18%;
+  right: 20%;
+  top: 25%;
   background: #e5f041e6;
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
   transition: all 0.45s cubic-bezier(0.4, 0, 0.2, 1);
   pointer-events: none;
   box-shadow:
-    -7px 10px #e5f041e6,
-    8px 15px #e5f041e6,
-    -17px 1px #e5f041e6,
-    -20px 10px #e5f041e6,
-    -7px 23px #e5f041e6,
-    -15px 25px #e5f041e6;
+    -4px 6px #e5f041e6,
+    5px 8px #e5f041e6,
+    -9px 1px #e5f041e6,
+    -11px 7px #e5f041e6;
   z-index: 1;
 }
 
 /* Modo Claro (Checked = Sol y Nubes de día) */
 .sigic-theme-switch input:checked ~ .decoration {
-  transform: translate(-18px, -2px);
-  width: 10px;
-  height: 10px;
+  transform: translate(-10px, 0px);
+  width: 5px;
+  height: 5px;
   background: #ffffff;
   box-shadow:
-    -12px 0 #ffffff,
-    -6px 0 0 1.6px #ffffff,
-    5px 15px 0 1px #ffffff,
-    1px 17px #ffffff,
-    10px 17px #ffffff;
+    -5px 0 #ffffff,
+    -3px 0 0 1px #ffffff,
+    2px 6px 0 0.5px #ffffff,
+    1px 7px #ffffff,
+    4px 7px #ffffff;
 }
 .sigic-theme-switch input:checked + .slider {
   background-color: #38bdf8;

@@ -303,6 +303,15 @@ function App() {
   
   // ─── 3.1 MODO DEMOSTRACIÓN AUTOMÁTICA GUIADA (PILOTO AUTOMÁTICO) ───
   const [demoAutomaticaActiva, setDemoAutomaticaActiva] = useState(false)
+
+  // Escuchar solicitud de inicio de modo prueba / demo desde cualquier módulo
+  useEffect(() => {
+    const handleIniciarDemo = () => {
+      iniciarDemostracionCompleta();
+    };
+    window.addEventListener('sigic-iniciar-demo', handleIniciarDemo);
+    return () => window.removeEventListener('sigic-iniciar-demo', handleIniciarDemo);
+  }, []);
   const [pestanaGraduadoDemo, setPestanaGraduadoDemo] = useState('juramento')
 
   const iniciarDemostracionCompleta = async () => {

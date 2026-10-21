@@ -775,6 +775,42 @@ export async function GET(
     }
 
     // -------------------------------------------------------------
+    // PADRON DE ESTUDIANTES HABILITADOS (ACADEMICO OFICIAL)
+    // -------------------------------------------------------------
+    if (path === 'estudiantes-habilitados') {
+      const isPersonal = await esPersonalValido(req, ROLES_LECTURA);
+      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+
+      const carreraIds = req.nextUrl?.searchParams?.get('carreras');
+      const busqueda = req.nextUrl?.searchParams?.get('q')?.trim() || '';
+
+      if (req.nextUrl?.searchParams?.get('limpiar') === 'true') {
+        await query('TRUNCATE TABLE estudiantes_habilitados');
+        return NextResponse.json({ ok: true, mensaje: 'Padrón de estudiantes limpiado correctamente' }, { headers });
+      }
+
+      let sql = 'SELECT id, dni, legajo, nombre, correo, telefono, carrera_id, carrera_nombre, promedio, estado_academico, materias_aprobadas, total_materias, cohorte, creado_en FROM estudiantes_habilitados WHERE 1=1';
+      const params: any[] = [];
+
+      if (carreraIds) {
+        const lista = carreraIds.split(',').map((s: string) => s.trim().toUpperCase()).filter(Boolean);
+        if (lista.length > 0) {
+          params.push(lista);
+          sql += ' AND UPPER(carrera_id) = ANY($' + params.length + ') ';
+        }
+      }
+
+      if (busqueda) {
+        params.push('%' + busqueda + '%');
+        sql += ' AND (nombre ILIKE $' + params.length + ' OR dni ILIKE $' + params.length + ' OR legajo ILIKE $' + params.length + ') ';
+      }
+
+      sql += ' ORDER BY carrera_id ASC, nombre ASC ';
+      const result = await query(sql, params);
+      return NextResponse.json(result.rows, { headers });
+    }
+
+    // -------------------------------------------------------------
     // ENTREGADORES
     // -------------------------------------------------------------
     if (slug[0] === 'entregadores' && slug[1] === 'graduado' && slug[2]) {

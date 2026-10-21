@@ -1,225 +1,185 @@
-# MANUAL DE USUARIO
-## Sistema de Gestión Integral de Credenciales y Ceremonias (SiGIC)
+# GUÍA DE USO DIARIO Y MANUAL OPERATIVO
+## SiGIC — Sistema de Gestión Institucional de Colaciones
 
-**Autor:** Equipo de Prácticas Profesionalizantes  
-**Versión:** 5.1.0  
-**Fecha:** Junio / 2026  
 **Institución:** Instituto Tecnológico Beltrán  
+**Carrera:** Tecnicatura Superior en Analista de Sistemas  
+**Versión del Sistema:** 5.2.0  
+**Fecha de Actualización:** Octubre / 2026  
 
 ---
 
-## ÍNDICE
-1. Introducción  
-2. Objetivos del sistema  
-3. Alcance del sistema  
-4. Requisitos mínimos  
-5. Acceso al sistema  
-6. Roles de usuario  
-7. Funcionalidades del sistema  
-   * 7.1 Configuración Inicial del Sistema (Setup)  
-   * 7.2 Creación y Gestión de Ceremonias  
-   * 7.3 Carga Masiva del Padrón de Egresados (Excel)  
-   * 7.4 Envío y Reenvío de Enlaces de Invitación  
-   * 7.5 Autogestión del Egresado y Validación OTP  
-   * 7.6 Declaración de Asistencia (Aceptación/Rechazo)  
-   * 7.7 Carga de Invitados y Declaración de Movilidad Reducida  
-   * 7.8 Selección Visual de Asientos en el Anfiteatro  
-   * 7.9 Descarga y Uso de Credenciales QR  
-   * 7.10 Acreditación y Validación de Seguridad (Portería)  
-8. Seguridad del sistema  
-9. Problemas frecuentes y soluciones  
-10. Buenas prácticas de uso  
-11. Conclusión  
-12. Soporte técnico e institucional  
-*Anexos — Glosario de Términos*  
+## ÍNDICE GENERAL
+1. [Introducción y Objetivos del Sistema](#1-introducción-y-objetivos-del-sistema)
+2. [Acceso a la Plataforma e Inicio de Sesión](#2-acceso-a-la-plataforma-e-inicio-de-sesión)
+3. [Operación Diaria y Activación de la Ceremonia](#3-operación-diaria-y-activación-de-la-ceremonia)
+4. [Carga del Padrón de Egresados y Despacho de Invitaciones](#4-carga-del-padrón-de-egresados-y-despacho-de-invitaciones)
+5. [Autogestión del Egresado y Circuito de Confirmación](#5-autogestión-del-egresado-y-circuito-de-confirmación)
+6. [Distribución de Asientos y Control del Anfiteatro](#6-distribución-de-asientos-y-control-del-anfiteatro)
+7. [Operatoria de Acreditación el Día de la Ceremonia (Portería)](#7-operatoria-de-acreditación-el-día-de-la-ceremonia-portería)
+8. [Reportes y Cierre de la Ceremonia](#8-reportes-y-cierre-de-la-ceremonia)
+9. [Seguridad Informática y Respaldo de Datos](#9-seguridad-informática-y-respaldo-de-datos)
+10. [Resolución de Problemas Frecuentes](#10-resolución-de-problemas-frecuentes)
 
 ---
 
-## 1. INTRODUCCIÓN
-El **Sistema de Gestión Integral de Credenciales y Ceremonias (SiGIC)** es una plataforma digital unificada desarrollada para agilizar, organizar y asegurar las ceremonias de colación de grados del **Instituto Tecnológico Beltrán**. 
+## 1. INTRODUCCIÓN Y OBJETIVOS DEL SISTEMA
 
-La plataforma automatiza y centraliza actividades complejas que anteriormente se realizaban de forma manual: la importación de padrones de alumnos graduados, el diseño y asignación de butacas protocolares en el salón, la comunicación directa con los egresados, la recopilación de datos de sus acompañantes y la validación en tiempo real en los accesos al evento mediante credenciales con códigos QR encriptados.
+El **Sistema de Gestión Institucional de Colaciones (SiGIC)** es una plataforma digital unificada desarrollada para agilizar, organizar y asegurar las ceremonias de colación de grados del **Instituto Tecnológico Beltrán**.
 
----
-
-## 2. OBJETIVOS DEL SISTEMA
-### Objetivo general
-Proporcionar al Instituto Tecnológico Beltrán una herramienta tecnológica de extremo a extremo que automatice la gestión de invitados, la asignación de asientos y el control de accesos durante los actos de colación, garantizando una experiencia ordenada y ágil para directivos, egresados y familiares.
-
-### Objetivos específicos
-*   **Automatizar la comunicación:** Reemplazar las invitaciones físicas por enlaces encriptados individuales y validaciones seguras sin necesidad de contraseñas complejas.
-*   **Optimizar la distribución del salón:** Ofrecer un editor interactivo para diseñar la cuadrícula de butacas y permitir a los egresados elegir de forma autónoma sus asientos y los de sus acompañantes.
-*   **Asegurar los accesos:** Validar en portería mediante el escaneo ágil de códigos QR, impidiendo la duplicidad de ingresos y controlando el aforo en tiempo real.
-*   **Priorizar la accesibilidad:** Identificar a invitados con movilidad reducida desde el registro para coordinar su asistencia personalizada el día del acto.
+La plataforma automatiza y centraliza las tareas complejas de la organización:
+*   Importación de padrones de egresados desde planillas Excel oficiales.
+*   Diseño interactivo de butacas y modelado de platea/pullman del anfiteatro.
+*   Comunicación y despacho automatizado de invitaciones por correo electrónico.
+*   Autogestión del graduado con claves temporales de un solo uso (OTP).
+*   Registro y alerta temprana de acompañantes con movilidad reducida.
+*   Emisión de credenciales con código QR criptográfico (pase grupal e individual).
+*   Acreditación en tiempo real en puertas de acceso con la aplicación móvil oficial (Flutter).
 
 ---
 
-## 3. ALCANCE DEL SISTEMA
-La plataforma SiGIC abarca todo el ciclo operativo de la colación de grados, dividiéndose en tres grandes portales interconectados:
-1.  **Portal del Administrador (Web):** Gestión interna, configuración del salón y monitoreo de presentismo.
-2.  **Portal del Egresado (Web):** Autogestión de invitados, selección de butacas y descarga de credenciales.
-3.  **Portal del Acreditador (Móvil):** Visor de control en portería para validación de QR.
-4.  **Centro de Control de Escritorio (WPF):** Consola para el arranque, monitoreo y mantenimiento técnico local de la base de datos y servidores de red.
+## 2. ACCESO A LA PLATAFORMA E INICIO DE SESIÓN
+
+El sistema SiGIC cuenta con un portal unificado para el acceso de los diferentes operadores administrativos, personal de portería y los egresados de la colación activa.
+
+### Acceso al Panel de Gestión
+Para ingresar al inicio de sesión del personal administrativo:
+- Haga clic en el botón **"Acceso Personal"** o **"Gestión"** ubicado en el encabezado del portal, o acceda directamente mediante la URL `/admin`.
+- **Acceso rápido institucional**: En la pantalla de bienvenida pública, hacer 5 clics seguidos sobre el logo central de SiGIC desbloquea el selector de inicio de sesión administrativo de manera discreta.
+
+### Canales de Autenticación:
+1. **Personal Administrativo, Auditor y Soporte:** Ingresan escribiendo su correo electrónico institucional y contraseña asignada con firma de tokens JWT.
+2. **Graduados:** Acceden sin necesidad de recordar contraseñas permanentes. Escriben su DNI y reciben en su correo registrado un código temporal de 6 dígitos (**Código OTP**), o bien ingresan mediante el enlace directo provisto en el correo de invitación.
+3. **Personal de Portería:** Inicia sesión en la App Móvil oficial escaneando el código QR generado por el administrador desde el panel de seguridad.
 
 ---
 
-## 4. REQUISITOS MÍNIMOS
-### Hardware
-*   **Para el Administrador / Egresado:** Computadora personal, notebook o dispositivo móvil con conexión estable a Internet.
-*   **Para Portería / Acreditación:** Teléfono inteligente o tablet con cámara trasera activa de al menos 8 MP (para lectura rápida de QR) y conectividad Wi-Fi o datos móviles.
-*   **Para Servidor Local (Operador):** Computadora con sistema operativo Windows 10/11, procesador x64 de 2 núcleos y puerto USB disponible (si se opera localmente).
+## 3. OPERACIÓN DIARIA Y ACTIVACIÓN DE LA CEREMONIA
 
-### Software
-*   **Navegador Web:** Google Chrome, Microsoft Edge, Mozilla Firefox o Safari actualizado a su última versión.
-*   **Entorno de Ejecución (Solo Operador Técnico):** SDK de .NET 8 y Node.js v22 LTS instalados (gestionados automáticamente por el Centro de Control WPF).
+El sistema SiGIC permite administrar múltiples ceremonias (por cohorte, carrera o turno). Sin embargo, **solo una ceremonia puede estar "ACTIVA" a la vez**, sincronizando en tiempo real las reservas de butacas, los códigos OTP y el escáner de portería.
 
----
-
-## 5. ACCESO AL SISTEMA
-### URL de Acceso General
-La plataforma web del sistema opera localmente en la dirección de red de desarrollo:
-`http://localhost:5173`
-
-### Acceso a la Autogestión del Graduado
-El graduado tiene dos vías de ingreso seguro:
-1.  **Enlace Directo:** Haciendo clic en el botón de la invitación enviada por correo electrónico, el cual contiene una firma digital única en la URL (`?token=...`).
-2.  **Validación por Correo:** Ingresando manualmente a la web, digitando su correo institucional y completando el código OTP de 6 dígitos que el sistema le envía de forma inmediata a su bandeja de entrada.
+### Paso a Paso para Activar la Ceremonia del Día:
+1. Ingrese al panel principal y seleccione **Ceremonias** (desde el menú lateral o clásico).
+2. Se listará el historial de ceremonias. Si la del día no existe, presione **"Crear Ceremonia"** e indique:
+   - Nombre oficial de la colación.
+   - Fecha y horario de inicio.
+   - Sede / Lugar del evento (ej. *Anfiteatro Beltrán*).
+   - **Límite de Acompañantes por Egresado** (aforo permitido, ej. 2 o 4 personas).
+3. En la fila de la ceremonia correspondiente, presione el botón de activación. Se marcará con la estrella y la etiqueta **"ACTIVA"**. A partir de este instante, todo el sistema queda sincronizado para ese evento.
 
 ---
 
-## 6. ROLES DE USUARIO
-El sistema cuenta con tres niveles de permisos y accesos diferenciados para garantizar la integridad de los datos:
+## 4. CARGA DEL PADRÓN DE EGRESADOS Y DESPACHO DE INVITACIONES
 
-### 6.1 Administrador (Admin / Super Admin)
-Posee el control de la planificación institucional de la ceremonia. Sus funciones principales son:
-*   Inicializar y vaciar las bases de datos de colaciones.
-*   Crear eventos de graduación y definir la ceremonia activa.
-*   Subir el padrón de alumnos graduados mediante planillas Excel.
-*   Editar y distribuir el plano de butacas protocolares en el anfiteatro.
-*   Despachar correos masivos y gestionar la asistencia manual de accesos.
+Para habilitar a los egresados en la ceremonia activa, el personal administrativo realiza la importación del padrón oficial.
 
-### 6.2 Egresado / Graduado
-Representa al destinatario del evento. Tiene permisos para:
-*   Declarar si asistirá o declinará la invitación.
-*   Registrar a sus invitados acompañantes (nombre, DNI y teléfono).
-*   Seleccionar su butaca en el sector azul y las de sus acompañantes en el sector verde.
-*   Exportar e imprimir las credenciales de ingreso.
+### Paso 1: Preparación del archivo Excel (.xlsx / .csv)
+La planilla de cálculo debe contener las siguientes cuatro columnas requeridas:
+1. **Nombre:** Nombre y apellido completo del egresado.
+2. **DNI:** Número de documento de identidad (sin puntos ni espacios).
+3. **Correo:** Dirección de e-mail institucional o personal donde recibirá su clave OTP y su credencial.
+4. **Carrera:** Denominación formal (ej. *Tecnicatura Superior en Analista de Sistemas*).
 
-### 6.3 Portero (Seguridad / Acreditador)
-Personal de campo encargado de la validación física el día de la ceremonia. Sus funciones son:
-*   Escanear los códigos QR presentados por los asistentes.
-*   Visualizar la confirmación de acceso y el asiento asignado en pantalla.
-*   Detectar intentos de fraude (credenciales duplicadas o alteradas).
-*   Identificar alertas de movilidad reducida para activar protocolos de asistencia en sala.
+### Paso 2: Importar el Padrón
+1. Ingrese a **Gestionar Graduados**.
+2. Presione el botón **"Cargar desde Excel"** y arrastre el archivo a la ventana de importación.
+3. El sistema verificará los datos, validará duplicados e ingresará a los egresados en estado inicial **PENDIENTE** o **INVITADO**.
 
----
+### Paso 3: Envío Masivo de Invitaciones
+1. Presione el botón **"Enviar Invitaciones por Correo"**.
+2. El servidor comenzará a enviar de forma automatizada un correo electrónico personalizado a cada estudiante con el enlace directo para confirmar su participación.
 
-## 7. FUNCIONALIDADES DEL SISTEMA (PASO A PASO)
-
-### 7.1 Configuración Inicial del Sistema (Setup)
-Al instalar por primera vez o reestablecer la base de datos, el sistema se bloquea en modo **Asistente de Setup**:
-1.  Complete los campos del Super-Administrador (Nombre, Correo y Contraseña).
-2.  Defina el nombre oficial de la institución (ej: *Instituto Tecnológico Beltrán*) y el lugar inicial del evento.
-3.  Haga clic en **Inicializar Sistema**. El asistente creará automáticamente las tablas y la estructura de datos requerida y habilitará la pantalla de inicio de sesión.
-
-### 7.2 Creación y Gestión de Ceremonias
-1.  Diríjase a la pestaña **Ceremonias** en el panel del Administrador.
-2.  Haga clic en **Nueva Ceremonia** e ingrese el Nombre de la colación, Fecha, Ubicación del salón y el Límite de invitados por egresado.
-3.  **Acción Clave:** Localice la ceremonia en la lista y presione **Activar**. Esto le indica al servidor que toda la carga posterior de alumnos y acreditaciones QR se asociarán exclusivamente a esta ceremonia activa.
-
-### 7.3 Carga Masiva del Padrón de Egresados (Excel)
-1.  En la sección **Gestión de Graduados**, haga clic en **Importar Padrón (.xlsx)**.
-2.  Prepare una planilla de cálculo con las columnas obligatorias: `nombre`, `legajo`, `dni`, `correo`, `carrera`, `anio_inscripcion` y `promedio`.
-3.  Arrastre el archivo a la zona de carga. El sistema leerá el archivo, validará formatos de correo y DNI duplicados, y mostrará un resumen del padrón listo para importar.
-4.  Haga clic en **Confirmar Importación** para guardar los datos en la base.
-
-### 7.4 Envío y Reenvío de Enlaces de Invitación
-1.  Con el padrón cargado, haga clic en el botón **Enviar Invitaciones a Todos** para realizar el despacho automático de correos con firma de token única.
-2.  Si un correo rebota o se escribe mal, edite la dirección del graduado en la lista y presione el botón de **Reenvío Individual** (icono de avión de papel) para volver a despachar la invitación.
-
-### 7.5 Autogestión del Egresado y Validación OTP
-1.  Si el egresado ingresa de manera manual, la pantalla le solicitará su correo electrónico registrado.
-2.  El backend validará la dirección y despachará un código temporal de 6 dígitos.
-3.  El egresado digita el código en la pantalla de verificación y, al coincidir, el sistema le concede un token de sesión seguro para operar en su portal.
-
-### 7.6 Declaración de Asistencia (Aceptación/Rechazo)
-1.  Al entrar por primera vez, el portal solicita al graduado declarar si asistirá al acto.
-2.  **Aceptar:** Habilita el formulario de acompañantes y la selección de butacas.
-3.  **Rechazar:** El sistema registra la inasistencia. Esta acción es **irreversible** en el servidor; libera inmediatamente sus butacas y anula su token de seguridad.
-
-### 7.7 Carga de Invitados y Declaración de Movilidad Reducida
-1.  En el portal del graduado, ingrese los datos de sus acompañantes (Nombre, DNI, Teléfono y Parentesco).
-2.  Si alguno de sus invitados posee dificultades físicas, marque la casilla **Posee Movilidad Reducida**.
-3.  Esta acción guardará una bandera de alerta que aparecerá en el panel del administrador y emitirá una advertencia visual al portero al momento de escanear su credencial.
-
-### 7.8 Selección Visual de Asientos en el Anfiteatro
-1.  El graduado presiona **Seleccionar Asientos** para abrir el plano interactivo.
-2.  El graduado debe hacer clic sobre su asiento preferido en el sector de egresados (círculos azules) y en los asientos contiguos para sus invitados (círculos verdes).
-3.  Los asientos ya reservados por otros alumnos se muestran en color rojo (bloqueados), impidiendo la superposición.
-4.  Presione **Confirmar Reserva** para guardar el mapa en el servidor.
-
-### 7.9 Descarga y Uso de Credenciales QR
-1.  El sistema genera automáticamente un archivo PDF descargable con las credenciales oficiales de la ceremonia.
-2.  Cada credencial posee un diseño formal de la institución, detallando el Nombre, DNI, Fila y Asiento exactos, junto con un **Código QR único** encriptado.
-3.  El graduado debe guardar el PDF en su dispositivo móvil o imprimirlo para presentarlo en la entrada del salón el día de la colación.
-
-### 7.10 Acreditación y Validación de Seguridad (Portería)
-1.  El personal de seguridad abre la aplicación móvil e inicia el lector de cámara.
-2.  Apunta al código QR impreso o en pantalla del ingresante.
-3.  La aplicación procesa el token y devuelve:
-    *   **Verde (Acceso Autorizado):** Credencial válida y asiento verificado. Muestra los datos en pantalla.
-    *   **Naranja (Duplicado):** Código válido pero la persona ya ingresó anteriormente (alerta de fraude/copia).
-    *   **Rojo (Denegado):** QR inválido o egresado inasistente.
+### ¿Qué hacer si un alumno no recibe el correo de invitación?
+1. Vaya a **Gestionar Graduados** y búsquelo por su nombre o DNI.
+2. En las acciones al final de su fila, presione el botón **"Copiar Enlace Directo"** (ícono de enlace azul).
+3. Envíe el enlace al alumno de manera privada (WhatsApp o chat institucional). Al hacer clic en ese enlace con token firmado, el graduado ingresará a su panel al instante sin requerir código OTP.
 
 ---
 
-## 8. SEGURIDAD DEL SISTEMA
-SiGIC cuenta con rigurosos mecanismos de seguridad informática:
-*   **Tokens de Invitación Firmados:** Las URLs de acceso contienen firmas hash que previenen la alteración o falsificación de enlaces.
-*   **Autenticación OTP Cifrada:** Las claves numéricas temporales se hashean en base de datos usando SHA-256 y expiran automáticamente tras 10 minutos.
-*   **Acceso por Roles:** Las APIs REST bloquean y validan los encabezados HTTP `Authorization` con tokens JWT para impedir que un usuario con rol de egresado intente modificar las butacas o el padrón institucional.
-*   **Conexiones Seguras (SSL):** La comunicación entre el servidor API y la base de datos PostgreSQL de Neon Cloud exige de forma obligatoria certificados SSL activos.
+## 5. AUTOGESTIÓN DEL EGRESADO Y CIRCUITO DE CONFIRMACIÓN
+
+El flujo del graduado se compone de cuatro pasos guiados:
+1. **Confirmación de Asistencia:** El egresado declara si asistirá o no al acto de colación. Si marca inasistencia, el sistema libera sus cupos y finaliza el circuito sin ocupar butacas.
+2. **Carga de Acompañantes:** Ingresa los datos de los familiares que asistirán (respetando el tope de la ceremonia) e indica si alguno posee **movilidad reducida**.
+3. **Elección de Entregador:** Puede seleccionar si desea que un docente o un acompañante especial participe de la entrega del título en el escenario.
+4. **Emisión de Credencial QR:** Genera y descarga su credencial oficial en PDF con código QR y código alfanumérico de respaldo para el ingreso grupal.
 
 ---
 
-## 9. PROBLEMAS FRECUENTES Y SOLUCIONES
+## 6. DISTRIBUCIÓN DE ASIENTOS Y CONTROL DEL ANFITEATRO
 
-| Problema | Causa Posible | Solución del Operador / Administrador |
+El plano interactivo del anfiteatro permite organizar la distribución de los egresados y sus familiares de forma visual e intuitiva.
+
+### Código de Colores de las Butacas:
+- **Azul (Egresados):** Butacas asignadas exclusivamente a los alumnos que reciben diploma.
+- **Verde (Acompañantes):** Asientos seleccionados para los familiares e invitados.
+- **Rojo (Ocupado):** Butacas que ya han sido reservadas por otros asistentes.
+- **Gris Claro (Libre):** Asientos disponibles para ser seleccionados.
+- **Gris Oscuro (Bloqueado / Protocolo):** Asientos reservados por la organización (Directivos, Autoridades o Profesores).
+- **Violeta (Asiento Preferencial):** Asientos reservados para personas con movilidad reducida o discapacidad.
+
+### Asignación de Butacas Protocolares y Casos Especiales:
+1. Ingrese a **Plano Anfiteatro** (o "Editor de Anfiteatro").
+2. Haga clic sobre las butacas de las primeras filas correspondientes a autoridades o docentes y seleccione **"Bloquear Asiento / Protocolo"**.
+3. **Alerta de Movilidad Reducida:** Cuando un graduado registra que uno de sus acompañantes posee movilidad reducida, su registro se resalta con el **ícono de silla de ruedas** y se le asigna butaca preferencial (violeta) cercana a rampas y pasillos de fácil egreso.
+4. Una vez completada la distribución, el alumno recibe en su correo la confirmación final de sus butacas numeradas.
+
+---
+
+## 7. OPERATORIA DE ACREDITACIÓN EL DÍA DE LA CEREMONIA (PORTERÍA)
+
+El día del acto, el control en las puertas de ingreso del anfiteatro se realiza mediante la **App Móvil Oficial de SiGIC** (Flutter) o mediante el módulo web de **Control de Ingreso**.
+
+### 7.1. Vinculación Rápida de Dispositivos de Portería
+Para que el personal de seguridad pueda utilizar la cámara de sus celulares sin teclear credenciales:
+1. En el panel web, ingrese a **Seguridad** (Personal de Portería).
+2. Presione **"Registrar Personal"** o seleccione una cuenta existente y haga clic en **"Mostrar Acceso QR"**.
+3. Pida al portero que abra la app móvil de SiGIC en su teléfono:
+   - **QR 1 (Configuración):** Ajusta la dirección IP y parámetros de red del servidor.
+   - **QR 2 (Acceso):** Inicia la sesión de seguridad de forma instantánea.
+
+### 7.2. Protocolo de Escaneo de Códigos QR
+El portero apunta la cámara del teléfono hacia la credencial física o digital del invitado:
+
+| Respuesta Visual | Estado de Ingreso | Significado y Acción Requerida |
 | :--- | :--- | :--- |
-| **El graduado no recibió el correo de invitación.** | Dirección de correo mal escrita o filtrada por SPAM institucional. | Busque al graduado en el padrón, verifique el correo y reenvíe. Si persiste, copie su **Token de Acceso** y entrégueselo de forma directa. |
-| **El graduado marcó "No Asistiré" por error.** | El flujo de rechazo fue completado de forma irreversible. | Registre nuevamente al graduado desde el panel de administración con sus datos correspondientes y vuelva a emitir su invitación. |
-| **El Centro de Control WPF muestra error en Backend.** | El puerto `3001` de red local está ocupado por otro servicio. | Cierre aplicaciones que utilicen el puerto 3001 o reinicie los servicios de infraestructura desde el Centro de Control WPF. |
-| **La importación de Excel da error de formato.** | Las columnas del archivo Excel no coinciden con la estructura requerida. | Asegúrese de que el archivo tenga exactamente las columnas: `nombre`, `legajo`, `dni`, `correo`, `carrera`, `anio_inscripcion` y `promedio`. |
-| **La app de portería marca acceso "Duplicado".** | Se presentó una fotocopia de credencial o el invitado reingresó. | Derive el caso a la Mesa de Ayuda técnica en el ingreso para verificar los datos de la persona física con su DNI. |
+| **VERDE** | **Acceso Autorizado** | QR legítimo y válido. El teléfono emite un pitido agudo y vibra. Muestra el nombre y número de butaca asignada para indicarle hacia dónde dirigirse. |
+| **NARANJA** | **Acceso Duplicado** | QR legítimo pero que ya ingresó al salón anteriormente. La app emite alerta y muestra la hora del primer ingreso. **Acción:** Solicitar DNI físico para verificar identidad o prevenir fotocopias. |
+| **ROJO** | **Acceso Denegado** | QR inválido, corrupto o correspondiente a otra ceremonia. El teléfono emite alerta sonora y no permite el ingreso del portador. |
+
+### 7.3. Acreditación de Emergencia (Respaldo sin Cámara / Desconexión)
+Si un invitado pierde su credencial, no tiene batería o el dispositivo no responde:
+1. **Acreditación por Código Alfanumérico:** El personal de seguridad digita directamente en la app el código único de 8 caracteres que figura en el comprobante del graduado.
+2. **Soporte en Papel (Plan de Contingencia):** Si ocurre una falla eléctrica o de red total, el portero utiliza la planilla impresa de la ceremonia, busca el código alfanumérico o DNI del asistente y tilda el ingreso manualmente.
 
 ---
 
-## 10. BUENAS PRÁCTICAS DE USO
-*   **Cerrar Sesión:** Siempre cierre la sesión del panel del administrador al ausentarse de la computadora para evitar modificaciones accidentales en el padrón.
-*   **Brillo de Pantalla:** Solicite a los invitados presentar sus códigos QR con el brillo de la pantalla del celular al máximo nivel para agilizar el escaneo en las filas de acceso.
-*   **Validación del Padrón:** Revise la planilla Excel de alumnos antes de subirla para asegurar que los promedios y carreras estén formateados correctamente.
-*   **Monitoreo Temprano:** Realice el envío de invitaciones al menos dos semanas antes de la colación para dar tiempo a los alumnos de declarar asistencia y elegir asientos con tranquilidad.
+## 8. REPORTES Y CIERRE DE LA CEREMONIA
+
+Concluida la ceremonia, el sistema permite generar los informes oficiales de auditoría y presentismo:
+1. Ingrese a la sección **Reportes** en el panel principal.
+2. Visualizará las métricas consolidadas: porcentaje de ocupación, presentes, ausencias y curva de ingresos por horario.
+3. Presione el botón **"Exportar Listado de Asistencia (Excel)"** para descargar la planilla estructurada con fecha, hora exacta de acreditación y butaca física ocupada por cada graduado e invitado para el legajo de Secretaría Académica.
 
 ---
 
-## 11. CONCLUSIÓN
-El Sistema de Gestión Integral de Credenciales y Ceremonias (SiGIC) representa una evolución en la organización de eventos formales del **Instituto Tecnológico Beltrán**. Al descentralizar la carga de datos y automatizar la asignación de asientos y el control por códigos QR, el sistema no solo reduce a cero los errores operativos, sino que otorga al usuario final y al personal organizador una plataforma ágil, segura y de alto estándar profesional.
+## 9. SEGURIDAD INFORMÁTICA Y RESPALDO DE DATOS
+
+*   **Firmas Criptográficas JWT:** Sesiones autenticadas y protegidas contra manipulación.
+*   **Códigos OTP Hasheados:** Los códigos de 6 dígitos se validan con expiración a los 10 minutos.
+*   **Persistencia Cloud Segura:** Base de datos relacional Neon PostgreSQL con cifrado SSL obligatorio.
+*   **Backups Institucionales:** La cuenta de soporte técnico puede descargar volcados completos en formato JSON/SQL antes de cada cierre de ciclo lectivo.
 
 ---
 
-## 12. SOPORTE TÉCNICO E INSTITUCIONAL
-Ante cualquier duda técnica o falla operativa de la infraestructura local o en la nube, comuníquese con el equipo técnico del Instituto Tecnológico Beltrán:
+## 10. RESOLUCIÓN DE PROBLEMAS FRECUENTES
 
-*   **Bandeja de Correo Oficial:** `soporte@ibeltran.com.ar`
-*   **Mesa de Ayuda de Sistemas:** Lunes a Viernes de 09:00 a 21:00 hs.
-*   **Soporte de Guardia (Día del Acto):** Mesa de ayuda técnica física en el hall principal del evento.
+| Situación | Causa | Solución Operativa |
+| :--- | :--- | :--- |
+| El alumno no recibió el correo. | Casilla llena o filtro de Spam. | Buscar al alumno en *Gestionar Graduados* y pulsar **"Copiar Enlace Directo"** para enviárselo por mensajería privada. |
+| El graduado rechazó por error. | Completó el flujo de inasistencia. | El administrador puede editar su estado en el panel de graduados para rehabilitar su circuito de inscripción. |
+| La app móvil dice "Servidor no alcanzable". | Celular en red diferente a la de la plataforma. | Conectar el celular a la red Wi-Fi del evento y re-escanear el QR de configuración del servidor. |
+| El QR escaneado da "Denegado". | Credencial de ceremonia anterior o inválida. | Verificar el DNI en el padrón de la ceremonia activa desde el buscador de emergencia. |
 
 ---
 
-## ANEXOS — GLOSARIO DE TÉRMINOS
-*   **OTP (One-Time Password):** Clave numérica de un solo uso que se envía por correo para validar la identidad de un graduado sin requerir contraseña.
-*   **Butaca Protocolar:** Asiento asignado por rol en el anfiteatro (Graduados, Acompañantes, Profesores, Directivos).
-*   **Token de Acceso:** Clave única alfanumérica firmada por el servidor que viaja en la URL para abrir el portal del graduado de forma directa.
-*   **Neon Cloud DB:** Servidor de base de datos relacional PostgreSQL hospedado en la nube que centraliza la persistencia de datos.
-*   **SQLite:** Base de datos relacional local utilizada para almacenamiento de pruebas y configuraciones de desarrollo.
-*   **Acreditación:** Proceso de lectura de QR y registro de asistencia en portería el día de la ceremonia.
+*Manual operativo elaborado para el Instituto Tecnológico Beltrán — Avellaneda, Buenos Aires.*

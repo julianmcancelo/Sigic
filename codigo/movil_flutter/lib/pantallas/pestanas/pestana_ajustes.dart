@@ -424,7 +424,7 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
                 valueListenable: modoTemaSigic,
                 builder: (context, modo, _) =>
                     DropdownButtonFormField<ThemeMode>(
-                  value: modo,
+                  initialValue: modo,
                   decoration: const InputDecoration(
                     labelText: 'Tema de la aplicación',
                   ),
@@ -768,3 +768,4 @@ class _SeparadorConTexto extends StatelessWidget {
     ),
   );
 }
+

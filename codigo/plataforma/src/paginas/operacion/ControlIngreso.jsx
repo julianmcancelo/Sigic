@@ -7,7 +7,7 @@ import {
   VolumeX, ShieldCheck, ArrowRight, Sparkles, Check, Accessibility, CalendarDays,
   Smartphone, Download, Radio, Shield, Copy, CheckCheck, Globe, Wifi, KeyRound,
   ExternalLink, Layers, Laptop, Activity, Zap, Play, Trash2, Server, HelpCircle,
-  CheckCircle, Signal, BatteryCharging, Info, Sliders, ChevronDown
+  CheckCircle, Signal, BatteryCharging, Info, Sliders, ChevronDown, Sun, Moon
 } from 'lucide-react'
 import { 
   buscarAcreditacion, 
@@ -716,7 +716,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
   const todosAcreditados = egresadoActual?.presente && (listaInvitados.length === 0 || listaInvitados.every((i) => i.presente))
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 p-3 sm:p-6 font-sans">
+    <div className="sigic-control-acreditacion-view min-h-screen bg-slate-900 text-slate-100 p-3 sm:p-6 font-sans transition-colors duration-300">
       {/* HEADER PRINCIPAL */}
       <header className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-slate-800">
         <div className="flex items-center gap-3.5">
@@ -810,7 +810,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
             {estaOnline ? 'Terminal conectada · Validación en tiempo real' : 'Modo sin conexión · Validando con padrón local'}
           </span>
           {manifiestoDescargado && (
-            <span className="hidden sm:inline-block px-2 py-0.5 rounded-md bg-slate-700 text-slate-300 text-[10px] font-medium">
+            <span className="hidden sm:inline-block px-2 py-0.5 rounded-md bg-slate-700 text-slate-300 text-[10px] font-medium border border-slate-600/40">
               Padrón local listo
             </span>
           )}

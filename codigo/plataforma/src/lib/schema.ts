@@ -247,6 +247,25 @@ async function ejecutarInicializacion() {
         UNIQUE(carrera_id, nombre)
       );
       CREATE INDEX IF NOT EXISTS idx_materias_carrera ON materias(carrera_id);
+
+      -- Padrón Maestro de Estudiantes Habilitados para Colación (Registro Académico Oficial)
+      CREATE TABLE IF NOT EXISTS estudiantes_habilitados (
+        id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+        dni VARCHAR(20) NOT NULL UNIQUE,
+        legajo VARCHAR(50) NOT NULL UNIQUE,
+        nombre VARCHAR(200) NOT NULL,
+        correo VARCHAR(150),
+        telefono VARCHAR(50),
+        carrera_id VARCHAR(50) NOT NULL,
+        carrera_nombre VARCHAR(200) NOT NULL,
+        promedio NUMERIC(4,2) DEFAULT 8.00,
+        estado_academico VARCHAR(50) DEFAULT 'Habilitado',
+        materias_aprobadas INTEGER DEFAULT 32,
+        total_materias INTEGER DEFAULT 32,
+        cohorte INTEGER DEFAULT 2026,
+        creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS idx_estudiantes_carrera ON estudiantes_habilitados(carrera_id);
     `);
 
     // El teléfono es útil para la operación, pero no debe impedir registrar un acompañante.

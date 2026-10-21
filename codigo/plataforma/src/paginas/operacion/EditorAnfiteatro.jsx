@@ -3,38 +3,41 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Save, Layout, ZoomIn, ZoomOut, ShieldCheck, AlertCircle, GraduationCap,
-  Armchair, X, Maximize, Minimize, ChevronLeft, ChevronRight, UserCheck, RotateCcw, HelpCircle, Layers, Info, Sparkles, Award
+  Armchair, X, Maximize, Minimize, UserCheck, RotateCcw, Award, Move, Sparkles
 } from 'lucide-react';
 import { BASE, obtenerGraduados, obtenerInvitados, cabeceras } from '../../servicios/api';
 import { useSincronizacion, emitirCambioSync } from '../../lib/sync';
 import { SeleccionAsientos } from '../SeleccionAsientos';
 
-const ACCENT = '#0EA5E9';
-const DARK   = '#0F172A';
-
 export function EditorAnfiteatro({ ceremoniaId, onVolver, sinHeader }) {
   const [cargando, setCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const [mensaje, setMensaje] = useState(null);
+  
+  // Nivel y Zoom con límites responsivos
   const [zoom, setZoom] = useState(1);
   const [nivel, setNivel] = useState('baja');
-
   const [fullscreen, setFullscreen] = useState(false);
-  const [sidebarColapsada, setSidebarColapsada] = useState(false);
+  
   const containerRef = useRef(null);
+  const areaMapaRef = useRef(null);
 
-  // Estado de la estructura
+  // Modo Arrastre / Paneo Fluido
+  const [estaArrastrando, setEstaArrastrando] = useState(false);
+  const [posicionInicio, setPosicionInicio] = useState({ x: 0, y: 0, scrollLeft: 0, scrollTop: 0 });
+  const [modoPaneoActivo, setModoPaneoActivo] = useState(false);
+
+  // Estructura de filas y columnas
   const [estructura, setEstructura] = useState({
     baja: { filas: 7, asientos: 20 },
     alta: { filas: 5, asientos: 22 }
   });
   const [estructuraOriginal, setEstructuraOriginal] = useState(null);
   
-  // Estado de los roles de los asientos
+  // Roles de asientos
   const [mapaRoles, setMapaRoles] = useState({});
   const [mapaRolesOriginal, setMapaRolesOriginal] = useState(null);
   const [rolSeleccionado, setRolSeleccionado] = useState('disponible');
-
   const [asientosOcupados, setAsientosOcupados] = useState([]);
 
   useEffect(() => {
@@ -44,7 +47,6 @@ export function EditorAnfiteatro({ ceremoniaId, onVolver, sinHeader }) {
     }
   }, [ceremoniaId]);
 
-  // Sincronización en vivo del mapa de butacas
   useSincronizacion(['BUTACAS', 'EGRESADOS', 'INVITADOS'], () => {
     cargarOcupacion();
   });
@@ -136,12 +138,39 @@ export function EditorAnfiteatro({ ceremoniaId, onVolver, sinHeader }) {
     }
   }
 
-  // ─── PLANTILLAS PRECONFIGURADAS (PRESETS) ─────────────────────
-  const aplicarPlantilla = (tipo) => {
-    if (!confirm('¿Deseas aplicar esta plantilla? Se ajustará la estructura y distribución de butacas.')) return;
+  // Paneo con mouse / touch
+  const iniciarArrastre = (e) => {
+    if (!modoPaneoActivo && e.button !== 1) return;
+    const contenedor = areaMapaRef.current;
+    if (!contenedor) return;
 
+    setEstaArrastrando(true);
+    setPosicionInicio({
+      x: e.pageX || (e.touches && e.touches[0].pageX),
+      y: e.pageY || (e.touches && e.touches[0].pageY),
+      scrollLeft: contenedor.scrollLeft,
+      scrollTop: contenedor.scrollTop
+    });
+  };
+
+  const procesarArrastre = (e) => {
+    if (!estaArrastrando || !areaMapaRef.current) return;
+    e.preventDefault();
+    const contenedor = areaMapaRef.current;
+    const x = e.pageX || (e.touches && e.touches[0].pageX);
+    const y = e.pageY || (e.touches && e.touches[0].pageY);
+    const walkX = (x - posicionInicio.x) * 1.5;
+    const walkY = (y - posicionInicio.y) * 1.5;
+    contenedor.scrollLeft = posicionInicio.scrollLeft - walkX;
+    contenedor.scrollTop = posicionInicio.scrollTop - walkY;
+  };
+
+  const detenerArrastre = () => {
+    setEstaArrastrando(false);
+  };
+
+  const aplicarPlantilla = (tipo) => {
     if (tipo === 'beltran') {
-      // Plantilla real Auditorio Beltrán (3 Bloques + 2 Pasillos + Pullman)
       const nuevaEstructura = {
         baja: { filas: 7, asientos: 20 },
         alta: { filas: 5, asientos: 22 }
@@ -149,29 +178,23 @@ export function EditorAnfiteatro({ ceremoniaId, onVolver, sinHeader }) {
       const nuevosRoles = {};
       const letras = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
 
-      // Pasillos en columnas 5 y 16 de Platea
       letras.forEach((letra, idx) => {
         nuevosRoles[`baja-${letra}-5`] = 'bloqueado';
         nuevosRoles[`baja-${letra}-16`] = 'bloqueado';
 
-        // Primeras filas centrales para graduados
         if (idx === 0 || idx === 1) {
           for (let col = 6; col <= 15; col++) {
             nuevosRoles[`baja-${letra}-${col}`] = 'egresado';
           }
         }
-        // Fila C central para sector exclusivo de padrinos
         if (idx === 2) {
           for (let col = 6; col <= 15; col++) {
             nuevosRoles[`baja-${letra}-${col}`] = 'padrino';
           }
         }
-        // Accesibilidad en primera fila cerca de pasillos
         if (idx === 0) {
           nuevosRoles[`baja-A-4`] = 'discapacitado';
           nuevosRoles[`baja-A-17`] = 'discapacitado';
-          nuevosRoles[`baja-A-1`] = 'autoridad';
-          nuevosRoles[`baja-A-2`] = 'autoridad';
         }
       });
 
@@ -179,7 +202,6 @@ export function EditorAnfiteatro({ ceremoniaId, onVolver, sinHeader }) {
       setMapaRoles(nuevosRoles);
       setMensaje({ tipo: 'exito', texto: 'Plantilla Auditorio Beltrán (3 Bloques) aplicada' });
     } else if (tipo === 'pasillo-central') {
-      // 2 Bloques con pasillo al medio
       const nuevaEstructura = {
         baja: { filas: 8, asientos: 17 },
         alta: { filas: 6, asientos: 17 }
@@ -195,10 +217,10 @@ export function EditorAnfiteatro({ ceremoniaId, onVolver, sinHeader }) {
       });
       setEstructura(nuevaEstructura);
       setMapaRoles(nuevosRoles);
-      setMensaje({ tipo: 'exito', texto: 'Plantilla de 2 Bloques con pasillo central aplicada' });
+      setMensaje({ tipo: 'exito', texto: 'Plantilla Pasillo Central aplicada' });
     } else if (tipo === 'limpiar') {
       setMapaRoles({});
-      setMensaje({ tipo: 'exito', texto: 'Mapa de roles restablecido a disponibles' });
+      setMensaje({ tipo: 'exito', texto: 'Mapa de roles restablecido a libres' });
     }
     setTimeout(() => setMensaje(null), 3000);
   };
@@ -213,6 +235,7 @@ export function EditorAnfiteatro({ ceremoniaId, onVolver, sinHeader }) {
   };
 
   const asignarRolAsiento = (idAsiento) => {
+    if (modoPaneoActivo) return;
     if (asientosOcupados.includes(idAsiento)) {
       setMensaje({ tipo: 'error', texto: 'Asiento ocupado: no se puede modificar su rol' });
       setTimeout(() => setMensaje(null), 2000);
@@ -229,6 +252,16 @@ export function EditorAnfiteatro({ ceremoniaId, onVolver, sinHeader }) {
     mapaRolesConOcupacion[id] = 'ocupado';
   });
 
+  const rolesDisponibles = [
+    { id: 'egresado', label: 'Egresados', color: 'bg-blue-600 text-white', icono: GraduationCap },
+    { id: 'acompanante', label: 'Acompañantes', color: 'bg-emerald-600 text-white', icono: Armchair },
+    { id: 'ocupado', label: 'Ocupado', color: 'bg-red-600 text-white', icono: Armchair },
+    { id: 'disponible', label: 'Libre', color: 'bg-slate-100 border border-slate-300 text-slate-800', icono: Armchair },
+    { id: 'bloqueado', label: 'Pasillo / Bloq.', color: 'bg-slate-900 text-slate-100', icono: ShieldCheck },
+    { id: 'discapacitado', label: 'Preferencial', color: 'bg-purple-600 text-white', icono: AlertCircle },
+    { id: 'padrino', label: 'Padrinos', color: 'bg-amber-500 text-white', icono: Award },
+  ];
+
   if (cargando) {
     return (
       <div className="flex flex-col items-center justify-center py-24 select-none">
@@ -241,327 +274,308 @@ export function EditorAnfiteatro({ ceremoniaId, onVolver, sinHeader }) {
             className="h-7 w-auto object-contain animate-pulse z-10 filter drop-shadow-[0_0_6px_rgba(14,165,233,0.5)]" 
           />
         </div>
-        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 animate-pulse">Cargando Distribución...</p>
+        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 animate-pulse">Cargando Anfiteatro...</p>
       </div>
     );
   }
 
   return (
-    <div ref={containerRef} className={`font-sans flex flex-col ${fullscreen ? 'h-screen w-screen bg-[#F8FAFC] p-4' : ''}`}>
-      {/* HEADER INTEGRADO */}
-      {!fullscreen && (
-        <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-150">
+    <div ref={containerRef} className={`font-sans flex flex-col ${fullscreen ? 'fixed inset-0 z-50 h-screen w-screen bg-slate-900 text-white p-3 sm:p-5' : 'w-full'}`}>
+      
+      {/* TARJETA MAESTRA DEL EDITOR */}
+      <div className="bg-white rounded-3xl border border-slate-300/80 shadow-lg shadow-slate-200/50 p-4 sm:p-6 space-y-4">
+        
+        {/* CABECERA CON ACCIONES INTEGRADAS EN 1 LÍNEA */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3.5 border-b border-slate-200">
           <div>
             <div className="flex items-center gap-2.5">
-              <h2 className="text-xl font-black tracking-tight text-slate-900">Diseño y Maquetación de Auditorio</h2>
-              <span className="px-2.5 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200 text-[9px] font-black uppercase tracking-wider">
-                Mapa Interactivo
+              <h2 className="text-lg sm:text-xl font-black tracking-tight text-slate-900">
+                Diseño y Maquetación de Auditorio
+              </h2>
+              <span className="px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-900 border border-sky-300 text-[9.5px] font-black uppercase tracking-wider">
+                Interactivo
               </span>
             </div>
-            <p className="text-xs font-semibold text-slate-400 mt-0.5">
-              Configurá las filas, pasillos y asigná sectores para graduados, acompañantes y accesibilidad.
+            <p className="text-xs font-semibold text-slate-500 mt-0.5">
+              Definí la capacidad, pasillos y sectores asignados para graduados, acompañantes y accesibilidad.
             </p>
           </div>
+
+          {/* BOTONERA SUPERIOR */}
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={descartarCambios}
+              className="p-2.5 rounded-xl bg-slate-100 border border-slate-300 text-slate-700 hover:text-rose-700 hover:bg-rose-50 hover:border-rose-300 transition-all shadow-2xs flex items-center justify-center active:scale-95 cursor-pointer"
+              title="Descartar Cambios"
+            >
+              <RotateCcw size={16} />
+            </button>
+
+            <button
+              onClick={handleGuardar}
+              disabled={guardando}
+              className={`py-2 px-4 rounded-xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 border shadow-sm active:scale-98 cursor-pointer ${
+                guardando 
+                  ? 'bg-slate-200 border-slate-300 text-slate-500 cursor-not-allowed' 
+                  : 'bg-slate-900 border-slate-900 hover:bg-sky-600 hover:border-sky-600 text-white'
+              }`}
+            >
+              {guardando ? (
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-400 border-t-transparent" />
+              ) : (
+                <Save size={15} />
+              )}
+              <span>{guardando ? 'Guardando...' : 'Guardar Mapa'}</span>
+            </button>
+
+            {/* Selector de Nivel Platea / Pullman */}
+            <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-300">
+              <button
+                type="button"
+                onClick={() => setNivel('baja')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                  nivel === 'baja' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Platea
+              </button>
+              <button
+                type="button"
+                onClick={() => setNivel('alta')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                  nivel === 'alta' ? 'bg-slate-900 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                }`}
+              >
+                Pullman
+              </button>
+            </div>
+
+            {/* Botón Paneo / Arrastre */}
+            <button
+              type="button"
+              onClick={() => setModoPaneoActivo(!modoPaneoActivo)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer shadow-2xs ${
+                modoPaneoActivo
+                  ? 'bg-sky-600 text-white border-sky-600 shadow-sky-500/20'
+                  : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
+              }`}
+              title={modoPaneoActivo ? "Modo Arrastre Activo" : "Activar Arrastre"}
+            >
+              <Move size={14} />
+              <span>{modoPaneoActivo ? 'Arrastrando' : 'Arrastrar'}</span>
+            </button>
+
+            {/* Controles de Zoom */}
+            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-300 shadow-2xs">
+              <button 
+                onClick={() => setZoom(prev => Math.max(prev - 0.1, 0.4))}
+                className="p-1 hover:bg-slate-200 rounded text-slate-700 transition cursor-pointer"
+                title="Alejar mapa"
+              >
+                <ZoomOut size={14} />
+              </button>
+              <span className="text-[11px] font-black text-slate-800 px-1 min-w-[3.5ch] text-center">
+                {Math.round(zoom * 100)}%
+              </span>
+              <button 
+                onClick={() => setZoom(prev => Math.min(prev + 0.1, 2.2))}
+                className="p-1 hover:bg-slate-200 rounded text-slate-700 transition cursor-pointer"
+                title="Acercar mapa"
+              >
+                <ZoomIn size={14} />
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={toggleFullscreen}
+              className={`p-2 rounded-xl border transition-all cursor-pointer ${
+                fullscreen 
+                  ? 'bg-sky-600 text-white border-sky-600 shadow-md' 
+                  : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200 shadow-2xs'
+              }`}
+              title={fullscreen ? "Salir de pantalla completa" : "Pantalla completa"}
+            >
+              {fullscreen ? <Minimize size={15} /> : <Maximize size={15} />}
+            </button>
+          </div>
         </div>
-      )}
 
-      <div className="flex-1 flex flex-col lg:flex-row gap-6 min-h-0">
-        {/* PANEL DE CONTROL LATERAL */}
-        <aside className={`flex flex-col gap-4 transition-all duration-300 relative ${sidebarColapsada ? 'w-12' : 'w-full lg:w-80 shrink-0'}`}>
-          <button 
-            onClick={() => setSidebarColapsada(!sidebarColapsada)}
-            className="absolute -right-3 top-3.5 z-10 w-6 h-6 bg-white border border-slate-200 rounded-full flex items-center justify-center text-slate-500 shadow-sm hover:bg-slate-50 hover:text-sky-500 transition-colors cursor-pointer"
-          >
-            {sidebarColapsada ? <ChevronRight size={13} /> : <ChevronLeft size={13} />}
-          </button>
+        {/* NOTIFICACIÓN MENSAJES */}
+        {mensaje && (
+          <div className={`px-4 py-2.5 rounded-2xl border text-xs font-bold flex items-center justify-between gap-3 shadow-xs ${
+            mensaje.tipo === 'exito' ? 'bg-emerald-50 border-emerald-300 text-emerald-900' : 'bg-rose-50 border-rose-300 text-rose-900'
+          }`}>
+            <div className="flex items-center gap-2">
+              {mensaje.tipo === 'exito' ? <ShieldCheck size={16} className="text-emerald-700" /> : <AlertCircle size={16} className="text-rose-700" />}
+              <span>{mensaje.texto}</span>
+            </div>
+            <button onClick={() => setMensaje(null)} className="opacity-70 hover:opacity-100 transition-opacity cursor-pointer">
+              <X size={14} />
+            </button>
+          </div>
+        )}
 
-          {!sidebarColapsada ? (
-            <>
-              {/* Botones de Acción Principales */}
-              <div className="flex gap-2">
-                <button
-                  onClick={descartarCambios}
-                  className="p-3.5 rounded-xl bg-white border border-slate-200 text-slate-400 hover:text-rose-500 hover:bg-rose-50 hover:border-rose-200 transition-all shadow-sm flex items-center justify-center active:scale-95 shrink-0 cursor-pointer"
-                  title="Descartar Cambios"
-                >
-                  <RotateCcw size={15} />
-                </button>
-                
-                <button
-                  onClick={handleGuardar}
-                  disabled={guardando}
-                  className={`flex-1 py-3 rounded-xl font-black text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 border shadow-md active:scale-98 cursor-pointer
-                    ${guardando 
-                      ? 'bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed' 
-                      : 'bg-slate-900 border-slate-900 hover:bg-sky-500 hover:border-sky-500 text-white'}`}
-                >
-                  {guardando ? (
-                    <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-slate-400 border-t-transparent" />
-                  ) : (
-                    <Save size={15} />
-                  )}
-                  <span>{guardando ? 'Guardando...' : 'Guardar Mapa'}</span>
-                </button>
-              </div>
-
-              {/* PLANTILLAS ARQUITECTÓNICAS (PRESETS) */}
-              <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-2.5">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                  <div className="flex items-center gap-2">
-                    <Sparkles className="text-sky-500" size={15} />
-                    <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-wider">Plantillas de Sala</h3>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <button
-                    onClick={() => aplicarPlantilla('beltran')}
-                    className="w-full text-left px-3.5 py-2.5 rounded-xl bg-sky-50 hover:bg-sky-100 border border-sky-200 text-sky-900 transition-all text-[10px] font-black uppercase tracking-wider flex items-center justify-between cursor-pointer"
-                  >
-                    <span>★ Auditorio Beltrán (3 Bloques)</span>
-                  </button>
-
-                  <button
-                    onClick={() => aplicarPlantilla('pasillo-central')}
-                    className="w-full text-left px-3.5 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 transition-all text-[9px] font-bold uppercase tracking-wider flex items-center justify-between cursor-pointer"
-                  >
-                    <span>Aula Magna (Pasillo Central)</span>
-                  </button>
-
-                  <button
-                    onClick={() => aplicarPlantilla('limpiar')}
-                    className="w-full text-left px-3 py-1.5 rounded-xl bg-rose-50/60 hover:bg-rose-100 text-rose-700 border border-rose-100 transition-all text-[8px] font-bold uppercase tracking-wider flex items-center justify-between cursor-pointer"
-                  >
-                    <span>Limpiar roles</span>
-                  </button>
+        {/* CONTENEDOR PRINCIPAL: PANEL LATERAL + MAPA */}
+        <div className="flex flex-col xl:flex-row gap-5 items-start">
+          
+          {/* PANEL DE HERRAMIENTAS Y PINCELES */}
+          <div className="w-full xl:w-72 shrink-0 space-y-4">
+            
+            {/* Pincel de Asignación */}
+            <div className="bg-slate-50/80 rounded-2xl p-3.5 border border-slate-300 shadow-2xs space-y-2.5">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="text-sky-700" size={16} />
+                  <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">Pincel de Roles</h3>
                 </div>
               </div>
 
-              {/* ESTRUCTURA */}
-              <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3.5">
-                <div className="flex items-center gap-2 border-b border-slate-100 pb-2">
-                  <Layout className="text-sky-500" size={15} />
-                  <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-wider">Estructura Base</h3>
-                </div>
-
-                <div className="flex bg-slate-100 p-1 rounded-xl">
-                  {['baja', 'alta'].map(n => (
-                    <button
-                      key={n}
-                      onClick={() => setNivel(n)}
-                      className={`flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all cursor-pointer ${
-                        nivel === n ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
-                      }`}
-                    >
-                      {n === 'baja' ? 'Platea' : 'Pullman (Balcón)'}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="space-y-3">
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-wider ml-1">
-                      Filas ({nivel === 'baja' ? 'Platea' : 'Pullman'})
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="range" min="1" max="50"
-                        value={estructura[nivel].filas}
-                        onChange={(e) => actualizarEstructura(nivel, 'filas', e.target.value)}
-                        className="flex-1 accent-sky-500 cursor-pointer"
-                      />
-                      <span className="w-8 text-center font-black text-slate-800 bg-slate-100 py-1 rounded-lg text-xs">
-                        {estructura[nivel].filas}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-wider ml-1">
-                      Asientos por Fila
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="range" min="1" max="50"
-                        value={estructura[nivel].asientos}
-                        onChange={(e) => actualizarEstructura(nivel, 'asientos', e.target.value)}
-                        className="flex-1 accent-sky-500 cursor-pointer"
-                      />
-                      <span className="w-8 text-center font-black text-slate-800 bg-slate-100 py-1 rounded-lg text-xs">
-                        {estructura[nivel].asientos}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between">
-                  <div>
-                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-wider">Capacidad Teórica</p>
-                    <p className="text-base font-black text-slate-900 leading-tight mt-0.5">
-                      {estructura.baja.filas * estructura.baja.asientos + estructura.alta.filas * estructura.alta.asientos} Butacas
-                    </p>
-                  </div>
-                  <div className="h-9 w-9 bg-sky-50 text-sky-500 rounded-xl flex items-center justify-center border border-sky-100">
-                    <Layers size={17} />
-                  </div>
-                </div>
-              </div>
-
-              {/* ASIGNACIÓN DE ROLES (PINCEL) */}
-              <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm space-y-3.5">
-                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="text-sky-500" size={15} />
-                    <h3 className="text-[10px] font-black text-slate-900 uppercase tracking-wider">Pincel de Roles</h3>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { id: 'egresado', label: 'Azul · Egresados', color: 'bg-blue-600 text-white', icono: GraduationCap },
-                    { id: 'acompanante', label: 'Verde · Acompañantes', color: 'bg-emerald-600 text-white', icono: Armchair },
-                    { id: 'ocupado', label: 'Rojo · Ocupado', color: 'bg-red-600 text-white', icono: Armchair },
-                    { id: 'disponible', label: 'Gris Claro · Libre', color: 'bg-slate-100 border border-slate-300 text-slate-700', icono: Armchair },
-                    { id: 'bloqueado', label: 'Bloquear / Protocolo', color: 'bg-slate-900 text-slate-200', icono: ShieldCheck },
-                    { id: 'discapacitado', label: 'Violeta · Preferencial', color: 'bg-purple-600 text-white', icono: AlertCircle },
-                    { id: 'padrino', label: 'Padrinos Diploma', color: 'bg-amber-500 text-white', icono: Award },
-                  ].map(rol => (
+              <div className="grid grid-cols-2 gap-1.5">
+                {rolesDisponibles.map(rol => {
+                  const IconoRol = rol.icono;
+                  const seleccionado = rolSeleccionado === rol.id;
+                  return (
                     <button
                       key={rol.id}
+                      type="button"
                       onClick={() => setRolSeleccionado(rol.id)}
-                      className={`flex items-center gap-2 px-2.5 py-2 rounded-xl border transition-all text-left cursor-pointer ${
-                        rolSeleccionado === rol.id
-                          ? 'border-sky-500 bg-sky-50 ring-1 ring-sky-300 shadow-sm'
-                          : 'border-slate-200 bg-slate-50/70 hover:bg-slate-100'
+                      className={`flex items-center gap-2 p-2 rounded-xl border-2 transition-all text-left cursor-pointer ${
+                        seleccionado
+                          ? 'border-sky-600 bg-sky-100/80 shadow-xs'
+                          : 'border-slate-300 bg-white hover:bg-slate-100'
                       }`}
                     >
-                      <div className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 shadow-xs ${rol.color}`}>
-                        <rol.icono size={12} />
+                      <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 shadow-2xs ${rol.color}`}>
+                        <IconoRol size={11} />
                       </div>
-                      <span className={`text-[9px] font-black uppercase tracking-tight truncate ${
-                        rolSeleccionado === rol.id ? 'text-sky-800' : 'text-slate-600'
+                      <span className={`text-[10px] font-black uppercase tracking-tight truncate ${
+                        seleccionado ? 'text-sky-950 font-black' : 'text-slate-800 font-bold'
                       }`}>
                         {rol.label}
                       </span>
                     </button>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
-            </>
-          ) : (
-             <div className="flex flex-col items-center gap-3.5 bg-white rounded-full py-4 shadow-sm border border-slate-100 h-full">
-               <button onClick={handleGuardar} disabled={guardando} className="w-9 h-9 bg-slate-900 text-white rounded-full flex items-center justify-center hover:bg-sky-500 transition-colors shadow-sm cursor-pointer" title="Guardar">
-                 <Save size={14} />
-               </button>
-               <div className="w-6 h-px bg-slate-100" />
-               <button onClick={() => setNivel('baja')} className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-[9px] ${nivel === 'baja' ? 'bg-sky-50 text-sky-600' : 'text-slate-400 hover:bg-slate-50'}`} title="Platea">P</button>
-               <button onClick={() => setNivel('alta')} className={`w-8 h-8 rounded-full flex items-center justify-center font-black text-[9px] ${nivel === 'alta' ? 'bg-sky-50 text-sky-600' : 'text-slate-400 hover:bg-slate-50'}`} title="Pullman">U</button>
-               <div className="w-6 h-px bg-slate-100" />
-               {[
-                 { id: 'egresado', icono: GraduationCap, label: 'Azul · Egresados' },
-                 { id: 'acompanante', icono: Armchair, label: 'Verde · Acompañantes' },
-                 { id: 'ocupado', icono: Armchair, label: 'Rojo · Ocupado' },
-                 { id: 'disponible', icono: Armchair, label: 'Gris Claro · Libre' },
-                 { id: 'bloqueado', icono: ShieldCheck, label: 'Gris Oscuro · Bloquear / Protocolo' },
-                 { id: 'discapacitado', icono: AlertCircle, label: 'Violeta · Preferencial' },
-                 { id: 'padrino', icono: Award, label: 'Padrino' },
-               ].map(item => (
-                 <button
-                   key={item.id}
-                   onClick={() => setRolSeleccionado(item.id)}
-                   className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer ${
-                     rolSeleccionado === item.id ? 'bg-sky-500 text-white shadow-md' : 'bg-slate-50 text-slate-400 hover:bg-slate-100'
-                   }`}
-                   title={item.label}
-                 >
-                   <item.icono size={13} />
-                 </button>
-               ))}
-             </div>
-          )}
-        </aside>
-
-        {/* ÁREA DE VISUALIZACIÓN */}
-        <section className="flex-1 relative flex flex-col gap-3 min-h-0">
-          {mensaje && (
-            <div className={`px-4 py-3 rounded-xl border text-[10px] font-black uppercase tracking-wider flex items-center justify-between gap-3 animate-in fade-in slide-in-from-top-2 duration-200 shadow-sm
-              ${mensaje.tipo === 'exito' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-rose-50 border-rose-200 text-rose-800'}`}
-            >
-              <div className="flex items-center gap-2">
-                {mensaje.tipo === 'exito' ? <ShieldCheck size={16} className="text-emerald-600" /> : <AlertCircle size={16} className="text-rose-600" />}
-                <span>{mensaje.texto}</span>
-              </div>
-              <button onClick={() => setMensaje(null)} className="opacity-70 hover:opacity-100 transition-opacity cursor-pointer">
-                <X size={14} />
-              </button>
             </div>
-          )}
 
-          <div className="flex justify-between items-center px-1">
-             <div className="flex items-center gap-3">
-                <div className={`px-3.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                  nivel === 'baja' ? 'bg-slate-900 text-white shadow-sm' : 'bg-white border border-slate-200 text-slate-700'
-                }`}>
-                  Visualizando {nivel === 'baja' ? 'Platea (Nivel Inferior)' : 'Pullman (Balcón Superior)'}
+            {/* Estructura Base y Plantillas */}
+            <div className="bg-slate-50/80 rounded-2xl p-3.5 border border-slate-300 shadow-2xs space-y-3">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                <div className="flex items-center gap-2">
+                  <Layout className="text-sky-700" size={16} />
+                  <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider">Estructura Base</h3>
                 </div>
-                {asientosOcupados.length > 0 && (
-                  <div className="flex items-center gap-1.5 px-3 py-1 bg-rose-50 text-rose-700 rounded-full text-[10px] font-bold border border-rose-200 shadow-xs">
-                    <UserCheck size={12} /> <span>{asientosOcupados.length} Butacas Ocupadas</span>
+              </div>
+
+              <div className="space-y-2.5">
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center text-[10.5px] font-black text-slate-800 uppercase">
+                    <span>Filas ({nivel === 'baja' ? 'Platea' : 'Pullman'})</span>
+                    <span className="px-2 py-0.5 rounded-md bg-white border border-slate-300 text-slate-900 font-mono font-bold">
+                      {estructura[nivel].filas}
+                    </span>
                   </div>
-                )}
-             </div>
-             
-             <div className="flex items-center gap-3">
-               <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-slate-200 shadow-sm">
-                  <button 
-                    onClick={() => setZoom(prev => Math.max(prev - 0.1, 0.5))}
-                    className="p-1.5 hover:bg-slate-50 rounded-lg text-slate-500 transition cursor-pointer"
-                    title="Alejar"
-                  >
-                    <ZoomOut size={14} />
-                  </button>
-                  <span className="text-[10px] font-black text-slate-700 px-1.5 min-w-[3.5ch] text-center">{Math.round(zoom * 100)}%</span>
-                  <button 
-                    onClick={() => setZoom(prev => Math.min(prev + 0.1, 2))}
-                    className="p-1.5 hover:bg-slate-50 rounded-lg text-slate-500 transition cursor-pointer"
-                    title="Acercar"
-                  >
-                    <ZoomIn size={14} />
-                  </button>
-               </div>
-               
-               <button
-                 onClick={toggleFullscreen}
-                 className={`p-2.5 rounded-xl border transition-all cursor-pointer ${
-                   fullscreen 
-                     ? 'bg-sky-500 text-white border-sky-500 shadow-md' 
-                     : 'bg-white text-slate-600 border-slate-200 hover:text-slate-900 hover:bg-slate-50 shadow-sm'
-                 }`}
-                 title={fullscreen ? "Salir de Pantalla Completa" : "Pantalla Completa"}
-               >
-                 {fullscreen ? <Minimize size={15} /> : <Maximize size={15} />}
-               </button>
-             </div>
-          </div>
+                  <input
+                    type="range" min="1" max="50"
+                    value={estructura[nivel].filas}
+                    onChange={(e) => actualizarEstructura(nivel, 'filas', e.target.value)}
+                    className="w-full accent-sky-600 cursor-pointer h-2 bg-slate-200 rounded-lg"
+                  />
+                </div>
 
-          <div className="flex-1 bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden relative flex flex-col min-h-0">
-            <div className="flex-1 overflow-auto p-5 custom-scrollbar">
-               <SeleccionAsientos 
-                 ceremoniaId={ceremoniaId}
-                 nivel={nivel}
-                 setNivel={setNivel}
-                 zoom={zoom}
-                 setZoom={setZoom}
-                 estructura={estructura}
-                 mapaRoles={mapaRolesConOcupacion}
-                 seleccionados={[]}
-                 setSeleccionados={() => {}}
-                 maxSeleccion={0}
-                 onAsientoClick={asignarRolAsiento}
-               />
+                <div className="space-y-1">
+                  <div className="flex justify-between items-center text-[10.5px] font-black text-slate-800 uppercase">
+                    <span>Asientos por Fila</span>
+                    <span className="px-2 py-0.5 rounded-md bg-white border border-slate-300 text-slate-900 font-mono font-bold">
+                      {estructura[nivel].asientos}
+                    </span>
+                  </div>
+                  <input
+                    type="range" min="1" max="50"
+                    value={estructura[nivel].asientos}
+                    onChange={(e) => actualizarEstructura(nivel, 'asientos', e.target.value)}
+                    className="w-full accent-sky-600 cursor-pointer h-2 bg-slate-200 rounded-lg"
+                  />
+                </div>
+              </div>
+
+              {/* Plantillas Oficiales */}
+              <div className="pt-2 border-t border-slate-200 space-y-1.5">
+                <p className="text-[10px] font-black uppercase tracking-wider text-slate-600">Plantillas Oficiales</p>
+                <button
+                  type="button"
+                  onClick={() => aplicarPlantilla('beltran')}
+                  className="w-full text-left px-3 py-1.5 rounded-xl bg-sky-100 hover:bg-sky-200 border border-sky-300 text-sky-900 transition-all text-[10.5px] font-black uppercase tracking-wider flex items-center justify-between cursor-pointer"
+                >
+                  <span>★ Auditorio Beltrán (3 Bloques)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => aplicarPlantilla('pasillo-central')}
+                  className="w-full text-left px-3 py-1.5 rounded-xl bg-white hover:bg-slate-100 border border-slate-300 text-slate-800 transition-all text-[10px] font-bold uppercase tracking-wider flex items-center justify-between cursor-pointer"
+                >
+                  <span>Aula Magna (Pasillo Central)</span>
+                </button>
+              </div>
             </div>
           </div>
-        </section>
+
+          {/* ÁREA CENTRAL: MAPA DEL ANFITEATRO */}
+          <div className="flex-1 w-full bg-slate-50/50 rounded-2xl border border-slate-300 overflow-hidden flex flex-col">
+            <div 
+              ref={areaMapaRef}
+              onMouseDown={iniciarArrastre}
+              onMouseMove={procesarArrastre}
+              onMouseUp={detenerArrastre}
+              onMouseLeave={detenerArrastre}
+              onTouchStart={iniciarArrastre}
+              onTouchMove={procesarArrastre}
+              onTouchEnd={detenerArrastre}
+              className={`flex-1 overflow-auto p-2 sm:p-4 custom-scrollbar select-none min-h-[560px] ${
+                modoPaneoActivo ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'
+              }`}
+            >
+              <div className="w-full flex justify-center items-center py-2">
+                <SeleccionAsientos 
+                  ceremoniaId={ceremoniaId}
+                  nivel={nivel}
+                  setNivel={setNivel}
+                  zoom={zoom}
+                  setZoom={setZoom}
+                  estructura={estructura}
+                  mapaRoles={mapaRolesConOcupacion}
+                  seleccionados={[]}
+                  setSeleccionados={() => {}}
+                  maxSeleccion={0}
+                  onAsientoClick={asignarRolAsiento}
+                  compacto={true}
+                />
+              </div>
+            </div>
+
+            {/* PIE DE ESTADO DEL ANFITEATRO */}
+            <div className="px-4 py-2.5 bg-slate-100 border-t border-slate-200 flex flex-wrap items-center justify-between text-[11px] font-bold text-slate-700">
+              <div className="flex items-center gap-2">
+                <span>Capacidad Total:</span>
+                <strong className="text-slate-900 font-black">
+                  {estructura.baja.filas * estructura.baja.asientos + estructura.alta.filas * estructura.alta.asientos} Butacas
+                </strong>
+                <span className="text-slate-400">•</span>
+                <span className="text-slate-600">
+                  ({estructura.baja.filas * estructura.baja.asientos} Platea + {estructura.alta.filas * estructura.alta.asientos} Pullman)
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span>Pincel Activo:</span>
+                <span className="px-2 py-0.5 rounded-md bg-white border border-slate-300 font-black text-sky-800 uppercase">
+                  {rolesDisponibles.find(r => r.id === rolSeleccionado)?.label || rolSeleccionado}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

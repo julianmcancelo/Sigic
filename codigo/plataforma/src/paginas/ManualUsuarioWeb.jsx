@@ -627,7 +627,25 @@ function ScreenInasistencia() {
 // ==========================================
 // WIREFRAME: PORTERIA SCANNER MOVIL
 // ==========================================
+// ==========================================
+// IMAGEN: REPORTES Y AUDITORÍA
+// ==========================================
+function ScreenReportes() {
+  return (
+    <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-md relative group select-none">
+      <ImagenManual
+        fuentes={['/manual/panel_reportes.png']}
+        alt="Panel de Reportes y Estadísticas SiGIC"
+        etiqueta="Panel de Reportes"
+        descripcion="Métricas generales de la ceremonia, porcentaje de ocupación, presentes, ausencias y exportación a Excel para Secretaría Académica."
+        className="w-full object-cover object-top hover:scale-[1.01] transition-transform duration-500"
+      />
+    </div>
+  )
+}
+
 function WireframePorteria() {
+
   return (
     <div className="w-[85px] mx-auto overflow-hidden rounded-[14px] border-2 border-slate-700 shadow-md bg-slate-50 relative select-none">
       <ImagenManual
@@ -1041,189 +1059,198 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
       </div>
     ),
 
-    // Página 7: Configuración de Portería
+    // Página 7: Vinculación y Acceso de Celulares de Portería
     (
-      <div className="space-y-3 text-[11px] text-slate-600 leading-relaxed">
+      <div className="space-y-2.5 text-[11px] text-slate-600 leading-relaxed">
         <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
-          <Shield size={16} className="text-[#0056b3]" /> 5. Configuración de Portería
+          <Shield size={16} className="text-[#0056b3]" /> 5.1 Vinculación de Celulares de Portería
         </h3>
 
         <div className="grid grid-cols-12 gap-3 items-center">
           <div className="col-span-7 space-y-2">
             <p className="text-slate-500 m-0 text-[9.5px] leading-relaxed">
-              El personal de portería utiliza la aplicación móvil <strong>SiGIC Accesos</strong> para controlar y validar los ingresos el día de la ceremonia.
+              El personal de control utiliza la <strong>App Oficial SiGIC (Flutter / Android)</strong> para la acreditación en puertas. Para máxima seguridad y rapidez, no requiere ingresar correos ni contraseñas manualmente:
             </p>
             <ol className="list-decimal pl-4 text-slate-500 space-y-1.5 text-[9px]">
-              <li><strong>Servidor Institucional:</strong> Ingresá la URL del servidor entregada por la institución (ej: <code className="bg-slate-100 px-1 py-0.2 rounded">https://sigic.com.ar/api</code>).</li>
-              <li><strong>Probar y Guardar:</strong> Tocá el botón para comprobar el acceso y conectar con la base de datos central.</li>
-              <li><strong>Vinculación Rápida:</strong> También podés configurar el servidor escaneando un código QR de configuración que comience con <code className="bg-slate-100 px-1 py-0.2 rounded">sigic-config:[URL]</code>.</li>
+              <li><strong>Generar Acceso QR:</strong> En el panel web, el admin va a <strong>Seguridad</strong> y pulsa <em>"Mostrar Acceso QR"</em> sobre la cuenta de portería.</li>
+              <li><strong>Paso 1 (Sincronización):</strong> La app escanea el primer código QR en pantalla y configura automáticamente la IP y puerto de red del servidor institucional.</li>
+              <li><strong>Paso 2 (Autenticación JWT):</strong> La app escanea el segundo QR e inicia sesión instantáneamente con perfil <strong>PORTERIA</strong> seguro.</li>
             </ol>
+            <div className="bg-sky-50 border-l-4 border-[#0056b3] p-1.5 rounded-r-lg">
+              <span className="text-[8.5px] font-bold text-sky-800">Modo Offline Activo:</span>
+              <p className="text-[8px] text-sky-700 m-0 leading-tight">La app precarga la lista de graduados de la ceremonia activa en memoria local para operar aún ante cortes de Wi-Fi.</p>
+            </div>
           </div>
           <div className="col-span-5 flex flex-col items-center gap-1">
             <ScreenMovilConfiguracion />
-            <span className="text-[7px] text-slate-400 text-center font-bold">Pantalla de Configuración</span>
+            <span className="text-[7.5px] text-slate-400 text-center font-bold">Pantalla de Vinculación y Servidor</span>
           </div>
         </div>
       </div>
     ),
 
-    // Página 8: Dashboard de la App Móvil
+    // Página 8: Pestañas de la App Móvil y Escáner en Vivo
     (
-      <div className="space-y-3 text-[11px] text-slate-600 leading-relaxed">
+      <div className="space-y-2.5 text-[11px] text-slate-600 leading-relaxed">
         <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
-          <Smartphone size={16} className="text-[#0056b3]" /> 6. Dashboard de Portería
+          <Smartphone size={16} className="text-[#0056b3]" /> 5.2 Interfaz de la App y Escáner
         </h3>
 
         <div className="grid grid-cols-12 gap-3 items-center">
-          <div className="col-span-7 space-y-2">
+          <div className="col-span-7 space-y-1.5">
             <p className="text-slate-500 m-0 text-[9.5px] leading-relaxed">
-              Una vez vinculado el dispositivo, el operador accede al panel de control de ingresos de la colación:
+              La app de portería dispone de <strong>3 pestañas inferiores</strong> optimizadas para trabajo táctico continuo con una sola mano:
             </p>
-            <ul className="list-disc pl-4 text-slate-500 space-y-1.5 text-[9px]">
-              <li><strong>Sesión Activa:</strong> Muestra el nombre del operador autenticado y el servidor conectado.</li>
-              <li><strong>Tus Ceremonias:</strong> Listado de colaciones asignadas y habilitadas para el operador.</li>
-              <li><strong>Acreditados en Sala:</strong> Contador de invitados en tiempo real que ya cruzaron la portería.</li>
-              <li><strong>Abrir Escáner QR:</strong> Botón principal para iniciar la cámara y leer credenciales.</li>
+            <ul className="list-disc pl-4 text-slate-500 space-y-1 text-[8.5px]">
+              <li><strong>Pestaña Escáner:</strong> Visor de cámara ultra-rápido con encuadre guiado, linterna táctica y detección automática de credenciales a 60 fps.</li>
+              <li><strong>Pestaña Asistencia:</strong> Monitor en vivo de egresados presentes vs ausentes, con buscador instantáneo por DNI o Apellido y filtro de ingresos.</li>
+              <li><strong>Pestaña Ajustes:</strong> Diagnóstico de sincronización, estado del servidor y alternador de tema claro/oscuro.</li>
             </ul>
+            <div className="bg-slate-50 border border-slate-200 rounded-lg p-2 space-y-0.5">
+              <span className="text-[8px] font-black uppercase tracking-widest text-slate-500 block">Feedback Sensorial Inmediato</span>
+              <p className="text-[8.5px] text-slate-500 m-0 leading-snug">Cada lectura exitosa emite un pitido agudo y vibración háptica para no tener que desviar la vista del pasillo de acceso.</p>
+            </div>
           </div>
           <div className="col-span-5 flex flex-col items-center gap-1">
             <ScreenMovilInicio />
-            <span className="text-[7px] text-slate-400 text-center font-bold">Panel Principal de Control</span>
+            <span className="text-[7.5px] text-slate-400 text-center font-bold">Dashboard de Escaneo y Ceremonia</span>
           </div>
         </div>
       </div>
     ),
 
-    // Página 9: Validación y Acreditación de Invitados
+    // Página 9: Validación Grupal y Acreditación Selectiva
     (
-      <div className="space-y-3 text-[11px] text-slate-600 leading-relaxed">
+      <div className="space-y-2.5 text-[11px] text-slate-600 leading-relaxed">
         <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
-          <CheckCircle2 size={16} className="text-[#0056b3]" /> 7. Validación de Credencial
+          <CheckCircle2 size={16} className="text-[#0056b3]" /> 5.3 Validación Grupal y Acompañantes
         </h3>
 
         <div className="grid grid-cols-12 gap-3 items-center">
-          <div className="col-span-7 space-y-2">
+          <div className="col-span-7 space-y-1.5">
             <p className="text-slate-500 m-0 text-[9.5px] leading-relaxed">
-              Al escanear un QR válido, la aplicación muestra los detalles del graduado y su grupo de acompañantes:
+              La credencial funciona como <strong>Pase Grupal</strong>. Al escanear el QR, la pantalla muestra la composición completa del grupo familiar:
             </p>
-            <ul className="list-disc pl-4 text-slate-500 space-y-1.5 text-[9px]">
-              <li><strong>Ficha de Graduado:</strong> Nombre del egresado, legajo, carrera y asiento asignado.</li>
-              <li><strong>Acompañantes en Grupo:</strong> Listado con nombre, DNI y relación.</li>
-              <li><strong>Ingreso selectivo:</strong> Botón <strong>"Ingresar"</strong> al lado de cada persona para registrar asistencias individuales.</li>
-              <li><strong>Acreditación Masiva:</strong> Botón <strong>"Acreditar Todos los Pendientes"</strong> para acelerar el ingreso grupal.</li>
+            <ul className="list-disc pl-4 text-slate-500 space-y-1 text-[8.5px]">
+              <li><strong>Ficha del Titular:</strong> Nombre, DNI, Carrera y butaca asignada en sector de egresados.</li>
+              <li><strong>Listado de Invitados:</strong> Muestra cada acompañante con su parentesco y ubicación en el anfiteatro.</li>
+              <li><strong>Alerta de Movilidad Reducida:</strong> Si algún miembro requiere asistencia o rampa, se resalta con banner violeta e ícono accesible.</li>
+              <li><strong>Ingreso Grupal vs Parcial:</strong> Botón <em>"Acreditar Todo el Grupo"</em> para paso masivo o botones individuales si los familiares llegan en horarios diferentes.</li>
             </ul>
           </div>
           <div className="col-span-5 flex flex-col items-center gap-1">
             <ScreenMovilAcreditacion />
-            <span className="text-[7px] text-slate-400 text-center font-bold">Pantalla de Validación</span>
+            <span className="text-[7.5px] text-slate-400 text-center font-bold">Ficha de Acreditación y Butacas</span>
           </div>
         </div>
       </div>
     ),
 
-    // Página 10: Protocolo de Escaneo QR
+    // Página 10: Protocolo de Colores del Escáner QR
     (
       <div className="space-y-2 text-[11px] text-slate-600 leading-relaxed">
         <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
-          <ScanLine size={16} className="text-[#0056b3]" /> 8. Protocolo de Escaneo QR
+          <ScanLine size={16} className="text-[#0056b3]" /> 5.4 Protocolo de Respuestas Visuales
         </h3>
         <p className="text-slate-500 m-0 text-[9.5px] leading-relaxed">
-          El día de la colación, el portero usa la cámara de su celular para escanear el código QR que presenta cada invitado. La respuesta visual es inmediata:
+          El operador no necesita leer textos largos. La pantalla completa se ilumina con el código de semáforo oficial según el estado de la credencial:
         </p>
 
         <div className="space-y-1.5">
-          <div className="border border-emerald-100 bg-emerald-50/50 p-2 rounded-xl flex items-start gap-2">
-            <CheckCircle2 className="text-emerald-500 shrink-0 mt-0.5" size={13} />
+          <div className="border border-emerald-200 bg-emerald-50/60 p-2 rounded-xl flex items-start gap-2">
+            <CheckCircle2 className="text-emerald-600 shrink-0 mt-0.5" size={15} />
             <div>
-              <h5 className="font-bold text-emerald-700 text-[9px] uppercase">VERDE: Autorizado</h5>
-              <p className="text-slate-500 text-[9px] m-0 leading-snug">QR válido y de la ceremonia activa. El celular vibra y muestra la butaca asignada al invitado. Puede ingresar.</p>
+              <h5 className="font-bold text-emerald-800 text-[9.5px] uppercase">VERDE — Acceso Autorizado</h5>
+              <p className="text-slate-600 text-[9px] m-0 leading-snug">QR legítimo y correspondiente a la ceremonia activa. Emite tono agudo y vibración confirmatoria. Se indica la fila y butaca para orientar al invitado.</p>
             </div>
           </div>
 
-          <div className="border border-amber-100 bg-amber-50/50 p-2 rounded-xl flex items-start gap-2">
-            <AlertTriangle className="text-amber-500 shrink-0 mt-0.5" size={13} />
+          <div className="border border-amber-200 bg-amber-50/60 p-2 rounded-xl flex items-start gap-2">
+            <AlertTriangle className="text-amber-600 shrink-0 mt-0.5" size={15} />
             <div>
-              <h5 className="font-bold text-amber-700 text-[9px] uppercase">NARANJA: Duplicado</h5>
-              <p className="text-slate-500 text-[9px] m-0 leading-snug">El código es válido pero este invitado ya ingresó previamente. Alerta de posible fraude o transferencia de credencial.</p>
+              <h5 className="font-bold text-amber-800 text-[9.5px] uppercase">NARANJA — Acceso Duplicado</h5>
+              <p className="text-slate-600 text-[9px] m-0 leading-snug">La credencial es legítima pero <strong>ya ingresó al salón previamente</strong>. Muestra la hora del primer ingreso. <strong>Acción:</strong> Solicitar DNI físico para prevenir fotocopias o reingresos no autorizados.</p>
             </div>
           </div>
 
-          <div className="border border-rose-100 bg-rose-50/50 p-2 rounded-xl flex items-start gap-2">
-            <XCircle className="text-rose-500 shrink-0 mt-0.5" size={13} />
+          <div className="border border-rose-200 bg-rose-50/60 p-2 rounded-xl flex items-start gap-2">
+            <XCircle className="text-rose-600 shrink-0 mt-0.5" size={15} />
             <div>
-              <h5 className="font-bold text-rose-700 text-[9px] uppercase">ROJO: Denegado</h5>
-              <p className="text-slate-500 text-[9px] m-0 leading-snug">Token inválido, egresado que confirmó inasistencia, o credencial de otra ceremonia. No autorizar el ingreso.</p>
+              <h5 className="font-bold text-rose-800 text-[9.5px] uppercase">ROJO — Acceso Denegado</h5>
+              <p className="text-slate-600 text-[9px] m-0 leading-snug">QR corrupto, alumno con inasistencia declarada o credencial perteneciente a otra fecha/ceremonia. El sistema bloquea el ingreso.</p>
             </div>
           </div>
         </div>
       </div>
     ),
 
-    // Página 11: Acreditación de Emergencia
+    // Página 11: Acreditación de Emergencia (Alfanumérico y Soporte Papel)
     (
-      <div className="space-y-3 text-[11px] text-slate-600 leading-relaxed">
+      <div className="space-y-2.5 text-[11px] text-slate-600 leading-relaxed">
         <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
-          <HelpCircle size={16} className="text-[#0056b3]" /> 9. Acreditaciones de Emergencia
+          <HelpCircle size={16} className="text-[#0056b3]" /> 5.5 Contingencia y Acreditación Manual
         </h3>
         <p className="text-slate-500 m-0 text-[9.5px] leading-relaxed">
-          Ante imprevistos (credencial olvidada, celular sin batería, cámara con problemas), el sistema ofrece dos métodos de respaldo:
+          Si el egresado extravía la credencial, se queda sin batería en el teléfono o la cámara presenta dificultades:
         </p>
 
-        <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 space-y-1.5">
-          <h4 className="font-black text-slate-700 uppercase text-[9.5px] tracking-wider m-0 flex items-center gap-1.5">
-            <Smartphone size={14} className="text-[#0056b3] shrink-0" /> Código Alfanumérico Manual
+        <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 space-y-1">
+          <h4 className="font-black text-slate-800 uppercase text-[9px] tracking-wider m-0 flex items-center gap-1.5">
+            <Smartphone size={13} className="text-[#0056b3] shrink-0" /> 1. Búsqueda por DNI o Código Alfanumérico
           </h4>
-          <p className="text-slate-500 m-0 text-[9.5px] leading-relaxed">
-            Cada invitado tiene un <strong>código de 8 caracteres</strong> impreso en su correo de invitación. El portero puede tipear ese código directamente en la app sin necesidad de escanear. El sistema lo valida igual que un QR.
+          <p className="text-slate-600 m-0 text-[8.5px] leading-relaxed">
+            En la pestaña <em>Asistencia</em> de la app, el operador escribe el DNI o el <strong>código alfanumérico único de 8 caracteres</strong> (ej. <code className="bg-white px-1 border border-slate-200 rounded text-slate-700 font-bold">DA11600E</code>) que el alumno recibió en su correo de confirmación. El check-in se valida exactamente igual que un QR.
           </p>
         </div>
 
-        <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-100 space-y-1.5">
-          <h4 className="font-black text-slate-700 uppercase text-[9.5px] tracking-wider m-0 flex items-center gap-1.5">
-            <FileText size={14} className="text-[#0056b3] shrink-0" /> Listado en Papel (Plan de Contingencia)
+        <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 space-y-1">
+          <h4 className="font-black text-slate-800 uppercase text-[9px] tracking-wider m-0 flex items-center gap-1.5">
+            <FileText size={13} className="text-[#0056b3] shrink-0" /> 2. Planilla de Respaldo en Soporte Papel
           </h4>
-          <p className="text-slate-500 m-0 text-[9.5px] leading-relaxed">
-            Antes de la ceremonia, exportá el listado completo de invitados desde el panel (formato PDF/Excel) e imprimilo. Si hay corte total de señal o red, el portero puede verificar a las personas contra la lista impresa y tildarlas manualmente.
+          <p className="text-slate-600 m-0 text-[8.5px] leading-relaxed">
+            Ante una caída eléctrica o desconexión general de red, el portero utiliza el listado oficial impreso emitido previamente por la administración, comprobando el documento de identidad y tildando el presentismo de forma manual.
           </p>
         </div>
 
-        <div className="bg-amber-50 border-l-4 border-amber-400 p-2 rounded-r-lg">
-          <p className="text-[8.5px] text-amber-800 m-0 leading-snug">
-            <strong>Recomendación:</strong> Siempre tener 2-3 copias del listado impreso el día de la colación como respaldo operativo.
+        <div className="bg-amber-50 border-l-4 border-amber-400 p-1.5 rounded-r-lg">
+          <p className="text-[8px] text-amber-900 m-0 leading-tight">
+            <strong>Recomendación institucional:</strong> Contar siempre con al menos dos planillas de contingencia impresas en el puesto de acceso principal del salón.
           </p>
         </div>
       </div>
     ),
 
-    // Página 12: Soporte Técnico y Arquitectura
+    // Página 12: Reportes y Descargas al Finalizar la Ceremonia
     (
       <div className="space-y-2 text-[11px] text-slate-600 leading-relaxed">
         <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
-          <Server size={16} className="text-[#0056b3]" /> 10. Soporte Técnico
+          <FileText size={16} className="text-[#0056b3]" /> 6. Reportes y Cierre de Ceremonia
         </h3>
 
-        <DiagramaArquitectura />
+        <ScreenReportes />
 
-        <div className="grid grid-cols-2 gap-1.5 pt-1">
-          <div className="bg-slate-50 border border-slate-100 rounded-lg p-2">
-            <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 block mb-1">Backups y Exportación</span>
-            <p className="text-[9px] text-slate-500 m-0 leading-snug">
-              La cuenta <code className="bg-white px-0.5 border border-slate-200 rounded text-[8px]">soporte@ibeltran.com.ar</code> puede descargar volcados completos de la base de datos en JSON desde el Centro de Control.
+        <p className="text-slate-500 m-0 text-[9.5px] leading-relaxed">
+          Una vez concluido el acto, el sistema consolida la información oficial para el archivo institucional de secretaría académica:
+        </p>
+
+        <div className="grid grid-cols-2 gap-1.5 pt-0.5">
+          <div className="bg-sky-50 border border-sky-100 rounded-lg p-2">
+            <span className="text-[8px] font-black uppercase tracking-widest text-sky-700 block mb-1">1. Métricas de Presentismo</span>
+            <p className="text-[9px] text-slate-600 m-0 leading-snug">
+              Porcentaje final de ocupación, total de presentes, inasistencias y distribución de ingresos por horarios.
             </p>
           </div>
-          <div className="bg-slate-50 border border-slate-100 rounded-lg p-2">
-            <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 block mb-1">Reseteo anual</span>
-            <p className="text-[9px] text-slate-500 m-0 leading-snug">
-              Al terminar el ciclo lectivo, ejecutá <strong>"Restablecer Base de Datos"</strong> para limpiar Neon Cloud y dejar el sistema listo para el nuevo año sin datos del ciclo anterior.
+          <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-2">
+            <span className="text-[8px] font-black uppercase tracking-widest text-emerald-700 block mb-1">2. Exportación a Excel</span>
+            <p className="text-[9px] text-slate-600 m-0 leading-snug">
+              Descarga directa de planilla estructurada con fecha, hora exacta de acreditación y butaca física utilizada.
             </p>
           </div>
         </div>
 
-        <div className="bg-rose-50 border border-rose-100 rounded-lg p-2 flex items-start gap-1.5">
-          <AlertTriangle size={12} className="text-rose-500 shrink-0 mt-0.5" />
-          <p className="text-[9px] text-rose-700 m-0 leading-snug font-semibold">
-            El reseteo elimina TODOS los datos permanentemente. Siempre realizá un backup antes de ejecutarlo.
-          </p>
+        <div className="bg-slate-50 border border-slate-200 rounded-lg p-2 flex items-center justify-between text-[9px] text-slate-600">
+          <span><strong>Mesa de Ayuda Beltrán:</strong> soporte@ibeltran.com.ar</span>
+          <span className="font-mono font-bold text-sky-600">SiGIC v5.2</span>
         </div>
       </div>
     ),

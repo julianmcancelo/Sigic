@@ -21,13 +21,12 @@ const APELLIDOS_ARGENTINOS = [
   'Gimenez', 'Rios', 'Molina', 'Blanco', 'Morales'
 ]
 
-const CARRERAS_OFICIALES = [
-  { id: 'Analista de Sistemas', nombre: 'Analista de Sistemas', codigo: 'AS' },
-  { id: 'Desarrollo de Software', nombre: 'Desarrollo de Software', codigo: 'DS' },
-  { id: 'Redes e Infraestructura', nombre: 'Redes e Infraestructura', codigo: 'RI' },
-  { id: 'Automatizacion y Robotica', nombre: 'Automatizacion y Robotica', codigo: 'AR' },
-  { id: 'Diseno y Desarrollo Web', nombre: 'Diseno y Desarrollo Web', codigo: 'DW' },
-  { id: 'Higiene y Seguridad en el Trabajo', nombre: 'Higiene y Seguridad en el Trabajo', codigo: 'ST' }
+export const CARRERAS_OFICIALES = [
+  { id: 'TSAS', nombre: 'Tecnicatura Superior en Analista de Sistemas', codigo: 'TSAS' },
+  { id: 'TSCDIA', nombre: 'Tecnicatura Superior en Ciencia de Datos e Inteligencia Artificial', codigo: 'TSCDIA' },
+  { id: 'TSHSAL', nombre: 'Tecnicatura Superior en Higiene, Seguridad y Ambiente Laboral', codigo: 'TSHSAL' },
+  { id: 'TSDI', nombre: 'Tecnicatura Superior en Diseño Industrial', codigo: 'TSDI' },
+  { id: 'TSAR', nombre: 'Tecnicatura Superior en Automatización y Robótica', codigo: 'TSAR' }
 ]
 
 const PLANTILLAS_CEREMONIA = [
