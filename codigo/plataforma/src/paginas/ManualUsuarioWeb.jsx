@@ -399,7 +399,7 @@ function ScreenPanelAdmin() {
   return (
     <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
       <ImagenManual
-        fuentes={['/manual/panel_admin.png?v=20260618']}
+        fuentes={['/manual/panel_admin.png?v=20261023']}
         alt="Panel de Administración SiGIC"
         etiqueta="Panel de Administración"
         descripcion="Vista general del evento activo, indicadores de graduados, invitados, ingresos y ocupación, junto con los accesos a los módulos operativos."
@@ -419,7 +419,7 @@ function ScreenGestionGraduados() {
   return (
     <div className="w-full aspect-[16/8.8] overflow-hidden rounded-xl border border-slate-200 shadow-md relative group select-none bg-slate-50">
       <ImagenManual
-        fuentes={['/manual/gestion_graduados.png?v=20260618', '/gestion_graduados.png?v=20260618']}
+        fuentes={['/manual/gestion_graduados.png?v=20261023', '/gestion_graduados.png?v=20261023']}
         alt="Gestión de Graduados SiGIC" 
         etiqueta="Gestión de Graduados"
         descripcion="Listado operativo de graduados con búsqueda, filtros por estado, importación desde Excel y seguimiento del circuito de invitación, aceptación, acompañantes y entregadores."
@@ -439,7 +439,7 @@ function ScreenGestionCeremonias() {
   return (
     <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-md relative group select-none">
       <ImagenManual
-        fuentes={['/manual/gestion_ceremonias.png?v=20260618', '/gestion_ceremonias.png?v=20260618']}
+        fuentes={['/manual/gestion_ceremonias.png?v=20261023', '/gestion_ceremonias.png?v=20261023']}
         alt="Gestión de Ceremonias SiGIC"
         etiqueta="Gestión de Ceremonias"
         descripcion="Selector de hábitats o ceremonias. Permite activar el entorno de trabajo correcto, consultar fecha, sede y cupo de invitados, o crear una nueva ceremonia."
@@ -459,7 +459,7 @@ function ScreenDisenoAnfiteatro() {
   return (
     <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-md relative group select-none">
       <ImagenManual
-        fuentes={['/manual/diseno_anfiteatro.png?v=20260618', '/diseno_anfiteatro.png?v=20260618']}
+        fuentes={['/manual/diseno_anfiteatro.png?v=20261023', '/diseno_anfiteatro.png?v=20261023']}
         alt="Configuración real del anfiteatro SiGIC"
         etiqueta="Diseño del Anfiteatro"
         descripcion="Modelador de Platea y Pullman. Desde aquí se definen filas, asientos por fila, capacidad y rol de cada ubicación antes de guardar el plano."
@@ -479,7 +479,7 @@ function ScreenEmailInvitacion() {
   return (
     <div className="w-full max-w-[200px] mx-auto overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
       <ImagenManual
-        fuentes={['/manual/email_invitacion.png?v=20260618']}
+        fuentes={['/manual/email_invitacion.png?v=20261023']}
         alt="Correo de invitación enviado por SiGIC"
         etiqueta="Correo de Invitación"
         descripcion="Mensaje que recibe el graduado con la información de la ceremonia y el enlace personal para aceptar o rechazar su participación."
@@ -499,7 +499,7 @@ function ScreenPortalOTP() {
   return (
     <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
       <ImagenManual
-        fuentes={['/manual/portal_otp.png?v=20260618']}
+        fuentes={['/manual/portal_otp.png?v=20261023']}
         etiqueta="Acceso del Graduado"
         descripcion="Pantalla de acceso mediante correo institucional y código temporal. Protege la autogestión sin exigir una contraseña permanente."
         className="w-full object-cover object-top transition-transform duration-[2s] group-hover:scale-105"
@@ -515,7 +515,7 @@ function ScreenPortalOTP() {
 function ScreenPantallaAceptacion() {
   return (
     <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
-      <ImagenManual fuentes="/manual/pantalla_aceptacion.png?v=20260618" className="w-full object-cover object-top transition-transform duration-[2s] group-hover:scale-105" alt="Aceptación de participación" etiqueta="Aceptación de participación" descripcion="Confirmación inicial en la que el graduado revisa evento, fecha y sede antes de aceptar o rechazar su asistencia." />
+      <ImagenManual fuentes="/manual/pantalla_aceptacion.png?v=20261023" className="w-full object-cover object-top transition-transform duration-[2s] group-hover:scale-105" alt="Aceptación de participación" etiqueta="Aceptación de participación" descripcion="Confirmación inicial en la que el graduado revisa evento, fecha y sede antes de aceptar o rechazar su asistencia." />
     </div>
   )
 }
@@ -526,7 +526,7 @@ function ScreenPantallaAceptacion() {
 function ScreenPanelAcompanantes() {
   return (
     <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
-      <ImagenManual fuentes="/manual/panel_graduado_acompanantes.png?v=20260618" className="w-full object-cover object-top transition-transform duration-[2s] group-hover:scale-105" alt="Panel real de acompañantes" etiqueta="Panel de acompañantes" descripcion="Sección donde el graduado registra, consulta y administra a sus familiares invitados respetando el cupo disponible." />
+      <ImagenManual fuentes="/manual/panel_graduado_acompanantes.png?v=20261023" className="w-full object-cover object-top transition-transform duration-[2s] group-hover:scale-105" alt="Panel real de acompañantes" etiqueta="Panel de acompañantes" descripcion="Sección donde el graduado registra, consulta y administra a sus familiares invitados respetando el cupo disponible." />
     </div>
   )
 }
@@ -537,7 +537,7 @@ function ScreenPanelAcompanantes() {
 function ScreenPanelEntregadores() {
   return (
     <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
-      <ImagenManual fuentes="/manual/panel_graduado_entregadores.png?v=20260618" className="w-full object-cover object-top transition-transform duration-[2s] group-hover:scale-105" alt="Panel real de entregadores" etiqueta="Selección de entregadores" descripcion="Pantalla para elegir hasta tres personas autorizadas a participar en la entrega del título durante la ceremonia." />
+      <ImagenManual fuentes="/manual/panel_graduado_entregadores.png?v=20261023" className="w-full object-cover object-top transition-transform duration-[2s] group-hover:scale-105" alt="Panel real de entregadores" etiqueta="Selección de entregadores" descripcion="Pantalla para elegir hasta tres personas autorizadas a participar en la entrega del título durante la ceremonia." />
     </div>
   )
 }
@@ -548,7 +548,7 @@ function ScreenPanelEntregadores() {
 function ScreenCredencialDigital() {
   return (
     <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
-      <ImagenManual fuentes="/manual/credencial_digital.png?v=20260618" className="w-full object-cover object-top transition-transform duration-[2s] group-hover:scale-105" alt="Credencial digital real de SiGIC" etiqueta="Credencial digital" descripcion="Pase grupal con QR generado al finalizar la inscripción. Identifica al graduado, su ubicación y las personas asociadas para el control de ingreso." />
+      <ImagenManual fuentes="/manual/credencial_digital.png?v=20261023" className="w-full object-cover object-top transition-transform duration-[2s] group-hover:scale-105" alt="Credencial digital real de SiGIC" etiqueta="Credencial digital" descripcion="Pase grupal con QR generado al finalizar la inscripción. Identifica al graduado, su ubicación y las personas asociadas para el control de ingreso." />
     </div>
   )
 }
@@ -611,7 +611,7 @@ function ScreenInasistencia() {
   return (
     <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-lg relative group select-none">
       <ImagenManual
-        fuentes={['/manual/portal_inasistencia.png?v=20260618']}
+        fuentes={['/manual/portal_inasistencia.png?v=20261023']}
         alt="Confirmación de inasistencia"
         etiqueta="Confirmación de Inasistencia"
         descripcion="Resultado mostrado cuando el graduado rechaza la invitación. La decisión queda registrada para actualizar aforo y planificación."
@@ -649,7 +649,7 @@ function WireframePorteria() {
   return (
     <div className="w-[85px] mx-auto overflow-hidden rounded-[14px] border-2 border-slate-700 shadow-md bg-slate-50 relative select-none">
       <ImagenManual
-        fuentes={['/manual/porteria_wireframe.png?v=20260618']}
+        fuentes={['/manual/porteria_wireframe.png?v=20261023']}
         alt="Escáner QR móvil de portería"
         etiqueta="Control de Ingreso QR"
         descripcion="Vista móvil utilizada por portería para leer la credencial, validar al grupo y confirmar su ingreso junto con la ubicación asignada."
@@ -666,7 +666,7 @@ function WireframeEgresado() {
   return (
     <div className="w-full overflow-hidden rounded-xl border border-slate-200 shadow-md relative group select-none">
       <ImagenManual
-        fuentes="/manual/panel_graduado_acompanantes.png?v=20260618"
+        fuentes="/manual/panel_graduado_acompanantes.png?v=20261023"
         alt="Portal real del graduado para administrar acompañantes"
         etiqueta="Portal del graduado"
         className="w-full max-h-[150px] object-cover object-top hover:scale-[1.02] transition-transform duration-300"
@@ -844,18 +844,19 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
         </p>
         <div className="grid grid-cols-1 gap-1 pt-1">
           {[
-            { t: '1. Acceso y Canales de Inicio', p: 2 },
-            { t: '2. Operación Diaria y Ceremonia Activa', p: 2 },
-            { t: '3. Carga de Padrón desde Excel', p: 3 },
-            { t: '4. Despacho Masivo de Invitaciones', p: 4 },
-            { t: '5. Autogestión del Egresado (OTP)', p: 5 },
-            { t: '6. Asignación de Butacas y Aforo', p: 6 },
-            { t: '7. Configuración de Cuentas de Portería', p: 7 },
-            { t: '8. Dashboard de la App Móvil', p: 8 },
-            { t: '9. Acreditación de Invitados (Validación)', p: 9 },
-            { t: '10. Protocolo de Acreditación QR', p: 10 },
-            { t: '11. Acreditación de Emergencia (Manual)', p: 11 },
-            { t: '12. Centro de Control y Backups', p: 12 },
+            { t: '1. Acceso y Operación Diaria (ceremonia activa)', p: 2 },
+            { t: '2. Panel Administrativo y Padrón de Graduados', p: 3 },
+            { t: '3. Invitación y Acceso del Egresado', p: 4 },
+            { t: '4. Portal de Autogestión del Egresado', p: 5 },
+            { t: '5. Anfiteatro, Butacas y Aforo', p: 6 },
+            { t: '6. Vinculación de Celulares de Portería', p: 7 },
+            { t: '7. Interfaz de la App y Escáner QR', p: 8 },
+            { t: '8. Validación Grupal y Acompañantes', p: 9 },
+            { t: '9. Protocolo de Respuestas Visuales', p: 10 },
+            { t: '10. Contingencia y Acreditación Manual', p: 11 },
+            { t: '11. Reportes y Cierre de Ceremonia', p: 12 },
+            { t: '12. Glosario de Términos', p: 13 },
+            { t: '13. Preguntas Frecuentes y Soluciones', p: 14 },
           ].map((item, idx) => (
             <button 
               key={idx}
@@ -874,7 +875,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
     (
       <div className="space-y-3 text-[11px] text-slate-600 leading-relaxed">
         <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
-          <Calendar size={16} className="text-[#0056b3]" /> 1. Operatoria de Inicio
+          <Calendar size={16} className="text-[#0056b3]" /> 1. Acceso y Operación Diaria
         </h3>
         
         <div>
@@ -887,11 +888,11 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
         <div>
           <h4 className="font-black text-slate-755 uppercase text-[9.5px] tracking-wider mb-1">La Ceremonia Activa (Clave para que no falle nada)</h4>
           <p className="text-slate-500 m-0">
-            El sistema te deja cargar varias ceremonias, pero **solamente una ceremonia puede estar ACTIVA al mismo tiempo**.
+            El sistema te deja cargar varias ceremonias, pero <strong>solamente una ceremonia puede estar ACTIVA al mismo tiempo</strong>.
           </p>
           <div className="bg-sky-50 border-l-4 border-[#0056b3] p-2 rounded-r-lg mt-2">
             <p className="m-0 text-[9.5px] text-sky-800 font-semibold leading-relaxed">
-              <AlertTriangle size={14} className="text-[#0056b3] inline mr-1 align-middle shrink-0" /> <strong>¡Acordate!</strong> La reserva de butacas de los chicos y los escaneos en las entradas van a afectar exclusivamente a la ceremonia que tenga la estrella de **ACTIVA** en tu panel de ceremonias. Sincroniza al instante contra Neon PostgreSQL.
+              <AlertTriangle size={14} className="text-[#0056b3] inline mr-1 align-middle shrink-0" /> <strong>¡Acordate!</strong> La reserva de butacas de los chicos y los escaneos en las entradas van a afectar exclusivamente a la ceremonia que tenga la estrella de <strong>ACTIVA</strong> en tu panel de ceremonias. Sincroniza al instante contra Neon PostgreSQL.
             </p>
           </div>
         </div>
@@ -902,7 +903,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
     (
       <div className="space-y-2.5 text-[11px] text-slate-600 leading-relaxed">
         <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
-          <GraduationCap size={16} className="text-[#0056b3]" /> 2. Panel Administrativo
+          <GraduationCap size={16} className="text-[#0056b3]" /> 2. Panel Administrativo y Padrón
         </h3>
 
         <ScreenPanelAdmin />
@@ -1063,7 +1064,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
     (
       <div className="space-y-2.5 text-[11px] text-slate-600 leading-relaxed">
         <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
-          <Shield size={16} className="text-[#0056b3]" /> 5.1 Vinculación de Celulares de Portería
+          <Shield size={16} className="text-[#0056b3]" /> 6. Vinculación de Celulares de Portería
         </h3>
 
         <div className="grid grid-cols-12 gap-3 items-center">
@@ -1093,7 +1094,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
     (
       <div className="space-y-2.5 text-[11px] text-slate-600 leading-relaxed">
         <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
-          <Smartphone size={16} className="text-[#0056b3]" /> 5.2 Interfaz de la App y Escáner
+          <Smartphone size={16} className="text-[#0056b3]" /> 7. Interfaz de la App y Escáner
         </h3>
 
         <div className="grid grid-cols-12 gap-3 items-center">
@@ -1123,7 +1124,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
     (
       <div className="space-y-2.5 text-[11px] text-slate-600 leading-relaxed">
         <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
-          <CheckCircle2 size={16} className="text-[#0056b3]" /> 5.3 Validación Grupal y Acompañantes
+          <CheckCircle2 size={16} className="text-[#0056b3]" /> 8. Validación Grupal y Acompañantes
         </h3>
 
         <div className="grid grid-cols-12 gap-3 items-center">
@@ -1150,7 +1151,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
     (
       <div className="space-y-2 text-[11px] text-slate-600 leading-relaxed">
         <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
-          <ScanLine size={16} className="text-[#0056b3]" /> 5.4 Protocolo de Respuestas Visuales
+          <ScanLine size={16} className="text-[#0056b3]" /> 9. Protocolo de Respuestas Visuales
         </h3>
         <p className="text-slate-500 m-0 text-[9.5px] leading-relaxed">
           El operador no necesita leer textos largos. La pantalla completa se ilumina con el código de semáforo oficial según el estado de la credencial:
@@ -1188,7 +1189,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
     (
       <div className="space-y-2.5 text-[11px] text-slate-600 leading-relaxed">
         <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
-          <HelpCircle size={16} className="text-[#0056b3]" /> 5.5 Contingencia y Acreditación Manual
+          <HelpCircle size={16} className="text-[#0056b3]" /> 10. Contingencia y Acreditación Manual
         </h3>
         <p className="text-slate-500 m-0 text-[9.5px] leading-relaxed">
           Si el egresado extravía la credencial, se queda sin batería en el teléfono o la cámara presenta dificultades:
@@ -1224,7 +1225,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
     (
       <div className="space-y-2 text-[11px] text-slate-600 leading-relaxed">
         <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
-          <FileText size={16} className="text-[#0056b3]" /> 6. Reportes y Cierre de Ceremonia
+          <FileText size={16} className="text-[#0056b3]" /> 11. Reportes y Cierre de Ceremonia
         </h3>
 
         <ScreenReportes />
@@ -1255,7 +1256,66 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
       </div>
     ),
 
-    // Página 13: Contraportada
+    // Página 13: Glosario de Términos
+    (
+      <div className="space-y-2 text-[11px] text-slate-600 leading-relaxed">
+        <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
+          <BookOpen size={16} className="text-[#0056b3]" /> 12. Glosario de Términos
+        </h3>
+        <dl className="space-y-1.5">
+          {[
+            ['Ceremonia activa', 'Única colación sobre la que operan hoy las reservas de butacas, los códigos de acceso y el escáner de portería.'],
+            ['Padrón', 'Listado oficial de egresados habilitados, cargado desde Excel (Nombre, DNI, Correo y Carrera).'],
+            ['Token de acceso', 'Enlace personal e intransferible del egresado. Permite ingresar a su portal sin código OTP.'],
+            ['OTP (código de un solo uso)', 'Clave de 6 dígitos enviada al correo del egresado. Vence a los 10 minutos y no requiere contraseña.'],
+            ['Pipeline de estados', 'Recorrido del graduado: Pendiente → Invitado → Aceptado → Confirmado. Rechazado libera el cupo.'],
+            ['Aforo', 'Cantidad máxima de personas (egresados + acompañantes) que admite el anfiteatro o la ceremonia.'],
+            ['Pase grupal', 'Credencial QR única que acredita al egresado y a todos sus acompañantes registrados.'],
+            ['Código alfanumérico', 'Código de 8 caracteres del comprobante. Se usa para acreditar cuando no se puede leer el QR.'],
+            ['Butaca protocolar', 'Asiento bloqueado por la institución para autoridades, directivos o docentes.'],
+            ['Butaca accesible (violeta)', 'Ubicación reservada para personas con movilidad reducida, cercana a rampas y pasillos.'],
+            ['Entregador / Padrino', 'Persona elegida por el egresado (o docente) para entregar el título en el escenario.'],
+            ['Acreditación', 'Registro del ingreso al salón mediante lectura de QR o carga manual en portería.'],
+          ].map(([t, d]) => (
+            <div key={t} className="rounded-lg border border-slate-100 bg-slate-50 p-1.5">
+              <dt className="text-[8.5px] font-black uppercase tracking-wider text-[#0056b3]">{t}</dt>
+              <dd className="m-0 text-[8.5px] text-slate-600 leading-snug">{d}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    ),
+
+    // Página 14: Preguntas frecuentes
+    (
+      <div className="space-y-2 text-[11px] text-slate-600 leading-relaxed">
+        <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
+          <HelpCircle size={16} className="text-[#0056b3]" /> 13. Preguntas Frecuentes
+        </h3>
+        <div className="space-y-1.5">
+          {[
+            ['El alumno no recibió el correo de invitación', 'Revisá su casilla de spam. Si no aparece, buscalo en Gestionar Graduados, copiá su enlace directo y enviáselo por mensajería.'],
+            ['El egresado marcó "No voy a participar" por error', 'El rechazo libera su cupo. Un administrador puede rehabilitar su circuito desde el panel de graduados.'],
+            ['No puedo ver graduados en el listado', 'Verificá que la ceremonia correcta esté marcada como ACTIVA y que el padrón se haya importado en ella.'],
+            ['El QR figura como "Duplicado" (naranja)', 'Ya fue acreditado. Pedí el DNI para confirmar que es el titular y no una copia de la credencial.'],
+            ['El QR figura como "Denegado" (rojo)', 'Puede ser de otra ceremonia, estar vencido o pertenecer a un egresado con inasistencia. Buscalo por DNI en la pestaña Asistencia.'],
+            ['La app móvil no se conecta al servidor', 'Conectá el celular a la red del evento y volvé a escanear el QR de configuración del servidor.'],
+            ['Se cortó internet el día del acto', 'La app conserva el padrón en memoria. Si falla todo, usá el listado impreso y tildá el ingreso manualmente.'],
+            ['¿Cómo exporto la asistencia?', 'En Reportes, botón "Exportar Listado de Asistencia (Excel)". Incluye hora de ingreso y butaca utilizada.'],
+          ].map(([q, a]) => (
+            <div key={q} className="rounded-lg border border-sky-100 bg-sky-50/50 p-1.5">
+              <p className="m-0 text-[9px] font-black text-slate-800">{q}</p>
+              <p className="m-0 mt-0.5 text-[8.5px] text-slate-600 leading-snug">{a}</p>
+            </div>
+          ))}
+        </div>
+        <div className="rounded-lg border-l-4 border-amber-400 bg-amber-50 p-1.5 text-[8.5px] text-amber-900">
+          <strong>Soporte:</strong> soporte@ibeltran.com.ar · Lunes a Viernes de 09:00 a 21:00 hs. El día del acto hay una mesa de ayuda técnica en el hall principal.
+        </div>
+      </div>
+    ),
+
+    // Página 15: Contraportada
     (
       <div className="flex flex-col items-center justify-center text-center h-full space-y-4 select-none py-6">
         <div className="h-12 w-12 rounded-2xl flex items-center justify-center overflow-hidden border border-slate-100 shadow-sm bg-slate-50">
@@ -1275,7 +1335,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
       </div>
     ),
 
-    // Página 14: Contratapa
+    // Página 16: Contratapa
     (
       <div className="flex flex-col items-center justify-center text-center h-full space-y-2 select-none py-6 bg-slate-900 text-white rounded-r-2xl -mr-6 -my-6 p-6">
         <span className="text-[10px] font-black uppercase tracking-widest text-[#29ABE2]">SiGIC Acceso Seguro</span>
@@ -1287,9 +1347,9 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
   // Controles de paso de página
   const paginaSiguiente = () => {
     if (esMovil) {
-      if (paginaMovil < 14) cambiarPaginaMovil(paginaMovil + 1)
+      if (paginaMovil < 16) cambiarPaginaMovil(paginaMovil + 1)
     } else {
-      if (pliegoActual < 7) cambiarPliego(pliegoActual + 1)
+      if (pliegoActual < 8) cambiarPliego(pliegoActual + 1)
     }
   }
 
@@ -1442,7 +1502,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
         >
           {/* CUERPO DEL LIBRO CON SCALE DINÁMICO */}
           <div
-            className="w-full bg-[#fdfdfb] relative overflow-hidden transition-shadow duration-300"
+            className={`w-full bg-[#fdfdfb] relative transition-shadow duration-300 ${esMovil ? "overflow-hidden" : "overflow-x-hidden overflow-y-auto"}`}
             style={{
               transform: `scale(${nivelZoom})`,
               transformOrigin: 'top left',
@@ -1474,7 +1534,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
                   </div>
                   <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-[9px] font-bold text-slate-400 font-mono select-none">
                     <span>SiGIC Manual</span>
-                    <span>Pág. {paginaMovil} / 10</span>
+                    <span>Pág. {paginaMovil} / 16</span>
                   </div>
                 </div>
               ) : (
@@ -1519,7 +1579,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
 
       <button
         onClick={paginaSiguiente}
-        disabled={esMovil ? paginaMovil === 14 : pliegoActual === 7}
+        disabled={esMovil ? paginaMovil === 16 : pliegoActual === 8}
         className="absolute right-3 top-1/2 z-40 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-blue-100 bg-white/95 text-[#0056b3] shadow-[0_8px_24px_rgba(0,48,120,0.18)] backdrop-blur-md transition hover:translate-x-1 hover:scale-110 hover:bg-[#0056b3] hover:text-white active:scale-95 disabled:pointer-events-none disabled:opacity-20 lg:flex"
         title="Página siguiente"
         aria-label="Página siguiente"
@@ -1542,7 +1602,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
         </span>
         <button
           onClick={paginaSiguiente}
-          disabled={esMovil ? paginaMovil === 14 : pliegoActual === 7}
+          disabled={esMovil ? paginaMovil === 16 : pliegoActual === 8}
           className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-[#0056b3] transition hover:bg-[#0056b3] hover:text-white active:scale-95 disabled:opacity-25"
           aria-label="Página siguiente"
         >
