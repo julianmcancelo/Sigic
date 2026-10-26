@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react'
+import { ManualFlipBookEngine } from '../componentes/ManualFlipBookEngine'
+import { useState, useEffect, useRef } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { 
   ArrowLeft, ArrowRight, BookOpen, Book, Users, GraduationCap, 
@@ -759,9 +760,11 @@ function reproducirSonidoHoja() {
 }
 
 export function ManualUsuarioWeb({ onVolver, sinHeader }) {
-  const [estaAbierto, setEstaAbierto] = useState(false)
-  const [pliegoActual, setPliegoActual] = useState(0) // 0 a 5 en Escritorio (Desktop)
-  const [paginaMovil, setPaginaMovil] = useState(0) // 0 a 10 en Celular (Mobile)
+  const flipBookRef = useRef(null)
+  const [paginaActual, setPaginaActual] = useState(0)
+  const [estaAbierto, setEstaAbierto] = useState(true)
+  const [pliegoActual, setPliegoActual] = useState(1)
+  const [paginaMovil, setPaginaMovil] = useState(1)
   const [esMovil, setEsMovil] = useState(false)
   const [estaAnimando, setEstaAnimando] = useState(false)
   const [direccionPaso, setDireccionPaso] = useState('adelante')
@@ -838,54 +841,6 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
     document.addEventListener('fullscreenchange', chequearPantallaCompleta)
     return () => document.removeEventListener('fullscreenchange', chequearPantallaCompleta)
   }, [])
-
-  // Pasar pliegos o páginas con efectos
-  const cambiarPliego = (nuevoPliego) => {
-    if (estaAnimando) return
-    reproducirSonidoHoja()
-    setDireccionPaso(nuevoPliego > pliegoActual ? 'adelante' : 'atras')
-    setEstaAnimando(true)
-    setPliegoActual(nuevoPliego)
-    setTimeout(() => setEstaAnimando(false), 620)
-  }
-
-  const cambiarPaginaMovil = (nuevaPagina) => {
-    if (estaAnimando) return
-    reproducirSonidoHoja()
-    setDireccionPaso(nuevaPagina > paginaMovil ? 'adelante' : 'atras')
-    setEstaAnimando(true)
-    setPaginaMovil(nuevaPagina)
-    setTimeout(() => setEstaAnimando(false), 620)
-  }
-
-  const abrirLibro = () => {
-    reproducirSonidoHoja()
-    setEstaAnimando(true)
-    setEstaAbierto(true)
-    setPliegoActual(1)
-    setPaginaMovil(1)
-    setTimeout(() => setEstaAnimando(false), 500)
-  }
-
-  const cerrarLibro = () => {
-    reproducirSonidoHoja()
-    setEstaAnimando(true)
-    setEstaAbierto(false)
-    setPliegoActual(0)
-    setPaginaMovil(0)
-    setNivelZoom(1.0) // Reiniciamos el zoom al cerrar
-    setTimeout(() => setEstaAnimando(false), 500)
-  }
-
-  // Saltar directo a una página desde el índice
-  const irAPagina = (numeroPagina) => {
-    if (esMovil) {
-      cambiarPaginaMovil(numeroPagina)
-    } else {
-      const nuevoPliego = Math.ceil(numeroPagina / 2)
-      cambiarPliego(nuevoPliego)
-    }
-  }
 
   // Agrandar o reducir el zoom
   const aumentarZoom = () => {
@@ -1423,22 +1378,28 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
     )
   ]
 
-  // Controles de paso de página
+  // Controles de paso de página mediante motor 3D de react-pageflip
   const paginaSiguiente = () => {
-    if (esMovil) {
-      if (paginaMovil < 16) cambiarPaginaMovil(paginaMovil + 1)
-    } else {
-      if (pliegoActual < 8) cambiarPliego(pliegoActual + 1)
+    if (flipBookRef.current?.pageFlip()) {
+      flipBookRef.current.pageFlip().flipNext()
     }
   }
 
   const paginaAnterior = () => {
-    if (esMovil) {
-      if (paginaMovil > 1) cambiarPaginaMovil(paginaMovil - 1)
-      else cerrarLibro()
-    } else {
-      if (pliegoActual > 1) cambiarPliego(pliegoActual - 1)
-      else cerrarLibro()
+    if (flipBookRef.current?.pageFlip()) {
+      flipBookRef.current.pageFlip().flipPrev()
+    }
+  }
+
+  const cerrarLibro = () => {
+    if (flipBookRef.current?.pageFlip()) {
+      flipBookRef.current.pageFlip().flip(0)
+    }
+  }
+
+  const irAPagina = (numeroPagina) => {
+    if (flipBookRef.current?.pageFlip()) {
+      flipBookRef.current.pageFlip().flip(numeroPagina)
     }
   }
 
@@ -1503,21 +1464,21 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
 
   // Renderiza el libro abierto con controles de zoom y navegación
   const renderLibroAbierto = () => (
-    <div className="relative flex min-h-[calc(100dvh-64px)] w-full flex-col items-center justify-start bg-paper animate-fade-in select-none sm:min-h-[calc(100dvh-73px)]">
-      
-      {/* FLOATING CONTROLS PANEL (OVERLAID ON THE BACKGROUND, NO VERTICAL LAYOUT IMPACT) */}
-      <div className="pointer-events-none absolute left-2 right-2 top-2 z-40 flex items-center justify-between gap-2 sm:left-4 sm:right-4 sm:top-4">
-        {/* Left side: Back to Cover and page indicator */}
+    <div className="font-sans relative flex w-full flex-col items-center justify-start min-h-screen">
+      {/* BARRA SUPERIOR DE HERRAMIENTAS */}
+      <div className="absolute top-2 left-0 right-0 z-40 flex items-center justify-between px-3 sm:px-6 pointer-events-none">
+        {/* Lado izquierdo: Cerrar / Tapa */}
         <div className="flex items-center gap-2 pointer-events-auto bg-white/85 backdrop-blur-md border border-slate-200/80 rounded-2xl p-1.5 shadow-md">
           <button 
             onClick={cerrarLibro}
             className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100/50 hover:bg-[#29ABE2] hover:text-white text-slate-700 text-[9px] font-black uppercase tracking-wider transition active:scale-95 cursor-pointer border border-slate-200/40"
+            title="Volver a la portada del manual"
           >
             <Book size={12} /> Tapa
           </button>
         </div>
 
-        {/* Right side: Zoom and Fullscreen */}
+        {/* Lado derecho: Zoom y Pantalla completa */}
         <div className="pointer-events-auto flex min-w-0 items-center gap-1 overflow-x-auto rounded-2xl border border-slate-200/80 bg-white/90 p-1 shadow-md backdrop-blur-md sm:gap-1.5 sm:p-1.5">
           <button
             type="button"
@@ -1562,137 +1523,39 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
         </div>
       </div>
 
-      {/* CONTENEDOR SCROLLABLE DEL LIBRO ABIERTO */}
+      {/* CONTENEDOR FLIPBOOK 3D INTERACTIVO */}
       <div 
-        className="flex w-full items-start justify-start overflow-auto px-1.5 pb-16 pt-14 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-300 sm:px-4 sm:pt-16"
+        className="flex w-full items-center justify-center overflow-auto px-2 pb-16 pt-14 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-slate-300 sm:px-4 sm:pt-16"
         style={{ 
-          maxHeight: esPantallaCompleta ? '95dvh' : 'calc(100dvh - 64px)',
+          minHeight: esPantallaCompleta ? '92dvh' : 'calc(100dvh - 80px)',
           width: '100%'
         }}
       >
-        {/* WRAPPER FÍSICO CON TAMAÑO ESCALADO REAL */}
         <div
-          className="w-full transition-all duration-300 flex items-start justify-center"
+          className="transition-transform duration-300 flex items-center justify-center max-w-full"
           style={{
-            width: `${100 * nivelZoom}%`,
-            height: esMovil ? 'auto' : `calc((100dvh - 100px) * ${nivelZoom})`,
-            position: 'relative',
+            transform: `scale(${nivelZoom})`,
+            transformOrigin: 'center center'
           }}
         >
-          {/* CUERPO DEL LIBRO CON SCALE DINÁMICO Y GESTOS TÁCTILES */}
-          <div
-            onTouchStart={manejarTouchStart}
-            onTouchEnd={manejarTouchEnd}
-            onMouseDown={manejarMouseDown}
-            onMouseUp={manejarMouseUp}
-            className={`w-full bg-[#fdfdfb] relative transition-shadow duration-300 ${esMovil ? "overflow-hidden" : "overflow-x-hidden overflow-y-auto"}`}
-            style={{
-              transform: `scale(${nivelZoom})`,
-              transformOrigin: 'top left',
-              width: `calc(100% / ${nivelZoom})`,
-              height: esMovil ? 'auto' : '100%',
-              minHeight: esMovil ? 'auto' : 'calc(100dvh - 100px)',
-              position: esMovil ? 'relative' : 'absolute',
-              top: 0,
-              left: 0,
+          <ManualFlipBookEngine
+            ref={flipBookRef}
+            listaPaginas={listaPaginas}
+            rutaPortada={rutaPortada}
+            esMovil={esMovil}
+            onCambiarPagina={(num) => {
+              reproducirSonidoHoja()
+              setPaginaActual(num)
             }}
-          >
-            <div className={`relative min-h-[calc(100dvh-88px)] flex flex-col lg:flex-row preserve-3d sm:min-h-[calc(100dvh-100px)] ${
-              estaAnimando ? (direccionPaso === 'adelante' ? 'animar-hoja-adelante' : 'animar-hoja-atras') : ''
-            }`}>
-              
-              {/* Lomo y Sombra Central (Solo en Desktop) */}
-              {!esMovil && (
-                <>
-                  <div className="absolute left-1/2 -translate-x-1/2 top-0 w-3.5 h-full bg-gradient-to-r from-slate-200 via-slate-300 to-slate-200 border-x border-slate-200/40 z-30 pointer-events-none" />
-                  <div className="absolute left-1/2 -translate-x-1/2 top-0 w-16 h-full bg-gradient-to-r from-black/0 via-black/5 to-black/0 z-20 pointer-events-none" />
-                </>
-              )}
-
-              {/* MÓVIL: MUESTRA UNA SOLA PÁGINA */}
-              {esMovil ? (
-                <div className="flex min-h-[calc(100dvh-88px)] w-full flex-col justify-between bg-paper p-4 sm:min-h-[calc(100dvh-100px)] sm:p-8 relative borde-apilado-derecha select-text">
-                  <div className="contenido-pagina-manual flex-1">
-                    {listaPaginas[paginaMovil]}
-                  </div>
-                  <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-[9px] font-bold text-slate-400 font-mono select-none">
-                    <span>SiGIC Manual</span>
-                    <span>Pág. {paginaMovil} / 16</span>
-                  </div>
-
-                  {/* Corner curl móvil */}
-                  {paginaMovil < 16 && (
-                    <div
-                      onClick={paginaSiguiente}
-                      className="group/curl-m absolute bottom-0 right-0 w-11 h-11 z-30 cursor-pointer overflow-hidden transition-all duration-300 hover:w-16 hover:h-16"
-                      title="Siguiente página"
-                    >
-                      <div className="absolute bottom-0 right-0 w-0 h-0 border-solid border-t-transparent border-l-transparent border-r-slate-300/80 border-b-slate-300/80 border-t-[0px] border-l-[0px] border-r-[24px] border-b-[24px] group-hover/curl-m:border-r-[36px] group-hover/curl-m:border-b-[36px] group-hover/curl-m:border-r-sky-500/40 group-hover/curl-m:border-b-sky-500/40 shadow-[-3px_-3px_8px_rgba(0,0,0,0.15)] transition-all duration-300" />
-                    </div>
-                  )}
-                </div>
-              ) : (
-                // DESKTOP: DOS PÁGINAS (IZQUIERDA Y DERECHA)
-                <>
-                  <div className="w-1/2 bg-paper p-8 flex flex-col justify-between border-r border-slate-150 relative page-shadow-left borde-apilado-izquierda select-text">
-                    <div className="contenido-pagina-manual flex-1">
-                      {listaPaginas[(pliegoActual - 1) * 2 + 1]}
-                    </div>
-                    <div className="pt-4 border-t border-slate-100/60 flex items-center justify-between text-[9px] font-bold text-slate-400 font-mono select-none">
-                      <span>SiGIC Manual</span>
-                      <span>Pág. {(pliegoActual - 1) * 2 + 1}</span>
-                    </div>
-
-                    {/* Pliegue de esquina izquierda (estilo react-pageflip) */}
-                    {pliegoActual > 1 && (
-                      <div
-                        onClick={paginaAnterior}
-                        className="group/curl-left absolute bottom-0 left-0 w-11 h-11 z-30 cursor-pointer overflow-hidden transition-all duration-300 hover:w-16 hover:h-16"
-                        title="Página anterior (hacé clic o arrastrá)"
-                      >
-                        <div className="absolute bottom-0 left-0 w-0 h-0 border-solid border-t-transparent border-r-transparent border-l-slate-300/80 border-b-slate-300/80 border-t-[0px] border-r-[0px] border-l-[24px] border-b-[24px] group-hover/curl-left:border-l-[36px] group-hover/curl-left:border-b-[36px] group-hover/curl-left:border-l-sky-500/40 group-hover/curl-left:border-b-sky-500/40 shadow-[3px_-3px_8px_rgba(0,0,0,0.15)] transition-all duration-300" />
-                        <span className="absolute bottom-1 left-1.5 text-[8.5px] font-mono text-slate-600 font-black opacity-0 group-hover/curl-left:opacity-100 transition-opacity">
-                          ←
-                        </span>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="w-1/2 bg-paper p-8 flex flex-col justify-between relative page-shadow-right borde-apilado-derecha select-text">
-                    <div className="contenido-pagina-manual flex-1">
-                      {listaPaginas[(pliegoActual - 1) * 2 + 2]}
-                    </div>
-                    <div className="pt-4 border-t border-slate-100/60 flex items-center justify-between text-[9px] font-bold text-slate-400 font-mono select-none">
-                      <span>Manual Oficial</span>
-                      <span>Pág. {(pliegoActual - 1) * 2 + 2}</span>
-                    </div>
-
-                    {/* Pliegue de esquina derecha (estilo react-pageflip) */}
-                    {pliegoActual < 8 && (
-                      <div
-                        onClick={paginaSiguiente}
-                        className="group/curl-right absolute bottom-0 right-0 w-11 h-11 z-30 cursor-pointer overflow-hidden transition-all duration-300 hover:w-16 hover:h-16"
-                        title="Página siguiente (hacé clic o arrastrá)"
-                      >
-                        <div className="absolute bottom-0 right-0 w-0 h-0 border-solid border-t-transparent border-l-transparent border-r-slate-300/80 border-b-slate-300/80 border-t-[0px] border-l-[0px] border-r-[24px] border-b-[24px] group-hover/curl-right:border-r-[36px] group-hover/curl-right:border-b-[36px] group-hover/curl-right:border-r-sky-500/40 group-hover/curl-right:border-b-sky-500/40 shadow-[-3px_-3px_8px_rgba(0,0,0,0.15)] transition-all duration-300" />
-                        <span className="absolute bottom-1 right-1.5 text-[8.5px] font-mono text-slate-600 font-black opacity-0 group-hover/curl-right:opacity-100 transition-opacity">
-                          →
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
+          />
         </div>
       </div>
 
-      {/* Navegación lateral: ubicada como los controles físicos de un libro */}
+      {/* Navegación lateral física (Flechas flotantes) */}
       <button
         onClick={paginaAnterior}
-        disabled={esMovil ? paginaMovil === 1 : pliegoActual === 1}
-        className="absolute left-3 top-1/2 z-40 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-blue-100 bg-white/95 text-[#0056b3] shadow-[0_8px_24px_rgba(0,48,120,0.18)] backdrop-blur-md transition hover:-translate-x-1 hover:scale-110 hover:bg-[#0056b3] hover:text-white active:scale-95 disabled:pointer-events-none disabled:opacity-20 lg:flex"
+        disabled={paginaActual === 0}
+        className="absolute left-3 top-1/2 z-40 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-blue-100 bg-white/95 text-[#0056b3] shadow-[0_8px_24px_rgba(0,48,120,0.18)] backdrop-blur-md transition hover:-translate-x-1 hover:scale-110 hover:bg-[#0056b3] hover:text-white active:scale-95 disabled:pointer-events-none disabled:opacity-20 lg:flex cursor-pointer"
         title="Página anterior"
         aria-label="Página anterior"
       >
@@ -1701,30 +1564,30 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
 
       <button
         onClick={paginaSiguiente}
-        disabled={esMovil ? paginaMovil === 16 : pliegoActual === 8}
-        className="absolute right-3 top-1/2 z-40 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-blue-100 bg-white/95 text-[#0056b3] shadow-[0_8px_24px_rgba(0,48,120,0.18)] backdrop-blur-md transition hover:translate-x-1 hover:scale-110 hover:bg-[#0056b3] hover:text-white active:scale-95 disabled:pointer-events-none disabled:opacity-20 lg:flex"
+        disabled={paginaActual >= 15}
+        className="absolute right-3 top-1/2 z-40 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-blue-100 bg-white/95 text-[#0056b3] shadow-[0_8px_24px_rgba(0,48,120,0.18)] backdrop-blur-md transition hover:translate-x-1 hover:scale-110 hover:bg-[#0056b3] hover:text-white active:scale-95 disabled:pointer-events-none disabled:opacity-20 lg:flex cursor-pointer"
         title="Página siguiente"
         aria-label="Página siguiente"
       >
         <ArrowRight size={20} strokeWidth={2.5} />
       </button>
 
-      {/* En móvil las flechas permanecen juntas y al alcance del pulgar */}
+      {/* Control móvil al alcance del pulgar */}
       <div className="absolute bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-3 rounded-2xl border border-blue-100/80 bg-white/95 p-1.5 shadow-[0_10px_30px_rgba(0,48,120,0.16)] backdrop-blur-md lg:hidden">
         <button
           onClick={paginaAnterior}
-          disabled={esMovil ? paginaMovil === 1 : pliegoActual === 1}
+          disabled={paginaActual === 0}
           className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-[#0056b3] transition hover:bg-[#0056b3] hover:text-white active:scale-95 disabled:opacity-25"
           aria-label="Página anterior"
         >
           <ArrowLeft size={16} />
         </button>
-        <span className="min-w-[58px] text-center font-mono text-[10px] font-black tracking-wide text-slate-600">
-          {esMovil ? `${paginaMovil} / 14` : `${pliegoActual} / 7`}
+        <span className="min-w-[70px] text-center font-mono text-[10px] font-black tracking-wide text-slate-600">
+          {paginaActual === 0 ? "PORTADA" : `${paginaActual} / 15`}
         </span>
         <button
           onClick={paginaSiguiente}
-          disabled={esMovil ? paginaMovil === 16 : pliegoActual === 8}
+          disabled={paginaActual >= 15}
           className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-[#0056b3] transition hover:bg-[#0056b3] hover:text-white active:scale-95 disabled:opacity-25"
           aria-label="Página siguiente"
         >
@@ -1732,106 +1595,12 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
         </button>
       </div>
 
-      <div className="absolute bottom-4 left-1/2 z-30 hidden -translate-x-1/2 rounded-full border border-slate-200/70 bg-white/90 px-4 py-2 font-mono text-[9px] font-black tracking-[0.16em] text-slate-500 shadow-sm backdrop-blur-md lg:block">
-        PLIEGO {pliegoActual} DE 7
+      {/* Indicador inferior en escritorio */}
+      <div className="absolute bottom-4 left-1/2 z-30 hidden -translate-x-1/2 rounded-full border border-slate-200/70 bg-white/90 px-5 py-2 font-mono text-[9px] font-black tracking-[0.16em] text-slate-600 shadow-sm backdrop-blur-md lg:block">
+        {paginaActual === 0 ? "PORTADA CERRADA · ARRASTRÁ CON EL MOUSE PARA ABRIR" : `PÁGINA ${paginaActual} DE 15 · PODÉS ARRASTRAR LAS HOJAS`}
       </div>
-
-      <style>{`
-        @media (max-width: 640px) {
-          .contenido-pagina-manual .grid-cols-2,
-          .contenido-pagina-manual .grid-cols-12 {
-            grid-template-columns: minmax(0, 1fr) !important;
-          }
-          .contenido-pagina-manual .col-span-4,
-          .contenido-pagina-manual .col-span-5,
-          .contenido-pagina-manual .col-span-7,
-          .contenido-pagina-manual .col-span-8 {
-            grid-column: 1 / -1 !important;
-          }
-          .contenido-pagina-manual {
-            font-size: 11px;
-            line-height: 1.55;
-          }
-          .contenido-pagina-manual img {
-            max-height: none;
-          }
-        }
-      `}</style>
     </div>
   )
-
-  // RENDER ABIERTO / CERRADO CON O SIN HEADER
-  if (sinHeader) {
-    return (
-      <div className="w-full flex flex-col items-center justify-center p-4">
-        {!estaAbierto ? renderPortadaCerrada() : renderLibroAbierto()}
-        {mostrarCredencial && <CredencialManual urlManual={urlManual} onCerrar={() => setMostrarCredencial(false)} />}
-        {imagenAmpliada && <ModalImagenManual imagen={imagenAmpliada} onCerrar={() => setImagenAmpliada(null)} />}
-        <style>{`
-          .perspective-1200 {
-            perspective: 1200px;
-          }
-          .origin-left-center {
-            transform-origin: left center;
-          }
-          .rotate-y-hover {
-            transform-style: preserve-3d;
-            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.6s;
-          }
-          .rotate-y-hover:hover {
-            transform: rotateY(-22deg);
-          }
-          .page-shadow-left {
-            box-shadow: inset -15px 0 20px rgba(0, 0, 0, 0.02);
-          }
-          .page-shadow-right {
-            box-shadow: inset 15px 0 20px rgba(0, 0, 0, 0.02);
-          }
-          .borde-apilado-derecha {
-            box-shadow: 
-              inset 15px 0 20px rgba(0, 0, 0, 0.02),
-              1px 0 0 #f1f5f9,
-              2px 0 0 #cbd5e1,
-              3px 0 0 #f1f5f9,
-              4px 0 0 #cbd5e1,
-              5px 0 0 #e2e8f0,
-              8px 4px 18px rgba(15, 23, 42, 0.08);
-          }
-          .borde-apilado-izquierda {
-            box-shadow: 
-              inset -15px 0 20px rgba(0, 0, 0, 0.02),
-              -1px 0 0 #f1f5f9,
-              -2px 0 0 #cbd5e1,
-              -3px 0 0 #f1f5f9,
-              -4px 0 0 #cbd5e1,
-              -5px 0 0 #e2e8f0,
-              -8px 4px 18px rgba(15, 23, 42, 0.08);
-          }
-          .bg-paper {
-            background-color: #fdfdfb;
-            background-image: radial-gradient(rgba(0,0,0,0.015) 1px, transparent 0);
-            background-size: 8px 8px;
-          }
-          .preserve-3d { transform-style: preserve-3d; perspective: 1800px; }
-          .animar-hoja-adelante { animation: pasarHojaAdelante 620ms cubic-bezier(.22,.72,.18,1) both; transform-origin: right center; }
-          .animar-hoja-atras { animation: pasarHojaAtras 620ms cubic-bezier(.22,.72,.18,1) both; transform-origin: left center; }
-          @keyframes pasarHojaAdelante {
-            0% { opacity: .35; transform: perspective(1800px) rotateY(-10deg) translateX(14px) scale(.985); filter: brightness(.9); box-shadow: 28px 0 42px rgba(15,23,42,.16); }
-            55% { opacity: .9; transform: perspective(1800px) rotateY(2deg) translateX(-2px) scale(.998); }
-            100% { opacity: 1; transform: perspective(1800px) rotateY(0) translateX(0) scale(1); filter: brightness(1); box-shadow: none; }
-          }
-          @keyframes pasarHojaAtras {
-            0% { opacity: .35; transform: perspective(1800px) rotateY(10deg) translateX(-14px) scale(.985); filter: brightness(.9); box-shadow: -28px 0 42px rgba(15,23,42,.16); }
-            55% { opacity: .9; transform: perspective(1800px) rotateY(-2deg) translateX(2px) scale(.998); }
-            100% { opacity: 1; transform: perspective(1800px) rotateY(0) translateX(0) scale(1); filter: brightness(1); box-shadow: none; }
-          }
-          @media (prefers-reduced-motion: reduce) {
-            .animar-hoja-adelante, .animar-hoja-atras { animation: none; }
-          }
-        `}</style>
-      </div>
-    )
-  }
 
   return (
     <main
@@ -1895,7 +1664,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
 
       {/* Área del Libro */}
       <div className="relative z-10 flex flex-1 flex-col items-center justify-center p-0 sm:p-4 md:p-6 lg:p-8">
-        {!estaAbierto ? renderPortadaCerrada() : renderLibroAbierto()}
+        {renderLibroAbierto()}
       </div>
 
       {mostrarCredencial && <CredencialManual urlManual={urlManual} onCerrar={() => setMostrarCredencial(false)} />}
