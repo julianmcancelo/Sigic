@@ -132,7 +132,14 @@ export function AsistenteSetup({ onFinalizado }) {
                   </div>
                 </div>
               </div>
-              <div className="mt-8 flex justify-end">
+              <div className="mt-8 flex justify-between items-center">
+                <button
+                  type="button"
+                  onClick={onFinalizado}
+                  className="text-slate-400 hover:text-indigo-600 text-xs font-semibold transition-colors"
+                >
+                  Iniciar sesión con cuentas predeterminadas →
+                </button>
                 <button 
                   onClick={() => setPaso(2)}
                   disabled={!esPaso1Valido}
@@ -189,9 +196,17 @@ export function AsistenteSetup({ onFinalizado }) {
                   >
                     ← Volver
                   </button>
-                  <button 
-                    type="submit"
-                    disabled={!esPaso2Valido || cargando}
+                  <div className="flex items-center gap-4">
+                    <button
+                      type="button"
+                      onClick={onFinalizado}
+                      className="text-slate-400 hover:text-indigo-600 text-xs font-semibold transition-colors"
+                    >
+                      Omitir asistente →
+                    </button>
+                    <button 
+                      type="submit"
+                      disabled={!esPaso2Valido || cargando}
                     className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white text-sm font-bold px-8 py-3 rounded-xl shadow-lg shadow-indigo-600/30 transition-all hover:-translate-y-0.5 active:translate-y-0 flex items-center gap-2"
                   >
                     {cargando ? (
@@ -202,7 +217,8 @@ export function AsistenteSetup({ onFinalizado }) {
                     ) : (
                       'Inicializar Sistema'
                     )}
-                  </button>
+                    </button>
+                  </div>
                 </div>
               </form>
             </div>

@@ -315,6 +315,15 @@ async function ejecutarInicializacion() {
         WHERE rol NOT IN ('ADMINISTRATIVO', 'PORTERIA');
       ALTER TABLE usuarios_sistema ADD CONSTRAINT usuarios_sistema_rol_check
         CHECK (rol IN ('ADMINISTRATIVO', 'PORTERIA'));
+      DO $$
+      BEGIN
+        IF EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name = 'auth_rate_limits' AND column_name = 'key'
+        ) THEN
+          DROP TABLE auth_rate_limits CASCADE;
+        END IF;
+      END $$;
       CREATE TABLE IF NOT EXISTS auth_rate_limits (
         clave TEXT PRIMARY KEY, contador INTEGER NOT NULL, reinicio TIMESTAMPTZ NOT NULL
       );

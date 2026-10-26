@@ -10,3 +10,6 @@ codigo/movil_flutter/build
 manual.docx
 *.apk
 *.exe
+
+herramientas/
+os/

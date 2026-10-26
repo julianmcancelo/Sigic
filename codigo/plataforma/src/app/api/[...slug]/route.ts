@@ -1623,8 +1623,10 @@ export async function POST(
       try {
         await setupClient.query('BEGIN');
         await setupClient.query("SELECT pg_advisory_xact_lock(hashtext('sigic-setup'))");
-        const usuarios = await setupClient.query('SELECT COUNT(*)::int AS total FROM usuarios_sistema');
-        if (parseInt(usuarios.rows[0]?.total ?? '0', 10) > 0) {
+        const flagSetup = await setupClient.query(
+          "SELECT valor FROM configuracion_sistema WHERE clave = 'setup_inicial_completado' LIMIT 1"
+        );
+        if (flagSetup.rows[0]?.valor === '1') {
           await setupClient.query('ROLLBACK');
           return NextResponse.json({ error: 'El sistema ya fue inicializado' }, { status: 409, headers });
         }
@@ -1635,10 +1637,16 @@ export async function POST(
 
         await setupClient.query(
           `INSERT INTO usuarios_sistema (id, nombre, email, password_hash, rol, activo)
-           VALUES ($1, $2, $3, $4, 'ADMINISTRATIVO', 1)`,
+           VALUES ($1, $2, $3, $4, 'ADMINISTRATIVO', 1)
+           ON CONFLICT (email) DO UPDATE SET
+             nombre = EXCLUDED.nombre,
+             password_hash = EXCLUDED.password_hash,
+             rol = 'ADMINISTRATIVO',
+             activo = 1`,
           [usuarioId, nombre, email.toLowerCase(), hash]
         );
 
+        await setupClient.query('UPDATE ceremonias SET activa = 0 WHERE activa = 1');
         await setupClient.query(
           `INSERT INTO ceremonias (id, nombre, fecha, lugar, max_invitados, max_entregadores, activa)
            VALUES ($1, $2, $3, $4, 4, 3, 1)`,
