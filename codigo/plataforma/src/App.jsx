@@ -48,7 +48,6 @@ import { EstadoCeremonia } from './paginas/operacion/EstadoCeremonia'
 
 // Componentes Globales
 import { ADMIN_DEMO, ControlExpositor, EGRESADA_DEMO, MarcaAguaDemo } from './componentes/ControlExpositor'
-import { BadgeVersion } from './componentes/BadgeVersion'
 import { GuiaDemostracionAutomatica } from './componentes/GuiaDemostracionAutomatica'
 import { PantallaCargaInicial } from './componentes/PantallaCargaInicial'
 import { AsistenteOperativoCeremonia } from './componentes/AsistenteOperativoCeremonia'
@@ -1356,9 +1355,6 @@ function App() {
       {contenidoDeEscritorio}
       {modoDemoActivo && <MarcaAguaDemo />}
       
-      {/* Badge de versión y hash de commit (autoactualizable) */}
-      <BadgeVersion />
-
       {/* Herramienta para alternar modo de operación y demostraciones */}
       {window.location.hostname !== 'graduados.sigic.com.ar' && <ControlExpositor
         modoDemoActivo={modoDemoActivo}

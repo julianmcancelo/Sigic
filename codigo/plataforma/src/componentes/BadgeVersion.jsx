@@ -21,7 +21,7 @@ export function BadgeVersion() {
   return (
     <aside
       aria-label="Información de compilación del sistema"
-      className="fixed bottom-2.5 left-3 z-30 select-none flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/85 dark:bg-slate-900/85 backdrop-blur-md border border-slate-200/80 dark:border-slate-800 shadow-xs text-[10px] font-mono text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:border-slate-300 transition-all duration-200 group"
+      className="fixed bottom-2.5 left-3 z-[9990] select-none flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200 dark:border-slate-800 shadow-md text-[10px] font-mono text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:border-slate-400 transition-all duration-200 group"
     >
       {/* Versión semántica */}
       <span className="font-bold text-slate-700 dark:text-slate-300">

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import "@jcancelo/mapa-asientos-sigic/dist/style.css";
+import { BadgeVersion } from "../componentes/BadgeVersion";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -20,7 +21,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" className="h-full antialiased">
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <BadgeVersion />
+      </body>
     </html>
   );
 }
