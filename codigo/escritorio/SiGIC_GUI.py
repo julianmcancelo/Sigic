@@ -241,12 +241,13 @@ class SigicApp(ctk.CTk):
         )
         self.tabview.pack(fill="both", expand=True, padx=0, pady=(0, 8))
 
-        # Crear las 5 Solapas Dedicadas
+        # Crear las Solapas Dedicadas
         tab_cloud = self.tabview.add("Plataforma Cloud")
         tab_local = self.tabview.add("Servidor Local")
         tab_doc = self.tabview.add("Documentación & DER")
         tab_apk = self.tabview.add("App Móvil Android")
         tab_console = self.tabview.add("Consola de Diagnóstico")
+        tab_about = self.tabview.add("Acerca de & Equipo")
 
         self.tabview._segmented_button.configure(
             font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
@@ -664,6 +665,130 @@ class SigicApp(ctk.CTk):
 
         self._log("SiGIC Control GUI inicializado en modo nativo con arquitectura de solapas dedicadas.")
         self._log(f"Directorio de ejecución: {self.base_dir}")
+
+        # -------------------------------------------------------------
+        # SOLAPA 6: ACERCA DE & EQUIPO DE DESARROLLO
+        # -------------------------------------------------------------
+        p6 = ctk.CTkScrollableFrame(tab_about, fg_color="transparent")
+        p6.pack(fill="both", expand=True, padx=16, pady=12)
+
+        tag_c6 = ctk.CTkLabel(
+            p6,
+            text="PROYECTO ACADÉMICO OFICIAL · PRÁCTICA PROFESIONALIZANTE III",
+            font=ctk.CTkFont(family="Segoe UI", size=9, weight="bold"),
+            text_color="#0284c7",
+            fg_color="#e0f2fe",
+            corner_radius=5,
+            padx=8,
+            pady=2
+        )
+        tag_c6.pack(anchor="w", pady=(0, 6))
+
+        ctk.CTkLabel(
+            p6,
+            text="SiGIC — Sistema de Gestión Institucional de Colaciones",
+            font=ctk.CTkFont(family="Segoe UI", size=16, weight="bold"),
+            text_color="#0f172a"
+        ).pack(anchor="w")
+
+        ctk.CTkLabel(
+            p6,
+            text="Plataforma tecnológica orientada a la transformación digital y automatización integral de actos académicos de colación de grado. Diseñada para garantizar trazabilidad, validación biométrica/QR en accesos, asignación dinámica de butacas y una experiencia institucional de excelencia.",
+            font=ctk.CTkFont(family="Segoe UI", size=11),
+            text_color="#64748b",
+            wraplength=820,
+            justify="left"
+        ).pack(anchor="w", pady=(4, 12))
+
+        # Cuadro institucional
+        inst_box = ctk.CTkFrame(p6, fg_color="#f8fafc", corner_radius=10, border_width=1, border_color="#e2e8f0")
+        inst_box.pack(fill="x", pady=(0, 14), padx=2)
+
+        items_inst = [
+            ("Institución Educativa:", "Instituto Tecnológico Beltrán (ITB)"),
+            ("Carrera:", "Tecnicatura Superior en Analista de Sistemas"),
+            ("Materia / Instancia:", "Práctica Profesionalizante III · Trabajo Final de Carrera"),
+            ("Ubicación:", "Av. Belgrano 1191, Avellaneda, Provincia de Buenos Aires"),
+            ("Ciclo Lectivo:", "2026"),
+        ]
+        for titular, detalle in items_inst:
+            row_f = ctk.CTkFrame(inst_box, fg_color="transparent")
+            row_f.pack(fill="x", padx=14, pady=3)
+            ctk.CTkLabel(row_f, text=titular, font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"), text_color="#334155", width=180, anchor="w").pack(side="left")
+            ctk.CTkLabel(row_f, text=detalle, font=ctk.CTkFont(family="Segoe UI", size=10), text_color="#64748b", anchor="w").pack(side="left", fill="x", expand=True)
+
+        # Encabezado del Equipo
+        ctk.CTkLabel(
+            p6,
+            text="Integrantes del Equipo de Desarrollo",
+            font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold"),
+            text_color="#0f172a"
+        ).pack(anchor="w", pady=(0, 8))
+
+        equipo_box = ctk.CTkFrame(p6, fg_color="#ffffff", corner_radius=10, border_width=1, border_color="#e2e8f0")
+        equipo_box.pack(fill="x", pady=(0, 14), padx=2)
+
+        integrantes = [
+            ("Cancelo Julian", "Líder de Proyecto & Fullstack · Analista de Sistemas", "#0284c7"),
+            ("Alfonso Alan Alexis", "Analista de Sistemas", "#334155"),
+            ("Contreras Villalba Sol Heilin", "Analista de Sistemas", "#334155"),
+            ("Frassia Matias", "Analista de Sistemas", "#334155"),
+            ("Santillan Luis Gabriel", "Analista de Sistemas", "#334155"),
+        ]
+
+        for idx, (nombre, rol, color_badge) in enumerate(integrantes):
+            row_i = ctk.CTkFrame(equipo_box, fg_color="#f8fafc" if idx % 2 == 0 else "#ffffff")
+            row_i.pack(fill="x", padx=4, pady=2)
+            
+            ctk.CTkLabel(
+                row_i,
+                text=nombre,
+                font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
+                text_color="#0f172a",
+                width=220,
+                anchor="w",
+                padx=12
+            ).pack(side="left", pady=6)
+
+            badge = ctk.CTkLabel(
+                row_i,
+                text=rol,
+                font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold" if "Líder" in rol else "normal"),
+                text_color="#ffffff" if "Líder" in rol else "#475569",
+                fg_color=color_badge if "Líder" in rol else "#e2e8f0",
+                corner_radius=6,
+                padx=10,
+                pady=2
+            )
+            badge.pack(side="left", pady=6)
+
+        # Enlaces de interés
+        btn_row_about = ctk.CTkFrame(p6, fg_color="transparent")
+        btn_row_about.pack(fill="x", pady=(4, 8))
+
+        ctk.CTkButton(
+            btn_row_about,
+            text="Repositorio GitHub Oficial ↗",
+            font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
+            fg_color="#0f172a",
+            hover_color="#1e293b",
+            text_color="#ffffff",
+            corner_radius=8,
+            height=34,
+            command=lambda: webbrowser.open("https://github.com/julianmcancelo/Sigic")
+        ).pack(side="left", padx=(0, 10))
+
+        ctk.CTkButton(
+            btn_row_about,
+            text="Portal Institucional SiGIC ↗",
+            font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
+            fg_color="#0284c7",
+            hover_color="#0369a1",
+            text_color="#ffffff",
+            corner_radius=8,
+            height=34,
+            command=lambda: webbrowser.open("https://www.sigic.com.ar")
+        ).pack(side="left")
 
         # -------------------------------------------------------------
         # FOOTER INSTITUCIONAL

@@ -1354,19 +1354,6 @@ function App() {
     <>
       {contenidoDeEscritorio}
       {modoDemoActivo && <MarcaAguaDemo />}
-      
-      {/* Herramienta para alternar modo de operación y demostraciones */}
-      {window.location.hostname !== 'graduados.sigic.com.ar' && <ControlExpositor
-        modoDemoActivo={modoDemoActivo}
-        onAlternarModoDemo={alternarModoDemo}
-        onSimularAdmin={manejarLoginAdminExitoso}
-        onSimularEgresado={manejarLoginGraduadoExitoso}
-        onAbrirLanding={() => setVistaLogin('landing')}
-        onLimpiar={limpiarTodo}
-        onIniciarDemo={iniciarDemostracionCompleta}
-        estiloInterfaz={estiloInterfaz}
-        onAlternarEstiloInterfaz={() => cambiarEstiloInterfaz(estiloInterfaz === 'dashboard' ? 'escritorio' : 'dashboard')}
-      />}
 
       {/* Orquestador de Piloto Automático y Showcase en Vivo */}
       {demoAutomaticaActiva && (

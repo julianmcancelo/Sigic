@@ -202,7 +202,7 @@ Proyecto desarrollado y defendido en el marco de la **Práctica Profesionalizant
     <td align="center">
       <img src="https://github.com/julianmcancelo.png" width="90px;" alt="Cancelo Julian"/><br />
       <sub><b>Cancelo Julian</b></sub><br />
-      <small>Líder de Proyecto & Fullstack</small>
+      <small>Líder de Proyecto & Fullstack · Analista de Sistemas</small>
     </td>
     <td align="center">
       <img src="https://github.com/identicons/alfonso.png" width="90px;" alt="Alfonso Alan Alexis"/><br />
