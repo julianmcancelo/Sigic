@@ -1355,9 +1355,14 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
         <div>
           {/* Encabezado Institucional Beltrán */}
           <div className="flex items-center justify-between pb-2.5 mb-3 border-b border-slate-100">
-            <div>
-              <span className="text-[8px] font-black uppercase tracking-wider text-[#0056b3]">Instituto Tecnológico Beltrán</span>
-              <p className="text-[10px] font-extrabold text-slate-800 tracking-tight">Práctica Profesionalizante 2026</p>
+            <div className="flex items-center gap-2.5">
+              <div className="h-9 w-9 rounded-xl bg-white border border-slate-200/90 p-1 shadow-xs flex items-center justify-center shrink-0">
+                <img src="/logo-oficial.png" alt="Logo Oficial SiGIC" className="h-full w-full object-contain" />
+              </div>
+              <div>
+                <span className="text-[8px] font-black uppercase tracking-wider text-[#0056b3]">Instituto Tecnológico Beltrán</span>
+                <p className="text-[10px] font-extrabold text-slate-800 tracking-tight leading-tight">Práctica Profesionalizante 2026</p>
+              </div>
             </div>
             <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[8px] font-black text-sky-700 border border-sky-100 uppercase tracking-widest">
               Proyecto SiGIC
@@ -1436,18 +1441,20 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
         <div className="absolute -top-20 -right-20 w-52 h-52 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute -bottom-20 -left-20 w-52 h-52 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Cabecera Contratapa */}
+        {/* Cabecera Contratapa con Logo Oficial */}
         <div className="relative z-10 flex flex-col items-center text-center">
-          <div className="flex items-center gap-2 mb-1.5">
-            <div className="h-7 w-7 rounded-lg bg-sky-500/20 border border-sky-400/30 flex items-center justify-center">
-              <GraduationCap className="h-4 w-4 text-sky-400" />
-            </div>
-            <span className="text-sm font-black tracking-wider text-white">SiGIC</span>
+          <div className="mb-2.5 flex h-16 w-16 items-center justify-center rounded-2xl bg-white p-2 shadow-xl shadow-black/40 border border-white/30">
+            <img 
+              src="/logo-oficial.png" 
+              alt="Logo Oficial SiGIC" 
+              className="h-full w-full object-contain"
+            />
           </div>
-          <span className="text-[9px] font-bold text-sky-300 tracking-wider uppercase">
+          <h3 className="text-lg font-black tracking-wider text-white leading-none">SiGIC</h3>
+          <p className="text-[9px] font-bold text-sky-300 tracking-wider uppercase mt-1">
             Sistema de Gestión Institucional de Colaciones
-          </span>
-          <div className="h-0.5 w-12 bg-sky-500/40 rounded-full my-2" />
+          </p>
+          <div className="h-0.5 w-16 bg-gradient-to-r from-transparent via-sky-400 to-transparent my-2" />
         </div>
 
         {/* Centro: QR y Acceso Directo */}
@@ -1459,6 +1466,12 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
               level="H" 
               includeMargin={false}
               className="rounded"
+              imageSettings={{
+                src: "/logo-oficial.png",
+                height: 24,
+                width: 24,
+                excavate: true,
+              }}
             />
           </div>
           <span className="text-[8.5px] font-black uppercase tracking-widest text-sky-300">
