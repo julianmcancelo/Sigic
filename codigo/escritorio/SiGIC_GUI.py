@@ -258,7 +258,7 @@ class SigicApp(ctk.CTk):
         tag_cloud = ctk.CTkLabel(
             c1,
             text="PRODUCCIÓN · ALTA DISPONIBILIDAD",
-            font=ctk.CTkFont(family="Segoe UI", size=8.5, weight="bold"),
+            font=ctk.CTkFont(family="Segoe UI", size=9, weight="bold"),
             text_color="#0284c7",
             fg_color="#e0f2fe",
             corner_radius=5,
@@ -303,7 +303,7 @@ class SigicApp(ctk.CTk):
         tag_local = ctk.CTkLabel(
             c2,
             text="ENTORNO LOCAL / MODO EVALUACIÓN",
-            font=ctk.CTkFont(family="Segoe UI", size=8.5, weight="bold"),
+            font=ctk.CTkFont(family="Segoe UI", size=9, weight="bold"),
             text_color="#15803d",
             fg_color="#dcfce7",
             corner_radius=5,
@@ -335,14 +335,14 @@ class SigicApp(ctk.CTk):
         ctk.CTkLabel(
             db_sel_frame,
             text="Base de Datos:",
-            font=ctk.CTkFont(family="Segoe UI", size=9.5, weight="bold"),
+            font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"),
             text_color="#475569"
         ).pack(side="left", padx=(8, 6), pady=2)
 
         self.seg_db_mode = ctk.CTkSegmentedButton(
             db_sel_frame,
             values=["Nube Neon (SSL)", "PostgreSQL 16 Portable (Local)"],
-            font=ctk.CTkFont(family="Segoe UI", size=9.5, weight="bold"),
+            font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"),
             selected_color="#0284c7",
             selected_hover_color="#0369a1",
             height=24,
@@ -389,7 +389,7 @@ class SigicApp(ctk.CTk):
         tag_doc = ctk.CTkLabel(
             c3,
             text="DOCUMENTACIÓN Y MODELO DE DATOS",
-            font=ctk.CTkFont(family="Segoe UI", size=8.5, weight="bold"),
+            font=ctk.CTkFont(family="Segoe UI", size=9, weight="bold"),
             text_color="#4338ca",
             fg_color="#ede9fe",
             corner_radius=5,
@@ -448,7 +448,7 @@ class SigicApp(ctk.CTk):
         btn_esquema = ctk.CTkButton(
             c3,
             text="Ver Esquema Interactivo de Base de Datos (DER)",
-            font=ctk.CTkFont(family="Segoe UI", size=10.5, weight="bold"),
+            font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"),
             fg_color="#0f172a",
             hover_color="#1e293b",
             text_color="#38bdf8",
@@ -467,7 +467,7 @@ class SigicApp(ctk.CTk):
         tag_apk = ctk.CTkLabel(
             c4,
             text="CONTROL DE ACCESO Y ACREDITACIÓN",
-            font=ctk.CTkFont(family="Segoe UI", size=8.5, weight="bold"),
+            font=ctk.CTkFont(family="Segoe UI", size=9, weight="bold"),
             text_color="#b45309",
             fg_color="#fef3c7",
             corner_radius=5,
@@ -548,7 +548,7 @@ class SigicApp(ctk.CTk):
         btn_clear = ctk.CTkButton(
             term_header,
             text="Limpiar Registro",
-            font=ctk.CTkFont(family="Segoe UI", size=9.5, weight="bold"),
+            font=ctk.CTkFont(family="Segoe UI", size=9, weight="bold"),
             fg_color="#f1f5f9",
             hover_color="#e2e8f0",
             text_color="#64748b",
