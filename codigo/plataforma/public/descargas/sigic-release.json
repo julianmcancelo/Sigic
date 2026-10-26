@@ -1,6 +1,6 @@
 {
-  "version": "1.0.7+8",
-  "apkUrl": "https://app.sigic.com.ar/descargas/SIGIC-Porteria-1.0.7.apk",
+  "version": "1.0.9+10",
+  "apkUrl": "https://app.sigic.com.ar/descargas/SIGIC-Porteria-1.0.9.apk",
   "required": false,
-  "notes": "Protocolo de juramento académico (Dios y Patria / Por la Patria), señalización de butacas oficiales y validación en portería."
+  "notes": "Sincronización bidireccional offline mejorada, acreditación ágil en puerta y resiliencia de red."
 }

@@ -32,6 +32,7 @@ class _PestanaAsistenciaState extends State<PestanaAsistencia> {
   String? _error;
   String _filtro = 'todos';
   String _busqueda = '';
+  int _pendientesSync = 0;
 
   @override
   void initState() {
@@ -71,30 +72,51 @@ class _PestanaAsistenciaState extends State<PestanaAsistencia> {
       final cerActiva = resultados[1] as Ceremonia?;
       final cerAutorizadas = resultados[2] as List<CeremoniaAutorizada>;
 
+      // Sincronizar cola si hay conexion y elementos pendientes
+      final offline = ServicioOffline();
+      final pendientesIniciales = await offline.cantidadPendientes();
+      if (pendientesIniciales > 0) {
+        final sync = await offline.sincronizarCola(widget.servicioApi);
+        if (sync > 0 && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Se sincronizaron $sync acreditaciones pendientes.'),
+              backgroundColor: TemaSigic.exito,
+            ),
+          );
+        }
+      }
+      final pendientesRestantes = await offline.cantidadPendientes();
+
       // Guardar en cache local para disponibilidad offline
       if (grupos.isNotEmpty) {
-        await ServicioOffline().guardarPadronLocal(grupos);
+        await offline.guardarPadronLocal(grupos);
       }
 
       setState(() {
         _grupos = grupos;
         _ceremonia = cerActiva;
         _ceremoniasAutorizadas = cerAutorizadas;
+        _pendientesSync = pendientesRestantes;
         _cargando = false;
       });
     } catch (error) {
       if (!mounted) return;
+      final offline = ServicioOffline();
+      final pendientes = await offline.cantidadPendientes();
       // Intento de rescate desde cache local offline
-      final padronCache = await ServicioOffline().obtenerPadronLocal();
+      final padronCache = await offline.obtenerPadronLocal();
       if (padronCache.isNotEmpty) {
         setState(() {
           _grupos = padronCache;
-          _error = 'Modo sin conexión: mostrando padrón en caché local.';
+          _pendientesSync = pendientes;
+          _error = 'Modo sin conexion: mostrando padron en cache local.';
           _cargando = false;
         });
       } else {
         setState(() {
           _error = error.toString().replaceFirst('Exception: ', '');
+          _pendientesSync = pendientes;
           _cargando = false;
         });
       }
@@ -361,6 +383,32 @@ class _PestanaAsistenciaState extends State<PestanaAsistencia> {
     }).toList();
   }
 
+  Future<void> _sincronizarPendientesManual() async {
+    final offline = ServicioOffline();
+    final cant = await offline.sincronizarCola(widget.servicioApi);
+    if (!mounted) return;
+    if (cant > 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Se sincronizaron $cant acreditaciones con el servidor.'),
+          backgroundColor: TemaSigic.exito,
+        ),
+      );
+      await _cargar();
+    } else {
+      final quedan = await offline.cantidadPendientes();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(quedan > 0
+              ? 'No se pudo conectar al servidor todavía. Quedan $quedan pendientes.'
+              : 'No hay acreditaciones pendientes.'),
+          backgroundColor: const Color(0xFFB4530A),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final presentes = _grupos.fold<int>(
@@ -389,6 +437,36 @@ class _PestanaAsistenciaState extends State<PestanaAsistencia> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 28),
           children: [
+            if (_pendientesSync > 0)
+              Container(
+                margin: const EdgeInsets.only(bottom: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF59E0B).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFF59E0B)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.cloud_upload_outlined, color: Color(0xFFB4530A), size: 22),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        '$_pendientesSync acreditaciones guardadas offline pendientes de sincronizar.',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF92400E),
+                        ),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: _cargando ? null : _sincronizarPendientesManual,
+                      child: const Text('Sincronizar', style: TextStyle(fontWeight: FontWeight.w800)),
+                    ),
+                  ],
+                ),
+              ),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(

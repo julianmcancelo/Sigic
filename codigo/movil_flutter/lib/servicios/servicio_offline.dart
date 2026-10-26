@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../modelos/grupo_asistencia.dart';
+import 'servicio_api.dart';
 
 class ElementoColaSync {
   const ElementoColaSync({
@@ -102,5 +103,39 @@ class ServicioOffline {
   Future<int> cantidadPendientes() async {
     final cola = await obtenerColaPendiente();
     return cola.length;
+  }
+
+  /// Sincroniza la cola de acreditaciones pendientes contra el servidor
+  Future<int> sincronizarCola(ServicioApi api) async {
+    final cola = await obtenerColaPendiente();
+    if (cola.isEmpty) return 0;
+
+    int sincronizados = 0;
+    final elementosRestantes = <ElementoColaSync>[];
+
+    for (final elem in cola) {
+      try {
+        if (elem.tipo == 'egresado') {
+          await api.acreditarGraduado(elem.id);
+        } else {
+          await api.acreditarInvitado(elem.id);
+        }
+        sincronizados++;
+      } catch (_) {
+        elementosRestantes.add(elem);
+      }
+    }
+
+    final prefs = await _prefs;
+    if (elementosRestantes.isEmpty) {
+      await prefs.remove(claveColaSync);
+    } else {
+      await prefs.setString(
+        claveColaSync,
+        jsonEncode(elementosRestantes.map((e) => e.aMapa()).toList()),
+      );
+    }
+
+    return sincronizados;
   }
 }
