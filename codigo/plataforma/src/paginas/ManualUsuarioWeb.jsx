@@ -703,13 +703,13 @@ function DiagramaArquitectura() {
           <div className="w-0.5 h-full bg-emerald-500/30" />
         </div>
         <div className="bg-sky-500/10 border border-sky-500/25 rounded-md p-1.5 text-center flex flex-col items-center mx-2">
-          <span className="font-black text-white text-[8px] tracking-wide">Vercel Serverless Platform</span>
+          <span className="font-black text-white text-[8px] tracking-wide">Plataforma Web en la Nube</span>
         </div>
         <div className="flex justify-center items-center h-1.5 select-none">
           <div className="w-0.5 h-full bg-sky-500/30" />
         </div>
         <div className="bg-slate-950 border border-white/5 rounded-md p-1.5 text-center flex flex-col items-center mx-6">
-          <span className="font-black text-purple-400">Neon Cloud PostgreSQL</span>
+          <span className="font-black text-sky-400">Base de Datos Central</span>
           <span className="text-white/40 text-[5.5px]">Base de Datos en la Nube</span>
         </div>
       </div>
@@ -720,6 +720,44 @@ function DiagramaArquitectura() {
 // ==========================================
 // COMPONENTE PRINCIPAL DEL MANUAL WEB
 // ==========================================
+// ==========================================
+// EFECTO DE SONIDO PROCEDURAL DE PASO DE HOJA (WEB AUDIO API)
+// ==========================================
+function reproducirSonidoHoja() {
+  try {
+    if (typeof window === 'undefined') return
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext
+    if (!AudioContextClass) return
+    const ctx = new AudioContextClass()
+    const duracion = 0.15
+    const bufferSize = Math.floor(ctx.sampleRate * duracion)
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate)
+    const data = buffer.getChannelData(0)
+    for (let i = 0; i < bufferSize; i++) {
+      const t = i / ctx.sampleRate
+      const envelope = Math.sin((t / duracion) * Math.PI) * Math.exp(-t * 16)
+      data[i] = (Math.random() * 2 - 1) * envelope
+    }
+    const noise = ctx.createBufferSource()
+    noise.buffer = buffer
+    const filter = ctx.createBiquadFilter()
+    filter.type = 'bandpass'
+    filter.frequency.setValueAtTime(1100, ctx.currentTime)
+    filter.Q.setValueAtTime(1.4, ctx.currentTime)
+    filter.frequency.exponentialRampToValueAtTime(320, ctx.currentTime + duracion)
+    const gain = ctx.createGain()
+    gain.gain.setValueAtTime(0.24, ctx.currentTime)
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duracion)
+    noise.connect(filter)
+    filter.connect(gain)
+    gain.connect(ctx.destination)
+    noise.start()
+    noise.stop(ctx.currentTime + duracion)
+  } catch {
+    // Silencioso
+  }
+}
+
 export function ManualUsuarioWeb({ onVolver, sinHeader }) {
   const [estaAbierto, setEstaAbierto] = useState(false)
   const [pliegoActual, setPliegoActual] = useState(0) // 0 a 5 en Escritorio (Desktop)
@@ -733,6 +771,43 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
   const [mostrarCredencial, setMostrarCredencial] = useState(false)
   const [urlManual, setUrlManual] = useState('/manual')
   const [imagenAmpliada, setImagenAmpliada] = useState(null)
+  const [arrastreX, setArrastreX] = useState(null)
+
+  // Gestos de arrastre / swipe (como en react-pageflip)
+  const manejarTouchStart = (e) => {
+    if (e.touches && e.touches[0]) {
+      setArrastreX(e.touches[0].clientX)
+    }
+  }
+
+  const manejarTouchEnd = (e) => {
+    if (arrastreX === null) return
+    const touchActual = e.changedTouches ? e.changedTouches[0].clientX : null
+    if (touchActual !== null) {
+      const diff = arrastreX - touchActual
+      if (Math.abs(diff) > 40) {
+        if (diff > 0) paginaSiguiente()
+        else paginaAnterior()
+      }
+    }
+    setArrastreX(null)
+  }
+
+  const manejarMouseDown = (e) => {
+    if (e.target.closest('button, a, input, select, textarea, .no-swipe')) return
+    setArrastreX(e.clientX)
+  }
+
+  const manejarMouseUp = (e) => {
+    if (arrastreX === null) return
+    const diff = arrastreX - e.clientX
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) paginaSiguiente()
+      else paginaAnterior()
+    }
+    setArrastreX(null)
+  }
+
 
   // Detectar tamaño de pantalla para la vista de hojas
   useEffect(() => {
@@ -767,6 +842,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
   // Pasar pliegos o páginas con efectos
   const cambiarPliego = (nuevoPliego) => {
     if (estaAnimando) return
+    reproducirSonidoHoja()
     setDireccionPaso(nuevoPliego > pliegoActual ? 'adelante' : 'atras')
     setEstaAnimando(true)
     setPliegoActual(nuevoPliego)
@@ -775,6 +851,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
 
   const cambiarPaginaMovil = (nuevaPagina) => {
     if (estaAnimando) return
+    reproducirSonidoHoja()
     setDireccionPaso(nuevaPagina > paginaMovil ? 'adelante' : 'atras')
     setEstaAnimando(true)
     setPaginaMovil(nuevaPagina)
@@ -782,6 +859,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
   }
 
   const abrirLibro = () => {
+    reproducirSonidoHoja()
     setEstaAnimando(true)
     setEstaAbierto(true)
     setPliegoActual(1)
@@ -790,6 +868,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
   }
 
   const cerrarLibro = () => {
+    reproducirSonidoHoja()
     setEstaAnimando(true)
     setEstaAbierto(false)
     setPliegoActual(0)
@@ -892,7 +971,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
           </p>
           <div className="bg-sky-50 border-l-4 border-[#0056b3] p-2 rounded-r-lg mt-2">
             <p className="m-0 text-[9.5px] text-sky-800 font-semibold leading-relaxed">
-              <AlertTriangle size={14} className="text-[#0056b3] inline mr-1 align-middle shrink-0" /> <strong>¡Acordate!</strong> La reserva de butacas de los chicos y los escaneos en las entradas van a afectar exclusivamente a la ceremonia que tenga la estrella de <strong>ACTIVA</strong> en tu panel de ceremonias. Sincroniza al instante contra Neon PostgreSQL.
+              <AlertTriangle size={14} className="text-[#0056b3] inline mr-1 align-middle shrink-0" /> <strong>¡Acordate!</strong> La reserva de butacas de los chicos y los escaneos en las entradas van a afectar exclusivamente a la ceremonia que tenga la estrella de <strong>ACTIVA</strong> en tu panel de ceremonias. Se sincroniza al instante en la base de datos.
             </p>
           </div>
         </div>
@@ -1500,8 +1579,12 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
             position: 'relative',
           }}
         >
-          {/* CUERPO DEL LIBRO CON SCALE DINÁMICO */}
+          {/* CUERPO DEL LIBRO CON SCALE DINÁMICO Y GESTOS TÁCTILES */}
           <div
+            onTouchStart={manejarTouchStart}
+            onTouchEnd={manejarTouchEnd}
+            onMouseDown={manejarMouseDown}
+            onMouseUp={manejarMouseUp}
             className={`w-full bg-[#fdfdfb] relative transition-shadow duration-300 ${esMovil ? "overflow-hidden" : "overflow-x-hidden overflow-y-auto"}`}
             style={{
               transform: `scale(${nivelZoom})`,
@@ -1528,7 +1611,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
 
               {/* MÓVIL: MUESTRA UNA SOLA PÁGINA */}
               {esMovil ? (
-                <div className="flex min-h-[calc(100dvh-88px)] w-full flex-col justify-between bg-paper p-4 sm:min-h-[calc(100dvh-100px)] sm:p-8">
+                <div className="flex min-h-[calc(100dvh-88px)] w-full flex-col justify-between bg-paper p-4 sm:min-h-[calc(100dvh-100px)] sm:p-8 relative borde-apilado-derecha select-text">
                   <div className="contenido-pagina-manual flex-1">
                     {listaPaginas[paginaMovil]}
                   </div>
@@ -1536,11 +1619,22 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
                     <span>SiGIC Manual</span>
                     <span>Pág. {paginaMovil} / 16</span>
                   </div>
+
+                  {/* Corner curl móvil */}
+                  {paginaMovil < 16 && (
+                    <div
+                      onClick={paginaSiguiente}
+                      className="group/curl-m absolute bottom-0 right-0 w-11 h-11 z-30 cursor-pointer overflow-hidden transition-all duration-300 hover:w-16 hover:h-16"
+                      title="Siguiente página"
+                    >
+                      <div className="absolute bottom-0 right-0 w-0 h-0 border-solid border-t-transparent border-l-transparent border-r-slate-300/80 border-b-slate-300/80 border-t-[0px] border-l-[0px] border-r-[24px] border-b-[24px] group-hover/curl-m:border-r-[36px] group-hover/curl-m:border-b-[36px] group-hover/curl-m:border-r-sky-500/40 group-hover/curl-m:border-b-sky-500/40 shadow-[-3px_-3px_8px_rgba(0,0,0,0.15)] transition-all duration-300" />
+                    </div>
+                  )}
                 </div>
               ) : (
                 // DESKTOP: DOS PÁGINAS (IZQUIERDA Y DERECHA)
                 <>
-                  <div className="w-1/2 bg-paper p-8 flex flex-col justify-between border-r border-slate-150 relative page-shadow-left">
+                  <div className="w-1/2 bg-paper p-8 flex flex-col justify-between border-r border-slate-150 relative page-shadow-left borde-apilado-izquierda select-text">
                     <div className="contenido-pagina-manual flex-1">
                       {listaPaginas[(pliegoActual - 1) * 2 + 1]}
                     </div>
@@ -1548,9 +1642,23 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
                       <span>SiGIC Manual</span>
                       <span>Pág. {(pliegoActual - 1) * 2 + 1}</span>
                     </div>
+
+                    {/* Pliegue de esquina izquierda (estilo react-pageflip) */}
+                    {pliegoActual > 1 && (
+                      <div
+                        onClick={paginaAnterior}
+                        className="group/curl-left absolute bottom-0 left-0 w-11 h-11 z-30 cursor-pointer overflow-hidden transition-all duration-300 hover:w-16 hover:h-16"
+                        title="Página anterior (hacé clic o arrastrá)"
+                      >
+                        <div className="absolute bottom-0 left-0 w-0 h-0 border-solid border-t-transparent border-r-transparent border-l-slate-300/80 border-b-slate-300/80 border-t-[0px] border-r-[0px] border-l-[24px] border-b-[24px] group-hover/curl-left:border-l-[36px] group-hover/curl-left:border-b-[36px] group-hover/curl-left:border-l-sky-500/40 group-hover/curl-left:border-b-sky-500/40 shadow-[3px_-3px_8px_rgba(0,0,0,0.15)] transition-all duration-300" />
+                        <span className="absolute bottom-1 left-1.5 text-[8.5px] font-mono text-slate-600 font-black opacity-0 group-hover/curl-left:opacity-100 transition-opacity">
+                          ←
+                        </span>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="w-1/2 bg-paper p-8 flex flex-col justify-between relative page-shadow-right">
+                  <div className="w-1/2 bg-paper p-8 flex flex-col justify-between relative page-shadow-right borde-apilado-derecha select-text">
                     <div className="contenido-pagina-manual flex-1">
                       {listaPaginas[(pliegoActual - 1) * 2 + 2]}
                     </div>
@@ -1558,6 +1666,20 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
                       <span>Manual Oficial</span>
                       <span>Pág. {(pliegoActual - 1) * 2 + 2}</span>
                     </div>
+
+                    {/* Pliegue de esquina derecha (estilo react-pageflip) */}
+                    {pliegoActual < 8 && (
+                      <div
+                        onClick={paginaSiguiente}
+                        className="group/curl-right absolute bottom-0 right-0 w-11 h-11 z-30 cursor-pointer overflow-hidden transition-all duration-300 hover:w-16 hover:h-16"
+                        title="Página siguiente (hacé clic o arrastrá)"
+                      >
+                        <div className="absolute bottom-0 right-0 w-0 h-0 border-solid border-t-transparent border-l-transparent border-r-slate-300/80 border-b-slate-300/80 border-t-[0px] border-l-[0px] border-r-[24px] border-b-[24px] group-hover/curl-right:border-r-[36px] group-hover/curl-right:border-b-[36px] group-hover/curl-right:border-r-sky-500/40 group-hover/curl-right:border-b-sky-500/40 shadow-[-3px_-3px_8px_rgba(0,0,0,0.15)] transition-all duration-300" />
+                        <span className="absolute bottom-1 right-1.5 text-[8.5px] font-mono text-slate-600 font-black opacity-0 group-hover/curl-right:opacity-100 transition-opacity">
+                          →
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </>
               )}
@@ -1664,6 +1786,26 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
           }
           .page-shadow-right {
             box-shadow: inset 15px 0 20px rgba(0, 0, 0, 0.02);
+          }
+          .borde-apilado-derecha {
+            box-shadow: 
+              inset 15px 0 20px rgba(0, 0, 0, 0.02),
+              1px 0 0 #f1f5f9,
+              2px 0 0 #cbd5e1,
+              3px 0 0 #f1f5f9,
+              4px 0 0 #cbd5e1,
+              5px 0 0 #e2e8f0,
+              8px 4px 18px rgba(15, 23, 42, 0.08);
+          }
+          .borde-apilado-izquierda {
+            box-shadow: 
+              inset -15px 0 20px rgba(0, 0, 0, 0.02),
+              -1px 0 0 #f1f5f9,
+              -2px 0 0 #cbd5e1,
+              -3px 0 0 #f1f5f9,
+              -4px 0 0 #cbd5e1,
+              -5px 0 0 #e2e8f0,
+              -8px 4px 18px rgba(15, 23, 42, 0.08);
           }
           .bg-paper {
             background-color: #fdfdfb;
