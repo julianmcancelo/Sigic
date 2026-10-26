@@ -1349,31 +1349,138 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
       </div>
     ),
 
-    // Página 15: Contraportada
+    // Página 15: Nómina Institucional y Equipo de Proyecto
     (
-      <div className="flex flex-col items-center justify-center text-center h-full space-y-4 select-none py-6">
-        <div className="h-12 w-12 rounded-2xl flex items-center justify-center overflow-hidden border border-slate-100 shadow-sm bg-slate-50">
-          <img src="/logo-oficial.png" alt="Logo" className="h-8 w-auto object-contain" />
-        </div>
+      <div className="h-full flex flex-col justify-between py-1 select-none">
         <div>
-          <h4 className="font-black text-slate-800 text-base">SiGIC V2</h4>
-          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Proyecto Final - Colaciones</p>
+          {/* Encabezado Institucional Beltrán */}
+          <div className="flex items-center justify-between pb-2.5 mb-3 border-b border-slate-100">
+            <div>
+              <span className="text-[8px] font-black uppercase tracking-wider text-[#0056b3]">Instituto Tecnológico Beltrán</span>
+              <p className="text-[10px] font-extrabold text-slate-800 tracking-tight">Práctica Profesionalizante 2026</p>
+            </div>
+            <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[8px] font-black text-sky-700 border border-sky-100 uppercase tracking-widest">
+              Proyecto SiGIC
+            </span>
+          </div>
+
+          <div className="mb-3">
+            <h4 className="text-sm font-black text-slate-900 tracking-tight">Equipo de Proyecto</h4>
+            <p className="text-[8.5px] text-slate-500 font-medium">Tecnicatura Superior en Analista de Sistemas</p>
+          </div>
+
+          {/* Lista de Integrantes */}
+          <div className="space-y-1.5">
+            {/* Julian Cancelo - Líder */}
+            <div className="rounded-lg border border-sky-200 bg-gradient-to-r from-sky-50/80 to-white p-2 shadow-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black text-slate-900">Cancelo Julian</span>
+                <span className="rounded bg-sky-600 px-1.5 py-0.5 text-[7.5px] font-black tracking-wide text-white uppercase">
+                  Líder de Proyecto
+                </span>
+              </div>
+              <p className="text-[8.5px] font-semibold text-sky-700 mt-0.5">Líder de Proyecto & Fullstack · Analista de Sistemas</p>
+            </div>
+
+            {/* Alfonso Alan Alexis */}
+            <div className="rounded-lg border border-slate-100 bg-slate-50/60 p-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[9.5px] font-bold text-slate-800">Alfonso Alan Alexis</span>
+                <span className="text-[8px] font-semibold text-slate-500">Analista de Sistemas</span>
+              </div>
+            </div>
+
+            {/* Contreras Villalba Sol Heilin */}
+            <div className="rounded-lg border border-slate-100 bg-slate-50/60 p-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[9.5px] font-bold text-slate-800">Contreras Villalba Sol Heilin</span>
+                <span className="text-[8px] font-semibold text-slate-500">Analista de Sistemas</span>
+              </div>
+            </div>
+
+            {/* Frassia Matias */}
+            <div className="rounded-lg border border-slate-100 bg-slate-50/60 p-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[9.5px] font-bold text-slate-800">Frassia Matias</span>
+                <span className="text-[8px] font-semibold text-slate-500">Analista de Sistemas</span>
+              </div>
+            </div>
+
+            {/* Santillan Luis Gabriel */}
+            <div className="rounded-lg border border-slate-100 bg-slate-50/60 p-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[9.5px] font-bold text-slate-800">Santillan Luis Gabriel</span>
+                <span className="text-[8px] font-semibold text-slate-500">Analista de Sistemas</span>
+              </div>
+            </div>
+          </div>
         </div>
-        <div className="h-[1.5px] w-20 bg-gradient-to-r from-transparent via-sky-500/30 to-transparent" />
-        <p className="text-[9px] text-slate-400 leading-normal max-w-[200px] font-bold uppercase tracking-wider">
-          Desarrollado para la gestión de actos de graduación del ITB.
-        </p>
-        <div className="flex items-center gap-1.5 text-[9.5px] text-sky-500 font-bold">
-          <span>Hecho con</span> <Heart size={11} className="fill-sky-500 text-sky-500 animate-pulse" /> <span>por alumnos de PP</span>
+
+        {/* Bloque Institucional Inferior */}
+        <div className="mt-3 pt-2.5 border-t border-slate-100">
+          <div className="rounded-lg bg-slate-50 p-2 text-center border border-slate-100">
+            <p className="text-[8.5px] font-bold text-slate-700">Sistema de Gestión Institucional de Colaciones</p>
+            <p className="text-[7.5px] text-slate-500 mt-0.5">
+              Plataforma desarrollada para la automatización, acreditación y asignación de ceremonias de graduación.
+            </p>
+            <p className="text-[7px] text-slate-400 font-mono mt-1">Avellaneda, Buenos Aires · Ciclo 2026</p>
+          </div>
         </div>
       </div>
     ),
 
-    // Página 16: Contratapa
+    // Página 16: Contratapa Oficial SiGIC (Tapa Dura Posterior)
     (
-      <div className="flex flex-col items-center justify-center text-center h-full space-y-2 select-none py-6 bg-slate-900 text-white rounded-r-2xl -mr-6 -my-6 p-6">
-        <span className="text-[10px] font-black uppercase tracking-widest text-[#29ABE2]">SiGIC Acceso Seguro</span>
-        <p className="text-[8px] text-slate-400">© 2026 Instituto Tecnológico Beltrán. Todos los derechos reservados.</p>
+      <div className="h-full w-full bg-gradient-to-br from-[#061224] via-[#0b1f3d] to-[#040914] text-white flex flex-col justify-between p-6 sm:p-7 select-none relative overflow-hidden">
+        {/* Glow de fondo */}
+        <div className="absolute -top-20 -right-20 w-52 h-52 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-20 -left-20 w-52 h-52 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
+
+        {/* Cabecera Contratapa */}
+        <div className="relative z-10 flex flex-col items-center text-center">
+          <div className="flex items-center gap-2 mb-1.5">
+            <div className="h-7 w-7 rounded-lg bg-sky-500/20 border border-sky-400/30 flex items-center justify-center">
+              <GraduationCap className="h-4 w-4 text-sky-400" />
+            </div>
+            <span className="text-sm font-black tracking-wider text-white">SiGIC</span>
+          </div>
+          <span className="text-[9px] font-bold text-sky-300 tracking-wider uppercase">
+            Sistema de Gestión Institucional de Colaciones
+          </span>
+          <div className="h-0.5 w-12 bg-sky-500/40 rounded-full my-2" />
+        </div>
+
+        {/* Centro: QR y Acceso Directo */}
+        <div className="relative z-10 flex flex-col items-center text-center my-auto">
+          <div className="p-3 bg-white rounded-xl shadow-xl shadow-black/40 border border-white/20 mb-2.5">
+            <QRCodeSVG 
+              value="https://sigic.com.ar/manual" 
+              size={110} 
+              level="H" 
+              includeMargin={false}
+              className="rounded"
+            />
+          </div>
+          <span className="text-[8.5px] font-black uppercase tracking-widest text-sky-300">
+            Acceso Digital & Guía Rápida
+          </span>
+          <p className="text-[7.5px] text-slate-300 max-w-[220px] leading-tight mt-1">
+            Escaneá el código QR para consultar el manual interactivo, novedades y soporte institucional en línea.
+          </p>
+        </div>
+
+        {/* Pie Institucional Oficial */}
+        <div className="relative z-10 border-t border-white/10 pt-3 text-center">
+          <p className="text-[8.5px] font-black text-white tracking-wide">
+            INSTITUTO TECNOLÓGICO BELTRÁN
+          </p>
+          <p className="text-[7.5px] text-slate-400 mt-0.5 font-medium">
+            Tecnicatura Superior en Analista de Sistemas
+          </p>
+          <p className="text-[7px] text-slate-500 mt-1 font-mono">
+            © 2026 SiGIC · Todos los derechos reservados · Avellaneda, Buenos Aires
+          </p>
+        </div>
       </div>
     )
   ]

@@ -25,7 +25,7 @@ const PaginaHoja = forwardRef(({ children, numero, esPortada, esContraportada, c
         boxShadow: esPortada || esContraportada ? 'none' : 'inset 0 0 35px rgba(0,0,0,0.03)',
       }}
     >
-      <div className="flex-1 p-5 sm:p-7 select-text">
+      <div className={`flex-1 select-text ${esPortada || esContraportada ? 'p-0 h-full flex flex-col' : 'p-5 sm:p-7'}`}>
         {children}
       </div>
       {!esPortada && !esContraportada && (
@@ -98,35 +98,23 @@ export const ManualFlipBookEngine = forwardRef(function ManualFlipBookEngine(
           </div>
         </PaginaHoja>
 
-        {/* PÁGINAS DE CONTENIDO */}
-        {listaPaginas.slice(1).map((contenido, idx) => (
-          <PaginaHoja key={idx + 1} numero={idx + 1}>
-            <div className="contenido-pagina-manual text-slate-700">
-              {contenido}
-            </div>
-          </PaginaHoja>
-        ))}
-
-        {/* CONTRAPORTADA */}
-        <PaginaHoja esContraportada numero={listaPaginas.length} className="flex flex-col items-center justify-center text-center p-8 bg-slate-900 text-white">
-          <div className="space-y-4 select-none">
-            <div className="w-16 h-16 rounded-2xl bg-[#0056b3]/20 border border-[#0056b3]/40 flex items-center justify-center mx-auto text-[#29ABE2] font-black text-2xl">
-              SG
-            </div>
-            <span className="text-xs font-black uppercase tracking-widest text-[#29ABE2] block">
-              SiGIC · Manual Institucional
-            </span>
-            <p className="text-[11px] text-slate-300 font-medium">
-              Instituto Tecnológico Beltrán
-            </p>
-            <p className="text-[10px] text-slate-400">
-              Tecnicatura Superior en Analista de Sistemas
-            </p>
-            <p className="text-[9px] text-slate-500 font-mono pt-4 border-t border-slate-800">
-              Ciclo Lectivo 2026 · Avellaneda
-            </p>
-          </div>
-        </PaginaHoja>
+        {/* PÁGINAS DE CONTENIDO Y CONTRAPORTADA */}
+        {listaPaginas.slice(1).map((contenido, idx) => {
+          const numeroPag = idx + 1
+          const esContratapa = numeroPag === 16
+          return (
+            <PaginaHoja 
+              key={numeroPag} 
+              numero={numeroPag} 
+              esContraportada={esContratapa}
+              className={esContratapa ? "!p-0 !bg-[#0a192f] overflow-hidden" : ""}
+            >
+              <div className={`contenido-pagina-manual h-full ${esContratapa ? "h-full" : "text-slate-700"}`}>
+                {contenido}
+              </div>
+            </PaginaHoja>
+          )
+        })}
       </HTMLFlipBook>
     </div>
   )
