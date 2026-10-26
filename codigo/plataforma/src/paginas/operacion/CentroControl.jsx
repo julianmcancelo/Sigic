@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import {
   Settings, Shield, RefreshCw, Database, AlertTriangle,
-  Server, CheckCircle2, Download, Trash2, Terminal, ArrowLeft, Mail, Play
+  Server, CheckCircle2, Download, Trash2, Terminal, ArrowLeft, Mail, Play, ExternalLink
 } from 'lucide-react'
 import { VERSION_LABEL } from '../../lib/version'
 import { 
@@ -252,6 +252,16 @@ export function CentroControl({ usuario, onVolver, onCerrarSesion }) {
             <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">Base de Datos</h3>
             <p className="text-sm font-black text-slate-800 mt-1">Neon PostgreSQL Cloud</p>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Graduados: {metricas.egresados} | Invitados: {metricas.invitados}</p>
+            <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between">
+              <a
+                href="/esquema/index.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-[10px] font-bold text-purple-600 hover:text-purple-700 transition"
+              >
+                <ExternalLink size={11} /> Ver Esquema DER Interactivo
+              </a>
+            </div>
           </div>
         </div>
 

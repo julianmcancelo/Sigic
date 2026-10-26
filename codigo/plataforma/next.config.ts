@@ -1,4 +1,14 @@
 import type { NextConfig } from "next";
+import { execSync } from "child_process";
+
+let commitSha = process.env.VERCEL_GIT_COMMIT_SHA || '';
+if (!commitSha) {
+  try {
+    commitSha = execSync('git rev-parse --short HEAD').toString().trim();
+  } catch {
+    commitSha = 'local';
+  }
+}
 
 // El archivo exportado de Vercel permite probar el backend real de Neon en local
 // sin volver a apuntar la interfaz a una demo remota que puede estar desactualizada.
@@ -67,9 +77,8 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: true,
   },
   env: {
-    // Vercel inyecta VERCEL_GIT_COMMIT_SHA en build; lo exponemos al cliente
-    // para mostrar version + commit en la interfaz (ver src/lib/version.ts).
-    NEXT_PUBLIC_COMMIT_SHA: process.env.VERCEL_GIT_COMMIT_SHA || '',
+    // Vercel inyecta VERCEL_GIT_COMMIT_SHA en build; en local se toma de git.
+    NEXT_PUBLIC_COMMIT_SHA: commitSha,
   },
 };
 
