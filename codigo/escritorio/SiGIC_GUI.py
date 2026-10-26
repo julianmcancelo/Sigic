@@ -112,27 +112,21 @@ class SigicApp(ctk.CTk):
         self.after(2500, self._iniciar_monitoreo_estado)
 
     def _crear_interfaz(self):
-        # Contenedor principal con Scrollbar discreta para compatibilidad con pantallas pequeñas
-        self.scroll_frame = ctk.CTkScrollableFrame(
-            self,
-            fg_color="#f1f5f9",
-            corner_radius=0,
-            scrollbar_button_color="#cbd5e1",
-            scrollbar_button_hover_color="#94a3b8"
-        )
-        self.scroll_frame.pack(fill="both", expand=True, padx=14, pady=(10, 6))
+        # Contenedor principal sin barras de scroll
+        self.main_container = ctk.CTkFrame(self, fg_color="#f1f5f9", corner_radius=0)
+        self.main_container.pack(fill="both", expand=True, padx=16, pady=(12, 8))
 
         # -------------------------------------------------------------
-        # 1. ENCABEZADO INSTITUCIONAL CON LOGO BELTRÁN
+        # 1. ENCABEZADO INSTITUCIONAL CON LOGO BELTRÁN Y ESTADO EN VIVO
         # -------------------------------------------------------------
         header_card = ctk.CTkFrame(
-            self.scroll_frame,
+            self.main_container,
             fg_color="#ffffff",
             corner_radius=12,
             border_width=1,
             border_color="#e2e8f0"
         )
-        header_card.pack(fill="x", pady=(0, 6), padx=2)
+        header_card.pack(fill="x", pady=(0, 10))
 
         header_inner = ctk.CTkFrame(header_card, fg_color="transparent")
         header_inner.pack(fill="x", padx=16, pady=10)
@@ -146,11 +140,11 @@ class SigicApp(ctk.CTk):
         if logo_path and os.path.exists(logo_path):
             try:
                 pil_img = Image.open(logo_path)
-                self.logo_image = ctk.CTkImage(light_image=pil_img, dark_image=pil_img, size=(48, 48))
+                self.logo_image = ctk.CTkImage(light_image=pil_img, dark_image=pil_img, size=(46, 46))
             except Exception as e:
                 print("Error cargando logo:", e)
 
-        # Layout del encabezado (Logo a la izquierda, Títulos a la derecha)
+        # Layout del encabezado (Logo a la izquierda, Títulos al centro, Estados a la derecha)
         if self.logo_image:
             lbl_logo = ctk.CTkLabel(header_inner, image=self.logo_image, text="")
             lbl_logo.pack(side="left", padx=(0, 14))
@@ -189,54 +183,40 @@ class SigicApp(ctk.CTk):
         )
         subtitle.pack(anchor="w", pady=(1, 0))
 
-        # -------------------------------------------------------------
-        # 2. BARRA DE ESTADO DE SERVICIOS
-        # -------------------------------------------------------------
-        status_bar = ctk.CTkFrame(
-            self.scroll_frame,
-            fg_color="#ffffff",
-            corner_radius=10,
-            border_width=1,
-            border_color="#e2e8f0"
-        )
-        status_bar.pack(fill="x", pady=(0, 6), padx=2)
+        # Indicadores de Estado en el Encabezado (a la derecha)
+        status_box = ctk.CTkFrame(header_inner, fg_color="transparent")
+        status_box.pack(side="right", padx=(10, 0), pady=1)
 
-        sb_inner = ctk.CTkFrame(status_bar, fg_color="transparent")
-        sb_inner.pack(fill="x", padx=12, pady=4)
-
-        # Servicio Cloud
-        f_cloud = ctk.CTkFrame(sb_inner, fg_color="#f0fdf4", corner_radius=6, border_width=1, border_color="#bbf7d0")
-        f_cloud.pack(side="left", padx=(0, 8), pady=1)
+        f_cloud = ctk.CTkFrame(status_box, fg_color="#f0fdf4", corner_radius=6, border_width=1, border_color="#bbf7d0")
+        f_cloud.pack(anchor="e", pady=1)
         self.lbl_cloud = ctk.CTkLabel(
             f_cloud,
             text="● Cloud: app.sigic.com.ar",
-            font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"),
+            font=ctk.CTkFont(family="Segoe UI", size=9, weight="bold"),
             text_color="#15803d",
             padx=8,
             pady=2
         )
         self.lbl_cloud.pack()
 
-        # Servicio Base de Datos
-        f_db = ctk.CTkFrame(sb_inner, fg_color="#f0f9ff", corner_radius=6, border_width=1, border_color="#bae6fd")
-        f_db.pack(side="left", padx=(0, 8), pady=1)
+        f_db = ctk.CTkFrame(status_box, fg_color="#f0f9ff", corner_radius=6, border_width=1, border_color="#bae6fd")
+        f_db.pack(anchor="e", pady=1)
         self.lbl_db = ctk.CTkLabel(
             f_db,
-            text="● Neon PostgreSQL (SSL Conectado)",
-            font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"),
+            text="● Neon PostgreSQL (SSL)",
+            font=ctk.CTkFont(family="Segoe UI", size=9, weight="bold"),
             text_color="#0369a1",
             padx=8,
             pady=2
         )
         self.lbl_db.pack()
 
-        # Servicio Local
-        self.f_local = ctk.CTkFrame(sb_inner, fg_color="#f8fafc", corner_radius=6, border_width=1, border_color="#e2e8f0")
-        self.f_local.pack(side="right", padx=0, pady=1)
+        self.f_local = ctk.CTkFrame(status_box, fg_color="#f8fafc", corner_radius=6, border_width=1, border_color="#e2e8f0")
+        self.f_local.pack(anchor="e", pady=1)
         self.lbl_local = ctk.CTkLabel(
             self.f_local,
             text="○ Local: Detenido",
-            font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"),
+            font=ctk.CTkFont(family="Segoe UI", size=9, weight="bold"),
             text_color="#64748b",
             padx=8,
             pady=2
@@ -244,194 +224,282 @@ class SigicApp(ctk.CTk):
         self.lbl_local.pack()
 
         # -------------------------------------------------------------
-        # 3. GRILLA DE 4 MÓDULOS PRINCIPALES
+        # 2. SISTEMA DE SOLAPAS (TABVIEW DEDICADO POR MÓDULO)
         # -------------------------------------------------------------
-        grid_frame = ctk.CTkFrame(self.scroll_frame, fg_color="transparent")
-        grid_frame.pack(fill="x", pady=(0, 6))
-        grid_frame.grid_columnconfigure(0, weight=1)
-        grid_frame.grid_columnconfigure(1, weight=1)
+        self.tabview = ctk.CTkTabview(
+            self.main_container,
+            fg_color="#ffffff",
+            corner_radius=12,
+            border_width=1,
+            border_color="#e2e8f0",
+            segmented_button_fg_color="#f1f5f9",
+            segmented_button_selected_color="#0284c7",
+            segmented_button_selected_hover_color="#0369a1",
+            segmented_button_unselected_color="#ffffff",
+            segmented_button_unselected_hover_color="#e2e8f0",
+            text_color="#0f172a"
+        )
+        self.tabview.pack(fill="both", expand=True, padx=0, pady=(0, 8))
 
-        # --- TARJETA 1: PLATAFORMA EN LA NUBE (PRODUCCIÓN) ---
-        c1 = ctk.CTkFrame(grid_frame, fg_color="#ffffff", corner_radius=12, border_width=1, border_color="#38bdf8")
-        c1.grid(row=0, column=0, padx=4, pady=4, sticky="nsew")
+        # Crear las 5 Solapas Dedicadas
+        tab_cloud = self.tabview.add("Plataforma Cloud")
+        tab_local = self.tabview.add("Servidor Local")
+        tab_doc = self.tabview.add("Documentación & DER")
+        tab_apk = self.tabview.add("App Móvil Android")
+        tab_console = self.tabview.add("Consola de Diagnóstico")
 
-        tag_cloud = ctk.CTkLabel(
-            c1,
-            text="PRODUCCIÓN · ALTA DISPONIBILIDAD",
+        self.tabview._segmented_button.configure(
+            font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
+            height=32
+        )
+
+        # -------------------------------------------------------------
+        # SOLAPA 1: PLATAFORMA EN LA NUBE (PRODUCCIÓN)
+        # -------------------------------------------------------------
+        p1 = ctk.CTkFrame(tab_cloud, fg_color="transparent")
+        p1.pack(fill="both", expand=True, padx=16, pady=12)
+
+        tag_c1 = ctk.CTkLabel(
+            p1,
+            text="PRODUCCIÓN · ALTA DISPONIBILIDAD (VERCEL + NEON CLOUD)",
             font=ctk.CTkFont(family="Segoe UI", size=9, weight="bold"),
             text_color="#0284c7",
             fg_color="#e0f2fe",
             corner_radius=5,
-            padx=7,
-            pady=1
+            padx=8,
+            pady=2
         )
-        tag_cloud.pack(anchor="w", padx=14, pady=(10, 3))
+        tag_c1.pack(anchor="w", pady=(0, 6))
 
         ctk.CTkLabel(
-            c1,
-            text="Plataforma en la Nube",
-            font=ctk.CTkFont(family="Segoe UI", size=14, weight="bold"),
+            p1,
+            text="Instancia de Producción Oficial de SiGIC",
+            font=ctk.CTkFont(family="Segoe UI", size=17, weight="bold"),
             text_color="#0f172a"
-        ).pack(anchor="w", padx=14, pady=(0, 2))
+        ).pack(anchor="w")
 
         ctk.CTkLabel(
-            c1,
-            text="Instancia oficial desplegada en Vercel conectada a Neon PostgreSQL (SSL). Portal administrativo institucional y portal del graduado.",
-            font=ctk.CTkFont(family="Segoe UI", size=10),
+            p1,
+            text="Despliegue serverless de alta disponibilidad en la infraestructura de Vercel Edge conectado a Neon PostgreSQL Serverless con encriptación SSL TLS 1.3. Permite la administración integral de ceremonias, graduados, asignación de butacas interactivas y canje de credenciales OTP.",
+            font=ctk.CTkFont(family="Segoe UI", size=11),
             text_color="#64748b",
-            wraplength=390,
+            wraplength=820,
             justify="left"
-        ).pack(anchor="w", padx=14, pady=(0, 8))
+        ).pack(anchor="w", pady=(4, 14))
 
-        btn_cloud = ctk.CTkButton(
-            c1,
-            text="Abrir Plataforma Oficial (app.sigic.com.ar) ↗",
-            font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
+        # Especificaciones técnicas de la nube
+        specs_box = ctk.CTkFrame(p1, fg_color="#f8fafc", corner_radius=10, border_width=1, border_color="#e2e8f0")
+        specs_box.pack(fill="x", pady=(0, 16), padx=2)
+
+        items_specs = [
+            ("Portal de Gestión Administrativa:", "https://app.sigic.com.ar (Acceso directo para autoridades y personal)"),
+            ("Portal de Autogestión del Egresado:", "https://graduados.sigic.com.ar (Confirmación de asistencia, acompañantes y QR)"),
+            ("Fachada Institucional Beltrán:", "https://www.sigic.com.ar (Presentación institucional y manual de usuario)"),
+            ("Infraestructura de Base de Datos:", "Neon PostgreSQL Serverless (SSL) con pool de conexiones nativo"),
+            ("Seguridad y Autenticación:", "Tokens JWT firmados (HS256), hashing BCrypt de 12 rondas y Rate Limiting"),
+        ]
+        for titular, detalle in items_specs:
+            row_f = ctk.CTkFrame(specs_box, fg_color="transparent")
+            row_f.pack(fill="x", padx=14, pady=3)
+            ctk.CTkLabel(row_f, text=titular, font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"), text_color="#334155", width=240, anchor="w").pack(side="left")
+            ctk.CTkLabel(row_f, text=detalle, font=ctk.CTkFont(family="Segoe UI", size=10), text_color="#64748b", anchor="w").pack(side="left", fill="x", expand=True)
+
+        # Botones de acción Cloud
+        btn_row_c = ctk.CTkFrame(p1, fg_color="transparent")
+        btn_row_c.pack(fill="x", pady=(6, 0))
+
+        btn_cloud_admin = ctk.CTkButton(
+            btn_row_c,
+            text="Abrir Portal Administrativo (app.sigic.com.ar) ↗",
+            font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
             fg_color="#0284c7",
             hover_color="#0369a1",
             text_color="#ffffff",
-            corner_radius=7,
-            height=30,
+            corner_radius=8,
+            height=38,
             command=lambda: webbrowser.open("https://app.sigic.com.ar")
         )
-        btn_cloud.pack(fill="x", padx=14, pady=(0, 10))
+        btn_cloud_admin.pack(side="left", fill="x", expand=True, padx=(0, 8))
 
-        # --- TARJETA 2: SERVIDOR LOCAL NEXT.JS TURBOPACK ---
-        c2 = ctk.CTkFrame(grid_frame, fg_color="#ffffff", corner_radius=12, border_width=1, border_color="#e2e8f0")
-        c2.grid(row=1, column=0, padx=4, pady=4, sticky="nsew")
+        btn_cloud_grad = ctk.CTkButton(
+            btn_row_c,
+            text="Abrir Portal de Egresados (graduados.sigic.com.ar) ↗",
+            font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
+            fg_color="#f1f5f9",
+            hover_color="#e2e8f0",
+            text_color="#0f172a",
+            border_width=1,
+            border_color="#cbd5e1",
+            corner_radius=8,
+            height=38,
+            command=lambda: webbrowser.open("https://graduados.sigic.com.ar")
+        )
+        btn_cloud_grad.pack(side="left", fill="x", expand=True, padx=(8, 0))
 
-        tag_local = ctk.CTkLabel(
-            c2,
-            text="ENTORNO LOCAL / MODO EVALUACIÓN",
+        # -------------------------------------------------------------
+        # SOLAPA 2: SERVIDOR LOCAL (TURBOPACK)
+        # -------------------------------------------------------------
+        p2 = ctk.CTkFrame(tab_local, fg_color="transparent")
+        p2.pack(fill="both", expand=True, padx=16, pady=12)
+
+        tag_c2 = ctk.CTkLabel(
+            p2,
+            text="ENTORNO LOCAL / MODO EVALUACIÓN Y DEMOSTRACIÓN",
             font=ctk.CTkFont(family="Segoe UI", size=9, weight="bold"),
             text_color="#15803d",
             fg_color="#dcfce7",
             corner_radius=5,
-            padx=7,
-            pady=1
+            padx=8,
+            pady=2
         )
-        tag_local.pack(anchor="w", padx=14, pady=(10, 3))
+        tag_c2.pack(anchor="w", pady=(0, 6))
 
         ctk.CTkLabel(
-            c2,
-            text="Servidor Web Local (Turbopack)",
-            font=ctk.CTkFont(family="Segoe UI", size=14, weight="bold"),
+            p2,
+            text="Servidor Web Local (Turbopack en Puerto 3000)",
+            font=ctk.CTkFont(family="Segoe UI", size=17, weight="bold"),
             text_color="#0f172a"
-        ).pack(anchor="w", padx=14, pady=(0, 2))
+        ).pack(anchor="w")
 
         ctk.CTkLabel(
-            c2,
-            text="Ejecuta el código fuente localmente en el puerto 3000 de este equipo para pruebas y desarrollo directo.",
-            font=ctk.CTkFont(family="Segoe UI", size=10),
+            p2,
+            text="Ejecuta el código fuente localmente en esta máquina para evaluación ante la mesa académica, pruebas autónomas sin conexión a internet y desarrollo directo.",
+            font=ctk.CTkFont(family="Segoe UI", size=11),
             text_color="#64748b",
-            wraplength=390,
+            wraplength=820,
             justify="left"
-        ).pack(anchor="w", padx=14, pady=(0, 6))
+        ).pack(anchor="w", pady=(4, 12))
 
-        # Selector de Base de Datos
-        db_sel_frame = ctk.CTkFrame(c2, fg_color="#f8fafc", corner_radius=7, border_width=1, border_color="#e2e8f0")
-        db_sel_frame.pack(fill="x", padx=14, pady=(0, 6))
+        # Selector de Base de Datos y Parámetros
+        db_box = ctk.CTkFrame(p2, fg_color="#f8fafc", corner_radius=10, border_width=1, border_color="#e2e8f0")
+        db_box.pack(fill="x", pady=(0, 16), padx=2)
+
+        db_sel_header = ctk.CTkFrame(db_box, fg_color="transparent")
+        db_sel_header.pack(fill="x", padx=14, pady=(10, 6))
 
         ctk.CTkLabel(
-            db_sel_frame,
-            text="Base de Datos:",
-            font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"),
-            text_color="#475569"
-        ).pack(side="left", padx=(8, 6), pady=2)
+            db_sel_header,
+            text="Selección del Motor de Base de Datos:",
+            font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
+            text_color="#1e293b"
+        ).pack(side="left")
 
         self.seg_db_mode = ctk.CTkSegmentedButton(
-            db_sel_frame,
+            db_sel_header,
             values=["Nube Neon (SSL)", "PostgreSQL 16 Portable (Local)"],
             font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"),
             selected_color="#0284c7",
             selected_hover_color="#0369a1",
-            height=24,
+            height=28,
             command=self._cambiar_modo_db
         )
         self.seg_db_mode.set("Nube Neon (SSL)")
-        self.seg_db_mode.pack(side="left", fill="x", expand=True, padx=(0, 4), pady=2)
+        self.seg_db_mode.pack(side="right")
 
-        local_btn_row = ctk.CTkFrame(c2, fg_color="transparent")
-        local_btn_row.pack(fill="x", padx=14, pady=(0, 10))
+        ctk.CTkLabel(
+            db_box,
+            text="• Modo Nube Neon (SSL): Utiliza la base de datos distribuida en la nube con datos reales sincronizados en tiempo real.\n• Modo PostgreSQL Portable (Local 5433): Inicia el motor local de PostgreSQL 16 con base de datos en blanco y funcional de forma 100% aislada.",
+            font=ctk.CTkFont(family="Segoe UI", size=10),
+            text_color="#64748b",
+            justify="left"
+        ).pack(anchor="w", padx=14, pady=(0, 10))
+
+        # Botones de control del Servidor Local
+        btn_row_l = ctk.CTkFrame(p2, fg_color="transparent")
+        btn_row_l.pack(fill="x", pady=(6, 0))
 
         self.btn_toggle_server = ctk.CTkButton(
-            local_btn_row,
+            btn_row_l,
             text="Iniciar Servidor Local",
-            font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
+            font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
             fg_color="#059669",
             hover_color="#047857",
             text_color="#ffffff",
-            corner_radius=7,
-            height=30,
+            corner_radius=8,
+            height=38,
             command=self._toggle_server
         )
-        self.btn_toggle_server.pack(side="left", fill="x", expand=True, padx=(0, 4))
+        self.btn_toggle_server.pack(side="left", fill="x", expand=True, padx=(0, 8))
 
         self.btn_open_local = ctk.CTkButton(
-            local_btn_row,
+            btn_row_l,
             text="Abrir localhost:3000",
-            font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
+            font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
             fg_color="#f1f5f9",
             hover_color="#e2e8f0",
             text_color="#334155",
             border_width=1,
             border_color="#cbd5e1",
-            corner_radius=7,
-            height=30,
+            corner_radius=8,
+            height=38,
             command=lambda: webbrowser.open("http://localhost:3000")
         )
-        self.btn_open_local.pack(side="left", fill="x", expand=True, padx=(4, 0))
+        self.btn_open_local.pack(side="left", fill="x", expand=True, padx=(8, 0))
 
-        # --- TARJETA 3: DOCUMENTACIÓN TÉCNICA Y OPERATIVA ---
-        c3 = ctk.CTkFrame(grid_frame, fg_color="#ffffff", corner_radius=12, border_width=1, border_color="#e2e8f0")
-        c3.grid(row=0, column=1, padx=4, pady=4, sticky="nsew")
+        # -------------------------------------------------------------
+        # SOLAPA 3: DOCUMENTACIÓN TÉCNICA Y ESQUEMA DER
+        # -------------------------------------------------------------
+        p3 = ctk.CTkFrame(tab_doc, fg_color="transparent")
+        p3.pack(fill="both", expand=True, padx=16, pady=12)
 
-        tag_doc = ctk.CTkLabel(
-            c3,
-            text="DOCUMENTACIÓN Y MODELO DE DATOS",
+        tag_c3 = ctk.CTkLabel(
+            p3,
+            text="DOCUMENTACIÓN TÉCNICA Y ARQUITECTURA DE DATOS",
             font=ctk.CTkFont(family="Segoe UI", size=9, weight="bold"),
             text_color="#4338ca",
             fg_color="#ede9fe",
             corner_radius=5,
-            padx=7,
-            pady=1
+            padx=8,
+            pady=2
         )
-        tag_doc.pack(anchor="w", padx=14, pady=(10, 3))
+        tag_c3.pack(anchor="w", pady=(0, 6))
 
         ctk.CTkLabel(
-            c3,
-            text="Manuales y Padrón Excel",
-            font=ctk.CTkFont(family="Segoe UI", size=14, weight="bold"),
+            p3,
+            text="Documentación Oficial y Modelo Relacional (DER)",
+            font=ctk.CTkFont(family="Segoe UI", size=17, weight="bold"),
             text_color="#0f172a"
-        ).pack(anchor="w", padx=14, pady=(0, 2))
+        ).pack(anchor="w")
 
         ctk.CTkLabel(
-            c3,
-            text="Manual técnico y operativo ilustrado, arquitectura del sistema, nómina modelo y visor del modelo relacional.",
-            font=ctk.CTkFont(family="Segoe UI", size=10),
+            p3,
+            text="Recursos formales desarrollados para la presentación de la carrera Tecnicatura Superior en Analista de Sistemas en el Instituto Tecnológico Beltrán.",
+            font=ctk.CTkFont(family="Segoe UI", size=11),
             text_color="#64748b",
-            wraplength=390,
+            wraplength=820,
             justify="left"
-        ).pack(anchor="w", padx=14, pady=(0, 6))
+        ).pack(anchor="w", pady=(4, 12))
 
-        doc_btn_row = ctk.CTkFrame(c3, fg_color="transparent")
-        doc_btn_row.pack(fill="x", padx=14, pady=(0, 6))
+        # Grilla de 3 Recursos
+        doc_grid = ctk.CTkFrame(p3, fg_color="transparent")
+        doc_grid.pack(fill="both", expand=True, pady=(0, 10))
+        doc_grid.grid_columnconfigure(0, weight=1)
+        doc_grid.grid_columnconfigure(1, weight=1)
 
+        # Recurso 1: Manual Oficial HTML
+        card_man = ctk.CTkFrame(doc_grid, fg_color="#f8fafc", corner_radius=10, border_width=1, border_color="#e2e8f0")
+        card_man.grid(row=0, column=0, padx=4, pady=4, sticky="nsew")
+        ctk.CTkLabel(card_man, text="Manual Técnico y Operativo", font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold"), text_color="#1e293b").pack(anchor="w", padx=12, pady=(10, 2))
+        ctk.CTkLabel(card_man, text="Manual integral ilustrado con capturas de pantalla de los paneles, arquitectura y credenciales por defecto.", font=ctk.CTkFont(family="Segoe UI", size=10), text_color="#64748b", wraplength=380, justify="left").pack(anchor="w", padx=12, pady=(0, 10))
         btn_manual = ctk.CTkButton(
-            doc_btn_row,
+            card_man,
             text="Ver Manual Oficial (HTML)",
             font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
             fg_color="#4f46e5",
             hover_color="#4338ca",
-            text_color="#ffffff",
+            height=32,
             corner_radius=7,
-            height=28,
             command=self._abrir_manual
         )
-        btn_manual.pack(side="left", fill="x", expand=True, padx=(0, 4))
+        btn_manual.pack(fill="x", padx=12, pady=(0, 10))
 
+        # Recurso 2: Plantilla Excel de Egresados
+        card_exc = ctk.CTkFrame(doc_grid, fg_color="#f8fafc", corner_radius=10, border_width=1, border_color="#e2e8f0")
+        card_exc.grid(row=0, column=1, padx=4, pady=4, sticky="nsew")
+        ctk.CTkLabel(card_exc, text="Padrón Modelo de Egresados (Excel)", font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold"), text_color="#1e293b").pack(anchor="w", padx=12, pady=(10, 2))
+        ctk.CTkLabel(card_exc, text="Planilla estructurada (.xlsx) según el estándar institucional para importación masiva directa de graduados.", font=ctk.CTkFont(family="Segoe UI", size=10), text_color="#64748b", wraplength=380, justify="left").pack(anchor="w", padx=12, pady=(0, 10))
         btn_excel = ctk.CTkButton(
-            doc_btn_row,
+            card_exc,
             text="Plantilla Excel Egresados",
             font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
             fg_color="#f1f5f9",
@@ -439,152 +507,174 @@ class SigicApp(ctk.CTk):
             text_color="#334155",
             border_width=1,
             border_color="#cbd5e1",
+            height=32,
             corner_radius=7,
-            height=28,
             command=self._abrir_excel
         )
-        btn_excel.pack(side="left", fill="x", expand=True, padx=(4, 0))
+        btn_excel.pack(fill="x", padx=12, pady=(0, 10))
+
+        # Recurso 3: Esquema Relacional DER (Ancho completo)
+        card_der = ctk.CTkFrame(p3, fg_color="#0f172a", corner_radius=10, border_width=1, border_color="#0284c7")
+        card_der.pack(fill="x", padx=4, pady=(4, 0))
+
+        der_row = ctk.CTkFrame(card_der, fg_color="transparent")
+        der_row.pack(fill="x", padx=14, pady=10)
+
+        der_textos = ctk.CTkFrame(der_row, fg_color="transparent")
+        der_textos.pack(side="left", fill="both", expand=True)
+
+        ctk.CTkLabel(der_textos, text="Esquema DER Interactivo de Base de Datos (PostgreSQL 16)", font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold"), text_color="#ffffff").pack(anchor="w")
+        ctk.CTkLabel(der_textos, text="Visor animado en modo claro formal y sin emojis. Presenta las 10 entidades, relaciones (1:N, 1:1), constraints y justificaciones de ingeniería de software.", font=ctk.CTkFont(family="Segoe UI", size=10), text_color="#94a3b8", wraplength=520, justify="left").pack(anchor="w", pady=(2, 0))
 
         btn_esquema = ctk.CTkButton(
-            c3,
-            text="Ver Esquema Interactivo de Base de Datos (DER)",
-            font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"),
-            fg_color="#0f172a",
-            hover_color="#1e293b",
-            text_color="#38bdf8",
-            border_width=1,
-            border_color="#0284c7",
+            der_row,
+            text="Abrir Esquema DER ↗",
+            font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
+            fg_color="#0284c7",
+            hover_color="#0369a1",
+            text_color="#ffffff",
+            height=34,
             corner_radius=7,
-            height=28,
             command=self._abrir_esquema_animado
         )
-        btn_esquema.pack(fill="x", padx=14, pady=(0, 10))
+        btn_esquema.pack(side="right", padx=(10, 0))
 
-        # --- TARJETA 4: APP MÓVIL PORTERÍA ANDROID ---
-        c4 = ctk.CTkFrame(grid_frame, fg_color="#ffffff", corner_radius=12, border_width=1, border_color="#e2e8f0")
-        c4.grid(row=1, column=1, padx=4, pady=4, sticky="nsew")
+        # -------------------------------------------------------------
+        # SOLAPA 4: APP MÓVIL (PORTERÍA ANDROID)
+        # -------------------------------------------------------------
+        p4 = ctk.CTkFrame(tab_apk, fg_color="transparent")
+        p4.pack(fill="both", expand=True, padx=16, pady=12)
 
-        tag_apk = ctk.CTkLabel(
-            c4,
-            text="CONTROL DE ACCESO Y ACREDITACIÓN",
+        tag_c4 = ctk.CTkLabel(
+            p4,
+            text="CONTROL DE ACCESO Y ACREDITACIÓN EN AUDITORIO",
             font=ctk.CTkFont(family="Segoe UI", size=9, weight="bold"),
             text_color="#b45309",
             fg_color="#fef3c7",
             corner_radius=5,
-            padx=7,
-            pady=1
+            padx=8,
+            pady=2
         )
-        tag_apk.pack(anchor="w", padx=14, pady=(10, 3))
+        tag_c4.pack(anchor="w", pady=(0, 6))
 
         ctk.CTkLabel(
-            c4,
-            text="App Móvil Android (APK Oficial)",
-            font=ctk.CTkFont(family="Segoe UI", size=14, weight="bold"),
+            p4,
+            text="Aplicación Móvil Oficial de Portería (Android)",
+            font=ctk.CTkFont(family="Segoe UI", size=17, weight="bold"),
             text_color="#0f172a"
-        ).pack(anchor="w", padx=14, pady=(0, 2))
+        ).pack(anchor="w")
 
         ctk.CTkLabel(
-            c4,
-            text="Binario compilado en Flutter (74 MB) para smartphones Android. Valida credenciales QR institucionales en los accesos del auditorio.",
-            font=ctk.CTkFont(family="Segoe UI", size=10),
+            p4,
+            text="Binario nativo compilado en Flutter SDK (Dart) para el personal de seguridad en los accesos del auditorio Beltrán. Valida credenciales QR institucionales de graduados y acompañantes en milisegundos con verificación de doble ingreso.",
+            font=ctk.CTkFont(family="Segoe UI", size=11),
             text_color="#64748b",
-            wraplength=390,
+            wraplength=820,
             justify="left"
-        ).pack(anchor="w", padx=14, pady=(0, 8))
+        ).pack(anchor="w", pady=(4, 14))
 
-        apk_btn_row = ctk.CTkFrame(c4, fg_color="transparent")
-        apk_btn_row.pack(fill="x", padx=14, pady=(0, 10))
+        apk_specs_box = ctk.CTkFrame(p4, fg_color="#f8fafc", corner_radius=10, border_width=1, border_color="#e2e8f0")
+        apk_specs_box.pack(fill="x", pady=(0, 16), padx=2)
+
+        items_apk = [
+            ("Tecnología del Cliente:", "Flutter SDK (Dart) con integración de escáner QR acelerado por hardware"),
+            ("Paquete de Instalación:", "SIGIC-Porteria-1.0.8.apk (Compilado release optimizado de 74 MB)"),
+            ("Compatibilidad del Sistema:", "Dispositivos móviles Android 8.0 (API 26) o versiones superiores"),
+            ("Validación de Accesos:", "Consulta instantánea contra API REST con prevención estricta de pases duplicados"),
+        ]
+        for titular, detalle in items_apk:
+            row_f = ctk.CTkFrame(apk_specs_box, fg_color="transparent")
+            row_f.pack(fill="x", padx=14, pady=3)
+            ctk.CTkLabel(row_f, text=titular, font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"), text_color="#334155", width=220, anchor="w").pack(side="left")
+            ctk.CTkLabel(row_f, text=detalle, font=ctk.CTkFont(family="Segoe UI", size=10), text_color="#64748b", anchor="w").pack(side="left", fill="x", expand=True)
+
+        btn_row_a = ctk.CTkFrame(p4, fg_color="transparent")
+        btn_row_a.pack(fill="x", pady=(6, 0))
 
         btn_apk = ctk.CTkButton(
-            apk_btn_row,
-            text="Abrir Carpeta del APK",
-            font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
+            btn_row_a,
+            text="Abrir Carpeta con el APK Instalador",
+            font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
             fg_color="#d97706",
             hover_color="#b45309",
             text_color="#ffffff",
-            corner_radius=7,
-            height=30,
+            corner_radius=8,
+            height=38,
             command=self._abrir_apk_dir
         )
-        btn_apk.pack(side="left", fill="x", expand=True, padx=(0, 4))
+        btn_apk.pack(side="left", fill="x", expand=True, padx=(0, 8))
 
         btn_guia_apk = ctk.CTkButton(
-            apk_btn_row,
-            text="Guía de Instalación",
-            font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
+            btn_row_a,
+            text="Guía de Instalación (TXT)",
+            font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
             fg_color="#f1f5f9",
             hover_color="#e2e8f0",
             text_color="#334155",
             border_width=1,
             border_color="#cbd5e1",
-            corner_radius=7,
-            height=30,
+            corner_radius=8,
+            height=38,
             command=self._abrir_guia_apk
         )
-        btn_guia_apk.pack(side="left", fill="x", expand=True, padx=(4, 0))
+        btn_guia_apk.pack(side="left", fill="x", expand=True, padx=(8, 0))
 
         # -------------------------------------------------------------
-        # 4. CONSOLA DE EVENTOS Y DIAGNÓSTICO (TERMINAL MODERNO)
+        # SOLAPA 5: CONSOLA DE DIAGNÓSTICO Y EVENTOS
         # -------------------------------------------------------------
-        terminal_card = ctk.CTkFrame(
-            self.scroll_frame,
-            fg_color="#ffffff",
-            corner_radius=12,
-            border_width=1,
-            border_color="#e2e8f0"
-        )
-        terminal_card.pack(fill="x", padx=2, pady=(0, 4))
+        p5 = ctk.CTkFrame(tab_console, fg_color="transparent")
+        p5.pack(fill="both", expand=True, padx=16, pady=12)
 
-        term_header = ctk.CTkFrame(terminal_card, fg_color="transparent")
-        term_header.pack(fill="x", padx=12, pady=(5, 3))
+        term_top = ctk.CTkFrame(p5, fg_color="transparent")
+        term_top.pack(fill="x", pady=(0, 8))
 
         ctk.CTkLabel(
-            term_header,
-            text="Consola de Diagnóstico y Eventos:",
-            font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
-            text_color="#334155"
+            term_top,
+            text="Consola de Auditoría y Eventos del Sistema:",
+            font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold"),
+            text_color="#1e293b"
         ).pack(side="left")
 
         btn_clear = ctk.CTkButton(
-            term_header,
+            term_top,
             text="Limpiar Registro",
-            font=ctk.CTkFont(family="Segoe UI", size=9, weight="bold"),
+            font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"),
             fg_color="#f1f5f9",
             hover_color="#e2e8f0",
             text_color="#64748b",
             border_width=1,
             border_color="#cbd5e1",
-            corner_radius=5,
-            height=22,
-            width=90,
+            corner_radius=6,
+            height=28,
+            width=110,
             command=self._limpiar_log
         )
         btn_clear.pack(side="right")
 
         self.txt_log = ctk.CTkTextbox(
-            terminal_card,
-            height=70,
+            p5,
+            height=240,
             font=ctk.CTkFont(family="Consolas", size=10),
             fg_color="#0f172a",
             text_color="#e2e8f0",
-            corner_radius=7,
+            corner_radius=8,
             border_width=0
         )
-        self.txt_log.pack(fill="x", padx=10, pady=(0, 8))
+        self.txt_log.pack(fill="both", expand=True, pady=(0, 4))
 
-        self._log("SiGIC Control GUI inicializado en modo nativo.")
+        self._log("SiGIC Control GUI inicializado en modo nativo con arquitectura de solapas dedicadas.")
         self._log(f"Directorio de ejecución: {self.base_dir}")
 
         # -------------------------------------------------------------
-        # 5. FOOTER INSTITUCIONAL
+        # FOOTER INSTITUCIONAL
         # -------------------------------------------------------------
         footer = ctk.CTkLabel(
-            self.scroll_frame,
+            self.main_container,
             text="SiGIC © 2026 · Instituto Tecnológico Beltrán · Tecnicatura Superior en Analista de Sistemas",
             font=ctk.CTkFont(family="Segoe UI", size=10),
             text_color="#94a3b8"
         )
-        footer.pack(pady=(0, 4))
+        footer.pack(pady=(2, 0))
 
     def _limpiar_log(self):
         self.txt_log.configure(state="normal")
