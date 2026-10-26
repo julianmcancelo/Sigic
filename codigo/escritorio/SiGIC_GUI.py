@@ -191,7 +191,7 @@ class SigicApp(ctk.CTk):
         f_cloud.pack(anchor="e", pady=1)
         self.lbl_cloud = ctk.CTkLabel(
             f_cloud,
-            text="● Cloud: app.sigic.com.ar",
+            text="● Plataforma Online",
             font=ctk.CTkFont(family="Segoe UI", size=9, weight="bold"),
             text_color="#15803d",
             padx=8,
@@ -203,7 +203,7 @@ class SigicApp(ctk.CTk):
         f_db.pack(anchor="e", pady=1)
         self.lbl_db = ctk.CTkLabel(
             f_db,
-            text="● Neon PostgreSQL (SSL)",
+            text="● Base de Datos Conectada",
             font=ctk.CTkFont(family="Segoe UI", size=9, weight="bold"),
             text_color="#0369a1",
             padx=8,
@@ -215,7 +215,7 @@ class SigicApp(ctk.CTk):
         self.f_local.pack(anchor="e", pady=1)
         self.lbl_local = ctk.CTkLabel(
             self.f_local,
-            text="○ Local: Detenido",
+            text="○ Servidor Local: Detenido",
             font=ctk.CTkFont(family="Segoe UI", size=9, weight="bold"),
             text_color="#64748b",
             padx=8,
@@ -255,14 +255,14 @@ class SigicApp(ctk.CTk):
         )
 
         # -------------------------------------------------------------
-        # SOLAPA 1: PLATAFORMA EN LA NUBE (PRODUCCIÓN)
+        # SOLAPA 1: PLATAFORMA EN LA WEB
         # -------------------------------------------------------------
         p1 = ctk.CTkFrame(tab_cloud, fg_color="transparent")
         p1.pack(fill="both", expand=True, padx=16, pady=12)
 
         tag_c1 = ctk.CTkLabel(
             p1,
-            text="PRODUCCIÓN · ALTA DISPONIBILIDAD (VERCEL + NEON CLOUD)",
+            text="SISTEMA EN LA WEB · LISTO PARA USAR",
             font=ctk.CTkFont(family="Segoe UI", size=9, weight="bold"),
             text_color="#0284c7",
             fg_color="#e0f2fe",
@@ -274,35 +274,34 @@ class SigicApp(ctk.CTk):
 
         ctk.CTkLabel(
             p1,
-            text="Instancia de Producción Oficial de SiGIC",
+            text="Plataforma SiGIC en Vivo",
             font=ctk.CTkFont(family="Segoe UI", size=17, weight="bold"),
             text_color="#0f172a"
         ).pack(anchor="w")
 
         ctk.CTkLabel(
             p1,
-            text="Despliegue serverless de alta disponibilidad en la infraestructura de Vercel Edge conectado a Neon PostgreSQL Serverless con encriptación SSL TLS 1.3. Permite la administración integral de ceremonias, graduados, asignación de butacas interactivas y canje de credenciales OTP.",
+            text="Todo el sistema ya está publicado y disponible en internet. Desde acá podés entrar directo a gestionar las ceremonias, cargar alumnos o probar el portal que ven los egresados.",
             font=ctk.CTkFont(family="Segoe UI", size=11),
             text_color="#64748b",
             wraplength=820,
             justify="left"
         ).pack(anchor="w", pady=(4, 14))
 
-        # Especificaciones técnicas de la nube
+        # Cuadro de accesos directos
         specs_box = ctk.CTkFrame(p1, fg_color="#f8fafc", corner_radius=10, border_width=1, border_color="#e2e8f0")
         specs_box.pack(fill="x", pady=(0, 16), padx=2)
 
         items_specs = [
-            ("Portal de Gestión Administrativa:", "https://app.sigic.com.ar (Acceso directo para autoridades y personal)"),
-            ("Portal de Autogestión del Egresado:", "https://graduados.sigic.com.ar (Confirmación de asistencia, acompañantes y QR)"),
-            ("Fachada Institucional Beltrán:", "https://www.sigic.com.ar (Presentación institucional y manual de usuario)"),
-            ("Infraestructura de Base de Datos:", "Neon PostgreSQL Serverless (SSL) con pool de conexiones nativo"),
-            ("Seguridad y Autenticación:", "Tokens JWT firmados (HS256), hashing BCrypt de 12 rondas y Rate Limiting"),
+            ("Panel de Administración:", "app.sigic.com.ar — Para crear ceremonias, subir el padrón y asignar butacas."),
+            ("Portal de Autogestión:", "graduados.sigic.com.ar — Donde el egresado confirma asistencia y descarga su QR."),
+            ("Sitio Institucional:", "www.sigic.com.ar — Portada informativa y manual de usuario integrado."),
+            ("Base de Datos:", "Sincronizada en vivo, accesible desde cualquier lugar sin instalaciones previas."),
         ]
         for titular, detalle in items_specs:
             row_f = ctk.CTkFrame(specs_box, fg_color="transparent")
             row_f.pack(fill="x", padx=14, pady=3)
-            ctk.CTkLabel(row_f, text=titular, font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"), text_color="#334155", width=240, anchor="w").pack(side="left")
+            ctk.CTkLabel(row_f, text=titular, font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"), text_color="#334155", width=220, anchor="w").pack(side="left")
             ctk.CTkLabel(row_f, text=detalle, font=ctk.CTkFont(family="Segoe UI", size=10), text_color="#64748b", anchor="w").pack(side="left", fill="x", expand=True)
 
         # Botones de acción Cloud
@@ -311,7 +310,7 @@ class SigicApp(ctk.CTk):
 
         btn_cloud_admin = ctk.CTkButton(
             btn_row_c,
-            text="Abrir Portal Administrativo (app.sigic.com.ar) ↗",
+            text="Abrir Panel Administrativo (app.sigic.com.ar) ↗",
             font=ctk.CTkFont(family="Segoe UI", size=12, weight="bold"),
             fg_color="#0284c7",
             hover_color="#0369a1",
@@ -338,14 +337,14 @@ class SigicApp(ctk.CTk):
         btn_cloud_grad.pack(side="left", fill="x", expand=True, padx=(8, 0))
 
         # -------------------------------------------------------------
-        # SOLAPA 2: SERVIDOR LOCAL (TURBOPACK)
+        # SOLAPA 2: SERVIDOR LOCAL
         # -------------------------------------------------------------
         p2 = ctk.CTkFrame(tab_local, fg_color="transparent")
         p2.pack(fill="both", expand=True, padx=16, pady=12)
 
         tag_c2 = ctk.CTkLabel(
             p2,
-            text="ENTORNO LOCAL / MODO EVALUACIÓN Y DEMOSTRACIÓN",
+            text="MODO LOCAL / PRUEBAS SIN INTERNET",
             font=ctk.CTkFont(family="Segoe UI", size=9, weight="bold"),
             text_color="#15803d",
             fg_color="#dcfce7",
@@ -357,14 +356,14 @@ class SigicApp(ctk.CTk):
 
         ctk.CTkLabel(
             p2,
-            text="Servidor Web Local (Turbopack en Puerto 3000)",
+            text="Servidor Web en tu Computadora",
             font=ctk.CTkFont(family="Segoe UI", size=17, weight="bold"),
             text_color="#0f172a"
         ).pack(anchor="w")
 
         ctk.CTkLabel(
             p2,
-            text="Ejecuta el código fuente localmente en esta máquina para evaluación ante la mesa académica, pruebas autónomas sin conexión a internet y desarrollo directo.",
+            text="Si querés probar o mostrar cambios directamente desde el código en esta máquina, podés iniciar el servidor con un solo clic, sin necesidad de comandos raros.",
             font=ctk.CTkFont(family="Segoe UI", size=11),
             text_color="#64748b",
             wraplength=820,
@@ -380,26 +379,26 @@ class SigicApp(ctk.CTk):
 
         ctk.CTkLabel(
             db_sel_header,
-            text="Selección del Motor de Base de Datos:",
+            text="Dónde guardar los datos:",
             font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
             text_color="#1e293b"
         ).pack(side="left")
 
         self.seg_db_mode = ctk.CTkSegmentedButton(
             db_sel_header,
-            values=["Nube Neon (SSL)", "PostgreSQL 16 Portable (Local)"],
+            values=["Base en la Nube", "Base Local (Offline)"],
             font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"),
             selected_color="#0284c7",
             selected_hover_color="#0369a1",
             height=28,
             command=self._cambiar_modo_db
         )
-        self.seg_db_mode.set("Nube Neon (SSL)")
+        self.seg_db_mode.set("Base en la Nube")
         self.seg_db_mode.pack(side="right")
 
         ctk.CTkLabel(
             db_box,
-            text="• Modo Nube Neon (SSL): Utiliza la base de datos distribuida en la nube con datos reales sincronizados en tiempo real.\n• Modo PostgreSQL Portable (Local 5433): Inicia el motor local de PostgreSQL 16 con base de datos en blanco y funcional de forma 100% aislada.",
+            text="• Base en la Nube: Usa los datos reales compartidos por internet.\n• Base Local (Offline): Usa una base de datos propia en tu compu, ideal si no tenés conexión o querés probar de cero.",
             font=ctk.CTkFont(family="Segoe UI", size=10),
             text_color="#64748b",
             justify="left"
@@ -438,14 +437,14 @@ class SigicApp(ctk.CTk):
         self.btn_open_local.pack(side="left", fill="x", expand=True, padx=(8, 0))
 
         # -------------------------------------------------------------
-        # SOLAPA 3: DOCUMENTACIÓN TÉCNICA Y ESQUEMA DER
+        # SOLAPA 3: DOCUMENTACIÓN Y DIAGRAMAS
         # -------------------------------------------------------------
         p3 = ctk.CTkFrame(tab_doc, fg_color="transparent")
         p3.pack(fill="both", expand=True, padx=16, pady=12)
 
         tag_c3 = ctk.CTkLabel(
             p3,
-            text="DOCUMENTACIÓN TÉCNICA Y ARQUITECTURA DE DATOS",
+            text="GUÍAS Y RECURSOS DEL SISTEMA",
             font=ctk.CTkFont(family="Segoe UI", size=9, weight="bold"),
             text_color="#4338ca",
             fg_color="#ede9fe",
@@ -457,14 +456,14 @@ class SigicApp(ctk.CTk):
 
         ctk.CTkLabel(
             p3,
-            text="Documentación Oficial y Modelo Relacional (DER)",
+            text="Manuales y Estructura de Datos",
             font=ctk.CTkFont(family="Segoe UI", size=17, weight="bold"),
             text_color="#0f172a"
         ).pack(anchor="w")
 
         ctk.CTkLabel(
             p3,
-            text="Recursos formales desarrollados para la presentación de la carrera Tecnicatura Superior en Analista de Sistemas en el Instituto Tecnológico Beltrán.",
+            text="Material para consultar cómo funciona el sistema, cómo preparar la lista de alumnos en Excel y cómo se organizan las tablas de datos.",
             font=ctk.CTkFont(family="Segoe UI", size=11),
             text_color="#64748b",
             wraplength=820,
@@ -524,12 +523,12 @@ class SigicApp(ctk.CTk):
         der_textos = ctk.CTkFrame(der_row, fg_color="transparent")
         der_textos.pack(side="left", fill="both", expand=True)
 
-        ctk.CTkLabel(der_textos, text="Esquema DER Interactivo de Base de Datos (PostgreSQL 16)", font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold"), text_color="#ffffff").pack(anchor="w")
-        ctk.CTkLabel(der_textos, text="Visor animado en modo claro formal y sin emojis. Presenta las 10 entidades, relaciones (1:N, 1:1), constraints y justificaciones de ingeniería de software.", font=ctk.CTkFont(family="Segoe UI", size=10), text_color="#94a3b8", wraplength=520, justify="left").pack(anchor="w", pady=(2, 0))
+        ctk.CTkLabel(der_textos, text="Diagrama Interactivo de Tablas", font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold"), text_color="#ffffff").pack(anchor="w")
+        ctk.CTkLabel(der_textos, text="Visor interactivo en el navegador que muestra cómo se conectan los egresados, ceremonias, butacas e invitados en el sistema.", font=ctk.CTkFont(family="Segoe UI", size=10), text_color="#94a3b8", wraplength=520, justify="left").pack(anchor="w", pady=(2, 0))
 
         btn_esquema = ctk.CTkButton(
             der_row,
-            text="Abrir Esquema DER ↗",
+            text="Ver Diagrama ↗",
             font=ctk.CTkFont(family="Segoe UI", size=11, weight="bold"),
             fg_color="#0284c7",
             hover_color="#0369a1",
@@ -548,7 +547,7 @@ class SigicApp(ctk.CTk):
 
         tag_c4 = ctk.CTkLabel(
             p4,
-            text="CONTROL DE ACCESO Y ACREDITACIÓN EN AUDITORIO",
+            text="CONTROL DE INGRESO PARA EL EVENTO",
             font=ctk.CTkFont(family="Segoe UI", size=9, weight="bold"),
             text_color="#b45309",
             fg_color="#fef3c7",
@@ -560,14 +559,14 @@ class SigicApp(ctk.CTk):
 
         ctk.CTkLabel(
             p4,
-            text="Aplicación Móvil Oficial de Portería (Android)",
+            text="App Móvil de Portería (Android)",
             font=ctk.CTkFont(family="Segoe UI", size=17, weight="bold"),
             text_color="#0f172a"
         ).pack(anchor="w")
 
         ctk.CTkLabel(
             p4,
-            text="Binario nativo compilado en Flutter SDK (Dart) para el personal de seguridad en los accesos del auditorio Beltrán. Valida credenciales QR institucionales de graduados y acompañantes en milisegundos con verificación de doble ingreso.",
+            text="Aplicación para celulares Android pensada para el personal de la entrada. Permite escanear las credenciales QR de los graduados y acompañantes en el momento para verificar su ingreso.",
             font=ctk.CTkFont(family="Segoe UI", size=11),
             text_color="#64748b",
             wraplength=820,
@@ -578,15 +577,14 @@ class SigicApp(ctk.CTk):
         apk_specs_box.pack(fill="x", pady=(0, 16), padx=2)
 
         items_apk = [
-            ("Tecnología del Cliente:", "Flutter SDK (Dart) con integración de escáner QR acelerado por hardware"),
-            ("Paquete de Instalación:", "SIGIC-Porteria-1.0.8.apk (Compilado release optimizado de 74 MB)"),
-            ("Compatibilidad del Sistema:", "Dispositivos móviles Android 8.0 (API 26) o versiones superiores"),
-            ("Validación de Accesos:", "Consulta instantánea contra API REST con prevención estricta de pases duplicados"),
+            ("Uso principal:", "Escanear credenciales QR en la entrada del auditorio el día del acto."),
+            ("Instalador:", "Archivo SIGIC-Porteria-1.0.8.apk listo para instalar en celulares Android."),
+            ("Control de acceso:", "Verifica de inmediato si la entrada es válida y evita pases duplicados."),
         ]
         for titular, detalle in items_apk:
             row_f = ctk.CTkFrame(apk_specs_box, fg_color="transparent")
             row_f.pack(fill="x", padx=14, pady=3)
-            ctk.CTkLabel(row_f, text=titular, font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"), text_color="#334155", width=220, anchor="w").pack(side="left")
+            ctk.CTkLabel(row_f, text=titular, font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold"), text_color="#334155", width=180, anchor="w").pack(side="left")
             ctk.CTkLabel(row_f, text=detalle, font=ctk.CTkFont(family="Segoe UI", size=10), text_color="#64748b", anchor="w").pack(side="left", fill="x", expand=True)
 
         btn_row_a = ctk.CTkFrame(p4, fg_color="transparent")
@@ -631,7 +629,7 @@ class SigicApp(ctk.CTk):
 
         ctk.CTkLabel(
             term_top,
-            text="Consola de Auditoría y Eventos del Sistema:",
+            text="Registro de Actividad:",
             font=ctk.CTkFont(family="Segoe UI", size=13, weight="bold"),
             text_color="#1e293b"
         ).pack(side="left")
@@ -674,7 +672,7 @@ class SigicApp(ctk.CTk):
 
         tag_c6 = ctk.CTkLabel(
             p6,
-            text="PROYECTO ACADÉMICO OFICIAL · PRÁCTICA PROFESIONALIZANTE III",
+            text="PROYECTO FINAL DE CARRERA",
             font=ctk.CTkFont(family="Segoe UI", size=9, weight="bold"),
             text_color="#0284c7",
             fg_color="#e0f2fe",
@@ -693,7 +691,7 @@ class SigicApp(ctk.CTk):
 
         ctk.CTkLabel(
             p6,
-            text="Plataforma tecnológica orientada a la transformación digital y automatización integral de actos académicos de colación de grado. Diseñada para garantizar trazabilidad, validación biométrica/QR en accesos, asignación dinámica de butacas y una experiencia institucional de excelencia.",
+            text="Plataforma creada para hacer más simple y organizada la realización de los actos de colación: desde invitar a los alumnos, elegir sus asientos en el auditorio y generar sus credenciales digitales, hasta el control en la puerta.",
             font=ctk.CTkFont(family="Segoe UI", size=11),
             text_color="#64748b",
             wraplength=820,
@@ -705,11 +703,10 @@ class SigicApp(ctk.CTk):
         inst_box.pack(fill="x", pady=(0, 14), padx=2)
 
         items_inst = [
-            ("Institución Educativa:", "Instituto Tecnológico Beltrán (ITB)"),
+            ("Institución:", "Instituto Tecnológico Beltrán (ITB)"),
             ("Carrera:", "Tecnicatura Superior en Analista de Sistemas"),
-            ("Materia / Instancia:", "Práctica Profesionalizante III · Trabajo Final de Carrera"),
-            ("Ubicación:", "Av. Belgrano 1191, Avellaneda, Provincia de Buenos Aires"),
-            ("Ciclo Lectivo:", "2026"),
+            ("Materia:", "Práctica Profesionalizante III (2026)"),
+            ("Sede:", "Av. Belgrano 1191, Avellaneda"),
         ]
         for titular, detalle in items_inst:
             row_f = ctk.CTkFrame(inst_box, fg_color="transparent")
@@ -840,12 +837,12 @@ class SigicApp(ctk.CTk):
             self._log(f"Aviso al liberar puerto {puerto}: {e}")
 
     def _cambiar_modo_db(self, valor):
-        if "Portable" in valor:
-            self.lbl_db.configure(text="● PostgreSQL 16 Portable (Local 5433)", text_color="#7c3aed")
-            self._log("Modo de Base de Datos seleccionado: PostgreSQL 16 Portable Local (100% Offline).")
+        if "Local" in valor:
+            self.lbl_db.configure(text="● Base Local (Offline)", text_color="#7c3aed")
+            self._log("Modo de Base de Datos: Base local en esta máquina (Offline).")
         else:
-            self.lbl_db.configure(text="● Neon PostgreSQL (SSL Conectado)", text_color="#0369a1")
-            self._log("Modo de Base de Datos seleccionado: Neon Cloud PostgreSQL (SSL).")
+            self.lbl_db.configure(text="● Base de Datos Conectada", text_color="#0369a1")
+            self._log("Modo de Base de Datos: Base compartida en la nube.")
 
     def _obtener_pgsql_dir(self):
         candidatos = [
@@ -972,12 +969,12 @@ class SigicApp(ctk.CTk):
             self._liberar_puerto(3000)
 
             env = os.environ.copy()
-            usar_local_pg = "Portable" in self.seg_db_mode.get() if hasattr(self, 'seg_db_mode') else False
+            usar_local_pg = "Local" in self.seg_db_mode.get() if hasattr(self, 'seg_db_mode') else False
             if usar_local_pg:
                 self._iniciar_postgres_portable()
                 env["DATABASE_URL"] = "postgresql://postgres@127.0.0.1:5433/sigic"
                 env["DB_SSL_INSECURE"] = "1"
-                self.after(0, self._log, "Configurado DATABASE_URL hacia PostgreSQL 16 Portable Local (puerto 5433).")
+                self.after(0, self._log, "Conectando servidor local a la base de datos local (puerto 5433).")
 
             build_id_path = os.path.join(self.web_dir, ".next", "BUILD_ID")
             if os.path.exists(build_id_path):
