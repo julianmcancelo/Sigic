@@ -74,11 +74,6 @@ SiGIC/
 ├── herramientas/                     ★ UTILIDADES DE DESPLIEGUE Y CONTENEDORES
 │   └── docker-compose.yml            Orquestación para despliegues locales contenerizados
 │
-├── os/                               ★ IMÁGENES Y DISTRIBUCIONES ESPECIALES
-│   ├── iso/                          Imágenes pesadas y bundles comprimidos
-│   ├── scripts_vm/                   Scripts de automatización de entorno y emulación
-│   └── entrega_pendrive/             Copia de seguridad del paquete distribuido en soporte físico
-│
 ├── SiGIC.exe                         ★ CENTRO DE CONTROL OFICIAL DE ESCRITORIO (Windows 64-bit)
 └── README.md                         ★ Este documento
 ```
