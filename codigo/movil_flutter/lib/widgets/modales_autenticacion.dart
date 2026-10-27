@@ -795,7 +795,7 @@ class _ModalLoginManualState extends State<ModalLoginManual> {
 
     if (correo.isEmpty || clave.isEmpty) {
       setState(() {
-        _error = 'Completa el correo y la contrasena para continuar.';
+        _error = 'Completa el correo y la contraseña para continuar.';
       });
       return;
     }
@@ -905,7 +905,7 @@ class _ModalLoginManualState extends State<ModalLoginManual> {
                         ),
                         SizedBox(height: 1),
                         Text(
-                          'Porteria y Administracion SiGIC',
+                          'Portería y Administración SiGIC',
                           style: TextStyle(
                             fontSize: 11.5,
                             color: Color(0xFF64748B),
@@ -957,7 +957,7 @@ class _ModalLoginManualState extends State<ModalLoginManual> {
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.next,
                 decoration: InputDecoration(
-                  labelText: 'Correo electronico',
+                  labelText: 'Correo electrónico',
                   hintText: 'ejemplo@itbeltran.com.ar',
                   prefixIcon: const Icon(Icons.email_outlined, size: 20),
                   suffixIcon: _controladorCorreo.text.isNotEmpty
@@ -982,7 +982,7 @@ class _ModalLoginManualState extends State<ModalLoginManual> {
                 textInputAction: TextInputAction.done,
                 onSubmitted: (_) => _ejecutarLogin(),
                 decoration: InputDecoration(
-                  labelText: 'Contrasena',
+                  labelText: 'Contraseña',
                   prefixIcon: const Icon(Icons.key_outlined, size: 20),
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -1021,7 +1021,7 @@ class _ModalLoginManualState extends State<ModalLoginManual> {
                         ),
                       )
                     : const Text(
-                        'Iniciar Sesion',
+                        'Iniciar Sesión',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w800,
@@ -1039,7 +1039,7 @@ class _ModalLoginManualState extends State<ModalLoginManual> {
                   ),
                 ),
                 child: const Text(
-                  'Ingreso de Demostracion (Operador Demo)',
+                  'Ingreso de Demostración (Operador Demo)',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w700,

@@ -2426,7 +2426,7 @@ class _TarjetaAccesoRequerido extends StatelessWidget {
               ),
               icon: const Icon(Icons.password_rounded, size: 18, color: Color(0xFF38BDF8)),
               label: const Text(
-                'Ingreso Manual con Contrasena',
+                'Ingreso Manual con Contraseña',
                 style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
               ),
             ),

@@ -13,18 +13,18 @@ export function validarFormularioLogin({ correo, clave }) {
   if (!correo.trim()) {
     errores.correo = 'El correo es obligatorio.'
   } else if (!validarCorreo(correo)) {
-    errores.correo = 'Ingresa un correo con formato valido.'
+    errores.correo = 'Ingresa un correo con formato válido.'
   }
 
-  // La contrasena tambien es obligatoria.
-  // Ademas exigimos una longitud minima para esta demo.
+  // La contraseña tambien es obligatoria.
+  // Ademas exigimos una longitud mínima para esta demo.
   if (!clave.trim()) {
-    errores.clave = 'La contrasena es obligatoria.'
+    errores.clave = 'La contraseña es obligatoria.'
   } else if (clave.trim().length < 6) {
-    // Esta regla minima es suficiente para mostrar una validacion simple.
-    errores.clave = 'La contrasena debe tener al menos 6 caracteres.'
+    // Esta regla mínima es suficiente para mostrar una validacion simple.
+    errores.clave = 'La contraseña debe tener al menos 6 caracteres.'
   }
 
-  // Si el objeto queda vacio, significa que no hubo errores basicos.
+  // Si el objeto queda vacío, significa que no hubo errores basicos.
   return errores
 }
