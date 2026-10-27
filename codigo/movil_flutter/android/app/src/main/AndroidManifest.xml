@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-    <uses-sdk tools:overrideLibrary="androidx.core.backported.fixes, com.it_nomads.fluttersecurestorage, dev.steenbakker.mobile_scanner, androidx.camera.camera2.pipe, androidx.camera.core, androidx.camera.camera2, androidx.camera.lifecycle, androidx.camera.view" />
+    <uses-sdk tools:overrideLibrary="androidx.camera.featurecombinationquery, androidx.core.backported.fixes, com.it_nomads.fluttersecurestorage, dev.steenbakker.mobile_scanner, androidx.camera.camera2.pipe, androidx.camera.core, androidx.camera.camera2, androidx.camera.lifecycle, androidx.camera.view" />
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <application

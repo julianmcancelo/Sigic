@@ -11,6 +11,7 @@ import '../servicios/servicio_release.dart';
 import 'pantalla_inicio_sistema.dart';
 import '../widgets/modales_autenticacion.dart';
 import 'pestanas/pestana_asistencia.dart';
+import 'pestanas/pestana_administracion.dart';
 import 'pestanas/pestana_ajustes.dart';
 import 'pestanas/pestana_escaner.dart';
 
@@ -78,7 +79,7 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
             SizedBox(width: 10),
             Expanded(
               child: Text(
-                'Acceso restringido: Debes identificarte en Porteria para acceder a Asistencia o Ajustes.',
+                'Acceso restringido: Debes identificarte en Portería para acceder a Asistencia, Administración o Ajustes.',
                 style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
               ),
             ),
@@ -263,6 +264,10 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
         servicioApi: _servicioApi,
         revisionSesion: _revisionSesion,
       ),
+      PestanaAdministracion(
+        servicioApi: _servicioApi,
+        revisionSesion: _revisionSesion,
+      ),
       PestanaAjustes(
         servicioApi: _servicioApi,
         servicioShorebird: _servicioShorebird,
@@ -310,6 +315,11 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
                 icon: Icon(_tieneSesion ? Icons.groups_2_outlined : Icons.lock_outline_rounded),
                 selectedIcon: Icon(_tieneSesion ? Icons.groups_2 : Icons.lock_rounded),
                 label: _tieneSesion ? 'Asistencia' : 'Protegido',
+              ),
+              NavigationDestination(
+                icon: Icon(_tieneSesion ? Icons.admin_panel_settings_outlined : Icons.lock_outline_rounded),
+                selectedIcon: Icon(_tieneSesion ? Icons.admin_panel_settings : Icons.lock_rounded),
+                label: _tieneSesion ? 'Administración' : 'Protegido',
               ),
               NavigationDestination(
                 icon: Badge(
