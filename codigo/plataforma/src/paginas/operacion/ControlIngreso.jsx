@@ -149,17 +149,15 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
   const [pingStatus, setPingStatus] = useState('idle') // 'idle' | 'testing' | 'ok' | 'error'
   const [pingLatencia, setPingLatencia] = useState(null)
 
-  const [urlApk, setUrlApk] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return `${window.location.origin}/descargas/SIGIC-Porteria-1.0.7.apk`
-    }
-    return 'https://sigic.com.ar/descargas/SIGIC-Porteria-1.0.7.apk'
-  })
+  const URL_GITHUB_RELEASES = 'https://github.com/julianmcancelo/Sigic/releases/latest'
+  const URL_APK_OFICIAL = 'https://github.com/julianmcancelo/Sigic/releases/latest/download/SIGIC-Porteria-Release-v1.0.9.apk'
+
+  const [urlApk, setUrlApk] = useState(() => URL_APK_OFICIAL)
   const [urlServidor, setUrlServidor] = useState(() => {
     if (typeof window !== 'undefined') {
       return `${window.location.origin}/api`
     }
-    return 'https://sigic.com.ar/api'
+    return 'https://app.sigic.com.ar/api'
   })
 
   const html5QrCodeRef = useRef(null)
@@ -716,24 +714,33 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
   const todosAcreditados = egresadoActual?.presente && (listaInvitados.length === 0 || listaInvitados.every((i) => i.presente))
 
   return (
-    <div className="sigic-control-acreditacion-view min-h-screen bg-slate-900 text-slate-100 p-3 sm:p-6 font-sans transition-colors duration-300">
+    <div className="sigic-control-acreditacion-view min-h-screen bg-slate-950 text-slate-100 p-3 sm:p-6 font-sans transition-colors duration-300 relative selection:bg-sky-500/30">
+      {/* Luz ambiental institucional */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[340px] bg-gradient-to-b from-sky-500/10 via-indigo-500/5 to-transparent blur-3xl opacity-60" />
+      </div>
+
       {/* HEADER PRINCIPAL */}
-      <header className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-slate-800">
+      <header className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-slate-800 relative z-10">
         <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-2xl bg-sky-500/20 text-sky-400 border border-sky-500/30 flex items-center justify-center shadow-lg shadow-sky-500/10">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-sky-500/20 to-indigo-500/20 text-sky-400 border border-sky-500/30 flex items-center justify-center shadow-lg shadow-sky-500/10">
             <ShieldCheck size={24} />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">Control de Acreditación</h1>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[9px] font-black uppercase tracking-wider">
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[9px] font-black uppercase tracking-wider flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 En Vivo
+              </span>
+              <span className="hidden sm:inline-flex px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-300 border border-sky-500/30 text-[9px] font-black uppercase tracking-wider">
+                Portería v1.0.9+10
               </span>
             </div>
             <div className="flex flex-wrap items-center gap-2 mt-1">
               <span className="text-xs font-semibold text-slate-400 flex items-center gap-1.5">
                 <CalendarDays size={13} className="text-sky-400" />
-                {ceremonia?.nombre || 'Ceremonia en curso'} · {ceremonia?.lugar || 'Sede Central'}
+                {ceremonia?.nombre || 'Ceremonia en curso'} · {ceremonia?.lugar || 'Sede Central Beltrán'}
               </span>
               {ceremoniasDisponibles.length > 1 && (
                 <div className="flex items-center gap-1.5 ml-1">
@@ -742,7 +749,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                     value={ceremonia?.id || ''}
                     onChange={(e) => handleCambiarCeremonia(e.target.value)}
                     disabled={cambiandoCeremonia}
-                    className="text-[11px] font-bold bg-slate-800 text-sky-300 border border-slate-700 rounded-lg px-2 py-0.5 outline-none cursor-pointer hover:bg-slate-700 transition"
+                    className="text-[11px] font-bold bg-slate-900 text-sky-300 border border-slate-700 rounded-lg px-2 py-0.5 outline-none cursor-pointer hover:bg-slate-800 transition"
                     title="Cambiar ceremonia activa para esta terminal"
                   >
                     {ceremoniasDisponibles.map((c) => (
@@ -757,13 +764,26 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
           </div>
         </div>
 
-        {/* Controles de Sonido y Salida */}
+        {/* Controles de Sonido, Descarga y Salida */}
         <div className="flex items-center gap-2 sm:gap-3">
+          <a
+            href={URL_APK_OFICIAL}
+            target="_blank"
+            rel="noopener noreferrer"
+            download
+            className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-black text-xs transition active:scale-95 shadow-md shadow-sky-500/20 flex items-center gap-1.5 cursor-pointer"
+            title="Descargar instalador APK oficial v1.0.9 desde GitHub Releases"
+          >
+            <Smartphone size={14} />
+            <span className="hidden sm:inline">Descargar APK v1.0.9</span>
+            <span className="sm:hidden">APK</span>
+          </a>
+
           <button
             onClick={() => setSonidoHabilitado(!sonidoHabilitado)}
             className={`px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition border cursor-pointer ${
               sonidoHabilitado 
-                ? 'bg-slate-800/90 text-sky-400 border-slate-700 hover:bg-slate-700' 
+                ? 'bg-slate-800/90 text-sky-400 border-slate-700 hover:bg-slate-750' 
                 : 'bg-slate-800/40 text-slate-500 border-slate-800 hover:bg-slate-800'
             }`}
             title={sonidoHabilitado ? 'Sonido activado' : 'Sonido desactivado'}
@@ -803,14 +823,14 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
       </header>
 
       {/* BANNER DE ESTADO DE CONEXIÓN Y SINCRONIZACIÓN OFFLINE */}
-      <div className="max-w-7xl mx-auto mt-4 px-4 py-2.5 rounded-2xl bg-slate-800/70 border border-slate-700/80 flex flex-wrap items-center justify-between gap-3 text-xs">
+      <div className="max-w-7xl mx-auto mt-4 px-4 py-3 rounded-2xl bg-slate-900/80 border border-slate-800/90 backdrop-blur-md flex flex-wrap items-center justify-between gap-3 text-xs shadow-lg relative z-10">
         <div className="flex items-center gap-2.5">
           <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${estaOnline ? 'bg-emerald-400 shadow-sm shadow-emerald-400/50' : 'bg-amber-400 animate-pulse'}`} />
           <span className="font-bold text-slate-200">
             {estaOnline ? 'Terminal conectada · Validación en tiempo real' : 'Modo sin conexión · Validando con padrón local'}
           </span>
           {manifiestoDescargado && (
-            <span className="hidden sm:inline-block px-2 py-0.5 rounded-md bg-slate-700 text-slate-300 text-[10px] font-medium border border-slate-600/40">
+            <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-md bg-slate-800 text-sky-300 text-[10px] font-bold border border-slate-700">
               Padrón local listo
             </span>
           )}
@@ -820,31 +840,32 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
           <button
             onClick={sincronizarPendientes}
             disabled={sincronizandoLote || !estaOnline}
-            className="flex items-center gap-1.5 px-3 py-1 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-xl font-bold hover:bg-amber-500/30 disabled:opacity-50 transition active:scale-95 cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/20 text-amber-300 border border-amber-500/30 rounded-xl font-bold hover:bg-amber-500/30 disabled:opacity-50 transition active:scale-95 cursor-pointer"
           >
             <RefreshCw size={13} className={sincronizandoLote ? 'animate-spin' : ''} />
             <span>{sincronizandoLote ? 'Sincronizando...' : `Sincronizar ${pendientesOffline} ingreso(s)`}</span>
           </button>
         ) : (
-          <span className="text-[11px] text-slate-400 font-medium">
-            Todos los ingresos sincronizados con la base de datos
+          <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1.5">
+            <CheckCircle size={13} className="text-emerald-400" />
+            <span>Todos los ingresos sincronizados con la base de datos</span>
           </span>
         )}
       </div>
 
       {/* BARRA DE PESTAÑAS Y MODALIDADES */}
-      <div className="max-w-7xl mx-auto mt-4 flex items-center justify-between border-b border-slate-800 pb-3 gap-3 overflow-x-auto">
+      <div className="max-w-7xl mx-auto mt-4 flex items-center justify-between border-b border-slate-800 pb-3 gap-3 overflow-x-auto relative z-10">
         <div className="flex items-center gap-2">
           <button
             onClick={() => setModalidad('flutter')}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black transition cursor-pointer ${
               modalidad === 'flutter'
-                ? 'bg-sky-500 text-slate-950 shadow-md shadow-sky-500/20'
-                : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 border border-slate-700/60'
+                ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-md shadow-sky-500/20'
+                : 'bg-slate-900/80 text-slate-300 hover:bg-slate-850 hover:text-white border border-slate-800'
             }`}
           >
             <Smartphone size={15} />
-            <span>Acreditación Móvil (App Flutter)</span>
+            <span>Acreditación Móvil (App Portería v1.0.9)</span>
             {dispositivosMoviles.length > 0 && (
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             )}
@@ -854,8 +875,8 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
             onClick={() => setModalidad('respaldo_web')}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black transition cursor-pointer ${
               modalidad === 'respaldo_web'
-                ? 'bg-sky-500 text-slate-950 shadow-md shadow-sky-500/20'
-                : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 border border-slate-700/60'
+                ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-md shadow-sky-500/20'
+                : 'bg-slate-900/80 text-slate-300 hover:bg-slate-850 hover:text-white border border-slate-800'
             }`}
           >
             <Laptop size={15} />
@@ -866,8 +887,8 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
             onClick={() => setModalidad('monitor')}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black transition cursor-pointer ${
               modalidad === 'monitor'
-                ? 'bg-sky-500 text-slate-950 shadow-md shadow-sky-500/20'
-                : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 border border-slate-700/60'
+                ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-md shadow-sky-500/20'
+                : 'bg-slate-900/80 text-slate-300 hover:bg-slate-850 hover:text-white border border-slate-800'
             }`}
           >
             <Activity size={15} />
@@ -897,11 +918,11 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                 <div className="flex flex-wrap items-center gap-2.5">
                   <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/30 text-sky-400 text-xs font-black tracking-wide">
                     <Smartphone size={14} className="text-sky-400" />
-                    <span>SiGIC Accesos · Flutter Engine v1.0.7</span>
+                    <span>SiGIC Accesos · Portería Oficial v1.0.9 (Build 10)</span>
                   </span>
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[11px] font-bold">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    Cámara 60 FPS & Offline Sync
+                    Cámara 60 FPS · Parches Shorebird OTA · Modo Offline
                   </span>
                 </div>
 
@@ -909,12 +930,24 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                   Control de Acreditación Móvil en Puerta
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-300/90 font-medium leading-relaxed">
-                  Terminales de mano para guardias y recepcionistas. Escaneo ultrarrápido de credenciales QR, validación instantánea de butacas oficiales y sincronización automática bidireccional.
+                  Terminales de mano para personal operativo, seguridad y administración. Escaneo ultrarrápido de credenciales QR, validación instantánea de butacas oficiales y sincronización automática bidireccional.
                 </p>
               </div>
 
               {/* ACCIONES RÁPIDAS DEL PANEL SUPERIOR */}
               <div className="flex flex-wrap sm:flex-nowrap items-center gap-3 shrink-0">
+                <a
+                  href={URL_APK_OFICIAL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  download="SIGIC-Porteria-Release-v1.0.9.apk"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white text-xs font-black shadow-lg shadow-sky-500/20 transition active:scale-95 cursor-pointer"
+                  title="Descargar APK oficial v1.0.9 directamente desde GitHub Releases"
+                >
+                  <Smartphone size={15} />
+                  <span>Descargar APK v1.0.9</span>
+                </a>
+
                 <button
                   onClick={probarConexionServidor}
                   disabled={pingStatus === 'testing'}
@@ -936,7 +969,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                 <button
                   onClick={simularEscaneoDePrueba}
                   disabled={simulandoEscaneo}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-400 hover:to-cyan-400 text-slate-950 text-xs font-black shadow-lg shadow-sky-500/20 transition active:scale-95 cursor-pointer"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-200 text-xs font-bold transition active:scale-95 cursor-pointer"
                   title="Simula un escaneo exitoso sin necesidad de un celular físico"
                 >
                   <Play size={14} className={simulandoEscaneo ? 'animate-spin' : ''} />
@@ -958,12 +991,12 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                       1
                     </span>
                     <div>
-                      <h3 className="text-base font-black text-white">Instalar Aplicación</h3>
-                      <p className="text-[11px] text-slate-400">Android APK Oficial · Listo para producción</p>
+                      <h3 className="text-base font-black text-white">Instalar Aplicación Portería</h3>
+                      <p className="text-[11px] text-slate-400">Android APK Oficial · Tecnicatura Superior en Analista de Sistemas</p>
                     </div>
                   </div>
                   <span className="px-2.5 py-1 rounded-lg bg-slate-800 text-sky-300 text-[11px] font-mono font-bold border border-slate-700">
-                    v1.0.7 · 74 MB
+                    v1.0.9+10 · 68.6 MB
                   </span>
                 </div>
 
@@ -974,16 +1007,20 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
 
                   <div className="space-y-2.5 text-center sm:text-left">
                     <p className="text-xs text-slate-200 font-semibold leading-snug">
-                      Apuntá la cámara nativa de cualquier Android a este código para iniciar la descarga.
+                      Apuntá la cámara nativa de cualquier Android a este código para iniciar la descarga directa.
                     </p>
                     <div className="space-y-1 text-[11px] text-slate-400">
                       <p className="flex items-center justify-center sm:justify-start gap-1.5">
                         <CheckCircle size={13} className="text-emerald-400 shrink-0" />
-                        <span>Sin Play Store requerida (Instalación local)</span>
+                        <span>Compilado para Android 7.0 a 15 (ARM64 / ARM32 / x86_64)</span>
                       </p>
                       <p className="flex items-center justify-center sm:justify-start gap-1.5">
                         <CheckCircle size={13} className="text-emerald-400 shrink-0" />
-                        <span>Compatible con Android 7.0 o superior</span>
+                        <span>Parches transparentes OTA con Shorebird CodePush</span>
+                      </p>
+                      <p className="flex items-center justify-center sm:justify-start gap-1.5">
+                        <CheckCircle size={13} className="text-emerald-400 shrink-0" />
+                        <span>Sincronización bidireccional y validación offline</span>
                       </p>
                     </div>
                   </div>
@@ -993,12 +1030,15 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
               <div className="space-y-3 pt-2">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                   <a
-                    href="/descargas/SIGIC-Porteria-1.0.7.apk"
-                    download="SIGIC-Porteria-1.0.7.apk"
-                    className="py-3 px-4 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-black text-xs transition active:scale-95 shadow-lg shadow-sky-500/20 flex items-center justify-center gap-2 cursor-pointer"
+                    href={URL_APK_OFICIAL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    download="SIGIC-Porteria-Release-v1.0.9.apk"
+                    className="py-3 px-4 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-black text-xs transition active:scale-95 shadow-lg shadow-sky-500/20 flex items-center justify-center gap-2 cursor-pointer"
+                    title="Descargar instalador APK oficial desde GitHub Releases"
                   >
-                    <Download size={15} />
-                    <span>Descargar APK</span>
+                    <Smartphone size={15} />
+                    <span>Descargar APK v1.0.9</span>
                   </a>
 
                   <button
@@ -1006,8 +1046,27 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                     className="py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 text-xs font-bold transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
                   >
                     {copiadoApk ? <CheckCheck size={15} className="text-emerald-400" /> : <Copy size={15} />}
-                    <span>{copiadoApk ? '¡Enlace Copiado!' : 'Copiar Enlace'}</span>
+                    <span>{copiadoApk ? 'Enlace Copiado' : 'Copiar Enlace'}</span>
                   </button>
+                </div>
+
+                <div className="pt-1 flex items-center justify-between text-[11px] text-slate-400">
+                  <a
+                    href={URL_GITHUB_RELEASES}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sky-400 hover:text-sky-300 font-bold hover:underline inline-flex items-center gap-1 cursor-pointer"
+                  >
+                    <ExternalLink size={12} /> Ver release oficial en GitHub
+                  </a>
+                  <a
+                    href="/descargas/SIGIC-Porteria-1.0.9.apk"
+                    download
+                    className="text-slate-400 hover:text-slate-200 hover:underline"
+                    title="Descargar desde mirror local de la plataforma"
+                  >
+                    Mirror institucional
+                  </a>
                 </div>
 
                 <p className="text-[10px] text-slate-500 text-center">
@@ -1244,7 +1303,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                           <div>
                             <span className="text-slate-500 block">Versión App:</span>
                             <span className="text-slate-300 font-mono font-semibold truncate block">
-                              {dev.versionApp || '1.0.7'}
+                              {dev.versionApp || '1.0.9+10'}
                             </span>
                           </div>
                           <div className="col-span-2">
@@ -1313,10 +1372,10 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
           <div className="lg:col-span-5 space-y-4">
             
             {/* BARRA DE ENTRADA MANUAL Y LECTOR */}
-            <div className="bg-slate-800/80 border border-slate-700/80 rounded-3xl p-4 sm:p-5 shadow-xl">
+            <div className="bg-slate-900/85 border border-slate-800 rounded-3xl p-4 sm:p-5 shadow-xl backdrop-blur-md">
               <h2 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-3 flex items-center justify-between">
                 <span>Búsqueda Rápida / Pistola USB</span>
-                <span className="text-[9px] px-2 py-0.5 rounded-md bg-slate-700 text-sky-300 font-bold">Autodetect</span>
+                <span className="text-[9px] px-2 py-0.5 rounded-md bg-slate-800 text-sky-300 font-bold border border-slate-700">Autodetect</span>
               </h2>
 
               <form 
@@ -1335,7 +1394,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                     value={busquedaManual}
                     onChange={(e) => setBusquedaManual(e.target.value)}
                     placeholder="DNI, Token o código escaneado..."
-                    className="w-full bg-slate-900/90 border border-slate-700 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-400 font-medium transition"
+                    className="w-full bg-slate-950 border border-slate-800 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-400 font-medium transition"
                     autoFocus
                   />
                 </div>
@@ -1343,7 +1402,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                   id="btn-porteria-buscar"
                   type="submit"
                   disabled={cargandoBusqueda || !busquedaManual.trim()}
-                  className="px-4 py-2.5 rounded-2xl bg-sky-500 hover:bg-sky-400 disabled:opacity-40 text-slate-950 font-black text-xs transition active:scale-95 cursor-pointer shadow-md shadow-sky-500/20"
+                  className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 disabled:opacity-40 text-white font-black text-xs transition active:scale-95 cursor-pointer shadow-md shadow-sky-500/20"
                 >
                   {cargandoBusqueda ? <RefreshCw size={14} className="animate-spin" /> : 'Buscar'}
                 </button>
@@ -1351,7 +1410,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
             </div>
 
             {/* VISOR DE CÁMARA QR */}
-            <div className="bg-slate-800/80 border border-slate-700/80 rounded-3xl p-4 sm:p-5 shadow-xl space-y-3">
+            <div className="bg-slate-900/85 border border-slate-800 rounded-3xl p-4 sm:p-5 shadow-xl backdrop-blur-md space-y-3">
               <div className="flex items-center justify-between">
                 <h2 className="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-2">
                   <Camera size={15} className="text-sky-400" />
@@ -1449,10 +1508,10 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
 
             {/* FICHA DE RESULTADO */}
             {resultado && !errorBusqueda ? (
-              <div className="bg-slate-800/80 border border-slate-700/80 rounded-3xl p-5 sm:p-6 shadow-xl space-y-5">
+              <div className="bg-slate-900/85 border border-slate-800 rounded-3xl p-5 sm:p-6 shadow-xl backdrop-blur-md space-y-5">
                 
                 {/* CABECERA DEL GRUPO */}
-                <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-700">
+                <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-800">
                   <div>
                     <span className="text-[10px] font-black uppercase tracking-wider text-sky-400">
                       {resultado.tipo === 'grupo' ? 'Acreditación Grupal' : 'Pase Individual'}
@@ -1471,7 +1530,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                         id="btn-porteria-acreditar-grupo"
                         onClick={manejarAcreditarGrupo}
                         disabled={procesandoAcreditacion}
-                        className="px-4 py-2.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 text-slate-950 font-black text-xs transition active:scale-95 cursor-pointer shadow-lg shadow-emerald-500/20 flex items-center gap-1.5"
+                        className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 disabled:opacity-40 text-slate-950 font-black text-xs transition active:scale-95 cursor-pointer shadow-lg shadow-emerald-500/20 flex items-center gap-1.5"
                       >
                         <UserCheck size={16} />
                         <span>Acreditar Todo el Grupo</span>
@@ -1479,7 +1538,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                     )}
                     <button
                       onClick={limpiarResultado}
-                      className="p-2.5 rounded-2xl bg-slate-700 hover:bg-slate-600 text-slate-300 transition cursor-pointer"
+                      className="p-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition cursor-pointer border border-slate-700"
                       title="Limpiar y escanear siguiente"
                     >
                       <RefreshCw size={15} />
@@ -1488,9 +1547,9 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                 </div>
 
                 {/* TARJETA DEL GRADUADO */}
-                <div className="bg-slate-900/60 border border-slate-750 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3">
+                <div className="bg-slate-950/70 border border-slate-800 p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold">
+                    <div className="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold border border-sky-500/30">
                       <GraduationCap size={20} />
                     </div>
                     <div>
@@ -1517,7 +1576,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                         id="btn-porteria-acreditar-individual"
                         onClick={manejarAcreditarEgresado}
                         disabled={procesandoAcreditacion}
-                        className="px-4 py-2 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-black text-xs transition cursor-pointer"
+                        className="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-black text-xs transition cursor-pointer shadow-md shadow-sky-500/20"
                       >
                         Acreditar
                       </button>
@@ -1535,7 +1594,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                   {listaInvitados.length > 0 ? (
                     <div className="space-y-2.5">
                       {listaInvitados.map((inv) => (
-                        <div key={inv.id} className="bg-slate-900/60 border border-slate-750 p-3.5 rounded-2xl flex items-center justify-between gap-3">
+                        <div key={inv.id} className="bg-slate-950/70 border border-slate-800 p-3.5 rounded-2xl flex items-center justify-between gap-3 hover:border-slate-700 transition">
                           <div className="min-w-0">
                             <div className="flex items-center gap-2">
                               <strong className="text-xs sm:text-sm font-bold text-slate-200 truncate">{inv.nombre}</strong>
@@ -1564,7 +1623,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                               <button
                                 onClick={() => manejarAcreditarInvitado(inv.id, inv.nombre, inv.asiento_id)}
                                 disabled={procesandoAcreditacion}
-                                className="px-3.5 py-1.5 rounded-xl bg-slate-700 hover:bg-sky-500 hover:text-slate-950 text-slate-200 font-bold text-xs transition cursor-pointer"
+                                className="px-3.5 py-1.5 rounded-xl bg-slate-800 hover:bg-sky-500 hover:text-slate-950 text-slate-200 font-bold text-xs transition cursor-pointer border border-slate-700"
                               >
                                 Acreditar
                               </button>
@@ -1574,7 +1633,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                       ))}
                     </div>
                   ) : (
-                    <div className="p-4 rounded-2xl bg-slate-900/40 border border-slate-800 text-center">
+                    <div className="p-4 rounded-2xl bg-slate-950/40 border border-slate-800 text-center">
                       <p className="text-xs text-slate-500 font-medium">Este graduado no registró acompañantes.</p>
                     </div>
                   )}
@@ -1582,7 +1641,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
 
               </div>
             ) : !errorBusqueda && (
-              <div className="bg-slate-800/40 border-2 border-dashed border-slate-750 rounded-3xl p-10 text-center space-y-3">
+              <div className="bg-slate-900/40 border-2 border-dashed border-slate-800 rounded-3xl p-10 text-center space-y-3 backdrop-blur-md">
                 <div className="w-16 h-16 rounded-2xl bg-slate-800 text-sky-400 mx-auto flex items-center justify-center shadow-inner">
                   <QrCode size={32} />
                 </div>
@@ -1602,7 +1661,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
       {modalidad === 'monitor' && (
         <main className="max-w-7xl mx-auto space-y-6 my-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 shadow-lg">
+            <div className="bg-slate-900/85 border border-slate-800 rounded-2xl p-5 shadow-lg backdrop-blur-md hover:border-slate-700 transition">
               <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Aforo Presente</span>
               <div className="flex items-baseline gap-2">
                 <span className="text-3xl font-black text-emerald-400">{stats?.presentes || 0}</span>
@@ -1613,7 +1672,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
               <p className="text-[11px] text-slate-400 mt-2 font-medium">Graduados e invitados dentro del recinto</p>
             </div>
 
-            <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 shadow-lg">
+            <div className="bg-slate-900/85 border border-slate-800 rounded-2xl p-5 shadow-lg backdrop-blur-md hover:border-slate-700 transition">
               <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Graduados Presentes</span>
               <div className="flex items-baseline gap-2">
                 <span className="text-3xl font-black text-sky-400">{stats?.egresadosPresentes || stats?.presentes || 0}</span>
@@ -1622,7 +1681,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
               <p className="text-[11px] text-slate-400 mt-2 font-medium">Titulares acreditados para entrega</p>
             </div>
 
-            <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 shadow-lg">
+            <div className="bg-slate-900/85 border border-slate-800 rounded-2xl p-5 shadow-lg backdrop-blur-md hover:border-slate-700 transition">
               <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Terminales Móviles</span>
               <div className="flex items-baseline gap-2">
                 <span className="text-3xl font-black text-indigo-400">{dispositivosMoviles.length}</span>
@@ -1631,7 +1690,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
               <p className="text-[11px] text-slate-400 mt-2 font-medium">Equipos de portería sincronizando</p>
             </div>
 
-            <div className="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-5 shadow-lg">
+            <div className="bg-slate-900/85 border border-slate-800 rounded-2xl p-5 shadow-lg backdrop-blur-md hover:border-slate-700 transition">
               <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-1">Estado del Padrón</span>
               <div className="flex items-baseline gap-2">
                 <span className={`text-xl font-black ${estaOnline ? 'text-emerald-400' : 'text-amber-400'}`}>
@@ -1645,7 +1704,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
           </div>
 
           {/* FEED EN TIEMPO REAL */}
-          <div className="bg-slate-800/80 border border-slate-700/80 rounded-3xl p-6 shadow-xl space-y-4">
+          <div className="bg-slate-900/85 border border-slate-800 rounded-3xl p-6 shadow-xl backdrop-blur-md space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-700">
               <div className="flex items-center gap-2">
                 <Activity size={18} className="text-sky-400" />
