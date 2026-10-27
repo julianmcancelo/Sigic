@@ -34,6 +34,26 @@ const nextConfig: NextConfig = {
   ...(process.env.VERCEL ? {} : { output: 'standalone' }),
   poweredByHeader: false,
 
+  async redirects() {
+    return [
+      {
+        source: '/descargas/SIGIC-Porteria-1.0.9.apk',
+        destination: 'https://github.com/julianmcancelo/Sigic/releases/latest/download/SIGIC-Porteria-Release-v1.0.9.apk',
+        permanent: false,
+      },
+      {
+        source: '/descargas/porteria-apk',
+        destination: 'https://github.com/julianmcancelo/Sigic/releases/latest/download/SIGIC-Porteria-Release-v1.0.9.apk',
+        permanent: false,
+      },
+      {
+        source: '/descargas/porteria-apk-latest',
+        destination: 'https://github.com/julianmcancelo/Sigic/releases/latest/download/SIGIC-Porteria-Release-v1.0.9.apk',
+        permanent: false,
+      },
+    ];
+  },
+
   async headers() {
     return [{
       source: '/:path*',

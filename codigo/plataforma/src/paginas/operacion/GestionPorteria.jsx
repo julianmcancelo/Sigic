@@ -520,10 +520,12 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
           </button>
 
           <a
-            href="/descargas/SIGIC-Porteria-1.0.9.apk"
+            href="https://github.com/julianmcancelo/Sigic/releases/latest/download/SIGIC-Porteria-Release-v1.0.9.apk"
+            target="_blank"
+            rel="noopener noreferrer"
             download
             className="inline-flex items-center gap-2 px-3.5 py-2.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition active:scale-95 shadow-md shadow-sky-500/20 cursor-pointer"
-            title="Descargar instalador APK oficial v1.0.9 para terminales Android"
+            title="Descargar instalador APK oficial v1.0.9 desde GitHub Releases"
           >
             <Smartphone size={15} />
             <span className="hidden sm:inline">Descargar APK v1.0.9</span>
@@ -1099,10 +1101,12 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
             </div>
             <div className="flex items-center gap-2">
               <a
-                href="/descargas/SIGIC-Porteria-1.0.9.apk"
+                href="https://github.com/julianmcancelo/Sigic/releases/latest/download/SIGIC-Porteria-Release-v1.0.9.apk"
+                target="_blank"
+                rel="noopener noreferrer"
                 download
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 hover:bg-sky-100 border border-sky-200 text-sky-700 text-xs font-bold transition cursor-pointer"
-                title="Descargar APK oficial para nuevos dispositivos"
+                title="Descargar APK oficial desde GitHub Releases para nuevos dispositivos"
               >
                 <Smartphone size={13} />
                 <span>Descargar APK v1.0.9</span>
@@ -1523,13 +1527,28 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                       </p>
                       <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px]">
                         <span className="text-slate-400 font-semibold">¿Dispositivo nuevo?</span>
-                        <a
-                          href="/descargas/SIGIC-Porteria-1.0.9.apk"
-                          download
-                          className="font-bold text-sky-600 hover:text-sky-700 hover:underline inline-flex items-center gap-1 cursor-pointer"
-                        >
-                          <Smartphone size={11} /> Descargar APK v1.0.9
-                        </a>
+                        <div className="flex items-center gap-2">
+                          <a
+                            href="https://github.com/julianmcancelo/Sigic/releases/latest/download/SIGIC-Porteria-Release-v1.0.9.apk"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            download
+                            className="font-bold text-sky-600 hover:text-sky-700 hover:underline inline-flex items-center gap-1 cursor-pointer"
+                            title="Descargar APK oficial desde GitHub Releases"
+                          >
+                            <Smartphone size={11} /> Descargar APK v1.0.9
+                          </a>
+                          <span className="text-slate-300">·</span>
+                          <a
+                            href="https://github.com/julianmcancelo/Sigic/releases/latest"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-semibold text-slate-500 hover:text-slate-800 hover:underline"
+                            title="Ver release oficial en GitHub"
+                          >
+                            GitHub
+                          </a>
+                        </div>
                       </div>
                     </div>
 
