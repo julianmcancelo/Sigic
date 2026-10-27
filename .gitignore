@@ -138,6 +138,7 @@ padron_*.xlsx
 datos_alumnos/
 
 # Archivos temporales de scripts y artefactos de construcción ISO/VM
+!os/personalizacion_windows10/**
 *.vdi
 *.7z
 *.zip
@@ -146,6 +147,7 @@ datos_alumnos/
 *.com
 *.ps1
 !codigo/plataforma/scripts/*.ps1
+!os/personalizacion_windows10/*.ps1
 build_iso_master.sh
 diagnostico_iso.sh
 instalar_wallpapers_vm.sh
