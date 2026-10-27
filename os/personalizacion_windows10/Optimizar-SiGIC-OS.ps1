@@ -6,6 +6,8 @@
 
 [CmdletBinding()]
 param(
+    [ValidateSet("Extremo", "Oficina")]
+    [string]$Perfil = "Extremo",
     [switch]$ModoDesatendido = $false,
     [switch]$OmitirProgramas = $false,
     [switch]$MantenerHibernacion = $false
@@ -20,15 +22,16 @@ $EsAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIden
 if (-not $EsAdmin) {
     Write-Warning "Este script requiere privilegios elevados de Administrador."
     Write-Host "Reintentando ejecucion con elevacion UAC..."
-    Start-Process powershell.exe -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`"") -Verb RunAs
+    Start-Process powershell.exe -ArgumentList ("-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`" -Perfil $Perfil") -Verb RunAs
     exit
 }
 
-$Host.UI.RawUI.WindowTitle = "SiGIC OS - Optimizador y Personalizador de Windows 10"
+$Host.UI.RawUI.WindowTitle = "SiGIC OS - Optimizador y Personalizador de Windows 10 [$Perfil]"
 
 Write-Host "==============================================================================" -ForegroundColor Cyan
 Write-Host "        SiGIC OS - OPTIMIZACION Y PERSONALIZACION DE WINDOWS 10               " -ForegroundColor White
 Write-Host "                 Instituto Tecnologico Beltran (ITB)                          " -ForegroundColor Cyan
+Write-Host "                 Perfil Seleccionado: $Perfil                                 " -ForegroundColor Yellow
 Write-Host "==============================================================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -38,7 +41,7 @@ if (-not $DirectorioScript) { $DirectorioScript = Get-Location }
 # ------------------------------------------------------------------------------
 # 1. Punto de Restauracion del Sistema (Seguridad)
 # ------------------------------------------------------------------------------
-Write-Host "[1/6] Creando punto de restauracion de seguridad..." -ForegroundColor Yellow
+Write-Host "[1/7] Creando punto de restauracion de seguridad..." -ForegroundColor Yellow
 try {
     Enable-ComputerRestore -Drive "C:\" -ErrorAction SilentlyContinue
     Checkpoint-Computer -Description "SiGIC_OS_PreOptimizacion" -RestorePointType "MODIFY_SETTINGS" -ErrorAction SilentlyContinue
@@ -50,7 +53,7 @@ try {
 # ------------------------------------------------------------------------------
 # 2. Eliminacion de Bloatware UWP y Aplicaciones Basura de Microsoft
 # ------------------------------------------------------------------------------
-Write-Host "[2/6] Eliminando aplicaciones UWP innecesarias (Debloat)..." -ForegroundColor Yellow
+Write-Host "[2/7] Eliminando aplicaciones UWP innecesarias (Debloat)..." -ForegroundColor Yellow
 
 $AppsParaRemover = @(
     "Microsoft.BingNews",
@@ -94,10 +97,14 @@ Write-Host "      Limpieza de aplicaciones UWP completada." -ForegroundColor Gre
 # ------------------------------------------------------------------------------
 # 3. Privacidad, Desactivacion de Telemetria y Publicidad
 # ------------------------------------------------------------------------------
-Write-Host "[3/6] Desactivando telemetria, rastreo y publicidad de Microsoft..." -ForegroundColor Yellow
+Write-Host "[3/7] Desactivando telemetria, rastreo y publicidad de Microsoft..." -ForegroundColor Yellow
 
 # Desactivar servicios de telemetria
 $ServiciosTelemetria = @("DiagTrack", "dmwappushservice", "RetailDemo")
+if ($Perfil -eq "Extremo") {
+    $ServiciosTelemetria += @("MapsBroker", "SensorService", "SensrSvc", "WbioSrvc")
+}
+
 foreach ($Servicio in $ServiciosTelemetria) {
     Stop-Service -Name $Servicio -Force -ErrorAction SilentlyContinue
     Set-Service -Name $Servicio -StartupType Disabled -ErrorAction SilentlyContinue
@@ -138,7 +145,7 @@ Write-Host "      Telemetria y privacidad configuradas de forma segura." -Foregr
 # ------------------------------------------------------------------------------
 # 4. Optimizacion de Rendimiento, Memoria y Latencia (Estilo AtlasOS)
 # ------------------------------------------------------------------------------
-Write-Host "[4/6] Aplicando optimizaciones de latencia y rendimiento..." -ForegroundColor Yellow
+Write-Host "[4/7] Aplicando optimizaciones de latencia y rendimiento..." -ForegroundColor Yellow
 
 # Esquema de energia: Maximo / Alto Rendimiento
 try {
@@ -171,19 +178,36 @@ if (-not $MantenerHibernacion) {
 
 # Configuracion del Explorador de Windows para profesionales de sistemas
 $RutaExplorerAdvanced = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced"
-# Mostrar extensiones de archivo siempre
 Set-ItemProperty -Path $RutaExplorerAdvanced -Name "HideFileExt" -Value 0 -Type DWord -Force
-# Mostrar archivos ocultos
 Set-ItemProperty -Path $RutaExplorerAdvanced -Name "Hidden" -Value 1 -Type DWord -Force
-# Abrir Explorador en 'Este Equipo' en lugar de 'Acceso rapido'
 Set-ItemProperty -Path $RutaExplorerAdvanced -Name "LaunchTo" -Value 1 -Type DWord -Force
 
-Write-Host "      Optimizaciones de rendimiento aplicadas con exito." -ForegroundColor Green
+# ------------------------------------------------------------------------------
+# 5. Optimizacion de Red y Baja Latencia TCP/IP (Atlas Tuning)
+# ------------------------------------------------------------------------------
+Write-Host "[5/7] Ajustando parametros de red y latencia del kernel TCP/IP..." -ForegroundColor Yellow
+
+# Desactivar Network Throttling Index (elimina limite artificial de 10 paquetes/ms en red)
+$RutaMultimedia = "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile"
+if (Test-Path $RutaMultimedia) {
+    Set-ItemProperty -Path $RutaMultimedia -Name "NetworkThrottlingIndex" -Value ([uint32]0xFFFFFFFF) -Type DWord -Force
+    Set-ItemProperty -Path $RutaMultimedia -Name "SystemResponsiveness" -Value 0 -Type DWord -Force
+}
+
+# Desactivar algoritmo de Nagle para conexion de baja latencia con el servidor SiGIC
+$InterfacesTcp = "HKLM:\SYSTEM\CurrentControlSet\Services\Tcpip\Parameters\Interfaces"
+if (Test-Path $InterfacesTcp) {
+    Get-ChildItem -Path $InterfacesTcp | ForEach-Object {
+        Set-ItemProperty -Path $_.PSPath -Name "TcpAckFrequency" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+        Set-ItemProperty -Path $_.PSPath -Name "TCPNoDelay" -Value 1 -Type DWord -Force -ErrorAction SilentlyContinue
+    }
+}
+Write-Host "      Parametros de red y latencia optimizados." -ForegroundColor Green
 
 # ------------------------------------------------------------------------------
-# 5. Personalizacion Visual Institucional Beltran / SiGIC
+# 6. Personalizacion Visual Institucional Beltran / SiGIC
 # ------------------------------------------------------------------------------
-Write-Host "[5/6] Aplicando personalizacion visual y fondo de pantalla..." -ForegroundColor Yellow
+Write-Host "[6/7] Aplicando personalizacion visual y fondo de pantalla..." -ForegroundColor Yellow
 
 # Activar Tema Oscuro para Aplicaciones y Sistema
 $RutaPersonalize = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\Personalize"
@@ -236,11 +260,17 @@ public class Wallpaper {
     Write-Host "      Fondo de pantalla institucional aplicado correctamente." -ForegroundColor Green
 }
 
+# Instalar Menu Contextual de Clic Derecho (Herramientas SiGIC)
+$ScriptMenu = Join-Path $DirectorioScript "Instalar-Menu-Contextual.ps1"
+if (Test-Path $ScriptMenu) {
+    & $ScriptMenu
+}
+
 # ------------------------------------------------------------------------------
-# 6. Despliegue de Runtimes y Software Esencial
+# 7. Despliegue de Runtimes y Software Esencial
 # ------------------------------------------------------------------------------
 if (-not $OmitirProgramas) {
-    Write-Host "[6/6] Verificando instalacion de programas esenciales..." -ForegroundColor Yellow
+    Write-Host "[7/7] Verificando instalacion de programas esenciales..." -ForegroundColor Yellow
 
     $WingetPath = Get-Command winget.exe -ErrorAction SilentlyContinue
     if ($WingetPath) {
@@ -282,7 +312,7 @@ if (-not $OmitirProgramas) {
         Write-Host "      Acceso directo de SiGIC anadido al Escritorio." -ForegroundColor Green
     }
 } else {
-    Write-Host "[6/6] Instalacion de programas omitida por parametro." -ForegroundColor Gray
+    Write-Host "[7/7] Instalacion de programas omitida por parametro." -ForegroundColor Gray
 }
 
 # ------------------------------------------------------------------------------
@@ -292,7 +322,7 @@ Write-Host ""
 Write-Host "==============================================================================" -ForegroundColor Green
 Write-Host "          PROCESO DE OPTIMIZACION Y PERSONALIZACION COMPLETADO               " -ForegroundColor White
 Write-Host "==============================================================================" -ForegroundColor Green
-Write-Host "Se recomienda reiniciar el equipo para aplicar todas las politicas de servicios." -ForegroundColor Cyan
+Write-Host "Se recomienda reiniciar el equipo para consolidar las directivas de servicios." -ForegroundColor Cyan
 Write-Host ""
 
 if (-not $ModoDesatendido) {

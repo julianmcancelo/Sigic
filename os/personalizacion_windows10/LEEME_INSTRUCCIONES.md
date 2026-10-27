@@ -1,85 +1,76 @@
 # SiGIC OS — Suite de Personalización y Optimización para Windows 10
 > **Instituto Tecnológico Beltrán (ITB)**  
 > **Tecnicatura Superior en Analista de Sistemas**  
-> *Inspirado en la arquitectura modular de AtlasOS y Playbooks desatendidos*
+> *Edición Avanzada inspirada en la arquitectura modular de AtlasOS y ReviOS*
 
 ---
 
 ## 1. ¿Qué es esta Suite?
 
-Esta suite permite transformar cualquier instalación estándar de **Windows 10 (64-bit)** en una versión de alto rendimiento, optimizada, despojada de bloatware de Microsoft (*debloat*) y totalmente personalizada con la identidad institucional de Beltrán y SiGIC.
+Esta suite transforma cualquier instalación de **Windows 10 (64-bit)** en un sistema de ultra bajo consumo de recursos, optimizado para latencia cero, despojado de bloatware de Microsoft (*debloat*) y totalmente personalizado con la identidad institucional de Beltrán y SiGIC.
 
-### Características Principales:
-- **Reducción de consumo de RAM y CPU**: Desactiva telemetría pesada, servicios de rastreo y procesos en segundo plano innecesarios.
-- **Eliminación de Bloatware UWP**: Remueve de raíz juegos sugeridos, Cortana, Bing News, Xbox Overlays y aplicaciones basura de fábrica.
-- **Identidad Institucional Completa**:
-  - Tema oscuro forzado para el sistema y las aplicaciones.
-  - Inyección de los **10 fondos de pantalla oficiales Beltrán** en alta resolución.
-  - Configuración del Explorador para analistas de sistemas (muestra extensiones de archivo y archivos ocultos).
-- **Runtimes y Software Esencial**:
-  - Visual C++ All-In-One Redistributables (2005 al 2022).
-  - 7-Zip y Google Chrome / navegador desatendido.
-  - Centro de Control SiGIC en el Escritorio.
-
----
-
-## 2. Modo 1: Aplicación Rápida en una PC con Windows 10 Existente
-
-Si ya tienes una computadora con Windows 10 funcionando y quieres optimizarla y personalizarla:
-
-1. Ingresá a la carpeta `personalizacion_windows10\`.
-2. Hacé doble clic en **`INICIAR-OPTIMIZACION.bat`** (solicitará permisos de Administrador automáticamente).
-3. El script ejecutará en consola todas las fases de optimización y aplicará el fondo y tema institucional en vivo.
-4. Reiniciá el equipo para consolidar las directivas de servicios y energía.
+### Capacidades Avanzadas Integradas:
+- **Perfiles Modulares**: 
+  - *AtlasOS Extremo*: Máximo rendimiento para servidores locales, quioscos y acreditación en vivo.
+  - *Estación de Oficina*: Rendimiento optimizado manteniendo servicios de impresión y Bluetooth.
+- **Ajustes de Kernel y Red (Low Latency TCP/IP)**: Desactiva el estrangulamiento de red de Windows (`NetworkThrottlingIndex = 0xFFFFFFFF`) y activa el procesamiento inmediato de paquetes (`TCPNoDelay = 1`).
+- **Modo Acto de Colación / Presentación**: Bloquea con 1 clic la suspensión de monitor, protector de pantalla y notificaciones para presentaciones sin interrupciones.
+- **Menú Contextual Institucional en el Escritorio**: Clic derecho en el escritorio con accesos directos a SiGIC, fondos, liberación de memoria y modo ceremonia.
+- **Liberador de Memoria RAM en Vivo**: Purga las listas de espera (*Standby List*) y conjuntos de trabajo para recuperar RAM al instante sin reiniciar.
+- **Identidad Institucional Completa**: Tema oscuro forzado y los 10 fondos de pantalla oficiales de Beltrán en alta resolución.
+- **Despliegue Desatendido**: Archivo `autounattend.xml` listo para formateos automáticos sin interacción humana.
 
 ---
 
-## 3. Modo 2: Instalación 100% Desatendida desde Pendrive USB (Instalador Automático)
-
-Si deseas formatear o instalar Windows 10 en cualquier PC sin tocar el teclado ni responder preguntas:
-
-1. Creá tu pendrive booteable con tu ISO oficial de Windows 10 utilizando **Rufus** o **Ventoy**.
-2. Copiá el archivo **`autounattend.xml`** directamente en la **raíz de tu pendrive USB** (ej: `E:\autounattend.xml`).
-3. Copiá la carpeta completa **`personalizacion_windows10\`** también a la raíz de tu pendrive USB.
-4. Conectá el pendrive a la máquina e iniciá el booteo:
-   - Windows Setup detectará el archivo de respuestas.
-   - Omitirá las pantallas de idioma, contrato EULA y comprobaciones de hardware (TPM/Secure Boot).
-   - Creará automáticamente el usuario local `Administrador` sin contraseñas engorrosas.
-   - Al finalizar el primer inicio, ejecutará automáticamente la suite de optimización y dejará el escritorio listo con el fondo Beltrán y las optimizaciones aplicadas.
-
----
-
-## 4. Selector de Fondos de Pantalla Institucionales
-
-Puedes alternar entre los 10 temas visuales de Beltrán en cualquier momento:
-
-1. Ejecutá **`CAMBIAR-FONDO.bat`**.
-2. Seleccioná el número correspondiente:
-   - `[1]` Beltrán Oficial (Azul Institucional Activo)
-   - `[2]` Original
-   - `[3]` Aurora
-   - `[4]` Carbon
-   - `[5]` Ceremonial
-   - `[6]` Cybergrid
-   - `[7]` Emerald
-   - `[8]` Sapphire
-   - `[9]` Sunset
-   - `[10]` Alabaster
-3. El fondo cambiará de manera instantánea en tu pantalla.
-
----
-
-## 5. Estructura de Archivos
+## 2. Herramientas y Scripts Incluidos
 
 ```
 personalizacion_windows10/
-├── INICIAR-OPTIMIZACION.bat       # Lanzador con elevacion UAC para Windows 10 instalado
-├── Optimizar-SiGIC-OS.ps1         # Script maestro de optimizacion, debloat y visual
+├── Panel-Control-SiGIC.bat        # Panel de Control interactivo central (TUI con perfiles)
+├── INICIAR-OPTIMIZACION.bat       # Lanzador rapido directo con elevacion UAC
+├── Optimizar-SiGIC-OS.ps1         # Motor maestro de optimizacion y debloat
+├── Modo-Ceremonia.bat             # Alternador del Modo Presentacion / Colacion
+├── Modo-Ceremonia.ps1             # Logica de gestion energetica y notificaciones
+├── Liberar-RAM.bat                # Utilidad de purga de memoria RAM en vivo
+├── Liberar-RAM.ps1                # Invocacion nativa psapi.dll y Garbage Collector
+├── CAMBIAR-FONDO.bat              # Selector interactivo de los 10 temas Beltran
+├── Instalar-Menu-Contextual.ps1   # Registrador del menu 'Herramientas SiGIC' (Clic derecho)
+├── Desinstalar-Menu-Contextual.ps1# Desinstalador limpio del menu contextual
+├── Restaurar-Defaults.bat         # Revertir a valores predeterminados de Windows
+├── Restaurar-Defaults.ps1         # Reasigna planes de energia y telemetria estandar
 ├── autounattend.xml               # Archivo de respuestas para instalacion desatendida en USB
-├── CAMBIAR-FONDO.bat              # Menu rapido para alternar los 10 temas de Beltran
-├── LEEME_INSTRUCCIONES.md         # Documentacion y guia paso a paso
+├── LEEME_INSTRUCCIONES.md         # Documentacion tecnica de la suite
 └── recursos/
-    ├── fondo_default.jpg          # Fondo por defecto (Beltran Oficial)
-    ├── wallpapers/                # 10 variantes de wallpapers institucionales
-    └── programas/                 # Instaladores opcionales adicionales
+    ├── fondo_default.jpg          # Fondo institucional activo (Beltran Oficial)
+    ├── wallpapers/                # Coleccion completa de los 10 fondos
+    └── programas/                 # Instaladores opcionales fuera de linea
 ```
+
+---
+
+## 3. Modo de Uso en Equipos Existentes
+
+1. Hacé doble clic en **`Panel-Control-SiGIC.bat`** (se abrirá automáticamente con permisos de Administrador).
+2. Podés elegir entre:
+   - `[1]` Aplicar Perfil AtlasOS Extremo.
+   - `[2]` Aplicar Perfil Estación de Oficina.
+   - `[3]` Activar / Alternar Modo Ceremonia (para el día del evento).
+   - `[4]` Cambiar Fondo Institucional (entre los 10 temas).
+   - `[5]` Liberar Memoria RAM en Vivo.
+   - `[6]` Instalar el Menú Contextual en el Escritorio.
+   - `[8]` Ver Diagnóstico de CPU, RAM y Procesos en Tiempo Real.
+   - `[9]` Restaurar los valores originales si fuera necesario.
+
+---
+
+## 4. Instalación 100% Desatendida desde Pendrive USB
+
+Para instalar Windows 10 en cualquier PC sin tocar el teclado ni responder preguntas:
+
+1. Creá tu pendrive booteable con tu ISO oficial de Windows 10 usando **Rufus** o **Ventoy**.
+2. Copiá **`autounattend.xml`** en la raíz de tu pendrive USB (`E:\autounattend.xml`).
+3. Copiá la carpeta **`personalizacion_windows10\`** también a la raíz de tu pendrive (`E:\personalizacion_windows10\`).
+4. Booteá el equipo desde el pendrive:
+   - Se omitirán todas las pantallas de configuración y comprobaciones de hardware.
+   - Creará el usuario `Administrador`.
+   - Ejecutará automáticamente la suite completa y entregará el escritorio ya listo, optimizado y con el fondo Beltrán colocado.
