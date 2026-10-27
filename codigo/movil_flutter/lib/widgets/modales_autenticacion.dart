@@ -516,7 +516,7 @@ class _ModalConfiguracionServidorState
       if (preset == 'produccion') {
         _controlador.text = ServicioApi.urlBasePorDefecto;
       } else if (preset == 'demo') {
-        _controlador.text = ServicioApi.urlBaseDemo;
+        _controlador.text = ServicioApi.urlBasePorDefecto;
       }
     });
     _probarConexion();

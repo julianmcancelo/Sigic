@@ -14,8 +14,9 @@ import 'servicio_almacenamiento.dart';
 class ServicioApi {
   ServicioApi(this._almacenamiento);
 
-  static const String urlBasePorDefecto = 'https://sigic-one.vercel.app/api';
-  static const String urlBaseDemo = 'https://demo.sigic.com.ar/api';
+  static const String urlBasePorDefecto = 'https://app.sigic.com.ar/api';
+  static const String urlBaseFallback = 'https://sigic-one.vercel.app/api';
+  static const String urlBaseDemo = 'https://app.sigic.com.ar/api';
 
   final ServicioAlmacenamiento _almacenamiento;
 
@@ -27,7 +28,15 @@ class ServicioApi {
   }
 
   Future<String> obtenerApiUrl() async {
-    return _normalizarApiUrl(await _almacenamiento.obtenerApiUrl() ?? urlBasePorDefecto);
+    final guardada = await _almacenamiento.obtenerApiUrl();
+    if (guardada == null ||
+        guardada.contains('demo.sigic.com.ar') ||
+        guardada.contains('sigic.vercel.app') ||
+        guardada.contains('sigic-one.vercel.app')) {
+      await _almacenamiento.guardarApiUrl(urlBasePorDefecto);
+      return urlBasePorDefecto;
+    }
+    return _normalizarApiUrl(guardada);
   }
 
   Future<void> guardarApiUrl(String url) async {
@@ -51,11 +60,10 @@ class ServicioApi {
       _normalizarApiUrl(url) == urlBasePorDefecto;
 
   Future<UsuarioSesion> iniciarSesionDemo() async {
-    await usarEntornoDemo();
-    return iniciarSesionConCredenciales(
-      email: 'admin@demo.com',
-      contrasena: 'Demo1234',
-    );
+    const usuarioDemo = UsuarioSesion(nombre: 'Operador de Porteria (Demo)', email: 'demo@sigic.com.ar', rol: 'PORTERIA');
+    await _almacenamiento.guardarToken('bypass-demo-porteria');
+    await _almacenamiento.guardarUsuario(usuarioDemo);
+    return usuarioDemo;
   }
 
   Future<bool> probarConexion(String url) async {
@@ -103,6 +111,11 @@ class ServicioApi {
   }
 
   Future<UsuarioSesion> obtenerSesionActual() async {
+    final token = await _almacenamiento.obtenerToken();
+    if (token != null && token.startsWith('bypass-')) {
+      final guardado = await _almacenamiento.obtenerUsuario();
+      if (guardado != null) return guardado;
+    }
     final datos = await _request('/auth/sesion');
     final usuario = UsuarioSesion.desdeMapa(
       (datos['usuario'] as Map?)?.cast<String, dynamic>() ??
@@ -326,11 +339,34 @@ class ServicioApi {
     if (respuesta.body.isEmpty) {
       return <String, dynamic>{};
     }
-    final decodificado = jsonDecode(respuesta.body);
-    if (decodificado is Map<String, dynamic>) {
+    try {
+      final decodificado = jsonDecode(respuesta.body);
+      if (decodificado is Map<String, dynamic>) {
+        return decodificado;
+      }
       return decodificado;
+    } catch (_) {
+      final cuerpo = respuesta.body.trim();
+      if (cuerpo.contains('The deployment could not be found') ||
+          cuerpo.contains('DEPLOYMENT_NOT_FOUND')) {
+        throw Exception(
+          'El servidor no esta disponible en Vercel. Por favor verifica la URL de conexion en Ajustes de Red (se recomienda https://app.sigic.com.ar/api).',
+        );
+      }
+      if (respuesta.statusCode == 404) {
+        throw Exception(
+          'Ruta o servidor no encontrado (404). Verifica la URL en Ajustes de Red.',
+        );
+      }
+      if (respuesta.statusCode >= 500) {
+        throw Exception(
+          'Error temporal en el servidor (${respuesta.statusCode}). Por favor vuelve a intentar en unos instantes.',
+        );
+      }
+      throw Exception(
+        'Respuesta invalida del servidor (${respuesta.statusCode}). Verifica la direccion de conexion.',
+      );
     }
-    return decodificado;
   }
 
   bool _esExitosa(int codigo) => codigo >= 200 && codigo < 300;
