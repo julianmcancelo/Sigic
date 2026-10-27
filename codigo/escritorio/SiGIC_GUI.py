@@ -726,7 +726,7 @@ class SigicApp(ctk.CTk):
         equipo_box.pack(fill="x", pady=(0, 14), padx=2)
 
         integrantes = [
-            ("Cancelo Julian", "Líder de Proyecto & Fullstack · Analista de Sistemas", "#0284c7"),
+            ("Cancelo Julian", "Analista de Sistemas", "#334155"),
             ("Alfonso Alan Alexis", "Analista de Sistemas", "#334155"),
             ("Contreras Villalba Sol Heilin", "Analista de Sistemas", "#334155"),
             ("Frassia Matias", "Analista de Sistemas", "#334155"),
@@ -750,9 +750,9 @@ class SigicApp(ctk.CTk):
             badge = ctk.CTkLabel(
                 row_i,
                 text=rol,
-                font=ctk.CTkFont(family="Segoe UI", size=10, weight="bold" if "Líder" in rol else "normal"),
-                text_color="#ffffff" if "Líder" in rol else "#475569",
-                fg_color=color_badge if "Líder" in rol else "#e2e8f0",
+                font=ctk.CTkFont(family="Segoe UI", size=10, weight="normal"),
+                text_color="#475569",
+                fg_color="#e2e8f0",
                 corner_radius=6,
                 padx=10,
                 pady=2

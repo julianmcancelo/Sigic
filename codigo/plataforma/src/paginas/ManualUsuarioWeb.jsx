@@ -1376,15 +1376,12 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
 
           {/* Lista de Integrantes */}
           <div className="space-y-1.5">
-            {/* Julian Cancelo - Líder */}
-            <div className="rounded-lg border border-sky-200 bg-gradient-to-r from-sky-50/80 to-white p-2 shadow-xs">
+            {/* Julian Cancelo */}
+            <div className="rounded-lg border border-slate-100 bg-slate-50/60 p-2">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-slate-900">Cancelo Julian</span>
-                <span className="rounded bg-sky-600 px-1.5 py-0.5 text-[7.5px] font-black tracking-wide text-white uppercase">
-                  Líder de Proyecto
-                </span>
+                <span className="text-[9.5px] font-bold text-slate-800">Cancelo Julian</span>
+                <span className="text-[8px] font-semibold text-slate-500">Analista de Sistemas</span>
               </div>
-              <p className="text-[8.5px] font-semibold text-sky-700 mt-0.5">Líder de Proyecto & Fullstack · Analista de Sistemas</p>
             </div>
 
             {/* Alfonso Alan Alexis */}

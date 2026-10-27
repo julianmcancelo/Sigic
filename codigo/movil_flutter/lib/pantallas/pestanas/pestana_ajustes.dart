@@ -1156,10 +1156,9 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
                       children: [
                         _FilaIntegrante(
                           nombre: 'Cancelo Julian',
-                          rol: 'Líder de Proyecto & Fullstack · Analista de Sistemas',
-                          esLider: true,
+                          rol: 'Analista de Sistemas',
                         ),
-                        Divider(height: 14, color: Color(0xFFE2E8F0)),
+                        SizedBox(height: 6),
                         _FilaIntegrante(
                           nombre: 'Alfonso Alan Alexis',
                           rol: 'Analista de Sistemas',
@@ -1271,12 +1270,10 @@ class _FilaIntegrante extends StatelessWidget {
   const _FilaIntegrante({
     required this.nombre,
     required this.rol,
-    this.esLider = false,
   });
 
   final String nombre;
   final String rol;
-  final bool esLider;
 
   @override
   Widget build(BuildContext context) => Row(
@@ -1286,9 +1283,9 @@ class _FilaIntegrante extends StatelessWidget {
         margin: const EdgeInsets.only(top: 4),
         width: 6,
         height: 6,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           shape: BoxShape.circle,
-          color: esLider ? const Color(0xFF003865) : const Color(0xFF64748B),
+          color: Color(0xFF64748B),
         ),
       ),
       const SizedBox(width: 8),
@@ -1298,22 +1295,18 @@ class _FilaIntegrante extends StatelessWidget {
           children: [
             Text(
               nombre,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 12,
-                fontWeight: esLider ? FontWeight.w800 : FontWeight.w700,
-                color: esLider
-                    ? const Color(0xFF003865)
-                    : const Color(0xFF1E293B),
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1E293B),
               ),
             ),
             Text(
               rol,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 10.5,
-                fontWeight: esLider ? FontWeight.w600 : FontWeight.w500,
-                color: esLider
-                    ? const Color(0xFF0284C7)
-                    : const Color(0xFF64748B),
+                fontWeight: FontWeight.w500,
+                color: Color(0xFF64748B),
               ),
             ),
           ],
