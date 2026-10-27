@@ -34,7 +34,6 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
   final ServicioRelease _servicioRelease = ServicioRelease();
   ReleaseDisponible? _releaseDisponible;
   bool _buscandoActualizacion = false;
-  bool _probandoConexion = false;
   bool _iniciandoSesion = false;
   bool? _conexionActiva;
   UsuarioSesion? _usuario;
@@ -82,16 +81,14 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
 
   Future<void> _verificarConexion() async {
     setState(() {
-      _probandoConexion = true;
       _conexionActiva = null;
     });
     if (widget.servicioApi.esDireccionLocal(_controladorApi.text)) {
       setState(() {
-        _probandoConexion = false;
         _conexionActiva = false;
       });
       _mostrarSnack(
-        'En el telefono no podes usar localhost. Usa la IP de la computadora.',
+        'En el teléfono no podés usar localhost. Usá la IP de la computadora.',
       );
       return;
     }
@@ -100,31 +97,14 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
       return;
     }
     setState(() {
-      _probandoConexion = false;
       _conexionActiva = ok;
     });
     if (ok) {
       await widget.servicioApi.guardarApiUrl(_controladorApi.text);
+      _mostrarSnack('Conexión con el servidor verificada correctamente.');
+    } else {
+      _mostrarSnack('No se pudo establecer conexión con el servidor.');
     }
-  }
-
-  Future<void> _cambiarEntorno(String entorno) async {
-    await widget.servicioApi.cerrarSesion();
-    if (entorno == 'demo') {
-      await widget.servicioApi.usarEntornoDemo();
-      _controladorApi.text = ServicioApi.urlBaseDemo;
-    } else if (entorno == 'produccion') {
-      await widget.servicioApi.usarEntornoProduccion();
-      _controladorApi.text = ServicioApi.urlBasePorDefecto;
-    }
-    if (!mounted) return;
-    setState(() {
-      _entorno = entorno;
-      _usuario = null;
-      _conexionActiva = null;
-    });
-    widget.alCambiarSesion();
-    if (entorno != 'personalizado') await _verificarConexion();
   }
 
   Future<void> _iniciarDemo() async {
@@ -231,6 +211,11 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
       appBar: AppBar(
         title: const Text('Ajustes'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, size: 20),
+            tooltip: 'Verificar conexión',
+            onPressed: _verificarConexion,
+          ),
           Padding(
             padding: const EdgeInsets.only(right: 16),
             child: _PildoraEstado(
@@ -424,7 +409,8 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
                 valueListenable: modoTemaSigic,
                 builder: (context, modo, _) =>
                     DropdownButtonFormField<ThemeMode>(
-                  initialValue: modo,
+                  // ignore: deprecated_member_use
+                  value: modo,
                   decoration: const InputDecoration(
                     labelText: 'Tema de la aplicación',
                   ),
@@ -451,69 +437,9 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
             const SizedBox(height: 12),
 
             const _TituloSeccion(
-              titulo: 'ENTORNO DE TRABAJO',
-              detalle: 'Elegí el servidor donde opera este dispositivo.',
-            ),
-            PanelTarjeta(
-              contenido: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      _BotonEntorno(
-                        etiqueta: 'Demo',
-                        icono: Icons.science_outlined,
-                        seleccionado: _entorno == 'demo',
-                        alPresionar: () => _cambiarEntorno('demo'),
-                      ),
-                      _BotonEntorno(
-                        etiqueta: 'Producción',
-                        icono: Icons.apartment,
-                        seleccionado: _entorno == 'produccion',
-                        alPresionar: () => _cambiarEntorno('produccion'),
-                      ),
-                      _BotonEntorno(
-                        etiqueta: 'Personalizado',
-                        icono: Icons.tune,
-                        seleccionado: _entorno == 'personalizado',
-                        alPresionar: () => _cambiarEntorno('personalizado'),
-                      ),
-                    ],
-                  ),
-                  if (_entorno == 'personalizado') ...[
-                    const SizedBox(height: 14),
-                    TextField(
-                      controller: _controladorApi,
-                      decoration: InputDecoration(
-                        labelText: 'URL de la API',
-                        hintText: ServicioApi.urlBasePorDefecto,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    OutlinedButton.icon(
-                      onPressed: _probandoConexion ? null : _verificarConexion,
-                      icon: const Icon(Icons.refresh, size: 16),
-                      label: Text(
-                        _probandoConexion
-                            ? 'Verificando...'
-                            : 'Comprobar conexión',
-                      ),
-                    ),
-                  ],
-                  if (_conexionActiva != null) ...[
-                    const SizedBox(height: 10),
-                    _MensajeConexion(activa: _conexionActiva!),
-                  ],
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            const _TituloSeccion(
-              titulo: 'ACTUALIZACIONES',
+              titulo: 'ACTUALIZACIONES & SHOREBIRD',
               detalle:
-                  'El sistema se actualiza de forma segura en segundo plano.',
+                  'Distribución y parches seguros en segundo plano vía Shorebird OTA.',
             ),
             PanelTarjeta(
               contenido: Column(
@@ -521,23 +447,59 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
                 children: [
                   Row(
                     children: [
-                      const Icon(
-                        Icons.system_update_alt,
-                        color: Color(0xFF075985),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'Shorebird · parche ${_parcheActual?.toString() ?? 'base'}',
-                          style: const TextStyle(fontWeight: FontWeight.w800),
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF075985).withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(10),
                         ),
+                        child: const Icon(
+                          Icons.cloud_sync_outlined,
+                          color: Color(0xFF0284C7),
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _parcheActual != null
+                                  ? 'Shorebird · Parche #$_parcheActual activo'
+                                  : 'Shorebird · Versión base activa',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            const Text(
+                              'Canal de distribución: Oficial ITB',
+                              style: TextStyle(
+                                color: Color(0xFF64748B),
+                                fontSize: 11.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      _PildoraEstado(
+                        etiqueta: _parcheActual != null ? 'PARCHEADO' : 'BASE',
+                        color: _parcheActual != null
+                            ? const Color(0xFF0284C7)
+                            : const Color(0xFF64748B),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   const Text(
-                    'Las mejoras se descargan en segundo plano con Shorebird y quedan listas al reiniciar.',
-                    style: TextStyle(color: Color(0xFF5C7386), height: 1.35),
+                    'Las actualizaciones se reciben de forma transparente sin reinstalar el instalador, quedando operativas al iniciar la app.',
+                    style: TextStyle(
+                      color: Color(0xFF5C7386),
+                      fontSize: 12,
+                      height: 1.35,
+                    ),
                   ),
                   if (_releaseDisponible != null) ...[
                     const SizedBox(height: 14),
@@ -545,7 +507,7 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: const Color(0xFF0A7F5F).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(14),
                         border: Border.all(
                           color: const Color(0xFF0A7F5F).withValues(alpha: 0.3),
                         ),
@@ -599,19 +561,165 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
                     ),
                   ],
                   const SizedBox(height: 14),
-                  FilledButton.tonalIcon(
-                    onPressed: _buscandoActualizacion ? null : _buscarActualizacion,
-                    icon: _buscandoActualizacion
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.system_update_alt),
-                    label: Text(
-                      _buscandoActualizacion
-                          ? 'Comprobando servidores...'
-                          : 'Buscar actualización ahora',
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.tonalIcon(
+                      onPressed: _buscandoActualizacion ? null : _buscarActualizacion,
+                      icon: _buscandoActualizacion
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.sync, size: 18),
+                      label: Text(
+                        _buscandoActualizacion
+                            ? 'Comprobando parches en Shorebird...'
+                            : 'Buscar parches y actualizaciones ahora',
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            const _TituloSeccion(
+              titulo: 'ACERCA DE',
+              detalle: 'Información institucional y equipo de desarrollo.',
+            ),
+            PanelTarjeta(
+              contenido: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x10000000),
+                              blurRadius: 8,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Image.asset(
+                          'assets/imagenes/logo-oficial.png',
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'SiGIC Móvil',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 16,
+                                letterSpacing: -0.2,
+                              ),
+                            ),
+                            const SizedBox(height: 1),
+                            Text(
+                              'Sistema de Gestión Institucional de Colaciones',
+                              style: TextStyle(
+                                color: Colors.grey.shade600,
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Text(
+                      'INSTITUTO TECNOLÓGICO BELTRÁN\nTecnicatura Superior en Analista de Sistemas · Ciclo 2026',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF334155),
+                        height: 1.35,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  const Text(
+                    'Equipo de Proyecto',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF0F172A),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: const Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _FilaIntegrante(
+                          nombre: 'Cancelo Julian',
+                          rol: 'Líder de Proyecto & Fullstack · Analista de Sistemas',
+                          esLider: true,
+                        ),
+                        Divider(height: 14, color: Color(0xFFE2E8F0)),
+                        _FilaIntegrante(
+                          nombre: 'Alfonso Alan Alexis',
+                          rol: 'Analista de Sistemas',
+                        ),
+                        SizedBox(height: 6),
+                        _FilaIntegrante(
+                          nombre: 'Contreras Villalba Sol Heilin',
+                          rol: 'Analista de Sistemas',
+                        ),
+                        SizedBox(height: 6),
+                        _FilaIntegrante(
+                          nombre: 'Frassia Matias',
+                          rol: 'Analista de Sistemas',
+                        ),
+                        SizedBox(height: 6),
+                        _FilaIntegrante(
+                          nombre: 'Santillan Luis Gabriel',
+                          rol: 'Analista de Sistemas',
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  const Center(
+                    child: Text(
+                      'Versión 1.0.9 (Build 10) · Avellaneda, Buenos Aires',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Color(0xFF94A3B8),
+                        fontFamily: 'monospace',
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ],
@@ -678,71 +786,59 @@ class _PildoraEstado extends StatelessWidget {
   );
 }
 
-class _BotonEntorno extends StatelessWidget {
-  const _BotonEntorno({
-    required this.etiqueta,
-    required this.icono,
-    required this.seleccionado,
-    required this.alPresionar,
+class _FilaIntegrante extends StatelessWidget {
+  const _FilaIntegrante({
+    required this.nombre,
+    required this.rol,
+    this.esLider = false,
   });
-  final String etiqueta;
-  final IconData icono;
-  final bool seleccionado;
-  final VoidCallback alPresionar;
+
+  final String nombre;
+  final String rol;
+  final bool esLider;
 
   @override
-  Widget build(BuildContext context) => ChoiceChip(
-    selected: seleccionado,
-    onSelected: (_) => alPresionar(),
-    avatar: Icon(
-      icono,
-      size: 17,
-      color: seleccionado ? const Color(0xFF075985) : const Color(0xFF5C7386),
-    ),
-    label: Text(etiqueta),
-    labelStyle: TextStyle(
-      fontWeight: FontWeight.w800,
-      color: seleccionado ? const Color(0xFF075985) : const Color(0xFF3F5668),
-    ),
-    selectedColor: const Color(0xFFE1F4FA),
-    side: BorderSide(
-      color: seleccionado ? const Color(0xFF075985) : const Color(0xFFE2EAF0),
-    ),
-  );
-}
-
-class _MensajeConexion extends StatelessWidget {
-  const _MensajeConexion({required this.activa});
-  final bool activa;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    width: double.infinity,
-    padding: const EdgeInsets.all(10),
-    decoration: BoxDecoration(
-      color: (activa ? const Color(0xFF10B981) : const Color(0xFFEF4444))
-          .withValues(alpha: .10),
-      borderRadius: BorderRadius.circular(12),
-    ),
-    child: Row(
-      children: [
-        Icon(
-          activa ? Icons.check_circle : Icons.tune,
-          size: 18,
-          color: activa ? const Color(0xFF0A7F5F) : const Color(0xFFB91C1C),
+  Widget build(BuildContext context) => Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Container(
+        margin: const EdgeInsets.only(top: 4),
+        width: 6,
+        height: 6,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: esLider ? const Color(0xFF003865) : const Color(0xFF64748B),
         ),
-        const SizedBox(width: 8),
-        Text(
-          activa
-              ? 'Conexión verificada y lista para operar.'
-              : 'No se pudo validar la conexión.',
-          style: TextStyle(
-            fontWeight: FontWeight.w700,
-            color: activa ? const Color(0xFF0A7F5F) : const Color(0xFFB91C1C),
-          ),
+      ),
+      const SizedBox(width: 8),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              nombre,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: esLider ? FontWeight.w800 : FontWeight.w700,
+                color: esLider
+                    ? const Color(0xFF003865)
+                    : const Color(0xFF1E293B),
+              ),
+            ),
+            Text(
+              rol,
+              style: TextStyle(
+                fontSize: 10.5,
+                fontWeight: esLider ? FontWeight.w600 : FontWeight.w500,
+                color: esLider
+                    ? const Color(0xFF0284C7)
+                    : const Color(0xFF64748B),
+              ),
+            ),
+          ],
         ),
-      ],
-    ),
+      ),
+    ],
   );
 }
 

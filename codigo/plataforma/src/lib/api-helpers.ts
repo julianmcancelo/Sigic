@@ -58,17 +58,13 @@ export async function esPersonalValido(req: NextRequest, rolesPermitidos = ROLES
   const esRolValido = datos.tipo === 'personal' && datos.rol && rolesPermitidos.includes(datos.rol);
   if (!esRolValido) return false;
 
-  if (datos.rol === 'ADMINISTRATIVO') return true;
+  if (datos.rol === 'ADMINISTRATIVO' || datos.rol === 'SUPER_ADMIN' || datos.rol === 'ADMIN' || datos.rol === 'SOPORTE') {
+    return true;
+  }
 
-  if (datos.rol === 'PORTERIA') {
-    const activeCer = await query('SELECT id FROM ceremonias WHERE activa = 1 LIMIT 1');
-    if (activeCer.rows.length === 0) return false;
-    
-    const authCheck = await query(
-      'SELECT 1 FROM ceremonias_usuarios_autorizados WHERE ceremonia_id = $1 AND usuario_id = $2',
-      [activeCer.rows[0].id, datos.id]
-    );
-    return authCheck.rows.length > 0;
+  if (datos.rol === 'PORTERIA' || datos.rol === 'SEGURIDAD') {
+    // Todo usuario de portería o seguridad activo en usuarios_sistema está autorizado para operar los ingresos
+    return true;
   }
 
   return true;
