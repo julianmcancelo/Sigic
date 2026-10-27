@@ -17,7 +17,7 @@
 6. [Distribución de Asientos y Control del Anfiteatro](#6-distribución-de-asientos-y-control-del-anfiteatro)
 7. [Operatoria de Acreditación el Día de la Ceremonia (Portería)](#7-operatoria-de-acreditación-el-día-de-la-ceremonia-portería)
 8. [Reportes y Cierre de la Ceremonia](#8-reportes-y-cierre-de-la-ceremonia)
-9. [Seguridad Informática y Respaldo de Datos](#9-seguridad-informática-y-respaldo-de-datos)
+9. [Seguridad Informática, Respaldo y Modo Mantenimiento](#9-seguridad-informática-respaldo-y-modo-mantenimiento)
 10. [Resolución de Problemas Frecuentes](#10-resolución-de-problemas-frecuentes)
 
 ---
@@ -162,12 +162,23 @@ Concluida la ceremonia, el sistema permite generar los informes oficiales de aud
 
 ---
 
-## 9. SEGURIDAD INFORMÁTICA Y RESPALDO DE DATOS
+## 9. SEGURIDAD INFORMÁTICA, RESPALDO Y MODO MANTENIMIENTO
 
 *   **Firmas Criptográficas JWT:** Sesiones autenticadas y protegidas contra manipulación.
 *   **Códigos OTP Hasheados:** Los códigos de 6 dígitos se validan con expiración a los 10 minutos.
 *   **Persistencia Cloud Segura:** Base de datos relacional Neon PostgreSQL con cifrado SSL obligatorio.
 *   **Backups Institucionales:** La cuenta de soporte técnico puede descargar volcados completos en formato JSON/SQL antes de cada cierre de ciclo lectivo.
+
+### 9.1. Modo Mantenimiento del Sistema
+El **Modo Mantenimiento** es un protocolo de protección preventiva que suspende temporalmente el acceso público al portal de graduados e invitados:
+*   **Objetivo:** Evitar que los alumnos seleccionen butacas, confirmen asistencia o soliciten códigos OTP mientras se ejecutan tareas técnicas críticas (actualizaciones de base de datos, resguardo de padrones o mantenimiento de infraestructura).
+*   **Pantalla de Resguardo:** Al estar activo, la pantalla de inicio presenta el banner institucional con el engranaje animado informando las mejoras técnicas en curso.
+*   **Acceso Técnico Reservado:** El personal administrativo y de soporte técnico conserva el acceso operativo realizando 5 clics seguidos sobre el ícono de ajustes o ingresando por las rutas directas de gestión.
+*   **Activación y Desactivación:**
+    1. **Desde el Manual de Usuario:** En la página 11 (*Contingencia y Modo Mantenimiento*) mediante el interruptor interactivo en vivo.
+    2. **Desde Panel de Ajustes:** En la sección *Comportamiento del Sistema* -> interruptor *Modo mantenimiento*.
+    3. **Desde Base de Datos:** Actualizando la clave `modo_mantenimiento` a `'true'` o `'false'` en la tabla `configuracion`.
+    4. **Persistencia Dual:** Se sincroniza inmediatamente en PostgreSQL y en el almacenamiento local (`localStorage`) del navegador para una respuesta instantánea sin latencia.
 
 ---
 

@@ -421,10 +421,36 @@ function App() {
     const nuevo = !enMantenimiento
     setEnMantenimiento(nuevo)
     localStorage.setItem('modo_mantenimiento', nuevo.toString())
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('sigic-mantenimiento-cambiado', { detail: nuevo }))
+    }
     actualizarAjuste('modo_mantenimiento', nuevo.toString()).catch(err => {
       console.warn("Error guardando modo mantenimiento", err)
     })
   }
+
+  // Sincronizar cambios en tiempo real del modo mantenimiento desde el manual o ajustes
+  useEffect(() => {
+    const sincronizarMantenimiento = (evento) => {
+      if (evento && typeof evento.detail === 'boolean') {
+        setEnMantenimiento(evento.detail)
+      } else if (typeof window !== 'undefined') {
+        setEnMantenimiento(localStorage.getItem('modo_mantenimiento') === 'true')
+      }
+    }
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('sigic-mantenimiento-cambiado', sincronizarMantenimiento)
+      window.addEventListener('storage', sincronizarMantenimiento)
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('sigic-mantenimiento-cambiado', sincronizarMantenimiento)
+        window.removeEventListener('storage', sincronizarMantenimiento)
+      }
+    }
+  }, [])
 
   // Refs para evitar stale closures en el interceptor global
   const adminActivoRef = useRef(adminActivo)

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+﻿import { useState, useEffect, useRef } from 'react'
 import { Settings, Users, GraduationCap, BookOpen, ChevronRight, Info, LogIn, Sparkles } from 'lucide-react'
 import { VERSION_LABEL } from '../lib/version'
 
@@ -193,11 +193,16 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
       )}
 
       {/* Modo Mantenimiento */}
-      {enMantenimiento && (
+      {enMantenimiento && !revelado && (
         <div className="relative z-10 flex flex-col items-center max-w-sm w-full px-8 py-12 text-center bg-white/95 rounded-[32px] border border-slate-200/90 shadow-xl shadow-slate-200/50 animate-fade-in">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-100 text-amber-500 mb-6 shadow-inner">
+          <button 
+            type="button"
+            onClick={manejarClickLogo}
+            className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-100 text-amber-500 mb-6 shadow-inner cursor-pointer active:scale-95 transition-transform"
+            title="5 clics para acceso administrativo de emergencia"
+          >
             <Settings size={32} className="animate-[spin_4s_linear_infinite]" />
-          </div>
+          </button>
           
           <h1 className="text-xl font-black text-slate-800 tracking-tight mb-2">
             Modo Mantenimiento
@@ -206,7 +211,28 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
             Estamos realizando ajustes técnicos y mejoras en el servidor. El acceso a SiGIC se encuentra temporalmente suspendido.
           </p>
 
-          <div className="mt-8 w-full border-t border-slate-200/60 pt-6">
+          <div className="mt-5 flex flex-col w-full gap-2 pt-3 border-t border-slate-200/60">
+            {onSeleccionarManual && (
+              <button
+                type="button"
+                onClick={onSeleccionarManual}
+                className="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold transition cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <BookOpen size={13} className="text-[#0056b3]" /> Consultar Manual Oficial
+              </button>
+            )}
+            {onSeleccionarAdmin && (
+              <button
+                type="button"
+                onClick={onSeleccionarAdmin}
+                className="w-full py-1.5 px-3 rounded-xl text-slate-400 hover:text-slate-600 text-[9.5px] font-semibold transition cursor-pointer"
+              >
+                Acceso Técnico Administrativo
+              </button>
+            )}
+          </div>
+
+          <div className="mt-4 w-full border-t border-slate-100 pt-3">
             <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400">
               Instituto Tecnológico Beltrán
             </p>

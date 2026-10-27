@@ -6,8 +6,9 @@ import {
   ScanLine, HelpCircle, Calendar, Shield, Server, LayoutGrid, 
   CheckCircle2, AlertTriangle, XCircle, List, Heart, Map,
   ZoomIn, ZoomOut, Maximize2, Minimize2, Accessibility, Smartphone, FileText,
-  Badge, Download, Printer, X
+  Badge, Download, Printer, X, Settings, Power, RefreshCw
 } from 'lucide-react'
+import { actualizarAjuste } from '../servicios/api'
 
 // ==========================================
 // CREDENCIAL IMPRIMIBLE DE ACCESO AL MANUAL
@@ -775,6 +776,52 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
   const [urlManual, setUrlManual] = useState('/manual')
   const [imagenAmpliada, setImagenAmpliada] = useState(null)
   const [arrastreX, setArrastreX] = useState(null)
+  const [mantenimientoActivo, setMantenimientoActivo] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('modo_mantenimiento') === 'true'
+    }
+    return false
+  })
+  const [guardandoMantenimiento, setGuardandoMantenimiento] = useState(false)
+
+  // Escuchar sincronización de mantenimiento en tiempo real
+  useEffect(() => {
+    const alCambiar = (e) => {
+      if (e && typeof e.detail === 'boolean') {
+        setMantenimientoActivo(e.detail)
+      } else if (typeof window !== 'undefined') {
+        setMantenimientoActivo(localStorage.getItem('modo_mantenimiento') === 'true')
+      }
+    }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('sigic-mantenimiento-cambiado', alCambiar)
+      window.addEventListener('storage', alCambiar)
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('sigic-mantenimiento-cambiado', alCambiar)
+        window.removeEventListener('storage', alCambiar)
+      }
+    }
+  }, [])
+
+  const alternarMantenimientoManual = async () => {
+    const nuevo = !mantenimientoActivo
+    setMantenimientoActivo(nuevo)
+    setGuardandoMantenimiento(true)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('modo_mantenimiento', nuevo.toString())
+      window.dispatchEvent(new CustomEvent('sigic-mantenimiento-cambiado', { detail: nuevo }))
+      window.dispatchEvent(new Event('storage'))
+    }
+    try {
+      await actualizarAjuste('modo_mantenimiento', nuevo.toString())
+    } catch (err) {
+      console.warn('Error al actualizar ajuste de mantenimiento en base de datos:', err)
+    } finally {
+      setGuardandoMantenimiento(false)
+    }
+  }
 
   // Gestos de arrastre / swipe (como en react-pageflip)
   const manejarTouchStart = (e) => {
@@ -887,7 +934,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
             { t: '7. Interfaz de la App y Escáner QR', p: 8 },
             { t: '8. Validación Grupal y Acompañantes', p: 9 },
             { t: '9. Protocolo de Respuestas Visuales', p: 10 },
-            { t: '10. Contingencia y Acreditación Manual', p: 11 },
+            { t: '10. Contingencia y Modo Mantenimiento', p: 11 },
             { t: '11. Reportes y Cierre de Ceremonia', p: 12 },
             { t: '12. Glosario de Términos', p: 13 },
             { t: '13. Preguntas Frecuentes y Soluciones', p: 14 },
@@ -1219,36 +1266,95 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
       </div>
     ),
 
-    // Página 11: Acreditación de Emergencia (Alfanumérico y Soporte Papel)
+    // Página 11: Contingencia, Modo Mantenimiento y Acreditación de Emergencia
     (
-      <div className="space-y-2.5 text-[11px] text-slate-600 leading-relaxed">
-        <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
-          <HelpCircle size={16} className="text-[#0056b3]" /> 10. Contingencia y Acreditación Manual
+      <div className="space-y-2 text-[11px] text-slate-600 leading-relaxed">
+        <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-1.5 uppercase tracking-wide">
+          <Shield size={16} className="text-[#0056b3]" /> 10. Contingencia y Modo Mantenimiento
         </h3>
-        <p className="text-slate-500 m-0 text-[9.5px] leading-relaxed">
-          Si el egresado extravía la credencial, se queda sin batería en el teléfono o la cámara presenta dificultades:
-        </p>
 
-        <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 space-y-1">
+        {/* MODULO EN VIVO: MODO MANTENIMIENTO */}
+        <div className="rounded-xl border border-amber-200/90 bg-gradient-to-br from-amber-50/90 via-white to-amber-50/50 p-2 shadow-xs">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className={`flex h-7 w-7 items-center justify-center rounded-lg text-white shrink-0 ${
+                mantenimientoActivo ? 'bg-amber-500 shadow-md shadow-amber-500/30' : 'bg-slate-500'
+              }`}>
+                <Settings size={14} className={mantenimientoActivo ? 'animate-spin' : ''} />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <h4 className="font-black text-slate-800 uppercase text-[9px] tracking-wider m-0">
+                    Modo Mantenimiento
+                  </h4>
+                  <span className={`inline-flex items-center gap-0.5 rounded px-1.5 py-0.2 text-[7.5px] font-black uppercase tracking-wider ${
+                    mantenimientoActivo 
+                      ? 'bg-amber-100 text-amber-800 border border-amber-300' 
+                      : 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                  }`}>
+                    {mantenimientoActivo ? 'Activo en el Servidor' : 'Inactivo · Operativo'}
+                  </span>
+                </div>
+                <p className="text-[8px] text-slate-500 m-0 truncate">
+                  Protege la base de datos suspendiendo el portal público de graduados.
+                </p>
+              </div>
+            </div>
+
+            {/* INTERRUPTOR INTERACTIVO FUNCIONAL */}
+            <button
+              type="button"
+              onClick={alternarMantenimientoManual}
+              disabled={guardandoMantenimiento}
+              className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                mantenimientoActivo ? 'bg-amber-500' : 'bg-slate-300 hover:bg-slate-400'
+              }`}
+              title={mantenimientoActivo ? 'Clic para DESACTIVAR modo mantenimiento' : 'Clic para ACTIVAR modo mantenimiento'}
+              aria-label="Alternar modo mantenimiento"
+            >
+              <span
+                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-md transition duration-200 ease-in-out ${
+                  mantenimientoActivo ? 'translate-x-4' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+
+          <div className="mt-1.5 pt-1.5 border-t border-amber-100/80 flex items-center justify-between text-[7.5px]">
+            <span className="text-slate-600 font-medium">
+              {mantenimientoActivo 
+                ? 'El portal público muestra pantalla de ajustes técnicos. Administradores conservan acceso.'
+                : 'El portal público se encuentra 100% operativo para egresados e invitados.'
+              }
+            </span>
+            <span className="font-mono text-slate-500 font-bold shrink-0 ml-1">
+              {guardandoMantenimiento ? 'Sincronizando...' : 'DB + LocalStorage'}
+            </span>
+          </div>
+        </div>
+
+        {/* 1. Contingencia por DNI / Código Alfanumérico */}
+        <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 space-y-0.5">
           <h4 className="font-black text-slate-800 uppercase text-[9px] tracking-wider m-0 flex items-center gap-1.5">
-            <Smartphone size={13} className="text-[#0056b3] shrink-0" /> 1. Búsqueda por DNI o Código Alfanumérico
+            <Smartphone size={12} className="text-[#0056b3] shrink-0" /> 1. Búsqueda por DNI o Código Alfanumérico
           </h4>
           <p className="text-slate-600 m-0 text-[8.5px] leading-relaxed">
-            En la pestaña <em>Asistencia</em> de la app, el operador escribe el DNI o el <strong>código alfanumérico único de 8 caracteres</strong> (ej. <code className="bg-white px-1 border border-slate-200 rounded text-slate-700 font-bold">DA11600E</code>) que el alumno recibió en su correo de confirmación. El check-in se valida exactamente igual que un QR.
+            En la pestaña <em>Asistencia</em> de la app, el operador escribe el DNI o el <strong>código alfanumérico único de 8 caracteres</strong> (ej. <code className="bg-white px-1 border border-slate-200 rounded text-slate-700 font-bold">DA11600E</code>) que el alumno recibió en su correo. El check-in se valida exactamente igual que un QR.
           </p>
         </div>
 
-        <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 space-y-1">
+        {/* 2. Planilla de Respaldo Físico */}
+        <div className="bg-slate-50 p-2 rounded-lg border border-slate-200 space-y-0.5">
           <h4 className="font-black text-slate-800 uppercase text-[9px] tracking-wider m-0 flex items-center gap-1.5">
-            <FileText size={13} className="text-[#0056b3] shrink-0" /> 2. Planilla de Respaldo en Soporte Papel
+            <FileText size={12} className="text-[#0056b3] shrink-0" /> 2. Planilla de Respaldo en Soporte Papel
           </h4>
           <p className="text-slate-600 m-0 text-[8.5px] leading-relaxed">
-            Ante una caída eléctrica o desconexión general de red, el portero utiliza el listado oficial impreso emitido previamente por la administración, comprobando el documento de identidad y tildando el presentismo de forma manual.
+            Ante corte eléctrico o desconexión general de red, el portero utiliza el listado impreso emitido previamente por la administración, comprobando DNI y tildando el presentismo de forma manual.
           </p>
         </div>
 
         <div className="bg-amber-50 border-l-4 border-amber-400 p-1.5 rounded-r-lg">
-          <p className="text-[8px] text-amber-900 m-0 leading-tight">
+          <p className="text-[7.5px] text-amber-900 m-0 leading-tight">
             <strong>Recomendación institucional:</strong> Contar siempre con al menos dos planillas de contingencia impresas en el puesto de acceso principal del salón.
           </p>
         </div>
@@ -1562,6 +1668,20 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
       </div>
 
       <div className="mt-5 flex flex-wrap items-center justify-center gap-2.5 sm:mt-8 sm:gap-3">
+        {mantenimientoActivo && (
+          <div className="flex items-center gap-1.5 rounded-xl bg-amber-50 border border-amber-300 px-3 py-2 text-[9.5px] font-bold text-amber-800 shadow-sm animate-pulse">
+            <Settings size={13} className="animate-spin text-amber-600" />
+            <span>Modo Mantenimiento ACTIVO</span>
+            <button
+              type="button"
+              onClick={alternarMantenimientoManual}
+              disabled={guardandoMantenimiento}
+              className="ml-1 rounded bg-amber-500 px-2 py-0.5 text-[8.5px] font-black text-white hover:bg-amber-600 cursor-pointer"
+            >
+              Desactivar
+            </button>
+          </div>
+        )}
         <button
           type="button"
           onClick={() => setMostrarCredencial(true)}
@@ -1593,6 +1713,18 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
           >
             <Book size={12} /> Tapa
           </button>
+          {mantenimientoActivo && (
+            <button
+              type="button"
+              onClick={alternarMantenimientoManual}
+              disabled={guardandoMantenimiento}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-[8.5px] font-black uppercase tracking-wider shadow-sm transition active:scale-95 cursor-pointer animate-pulse"
+              title="Modo Mantenimiento ACTIVO. Clic para desactivar."
+            >
+              <Settings size={11} className="animate-spin text-white" />
+              <span>Mantenimiento Activo</span>
+            </button>
+          )}
         </div>
 
         {/* Lado derecho: Zoom y Pantalla completa */}
