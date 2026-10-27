@@ -60,7 +60,7 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
     final mensaje = await _servicioShorebird.buscarYDescargarActualizacion();
     final transcurrido = DateTime.now().difference(inicio);
     // Evita un parpadeo de la pantalla de inicio sin demorar el trabajo en puerta.
-    final espera = const Duration(milliseconds: 450) - transcurrido;
+    final espera = const Duration(milliseconds: 1200) - transcurrido;
     if (espera > Duration.zero) {
       await Future<void>.delayed(espera);
     }

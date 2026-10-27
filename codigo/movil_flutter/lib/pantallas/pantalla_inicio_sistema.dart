@@ -2,194 +2,274 @@ import 'package:flutter/material.dart';
 
 import '../nucleo/tema/tema_sigic.dart';
 
-class PantallaInicioSistema extends StatelessWidget {
+class PantallaInicioSistema extends StatefulWidget {
   const PantallaInicioSistema({super.key, required this.estado});
 
   final String estado;
 
   @override
+  State<PantallaInicioSistema> createState() => _PantallaInicioSistemaState();
+}
+
+class _PantallaInicioSistemaState extends State<PantallaInicioSistema>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controladorAnimacion;
+  late final Animation<double> _animacionResplandor;
+  late final Animation<double> _animacionEscala;
+
+  @override
+  void initState() {
+    super.initState();
+    _controladorAnimacion = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2200),
+    )..repeat(reverse: true);
+
+    _animacionResplandor = Tween<double>(begin: 0.35, end: 0.90).animate(
+      CurvedAnimation(
+        parent: _controladorAnimacion,
+        curve: Curves.easeInOutSine,
+      ),
+    );
+
+    _animacionEscala = Tween<double>(begin: 0.98, end: 1.02).animate(
+      CurvedAnimation(
+        parent: _controladorAnimacion,
+        curve: Curves.easeInOutSine,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controladorAnimacion.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF06121E),
+      backgroundColor: const Color(0xFF040D17),
       body: DecoratedBox(
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+          gradient: RadialGradient(
+            center: Alignment(0.0, -0.2),
+            radius: 1.2,
             colors: [
-              Color(0xFF0C2237),
-              Color(0xFF06121E),
+              Color(0xFF0F2B48),
+              Color(0xFF071829),
               Color(0xFF030A12),
             ],
+            stops: [0.0, 0.55, 1.0],
           ),
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 22),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Encabezado Institucional
+                // Encabezado Institucional ITB
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 9,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(6),
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 9,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.12),
+                              ),
+                            ),
+                            child: const Text(
+                              'INSTITUTO TECNOLÓGICO BELTRÁN',
+                              style: TextStyle(
+                                color: Color(0xFF7DD3FC),
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.8,
+                              ),
                             ),
                           ),
-                          child: const Text(
-                            'INSTITUTO TECNOLÓGICO BELTRÁN',
+                          const SizedBox(height: 5),
+                          const Text(
+                            'Tecnicatura Superior en Analista de Sistemas',
                             style: TextStyle(
-                              color: Color(0xFF7DD3FC),
-                              fontSize: 9,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 1.0,
+                              color: Color(0xFF94A3B8),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Analista de Sistemas · Ciclo 2026',
-                          style: TextStyle(
-                            color: Color(0xFF94A3B8),
-                            fontSize: 10.5,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
-                        vertical: 3.5,
+                        vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF38BDF8).withValues(alpha: 0.12),
+                        color: const Color(0xFF0284C7).withValues(alpha: 0.14),
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(
-                          color: const Color(0xFF38BDF8).withValues(alpha: 0.3),
+                          color: const Color(0xFF0284C7).withValues(alpha: 0.35),
                         ),
                       ),
-                      child: const Text(
-                        'v1.0.9 (Build 10)',
-                        style: TextStyle(
-                          color: Color(0xFFE0F2FE),
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          fontFamily: 'monospace',
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF10B981),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          const Text(
+                            'v1.0.9 (Build 10)',
+                            style: TextStyle(
+                              color: Color(0xFFE0F2FE),
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              fontFamily: 'monospace',
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-                const Spacer(flex: 2),
 
-                // Centro: Logo Oficial y Título
+                const Spacer(flex: 3),
+
+                // Centro: Logotipo animado y jerarquía institucional
                 Center(
                   child: Column(
                     children: [
-                      SizedBox(
-                        width: 120,
-                        height: 120,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Image.asset(
-                              'assets/imagenes/logo-glow.png',
-                              width: 120,
-                              height: 120,
-                              fit: BoxFit.contain,
-                            ),
-                            Container(
-                              width: 72,
-                              height: 72,
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(20),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.35),
-                                    blurRadius: 18,
-                                    offset: const Offset(0, 8),
+                      AnimatedBuilder(
+                        animation: _controladorAnimacion,
+                        builder: (context, _) => Transform.scale(
+                          scale: _animacionEscala.value,
+                          child: SizedBox(
+                            width: 130,
+                            height: 130,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                Opacity(
+                                  opacity: _animacionResplandor.value,
+                                  child: Image.asset(
+                                    'assets/imagenes/logo-glow.png',
+                                    width: 130,
+                                    height: 130,
+                                    fit: BoxFit.contain,
                                   ),
-                                ],
-                              ),
-                              child: Image.asset(
-                                'assets/imagenes/logo-oficial.png',
-                                fit: BoxFit.contain,
-                              ),
+                                ),
+                                Container(
+                                  width: 80,
+                                  height: 80,
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(22),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(0xFF0284C7)
+                                            .withValues(alpha: 0.28),
+                                        blurRadius: 26,
+                                        spreadRadius: 2,
+                                        offset: const Offset(0, 8),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Image.asset(
+                                    'assets/imagenes/logo-oficial.png',
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 22),
                       const Text(
                         'SiGIC',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 34,
+                          fontSize: 36,
                           fontWeight: FontWeight.w900,
                           letterSpacing: -0.5,
                         ),
                       ),
-                      const SizedBox(height: 5),
+                      const SizedBox(height: 6),
                       const Text(
                         'Sistema de Gestión Institucional de Colaciones',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Color(0xFFBAE6FD),
-                          fontSize: 12.5,
+                          fontSize: 13,
                           fontWeight: FontWeight.w600,
                           letterSpacing: 0.2,
                         ),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 3,
+                          horizontal: 11,
+                          vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.06),
+                          color: Colors.white.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.10),
+                          ),
                         ),
                         child: const Text(
-                          'Módulo de Portería & Acreditación de Accesos',
+                          'Módulo de Portería & Control de Accesos',
                           style: TextStyle(
                             color: Color(0xFF94A3B8),
                             fontSize: 11,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                const Spacer(flex: 3),
 
-                // Tarjeta de Estado y Progreso
+                const Spacer(flex: 4),
+
+                // Tarjeta de Estado y Diagnóstico de Inicio
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.all(18),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.065),
-                    borderRadius: BorderRadius.circular(20),
+                    color: const Color(0xFF0A1828).withValues(alpha: 0.85),
+                    borderRadius: BorderRadius.circular(18),
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.12),
+                      color: const Color(0xFF38BDF8).withValues(alpha: 0.18),
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.35),
+                        blurRadius: 18,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -197,57 +277,82 @@ class PantallaInicioSistema extends StatelessWidget {
                       Row(
                         children: [
                           const SizedBox(
-                            width: 18,
-                            height: 18,
+                            width: 17,
+                            height: 17,
                             child: CircularProgressIndicator(
                               strokeWidth: 2.2,
                               color: TemaSigic.azulBrillante,
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              estado,
+                              widget.estado,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 13.5,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 14),
+                      const SizedBox(height: 12),
                       const LinearProgressIndicator(
-                        minHeight: 3.5,
-                        backgroundColor: Color(0xFF1E3A52),
+                        minHeight: 3,
+                        backgroundColor: Color(0xFF132B42),
                         valueColor: AlwaysStoppedAnimation(
                           TemaSigic.azulBrillante,
                         ),
                       ),
-                      const SizedBox(height: 11),
+                      const SizedBox(height: 12),
+                      // Fila de 3 etapas de inicialización
+                      const Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _EtapaInicio(
+                            etiqueta: 'Entorno',
+                            activa: true,
+                          ),
+                          _EtapaInicio(
+                            etiqueta: 'Shorebird OTA',
+                            activa: true,
+                          ),
+                          _EtapaInicio(
+                            etiqueta: 'Caché Local',
+                            activa: true,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      const Divider(color: Colors.white10, height: 1),
+                      const SizedBox(height: 8),
                       const Text(
-                        'Comprobando integridad y sincronización de padrón. En ausencia de red, el sistema opera con el padrón local en caché.',
+                        'En caso de contingencia de red, el sistema opera con el padrón local en caché y sincronización diferida.',
                         style: TextStyle(
                           color: Color(0xFF94A3B8),
-                          fontSize: 11,
+                          fontSize: 10.5,
                           height: 1.35,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
 
-                // Pie
+                const SizedBox(height: 14),
+
+                // Pie Institucional
                 const Center(
                   child: Text(
-                    'Actualizaciones seguras con Shorebird · Avellaneda, Buenos Aires',
+                    'Instituto Tecnológico Beltrán · Avellaneda, Buenos Aires\nDistribución Segura vía Shorebird CodePush',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Color(0xFF64748B),
                       fontSize: 10,
                       fontWeight: FontWeight.w500,
+                      height: 1.4,
                     ),
                   ),
                 ),
@@ -256,6 +361,42 @@ class PantallaInicioSistema extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _EtapaInicio extends StatelessWidget {
+  const _EtapaInicio({
+    required this.etiqueta,
+    required this.activa,
+  });
+
+  final String etiqueta;
+  final bool activa;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 5,
+          height: 5,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: activa ? const Color(0xFF38BDF8) : const Color(0xFF64748B),
+          ),
+        ),
+        const SizedBox(width: 5),
+        Text(
+          etiqueta,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            color: activa ? const Color(0xFFBAE6FD) : const Color(0xFF64748B),
+          ),
+        ),
+      ],
     );
   }
 }
