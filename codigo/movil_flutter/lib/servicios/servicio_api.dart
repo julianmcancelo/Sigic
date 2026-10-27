@@ -111,6 +111,10 @@ class ServicioApi {
     const rolesPermitidos = {
       'ADMINISTRATIVO',
       'PORTERIA',
+      'SUPER_ADMIN',
+      'ADMIN',
+      'SOPORTE',
+      'SEGURIDAD',
     };
     if (!rolesPermitidos.contains(usuario.rol.toUpperCase())) {
       await cerrarSesion();

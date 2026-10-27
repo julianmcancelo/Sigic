@@ -9,6 +9,15 @@ class UsuarioSesion {
   final String email;
   final String rol;
 
+  bool get esAdministrativo =>
+      rol.toUpperCase() == 'ADMINISTRATIVO' ||
+      rol.toUpperCase() == 'SUPER_ADMIN' ||
+      rol.toUpperCase() == 'ADMIN' ||
+      rol.toUpperCase() == 'SOPORTE';
+
+  bool get esPorteria =>
+      rol.toUpperCase() == 'PORTERIA' || rol.toUpperCase() == 'SEGURIDAD';
+
   factory UsuarioSesion.desdeMapa(Map<String, dynamic> mapa) {
     return UsuarioSesion(
       nombre: (mapa['nombre'] ?? 'Personal de Seguridad').toString(),
