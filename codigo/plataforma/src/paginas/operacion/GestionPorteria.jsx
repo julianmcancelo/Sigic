@@ -929,7 +929,7 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
 
                       {/* ACCIONES Y BOTÓN EXPANDIR */}
                       <div className="sm:col-span-2 flex items-center justify-end gap-1.5">
-                        {!administrativo && activo && (
+                        {activo && (
                           <button 
                             onClick={() => handleGenerarQR(u)} 
                             className={`rounded-xl text-slate-500 hover:text-sky-600 hover:bg-sky-50 transition active:scale-95 cursor-pointer ${
@@ -1029,6 +1029,15 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                         {/* ACCIONES DE GESTIÓN */}
                         <div className="pt-3 border-t border-slate-200/60 flex flex-wrap items-center justify-between gap-2">
                           <div className="flex flex-wrap items-center gap-2">
+                            <button 
+                              onClick={() => handleGenerarQR(u)} 
+                              disabled={!activo}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-sky-50 border border-sky-200 hover:bg-sky-100 text-sky-800 rounded-xl text-xs font-bold transition active:scale-95 cursor-pointer shadow-2xs disabled:opacity-50"
+                              title="Generar Pase QR de acceso móvil"
+                            >
+                              <QrCode size={14} className="text-sky-600" />
+                              <span>Pase QR Móvil</span>
+                            </button>
                             <button 
                               onClick={() => handleEnviarInvitacion(u.id, u.email)} 
                               disabled={enviandoInvitacionId === u.id || !activo}
