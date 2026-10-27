@@ -3,9 +3,18 @@ import 'package:flutter/material.dart';
 import '../nucleo/tema/tema_sigic.dart';
 
 class PantallaInicioSistema extends StatefulWidget {
-  const PantallaInicioSistema({super.key, required this.estado});
+  const PantallaInicioSistema({
+    super.key,
+    required this.estado,
+    this.alBuscarActualizaciones,
+    this.alContinuar,
+    this.buscando = false,
+  });
 
   final String estado;
+  final Future<void> Function()? alBuscarActualizaciones;
+  final VoidCallback? alContinuar;
+  final bool buscando;
 
   @override
   State<PantallaInicioSistema> createState() => _PantallaInicioSistemaState();
@@ -337,6 +346,59 @@ class _PantallaInicioSistemaState extends State<PantallaInicioSistema>
                           height: 1.35,
                         ),
                       ),
+                      if (widget.alBuscarActualizaciones != null || widget.alContinuar != null) ...[
+                        const SizedBox(height: 14),
+                        Row(
+                          children: [
+                            if (widget.alBuscarActualizaciones != null)
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: widget.buscando ? null : widget.alBuscarActualizaciones,
+                                  style: OutlinedButton.styleFrom(
+                                    side: const BorderSide(color: Color(0xFF38BDF8), width: 1.2),
+                                    foregroundColor: const Color(0xFFE0F2FE),
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  icon: widget.buscando
+                                      ? const SizedBox(
+                                          width: 14,
+                                          height: 14,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Color(0xFF38BDF8),
+                                          ),
+                                        )
+                                      : const Icon(Icons.sync_rounded, size: 16, color: Color(0xFF38BDF8)),
+                                  label: Text(
+                                    widget.buscando ? 'Buscando...' : 'Buscar Actualizaciones',
+                                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+                                  ),
+                                ),
+                              ),
+                            if (widget.alContinuar != null) ...[
+                              const SizedBox(width: 8),
+                              FilledButton.icon(
+                                onPressed: widget.alContinuar,
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: const Color(0xFF0284C7),
+                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                icon: const Icon(Icons.arrow_forward_rounded, size: 16),
+                                label: const Text(
+                                  'Ingresar',
+                                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w800),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),

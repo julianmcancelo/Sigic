@@ -32,6 +32,7 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
   int _revisionSesion = 0;
   bool _inicializandoSistema = true;
   bool _tieneSesion = false;
+  bool _buscandoActualizaciones = false;
   String _estadoInicio = 'Verificando actualizaciones seguras...';
   Timer? _timerHeartbeat;
 
@@ -122,6 +123,36 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
     );
   }
 
+  Future<void> _buscarActualizacionesEnSplash() async {
+    setState(() {
+      _buscandoActualizaciones = true;
+      _estadoInicio = 'Consultando parches en Shorebird y servidores...';
+    });
+    try {
+      final mensaje = await _servicioShorebird.buscarYDescargarActualizacion();
+      final release = await _servicioRelease.buscarNuevaRelease();
+      if (!mounted) return;
+      setState(() {
+        _buscandoActualizaciones = false;
+        _mensajeShorebird = mensaje;
+        _releasePendiente = release;
+        _estadoInicio = mensaje ??
+            (release != null
+                ? 'Nueva version ${release.version} disponible.'
+                : 'Sistema al dia. No hay actualizaciones pendientes.');
+      });
+      if (release != null) {
+        await _avisarNuevaRelease();
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _buscandoActualizaciones = false;
+        _estadoInicio = 'No se pudo verificar actualizaciones de red.';
+      });
+    }
+  }
+
   Future<void> _inicializarShorebird() async {
     final inicio = DateTime.now();
     final mensaje = await _servicioShorebird.buscarYDescargarActualizacion();
@@ -208,7 +239,12 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
   @override
   Widget build(BuildContext context) {
     if (_inicializandoSistema) {
-      return PantallaInicioSistema(estado: _estadoInicio);
+      return PantallaInicioSistema(
+        estado: _estadoInicio,
+        alBuscarActualizaciones: _buscarActualizacionesEnSplash,
+        alContinuar: () => setState(() => _inicializandoSistema = false),
+        buscando: _buscandoActualizaciones,
+      );
     }
 
     final pantallas = [

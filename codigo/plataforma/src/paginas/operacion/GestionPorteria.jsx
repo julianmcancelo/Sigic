@@ -91,7 +91,7 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
     if (typeof window !== 'undefined') {
       return `${window.location.origin}/api`
     }
-    return 'https://sigic-one.vercel.app/api'
+    return 'https://app.sigic.com.ar/api'
   })
 
   // 1. Carga inicial
@@ -518,6 +518,17 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
             <RefreshCw size={15} className={cargando || cargandoDispositivos ? 'animate-spin text-sky-500' : 'text-slate-500'} />
             <span>Actualizar</span>
           </button>
+
+          <a
+            href="/descargas/SIGIC-Porteria-1.0.9.apk"
+            download
+            className="inline-flex items-center gap-2 px-3.5 py-2.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition active:scale-95 shadow-md shadow-sky-500/20 cursor-pointer"
+            title="Descargar instalador APK oficial v1.0.9 para terminales Android"
+          >
+            <Smartphone size={15} />
+            <span className="hidden sm:inline">Descargar APK v1.0.9</span>
+            <span className="sm:hidden">APK</span>
+          </a>
           <button 
             onClick={() => setMostrarModalNuevo(true)}
             className="inline-flex items-center gap-2 px-4 py-2.5 bg-slate-900 hover:bg-sky-600 text-white rounded-xl text-xs font-bold transition active:scale-95 shadow-md shadow-slate-900/10 cursor-pointer"
@@ -1087,6 +1098,15 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
               </p>
             </div>
             <div className="flex items-center gap-2">
+              <a
+                href="/descargas/SIGIC-Porteria-1.0.9.apk"
+                download
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-50 hover:bg-sky-100 border border-sky-200 text-sky-700 text-xs font-bold transition cursor-pointer"
+                title="Descargar APK oficial para nuevos dispositivos"
+              >
+                <Smartphone size={13} />
+                <span>Descargar APK v1.0.9</span>
+              </a>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-black">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 {dispositivosEnLinea} en línea ahora
@@ -1215,7 +1235,7 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                   ['Fabricante / Marca', dispositivoSeleccionado.fabricante || dispositivoSeleccionado.marca || 'No informado'],
                   ['Modelo', dispositivoSeleccionado.modelo || 'No informado'],
                   ['Sistema operativo', `${dispositivoSeleccionado.sistema || 'Desconocido'} ${dispositivoSeleccionado.versionSistema || ''}`.trim()],
-                  ['Versión de SiGIC', dispositivoSeleccionado.versionApp || '1.0.5+6'],
+                  ['Versión de SiGIC', dispositivoSeleccionado.versionApp || '1.0.9+10'],
                   ['Dirección IP', dispositivoSeleccionado.ipUltimoAcceso || 'No disponible'],
                   ['Primera conexión', dispositivoSeleccionado.primeraConexion ? new Date(dispositivoSeleccionado.primeraConexion).toLocaleString('es-AR') : 'No disponible'],
                   ['Último contacto', dispositivoSeleccionado.ultimoAcceso ? new Date(dispositivoSeleccionado.ultimoAcceso).toLocaleString('es-AR') : 'No disponible'],
@@ -1501,6 +1521,16 @@ export function GestionPorteria({ usuario, onVolver, onCerrarSesion }) {
                       <p className="text-[11px] text-slate-600 font-medium leading-relaxed mt-1.5">
                         Abrí la app móvil <strong>SiGIC Accesos</strong> y apuntá la cámara a este código para iniciar sesión sin teclear usuario ni contraseña.
                       </p>
+                      <div className="mt-2.5 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px]">
+                        <span className="text-slate-400 font-semibold">¿Dispositivo nuevo?</span>
+                        <a
+                          href="/descargas/SIGIC-Porteria-1.0.9.apk"
+                          download
+                          className="font-bold text-sky-600 hover:text-sky-700 hover:underline inline-flex items-center gap-1 cursor-pointer"
+                        >
+                          <Smartphone size={11} /> Descargar APK v1.0.9
+                        </a>
+                      </div>
                     </div>
 
                     <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
