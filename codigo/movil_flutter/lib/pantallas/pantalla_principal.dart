@@ -9,6 +9,7 @@ import '../servicios/servicio_api.dart';
 import '../servicios/servicio_shorebird.dart';
 import '../servicios/servicio_release.dart';
 import 'pantalla_inicio_sistema.dart';
+import '../widgets/modales_autenticacion.dart';
 import 'pestanas/pestana_asistencia.dart';
 import 'pestanas/pestana_ajustes.dart';
 import 'pestanas/pestana_escaner.dart';
@@ -30,6 +31,7 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
   ReleaseDisponible? _releasePendiente;
   int _revisionSesion = 0;
   bool _inicializandoSistema = true;
+  bool _tieneSesion = false;
   String _estadoInicio = 'Verificando actualizaciones seguras...';
   Timer? _timerHeartbeat;
 
@@ -39,6 +41,7 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
     final almacenamiento = ServicioAlmacenamiento();
     _servicioApi = ServicioApi(almacenamiento);
     _servicioShorebird = ServicioShorebird();
+    _verificarSesion();
     _inicializarShorebird();
     _iniciarHeartbeat();
   }
@@ -53,6 +56,70 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
     _timerHeartbeat = Timer.periodic(const Duration(seconds: 45), (_) {
       _servicioApi.pingDispositivo();
     });
+  }
+
+  Future<void> _verificarSesion() async {
+    final token = await _servicioApi.obtenerTokenGuardado();
+    if (mounted) {
+      setState(() {
+        _tieneSesion = token != null && token.isNotEmpty;
+      });
+    }
+  }
+
+  void _mostrarAvisoAccesoRequerido() {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Row(
+          children: [
+            Icon(Icons.lock_outline_rounded, color: Colors.white, size: 20),
+            SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'Acceso restringido: Debes identificarte en Porteria para acceder a Asistencia o Ajustes.',
+                style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
+        action: SnackBarAction(
+          label: 'Ingresar',
+          textColor: const Color(0xFF38BDF8),
+          onPressed: _abrirModalLoginDesdePrincipal,
+        ),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 4),
+        backgroundColor: const Color(0xFF0F172A),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      ),
+    );
+  }
+
+  Future<void> _abrirModalLoginDesdePrincipal() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ModalLoginManual(
+        servicioApi: _servicioApi,
+        alIniciarExito: (usuario) {
+          _verificarSesion();
+          setState(() {
+            _revisionSesion++;
+          });
+          showModalBottomSheet<void>(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (context) => ModalBienvenidaSesion(
+              usuario: usuario,
+              alContinuar: () => Navigator.of(context).pop(),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   Future<void> _inicializarShorebird() async {
@@ -149,6 +216,12 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
         servicioApi: _servicioApi,
         mensajeShorebird: _mensajeShorebird,
         revisionSesion: _revisionSesion,
+        alCambiarSesion: () {
+          _verificarSesion();
+          setState(() {
+            _revisionSesion++;
+          });
+        },
       ),
       PestanaAsistencia(
         servicioApi: _servicioApi,
@@ -158,6 +231,7 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
         servicioApi: _servicioApi,
         servicioShorebird: _servicioShorebird,
         alCambiarSesion: () {
+          _verificarSesion();
           setState(() {
             _revisionSesion++;
             _indiceActual = 0;
@@ -182,6 +256,10 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
             labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
             selectedIndex: _indiceActual,
             onDestinationSelected: (indice) {
+              if (indice != 0 && !_tieneSesion) {
+                _mostrarAvisoAccesoRequerido();
+                return;
+              }
               setState(() {
                 _indiceActual = indice;
               });
@@ -192,25 +270,25 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
                 selectedIcon: Icon(Icons.qr_code_scanner),
                 label: 'Escanear',
               ),
-              const NavigationDestination(
-                icon: Icon(Icons.groups_2),
-                selectedIcon: Icon(Icons.groups_2),
-                label: 'Asistencia',
+              NavigationDestination(
+                icon: Icon(_tieneSesion ? Icons.groups_2_outlined : Icons.lock_outline_rounded),
+                selectedIcon: Icon(_tieneSesion ? Icons.groups_2 : Icons.lock_rounded),
+                label: _tieneSesion ? 'Asistencia' : 'Protegido',
               ),
               NavigationDestination(
                 icon: Badge(
                   isLabelVisible: _releasePendiente != null,
                   backgroundColor: const Color(0xFFEF4444),
                   smallSize: 8,
-                  child: const Icon(Icons.settings_outlined),
+                  child: Icon(_tieneSesion ? Icons.settings_outlined : Icons.lock_outline_rounded),
                 ),
                 selectedIcon: Badge(
                   isLabelVisible: _releasePendiente != null,
                   backgroundColor: const Color(0xFFEF4444),
                   smallSize: 8,
-                  child: const Icon(Icons.settings),
+                  child: Icon(_tieneSesion ? Icons.settings : Icons.lock_rounded),
                 ),
-                label: 'Ajustes',
+                label: _tieneSesion ? 'Ajustes' : 'Acceso',
               ),
             ],
           ),

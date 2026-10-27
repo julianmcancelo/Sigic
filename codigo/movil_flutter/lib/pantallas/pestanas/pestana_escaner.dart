@@ -14,6 +14,7 @@ import '../../nucleo/tema/tema_sigic.dart';
 import '../../servicios/servicio_api.dart';
 import '../../servicios/servicio_feedback.dart';
 import '../../widgets/panel_tarjeta.dart';
+import '../../widgets/modales_autenticacion.dart';
 import '../../widgets/visor_camara_widget.dart';
 
 class PestanaEscaner extends StatefulWidget {
@@ -22,11 +23,13 @@ class PestanaEscaner extends StatefulWidget {
     required this.servicioApi,
     required this.revisionSesion,
     this.mensajeShorebird,
+    this.alCambiarSesion,
   });
 
   final ServicioApi servicioApi;
   final int revisionSesion;
   final String? mensajeShorebird;
+  final VoidCallback? alCambiarSesion;
 
   @override
   State<PestanaEscaner> createState() => _PestanaEscanerState();
@@ -383,16 +386,29 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
         return;
       }
 
-      if (codigo.startsWith('sigic-login:')) {
-        final token = codigo.substring('sigic-login:'.length).trim();
-        await widget.servicioApi.iniciarSesionConToken(token);
-        await _mostrarMensaje(
-          'Acceso confirmado',
-          'La sesion se inicio correctamente.',
-        );
-        await _cargarPantalla();
+      if (codigo.startsWith('sigic-login:') ||
+          codigo.startsWith('sigic-auth:') ||
+          codigo.startsWith('sigic-token:')) {
+        var token = codigo;
+        if (codigo.startsWith('sigic-login:')) {
+          token = codigo.substring('sigic-login:'.length).trim();
+        } else if (codigo.startsWith('sigic-auth:')) {
+          token = codigo.substring('sigic-auth:'.length).trim();
+        } else if (codigo.startsWith('sigic-token:')) {
+          token = codigo.substring('sigic-token:'.length).trim();
+        }
+        final usuario = await widget.servicioApi.iniciarSesionConToken(token);
         _cerrarCamara();
+        await _cargarPantalla();
+        widget.alCambiarSesion?.call();
+        _mostrarModalBienvenida(usuario);
         return;
+      }
+
+      if (_estadoSesion == EstadoSesion.invitado) {
+        throw Exception(
+          'Terminal sin sesion de Porteria. Escanea tu Pase QR de operador o ingresa tus credenciales antes de validar invitados.',
+        );
       }
 
       final resultado = await widget.servicioApi.buscarInvitadoOGrupo(codigo);
@@ -570,6 +586,35 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
         });
       }
     }
+  }
+
+  Future<void> _abrirModalLoginManual() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ModalLoginManual(
+        servicioApi: widget.servicioApi,
+        alIniciarExito: (usuario) {
+          widget.alCambiarSesion?.call();
+          _mostrarModalBienvenida(usuario);
+          _cargarPantalla();
+        },
+      ),
+    );
+  }
+
+  void _mostrarModalBienvenida(UsuarioSesion usuario) {
+    if (!mounted) return;
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ModalBienvenidaSesion(
+        usuario: usuario,
+        alContinuar: () => Navigator.of(context).pop(),
+      ),
+    );
   }
 
   void _abrirCamara() {
@@ -919,49 +964,17 @@ class _PestanaEscanerState extends State<PestanaEscaner> {
               ),
             )
           else if (_token == null)
-            PanelTarjeta(
-              colorBorde: const Color(0xFFBAE6FD),
-              contenido: Row(
-                children: [
-                  Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(
-                      color: TemaSigic.azulPrincipal.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.info_outline,
-                      color: TemaSigic.azulPrincipal,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Sin sesión de portería',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 13.5,
-                            color: Color(0xFF0F172A),
-                          ),
-                        ),
-                        SizedBox(height: 2),
-                        Text(
-                          'Iniciá sesión desde Ajustes o escaneá un QR de ingreso para cargar las ceremonias.',
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            color: Color(0xFF64748B),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+            _TarjetaAccesoRequerido(
+              alEscanearQR: _abrirCamara,
+              alIngresoManual: _abrirModalLoginManual,
+              alAbrirGuia: () {
+                showModalBottomSheet<void>(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => const ModalGuiaInicioSesion(),
+                );
+              },
             ),
 
           if (_estadisticas != null) ...[
@@ -2300,6 +2313,145 @@ class _TarjetaFlotanteGrupo extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _TarjetaAccesoRequerido extends StatelessWidget {
+  const _TarjetaAccesoRequerido({
+    required this.alEscanearQR,
+    required this.alAbrirGuia,
+    required this.alIngresoManual,
+  });
+
+  final VoidCallback alEscanearQR;
+  final VoidCallback alAbrirGuia;
+  final VoidCallback alIngresoManual;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0A1422),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: const Color(0xFF0284C7).withValues(alpha: 0.35),
+          width: 1.2,
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1F075985),
+            blurRadius: 16,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0284C7).withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(
+                  Icons.vpn_key_rounded,
+                  color: Color(0xFF38BDF8),
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Terminal Sin Sesión Activa',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 15,
+                        color: Colors.white,
+                      ),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      'Iniciá sesión para comenzar a validar ingresos.',
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        color: Color(0xFF94A3B8),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: 46,
+            child: FilledButton.icon(
+              onPressed: alEscanearQR,
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF0284C7),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              icon: const Icon(Icons.qr_code_scanner_rounded, size: 20),
+              label: const Text(
+                'Escanear Pase QR de Acceso',
+                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            height: 44,
+            child: OutlinedButton.icon(
+              onPressed: alIngresoManual,
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Color(0xFF334155)),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              icon: const Icon(Icons.password_rounded, size: 18, color: Color(0xFF38BDF8)),
+              label: const Text(
+                'Ingreso Manual con Contrasena',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Center(
+            child: TextButton.icon(
+              onPressed: alAbrirGuia,
+              icon: const Icon(
+                Icons.help_outline_rounded,
+                size: 15,
+                color: Color(0xFF7DD3FC),
+              ),
+              label: const Text(
+                '¿Cómo iniciar sesión?',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF7DD3FC),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -11,6 +11,7 @@ import '../../servicios/servicio_api.dart';
 import '../../servicios/servicio_shorebird.dart';
 import '../../servicios/servicio_release.dart';
 import '../../widgets/panel_tarjeta.dart';
+import '../../widgets/modales_autenticacion.dart';
 import '../../nucleo/tema/controlador_tema.dart';
 import '../../nucleo/tema/tema_sigic.dart';
 
@@ -47,6 +48,7 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
   Ceremonia? _ceremoniaAdmin;
   EstadisticasAcceso? _estadisticasAdmin;
   bool _cargandoAdmin = false;
+  bool _ocultarContrasena = true;
 
   @override
   void initState() {
@@ -182,9 +184,9 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
       });
       widget.alCambiarSesion();
       await _cargarDatos();
-      _mostrarSnack('Sesion iniciada correctamente.');
+      _mostrarModalBienvenidaUsuario(usuario);
     } catch (error) {
-      _mostrarSnack(error.toString().replaceFirst('Exception: ', ''));
+      _mostrarDialogoErrorLogin(error.toString().replaceFirst('Exception: ', ''));
     } finally {
       if (mounted) {
         setState(() {
@@ -192,6 +194,51 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
         });
       }
     }
+  }
+
+  void _mostrarModalBienvenidaUsuario(UsuarioSesion usuario) {
+    if (!mounted) return;
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ModalBienvenidaSesion(
+        usuario: usuario,
+        alContinuar: () => Navigator.of(context).pop(),
+      ),
+    );
+  }
+
+  void _mostrarDialogoErrorLogin(String mensaje) {
+    if (!mounted) return;
+    mostrarDialogoErrorLogin(context, mensaje, _abrirEscanerLoginQR);
+  }
+
+  void _mostrarDialogoGuiaAcceso() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const ModalGuiaInicioSesion(),
+    );
+  }
+
+  void _mostrarModalConfiguracionServidor() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ModalConfiguracionServidor(
+        servicioApi: widget.servicioApi,
+        alGuardar: (nuevaUrl) async {
+          await widget.servicioApi.guardarApiUrl(nuevaUrl);
+          _controladorApi.text = nuevaUrl;
+          await _cargarDatos();
+          _mostrarSnack('Servidor configurado en: $nuevaUrl');
+        },
+        alEscanearQR: _abrirEscanerLoginQR,
+      ),
+    );
   }
 
   Future<void> _abrirEscanerLoginQR() async {
@@ -235,9 +282,9 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
       });
       widget.alCambiarSesion();
       await _cargarDatos();
-      _mostrarSnack('Sesión iniciada correctamente como ${usuario.nombre}.');
+      _mostrarModalBienvenidaUsuario(usuario);
     } catch (error) {
-      _mostrarSnack(error.toString().replaceFirst('Exception: ', ''));
+      _mostrarDialogoErrorLogin(error.toString().replaceFirst('Exception: ', ''));
     } finally {
       if (mounted) setState(() => _iniciandoSesion = false);
     }
@@ -613,65 +660,146 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
             ],
 
             if (_usuario == null) ...[
-              const _TituloSeccion(
+              _TituloSeccion(
                 titulo: 'INICIAR SESIÓN',
                 detalle: 'Ingresá con tu cuenta para operar en portería o administración.',
+                accion: IconButton(
+                  icon: const Icon(
+                    Icons.help_outline_rounded,
+                    size: 20,
+                    color: Color(0xFF0284C7),
+                  ),
+                  tooltip: 'Guía de inicio de sesión',
+                  onPressed: _mostrarDialogoGuiaAcceso,
+                ),
               ),
               PanelTarjeta(
                 contenido: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(
-                      width: double.infinity,
-                      height: 46,
-                      child: OutlinedButton.icon(
-                        onPressed: _iniciandoSesion ? null : _abrirEscanerLoginQR,
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: const Color(0xFF0284C7),
-                          side: const BorderSide(color: Color(0xFF0284C7), width: 1.5),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF0284C7), Color(0xFF0369A1)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                        icon: const Icon(Icons.qr_code_scanner_rounded, size: 20),
-                        label: const Text(
-                          'Escanear QR de Operador o Administrativo',
-                          style: TextStyle(fontWeight: FontWeight.w700),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x260284C7),
+                            blurRadius: 12,
+                            offset: Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: _iniciandoSesion ? null : _abrirEscanerLoginQR,
+                          borderRadius: BorderRadius.circular(16),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 14,
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.2),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Icon(
+                                    Icons.qr_code_scanner_rounded,
+                                    color: Colors.white,
+                                    size: 24,
+                                  ),
+                                ),
+                                const SizedBox(width: 14),
+                                const Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Escanear Pase QR de Acceso',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w900,
+                                          fontSize: 14.5,
+                                        ),
+                                      ),
+                                      SizedBox(height: 2),
+                                      Text(
+                                        'Ingreso instantáneo desde el panel web de SiGIC',
+                                        style: TextStyle(
+                                          color: Color(0xFFE0F2FE),
+                                          fontSize: 11.5,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const Icon(
+                                  Icons.arrow_forward_ios_rounded,
+                                  color: Colors.white70,
+                                  size: 14,
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                     ),
                     const _SeparadorConTexto('o ingresá con tus credenciales'),
-                    if (_entorno == 'demo') ...[
-                      FilledButton.icon(
-                        onPressed: _iniciandoSesion ? null : _iniciarDemo,
-                        icon: const Icon(Icons.play_arrow_rounded),
-                        label: Text(
-                          _iniciandoSesion
-                              ? 'Conectando demo...'
-                              : 'Entrar a la demo',
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
                     TextField(
                       controller: _controladorCorreo,
                       keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Correo electrónico',
+                        hintText: 'ej. usuario@itbeltran.com.ar',
+                        prefixIcon: const Icon(Icons.email_outlined, size: 20),
+                        suffixIcon: _controladorCorreo.text.isNotEmpty
+                            ? IconButton(
+                                icon: const Icon(Icons.clear, size: 18),
+                                onPressed: () {
+                                  _controladorCorreo.clear();
+                                  setState(() {});
+                                },
+                              )
+                            : null,
                       ),
+                      onChanged: (_) => setState(() {}),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
                     TextField(
                       controller: _controladorContrasena,
-                      obscureText: true,
-                      decoration: const InputDecoration(
+                      obscureText: _ocultarContrasena,
+                      decoration: InputDecoration(
                         labelText: 'Contraseña',
+                        prefixIcon:
+                            const Icon(Icons.lock_outline_rounded, size: 20),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _ocultarContrasena
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                            size: 20,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _ocultarContrasena = !_ocultarContrasena;
+                            });
+                          },
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 16),
                     SizedBox(
                       width: double.infinity,
-                      height: 44,
+                      height: 46,
                       child: FilledButton(
                         onPressed: _iniciandoSesion ? null : _iniciarSesion,
                         style: FilledButton.styleFrom(
@@ -683,17 +811,67 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
                         child: Text(
                           _iniciandoSesion
                               ? 'Iniciando sesión...'
-                              : 'Iniciar sesión',
+                              : 'Iniciar sesión con credenciales',
                           style: const TextStyle(fontWeight: FontWeight.w800),
                         ),
                       ),
                     ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextButton.icon(
+                            onPressed: _mostrarDialogoGuiaAcceso,
+                            icon: const Icon(
+                              Icons.help_outline_rounded,
+                              size: 16,
+                            ),
+                            label: const Text(
+                              '¿Cómo ingresar?',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: TextButton.icon(
+                            onPressed: _mostrarModalConfiguracionServidor,
+                            icon: const Icon(Icons.dns_outlined, size: 16),
+                            label: const Text(
+                              'Servidor / Red',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    if (_entorno == 'demo') ...[
+                      const Divider(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: _iniciandoSesion ? null : _iniciarDemo,
+                          icon: const Icon(Icons.play_arrow_rounded, size: 18),
+                          label: const Text(
+                            'Entrar en Modo Demostración',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
               const SizedBox(height: 12),
             ],
-
             const _TituloSeccion(
               titulo: 'APARIENCIA',
               detalle: 'Ajustá el tema visual de la aplicación.',
@@ -1027,30 +1205,39 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
 }
 
 class _TituloSeccion extends StatelessWidget {
-  const _TituloSeccion({required this.titulo, required this.detalle});
+  const _TituloSeccion({required this.titulo, required this.detalle, this.accion});
   final String titulo;
   final String detalle;
+  final Widget? accion;
 
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.fromLTRB(2, 2, 2, 9),
-    child: Column(
+    child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          titulo,
-          style: const TextStyle(
-            fontSize: 10.5,
-            letterSpacing: 1,
-            fontWeight: FontWeight.w900,
-            color: Color(0xFF64798C),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                titulo,
+                style: const TextStyle(
+                  fontSize: 10.5,
+                  letterSpacing: 1,
+                  fontWeight: FontWeight.w900,
+                  color: Color(0xFF64798C),
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                detalle,
+                style: const TextStyle(fontSize: 12, color: Color(0xFF5C7386)),
+              ),
+            ],
           ),
         ),
-        const SizedBox(height: 3),
-        Text(
-          detalle,
-          style: const TextStyle(fontSize: 12, color: Color(0xFF5C7386)),
-        ),
+        if (accion != null) accion!,
       ],
     ),
   );

@@ -255,7 +255,11 @@ export function GestionGraduados({
       g.correo?.toLowerCase().includes(term) ||
       g.carrera?.toLowerCase().includes(term)
 
-    const coincideEstado = filtroEstado === 'TODOS' || g.estado_flujo === filtroEstado
+    const coincideEstado = filtroEstado === 'TODOS' 
+      ? true 
+      : filtroEstado === 'SIN_ASIENTO'
+        ? (!g.butaca_id && !g.asiento && g.estado_flujo !== 'RECHAZADO')
+        : g.estado_flujo === filtroEstado
 
     return coincideBusqueda && coincideEstado
   })
@@ -274,6 +278,7 @@ export function GestionGraduados({
     PENDIENTE: graduados.filter(g => g.estado_flujo === 'PENDIENTE').length,
     CARGA_INCOMPLETA: graduados.filter(g => g.estado_flujo === 'CARGA_INCOMPLETA').length,
     COMPLETO: graduados.filter(g => g.estado_flujo === 'COMPLETO').length,
+    SIN_ASIENTO: graduados.filter(g => !g.butaca_id && !g.asiento && g.estado_flujo !== 'RECHAZADO').length,
     RECHAZADO: graduados.filter(g => g.estado_flujo === 'RECHAZADO').length,
   }
   const sinCorreo = graduados.filter(grad => !grad.correo && grad.estado_flujo !== 'RECHAZADO')
@@ -544,6 +549,7 @@ export function GestionGraduados({
               { clave: 'PENDIENTE', etiqueta: 'Esperando respuesta', color: 'bg-amber-500 text-white' },
               { clave: 'CARGA_INCOMPLETA', etiqueta: 'Carga incompleta', color: 'bg-orange-500 text-white' },
               { clave: 'COMPLETO', etiqueta: 'Listos para asignar', color: 'bg-emerald-600 text-white' },
+              { clave: 'SIN_ASIENTO', etiqueta: 'Sin butaca', color: 'bg-indigo-600 text-white' },
               { clave: 'RECHAZADO', etiqueta: 'Rechazados', color: 'bg-rose-500 text-white' },
             ].map(f => (
               <button
@@ -841,6 +847,16 @@ export function GestionGraduados({
                         </button>
                       )}
                       {!esRechazado && (
+                        <a
+                          href={`https://wa.me/?text=${encodeURIComponent(`Hola ${grad.nombre}, te enviamos el enlace institucional oficial para gestionar tu asistencia y acompanantes al Acto de Colacion SiGIC:\n${origenPortalGraduados()}/login-graduado?token=${grad.token_acceso || ''}`)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-semibold text-emerald-700 hover:bg-emerald-50 cursor-pointer"
+                        >
+                          <Phone size={14} className="text-emerald-600" /> WhatsApp directo
+                        </a>
+                      )}
+                      {!esRechazado && (
                         <button
                           onClick={() => manejarLink(grad)}
                           className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer"
@@ -958,6 +974,16 @@ export function GestionGraduados({
                                 <button onClick={() => manejarCorroboracion(grad)} disabled={corroborandoId === grad.id} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 cursor-pointer">
                                   <BadgeCheck size={13} /> Verificar datos
                                 </button>
+                              )}
+                              {!esRechazado && (
+                                <a
+                                  href={`https://wa.me/?text=${encodeURIComponent(`Hola ${grad.nombre}, te enviamos el enlace institucional oficial para gestionar tu asistencia y acompanantes al Acto de Colacion SiGIC:\n${origenPortalGraduados()}/login-graduado?token=${grad.token_acceso || ''}`)}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 cursor-pointer"
+                                >
+                                  <Phone size={13} className="text-emerald-600" /> WhatsApp
+                                </a>
                               )}
                               {!esRechazado && (
                                 <button onClick={() => manejarLink(grad)} className="flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 cursor-pointer">
