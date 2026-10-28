@@ -593,7 +593,7 @@
       }
     }
 
-    /* EN PANTALLA: CONTROL DE PESTAÑAS */
+    /* EN PANTALLA: CONTROL DE SECCIONES */
     @media screen {
       .bloque-seccion {
         display: none;
@@ -617,7 +617,7 @@
     <div class="nav-tabs">
       <button class="nav-tab-btn activo" onclick="cambiarPestana('sec-esquema', this)">1. Esquema y Diagrama</button>
       <button class="nav-tab-btn" onclick="cambiarPestana('sec-tablas', this)">2. Diccionario de Tablas</button>
-      <button class="nav-tab-btn" onclick="cambiarPestana('sec-sql', this)">3. Script DDL y Semillas</button>
+      <button class="nav-tab-btn" onclick="cambiarPestana('sec-sql', this)">3. Script DDL y Datos Iniciales</button>
       <button class="nav-tab-btn" onclick="cambiarPestana('sec-crud', this)">4. Consultas CRUD</button>
       <button class="nav-tab-btn" onclick="cambiarPestana('sec-glosario', this)">5. Glosario y Bibliografía</button>
       <button class="nav-tab-btn" onclick="cambiarPestana('todas', this)">Vista Integral A4</button>
@@ -1047,24 +1047,24 @@
     <div class="salto-pagina-a4"></div>
 
     <!-- ===================================================================== -->
-    <!-- HOJA A4 NRO 3: SCRIPT DDL Y DATOS SEMILLA                             -->
+    <!-- HOJA A4 NRO 3: SCRIPT DDL Y DATOS INICIALES                             -->
     <!-- ===================================================================== -->
     <section id="sec-sql" class="bloque-seccion">
 
       <div class="seccion">
         <div class="seccion-encabezado">
-          <span>3. Script SQL DDL y Datos Semilla para PostgreSQL 14+</span>
+          <span>3. Script SQL DDL y Datos Iniciales para PostgreSQL 14+</span>
           <span class="seccion-subtitulo">Archivo: <code>Esquema_Base_Datos_SiGIC.sql</code></span>
         </div>
 
         <div class="codigo-contenedor">
           <div class="codigo-header">
-            <span>Esquema_Base_Datos_SiGIC.sql · Script DDL y Semillas</span>
+            <span>Esquema_Base_Datos_SiGIC.sql · Script DDL y Datos Iniciales</span>
             <button class="btn-copiar" onclick="copiarCodigo('codigo-ddl-sql')">Copiar SQL</button>
           </div>
           <pre id="codigo-ddl-sql" class="codigo-sql">-- ============================================================================
 -- SiGIC — Sistema de Gestion Institucional de Colaciones
--- Script DDL y Datos Semilla para PostgreSQL 14+ (Neon Serverless)
+-- Script DDL y Carga Inicial de Datos para PostgreSQL 14+ (Neon Serverless)
 -- Autor: Cancelo Julian · Analista de Sistemas · Instituto Tecnologico Beltran
 -- ============================================================================
 
@@ -1218,7 +1218,7 @@ CREATE INDEX idx_padrinos_egresado ON padrinos(egresado_id);
 CREATE INDEX idx_otp_egresado ON otp_historial(egresado_id);
 CREATE INDEX idx_logs_fecha ON logs_auditoria(fecha DESC);
 
--- 5. DATOS SEMILLA (SEEDS)
+-- 5. CARGA INICIAL DE DATOS (INSERTS BASE)
 INSERT INTO configuracion_sistema (clave, valor, descripcion) VALUES
 ('modo_mantenimiento', 'false', 'Suspende el portal publico de graduados ante tareas tecnicas'),
 ('acceso_oculto_egresado', 'true', 'Requiere 5 clics sobre el logo en portada para revelar login'),
@@ -1250,7 +1250,7 @@ INSERT INTO padrinos (id, egresado_id, tipo, profesor_id, orden) VALUES
 
         <!-- LEYENDA HOJA 3 -->
         <div class="leyenda">
-          <div>Definición DDL e Inserciones Semilla Verificadas en PostgreSQL 14+ / Neon Cloud</div>
+          <div>Definición DDL e Carga Inicial Verificada en PostgreSQL 14+ / Neon Cloud</div>
           <div>Hoja 3 de 5 · Documentación Oficial SiGIC</div>
         </div>
       </div>
@@ -1368,7 +1368,7 @@ RETURNING id, resultado, verificado_en;</pre>
     p.orden,
     CASE 
         WHEN p.tipo = 'PROFESOR' THEN prof.nombre || ' (Docente titular - ' || prof.materia || ')'
-        WHEN p.tipo = 'FAMILIAR' THEN inv.nombre || ' (Acompañante - ' || inv.relacion || ')'
+        WHEN p.tipo = 'FAMILIAR' THEN inv.nombre || ' (Invitado - ' || inv.relacion || ')'
         WHEN p.tipo = 'EXTERNO'  THEN p.nombre || ' (Allegado designado)'
     END AS entregador_diploma
 FROM egresados e
@@ -1434,7 +1434,7 @@ ORDER BY e.promedio DESC, e.nombre ASC, p.orden ASC;</pre>
               <span class="glosario-badge">Relación</span>
             </div>
             <div class="glosario-def">
-              Es el puente que conecta dos tablas. Por ejemplo, en la tabla de invitados guardamos a qué egresado acompaña cada persona para saber a quién pertenece cada ingreso.
+              Es el puente que conecta dos tablas. Por ejemplo, en la tabla de invitados guardamos a qué egresado asiste con cada egresado para saber a quién pertenece cada ingreso.
             </div>
           </div>
 
@@ -1474,7 +1474,7 @@ ORDER BY e.promedio DESC, e.nombre ASC, p.orden ASC;</pre>
               <span class="glosario-badge">Acceso</span>
             </div>
             <div class="glosario-def">
-              Código numérico de 6 dígitos que se genera al momento y sirve una sola vez. Llega al correo del graduado para que ingrese sin necesidad de recordar una contraseña fija, y caduca en 10 minutos.
+              Código numérico de 6 dígitos que se genera al momento y sirve una sola vez. Llega al correo del graduado para que ingrese sin necesidad de recordar una clave fija, y caduca en 10 minutos.
             </div>
           </div>
 
@@ -1511,10 +1511,10 @@ ORDER BY e.promedio DESC, e.nombre ASC, p.orden ASC;</pre>
           <div class="glosario-card">
             <div class="glosario-termino">
               <span>3FN (Tercera Forma Normal)</span>
-              <span class="glosario-badge">Diseño</span>
+              <span class="glosario-badge">Estructura</span>
             </div>
             <div class="glosario-def">
-              Regla de diseño que exige que cada dato dependa únicamente de su clave primaria. Si un egresado cambia su teléfono, se actualiza en su ficha y se refleja en todo el sistema.
+              Regla de estructura que exige que cada dato dependa únicamente de su clave primaria. Si un egresado cambia su teléfono, se actualiza en su ficha y se refleja en todo el sistema.
             </div>
           </div>
 
@@ -1540,10 +1540,10 @@ ORDER BY e.promedio DESC, e.nombre ASC, p.orden ASC;</pre>
             <strong>PostgreSQL Global Development Group (2024).</strong> <em>PostgreSQL 14/16 Documentation</em>. Official manuals on DDL, Triggers, JSONB Data Type, Partial Unique Indexes and B-Tree Indexing.
           </div>
           <div class="bibliografia-item">
-            <strong>Silberschatz, Abraham; Korth, Henry F. & Sudarshan, S. (2014).</strong> <em>Fundamentos de Bases de Datos</em> (6ª Edición). McGraw-Hill Interamericana de España. Capítulos sobre Modelo Relacional, Normalización y SQL.
+            <strong>Silberschatz, Abraham; Korth, Henry F. & Sudarshan, S. (2014).</strong> <em>Fundamentos de Bases de Datos</em> (6ª Edición). McGraw-Hill Interamericana. Capítulos sobre Modelo Relacional, Normalización y SQL.
           </div>
           <div class="bibliografia-item">
-            <strong>Date, C. J. (2001).</strong> <em>Introducción a los Sistemas de Bases de Datos</em> (7ª Edición). Pearson Educación. Principios de integridad referencial y diseño relacional.
+            <strong>Date, C. J. (2001).</strong> <em>Introducción a los Sistemas de Bases de Datos</em> (7ª Edición). Pearson Educación. Principios de integridad referencial y estructura relacional.
           </div>
           <div class="bibliografia-item">
             <strong>Instituto Tecnológico Beltrán (ITB).</strong> <em>Plan de Estudios y Materiales de Cátedra de Bases de Datos y Práctica Profesionalizante</em>. Tecnicatura Superior en Analista de Sistemas. Avellaneda, Buenos Aires.
@@ -1558,7 +1558,7 @@ ORDER BY e.promedio DESC, e.nombre ASC, p.orden ASC;</pre>
           </div>
           <div style="text-align: right;">
             Autor: <strong>Cancelo Julián</strong> · Analista de Sistemas<br>
-            Instituto Tecnológico Beltrán · Año 2026
+            Instituto Tecnológico Beltrán · Ciclo 2026
           </div>
         </div>
 

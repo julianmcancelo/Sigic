@@ -1,6 +1,6 @@
 -- ============================================================================
 -- SiGIC — Sistema de Gestion Institucional de Colaciones
--- Script DDL, Datos Semilla y Operaciones CRUD Integrales
+-- Script DDL, Carga Inicial y Operaciones CRUD Integrales
 -- Motor: PostgreSQL 14+ (Neon Serverless Cloud)
 -- Institucion: Instituto Tecnologico Beltran (ITB)
 -- Carrera: Tecnicatura Superior en Analista de Sistemas
@@ -206,7 +206,7 @@ CREATE INDEX IF NOT EXISTS idx_otp_egresado ON otp_historial(egresado_id);
 CREATE INDEX IF NOT EXISTS idx_logs_fecha ON logs_auditoria(fecha DESC);
 
 -- ============================================================================
--- PARTE 4: DATOS SEMILLA (SEEDS INICIALES)
+-- PARTE 4: CARGA INICIAL DE DATOS (REGISTROS BASE)
 -- ============================================================================
 
 INSERT INTO configuracion_sistema (clave, valor, descripcion) VALUES
