@@ -1103,40 +1103,58 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
 
     // Página 6: Plano del Anfiteatro & Movilidad
     (
-      <div className="space-y-2 text-[11px] text-slate-600 leading-relaxed">
-        <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-2 uppercase tracking-wide">
-          <LayoutGrid size={16} className="text-[#0056b3]" /> 5. Anfiteatro y Aforo
+      <div className="space-y-2 text-[10.5px] text-slate-600 leading-relaxed">
+        <h3 className="text-sm font-black text-slate-800 flex items-center gap-2 border-b pb-1.5 uppercase tracking-wide">
+          <LayoutGrid size={16} className="text-[#0056b3]" /> 4. Distribución de Asientos y Control del Anfiteatro
         </h3>
 
         <ScreenDisenoAnfiteatro />
 
-        <p className="text-slate-500 m-0 text-[9.5px] leading-relaxed">
-          Desde <strong>Diseño del Anfiteatro</strong>, el administrador construye la distribución que luego utilizarán los graduados. Puede alternar entre <strong>Platea</strong> y <strong>Pullman</strong>, definir filas, asientos por fila y verificar la capacidad total antes de publicar el plano.
-        </p>
+        <div className="space-y-1">
+          <h4 className="font-black text-slate-700 uppercase text-[9px] tracking-wider m-0">Código de Colores de las Butacas</h4>
+          <div className="grid grid-cols-3 gap-1 text-[8.5px]">
+            <div className="p-1 rounded bg-blue-50 border border-blue-200 text-blue-900">
+              <span className="font-black block">Azul (Egresados)</span> Asignadas a quienes reciben diploma.
+            </div>
+            <div className="p-1 rounded bg-emerald-50 border border-emerald-200 text-emerald-900">
+              <span className="font-black block">Verde (Acompañantes)</span> Asientos para familiares e invitados.
+            </div>
+            <div className="p-1 rounded bg-rose-50 border border-rose-200 text-rose-900">
+              <span className="font-black block">Rojo (Ocupado)</span> Butacas ya reservadas por otros graduados.
+            </div>
+            <div className="p-1 rounded bg-slate-100 border border-slate-200 text-slate-800">
+              <span className="font-black block">Gris Claro (Libre)</span> Disponibles para ser seleccionadas.
+            </div>
+            <div className="p-1 rounded bg-slate-700 text-white">
+              <span className="font-black block">Gris Oscuro (Protocolo)</span> Directivos, Autoridades y Profesores.
+            </div>
+            <div className="p-1 rounded bg-purple-50 border border-purple-200 text-purple-900">
+              <span className="font-black block">Violeta (Preferencial)</span> Invitados con movilidad reducida.
+            </div>
+          </div>
+        </div>
 
-        <div className="grid grid-cols-2 gap-1.5">
-          <div className="bg-slate-50 border border-slate-100 rounded-lg p-2 space-y-0.5">
-            <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 block">1. Estructura y aforo</span>
-            <p className="text-[9px] text-slate-500 m-0 leading-snug">
-              Ajustá la cantidad de filas y butacas. El indicador de capacidad se recalcula automáticamente y evita asignaciones por encima del límite configurado.
+        <div className="grid grid-cols-2 gap-1.5 items-start">
+          <div className="bg-slate-50 border border-slate-200 rounded-lg p-2 space-y-1 text-[8.5px]">
+            <span className="font-black text-slate-700 uppercase block">Asignación para Autoridades y Protocolo</span>
+            <p className="text-slate-600 m-0 leading-snug">
+              En <strong>Plano Anfiteatro</strong>, hacé clic sobre las butacas de las primeras filas correspondientes a docentes y autoridades y seleccioná <strong>"Bloquear Asiento / Protocolo"</strong> para inhabilitarlas a los estudiantes.
             </p>
           </div>
-          <div className="bg-slate-50 border border-slate-100 rounded-lg p-2 space-y-0.5">
-            <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 block">2. Rol de cada butaca</span>
-            <p className="text-[9px] text-slate-500 m-0 leading-snug">
-              Seleccioná una butaca y marcala como <strong>graduado, autoridad, accesible, reservada, pasillo</strong> o disponible. La leyenda inferior permite comprobar la distribución.
+          <div className="bg-purple-50 border border-purple-200 rounded-lg p-2 space-y-1 text-[8.5px]">
+            <span className="font-black text-purple-900 uppercase flex items-center gap-1">
+              <Accessibility size={12} className="text-purple-700" /> Alerta de Movilidad Reducida
+            </span>
+            <p className="text-purple-800 m-0 leading-snug">
+              Aparece con <strong>ícono de silla de ruedas</strong> y borde diferenciado. Permite saber dónde ubicar rampas y asistir a los familiares al ingresar al salón.
             </p>
           </div>
         </div>
 
-        <div className="bg-sky-50 border border-sky-100 rounded-lg p-2 flex gap-2 items-start">
-          <CheckCircle2 size={16} className="text-sky-500 shrink-0 mt-0.5" />
-          <div>
-            <h5 className="font-black text-sky-800 text-[9.5px] uppercase m-0">3. Guardar antes de continuar</h5>
-            <p className="m-0 text-slate-500 text-[9px] leading-relaxed mt-0.5">
-              Presioná <strong>Guardar</strong> después de cada modificación. La selección de asientos de los graduados utilizará exactamente esta estructura y sus restricciones de accesibilidad.
-            </p>
-          </div>
+        <div className="bg-sky-50 border-l-4 border-[#0056b3] p-1.5 rounded-r-lg">
+          <p className="m-0 text-[8.5px] text-sky-900 leading-snug">
+            <strong>Asignación de Invitados por el Administrador:</strong> Tras la carga de los egresados, el administrador asigna los asientos considerando movilidad reducida y entregadores de diploma. Se despacha la confirmación al correo del alumno.
+          </p>
         </div>
       </div>
     ),
