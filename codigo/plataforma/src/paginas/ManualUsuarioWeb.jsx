@@ -773,7 +773,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
   const [esPantallaCompleta, setEsPantallaCompleta] = useState(false)
   const rutaPortada = '/manual/manual_portada.png'
   const [mostrarCredencial, setMostrarCredencial] = useState(false)
-  const [urlManual, setUrlManual] = useState('/manual')
+  const [urlManual, setUrlManual] = useState('https://app.sigic.com.ar/manual')
   const [imagenAmpliada, setImagenAmpliada] = useState(null)
   const [arrastreX, setArrastreX] = useState(null)
   const [mantenimientoActivo, setMantenimientoActivo] = useState(() => {
@@ -871,7 +871,14 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
 
   // La credencial siempre apunta a una URL absoluta para que funcione fuera de este dispositivo.
   useEffect(() => {
-    setUrlManual(`${window.location.origin}/manual`)
+    if (typeof window !== 'undefined') {
+      const origen = window.location.origin || ''
+      if (origen.includes('sigic.com.ar')) {
+        setUrlManual('https://app.sigic.com.ar/manual')
+      } else {
+        setUrlManual(`${origen}/manual`)
+      }
+    }
   }, [])
 
   useEffect(() => {
@@ -1582,7 +1589,7 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
         <div className="relative z-10 flex flex-col items-center text-center my-auto">
           <div className="p-3 bg-white rounded-xl shadow-xl shadow-black/40 border border-white/20 mb-2.5">
             <QRCodeSVG 
-              value="https://sigic.com.ar/manual" 
+              value={urlManual || 'https://app.sigic.com.ar/manual'} 
               size={110} 
               level="H" 
               includeMargin={false}

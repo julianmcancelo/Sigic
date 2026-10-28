@@ -1,5 +1,12 @@
 {
   "cleanUrls": true,
+  "redirects": [
+    { "source": "/manual", "destination": "https://app.sigic.com.ar/manual", "permanent": false },
+    { "source": "/manual/:path*", "destination": "https://app.sigic.com.ar/manual/:path*", "permanent": false },
+    { "source": "/admin", "destination": "https://app.sigic.com.ar/admin", "permanent": false },
+    { "source": "/descargas", "destination": "https://app.sigic.com.ar/descargas", "permanent": false },
+    { "source": "/descargas/:path*", "destination": "https://app.sigic.com.ar/descargas/:path*", "permanent": false }
+  ],
   "rewrites": [
     { "source": "/api", "destination": "/api.html" },
     { "source": "/api/", "destination": "/api.html" }
