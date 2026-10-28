@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SiGIC — Documento de Diseno de Base de Datos</title>
+  <title>SiGIC — Diseno de Base de Datos (Documento Imprimible)</title>
   <style>
     @page {
       size: A4 portrait;
-      margin: 16mm 14mm 18mm 14mm;
+      margin: 15mm 12mm 15mm 12mm;
     }
 
     * {
@@ -17,65 +17,60 @@
     }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      font-size: 9.5pt;
-      line-height: 1.45;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      font-size: 9pt;
+      line-height: 1.4;
       color: #0f172a;
+      background: #ffffff;
       margin: 0;
       padding: 0;
-      background: #ffffff;
     }
 
     .documento {
-      max-width: 860px;
+      max-width: 800px;
       margin: 0 auto;
-      padding: 20px;
+      padding: 15px;
     }
 
     @media screen {
       body {
         background: #f1f5f9;
-        padding: 30px 0;
+        padding: 20px 0;
       }
       .documento {
         background: #ffffff;
-        box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
-        border-radius: 8px;
-        padding: 40px 48px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border-radius: 6px;
+        padding: 40px;
       }
-      .barra-acciones {
-        position: fixed;
-        top: 20px;
-        right: 20px;
+      .barra-print {
+        position: sticky;
+        top: 15px;
+        max-width: 800px;
+        margin: 0 auto 15px auto;
         display: flex;
-        gap: 10px;
-        z-index: 1000;
+        justify-content: flex-end;
+        z-index: 100;
       }
-      .boton-accion {
+      .btn-print {
         background: #003865;
         color: #ffffff;
-        padding: 10px 18px;
+        border: none;
+        padding: 10px 22px;
         border-radius: 6px;
         font-weight: 700;
+        font-size: 13px;
         cursor: pointer;
         box-shadow: 0 4px 12px rgba(0, 56, 101, 0.25);
-        border: none;
-        font-size: 13px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        transition: background 0.2s, transform 0.1s;
+        transition: background 0.15s;
       }
-      .boton-accion:hover {
-        background: #004d8c;
-      }
-      .boton-accion:active {
-        transform: scale(0.98);
+      .btn-print:hover {
+        background: #00508f;
       }
     }
 
     @media print {
-      .barra-acciones {
+      .no-print {
         display: none !important;
       }
       .documento {
@@ -83,298 +78,242 @@
         padding: 0;
         box-shadow: none;
       }
-      .salto-pagina {
+      .salto {
         page-break-before: always;
         break-before: page;
       }
-      .evitar-quiebre {
+      .no-quiebre {
         page-break-inside: avoid;
         break-inside: avoid;
       }
     }
 
+    /* Caratula sobria y academica */
     .caratula {
-      min-height: 90vh;
+      min-height: 88vh;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       text-align: center;
-      padding: 30px 20px 20px 20px;
+      padding: 30px 10px 20px 10px;
       page-break-after: always;
       break-after: page;
     }
 
     .caratula-header {
       border-bottom: 2px solid #003865;
-      padding-bottom: 18px;
+      padding-bottom: 15px;
     }
 
     .institucion {
-      font-size: 15pt;
+      font-size: 14pt;
       font-weight: 800;
       color: #003865;
       text-transform: uppercase;
-      letter-spacing: 0.6px;
+      letter-spacing: 0.5px;
     }
 
     .carrera {
-      font-size: 11.5pt;
+      font-size: 11pt;
       font-weight: 600;
       color: #0284c7;
-      margin-top: 5px;
+      margin-top: 4px;
     }
 
     .caratula-body {
-      margin: 50px 0;
+      margin: 60px 0;
     }
 
-    .proyecto-sigla {
-      font-size: 36pt;
+    .titulo-sigla {
+      font-size: 34pt;
       font-weight: 900;
       color: #003865;
-      letter-spacing: 3px;
+      letter-spacing: 2px;
       margin: 0;
     }
 
-    .proyecto-nombre {
-      font-size: 13pt;
+    .titulo-desc {
+      font-size: 12pt;
       font-weight: 600;
       color: #475569;
       margin-top: 6px;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
     }
 
-    .doc-titulo {
-      font-size: 18pt;
+    .doc-nombre {
+      font-size: 16pt;
       font-weight: 800;
       color: #0f172a;
       margin-top: 35px;
-      padding-top: 25px;
+      padding-top: 20px;
       border-top: 1px dashed #cbd5e1;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
     }
 
-    .doc-subtitulo {
-      font-size: 10.5pt;
+    .doc-sub {
+      font-size: 10pt;
       color: #64748b;
-      margin-top: 8px;
-      font-weight: 500;
+      margin-top: 6px;
     }
 
     .caratula-footer {
       border-top: 2px solid #003865;
-      padding-top: 20px;
+      padding-top: 15px;
       display: flex;
       justify-content: space-between;
       text-align: left;
-      font-size: 9.5pt;
-      line-height: 1.6;
+      font-size: 9pt;
+      line-height: 1.5;
     }
 
+    /* Encabezados y bloques */
     h1 {
-      font-size: 14.5pt;
+      font-size: 13pt;
       font-weight: 800;
       color: #003865;
-      border-bottom: 2px solid #003865;
-      padding-bottom: 5px;
-      margin-top: 26px;
-      margin-bottom: 12px;
+      border-bottom: 1.5px solid #003865;
+      padding-bottom: 4px;
+      margin: 22px 0 10px 0;
       text-transform: uppercase;
-      letter-spacing: 0.3px;
     }
 
     h2 {
-      font-size: 11.5pt;
+      font-size: 10.5pt;
       font-weight: 700;
       color: #0369a1;
-      margin-top: 18px;
-      margin-bottom: 8px;
+      margin: 14px 0 6px 0;
     }
 
     h3 {
-      font-size: 10pt;
+      font-size: 9.5pt;
       font-weight: 700;
       color: #1e293b;
-      margin-top: 14px;
-      margin-bottom: 6px;
+      margin: 10px 0 4px 0;
     }
 
     p {
-      margin: 0 0 10px 0;
+      margin: 0 0 8px 0;
       text-align: justify;
     }
 
-    ul, ol {
-      margin: 0 0 12px 20px;
+    ul {
+      margin: 0 0 10px 18px;
       padding: 0;
     }
 
     li {
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
 
+    .box-resumen {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-left: 3px solid #003865;
+      padding: 8px 12px;
+      margin: 8px 0 12px 0;
+      font-size: 8.5pt;
+    }
+
+    .diagrama-box {
+      text-align: center;
+      margin: 12px 0;
+      page-break-inside: avoid;
+      break-inside: avoid;
+    }
+
+    .diagrama-img {
+      max-width: 95%;
+      height: auto;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+    }
+
+    .diagrama-epigrafe {
+      font-size: 7.5pt;
+      color: #64748b;
+      margin-top: 4px;
+      font-style: italic;
+    }
+
+    /* Tablas compactas para impresion */
     table {
       width: 100%;
       border-collapse: collapse;
-      margin: 10px 0 16px 0;
-      font-size: 8.5pt;
+      margin: 6px 0 12px 0;
+      font-size: 8pt;
       page-break-inside: avoid;
       break-inside: avoid;
     }
 
     th, td {
       border: 1px solid #cbd5e1;
-      padding: 5px 8px;
+      padding: 4px 6px;
       text-align: left;
       vertical-align: top;
     }
 
     th {
-      background-color: #f8fafc;
+      background-color: #f1f5f9;
       color: #003865;
       font-weight: 700;
       text-transform: uppercase;
-      font-size: 7.8pt;
-      letter-spacing: 0.3px;
+      font-size: 7.2pt;
     }
 
     tr:nth-child(even) td {
-      background-color: #fcfdfe;
+      background-color: #f8fafc;
     }
 
-    .badge {
-      display: inline-block;
-      padding: 1px 5px;
-      font-size: 7pt;
-      font-weight: 700;
-      border-radius: 3px;
-      font-family: Consolas, monospace;
-    }
+    .pk { font-weight: 800; color: #991b1b; }
+    .fk { font-weight: 700; color: #0369a1; }
+    .uq { font-weight: 700; color: #92400e; }
 
-    .badge-pk { background-color: #fee2e2; color: #991b1b; }
-    .badge-fk { background-color: #e0f2fe; color: #0369a1; }
-    .badge-uq { background-color: #fef3c7; color: #92400e; }
-
+    /* Bloques de codigo SQL claros y legibles */
     pre {
-      background-color: #0f172a;
-      color: #f8fafc;
-      padding: 14px 16px;
-      border-radius: 6px;
+      background-color: #f8fafc;
+      color: #0f172a;
+      border: 1px solid #cbd5e1;
+      border-left: 3px solid #003865;
+      padding: 8px 10px;
       font-family: Consolas, "Courier New", monospace;
-      font-size: 8pt;
-      line-height: 1.45;
+      font-size: 7.5pt;
+      line-height: 1.35;
       overflow-x: auto;
-      margin: 10px 0 16px 0;
-      border: 1px solid #1e293b;
+      margin: 6px 0 10px 0;
       page-break-inside: avoid;
       break-inside: avoid;
-      position: relative;
+      white-space: pre-wrap;
+      word-break: break-all;
     }
 
     code {
-      font-family: Consolas, "Courier New", monospace;
-      background: #f1f5f9;
-      color: #0f172a;
-      padding: 1px 4px;
-      border-radius: 3px;
-      font-size: 8.5pt;
-    }
-
-    pre code {
-      background: transparent;
-      color: inherit;
-      padding: 0;
-      font-size: inherit;
-    }
-
-    .callout {
-      border-left: 3px solid #003865;
-      background: #f8fafc;
-      padding: 9px 13px;
-      margin: 10px 0;
-      border-radius: 0 4px 4px 0;
-      font-size: 9pt;
-    }
-
-    .diagrama-contenedor {
-      text-align: center;
-      margin: 16px 0;
-      page-break-inside: avoid;
-      break-inside: avoid;
-    }
-
-    .diagrama-img {
-      max-width: 100%;
-      height: auto;
-      border: 1px solid #cbd5e1;
-      border-radius: 4px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    }
-
-    .diagrama-epigrafe {
-      font-size: 8pt;
-      color: #64748b;
-      margin-top: 5px;
-      font-style: italic;
-    }
-
-    .resumen-relacional {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 6px;
-      padding: 12px;
       font-family: Consolas, monospace;
-      font-size: 8.2pt;
-      line-height: 1.6;
-      margin: 12px 0;
+      font-size: 8pt;
     }
 
-    .resumen-relacional strong {
-      color: #003865;
-    }
-
-    .resumen-relacional u {
-      text-decoration: underline;
-    }
-
-    .resumen-relacional em {
-      color: #b45309;
-      font-style: normal;
-    }
-
-    .btn-copiar {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      background: #334155;
-      color: #e2e8f0;
-      border: 1px solid #475569;
-      border-radius: 4px;
-      padding: 3px 8px;
+    .pie-pagina {
+      border-top: 1px solid #cbd5e1;
+      padding-top: 8px;
+      margin-top: 25px;
+      text-align: center;
       font-size: 7.5pt;
-      cursor: pointer;
-      font-weight: 600;
-      transition: background 0.15s;
-    }
-
-    .btn-copiar:hover {
-      background: #475569;
+      color: #64748b;
     }
   </style>
 </head>
 <body>
 
-  <div class="barra-acciones">
-    <button class="boton-accion" onclick="window.print()">
-      Imprimir / PDF
+  <div class="barra-print no-print">
+    <button class="btn-print" onclick="window.print()">
+      Imprimir / Guardar en PDF
     </button>
   </div>
 
   <div class="documento">
 
-    <!-- CARATULA -->
+    <!-- ========================================== -->
+    <!-- CARATULA                                   -->
+    <!-- ========================================== -->
     <div class="caratula">
       <div class="caratula-header">
         <div class="institucion">Instituto Tecnologico Beltran</div>
@@ -382,866 +321,204 @@
       </div>
 
       <div class="caratula-body">
-        <h1 class="proyecto-sigla">SiGIC</h1>
-        <div class="proyecto-nombre">Sistema de Gestion Institucional de Colaciones</div>
+        <h1 class="titulo-sigla">SiGIC</h1>
+        <div class="titulo-desc">Sistema de Gestion Institucional de Colaciones</div>
 
-        <div class="doc-titulo">Especificacion y Diseno Integral de Base de Datos</div>
-        <div class="doc-subtitulo">Modelo Logico Relacional, Diccionario de Datos, Script DDL y Operaciones CRUD</div>
+        <div class="doc-nombre">Diseno y Modelo de Base de Datos</div>
+        <div class="doc-sub">Diccionario de Datos, Script DDL y Operaciones CRUD (PostgreSQL)</div>
       </div>
 
       <div class="caratula-footer">
         <div>
-          <strong>Autor:</strong> Cancelo Julian<br>
+          <strong>Alumno / Autor:</strong> Cancelo Julian<br>
           <strong>Carrera:</strong> Tecnicatura Superior en Analista de Sistemas<br>
-          <strong>Institucion:</strong> Instituto Tecnologico Beltran (Avellaneda)
+          <strong>Sede:</strong> Instituto Tecnologico Beltran (Avellaneda)
         </div>
         <div style="text-align: right;">
-          <strong>Motor de Base de Datos:</strong> PostgreSQL 14+ (Neon Serverless)<br>
-          <strong>Documento:</strong> Evaluacion Academica Oficial<br>
+          <strong>Motor:</strong> PostgreSQL 14+ (Neon Serverless)<br>
+          <strong>Evaluacion:</strong> Practica Profesionalizante<br>
           <strong>Fecha:</strong> Octubre 2026
         </div>
       </div>
     </div>
 
-    <!-- 1. INTRODUCCION -->
-    <h1>1. Introduccion y Alcance del Modelo de Datos</h1>
+    <!-- ========================================== -->
+    <!-- 1. INTRODUCCION Y MODELO CONCEPTUAL        -->
+    <!-- ========================================== -->
+    <h1>1. Introduccion y Alcance del Sistema</h1>
     <p>
-      El presente documento describe el diseno conceptual, logico y fisico de la base de datos relacional para el sistema <strong>SiGIC (Sistema de Gestion Institucional de Colaciones)</strong>. La plataforma centraliza la planificacion de ceremonias de graduacion, el empadronamiento de egresados, la gestion y validacion de invitados, el sorteo/asignacion de butacas en anfiteatro y la acreditacion movil mediante codigo QR en los accesos.
-    </p>
-    <p>
-      El diseno responde a rigurosos estandares de ingenieria de software: normalizacion en Tercera Forma Normal (3FN), integridad referencial declarativa, identificadores no predecibles mediante <code>UUID v4</code>, arquitectura passwordless con hashes SHA-256 e interoperabilidad con estructuras dinamicas mediante <code>JSONB</code> para el anfiteatro.
+      El sistema <strong>SiGIC (Sistema de Gestion Institucional de Colaciones)</strong> automatiza la organizacion integral de los actos de graduacion del <strong>Instituto Tecnologico Beltran</strong>: administracion de ceremonias, importacion masiva de padrones academicos, asignacion de butacas en anfiteatro, confirmacion de egresados mediante acceso passwordless (OTP) y acreditacion movil con codigo QR el dia del evento.
     </p>
 
-    <div class="callout">
-      <strong>Pilares Arquitectonicos del Diseno:</strong>
+    <div class="box-resumen">
+      <strong>Criterios de Diseno de la Base de Datos:</strong>
       <ul>
-        <li><strong>Identificadores UUID v4:</strong> Claves primarias distribuidas que impiden ataques de fuerza bruta y enumeracion de credenciales en credenciales QR.</li>
-        <li><strong>Autenticacion Passwordless (OTP):</strong> Egresados acceden sin contrasenas permanentes mediante codigos efimeros de 6 digitos con hash SHA-256 y ventana de expiracion de 10 minutos.</li>
-        <li><strong>Trazabilidad y Auditoria:</strong> Registro automatico de mutaciones criticas (INSERT, UPDATE, DELETE, LOGIN) con snapshots de valores anteriores y nuevos en formato JSONB.</li>
-        <li><strong>Modo Mantenimiento Integrado:</strong> Bloqueo preventivo del portal publico durante tareas tecnicas y migraciones sin interrumpir el acceso administrativo.</li>
+        <li><strong>Tercera Forma Normal (3FN):</strong> Estructura relacional atomica sin redundancias ni anomalias operativas.</li>
+        <li><strong>Identificadores UUID v4:</strong> Claves primarias universales que previenen ataques de enumeracion en credenciales QR.</li>
+        <li><strong>Acceso Passwordless:</strong> Codigos efimeros de 6 digitos hasheados con SHA-256 e historial de expiracion a los 10 minutos.</li>
+        <li><strong>Integridad Referencial:</strong> Relaciones con reglas <code>ON DELETE CASCADE</code> y <code>ON DELETE SET NULL</code> bien delimitadas.</li>
+        <li><strong>Modo Mantenimiento:</strong> Parametrizacion para suspender el portal publico durante tareas tecnicas sin bloquear a los administradores.</li>
       </ul>
     </div>
 
-    <!-- 2. DIAGRAMA DE CLASES -->
-    <h1>2. Diagrama de Clases del Sistema</h1>
-    <p>
-      El modelo de clases formaliza las entidades del dominio, sus asociaciones, cardinalidades y reglas de negocio:
-    </p>
-
-    <div class="diagrama-contenedor">
+    <h1>2. Diagrama de Clases del Dominio</h1>
+    <div class="diagrama-box">
       <img src="diagrama_clases_sigic.png" alt="Diagrama de Clases SiGIC" class="diagrama-img">
-      <div class="diagrama-epigrafe">Figura 1: Diagrama de Clases del Dominio SiGIC.</div>
+      <div class="diagrama-epigrafe">Figura 1: Diagrama de Clases y Estructuras de Dominio de SiGIC.</div>
     </div>
 
-    <div class="evitar-quiebre">
-      <h2>Estrategias de Mapeo Objeto-Relacional</h2>
-      <ul>
-        <li><strong>Jerarquia de Usuarios (STI):</strong> Se implemento el patron <em>Single Table Inheritance</em> unificando la clase <code>Usuario</code> y sus roles (<code>ADMIN</code>, <code>ADMINISTRATIVO</code>, <code>PORTERIA</code>) en la tabla <code>usuarios</code> mediante el discriminador enumerado <code>rol_usuario</code>.</li>
-        <li><strong>Composicion de Ciclo de Vida:</strong> Las tablas <code>invitados</code> y <code>otp_historial</code> dependen estrictamente de <code>egresados</code> mediante reglas <code>ON DELETE CASCADE</code>.</li>
-        <li><strong>Polimorfismo en Padrinos (Entregadores):</strong> La entidad <code>padrinos</code> admite asociacion a un <code>Profesor</code>, a un <code>Invitado</code> familiar o a un allegado <code>EXTERNO</code>, validado por una restriccion <code>CHECK</code> declarativa.</li>
-      </ul>
+    <!-- ========================================== -->
+    <!-- 3. MODELO LOGICO RELACIONAL                -->
+    <!-- ========================================== -->
+    <div class="salto"></div>
+    <h1>3. Modelo Logico Relacional (Notacion Formal)</h1>
+    <div class="box-resumen" style="font-family: Consolas, monospace; font-size: 8pt; line-height: 1.5;">
+      <strong>USUARIOS</strong> (<u>id</u>, nombre, email, password_hash, rol, activo, creado_en, actualizado_en)<br>
+      <strong>CEREMONIAS</strong> (<u>id</u>, nombre, fecha, lugar, max_invitados, max_padrinos, activa, creado_en)<br>
+      <strong>PROFESORES</strong> (<u>id</u>, nombre, dni, materia, activo, creado_en)<br>
+      <strong>EGRESADOS</strong> (<u>id</u>, <em>ceremonia_id*</em>, token, nombre, legajo, dni, correo, telefono, estado, promedio, asiento_id, creado_en)<br>
+      <strong>INVITADOS</strong> (<u>id</u>, <em>egresado_id*</em>, nombre, dni, telefono, correo, relacion, asiento_id, discapacidad, presente, fecha_presente, creado_en)<br>
+      <strong>PADRINOS</strong> (<u>id</u>, <em>egresado_id*</em>, tipo, <em>profesor_id*</em>, <em>invitado_id*</em>, nombre, asiento_id, orden, creado_en)<br>
+      <strong>OTP_HISTORIAL</strong> (<u>id</u>, <em>egresado_id*</em>, otp_hash, ip_origen, resultado, solicitado_en, verificado_en)<br>
+      <strong>CONFIGURACION_ANFITEATRO</strong> (<u>id</u>, <em>ceremonia_id*</em>, estructura, mapa_roles, actualizado_en)<br>
+      <strong>CONFIGURACION_SISTEMA</strong> (<u>clave</u>, valor, descripcion, actualizado_en)<br>
+      <strong>LOGS_AUDITORIA</strong> (<u>id</u>, <em>usuario_id*</em>, accion, tabla_afectada, registro_afectado, valores_anteriores, valores_nuevos, ip_origen, fecha)
     </div>
 
-    <!-- 3. MODELO LOGICO RELACIONAL -->
-    <div class="salto-pagina"></div>
-    <h1>3. Modelo Logico Relacional Formal</h1>
+    <!-- ========================================== -->
+    <!-- 4. DICCIONARIO DE DATOS SINTETICO          -->
+    <!-- ========================================== -->
+    <h1>4. Diccionario de Datos</h1>
+
+    <div class="no-quiebre">
+      <h3>4.1. Tabla: usuarios</h3>
+      <table>
+        <thead>
+          <tr><th>Campo</th><th>Tipo</th><th>Nulo</th><th>Clave</th><th>Descripcion</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>id</td><td>UUID</td><td>No</td><td class="pk">PK</td><td>Identificador unico (UUID v4)</td></tr>
+          <tr><td>nombre</td><td>VARCHAR(150)</td><td>No</td><td></td><td>Nombre y apellido del operador</td></tr>
+          <tr><td>email</td><td>VARCHAR(150)</td><td>No</td><td class="uq">UQ</td><td>Correo electronico de acceso institucional</td></tr>
+          <tr><td>password_hash</td><td>VARCHAR(255)</td><td>No</td><td></td><td>Hash criptografico de la contrasena</td></tr>
+          <tr><td>rol</td><td>rol_usuario (ENUM)</td><td>No</td><td></td><td>'ADMIN', 'ADMINISTRATIVO', 'PORTERIA'</td></tr>
+          <tr><td>activo</td><td>BOOLEAN</td><td>No</td><td></td><td>Estado habilitado (default TRUE)</td></tr>
+          <tr><td>creado_en</td><td>TIMESTAMPTZ</td><td>No</td><td></td><td>Timestamp de creacion</td></tr>
+          <tr><td>actualizado_en</td><td>TIMESTAMPTZ</td><td>No</td><td></td><td>Timestamp de ultima modificacion</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="no-quiebre">
+      <h3>4.2. Tabla: ceremonias</h3>
+      <table>
+        <thead>
+          <tr><th>Campo</th><th>Tipo</th><th>Nulo</th><th>Clave</th><th>Descripcion</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>id</td><td>UUID</td><td>No</td><td class="pk">PK</td><td>Identificador unico de la ceremonia</td></tr>
+          <tr><td>nombre</td><td>VARCHAR(200)</td><td>No</td><td></td><td>Denominacion formal del acto</td></tr>
+          <tr><td>fecha</td><td>DATE</td><td>No</td><td></td><td>Fecha del evento</td></tr>
+          <tr><td>lugar</td><td>VARCHAR(200)</td><td>No</td><td></td><td>Sede o anfiteatro</td></tr>
+          <tr><td>max_invitados</td><td>INT</td><td>No</td><td></td><td>Cupo maximo de invitados por graduado (CHECK >= 0)</td></tr>
+          <tr><td>max_padrinos</td><td>INT</td><td>No</td><td></td><td>Cupo maximo de entregadores (CHECK >= 0)</td></tr>
+          <tr><td>activa</td><td>BOOLEAN</td><td>No</td><td></td><td>Ceremonia activa (maximo 1 activa mediante indice parcial)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="salto"></div>
+    <div class="no-quiebre">
+      <h3>4.3. Tabla: egresados</h3>
+      <table>
+        <thead>
+          <tr><th>Campo</th><th>Tipo</th><th>Nulo</th><th>Clave</th><th>Descripcion</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>id</td><td>UUID</td><td>No</td><td class="pk">PK</td><td>Identificador del graduado</td></tr>
+          <tr><td>ceremonia_id</td><td>UUID</td><td>No</td><td class="fk">FK</td><td>Ref: ceremonias(id) ON DELETE CASCADE</td></tr>
+          <tr><td>token</td><td>VARCHAR(32)</td><td>No</td><td class="uq">UQ</td><td>Token para acceso directo sin clave</td></tr>
+          <tr><td>nombre</td><td>VARCHAR(150)</td><td>No</td><td></td><td>Apellido y nombres del graduado</td></tr>
+          <tr><td>legajo</td><td>VARCHAR(50)</td><td>No</td><td></td><td>Legajo academico institucional</td></tr>
+          <tr><td>dni</td><td>VARCHAR(20)</td><td>No</td><td class="uq">UQ*</td><td>DNI (restriccion UNIQUE con ceremonia_id)</td></tr>
+          <tr><td>correo</td><td>VARCHAR(150)</td><td>No</td><td></td><td>Correo para invitaciones y codigo OTP</td></tr>
+          <tr><td>estado</td><td>estado_egresado (ENUM)</td><td>No</td><td></td><td>'PENDIENTE', 'ACEPTADO', 'RECHAZADO'</td></tr>
+          <tr><td>promedio</td><td>NUMERIC(4,2)</td><td>Si</td><td></td><td>Promedio academico general (0 a 10)</td></tr>
+          <tr><td>asiento_id</td><td>VARCHAR(30)</td><td>Si</td><td></td><td>Identificador de butaca en anfiteatro</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="no-quiebre">
+      <h3>4.4. Tabla: invitados</h3>
+      <table>
+        <thead>
+          <tr><th>Campo</th><th>Tipo</th><th>Nulo</th><th>Clave</th><th>Descripcion</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>id</td><td>UUID</td><td>No</td><td class="pk">PK</td><td>Identificador unico del invitado</td></tr>
+          <tr><td>egresado_id</td><td>UUID</td><td>No</td><td class="fk">FK</td><td>Ref: egresados(id) ON DELETE CASCADE</td></tr>
+          <tr><td>nombre</td><td>VARCHAR(150)</td><td>No</td><td></td><td>Nombre completo del invitado</td></tr>
+          <tr><td>dni</td><td>VARCHAR(20)</td><td>No</td><td class="uq">UQ*</td><td>DNI (restriccion UNIQUE con egresado_id)</td></tr>
+          <tr><td>relacion</td><td>VARCHAR(80)</td><td>Si</td><td></td><td>Vinculo familiar o afectivo</td></tr>
+          <tr><td>asiento_id</td><td>VARCHAR(30)</td><td>Si</td><td></td><td>Butaca asignada</td></tr>
+          <tr><td>discapacidad</td><td>BOOLEAN</td><td>No</td><td></td><td>Requiere butaca con accesibilidad motriz</td></tr>
+          <tr><td>presente</td><td>BOOLEAN</td><td>No</td><td></td><td>Acreditado en el acceso por escaneo QR</td></tr>
+          <tr><td>fecha_presente</td><td>TIMESTAMPTZ</td><td>Si</td><td></td><td>Hora exacta del ingreso</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="no-quiebre">
+      <h3>4.5. Tabla: profesores y padrinos</h3>
+      <table>
+        <thead>
+          <tr><th>Tabla</th><th>Campos Principales</th><th>Restriccion y Consistencia</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>profesores</strong></td>
+            <td>id (PK), nombre, dni (UQ), materia, activo</td>
+            <td>Cuerpo docente habilitado para entrega de diplomas</td>
+          </tr>
+          <tr>
+            <td><strong>padrinos</strong></td>
+            <td>id (PK), egresado_id (FK), tipo (ENUM), profesor_id (FK), invitado_id (FK), nombre, orden</td>
+            <td>CHECK polimorfico: profesor_id NOT NULL si es PROFESOR, invitado_id NOT NULL si es FAMILIAR, nombre NOT NULL si es EXTERNO</td>
+          </tr>
+          <tr>
+            <td><strong>otp_historial</strong></td>
+            <td>id (PK), egresado_id (FK), otp_hash, ip_origen, resultado (ENUM), solicitado_en, verificado_en</td>
+            <td>Control de acceso passwordless con hash SHA-256</td>
+          </tr>
+          <tr>
+            <td><strong>configuracion_sistema</strong></td>
+            <td>clave (PK), valor, descripcion, actualizado_en</td>
+            <td>Parametros globales y switch 'modo_mantenimiento'</td>
+          </tr>
+          <tr>
+            <td><strong>logs_auditoria</strong></td>
+            <td>id (PK), usuario_id (FK), accion, tabla_afectada, registro_afectado, valores_anteriores, valores_nuevos, fecha</td>
+            <td>Auditoria inmutable de mutaciones criticas</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 5. SCRIPT DDL COMPLETO                     -->
+    <!-- ========================================== -->
+    <div class="salto"></div>
+    <h1>5. Script DDL y Datos Semilla para PostgreSQL</h1>
     <p>
-      Esquema relacional en notacion formal normalizada. Se indican claves primarias (<u>subrayadas</u>) y claves foraneas (<em>cursiva con asterisco</em>):
+      Script completo y ejecutable en Neon PostgreSQL / PostgreSQL 14+:
     </p>
 
-    <div class="resumen-relacional">
-      <strong>USUARIOS</strong> (<u>id</u>, nombre, email, password_hash, rol, activo, creado_en, actualizado_en)<br><br>
-      <strong>CEREMONIAS</strong> (<u>id</u>, nombre, fecha, lugar, max_invitados, max_padrinos, activa, creado_en)<br><br>
-      <strong>PROFESORES</strong> (<u>id</u>, nombre, dni, materia, activo, creado_en)<br><br>
-      <strong>EGRESADOS</strong> (<u>id</u>, <em>*ceremonia_id</em>, token, nombre, legajo, dni, correo, telefono, estado, promedio, asiento_id, creado_en)<br><br>
-      <strong>INVITADOS</strong> (<u>id</u>, <em>*egresado_id</em>, nombre, dni, telefono, correo, relacion, asiento_id, discapacidad, presente, fecha_presente, creado_en)<br><br>
-      <strong>PADRINOS</strong> (<u>id</u>, <em>*egresado_id</em>, tipo, <em>*profesor_id</em>, <em>*invitado_id</em>, nombre, asiento_id, orden, creado_en)<br><br>
-      <strong>OTP_HISTORIAL</strong> (<u>id</u>, <em>*egresado_id</em>, otp_hash, ip_origen, resultado, solicitado_en, verificado_en)<br><br>
-      <strong>CONFIGURACION_ANFITEATRO</strong> (<u>id</u>, <em>*ceremonia_id</em>, estructura, mapa_roles, actualizado_en)<br><br>
-      <strong>CONFIGURACION_SISTEMA</strong> (<u>clave</u>, valor, descripcion, actualizado_en)<br><br>
-      <strong>LOGS_AUDITORIA</strong> (<u>id</u>, <em>*usuario_id</em>, accion, tabla_afectada, registro_afectado, valores_anteriores, valores_nuevos, ip_origen, fecha)
-    </div>
-
-    <!-- 4. DICCIONARIO DE DATOS -->
-    <h1>4. Diccionario de Datos Detallado</h1>
-    <p>
-      Especificacion tecnica de columnas, tipos nativos de PostgreSQL, nulabilidad, valores por defecto y restricciones:
-    </p>
-
-    <!-- Tabla: usuarios -->
-    <div class="evitar-quiebre">
-      <h3>4.1. Tabla: <code>usuarios</code></h3>
-      <p>Cuentas del personal administrativo, soporte tecnico y operadores de porteria.</p>
-      <table>
-        <thead>
-          <tr>
-            <th>Columna</th>
-            <th>Tipo de Dato</th>
-            <th>Nulo</th>
-            <th>Clave</th>
-            <th>Default</th>
-            <th>Descripcion</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>id</code></td>
-            <td>UUID</td>
-            <td>No</td>
-            <td><span class="badge badge-pk">PK</span></td>
-            <td>uuid_generate_v4()</td>
-            <td>Identificador unico e inmutable del usuario.</td>
-          </tr>
-          <tr>
-            <td><code>nombre</code></td>
-            <td>VARCHAR(150)</td>
-            <td>No</td>
-            <td></td>
-            <td></td>
-            <td>Apellido y nombres completos del operador.</td>
-          </tr>
-          <tr>
-            <td><code>email</code></td>
-            <td>VARCHAR(150)</td>
-            <td>No</td>
-            <td><span class="badge badge-uq">UQ</span></td>
-            <td></td>
-            <td>Correo electronico institucional de inicio de sesion.</td>
-          </tr>
-          <tr>
-            <td><code>password_hash</code></td>
-            <td>VARCHAR(255)</td>
-            <td>No</td>
-            <td></td>
-            <td></td>
-            <td>Hash criptografico seguro de la clave de acceso.</td>
-          </tr>
-          <tr>
-            <td><code>rol</code></td>
-            <td>rol_usuario</td>
-            <td>No</td>
-            <td></td>
-            <td>'ADMINISTRATIVO'</td>
-            <td>Rol asignado: 'ADMIN', 'ADMINISTRATIVO', 'PORTERIA'.</td>
-          </tr>
-          <tr>
-            <td><code>activo</code></td>
-            <td>BOOLEAN</td>
-            <td>No</td>
-            <td></td>
-            <td>TRUE</td>
-            <td>Estado de habilitacion en el sistema.</td>
-          </tr>
-          <tr>
-            <td><code>creado_en</code></td>
-            <td>TIMESTAMPTZ</td>
-            <td>No</td>
-            <td></td>
-            <td>CURRENT_TIMESTAMP</td>
-            <td>Fecha y hora de alta del registro.</td>
-          </tr>
-          <tr>
-            <td><code>actualizado_en</code></td>
-            <td>TIMESTAMPTZ</td>
-            <td>No</td>
-            <td></td>
-            <td>CURRENT_TIMESTAMP</td>
-            <td>Timestamp de ultima mutacion (via trigger).</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Tabla: ceremonias -->
-    <div class="evitar-quiebre">
-      <h3>4.2. Tabla: <code>ceremonias</code></h3>
-      <p>Eventos de colacion institucional. Admite multiples actos con restriccion de maxima una ceremonia activa a la vez.</p>
-      <table>
-        <thead>
-          <tr>
-            <th>Columna</th>
-            <th>Tipo de Dato</th>
-            <th>Nulo</th>
-            <th>Clave</th>
-            <th>Default</th>
-            <th>Descripcion</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>id</code></td>
-            <td>UUID</td>
-            <td>No</td>
-            <td><span class="badge badge-pk">PK</span></td>
-            <td>uuid_generate_v4()</td>
-            <td>Identificador unico del acto de colacion.</td>
-          </tr>
-          <tr>
-            <td><code>nombre</code></td>
-            <td>VARCHAR(200)</td>
-            <td>No</td>
-            <td></td>
-            <td></td>
-            <td>Denominacion formal de la colacion (carrera/cohorte).</td>
-          </tr>
-          <tr>
-            <td><code>fecha</code></td>
-            <td>DATE</td>
-            <td>No</td>
-            <td></td>
-            <td></td>
-            <td>Fecha calendario del evento.</td>
-          </tr>
-          <tr>
-            <td><code>lugar</code></td>
-            <td>VARCHAR(200)</td>
-            <td>No</td>
-            <td></td>
-            <td>'Sede Beltran'</td>
-            <td>Sede o anfiteatro donde se realiza el acto.</td>
-          </tr>
-          <tr>
-            <td><code>max_invitados</code></td>
-            <td>INT</td>
-            <td>No</td>
-            <td></td>
-            <td>4</td>
-            <td>Limite maximo de acompanantes por egresado (CHECK >= 0).</td>
-          </tr>
-          <tr>
-            <td><code>max_padrinos</code></td>
-            <td>INT</td>
-            <td>No</td>
-            <td></td>
-            <td>3</td>
-            <td>Limite maximo de entregadores por egresado (CHECK >= 0).</td>
-          </tr>
-          <tr>
-            <td><code>activa</code></td>
-            <td>BOOLEAN</td>
-            <td>No</td>
-            <td></td>
-            <td>FALSE</td>
-            <td>Bandera de evento en curso. Unica activa mediante indice parcial.</td>
-          </tr>
-          <tr>
-            <td><code>creado_en</code></td>
-            <td>TIMESTAMPTZ</td>
-            <td>No</td>
-            <td></td>
-            <td>CURRENT_TIMESTAMP</td>
-            <td>Marca temporal de creacion.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Tabla: egresados -->
-    <div class="salto-pagina"></div>
-    <div class="evitar-quiebre">
-      <h3>4.3. Tabla: <code>egresados</code></h3>
-      <p>Nomina oficial de graduados habilitados para participar en la colacion.</p>
-      <table>
-        <thead>
-          <tr>
-            <th>Columna</th>
-            <th>Tipo de Dato</th>
-            <th>Nulo</th>
-            <th>Clave</th>
-            <th>Default</th>
-            <th>Descripcion</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>id</code></td>
-            <td>UUID</td>
-            <td>No</td>
-            <td><span class="badge badge-pk">PK</span></td>
-            <td>uuid_generate_v4()</td>
-            <td>Identificador primario unico del egresado.</td>
-          </tr>
-          <tr>
-            <td><code>ceremonia_id</code></td>
-            <td>UUID</td>
-            <td>No</td>
-            <td><span class="badge badge-fk">FK</span></td>
-            <td></td>
-            <td>Ref: <code>ceremonias(id) ON DELETE CASCADE</code>.</td>
-          </tr>
-          <tr>
-            <td><code>token</code></td>
-            <td>VARCHAR(32)</td>
-            <td>No</td>
-            <td><span class="badge badge-uq">UQ</span></td>
-            <td></td>
-            <td>Token opaco de 32 caracteres para enlace directo.</td>
-          </tr>
-          <tr>
-            <td><code>nombre</code></td>
-            <td>VARCHAR(150)</td>
-            <td>No</td>
-            <td></td>
-            <td></td>
-            <td>Nombre y apellido completo del egresado.</td>
-          </tr>
-          <tr>
-            <td><code>legajo</code></td>
-            <td>VARCHAR(50)</td>
-            <td>No</td>
-            <td></td>
-            <td></td>
-            <td>Legajo academico institucional ITB.</td>
-          </tr>
-          <tr>
-            <td><code>dni</code></td>
-            <td>VARCHAR(20)</td>
-            <td>No</td>
-            <td><span class="badge badge-uq">UQ*</span></td>
-            <td></td>
-            <td>Documento de identidad. Restriccion UNIQUE(ceremonia_id, dni).</td>
-          </tr>
-          <tr>
-            <td><code>correo</code></td>
-            <td>VARCHAR(150)</td>
-            <td>No</td>
-            <td></td>
-            <td></td>
-            <td>Correo electronico donde recibe la clave OTP e invitacion.</td>
-          </tr>
-          <tr>
-            <td><code>telefono</code></td>
-            <td>VARCHAR(50)</td>
-            <td>Si</td>
-            <td></td>
-            <td>NULL</td>
-            <td>Numero telefonico o de WhatsApp de contacto.</td>
-          </tr>
-          <tr>
-            <td><code>estado</code></td>
-            <td>estado_egresado</td>
-            <td>No</td>
-            <td></td>
-            <td>'PENDIENTE'</td>
-            <td>Pipeline: 'PENDIENTE', 'ACEPTADO', 'RECHAZADO'.</td>
-          </tr>
-          <tr>
-            <td><code>promedio</code></td>
-            <td>NUMERIC(4,2)</td>
-            <td>Si</td>
-            <td></td>
-            <td>NULL</td>
-            <td>Promedio final (0 a 10) para definir orden protocolar.</td>
-          </tr>
-          <tr>
-            <td><code>asiento_id</code></td>
-            <td>VARCHAR(30)</td>
-            <td>Si</td>
-            <td></td>
-            <td>NULL</td>
-            <td>Codigo de butaca asignada (ej: 'baja-A-12').</td>
-          </tr>
-          <tr>
-            <td><code>creado_en</code></td>
-            <td>TIMESTAMPTZ</td>
-            <td>No</td>
-            <td></td>
-            <td>CURRENT_TIMESTAMP</td>
-            <td>Fecha de alta en el padron.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Tabla: invitados -->
-    <div class="evitar-quiebre">
-      <h3>4.4. Tabla: <code>invitados</code></h3>
-      <p>Acompanantes acreditados por cada egresado. Representa los pases grupales validados por QR.</p>
-      <table>
-        <thead>
-          <tr>
-            <th>Columna</th>
-            <th>Tipo de Dato</th>
-            <th>Nulo</th>
-            <th>Clave</th>
-            <th>Default</th>
-            <th>Descripcion</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>id</code></td>
-            <td>UUID</td>
-            <td>No</td>
-            <td><span class="badge badge-pk">PK</span></td>
-            <td>uuid_generate_v4()</td>
-            <td>Identificador unico del invitado.</td>
-          </tr>
-          <tr>
-            <td><code>egresado_id</code></td>
-            <td>UUID</td>
-            <td>No</td>
-            <td><span class="badge badge-fk">FK</span></td>
-            <td></td>
-            <td>Ref: <code>egresados(id) ON DELETE CASCADE</code>.</td>
-          </tr>
-          <tr>
-            <td><code>nombre</code></td>
-            <td>VARCHAR(150)</td>
-            <td>No</td>
-            <td></td>
-            <td></td>
-            <td>Nombre y apellido del invitado.</td>
-          </tr>
-          <tr>
-            <td><code>dni</code></td>
-            <td>VARCHAR(20)</td>
-            <td>No</td>
-            <td><span class="badge badge-uq">UQ*</span></td>
-            <td></td>
-            <td>DNI del invitado. Restriccion UNIQUE(egresado_id, dni).</td>
-          </tr>
-          <tr>
-            <td><code>telefono</code></td>
-            <td>VARCHAR(50)</td>
-            <td>Si</td>
-            <td></td>
-            <td>NULL</td>
-            <td>Telefono de contacto.</td>
-          </tr>
-          <tr>
-            <td><code>correo</code></td>
-            <td>VARCHAR(150)</td>
-            <td>Si</td>
-            <td></td>
-            <td>NULL</td>
-            <td>Correo electronico.</td>
-          </tr>
-          <tr>
-            <td><code>relacion</code></td>
-            <td>VARCHAR(80)</td>
-            <td>Si</td>
-            <td></td>
-            <td>NULL</td>
-            <td>Vinculo con el graduado (Padre, Madre, Pareja, etc.).</td>
-          </tr>
-          <tr>
-            <td><code>asiento_id</code></td>
-            <td>VARCHAR(30)</td>
-            <td>Si</td>
-            <td></td>
-            <td>NULL</td>
-            <td>Butaca asignada en anfiteatro.</td>
-          </tr>
-          <tr>
-            <td><code>discapacidad</code></td>
-            <td>BOOLEAN</td>
-            <td>No</td>
-            <td></td>
-            <td>FALSE</td>
-            <td>Indica requerimiento de ubicacion con accesibilidad motriz.</td>
-          </tr>
-          <tr>
-            <td><code>presente</code></td>
-            <td>BOOLEAN</td>
-            <td>No</td>
-            <td></td>
-            <td>FALSE</td>
-            <td>Acreditado en el acceso del salon mediante escaneo QR.</td>
-          </tr>
-          <tr>
-            <td><code>fecha_presente</code></td>
-            <td>TIMESTAMPTZ</td>
-            <td>Si</td>
-            <td></td>
-            <td>NULL</td>
-            <td>Marca temporal del momento exacto del escaneo de ingreso.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Tabla: profesores y padrinos -->
-    <div class="salto-pagina"></div>
-    <div class="evitar-quiebre">
-      <h3>4.5. Tabla: <code>profesores</code></h3>
-      <p>Cuerpo docente de la institucion disponible para entregar diplomas en el escenario.</p>
-      <table>
-        <thead>
-          <tr>
-            <th>Columna</th>
-            <th>Tipo de Dato</th>
-            <th>Nulo</th>
-            <th>Clave</th>
-            <th>Descripcion</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>id</code></td>
-            <td>UUID</td>
-            <td>No</td>
-            <td><span class="badge badge-pk">PK</span></td>
-            <td>Identificador unico del docente.</td>
-          </tr>
-          <tr>
-            <td><code>nombre</code></td>
-            <td>VARCHAR(150)</td>
-            <td>No</td>
-            <td></td>
-            <td>Nombre y apellido completo del profesor.</td>
-          </tr>
-          <tr>
-            <td><code>dni</code></td>
-            <td>VARCHAR(20)</td>
-            <td>No</td>
-            <td><span class="badge badge-uq">UQ</span></td>
-            <td>Documento de identidad del docente.</td>
-          </tr>
-          <tr>
-            <td><code>materia</code></td>
-            <td>VARCHAR(150)</td>
-            <td>No</td>
-            <td></td>
-            <td>Catedra o asignatura principal que dicta.</td>
-          </tr>
-          <tr>
-            <td><code>activo</code></td>
-            <td>BOOLEAN</td>
-            <td>No</td>
-            <td></td>
-            <td>Habilitado para seleccion en colaciones.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="evitar-quiebre">
-      <h3>4.6. Tabla: <code>padrinos</code></h3>
-      <p>Asociacion polimorfica de personas designadas por el egresado para entregarle su diploma en el estrado.</p>
-      <table>
-        <thead>
-          <tr>
-            <th>Columna</th>
-            <th>Tipo de Dato</th>
-            <th>Nulo</th>
-            <th>Clave</th>
-            <th>Descripcion</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>id</code></td>
-            <td>UUID</td>
-            <td>No</td>
-            <td><span class="badge badge-pk">PK</span></td>
-            <td>Identificador de la asignacion de padrino.</td>
-          </tr>
-          <tr>
-            <td><code>egresado_id</code></td>
-            <td>UUID</td>
-            <td>No</td>
-            <td><span class="badge badge-fk">FK</span></td>
-            <td>Ref: <code>egresados(id) ON DELETE CASCADE</code>.</td>
-          </tr>
-          <tr>
-            <td><code>tipo</code></td>
-            <td>tipo_padrino</td>
-            <td>No</td>
-            <td></td>
-            <td>Valores: 'PROFESOR', 'FAMILIAR', 'EXTERNO'.</td>
-          </tr>
-          <tr>
-            <td><code>profesor_id</code></td>
-            <td>UUID</td>
-            <td>Si</td>
-            <td><span class="badge badge-fk">FK</span></td>
-            <td>Ref: <code>profesores(id)</code> (obligatorio si tipo='PROFESOR').</td>
-          </tr>
-          <tr>
-            <td><code>invitado_id</code></td>
-            <td>UUID</td>
-            <td>Si</td>
-            <td><span class="badge badge-fk">FK</span></td>
-            <td>Ref: <code>invitados(id)</code> (obligatorio si tipo='FAMILIAR').</td>
-          </tr>
-          <tr>
-            <td><code>nombre</code></td>
-            <td>VARCHAR(150)</td>
-            <td>Si</td>
-            <td></td>
-            <td>Nombre libre (obligatorio si tipo='EXTERNO').</td>
-          </tr>
-          <tr>
-            <td><code>orden</code></td>
-            <td>INT</td>
-            <td>No</td>
-            <td></td>
-            <td>Prioridad de subida al escenario (1, 2, 3...).</td>
-          </tr>
-        </tbody>
-      </table>
-      <div class="callout">
-        <strong>Restriccion de Consistencia Polimorfica (CHECK):</strong>
-        <code>((tipo='PROFESOR' AND profesor_id IS NOT NULL) OR (tipo='FAMILIAR' AND invitado_id IS NOT NULL) OR (tipo='EXTERNO' AND nombre IS NOT NULL))</code>.
-      </div>
-    </div>
-
-    <!-- Tabla: otp_historial, anfiteatro, configuracion, logs -->
-    <div class="evitar-quiebre">
-      <h3>4.7. Tabla: <code>otp_historial</code></h3>
-      <p>Auditoria y control de seguridad en el despacho y validacion de codigos efimeros OTP.</p>
-      <table>
-        <thead>
-          <tr>
-            <th>Columna</th>
-            <th>Tipo de Dato</th>
-            <th>Nulo</th>
-            <th>Clave</th>
-            <th>Descripcion</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>id</code></td>
-            <td>BIGSERIAL</td>
-            <td>No</td>
-            <td><span class="badge badge-pk">PK</span></td>
-            <td>Identificador secuencial del intento de acceso.</td>
-          </tr>
-          <tr>
-            <td><code>egresado_id</code></td>
-            <td>UUID</td>
-            <td>No</td>
-            <td><span class="badge badge-fk">FK</span></td>
-            <td>Ref: <code>egresados(id) ON DELETE CASCADE</code>.</td>
-          </tr>
-          <tr>
-            <td><code>otp_hash</code></td>
-            <td>VARCHAR(64)</td>
-            <td>No</td>
-            <td></td>
-            <td>Hash SHA-256 de la clave de 6 digitos enviada por correo.</td>
-          </tr>
-          <tr>
-            <td><code>resultado</code></td>
-            <td>resultado_otp</td>
-            <td>No</td>
-            <td></td>
-            <td>'ENVIADO', 'VERIFICADO', 'FALLIDO', 'EXPIRADO'.</td>
-          </tr>
-          <tr>
-            <td><code>ip_origen</code></td>
-            <td>VARCHAR(45)</td>
-            <td>Si</td>
-            <td></td>
-            <td>Direccion IP (IPv4 o IPv6) del solicitante.</td>
-          </tr>
-          <tr>
-            <td><code>solicitado_en</code></td>
-            <td>TIMESTAMPTZ</td>
-            <td>No</td>
-            <td></td>
-            <td>Timestamp de emision del codigo.</td>
-          </tr>
-          <tr>
-            <td><code>verificado_en</code></td>
-            <td>TIMESTAMPTZ</td>
-            <td>Si</td>
-            <td></td>
-            <td>Timestamp en que se valido exitosamente el acceso.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="salto-pagina"></div>
-    <div class="evitar-quiebre">
-      <h3>4.8. Tabla: <code>configuracion_anfiteatro</code></h3>
-      <p>Modelado geometrico espacial de la sala, filas, columnas y roles de butacas en JSONB.</p>
-      <table>
-        <thead>
-          <tr>
-            <th>Columna</th>
-            <th>Tipo de Dato</th>
-            <th>Nulo</th>
-            <th>Clave</th>
-            <th>Descripcion</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>id</code></td>
-            <td>BIGSERIAL</td>
-            <td>No</td>
-            <td><span class="badge badge-pk">PK</span></td>
-            <td>Identificador primario de la sala.</td>
-          </tr>
-          <tr>
-            <td><code>ceremonia_id</code></td>
-            <td>UUID</td>
-            <td>No</td>
-            <td><span class="badge badge-fk">FK</span></td>
-            <td>Ref: <code>ceremonias(id) ON DELETE CASCADE</code>.</td>
-          </tr>
-          <tr>
-            <td><code>estructura</code></td>
-            <td>JSONB</td>
-            <td>No</td>
-            <td></td>
-            <td>Geometria detallada de filas, butacas fisicas y pasillos.</td>
-          </tr>
-          <tr>
-            <td><code>mapa_roles</code></td>
-            <td>JSONB</td>
-            <td>No</td>
-            <td></td>
-            <td>Mapeo de asignaciones por rol (graduados, protocolo, invitados).</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="evitar-quiebre">
-      <h3>4.9. Tabla: <code>configuracion_sistema</code></h3>
-      <p>Parametros globales del servidor, interruptores de comportamiento y modo mantenimiento.</p>
-      <table>
-        <thead>
-          <tr>
-            <th>Columna</th>
-            <th>Tipo de Dato</th>
-            <th>Nulo</th>
-            <th>Clave</th>
-            <th>Descripcion</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>clave</code></td>
-            <td>VARCHAR(100)</td>
-            <td>No</td>
-            <td><span class="badge badge-pk">PK</span></td>
-            <td>Clave de configuracion (ej: 'modo_mantenimiento').</td>
-          </tr>
-          <tr>
-            <td><code>valor</code></td>
-            <td>TEXT</td>
-            <td>No</td>
-            <td></td>
-            <td>Valor del parametro ('true', 'false', texto o JSON).</td>
-          </tr>
-          <tr>
-            <td><code>descripcion</code></td>
-            <td>TEXT</td>
-            <td>Si</td>
-            <td></td>
-            <td>Explicacion operativa del parametro.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="evitar-quiebre">
-      <h3>4.10. Tabla: <code>logs_auditoria</code></h3>
-      <p>Registro inmutable para cumplimiento normativo, trazabilidad de mutaciones y analisis post-evento.</p>
-      <table>
-        <thead>
-          <tr>
-            <th>Columna</th>
-            <th>Tipo de Dato</th>
-            <th>Nulo</th>
-            <th>Clave</th>
-            <th>Descripcion</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>id</code></td>
-            <td>BIGSERIAL</td>
-            <td>No</td>
-            <td><span class="badge badge-pk">PK</span></td>
-            <td>Secuencial inalterable del evento de auditoria.</td>
-          </tr>
-          <tr>
-            <td><code>usuario_id</code></td>
-            <td>UUID</td>
-            <td>Si</td>
-            <td><span class="badge badge-fk">FK</span></td>
-            <td>Ref: <code>usuarios(id) ON DELETE SET NULL</code>.</td>
-          </tr>
-          <tr>
-            <td><code>accion</code></td>
-            <td>tipo_log</td>
-            <td>No</td>
-            <td></td>
-            <td>'INSERT', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT'.</td>
-          </tr>
-          <tr>
-            <td><code>tabla_afectada</code></td>
-            <td>VARCHAR(60)</td>
-            <td>No</td>
-            <td></td>
-            <td>Nombre de la tabla mutada (ej: 'egresados').</td>
-          </tr>
-          <tr>
-            <td><code>registro_afectado</code></td>
-            <td>UUID</td>
-            <td>Si</td>
-            <td></td>
-            <td>ID del registro sobre el cual se opero.</td>
-          </tr>
-          <tr>
-            <td><code>valores_anteriores</code></td>
-            <td>JSONB</td>
-            <td>Si</td>
-            <td></td>
-            <td>Instantanea previa de los datos para posible recuperacion.</td>
-          </tr>
-          <tr>
-            <td><code>valores_nuevos</code></td>
-            <td>JSONB</td>
-            <td>Si</td>
-            <td></td>
-            <td>Instantanea posterior al cambio ejecutado.</td>
-          </tr>
-          <tr>
-            <td><code>ip_origen</code></td>
-            <td>VARCHAR(45)</td>
-            <td>Si</td>
-            <td></td>
-            <td>Direccion IP desde la cual se origino la peticion.</td>
-          </tr>
-          <tr>
-            <td><code>fecha</code></td>
-            <td>TIMESTAMPTZ</td>
-            <td>No</td>
-            <td></td>
-            <td>Timestamp exacto de la transaccion.</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- 5. SCRIPT DDL COMPLETO -->
-    <div class="salto-pagina"></div>
-    <h1>5. Script DDL y DML Completo para PostgreSQL</h1>
-    <p>
-      Script SQL auto-ejecutable y probado en Neon PostgreSQL / PostgreSQL 14+. Contiene extensiones, enumeraciones, esquema de tablas, disparadores (triggers) de actualizacion y auditoria, indices de rendimiento y datos semilla (seeds) para puesta en marcha:
-    </p>
-
-    <div style="position: relative;">
-      <button class="btn-copiar" onclick="copiarCodigo('codigo-ddl')">Copiar Script SQL</button>
-      <pre><code id="codigo-ddl">-- ============================================================================
--- SiGIC — Sistema de Gestion Institucional de Colaciones
--- Script DDL y DML Integral para PostgreSQL 14+ (Neon Serverless)
--- Autor: Cancelo Julian · Analista de Sistemas · Instituto Tecnologico Beltran
--- ============================================================================
-
--- 1. EXTENSIONES DEL SISTEMA
+    <pre><code>-- 1. EXTENSIONES
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
--- 2. TIPOS DE DATOS ENUMERADOS (ENUMs)
+-- 2. TIPOS ENUMERADOS
 DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'rol_usuario') THEN
         CREATE TYPE rol_usuario AS ENUM ('ADMIN', 'ADMINISTRATIVO', 'PORTERIA');
@@ -1258,12 +535,9 @@ DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'tipo_log') THEN
         CREATE TYPE tipo_log AS ENUM ('INSERT', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT');
     END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'tipo_asiento') THEN
-        CREATE TYPE tipo_asiento AS ENUM ('EGRESADO', 'INVITADO', 'PADRINO', 'RESERVA');
-    END IF;
 END $$;
 
--- 3. FUNCIONES DE DISPARADOR (TRIGGERS)
+-- 3. FUNCION DISPARADORA DE MARCA TEMPORAL
 CREATE OR REPLACE FUNCTION fn_actualizar_timestamp()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -1272,9 +546,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- 4. CREACION DE TABLAS
-
--- 4.1. Tabla: usuarios
+-- 4. TABLAS E INDICES
 CREATE TABLE IF NOT EXISTS usuarios (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     nombre VARCHAR(150) NOT NULL,
@@ -1290,7 +562,6 @@ CREATE OR REPLACE TRIGGER trg_actualizar_usuarios
     BEFORE UPDATE ON usuarios
     FOR EACH ROW EXECUTE FUNCTION fn_actualizar_timestamp();
 
--- 4.2. Tabla: ceremonias
 CREATE TABLE IF NOT EXISTS ceremonias (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     nombre VARCHAR(200) NOT NULL,
@@ -1302,11 +573,9 @@ CREATE TABLE IF NOT EXISTS ceremonias (
     creado_en TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
--- Indice unico parcial: asegura que solo exista 1 ceremonia activa en toda la base
 CREATE UNIQUE INDEX IF NOT EXISTS idx_ceremonias_activa_unica 
     ON ceremonias ((activa)) WHERE activa = TRUE;
 
--- 4.3. Tabla: profesores
 CREATE TABLE IF NOT EXISTS profesores (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     nombre VARCHAR(150) NOT NULL,
@@ -1316,7 +585,6 @@ CREATE TABLE IF NOT EXISTS profesores (
     creado_en TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
--- 4.4. Tabla: egresados
 CREATE TABLE IF NOT EXISTS egresados (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     ceremonia_id UUID NOT NULL REFERENCES ceremonias(id) ON DELETE CASCADE,
@@ -1333,7 +601,6 @@ CREATE TABLE IF NOT EXISTS egresados (
     CONSTRAINT uq_egresado_ceremonia_dni UNIQUE (ceremonia_id, dni)
 );
 
--- 4.5. Tabla: invitados
 CREATE TABLE IF NOT EXISTS invitados (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     egresado_id UUID NOT NULL REFERENCES egresados(id) ON DELETE CASCADE,
@@ -1350,7 +617,6 @@ CREATE TABLE IF NOT EXISTS invitados (
     CONSTRAINT uq_invitado_egresado_dni UNIQUE (egresado_id, dni)
 );
 
--- 4.6. Tabla: padrinos
 CREATE TABLE IF NOT EXISTS padrinos (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     egresado_id UUID NOT NULL REFERENCES egresados(id) ON DELETE CASCADE,
@@ -1369,7 +635,6 @@ CREATE TABLE IF NOT EXISTS padrinos (
     )
 );
 
--- 4.7. Tabla: otp_historial
 CREATE TABLE IF NOT EXISTS otp_historial (
     id BIGSERIAL PRIMARY KEY,
     egresado_id UUID NOT NULL REFERENCES egresados(id) ON DELETE CASCADE,
@@ -1380,7 +645,6 @@ CREATE TABLE IF NOT EXISTS otp_historial (
     verificado_en TIMESTAMPTZ
 );
 
--- 4.8. Tabla: configuracion_anfiteatro
 CREATE TABLE IF NOT EXISTS configuracion_anfiteatro (
     id BIGSERIAL PRIMARY KEY,
     ceremonia_id UUID NOT NULL REFERENCES ceremonias(id) ON DELETE CASCADE,
@@ -1389,11 +653,6 @@ CREATE TABLE IF NOT EXISTS configuracion_anfiteatro (
     actualizado_en TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE OR REPLACE TRIGGER trg_actualizar_anfiteatro
-    BEFORE UPDATE ON configuracion_anfiteatro
-    FOR EACH ROW EXECUTE FUNCTION fn_actualizar_timestamp();
-
--- 4.9. Tabla: configuracion_sistema
 CREATE TABLE IF NOT EXISTS configuracion_sistema (
     clave VARCHAR(100) PRIMARY KEY,
     valor TEXT NOT NULL,
@@ -1401,11 +660,6 @@ CREATE TABLE IF NOT EXISTS configuracion_sistema (
     actualizado_en TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE OR REPLACE TRIGGER trg_actualizar_configuracion
-    BEFORE UPDATE ON configuracion_sistema
-    FOR EACH ROW EXECUTE FUNCTION fn_actualizar_timestamp();
-
--- 4.10. Tabla: logs_auditoria
 CREATE TABLE IF NOT EXISTS logs_auditoria (
     id BIGSERIAL PRIMARY KEY,
     usuario_id UUID REFERENCES usuarios(id) ON DELETE SET NULL,
@@ -1418,194 +672,98 @@ CREATE TABLE IF NOT EXISTS logs_auditoria (
     fecha TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
 
--- 5. INDICES DE OPTIMIZACION (B-TREE)
 CREATE INDEX IF NOT EXISTS idx_egresados_token ON egresados(token);
 CREATE INDEX IF NOT EXISTS idx_egresados_dni ON egresados(dni);
-CREATE INDEX IF NOT EXISTS idx_egresados_ceremonia ON egresados(ceremonia_id);
-CREATE INDEX IF NOT EXISTS idx_invitados_egresado ON invitados(egresado_id);
 CREATE INDEX IF NOT EXISTS idx_invitados_presente ON invitados(presente);
-CREATE INDEX IF NOT EXISTS idx_padrinos_egresado ON padrinos(egresado_id);
-CREATE INDEX IF NOT EXISTS idx_otp_egresado ON otp_historial(egresado_id);
 CREATE INDEX IF NOT EXISTS idx_logs_fecha ON logs_auditoria(fecha DESC);
 
--- 6. DATOS SEMILLA (SEEDS INICIALES)
+-- 5. DATOS SEMILLA (SEEDS)
 INSERT INTO configuracion_sistema (clave, valor, descripcion) VALUES
-('modo_mantenimiento', 'false', 'Suspende el portal publico de graduados ante tareas tecnicas'),
-('acceso_oculto_egresado', 'true', 'Requiere 5 clics sobre el logo en portada para revelar login'),
-('acceso_directo_admin', 'true', 'Habilita la ruta directa /admin para gestores'),
-('nombre_institucion', 'Instituto Tecnologico Beltran', 'Nombre formal de la casa de estudios')
+('modo_mantenimiento', 'false', 'Modo mantenimiento institucional')
 ON CONFLICT (clave) DO NOTHING;
 
--- Usuario administrador maestro inicial (password: Admin2026!)
-INSERT INTO usuarios (id, nombre, email, password_hash, rol, activo) VALUES
-('11111111-1111-4111-8111-111111111111', 'Administrador General SiGIC', 'admin@sigic.com.ar', crypt('Admin2026!', gen_salt('bf', 10)), 'ADMIN', TRUE),
-('22222222-2222-4222-8222-222222222222', 'Operador de Porteria Beltran', 'porteria@sigic.com.ar', crypt('Porteria2026!', gen_salt('bf', 10)), 'PORTERIA', TRUE)
+INSERT INTO usuarios (id, nombre, email, password_hash, rol) VALUES
+('11111111-1111-4111-8111-111111111111', 'Administrador SiGIC', 'admin@sigic.com.ar', crypt('Admin2026!', gen_salt('bf', 10)), 'ADMIN')
 ON CONFLICT (email) DO NOTHING;
 
--- Ceremonia activa de graduacion 2026
-INSERT INTO ceremonias (id, nombre, fecha, lugar, max_invitados, max_padrinos, activa) VALUES
-('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Colacion de Grados Promocion 2026 · Analista de Sistemas', '2026-11-20', 'Anfiteatro Central Beltran', 4, 3, TRUE)
+INSERT INTO ceremonias (id, nombre, fecha, lugar, activa) VALUES
+('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Colacion de Grados 2026 · Analista de Sistemas', '2026-11-20', 'Sede Beltran', TRUE)
 ON CONFLICT (id) DO NOTHING;
 
--- Profesores titulares para entrega de diplomas
-INSERT INTO profesores (id, nombre, dni, materia, activo) VALUES
-('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbb01', 'Ing. Roberto Gomez', '18234567', 'Practica Profesionalizante III', TRUE),
-('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbb02', 'Lic. Mariana Bianchi', '22456789', 'Bases de Datos Avanzadas', TRUE),
-('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbb03', 'Dr. Carlos Benitez', '14567890', 'Arquitectura de Software', TRUE)
+INSERT INTO profesores (id, nombre, dni, materia) VALUES
+('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbb01', 'Ing. Roberto Gomez', '18234567', 'Practica Profesionalizante III')
 ON CONFLICT (dni) DO NOTHING;
 
--- Egresado modelo
-INSERT INTO egresados (id, ceremonia_id, token, nombre, legajo, dni, correo, telefono, estado, promedio, asiento_id) VALUES
-('cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'token_demo_cancelo_julian_2026', 'Cancelo Julian', 'ITB-2023-8891', '42111222', 'cancelo.julian@sigic.com.ar', '+54 9 11 5566-7788', 'ACEPTADO', 9.50, 'platea-A-1')
+INSERT INTO egresados (id, ceremonia_id, token, nombre, legajo, dni, correo, estado, promedio, asiento_id) VALUES
+('cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'token_demo_cancelo_julian_2026', 'Cancelo Julian', 'ITB-8891', '42111222', 'cancelo.julian@sigic.com.ar', 'ACEPTADO', 9.50, 'platea-A-1')
 ON CONFLICT (token) DO NOTHING;
 
--- Acompanantes modelo vinculados al egresado
-INSERT INTO invitados (id, egresado_id, nombre, dni, telefono, correo, relacion, asiento_id, discapacidad, presente) VALUES
-('dddddddd-dddd-4ddd-8ddd-dddddddddd01', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'Marta Gonzalez', '20111222', '+54 9 11 4433-2211', 'marta@gmail.com', 'Madre', 'platea-A-2', FALSE, FALSE),
-('dddddddd-dddd-4ddd-8ddd-dddddddddd02', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'Horacio Cancelo', '18111222', '+54 9 11 4433-2212', 'horacio@gmail.com', 'Padre', 'platea-A-3', FALSE, FALSE)
+INSERT INTO invitados (id, egresado_id, nombre, dni, relacion, asiento_id, presente) VALUES
+('dddddddd-dddd-4ddd-8ddd-dddddddddd01', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'Marta Gonzalez', '20111222', 'Madre', 'platea-A-2', FALSE)
 ON CONFLICT (egresado_id, dni) DO NOTHING;
 
--- Padrino docente designado
 INSERT INTO padrinos (id, egresado_id, tipo, profesor_id, orden) VALUES
 ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'PROFESOR', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbb01', 1)
-ON CONFLICT (egresado_id, orden) DO NOTHING;
-</code></pre>
-    </div>
+ON CONFLICT (egresado_id, orden) DO NOTHING;</code></pre>
 
-    <!-- 6. OPERACIONES CRUD -->
-    <div class="salto-pagina"></div>
-    <h1>6. Operaciones CRUD y Consultas Transaccionales</h1>
-    <p>
-      A continuacion se detallan las operaciones de persistencia fundamentales ejecutadas por el backend serverless de SiGIC, organizadas por modulo de dominio:
-    </p>
+    <!-- ========================================== -->
+    <!-- 6. OPERACIONES CRUD SINTETICAS             -->
+    <!-- ========================================== -->
+    <div class="salto"></div>
+    <h1>6. Operaciones CRUD Esenciales</h1>
 
-    <!-- 6.1. Ceremonias -->
-    <div class="evitar-quiebre">
-      <h2>6.1. Modulo de Ceremonias y Planificacion</h2>
-
-      <h3>Create (Alta de Ceremonia con Aforo)</h3>
-      <pre><code>INSERT INTO ceremonias (nombre, fecha, lugar, max_invitados, max_padrinos, activa)
-VALUES ('Colacion Promocion 2026 - Turno Noche', '2026-11-25', 'Anfiteatro Beltran', 4, 3, FALSE)
-RETURNING id, nombre, activa;</code></pre>
-
-      <h3>Read (Consulta de Ceremonia Activa con Estadisticas de Aforo)</h3>
-      <pre><code>SELECT 
-    c.id, c.nombre, c.fecha, c.lugar, c.max_invitados,
-    COUNT(DISTINCT e.id) AS total_egresados,
-    COUNT(DISTINCT i.id) AS total_invitados,
-    COUNT(DISTINCT CASE WHEN i.presente = TRUE THEN i.id END) AS presentes_acreditados
-FROM ceremonias c
-LEFT JOIN egresados e ON e.ceremonia_id = c.id
-LEFT JOIN invitados i ON i.egresado_id = e.id
-WHERE c.activa = TRUE
-GROUP BY c.id;</code></pre>
-
-      <h3>Update (Activacion Atomica Transaccional de Ceremonia)</h3>
-      <p>
-        Para garantizar la regla de negocio que restringe a un solo evento en curso simultaneo, se ejecuta una transaccion que desactiva las anteriores y promueve la seleccionada:
-      </p>
+    <div class="no-quiebre">
+      <h2>6.1. Ceremonias: Activacion Atomica</h2>
       <pre><code>BEGIN;
--- Paso 1: Desactivar todas las ceremonias previas
 UPDATE ceremonias SET activa = FALSE WHERE activa = TRUE;
-
--- Paso 2: Activar exclusivamente la ceremonia designada
-UPDATE ceremonias 
-SET activa = TRUE 
-WHERE id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+UPDATE ceremonias SET activa = TRUE WHERE id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
 COMMIT;</code></pre>
-
-      <h3>Delete (Baja de Ceremonia con Limpieza en Cascada)</h3>
-      <pre><code>DELETE FROM ceremonias WHERE id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
--- Nota: La regla ON DELETE CASCADE elimina automaticamente egresados, invitados y configuraciones asociadas.</code></pre>
     </div>
 
-    <!-- 6.2. Egresados -->
-    <div class="salto-pagina"></div>
-    <div class="evitar-quiebre">
-      <h2>6.2. Modulo de Egresados y Padron Academico</h2>
+    <div class="no-quiebre">
+      <h2>6.2. Egresados: Carga Masiva (Bulk Insert) y Actualizacion de Estado</h2>
+      <pre><code>-- Bulk Insert desde planilla Excel
+INSERT INTO egresados (ceremonia_id, token, nombre, legajo, dni, correo, promedio)
+VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', md5(random()::text), 'Cancelo Julian', 'ITB-8891', '42111222', 'julian@sigic.com.ar', 9.50)
+ON CONFLICT (ceremonia_id, dni) DO UPDATE SET promedio = EXCLUDED.promedio;
 
-      <h3>Create (Insercion Masiva / Bulk Insert desde Excel)</h3>
-      <pre><code>INSERT INTO egresados (ceremonia_id, token, nombre, legajo, dni, correo, estado, promedio)
-VALUES 
-    ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', md5(random()::text || clock_timestamp()::text), 'Cancelo Julian', 'ITB-8891', '42111222', 'julian@sigic.com.ar', 'PENDIENTE', 9.50),
-    ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', md5(random()::text || clock_timestamp()::text), 'Alfonso Alan Alexis', 'ITB-8892', '41222333', 'alan@sigic.com.ar', 'PENDIENTE', 9.20)
-ON CONFLICT (ceremonia_id, dni) 
-DO UPDATE SET 
-    correo = EXCLUDED.correo,
-    promedio = EXCLUDED.promedio;</code></pre>
-
-      <h3>Read (Resolucion de Portal del Graduado por Token Seguro)</h3>
-      <pre><code>SELECT 
-    e.id, e.nombre, e.dni, e.legajo, e.correo, e.estado, e.asiento_id,
-    c.nombre AS ceremonia_nombre, c.fecha AS ceremonia_fecha, c.lugar,
-    c.max_invitados, c.max_padrinos
-FROM egresados e
-JOIN ceremonias c ON c.id = e.ceremonia_id
-WHERE e.token = 'token_demo_cancelo_julian_2026';</code></pre>
-
-      <h3>Update (Transicion de Estado y Asignacion de Butaca)</h3>
-      <pre><code>UPDATE egresados
-SET 
-    estado = 'ACEPTADO',
-    asiento_id = 'platea-A-1'
-WHERE id = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc' AND estado = 'PENDIENTE'
-RETURNING id, estado, asiento_id;</code></pre>
-
-      <h3>Delete (Descarte / Desvinculacion de Egresado)</h3>
-      <pre><code>DELETE FROM egresados WHERE id = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';</code></pre>
+-- Confirmacion de asistencia y reserva de butaca
+UPDATE egresados 
+SET estado = 'ACEPTADO', asiento_id = 'platea-A-1' 
+WHERE id = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';</code></pre>
     </div>
 
-    <!-- 6.3. Invitados y Acreditacion -->
-    <div class="evitar-quiebre">
-      <h2>6.3. Modulo de Invitados y Acreditacion en Porteria</h2>
-
-      <h3>Create (Alta de Acompanante Validando Limite de Aforo)</h3>
-      <pre><code>INSERT INTO invitados (egresado_id, nombre, dni, telefono, correo, relacion, discapacidad)
-SELECT 
-    'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'Marta Gonzalez', '20111222', '+54 9 11 4433-2211', 'marta@gmail.com', 'Madre', FALSE
-WHERE (
-    SELECT COUNT(*) FROM invitados WHERE egresado_id = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc'
-) < (
-    SELECT c.max_invitados FROM egresados e JOIN ceremonias c ON c.id = e.ceremonia_id WHERE e.id = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc'
-)
-RETURNING id, nombre;</code></pre>
-
-      <h3>Read (Nomina de Invitados de un Egresado para Pase QR Grupal)</h3>
-      <pre><code>SELECT 
-    i.id, i.nombre, i.dni, i.relacion, i.asiento_id, i.discapacidad, i.presente, i.fecha_presente
-FROM invitados i
-WHERE i.egresado_id = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc'
-ORDER BY i.nombre ASC;</code></pre>
-
-      <h3>Update (Acreditacion en Porteria en Tiempo Real con Sellado de Tiempo)</h3>
-      <pre><code>UPDATE invitados
-SET 
-    presente = TRUE,
-    fecha_presente = CURRENT_TIMESTAMP
+    <div class="no-quiebre">
+      <h2>6.3. Invitados: Acreditacion QR en Porteria en Tiempo Real</h2>
+      <pre><code>-- Validacion instantanea al escanear credencial QR
+UPDATE invitados
+SET presente = TRUE, fecha_presente = CURRENT_TIMESTAMP
 WHERE id = 'dddddddd-dddd-4ddd-8ddd-dddddddddd01' AND presente = FALSE
-RETURNING id, nombre, presente, fecha_presente;</code></pre>
-
-      <h3>Delete (Baja de Invitado y Liberacion de Cupo)</h3>
-      <pre><code>DELETE FROM invitados WHERE id = 'dddddddd-dddd-4ddd-8ddd-dddddddddd01';</code></pre>
+RETURNING nombre, presente, fecha_presente;</code></pre>
     </div>
 
-    <!-- 6.4. Padrinos -->
-    <div class="salto-pagina"></div>
-    <div class="evitar-quiebre">
-      <h2>6.4. Modulo de Profesores y Padrinos de Estrado</h2>
+    <div class="no-quiebre">
+      <h2>6.4. Autenticacion Passwordless: Verificacion de Codigo OTP (10 Minutos)</h2>
+      <pre><code>-- Validacion del hash SHA-256 dentro de la ventana valida
+UPDATE otp_historial
+SET resultado = 'VERIFICADO', verificado_en = CURRENT_TIMESTAMP
+WHERE id = (
+    SELECT id FROM otp_historial
+    WHERE egresado_id = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc'
+      AND resultado = 'ENVIADO'
+      AND otp_hash = encode(digest('773311', 'sha256'), 'hex')
+      AND solicitado_en >= (CURRENT_TIMESTAMP - INTERVAL '10 minutes')
+    ORDER BY solicitado_en DESC LIMIT 1
+)
+RETURNING resultado, verificado_en;</code></pre>
+    </div>
 
-      <h3>Create (Designacion Polimorfica de Docente Titular)</h3>
-      <pre><code>INSERT INTO padrinos (egresado_id, tipo, profesor_id, orden)
-VALUES ('cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'PROFESOR', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbb01', 1)
-ON CONFLICT (egresado_id, orden) 
-DO UPDATE SET profesor_id = EXCLUDED.profesor_id, tipo = EXCLUDED.tipo;</code></pre>
-
-      <h3>Read (Reporte de Estrado para Locucion Ceremonial)</h3>
+    <div class="no-quiebre">
+      <h2>6.5. Reporte Analitico de Estrado para Ceremonial y Locucion</h2>
       <pre><code>SELECT 
     e.nombre AS egresado,
     e.promedio,
     p.orden,
-    p.tipo,
     CASE 
         WHEN p.tipo = 'PROFESOR' THEN prof.nombre || ' (Docente - ' || prof.materia || ')'
         WHEN p.tipo = 'FAMILIAR' THEN inv.nombre || ' (Acompanante - ' || inv.relacion || ')'
@@ -1615,136 +773,16 @@ FROM egresados e
 JOIN padrinos p ON p.egresado_id = e.id
 LEFT JOIN profesores prof ON prof.id = p.profesor_id
 LEFT JOIN invitados inv ON inv.id = p.invitado_id
-WHERE e.ceremonia_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' AND e.estado = 'ACEPTADO'
-ORDER BY e.promedio DESC, e.nombre ASC, p.orden ASC;</code></pre>
-
-      <h3>Delete (Desvinculacion de Padrino)</h3>
-      <pre><code>DELETE FROM padrinos WHERE id = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';</code></pre>
-    </div>
-
-    <!-- 6.5. OTP -->
-    <div class="evitar-quiebre">
-      <h2>6.5. Modulo de Autenticacion Passwordless (OTP)</h2>
-
-      <h3>Create (Emision de Hash OTP de 6 Digitos)</h3>
-      <pre><code>-- Generacion de OTP para egresado identificado por DNI
-INSERT INTO otp_historial (egresado_id, otp_hash, ip_origen, resultado, solicitado_en)
-VALUES (
-    'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
-    encode(digest('481920', 'sha256'), 'hex'), -- Hash SHA-256 del codigo enviado por email
-    '190.191.12.34',
-    'ENVIADO',
-    CURRENT_TIMESTAMP
-);</code></pre>
-
-      <h3>Read y Update (Verificacion de Codigo con Ventana de 10 Minutos)</h3>
-      <pre><code>-- Validacion atomica: si coincide el hash y esta dentro de la ventana de 10 min, marca VERIFICADO
-UPDATE otp_historial
-SET 
-    resultado = 'VERIFICADO',
-    verificado_en = CURRENT_TIMESTAMP
-WHERE id = (
-    SELECT id FROM otp_historial
-    WHERE egresado_id = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc'
-      AND resultado = 'ENVIADO'
-      AND otp_hash = encode(digest('481920', 'sha256'), 'hex')
-      AND solicitado_en >= (CURRENT_TIMESTAMP - INTERVAL '10 minutes')
-    ORDER BY solicitado_en DESC
-    LIMIT 1
-)
-RETURNING id, resultado, verificado_en;</code></pre>
-    </div>
-
-    <!-- 6.6. Mantenimiento y Auditoria -->
-    <div class="evitar-quiebre">
-      <h2>6.6. Modulo de Parametros y Modo Mantenimiento</h2>
-
-      <h3>Update (Conmutacion en Vivo del Modo Mantenimiento)</h3>
-      <pre><code>INSERT INTO configuracion_sistema (clave, valor, descripcion)
-VALUES ('modo_mantenimiento', 'true', 'Suspende temporalmente el portal publico para tareas tecnicas')
-ON CONFLICT (clave) 
-DO UPDATE SET valor = EXCLUDED.valor, actualizado_en = CURRENT_TIMESTAMP;</code></pre>
-
-      <h3>Read (Consulta de Logs de Auditoria para Control de Seguridad)</h3>
-      <pre><code>SELECT 
-    l.id, l.accion, l.tabla_afectada, l.registro_afectado,
-    COALESCE(u.nombre, 'Sistema Automatico') AS operador,
-    l.ip_origen, l.fecha,
-    l.valores_anteriores, l.valores_nuevos
-FROM logs_auditoria l
-LEFT JOIN usuarios u ON u.id = l.usuario_id
-ORDER BY l.fecha DESC
-LIMIT 50;</code></pre>
-    </div>
-
-    <!-- 6.7. Reportes y Cierre -->
-    <div class="salto-pagina"></div>
-    <div class="evitar-quiebre">
-      <h2>6.7. Consultas Analiticas y Reportes de Cierre de Ceremonia</h2>
-
-      <h3>Reporte Ejecutivo de Presentismo y Ocupacion para Secretaria Academica</h3>
-      <pre><code>SELECT 
-    c.nombre AS acto_colacion,
-    COUNT(DISTINCT e.id) AS total_graduados_padron,
-    COUNT(DISTINCT CASE WHEN e.estado = 'ACEPTADO' THEN e.id END) AS graduados_confirmados,
-    COUNT(DISTINCT CASE WHEN e.estado = 'RECHAZADO' THEN e.id END) AS graduados_inasistentes,
-    COUNT(DISTINCT i.id) AS total_invitados_registrados,
-    COUNT(DISTINCT CASE WHEN i.presente = TRUE THEN i.id END) AS invitados_ingresados_salon,
-    ROUND(
-        (COUNT(DISTINCT CASE WHEN i.presente = TRUE THEN i.id END)::numeric / 
-         NULLIF(COUNT(DISTINCT i.id), 0)) * 100, 2
-    ) AS porcentaje_asistencia_invitados
-FROM ceremonias c
-LEFT JOIN egresados e ON e.ceremonia_id = c.id
-LEFT JOIN invitados i ON i.egresado_id = e.id
-WHERE c.activa = TRUE
-GROUP BY c.id;</code></pre>
-
-      <h3>Planilla de Acreditacion para Descarga en Excel</h3>
-      <pre><code>SELECT 
-    e.legajo,
-    e.dni AS egresado_dni,
-    e.nombre AS egresado_nombre,
-    e.asiento_id AS egresado_butaca,
-    i.dni AS invitado_dni,
-    i.nombre AS invitado_nombre,
-    i.relacion AS vinculo,
-    i.asiento_id AS invitado_butaca,
-    CASE WHEN i.presente THEN 'PRESENTE' ELSE 'AUSENTE' END AS estado_ingreso,
-    TO_CHAR(i.fecha_presente, 'DD/MM/YYYY HH24:MI:SS') AS hora_acreditacion
-FROM egresados e
-LEFT JOIN invitados i ON i.egresado_id = e.id
 WHERE e.ceremonia_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
-ORDER BY e.nombre ASC, i.nombre ASC;</code></pre>
+ORDER BY e.promedio DESC, e.nombre ASC;</code></pre>
     </div>
 
-    <div class="salto-pagina"></div>
-    <div style="border-top: 2px solid #003865; padding-top: 15px; margin-top: 30px; text-align: center; font-size: 8.5pt; color: #64748b;">
-      <p style="text-align: center; margin: 0;">
-        <strong>SiGIC — Sistema de Gestion Institucional de Colaciones</strong><br>
-        Documento de Especificacion y Diseno de Base de Datos · Autor: Cancelo Julian<br>
-        Instituto Tecnologico Beltran · Avellaneda, Buenos Aires · Ciclo Lectivo 2026
-      </p>
+    <div class="pie-pagina">
+      <strong>SiGIC — Sistema de Gestion Institucional de Colaciones</strong> · Autor: Cancelo Julian · Analista de Sistemas<br>
+      Instituto Tecnologico Beltran · Avellaneda, Buenos Aires · Ciclo 2026
     </div>
 
   </div>
-
-  <script>
-    function copiarCodigo(idElemento) {
-      const elemento = document.getElementById(idElemento);
-      if (!elemento) return;
-      navigator.clipboard.writeText(elemento.innerText).then(() => {
-        const boton = event.target;
-        const textoOriginal = boton.innerText;
-        boton.innerText = "Copiado!";
-        setTimeout(() => {
-          boton.innerText = textoOriginal;
-        }, 2000);
-      }).catch(err => {
-        console.error("Error al copiar texto:", err);
-      });
-    }
-  </script>
 
 </body>
 </html>
