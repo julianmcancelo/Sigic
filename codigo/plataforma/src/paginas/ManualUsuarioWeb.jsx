@@ -8,7 +8,7 @@ import {
   ZoomIn, ZoomOut, Maximize2, Minimize2, Accessibility, Smartphone, FileText,
   Badge, Download, Printer, X, Settings, Power, RefreshCw
 } from 'lucide-react'
-import { actualizarAjuste } from '../servicios/api'
+import { actualizarAjuste, obtenerAjustes } from '../servicios/api'
 
 // ==========================================
 // CREDENCIAL IMPRIMIBLE DE ACCESO AL MANUAL
@@ -783,6 +783,27 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
     return false
   })
   const [guardandoMantenimiento, setGuardandoMantenimiento] = useState(false)
+
+  // Cargar estado de mantenimiento desde el servidor al iniciar
+  useEffect(() => {
+    let montado = true
+    async function sincronizarDesdeServidor() {
+      try {
+        const ajustes = await obtenerAjustes()
+        if (montado && ajustes && ajustes.modo_mantenimiento) {
+          const valor = ajustes.modo_mantenimiento.valor === 'true'
+          setMantenimientoActivo(valor)
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('modo_mantenimiento', valor.toString())
+          }
+        }
+      } catch (err) {
+        // En caso de modo offline o sin conexion, se mantiene el valor de localStorage
+      }
+    }
+    sincronizarDesdeServidor()
+    return () => { montado = false }
+  }, [])
 
   // Escuchar sincronización de mantenimiento en tiempo real
   useEffect(() => {
@@ -1751,6 +1772,14 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
             </button>
           )}
         </div>
+
+        {/* Centro: Alerta de mantenimiento activo */}
+        {mantenimientoActivo && (
+          <div className="pointer-events-auto hidden md:flex items-center gap-2 rounded-2xl bg-amber-500/95 text-white px-3.5 py-1.5 shadow-md border border-amber-400 backdrop-blur-md text-[9px] font-bold animate-pulse">
+            <Settings size={12} className="animate-spin text-white" />
+            <span>SISTEMA EN MODO MANTENIMIENTO · Portal público suspendido</span>
+          </div>
+        )}
 
         {/* Lado derecho: Zoom y Pantalla completa */}
         <div className="pointer-events-auto flex min-w-0 items-center gap-1 overflow-x-auto rounded-2xl border border-slate-200/80 bg-white/90 p-1 shadow-md backdrop-blur-md sm:gap-1.5 sm:p-1.5">

@@ -85,6 +85,11 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
       const aplanado = {}
       Object.entries(datos).forEach(([k, v]) => { aplanado[k] = v.valor })
       setAjustes(aplanado)
+      if (typeof window !== 'undefined' && aplanado.modo_mantenimiento !== undefined) {
+        const esMant = aplanado.modo_mantenimiento === 'true'
+        localStorage.setItem('modo_mantenimiento', esMant.toString())
+        window.dispatchEvent(new CustomEvent('sigic-mantenimiento-cambiado', { detail: esMant }))
+      }
     } catch (err) {
       setMensaje({ tipo: 'error', texto: 'Error al conectar con el servidor' })
     } finally {
@@ -189,6 +194,11 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
     setGuardando(clave)
     try {
       await actualizarAjuste(clave, String(nuevo))
+      if (clave === 'modo_mantenimiento' && typeof window !== 'undefined') {
+        localStorage.setItem('modo_mantenimiento', nuevo.toString())
+        window.dispatchEvent(new CustomEvent('sigic-mantenimiento-cambiado', { detail: nuevo }))
+        window.dispatchEvent(new Event('storage'))
+      }
       setMensaje({ tipo: 'exito', texto: `${nuevo ? 'Activado' : 'Desactivado'} correctamente` })
       setTimeout(() => setMensaje(null), 2500)
     } catch (err) {
