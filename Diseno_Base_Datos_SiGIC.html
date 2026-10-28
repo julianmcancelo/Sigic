@@ -6,7 +6,7 @@
   <title>SiGIC — Esquema de Base de Datos (Documento Oficial A4)</title>
   <style>
     /* =========================================================================
-       CONFIGURACION ESTRICTA PARA IMPRESION A4
+       CONFIGURACION ESTRICTA PARA IMPRESION A4 (5 HOJAS EXACTAS)
        ========================================================================= */
     @page {
       size: A4 portrait;
@@ -74,7 +74,7 @@
       background: transparent;
       color: #94a3b8;
       border: none;
-      padding: 5px 12px;
+      padding: 5px 11px;
       font-size: 8pt;
       font-weight: 600;
       border-radius: 4px;
@@ -432,29 +432,6 @@
       font-size: 6.8pt;
     }
 
-    /* LEYENDA */
-    .leyenda {
-      display: flex;
-      gap: 12px;
-      font-size: 7pt;
-      color: #475569;
-      margin-top: 10px;
-      padding: 6px 10px;
-      background: #f8fafc;
-      border-radius: 4px;
-      border: 1px solid #e2e8f0;
-      justify-content: space-between;
-      align-items: center;
-      break-inside: avoid;
-    }
-
-    .leyenda-item {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    
     /* ESTILOS DEL GLOSARIO Y BIBLIOGRAFIA */
     .glosario-grid {
       display: grid;
@@ -532,6 +509,28 @@
       justify-content: space-between;
       align-items: center;
       break-inside: avoid;
+    }
+
+    /* LEYENDA */
+    .leyenda {
+      display: flex;
+      gap: 12px;
+      font-size: 7pt;
+      color: #475569;
+      margin-top: 10px;
+      padding: 6px 10px;
+      background: #f8fafc;
+      border-radius: 4px;
+      border: 1px solid #e2e8f0;
+      justify-content: space-between;
+      align-items: center;
+      break-inside: avoid;
+    }
+
+    .leyenda-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
 
     /* =========================================================================
@@ -1393,6 +1392,186 @@ ORDER BY e.promedio DESC, e.nombre ASC, p.orden ASC;</pre>
 
     </section>
 
+    <!-- SALTO DE PAGINA OBLIGATORIO PARA IMPRESION A4 -->
+    <div class="salto-pagina-a4"></div>
+
+    <!-- ===================================================================== -->
+    <!-- HOJA A4 NRO 5: GLOSARIO DE TERMINOS Y BIBLIOGRAFIA                    -->
+    <!-- ===================================================================== -->
+    <section id="sec-glosario" class="bloque-seccion">
+
+      <div class="seccion">
+        <div class="seccion-encabezado">
+          <span>5. Glosario de Términos (En Palabras Simples)</span>
+          <span class="seccion-subtitulo">Conceptos clave explicados de forma clara, directa y sin rodeos</span>
+        </div>
+
+        <div class="glosario-grid">
+
+          <div class="glosario-card">
+            <div class="glosario-termino">
+              <span>Base de Datos Relacional</span>
+              <span class="glosario-badge">General</span>
+            </div>
+            <div class="glosario-def">
+              Es un sistema para guardar información en tablas conectadas entre sí mediante enlaces lógicos. Permite que un dato se cargue una sola vez y no se repita en varios lugares.
+            </div>
+          </div>
+
+          <div class="glosario-card">
+            <div class="glosario-termino">
+              <span>Clave Primaria (PK)</span>
+              <span class="glosario-badge">Identificador</span>
+            </div>
+            <div class="glosario-def">
+              Es el código único que identifica a cada fila de una tabla. En SiGIC usamos códigos largos (UUID) para que no haya dos egresados, ceremonias ni usuarios con el mismo código.
+            </div>
+          </div>
+
+          <div class="glosario-card">
+            <div class="glosario-termino">
+              <span>Clave Foránea (FK)</span>
+              <span class="glosario-badge">Relación</span>
+            </div>
+            <div class="glosario-def">
+              Es el puente que conecta dos tablas. Por ejemplo, en la tabla de invitados guardamos a qué egresado acompaña cada persona para saber a quién pertenece cada ingreso.
+            </div>
+          </div>
+
+          <div class="glosario-card">
+            <div class="glosario-termino">
+              <span>UUID (Identificador Único)</span>
+              <span class="glosario-badge">Seguridad</span>
+            </div>
+            <div class="glosario-def">
+              Es un código alfanumérico generado al azar de 36 caracteres. Sirve para que nadie pueda adivinar el enlace privado ni el código QR de otro graduado cambiando simplemente un número.
+            </div>
+          </div>
+
+          <div class="glosario-card">
+            <div class="glosario-termino">
+              <span>DDL (Data Definition Language)</span>
+              <span class="glosario-badge">Estructura</span>
+            </div>
+            <div class="glosario-def">
+              Son las órdenes en SQL que construyen la base: crear las tablas, definir qué tipo de información va en cada columna y aplicar las reglas de seguridad.
+            </div>
+          </div>
+
+          <div class="glosario-card">
+            <div class="glosario-termino">
+              <span>CRUD (Operaciones Básicas)</span>
+              <span class="glosario-badge">Uso Diario</span>
+            </div>
+            <div class="glosario-def">
+              Son las cuatro tareas que hace el sistema: Crear datos (Insert), Leerlos para mostrarlos (Select), Modificarlos cuando hay cambios (Update) y Borrarlos si se cancelan (Delete).
+            </div>
+          </div>
+
+          <div class="glosario-card">
+            <div class="glosario-termino">
+              <span>OTP (One-Time Password)</span>
+              <span class="glosario-badge">Acceso</span>
+            </div>
+            <div class="glosario-def">
+              Código numérico de 6 dígitos que se genera al momento y sirve una sola vez. Llega al correo del graduado para que ingrese sin necesidad de recordar una contraseña fija, y caduca en 10 minutos.
+            </div>
+          </div>
+
+          <div class="glosario-card">
+            <div class="glosario-termino">
+              <span>Trigger (Disparador)</span>
+              <span class="glosario-badge">Automatización</span>
+            </div>
+            <div class="glosario-def">
+              Es una rutina que se ejecuta sola dentro de la base de datos cuando ocurre un evento. En SiGIC se usa para actualizar la fecha y hora exacta cada vez que se modifica un registro.
+            </div>
+          </div>
+
+          <div class="glosario-card">
+            <div class="glosario-termino">
+              <span>JSONB</span>
+              <span class="glosario-badge">Almacenamiento</span>
+            </div>
+            <div class="glosario-def">
+              Es un formato de texto estructurado muy rápido que permite guardar listas complejas dentro de un solo campo, como la distribución de filas y butacas del anfiteatro Beltrán.
+            </div>
+          </div>
+
+          <div class="glosario-card">
+            <div class="glosario-termino">
+              <span>Índice B-Tree</span>
+              <span class="glosario-badge">Rendimiento</span>
+            </div>
+            <div class="glosario-def">
+              Es como el índice de un libro al final: le indica a PostgreSQL exactamente en qué página está el graduado por su DNI o token, evitando tener que revisar toda la tabla uno por uno.
+            </div>
+          </div>
+
+          <div class="glosario-card">
+            <div class="glosario-termino">
+              <span>3FN (Tercera Forma Normal)</span>
+              <span class="glosario-badge">Diseño</span>
+            </div>
+            <div class="glosario-def">
+              Regla de diseño que exige que cada dato dependa únicamente de su clave primaria. Si un egresado cambia su teléfono, se actualiza en su ficha y se refleja en todo el sistema.
+            </div>
+          </div>
+
+          <div class="glosario-card">
+            <div class="glosario-termino">
+              <span>Modo Mantenimiento</span>
+              <span class="glosario-badge">Operación</span>
+            </div>
+            <div class="glosario-def">
+              Ajuste global guardado en la base de datos que suspende temporalmente el acceso público de graduados mientras se realizan tareas técnicas, sin frenar el panel de administración.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="seccion-encabezado" style="margin-top: 10px;">
+          <span>Bibliografía y Referencias Académicas</span>
+          <span class="seccion-subtitulo">Fuentes bibliográficas consultadas para el modelado relacional</span>
+        </div>
+
+        <div class="bibliografia-lista">
+          <div class="bibliografia-item">
+            <strong>PostgreSQL Global Development Group (2024).</strong> <em>PostgreSQL 14/16 Documentation</em>. Official manuals on DDL, Triggers, JSONB Data Type, Partial Unique Indexes and B-Tree Indexing.
+          </div>
+          <div class="bibliografia-item">
+            <strong>Silberschatz, Abraham; Korth, Henry F. & Sudarshan, S. (2014).</strong> <em>Fundamentos de Bases de Datos</em> (6ª Edición). McGraw-Hill Interamericana de España. Capítulos sobre Modelo Relacional, Normalización y SQL.
+          </div>
+          <div class="bibliografia-item">
+            <strong>Date, C. J. (2001).</strong> <em>Introducción a los Sistemas de Bases de Datos</em> (7ª Edición). Pearson Educación. Principios de integridad referencial y diseño relacional.
+          </div>
+          <div class="bibliografia-item">
+            <strong>Instituto Tecnológico Beltrán (ITB).</strong> <em>Plan de Estudios y Materiales de Cátedra de Bases de Datos y Práctica Profesionalizante</em>. Tecnicatura Superior en Analista de Sistemas. Avellaneda, Buenos Aires.
+          </div>
+        </div>
+
+        <!-- FICHA DE AUTORIA Y SISTEMA -->
+        <div class="ficha-autor">
+          <div>
+            <strong>SiGIC — Sistema de Gestión Institucional de Colaciones</strong><br>
+            Plataforma institucional para automatización y acreditación digital de actos de graduación.
+          </div>
+          <div style="text-align: right;">
+            Autor: <strong>Cancelo Julián</strong> · Analista de Sistemas<br>
+            Instituto Tecnológico Beltrán · Año 2026
+          </div>
+        </div>
+
+        <!-- LEYENDA HOJA 5 -->
+        <div class="leyenda">
+          <div>Documentación Oficial Completa · Base de Datos Relacional SiGIC</div>
+          <div>Hoja 5 de 5 · Instituto Tecnológico Beltrán</div>
+        </div>
+
+      </div>
+
+    </section>
+
   </div>
 
   <script>
@@ -1425,7 +1604,6 @@ ORDER BY e.promedio DESC, e.nombre ASC, p.orden ASC;</pre>
     }
 
     function imprimirA4() {
-      // Mostrar todas las secciones antes de abrir el dialogo de impresion
       document.querySelectorAll('.bloque-seccion').forEach(function(sec) {
         sec.classList.add('activo');
       });
