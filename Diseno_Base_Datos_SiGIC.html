@@ -454,6 +454,86 @@
       gap: 4px;
     }
 
+    
+    /* ESTILOS DEL GLOSARIO Y BIBLIOGRAFIA */
+    .glosario-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .glosario-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      padding: 6px 10px;
+      background: #ffffff;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .glosario-termino {
+      font-weight: 700;
+      color: #0369a1;
+      font-size: 7.8pt;
+      margin-bottom: 2px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .glosario-badge {
+      background: #e0f2fe;
+      color: #0369a1;
+      font-size: 5.5pt;
+      padding: 1px 4px;
+      border-radius: 2px;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    .glosario-def {
+      font-size: 7pt;
+      color: #334155;
+      line-height: 1.35;
+    }
+
+    .bibliografia-lista {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .bibliografia-item {
+      border-left: 3px solid #0284c7;
+      padding: 4px 8px;
+      background: #f8fafc;
+      border-radius: 0 4px 4px 0;
+      font-size: 7pt;
+      line-height: 1.35;
+      color: #1e293b;
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    .bibliografia-item strong {
+      color: #0f172a;
+    }
+
+    .ficha-autor {
+      margin-top: 10px;
+      padding: 8px 12px;
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      font-size: 7pt;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      break-inside: avoid;
+    }
+
     /* =========================================================================
        REGLAS ESTRICTAS PARA SALIDA DE IMPRESION A4 Y PDF
        ========================================================================= */
@@ -540,6 +620,7 @@
       <button class="nav-tab-btn" onclick="cambiarPestana('sec-tablas', this)">2. Diccionario de Tablas</button>
       <button class="nav-tab-btn" onclick="cambiarPestana('sec-sql', this)">3. Script DDL y Semillas</button>
       <button class="nav-tab-btn" onclick="cambiarPestana('sec-crud', this)">4. Consultas CRUD</button>
+      <button class="nav-tab-btn" onclick="cambiarPestana('sec-glosario', this)">5. Glosario y Bibliografía</button>
       <button class="nav-tab-btn" onclick="cambiarPestana('todas', this)">Vista Integral A4</button>
     </div>
 
@@ -755,7 +836,7 @@
           <div class="leyenda-item"><span class="badge-fk">FK</span> Clave Foránea Referencial</div>
           <div class="leyenda-item"><span class="badge-uk">UK</span> Restricción de Unicidad</div>
           <div class="leyenda-item"><strong>1:N / 1:1</strong> Cardinalidad Formal (3FN)</div>
-          <div>Hoja 1 de 4 · Documentación Oficial SiGIC</div>
+          <div>Hoja 1 de 5 · Documentación Oficial SiGIC</div>
         </div>
       </div>
 
@@ -957,7 +1038,7 @@
         <!-- LEYENDA HOJA 2 -->
         <div class="leyenda">
           <div>Estructura Normalizada en Tercera Forma Normal (3FN) · Restricciones Referenciales Estrictas</div>
-          <div>Hoja 2 de 4 · Documentación Oficial SiGIC</div>
+          <div>Hoja 2 de 5 · Documentación Oficial SiGIC</div>
         </div>
       </div>
 
@@ -1171,7 +1252,7 @@ INSERT INTO padrinos (id, egresado_id, tipo, profesor_id, orden) VALUES
         <!-- LEYENDA HOJA 3 -->
         <div class="leyenda">
           <div>Definición DDL e Inserciones Semilla Verificadas en PostgreSQL 14+ / Neon Cloud</div>
-          <div>Hoja 3 de 4 · Documentación Oficial SiGIC</div>
+          <div>Hoja 3 de 5 · Documentación Oficial SiGIC</div>
         </div>
       </div>
 
@@ -1306,7 +1387,7 @@ ORDER BY e.promedio DESC, e.nombre ASC, p.orden ASC;</pre>
         <!-- LEYENDA HOJA 4 -->
         <div class="leyenda">
           <div>Documentación Técnica Oficial de Base de Datos · <strong>SiGIC</strong> · Autor: Cancelo Julián</div>
-          <div>Hoja 4 de 4 · Instituto Tecnológico Beltrán</div>
+          <div>Hoja 4 de 5 · Instituto Tecnológico Beltrán</div>
         </div>
       </div>
 
