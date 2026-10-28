@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SiGIC — Diseno de Base de Datos (Documento Imprimible)</title>
+  <title>SiGIC — Esquema Relacional de Base de Datos</title>
   <style>
     @page {
-      size: A4 portrait;
-      margin: 15mm 12mm 15mm 12mm;
+      size: A4 landscape;
+      margin: 10mm 10mm 10mm 10mm;
     }
 
     * {
@@ -18,768 +18,685 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-      font-size: 9pt;
-      line-height: 1.4;
+      font-size: 8.5pt;
+      line-height: 1.35;
       color: #0f172a;
-      background: #ffffff;
+      background: #f8fafc;
       margin: 0;
       padding: 0;
+    }
+
+    .barra-print {
+      position: sticky;
+      top: 0;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 10px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 1000;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .btn-imprimir {
+      background: #0284c7;
+      color: #ffffff;
+      border: none;
+      padding: 7px 18px;
+      font-weight: 600;
+      font-size: 9pt;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn-imprimir:hover {
+      background: #0369a1;
     }
 
     .documento {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 15px;
-    }
-
-    @media screen {
-      body {
-        background: #f1f5f9;
-        padding: 20px 0;
-      }
-      .documento {
-        background: #ffffff;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-        border-radius: 6px;
-        padding: 40px;
-      }
-      .barra-print {
-        position: sticky;
-        top: 15px;
-        max-width: 800px;
-        margin: 0 auto 15px auto;
-        display: flex;
-        justify-content: flex-end;
-        z-index: 100;
-      }
-      .btn-print {
-        background: #003865;
-        color: #ffffff;
-        border: none;
-        padding: 10px 22px;
-        border-radius: 6px;
-        font-weight: 700;
-        font-size: 13px;
-        cursor: pointer;
-        box-shadow: 0 4px 12px rgba(0, 56, 101, 0.25);
-        transition: background 0.15s;
-      }
-      .btn-print:hover {
-        background: #00508f;
-      }
+      max-width: 1120px;
+      margin: 15px auto;
+      background: #ffffff;
+      padding: 24px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+      border-radius: 6px;
     }
 
     @media print {
-      .no-print {
+      body {
+        background: #ffffff !important;
+      }
+      .barra-print {
         display: none !important;
       }
       .documento {
-        max-width: 100%;
-        padding: 0;
-        box-shadow: none;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
       }
-      .salto {
+      .salto-pagina {
         page-break-before: always;
-        break-before: page;
-      }
-      .no-quiebre {
-        page-break-inside: avoid;
-        break-inside: avoid;
       }
     }
 
-    /* Caratula sobria y academica */
-    .caratula {
-      min-height: 88vh;
+    /* ENCABEZADO */
+    .header-institucional {
       display: flex;
-      flex-direction: column;
       justify-content: space-between;
-      text-align: center;
-      padding: 30px 10px 20px 10px;
-      page-break-after: always;
-      break-after: page;
+      align-items: center;
+      border-bottom: 2px solid #0284c7;
+      padding-bottom: 12px;
+      margin-bottom: 16px;
     }
 
-    .caratula-header {
-      border-bottom: 2px solid #003865;
-      padding-bottom: 15px;
+    .header-izq h1 {
+      margin: 0;
+      font-size: 16pt;
+      color: #0f172a;
+      letter-spacing: -0.3px;
     }
 
-    .institucion {
-      font-size: 14pt;
-      font-weight: 800;
-      color: #003865;
+    .header-izq .subtitulo {
+      margin: 2px 0 0 0;
+      font-size: 9pt;
+      color: #475569;
+      font-weight: 500;
+    }
+
+    .header-der {
+      text-align: right;
+      font-size: 8pt;
+      color: #334155;
+      line-height: 1.4;
+    }
+
+    .header-der strong {
+      color: #0f172a;
+    }
+
+    /* DIAGRAMA RELACIONAL SVG */
+    .seccion-titulo {
+      font-size: 10pt;
+      font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+      color: #0369a1;
+      margin: 0 0 8px 0;
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 4px;
     }
 
-    .carrera {
-      font-size: 11pt;
-      font-weight: 600;
-      color: #0284c7;
-      margin-top: 4px;
+    .contenedor-diagrama {
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      background: #ffffff;
+      padding: 10px;
+      margin-bottom: 20px;
+      overflow: hidden;
     }
 
-    .caratula-body {
-      margin: 60px 0;
+    .contenedor-diagrama svg {
+      width: 100%;
+      height: auto;
+      display: block;
     }
 
-    .titulo-sigla {
-      font-size: 34pt;
-      font-weight: 900;
-      color: #003865;
-      letter-spacing: 2px;
-      margin: 0;
+    /* GRILLA DE TABLAS DEL ESQUEMA */
+    .grilla-tablas {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 10px;
     }
 
-    .titulo-desc {
-      font-size: 12pt;
-      font-weight: 600;
-      color: #475569;
-      margin-top: 6px;
-      text-transform: uppercase;
+    .tabla-card {
+      border: 1px solid #cbd5e1;
+      border-radius: 4px;
+      background: #ffffff;
+      overflow: hidden;
+      font-size: 7.5pt;
+      break-inside: avoid;
     }
 
-    .doc-nombre {
-      font-size: 16pt;
-      font-weight: 800;
-      color: #0f172a;
-      margin-top: 35px;
-      padding-top: 20px;
-      border-top: 1px dashed #cbd5e1;
-      text-transform: uppercase;
-    }
-
-    .doc-sub {
-      font-size: 10pt;
-      color: #64748b;
-      margin-top: 6px;
-    }
-
-    .caratula-footer {
-      border-top: 2px solid #003865;
-      padding-top: 15px;
+    .tabla-card-header {
+      background: #f8fafc;
+      border-bottom: 1px solid #cbd5e1;
+      padding: 6px 10px;
       display: flex;
       justify-content: space-between;
-      text-align: left;
-      font-size: 9pt;
-      line-height: 1.5;
+      align-items: center;
     }
 
-    /* Encabezados y bloques */
-    h1 {
-      font-size: 13pt;
-      font-weight: 800;
-      color: #003865;
-      border-bottom: 1.5px solid #003865;
-      padding-bottom: 4px;
-      margin: 22px 0 10px 0;
-      text-transform: uppercase;
-    }
-
-    h2 {
-      font-size: 10.5pt;
+    .tabla-nombre {
       font-weight: 700;
-      color: #0369a1;
-      margin: 14px 0 6px 0;
-    }
-
-    h3 {
-      font-size: 9.5pt;
-      font-weight: 700;
-      color: #1e293b;
-      margin: 10px 0 4px 0;
-    }
-
-    p {
-      margin: 0 0 8px 0;
-      text-align: justify;
-    }
-
-    ul {
-      margin: 0 0 10px 18px;
-      padding: 0;
-    }
-
-    li {
-      margin-bottom: 3px;
-    }
-
-    .box-resumen {
-      background: #f8fafc;
-      border: 1px solid #cbd5e1;
-      border-left: 3px solid #003865;
-      padding: 8px 12px;
-      margin: 8px 0 12px 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      color: #0f172a;
       font-size: 8.5pt;
     }
 
-    .diagrama-box {
-      text-align: center;
-      margin: 12px 0;
-      page-break-inside: avoid;
-      break-inside: avoid;
+    .tabla-tag {
+      font-size: 6.5pt;
+      padding: 2px 5px;
+      border-radius: 3px;
+      font-weight: 600;
+      text-transform: uppercase;
     }
+    .tag-core { background: #e0f2fe; color: #0369a1; }
+    .tag-acreditacion { background: #fef3c7; color: #b45309; }
+    .tag-seguridad { background: #fee2e2; color: #b91c1c; }
+    .tag-sistema { background: #f1f5f9; color: #475569; }
 
-    .diagrama-img {
-      max-width: 95%;
-      height: auto;
-      border: 1px solid #cbd5e1;
-      border-radius: 4px;
-    }
-
-    .diagrama-epigrafe {
-      font-size: 7.5pt;
-      color: #64748b;
-      margin-top: 4px;
-      font-style: italic;
-    }
-
-    /* Tablas compactas para impresion */
-    table {
+    .tabla-card table {
       width: 100%;
       border-collapse: collapse;
-      margin: 6px 0 12px 0;
-      font-size: 8pt;
-      page-break-inside: avoid;
-      break-inside: avoid;
     }
 
-    th, td {
-      border: 1px solid #cbd5e1;
-      padding: 4px 6px;
+    .tabla-card th {
+      background: #f1f5f9;
+      padding: 3px 6px;
       text-align: left;
-      vertical-align: top;
+      font-size: 7pt;
+      color: #475569;
+      font-weight: 600;
+      border-bottom: 1px solid #e2e8f0;
     }
 
-    th {
-      background-color: #f1f5f9;
-      color: #003865;
-      font-weight: 700;
-      text-transform: uppercase;
-      font-size: 7.2pt;
+    .tabla-card td {
+      padding: 3px 6px;
+      border-bottom: 1px solid #f1f5f9;
+      vertical-align: middle;
     }
 
-    tr:nth-child(even) td {
-      background-color: #f8fafc;
+    .tabla-card tr:last-child td {
+      border-bottom: none;
     }
 
-    .pk { font-weight: 800; color: #991b1b; }
-    .fk { font-weight: 700; color: #0369a1; }
-    .uq { font-weight: 700; color: #92400e; }
-
-    /* Bloques de codigo SQL claros y legibles */
-    pre {
-      background-color: #f8fafc;
-      color: #0f172a;
-      border: 1px solid #cbd5e1;
-      border-left: 3px solid #003865;
-      padding: 8px 10px;
-      font-family: Consolas, "Courier New", monospace;
-      font-size: 7.5pt;
-      line-height: 1.35;
-      overflow-x: auto;
-      margin: 6px 0 10px 0;
-      page-break-inside: avoid;
-      break-inside: avoid;
-      white-space: pre-wrap;
-      word-break: break-all;
+    .col-nombre {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-weight: 600;
+      color: #1e293b;
     }
 
-    code {
-      font-family: Consolas, monospace;
-      font-size: 8pt;
-    }
-
-    .pie-pagina {
-      border-top: 1px solid #cbd5e1;
-      padding-top: 8px;
-      margin-top: 25px;
-      text-align: center;
-      font-size: 7.5pt;
+    .col-tipo {
       color: #64748b;
+      font-size: 7pt;
+    }
+
+    .col-clave {
+      text-align: right;
+    }
+
+    .badge-pk {
+      background: #0284c7;
+      color: #ffffff;
+      font-size: 6pt;
+      font-weight: 700;
+      padding: 1px 4px;
+      border-radius: 2px;
+    }
+
+    .badge-fk {
+      background: #e2e8f0;
+      color: #334155;
+      font-size: 6pt;
+      font-weight: 700;
+      padding: 1px 4px;
+      border-radius: 2px;
+      border: 1px solid #cbd5e1;
+    }
+
+    .badge-uk {
+      background: #fef3c7;
+      color: #92400e;
+      font-size: 6pt;
+      font-weight: 700;
+      padding: 1px 4px;
+      border-radius: 2px;
+      border: 1px solid #fde68a;
+    }
+
+    /* LEYENDA */
+    .leyenda {
+      display: flex;
+      gap: 16px;
+      font-size: 7.5pt;
+      color: #475569;
+      margin-top: 12px;
+      padding: 8px 12px;
+      background: #f8fafc;
+      border-radius: 4px;
+      border: 1px solid #e2e8f0;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .leyenda-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
   </style>
 </head>
 <body>
 
-  <div class="barra-print no-print">
-    <button class="btn-print" onclick="window.print()">
-      Imprimir / Guardar en PDF
-    </button>
+  <div class="barra-print">
+    <div>
+      <strong>SiGIC — Esquema Relacional de Base de Datos</strong> | Formato A4 Apaisado para Impresión
+    </div>
+    <button class="btn-imprimir" onclick="window.print()">Imprimir Esquema</button>
   </div>
 
   <div class="documento">
 
-    <!-- ========================================== -->
-    <!-- CARATULA                                   -->
-    <!-- ========================================== -->
-    <div class="caratula">
-      <div class="caratula-header">
-        <div class="institucion">Instituto Tecnologico Beltran</div>
-        <div class="carrera">Tecnicatura Superior en Analista de Sistemas</div>
+    <!-- ENCABEZADO INSTITUCIONAL -->
+    <div class="header-institucional">
+      <div class="header-izq">
+        <h1>SiGIC — Esquema Relacional de Base de Datos</h1>
+        <div class="subtitulo">Sistema de Gestión Institucional de Colaciones · Motor PostgreSQL 14+ (Neon Serverless)</div>
       </div>
-
-      <div class="caratula-body">
-        <h1 class="titulo-sigla">SiGIC</h1>
-        <div class="titulo-desc">Sistema de Gestion Institucional de Colaciones</div>
-
-        <div class="doc-nombre">Diseno y Modelo de Base de Datos</div>
-        <div class="doc-sub">Diccionario de Datos, Script DDL y Operaciones CRUD (PostgreSQL)</div>
+      <div class="header-der">
+        <div><strong>Instituto Tecnológico Beltrán</strong></div>
+        <div>Tecnicatura Superior en Analista de Sistemas</div>
+        <div>Autor: <strong>Cancelo Julián</strong></div>
       </div>
+    </div>
 
-      <div class="caratula-footer">
-        <div>
-          <strong>Alumno / Autor:</strong> Cancelo Julian<br>
-          <strong>Carrera:</strong> Tecnicatura Superior en Analista de Sistemas<br>
-          <strong>Sede:</strong> Instituto Tecnologico Beltran (Avellaneda)
+    <!-- DIAGRAMA RELACIONAL VISUAL SVG -->
+    <div class="seccion-titulo">Diagrama de Entidad-Relación y Conectividad Relacional</div>
+    <div class="contenedor-diagrama">
+      <svg viewBox="0 0 1060 420" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#0284c7"/>
+          </marker>
+          <marker id="arrow-amber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#d97706"/>
+          </marker>
+          <marker id="arrow-slate" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1.5 L 8 5 L 0 8.5 z" fill="#64748b"/>
+          </marker>
+        </defs>
+
+        <!-- CAJAS DE TABLAS -->
+
+        <!-- 1. CEREMONIAS -->
+        <g id="node-ceremonias" transform="translate(40, 20)">
+          <rect width="180" height="125" rx="5" fill="#f0f9ff" stroke="#0284c7" stroke-width="2"/>
+          <rect width="180" height="24" rx="4" fill="#0284c7"/>
+          <text x="90" y="16" fill="#ffffff" font-family="sans-serif" font-size="10" font-weight="bold" text-anchor="middle">ceremonias</text>
+          <text x="10" y="42" fill="#0f172a" font-family="monospace" font-size="8.5" font-weight="bold">id: UUID [PK]</text>
+          <text x="10" y="58" fill="#475569" font-family="monospace" font-size="8">nombre: VARCHAR(200)</text>
+          <text x="10" y="74" fill="#475569" font-family="monospace" font-size="8">fecha: DATE</text>
+          <text x="10" y="90" fill="#475569" font-family="monospace" font-size="8">max_invitados: INT</text>
+          <text x="10" y="106" fill="#0369a1" font-family="monospace" font-size="8" font-weight="bold">activa: BOOL [UK Parcial]</text>
+          <text x="10" y="122" fill="#64748b" font-family="monospace" font-size="7.5">creado_en: TIMESTAMPTZ</text>
+        </g>
+
+        <!-- 2. CONFIGURACION_ANFITEATRO -->
+        <g id="node-anfiteatro" transform="translate(40, 185)">
+          <rect width="180" height="95" rx="5" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+          <rect width="180" height="22" rx="4" fill="#475569"/>
+          <text x="90" y="15" fill="#ffffff" font-family="sans-serif" font-size="9" font-weight="bold" text-anchor="middle">configuracion_anfiteatro</text>
+          <text x="10" y="38" fill="#0f172a" font-family="monospace" font-size="8" font-weight="bold">id: BIGSERIAL [PK]</text>
+          <text x="10" y="54" fill="#0369a1" font-family="monospace" font-size="8" font-weight="bold">ceremonia_id: UUID [FK]</text>
+          <text x="10" y="70" fill="#475569" font-family="monospace" font-size="8">estructura: JSONB</text>
+          <text x="10" y="86" fill="#475569" font-family="monospace" font-size="8">mapa_roles: JSONB</text>
+        </g>
+
+        <!-- 3. EGRESADOS -->
+        <g id="node-egresados" transform="translate(300, 20)">
+          <rect width="200" height="170" rx="5" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+          <rect width="200" height="24" rx="4" fill="#16a34a"/>
+          <text x="100" y="16" fill="#ffffff" font-family="sans-serif" font-size="10" font-weight="bold" text-anchor="middle">egresados</text>
+          <text x="10" y="42" fill="#0f172a" font-family="monospace" font-size="8.5" font-weight="bold">id: UUID [PK]</text>
+          <text x="10" y="58" fill="#0369a1" font-family="monospace" font-size="8" font-weight="bold">ceremonia_id: UUID [FK]</text>
+          <text x="10" y="74" fill="#b45309" font-family="monospace" font-size="8" font-weight="bold">token: VARCHAR(32) [UK]</text>
+          <text x="10" y="90" fill="#475569" font-family="monospace" font-size="8">nombre: VARCHAR(150)</text>
+          <text x="10" y="106" fill="#475569" font-family="monospace" font-size="8">dni: VARCHAR(20)</text>
+          <text x="10" y="122" fill="#475569" font-family="monospace" font-size="8">correo: VARCHAR(150)</text>
+          <text x="10" y="138" fill="#475569" font-family="monospace" font-size="8">estado: estado_egresado</text>
+          <text x="10" y="154" fill="#475569" font-family="monospace" font-size="8">asiento_id: VARCHAR(30)</text>
+          <text x="10" y="170" fill="#64748b" font-family="monospace" font-size="7.5">UK (ceremonia_id, dni)</text>
+        </g>
+
+        <!-- 4. OTP_HISTORIAL -->
+        <g id="node-otp" transform="translate(300, 235)">
+          <rect width="200" height="95" rx="5" fill="#fef2f2" stroke="#ef4444" stroke-width="1.5"/>
+          <rect width="200" height="22" rx="4" fill="#ef4444"/>
+          <text x="100" y="15" fill="#ffffff" font-family="sans-serif" font-size="9" font-weight="bold" text-anchor="middle">otp_historial</text>
+          <text x="10" y="38" fill="#0f172a" font-family="monospace" font-size="8" font-weight="bold">id: BIGSERIAL [PK]</text>
+          <text x="10" y="54" fill="#0369a1" font-family="monospace" font-size="8" font-weight="bold">egresado_id: UUID [FK]</text>
+          <text x="10" y="70" fill="#475569" font-family="monospace" font-size="8">otp_hash: VARCHAR(64)</text>
+          <text x="10" y="86" fill="#475569" font-family="monospace" font-size="8">resultado: resultado_otp</text>
+        </g>
+
+        <!-- 5. INVITADOS -->
+        <g id="node-invitados" transform="translate(580, 20)">
+          <rect width="190" height="150" rx="5" fill="#fffbeb" stroke="#d97706" stroke-width="2"/>
+          <rect width="190" height="24" rx="4" fill="#d97706"/>
+          <text x="95" y="16" fill="#ffffff" font-family="sans-serif" font-size="10" font-weight="bold" text-anchor="middle">invitados</text>
+          <text x="10" y="42" fill="#0f172a" font-family="monospace" font-size="8.5" font-weight="bold">id: UUID [PK]</text>
+          <text x="10" y="58" fill="#0369a1" font-family="monospace" font-size="8" font-weight="bold">egresado_id: UUID [FK]</text>
+          <text x="10" y="74" fill="#475569" font-family="monospace" font-size="8">nombre: VARCHAR(150)</text>
+          <text x="10" y="90" fill="#475569" font-family="monospace" font-size="8">dni: VARCHAR(20)</text>
+          <text x="10" y="106" fill="#475569" font-family="monospace" font-size="8">relacion: VARCHAR(80)</text>
+          <text x="10" y="122" fill="#475569" font-family="monospace" font-size="8">asiento_id: VARCHAR(30)</text>
+          <text x="10" y="138" fill="#16a34a" font-family="monospace" font-size="8" font-weight="bold">presente: BOOLEAN</text>
+          <text x="10" y="152" fill="#64748b" font-family="monospace" font-size="7.5">UK (egresado_id, dni)</text>
+        </g>
+
+        <!-- 6. PADRINOS -->
+        <g id="node-padrinos" transform="translate(580, 205)">
+          <rect width="190" height="135" rx="5" fill="#faf5ff" stroke="#9333ea" stroke-width="1.5"/>
+          <rect width="190" height="22" rx="4" fill="#9333ea"/>
+          <text x="95" y="15" fill="#ffffff" font-family="sans-serif" font-size="9" font-weight="bold" text-anchor="middle">padrinos (entregadores)</text>
+          <text x="10" y="38" fill="#0f172a" font-family="monospace" font-size="8" font-weight="bold">id: UUID [PK]</text>
+          <text x="10" y="54" fill="#0369a1" font-family="monospace" font-size="8" font-weight="bold">egresado_id: UUID [FK]</text>
+          <text x="10" y="70" fill="#475569" font-family="monospace" font-size="8">tipo: tipo_padrino</text>
+          <text x="10" y="86" fill="#64748b" font-family="monospace" font-size="7.5">profesor_id: UUID [FK Null]</text>
+          <text x="10" y="100" fill="#64748b" font-family="monospace" font-size="7.5">invitado_id: UUID [FK Null]</text>
+          <text x="10" y="114" fill="#475569" font-family="monospace" font-size="8">orden: INT [CHECK > 0]</text>
+          <text x="10" y="128" fill="#64748b" font-family="monospace" font-size="7.5">UK (egresado_id, orden)</text>
+        </g>
+
+        <!-- 7. PROFESORES -->
+        <g id="node-profesores" transform="translate(830, 205)">
+          <rect width="190" height="100" rx="5" fill="#f8fafc" stroke="#64748b" stroke-width="1.5"/>
+          <rect width="190" height="22" rx="4" fill="#64748b"/>
+          <text x="95" y="15" fill="#ffffff" font-family="sans-serif" font-size="9" font-weight="bold" text-anchor="middle">profesores</text>
+          <text x="10" y="38" fill="#0f172a" font-family="monospace" font-size="8" font-weight="bold">id: UUID [PK]</text>
+          <text x="10" y="54" fill="#475569" font-family="monospace" font-size="8">nombre: VARCHAR(150)</text>
+          <text x="10" y="70" fill="#b45309" font-family="monospace" font-size="8" font-weight="bold">dni: VARCHAR(20) [UK]</text>
+          <text x="10" y="86" fill="#475569" font-family="monospace" font-size="8">materia: VARCHAR(150)</text>
+          <text x="10" y="100" fill="#475569" font-family="monospace" font-size="7.5">activo: BOOLEAN</text>
+        </g>
+
+        <!-- 8. USUARIOS -->
+        <g id="node-usuarios" transform="translate(830, 20)">
+          <rect width="190" height="115" rx="5" fill="#f8fafc" stroke="#334155" stroke-width="1.5"/>
+          <rect width="190" height="22" rx="4" fill="#334155"/>
+          <text x="95" y="15" fill="#ffffff" font-family="sans-serif" font-size="9" font-weight="bold" text-anchor="middle">usuarios</text>
+          <text x="10" y="38" fill="#0f172a" font-family="monospace" font-size="8" font-weight="bold">id: UUID [PK]</text>
+          <text x="10" y="54" fill="#475569" font-family="monospace" font-size="8">nombre: VARCHAR(150)</text>
+          <text x="10" y="70" fill="#b45309" font-family="monospace" font-size="8" font-weight="bold">email: VARCHAR(150) [UK]</text>
+          <text x="10" y="86" fill="#475569" font-family="monospace" font-size="8">rol: rol_usuario</text>
+          <text x="10" y="102" fill="#475569" font-family="monospace" font-size="8">activo: BOOLEAN</text>
+        </g>
+
+        <!-- 9. LOGS_AUDITORIA -->
+        <g id="node-logs" transform="translate(830, 325)">
+          <rect width="190" height="85" rx="5" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+          <rect width="190" height="20" rx="4" fill="#64748b"/>
+          <text x="95" y="14" fill="#ffffff" font-family="sans-serif" font-size="8.5" font-weight="bold" text-anchor="middle">logs_auditoria</text>
+          <text x="10" y="34" fill="#0f172a" font-family="monospace" font-size="7.5" font-weight="bold">id: BIGSERIAL [PK]</text>
+          <text x="10" y="48" fill="#64748b" font-family="monospace" font-size="7.5">usuario_id: UUID [FK Null]</text>
+          <text x="10" y="62" fill="#475569" font-family="monospace" font-size="7.5">accion: tipo_log | tabla</text>
+          <text x="10" y="76" fill="#475569" font-family="monospace" font-size="7.5">fecha: TIMESTAMPTZ</text>
+        </g>
+
+        <!-- 10. CONFIGURACION_SISTEMA -->
+        <g id="node-config" transform="translate(40, 325)">
+          <rect width="180" height="85" rx="5" fill="#f8fafc" stroke="#94a3b8" stroke-width="1.5"/>
+          <rect width="180" height="20" rx="4" fill="#64748b"/>
+          <text x="90" y="14" fill="#ffffff" font-family="sans-serif" font-size="8.5" font-weight="bold" text-anchor="middle">configuracion_sistema</text>
+          <text x="10" y="34" fill="#0f172a" font-family="monospace" font-size="7.5" font-weight="bold">clave: VARCHAR(100) [PK]</text>
+          <text x="10" y="50" fill="#475569" font-family="monospace" font-size="7.5">valor: TEXT</text>
+          <text x="10" y="66" fill="#64748b" font-family="monospace" font-size="7.5">descripcion: TEXT</text>
+          <text x="10" y="80" fill="#64748b" font-family="monospace" font-size="7.5">actualizado_en: TIMESTAMPTZ</text>
+        </g>
+
+        <!-- CONECTORES Y RELACIONES -->
+        <!-- ceremonias -> egresados (1:N) -->
+        <path d="M 220 80 L 300 80" stroke="#0284c7" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+        <text x="250" y="73" fill="#0284c7" font-family="sans-serif" font-size="7.5" font-weight="bold">1 : N</text>
+
+        <!-- ceremonias -> configuracion_anfiteatro (1:1) -->
+        <path d="M 130 145 L 130 185" stroke="#0284c7" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+        <text x="135" y="168" fill="#0284c7" font-family="sans-serif" font-size="7" font-weight="bold">1 : 1</text>
+
+        <!-- egresados -> invitados (1:N) -->
+        <path d="M 500 80 L 580 80" stroke="#0284c7" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+        <text x="532" y="73" fill="#0284c7" font-family="sans-serif" font-size="7.5" font-weight="bold">1 : N</text>
+
+        <!-- egresados -> padrinos (1:N) -->
+        <path d="M 500 120 L 540 120 L 540 240 L 580 240" stroke="#9333ea" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+        <text x="545" y="232" fill="#9333ea" font-family="sans-serif" font-size="7" font-weight="bold">1 : N</text>
+
+        <!-- egresados -> otp_historial (1:N) -->
+        <path d="M 400 190 L 400 235" stroke="#ef4444" stroke-width="1.5" fill="none" marker-end="url(#arrow)"/>
+        <text x="405" y="215" fill="#ef4444" font-family="sans-serif" font-size="7" font-weight="bold">1 : N</text>
+
+        <!-- profesores -> padrinos (1:N opcional) -->
+        <path d="M 830 250 L 770 250" stroke="#64748b" stroke-width="1.5" fill="none" marker-end="url(#arrow-slate)"/>
+        <text x="785" y="243" fill="#64748b" font-family="sans-serif" font-size="7" font-weight="bold">0..1 : N</text>
+
+        <!-- invitados -> padrinos (1:N opcional) -->
+        <path d="M 675 170 L 675 205" stroke="#d97706" stroke-width="1.5" fill="none" marker-end="url(#arrow-amber)"/>
+        <text x="680" y="190" fill="#d97706" font-family="sans-serif" font-size="7" font-weight="bold">0..1 : N</text>
+
+        <!-- usuarios -> logs_auditoria (1:N) -->
+        <path d="M 925 135 L 925 325" stroke="#94a3b8" stroke-width="1" stroke-dasharray="3,3" fill="none" marker-end="url(#arrow-slate)"/>
+        <text x="930" y="170" fill="#64748b" font-family="sans-serif" font-size="6.5">audita</text>
+
+      </svg>
+    </div>
+
+    <!-- DICCIONARIO ESQUEMATICO DE TABLAS (10 TABLAS) -->
+    <div class="seccion-titulo">Definición de Tablas, Atributos y Restricciones</div>
+    
+    <div class="grilla-tablas">
+
+      <!-- 1. ceremonias -->
+      <div class="tabla-card">
+        <div class="tabla-card-header">
+          <span class="tabla-nombre">ceremonias</span>
+          <span class="tabla-tag tag-core">Core</span>
         </div>
-        <div style="text-align: right;">
-          <strong>Motor:</strong> PostgreSQL 14+ (Neon Serverless)<br>
-          <strong>Evaluacion:</strong> Practica Profesionalizante<br>
-          <strong>Fecha:</strong> Octubre 2026
-        </div>
+        <table>
+          <tr><th>Columna</th><th>Tipo</th><th>Clave / Mod</th></tr>
+          <tr><td class="col-nombre">id</td><td class="col-tipo">UUID</td><td class="col-clave"><span class="badge-pk">PK</span></td></tr>
+          <tr><td class="col-nombre">nombre</td><td class="col-tipo">VARCHAR(200)</td><td class="col-clave">NN</td></tr>
+          <tr><td class="col-nombre">fecha</td><td class="col-tipo">DATE</td><td class="col-clave">NN</td></tr>
+          <tr><td class="col-nombre">lugar</td><td class="col-tipo">VARCHAR(200)</td><td class="col-clave">DEF 'Sede Beltrán'</td></tr>
+          <tr><td class="col-nombre">max_invitados</td><td class="col-tipo">INT</td><td class="col-clave">CHECK >= 0</td></tr>
+          <tr><td class="col-nombre">max_padrinos</td><td class="col-tipo">INT</td><td class="col-clave">CHECK >= 0</td></tr>
+          <tr><td class="col-nombre">activa</td><td class="col-tipo">BOOLEAN</td><td class="col-clave"><span class="badge-uk">UK WHERE activa</span></td></tr>
+          <tr><td class="col-nombre">creado_en</td><td class="col-tipo">TIMESTAMPTZ</td><td class="col-clave">DEFAULT now()</td></tr>
+        </table>
       </div>
+
+      <!-- 2. egresados -->
+      <div class="tabla-card">
+        <div class="tabla-card-header">
+          <span class="tabla-nombre">egresados</span>
+          <span class="tabla-tag tag-acreditacion">Graduados</span>
+        </div>
+        <table>
+          <tr><th>Columna</th><th>Tipo</th><th>Clave / Mod</th></tr>
+          <tr><td class="col-nombre">id</td><td class="col-tipo">UUID</td><td class="col-clave"><span class="badge-pk">PK</span></td></tr>
+          <tr><td class="col-nombre">ceremonia_id</td><td class="col-tipo">UUID</td><td class="col-clave"><span class="badge-fk">FK ceremonias</span></td></tr>
+          <tr><td class="col-nombre">token</td><td class="col-tipo">VARCHAR(32)</td><td class="col-clave"><span class="badge-uk">UK</span></td></tr>
+          <tr><td class="col-nombre">nombre</td><td class="col-tipo">VARCHAR(150)</td><td class="col-clave">NN</td></tr>
+          <tr><td class="col-nombre">legajo</td><td class="col-tipo">VARCHAR(50)</td><td class="col-clave">NN</td></tr>
+          <tr><td class="col-nombre">dni</td><td class="col-tipo">VARCHAR(20)</td><td class="col-clave">NN</td></tr>
+          <tr><td class="col-nombre">correo</td><td class="col-tipo">VARCHAR(150)</td><td class="col-clave">NN</td></tr>
+          <tr><td class="col-nombre">telefono</td><td class="col-tipo">VARCHAR(50)</td><td class="col-clave">NULL</td></tr>
+          <tr><td class="col-nombre">estado</td><td class="col-tipo">ENUM estado_egresado</td><td class="col-clave">DEF 'PENDIENTE'</td></tr>
+          <tr><td class="col-nombre">promedio</td><td class="col-tipo">NUMERIC(4,2)</td><td class="col-clave">CHECK 0..10</td></tr>
+          <tr><td class="col-nombre">asiento_id</td><td class="col-tipo">VARCHAR(30)</td><td class="col-clave">NULL</td></tr>
+          <tr><td class="col-nombre">creado_en</td><td class="col-tipo">TIMESTAMPTZ</td><td class="col-clave">DEFAULT now()</td></tr>
+        </table>
+      </div>
+
+      <!-- 3. invitados -->
+      <div class="tabla-card">
+        <div class="tabla-card-header">
+          <span class="tabla-nombre">invitados</span>
+          <span class="tabla-tag tag-acreditacion">Portería</span>
+        </div>
+        <table>
+          <tr><th>Columna</th><th>Tipo</th><th>Clave / Mod</th></tr>
+          <tr><td class="col-nombre">id</td><td class="col-tipo">UUID</td><td class="col-clave"><span class="badge-pk">PK</span></td></tr>
+          <tr><td class="col-nombre">egresado_id</td><td class="col-tipo">UUID</td><td class="col-clave"><span class="badge-fk">FK egresados</span></td></tr>
+          <tr><td class="col-nombre">nombre</td><td class="col-tipo">VARCHAR(150)</td><td class="col-clave">NN</td></tr>
+          <tr><td class="col-nombre">dni</td><td class="col-tipo">VARCHAR(20)</td><td class="col-clave">NN</td></tr>
+          <tr><td class="col-nombre">telefono</td><td class="col-tipo">VARCHAR(50)</td><td class="col-clave">NULL</td></tr>
+          <tr><td class="col-nombre">correo</td><td class="col-tipo">VARCHAR(150)</td><td class="col-clave">NULL</td></tr>
+          <tr><td class="col-nombre">relacion</td><td class="col-tipo">VARCHAR(80)</td><td class="col-clave">NULL</td></tr>
+          <tr><td class="col-nombre">asiento_id</td><td class="col-tipo">VARCHAR(30)</td><td class="col-clave">NULL</td></tr>
+          <tr><td class="col-nombre">discapacidad</td><td class="col-tipo">BOOLEAN</td><td class="col-clave">DEF FALSE</td></tr>
+          <tr><td class="col-nombre">presente</td><td class="col-tipo">BOOLEAN</td><td class="col-clave">DEF FALSE (QR)</td></tr>
+          <tr><td class="col-nombre">fecha_presente</td><td class="col-tipo">TIMESTAMPTZ</td><td class="col-clave">NULL</td></tr>
+          <tr><td class="col-nombre">creado_en</td><td class="col-tipo">TIMESTAMPTZ</td><td class="col-clave">DEFAULT now()</td></tr>
+        </table>
+      </div>
+
+      <!-- 4. padrinos -->
+      <div class="tabla-card">
+        <div class="tabla-card-header">
+          <span class="tabla-nombre">padrinos</span>
+          <span class="tabla-tag tag-acreditacion">Entregadores</span>
+        </div>
+        <table>
+          <tr><th>Columna</th><th>Tipo</th><th>Clave / Mod</th></tr>
+          <tr><td class="col-nombre">id</td><td class="col-tipo">UUID</td><td class="col-clave"><span class="badge-pk">PK</span></td></tr>
+          <tr><td class="col-nombre">egresado_id</td><td class="col-tipo">UUID</td><td class="col-clave"><span class="badge-fk">FK egresados</span></td></tr>
+          <tr><td class="col-nombre">tipo</td><td class="col-tipo">ENUM tipo_padrino</td><td class="col-clave">PROFESOR/FAM/EXT</td></tr>
+          <tr><td class="col-nombre">profesor_id</td><td class="col-tipo">UUID</td><td class="col-clave"><span class="badge-fk">FK profesores</span></td></tr>
+          <tr><td class="col-nombre">invitado_id</td><td class="col-tipo">UUID</td><td class="col-clave"><span class="badge-fk">FK invitados</span></td></tr>
+          <tr><td class="col-nombre">nombre</td><td class="col-tipo">VARCHAR(150)</td><td class="col-clave">Para tipo EXTERNO</td></tr>
+          <tr><td class="col-nombre">asiento_id</td><td class="col-tipo">VARCHAR(30)</td><td class="col-clave">NULL</td></tr>
+          <tr><td class="col-nombre">orden</td><td class="col-tipo">INT</td><td class="col-clave"><span class="badge-uk">UK (egresado, orden)</span></td></tr>
+          <tr><td class="col-nombre">creado_en</td><td class="col-tipo">TIMESTAMPTZ</td><td class="col-clave">DEFAULT now()</td></tr>
+        </table>
+      </div>
+
+      <!-- 5. profesores -->
+      <div class="tabla-card">
+        <div class="tabla-card-header">
+          <span class="tabla-nombre">profesores</span>
+          <span class="tabla-tag tag-core">Docentes</span>
+        </div>
+        <table>
+          <tr><th>Columna</th><th>Tipo</th><th>Clave / Mod</th></tr>
+          <tr><td class="col-nombre">id</td><td class="col-tipo">UUID</td><td class="col-clave"><span class="badge-pk">PK</span></td></tr>
+          <tr><td class="col-nombre">nombre</td><td class="col-tipo">VARCHAR(150)</td><td class="col-clave">NN</td></tr>
+          <tr><td class="col-nombre">dni</td><td class="col-tipo">VARCHAR(20)</td><td class="col-clave"><span class="badge-uk">UK</span></td></tr>
+          <tr><td class="col-nombre">materia</td><td class="col-tipo">VARCHAR(150)</td><td class="col-clave">NN</td></tr>
+          <tr><td class="col-nombre">activo</td><td class="col-tipo">BOOLEAN</td><td class="col-clave">DEF TRUE</td></tr>
+          <tr><td class="col-nombre">creado_en</td><td class="col-tipo">TIMESTAMPTZ</td><td class="col-clave">DEFAULT now()</td></tr>
+        </table>
+      </div>
+
+      <!-- 6. usuarios -->
+      <div class="tabla-card">
+        <div class="tabla-card-header">
+          <span class="tabla-nombre">usuarios</span>
+          <span class="tabla-tag tag-seguridad">Seguridad</span>
+        </div>
+        <table>
+          <tr><th>Columna</th><th>Tipo</th><th>Clave / Mod</th></tr>
+          <tr><td class="col-nombre">id</td><td class="col-tipo">UUID</td><td class="col-clave"><span class="badge-pk">PK</span></td></tr>
+          <tr><td class="col-nombre">nombre</td><td class="col-tipo">VARCHAR(150)</td><td class="col-clave">NN</td></tr>
+          <tr><td class="col-nombre">email</td><td class="col-tipo">VARCHAR(150)</td><td class="col-clave"><span class="badge-uk">UK</span></td></tr>
+          <tr><td class="col-nombre">password_hash</td><td class="col-tipo">VARCHAR(255)</td><td class="col-clave">bcrypt</td></tr>
+          <tr><td class="col-nombre">rol</td><td class="col-tipo">ENUM rol_usuario</td><td class="col-clave">ADMIN/OPER/PORT</td></tr>
+          <tr><td class="col-nombre">activo</td><td class="col-tipo">BOOLEAN</td><td class="col-clave">DEF TRUE</td></tr>
+          <tr><td class="col-nombre">creado_en</td><td class="col-tipo">TIMESTAMPTZ</td><td class="col-clave">DEFAULT now()</td></tr>
+          <tr><td class="col-nombre">actualizado_en</td><td class="col-tipo">TIMESTAMPTZ</td><td class="col-clave">TRIGGER auto</td></tr>
+        </table>
+      </div>
+
+      <!-- 7. otp_historial -->
+      <div class="tabla-card">
+        <div class="tabla-card-header">
+          <span class="tabla-nombre">otp_historial</span>
+          <span class="tabla-tag tag-seguridad">OTP</span>
+        </div>
+        <table>
+          <tr><th>Columna</th><th>Tipo</th><th>Clave / Mod</th></tr>
+          <tr><td class="col-nombre">id</td><td class="col-tipo">BIGSERIAL</td><td class="col-clave"><span class="badge-pk">PK</span></td></tr>
+          <tr><td class="col-nombre">egresado_id</td><td class="col-tipo">UUID</td><td class="col-clave"><span class="badge-fk">FK egresados</span></td></tr>
+          <tr><td class="col-nombre">otp_hash</td><td class="col-tipo">VARCHAR(64)</td><td class="col-clave">SHA-256</td></tr>
+          <tr><td class="col-nombre">ip_origen</td><td class="col-tipo">VARCHAR(45)</td><td class="col-clave">IPv4 / IPv6</td></tr>
+          <tr><td class="col-nombre">resultado</td><td class="col-tipo">ENUM resultado_otp</td><td class="col-clave">DEF 'ENVIADO'</td></tr>
+          <tr><td class="col-nombre">solicitado_en</td><td class="col-tipo">TIMESTAMPTZ</td><td class="col-clave">DEFAULT now()</td></tr>
+          <tr><td class="col-nombre">verificado_en</td><td class="col-tipo">TIMESTAMPTZ</td><td class="col-clave">NULL</td></tr>
+        </table>
+      </div>
+
+      <!-- 8. configuracion_anfiteatro -->
+      <div class="tabla-card">
+        <div class="tabla-card-header">
+          <span class="tabla-nombre">configuracion_anfiteatro</span>
+          <span class="tabla-tag tag-core">Mapa</span>
+        </div>
+        <table>
+          <tr><th>Columna</th><th>Tipo</th><th>Clave / Mod</th></tr>
+          <tr><td class="col-nombre">id</td><td class="col-tipo">BIGSERIAL</td><td class="col-clave"><span class="badge-pk">PK</span></td></tr>
+          <tr><td class="col-nombre">ceremonia_id</td><td class="col-tipo">UUID</td><td class="col-clave"><span class="badge-fk">FK ceremonias</span></td></tr>
+          <tr><td class="col-nombre">estructura</td><td class="col-tipo">JSONB</td><td class="col-clave">Filas, butacas, coord</td></tr>
+          <tr><td class="col-nombre">mapa_roles</td><td class="col-tipo">JSONB</td><td class="col-clave">Sectores asignados</td></tr>
+          <tr><td class="col-nombre">actualizado_en</td><td class="col-tipo">TIMESTAMPTZ</td><td class="col-clave">TRIGGER auto</td></tr>
+        </table>
+      </div>
+
+      <!-- 9. configuracion_sistema -->
+      <div class="tabla-card">
+        <div class="tabla-card-header">
+          <span class="tabla-nombre">configuracion_sistema</span>
+          <span class="tabla-tag tag-sistema">Ajustes</span>
+        </div>
+        <table>
+          <tr><th>Columna</th><th>Tipo</th><th>Clave / Mod</th></tr>
+          <tr><td class="col-nombre">clave</td><td class="col-tipo">VARCHAR(100)</td><td class="col-clave"><span class="badge-pk">PK</span></td></tr>
+          <tr><td class="col-nombre">valor</td><td class="col-tipo">TEXT</td><td class="col-clave">NN</td></tr>
+          <tr><td class="col-nombre">descripcion</td><td class="col-tipo">TEXT</td><td class="col-clave">NULL</td></tr>
+          <tr><td class="col-nombre">actualizado_en</td><td class="col-tipo">TIMESTAMPTZ</td><td class="col-clave">TRIGGER auto</td></tr>
+        </table>
+      </div>
+
+      <!-- 10. logs_auditoria -->
+      <div class="tabla-card">
+        <div class="tabla-card-header">
+          <span class="tabla-nombre">logs_auditoria</span>
+          <span class="tabla-tag tag-sistema">Auditoría</span>
+        </div>
+        <table>
+          <tr><th>Columna</th><th>Tipo</th><th>Clave / Mod</th></tr>
+          <tr><td class="col-nombre">id</td><td class="col-tipo">BIGSERIAL</td><td class="col-clave"><span class="badge-pk">PK</span></td></tr>
+          <tr><td class="col-nombre">usuario_id</td><td class="col-tipo">UUID</td><td class="col-clave"><span class="badge-fk">FK usuarios (Null)</span></td></tr>
+          <tr><td class="col-nombre">accion</td><td class="col-tipo">ENUM tipo_log</td><td class="col-clave">INSERT/UPDATE/DEL</td></tr>
+          <tr><td class="col-nombre">tabla_afectada</td><td class="col-tipo">VARCHAR(60)</td><td class="col-clave">NN</td></tr>
+          <tr><td class="col-nombre">registro_afectado</td><td class="col-tipo">UUID</td><td class="col-clave">ID del registro</td></tr>
+          <tr><td class="col-nombre">valores_anteriores</td><td class="col-tipo">JSONB</td><td class="col-clave">Snapshot previo</td></tr>
+          <tr><td class="col-nombre">valores_nuevos</td><td class="col-tipo">JSONB</td><td class="col-clave">Snapshot posterior</td></tr>
+          <tr><td class="col-nombre">ip_origen</td><td class="col-tipo">VARCHAR(45)</td><td class="col-clave">IPv4 / IPv6</td></tr>
+          <tr><td class="col-nombre">fecha</td><td class="col-tipo">TIMESTAMPTZ</td><td class="col-clave">DEFAULT now()</td></tr>
+        </table>
+      </div>
+
     </div>
 
-    <!-- ========================================== -->
-    <!-- 1. INTRODUCCION Y MODELO CONCEPTUAL        -->
-    <!-- ========================================== -->
-    <h1>1. Introduccion y Alcance del Sistema</h1>
-    <p>
-      El sistema <strong>SiGIC (Sistema de Gestion Institucional de Colaciones)</strong> automatiza la organizacion integral de los actos de graduacion del <strong>Instituto Tecnologico Beltran</strong>: administracion de ceremonias, importacion masiva de padrones academicos, asignacion de butacas en anfiteatro, confirmacion de egresados mediante acceso passwordless (OTP) y acreditacion movil con codigo QR el dia del evento.
-    </p>
-
-    <div class="box-resumen">
-      <strong>Criterios de Diseno de la Base de Datos:</strong>
-      <ul>
-        <li><strong>Tercera Forma Normal (3FN):</strong> Estructura relacional atomica sin redundancias ni anomalias operativas.</li>
-        <li><strong>Identificadores UUID v4:</strong> Claves primarias universales que previenen ataques de enumeracion en credenciales QR.</li>
-        <li><strong>Acceso Passwordless:</strong> Codigos efimeros de 6 digitos hasheados con SHA-256 e historial de expiracion a los 10 minutos.</li>
-        <li><strong>Integridad Referencial:</strong> Relaciones con reglas <code>ON DELETE CASCADE</code> y <code>ON DELETE SET NULL</code> bien delimitadas.</li>
-        <li><strong>Modo Mantenimiento:</strong> Parametrizacion para suspender el portal publico durante tareas tecnicas sin bloquear a los administradores.</li>
-      </ul>
-    </div>
-
-    <h1>2. Diagrama de Clases del Dominio</h1>
-    <div class="diagrama-box">
-      <img src="diagrama_clases_sigic.png" alt="Diagrama de Clases SiGIC" class="diagrama-img">
-      <div class="diagrama-epigrafe">Figura 1: Diagrama de Clases y Estructuras de Dominio de SiGIC.</div>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- 3. MODELO LOGICO RELACIONAL                -->
-    <!-- ========================================== -->
-    <div class="salto"></div>
-    <h1>3. Modelo Logico Relacional (Notacion Formal)</h1>
-    <div class="box-resumen" style="font-family: Consolas, monospace; font-size: 8pt; line-height: 1.5;">
-      <strong>USUARIOS</strong> (<u>id</u>, nombre, email, password_hash, rol, activo, creado_en, actualizado_en)<br>
-      <strong>CEREMONIAS</strong> (<u>id</u>, nombre, fecha, lugar, max_invitados, max_padrinos, activa, creado_en)<br>
-      <strong>PROFESORES</strong> (<u>id</u>, nombre, dni, materia, activo, creado_en)<br>
-      <strong>EGRESADOS</strong> (<u>id</u>, <em>ceremonia_id*</em>, token, nombre, legajo, dni, correo, telefono, estado, promedio, asiento_id, creado_en)<br>
-      <strong>INVITADOS</strong> (<u>id</u>, <em>egresado_id*</em>, nombre, dni, telefono, correo, relacion, asiento_id, discapacidad, presente, fecha_presente, creado_en)<br>
-      <strong>PADRINOS</strong> (<u>id</u>, <em>egresado_id*</em>, tipo, <em>profesor_id*</em>, <em>invitado_id*</em>, nombre, asiento_id, orden, creado_en)<br>
-      <strong>OTP_HISTORIAL</strong> (<u>id</u>, <em>egresado_id*</em>, otp_hash, ip_origen, resultado, solicitado_en, verificado_en)<br>
-      <strong>CONFIGURACION_ANFITEATRO</strong> (<u>id</u>, <em>ceremonia_id*</em>, estructura, mapa_roles, actualizado_en)<br>
-      <strong>CONFIGURACION_SISTEMA</strong> (<u>clave</u>, valor, descripcion, actualizado_en)<br>
-      <strong>LOGS_AUDITORIA</strong> (<u>id</u>, <em>usuario_id*</em>, accion, tabla_afectada, registro_afectado, valores_anteriores, valores_nuevos, ip_origen, fecha)
-    </div>
-
-    <!-- ========================================== -->
-    <!-- 4. DICCIONARIO DE DATOS SINTETICO          -->
-    <!-- ========================================== -->
-    <h1>4. Diccionario de Datos</h1>
-
-    <div class="no-quiebre">
-      <h3>4.1. Tabla: usuarios</h3>
-      <table>
-        <thead>
-          <tr><th>Campo</th><th>Tipo</th><th>Nulo</th><th>Clave</th><th>Descripcion</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>id</td><td>UUID</td><td>No</td><td class="pk">PK</td><td>Identificador unico (UUID v4)</td></tr>
-          <tr><td>nombre</td><td>VARCHAR(150)</td><td>No</td><td></td><td>Nombre y apellido del operador</td></tr>
-          <tr><td>email</td><td>VARCHAR(150)</td><td>No</td><td class="uq">UQ</td><td>Correo electronico de acceso institucional</td></tr>
-          <tr><td>password_hash</td><td>VARCHAR(255)</td><td>No</td><td></td><td>Hash criptografico de la contrasena</td></tr>
-          <tr><td>rol</td><td>rol_usuario (ENUM)</td><td>No</td><td></td><td>'ADMIN', 'ADMINISTRATIVO', 'PORTERIA'</td></tr>
-          <tr><td>activo</td><td>BOOLEAN</td><td>No</td><td></td><td>Estado habilitado (default TRUE)</td></tr>
-          <tr><td>creado_en</td><td>TIMESTAMPTZ</td><td>No</td><td></td><td>Timestamp de creacion</td></tr>
-          <tr><td>actualizado_en</td><td>TIMESTAMPTZ</td><td>No</td><td></td><td>Timestamp de ultima modificacion</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="no-quiebre">
-      <h3>4.2. Tabla: ceremonias</h3>
-      <table>
-        <thead>
-          <tr><th>Campo</th><th>Tipo</th><th>Nulo</th><th>Clave</th><th>Descripcion</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>id</td><td>UUID</td><td>No</td><td class="pk">PK</td><td>Identificador unico de la ceremonia</td></tr>
-          <tr><td>nombre</td><td>VARCHAR(200)</td><td>No</td><td></td><td>Denominacion formal del acto</td></tr>
-          <tr><td>fecha</td><td>DATE</td><td>No</td><td></td><td>Fecha del evento</td></tr>
-          <tr><td>lugar</td><td>VARCHAR(200)</td><td>No</td><td></td><td>Sede o anfiteatro</td></tr>
-          <tr><td>max_invitados</td><td>INT</td><td>No</td><td></td><td>Cupo maximo de invitados por graduado (CHECK >= 0)</td></tr>
-          <tr><td>max_padrinos</td><td>INT</td><td>No</td><td></td><td>Cupo maximo de entregadores (CHECK >= 0)</td></tr>
-          <tr><td>activa</td><td>BOOLEAN</td><td>No</td><td></td><td>Ceremonia activa (maximo 1 activa mediante indice parcial)</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="salto"></div>
-    <div class="no-quiebre">
-      <h3>4.3. Tabla: egresados</h3>
-      <table>
-        <thead>
-          <tr><th>Campo</th><th>Tipo</th><th>Nulo</th><th>Clave</th><th>Descripcion</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>id</td><td>UUID</td><td>No</td><td class="pk">PK</td><td>Identificador del graduado</td></tr>
-          <tr><td>ceremonia_id</td><td>UUID</td><td>No</td><td class="fk">FK</td><td>Ref: ceremonias(id) ON DELETE CASCADE</td></tr>
-          <tr><td>token</td><td>VARCHAR(32)</td><td>No</td><td class="uq">UQ</td><td>Token para acceso directo sin clave</td></tr>
-          <tr><td>nombre</td><td>VARCHAR(150)</td><td>No</td><td></td><td>Apellido y nombres del graduado</td></tr>
-          <tr><td>legajo</td><td>VARCHAR(50)</td><td>No</td><td></td><td>Legajo academico institucional</td></tr>
-          <tr><td>dni</td><td>VARCHAR(20)</td><td>No</td><td class="uq">UQ*</td><td>DNI (restriccion UNIQUE con ceremonia_id)</td></tr>
-          <tr><td>correo</td><td>VARCHAR(150)</td><td>No</td><td></td><td>Correo para invitaciones y codigo OTP</td></tr>
-          <tr><td>estado</td><td>estado_egresado (ENUM)</td><td>No</td><td></td><td>'PENDIENTE', 'ACEPTADO', 'RECHAZADO'</td></tr>
-          <tr><td>promedio</td><td>NUMERIC(4,2)</td><td>Si</td><td></td><td>Promedio academico general (0 a 10)</td></tr>
-          <tr><td>asiento_id</td><td>VARCHAR(30)</td><td>Si</td><td></td><td>Identificador de butaca en anfiteatro</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="no-quiebre">
-      <h3>4.4. Tabla: invitados</h3>
-      <table>
-        <thead>
-          <tr><th>Campo</th><th>Tipo</th><th>Nulo</th><th>Clave</th><th>Descripcion</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>id</td><td>UUID</td><td>No</td><td class="pk">PK</td><td>Identificador unico del invitado</td></tr>
-          <tr><td>egresado_id</td><td>UUID</td><td>No</td><td class="fk">FK</td><td>Ref: egresados(id) ON DELETE CASCADE</td></tr>
-          <tr><td>nombre</td><td>VARCHAR(150)</td><td>No</td><td></td><td>Nombre completo del invitado</td></tr>
-          <tr><td>dni</td><td>VARCHAR(20)</td><td>No</td><td class="uq">UQ*</td><td>DNI (restriccion UNIQUE con egresado_id)</td></tr>
-          <tr><td>relacion</td><td>VARCHAR(80)</td><td>Si</td><td></td><td>Vinculo familiar o afectivo</td></tr>
-          <tr><td>asiento_id</td><td>VARCHAR(30)</td><td>Si</td><td></td><td>Butaca asignada</td></tr>
-          <tr><td>discapacidad</td><td>BOOLEAN</td><td>No</td><td></td><td>Requiere butaca con accesibilidad motriz</td></tr>
-          <tr><td>presente</td><td>BOOLEAN</td><td>No</td><td></td><td>Acreditado en el acceso por escaneo QR</td></tr>
-          <tr><td>fecha_presente</td><td>TIMESTAMPTZ</td><td>Si</td><td></td><td>Hora exacta del ingreso</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="no-quiebre">
-      <h3>4.5. Tabla: profesores y padrinos</h3>
-      <table>
-        <thead>
-          <tr><th>Tabla</th><th>Campos Principales</th><th>Restriccion y Consistencia</th></tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>profesores</strong></td>
-            <td>id (PK), nombre, dni (UQ), materia, activo</td>
-            <td>Cuerpo docente habilitado para entrega de diplomas</td>
-          </tr>
-          <tr>
-            <td><strong>padrinos</strong></td>
-            <td>id (PK), egresado_id (FK), tipo (ENUM), profesor_id (FK), invitado_id (FK), nombre, orden</td>
-            <td>CHECK polimorfico: profesor_id NOT NULL si es PROFESOR, invitado_id NOT NULL si es FAMILIAR, nombre NOT NULL si es EXTERNO</td>
-          </tr>
-          <tr>
-            <td><strong>otp_historial</strong></td>
-            <td>id (PK), egresado_id (FK), otp_hash, ip_origen, resultado (ENUM), solicitado_en, verificado_en</td>
-            <td>Control de acceso passwordless con hash SHA-256</td>
-          </tr>
-          <tr>
-            <td><strong>configuracion_sistema</strong></td>
-            <td>clave (PK), valor, descripcion, actualizado_en</td>
-            <td>Parametros globales y switch 'modo_mantenimiento'</td>
-          </tr>
-          <tr>
-            <td><strong>logs_auditoria</strong></td>
-            <td>id (PK), usuario_id (FK), accion, tabla_afectada, registro_afectado, valores_anteriores, valores_nuevos, fecha</td>
-            <td>Auditoria inmutable de mutaciones criticas</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- ========================================== -->
-    <!-- 5. SCRIPT DDL COMPLETO                     -->
-    <!-- ========================================== -->
-    <div class="salto"></div>
-    <h1>5. Script DDL y Datos Semilla para PostgreSQL</h1>
-    <p>
-      Script completo y ejecutable en Neon PostgreSQL / PostgreSQL 14+:
-    </p>
-
-    <pre><code>-- 1. EXTENSIONES
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-
--- 2. TIPOS ENUMERADOS
-DO $$ BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'rol_usuario') THEN
-        CREATE TYPE rol_usuario AS ENUM ('ADMIN', 'ADMINISTRATIVO', 'PORTERIA');
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'estado_egresado') THEN
-        CREATE TYPE estado_egresado AS ENUM ('PENDIENTE', 'ACEPTADO', 'RECHAZADO');
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'tipo_padrino') THEN
-        CREATE TYPE tipo_padrino AS ENUM ('PROFESOR', 'FAMILIAR', 'EXTERNO');
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'resultado_otp') THEN
-        CREATE TYPE resultado_otp AS ENUM ('ENVIADO', 'VERIFICADO', 'FALLIDO', 'EXPIRADO');
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'tipo_log') THEN
-        CREATE TYPE tipo_log AS ENUM ('INSERT', 'UPDATE', 'DELETE', 'LOGIN', 'LOGOUT');
-    END IF;
-END $$;
-
--- 3. FUNCION DISPARADORA DE MARCA TEMPORAL
-CREATE OR REPLACE FUNCTION fn_actualizar_timestamp()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.actualizado_en = CURRENT_TIMESTAMP;
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
--- 4. TABLAS E INDICES
-CREATE TABLE IF NOT EXISTS usuarios (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    nombre VARCHAR(150) NOT NULL,
-    email VARCHAR(150) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
-    rol rol_usuario NOT NULL DEFAULT 'ADMINISTRATIVO',
-    activo BOOLEAN NOT NULL DEFAULT TRUE,
-    creado_en TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    actualizado_en TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE OR REPLACE TRIGGER trg_actualizar_usuarios
-    BEFORE UPDATE ON usuarios
-    FOR EACH ROW EXECUTE FUNCTION fn_actualizar_timestamp();
-
-CREATE TABLE IF NOT EXISTS ceremonias (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    nombre VARCHAR(200) NOT NULL,
-    fecha DATE NOT NULL,
-    lugar VARCHAR(200) NOT NULL DEFAULT 'Sede Beltran',
-    max_invitados INT NOT NULL DEFAULT 4 CHECK (max_invitados >= 0),
-    max_padrinos INT NOT NULL DEFAULT 3 CHECK (max_padrinos >= 0),
-    activa BOOLEAN NOT NULL DEFAULT FALSE,
-    creado_en TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE UNIQUE INDEX IF NOT EXISTS idx_ceremonias_activa_unica 
-    ON ceremonias ((activa)) WHERE activa = TRUE;
-
-CREATE TABLE IF NOT EXISTS profesores (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    nombre VARCHAR(150) NOT NULL,
-    dni VARCHAR(20) NOT NULL UNIQUE,
-    materia VARCHAR(150) NOT NULL,
-    activo BOOLEAN NOT NULL DEFAULT TRUE,
-    creado_en TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS egresados (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    ceremonia_id UUID NOT NULL REFERENCES ceremonias(id) ON DELETE CASCADE,
-    token VARCHAR(32) NOT NULL UNIQUE,
-    nombre VARCHAR(150) NOT NULL,
-    legajo VARCHAR(50) NOT NULL,
-    dni VARCHAR(20) NOT NULL,
-    correo VARCHAR(150) NOT NULL,
-    telefono VARCHAR(50),
-    estado estado_egresado NOT NULL DEFAULT 'PENDIENTE',
-    promedio NUMERIC(4,2) CHECK (promedio >= 0 AND promedio <= 10),
-    asiento_id VARCHAR(30),
-    creado_en TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT uq_egresado_ceremonia_dni UNIQUE (ceremonia_id, dni)
-);
-
-CREATE TABLE IF NOT EXISTS invitados (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    egresado_id UUID NOT NULL REFERENCES egresados(id) ON DELETE CASCADE,
-    nombre VARCHAR(150) NOT NULL,
-    dni VARCHAR(20) NOT NULL,
-    telefono VARCHAR(50),
-    correo VARCHAR(150),
-    relacion VARCHAR(80),
-    asiento_id VARCHAR(30),
-    discapacidad BOOLEAN NOT NULL DEFAULT FALSE,
-    presente BOOLEAN NOT NULL DEFAULT FALSE,
-    fecha_presente TIMESTAMPTZ,
-    creado_en TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT uq_invitado_egresado_dni UNIQUE (egresado_id, dni)
-);
-
-CREATE TABLE IF NOT EXISTS padrinos (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    egresado_id UUID NOT NULL REFERENCES egresados(id) ON DELETE CASCADE,
-    tipo tipo_padrino NOT NULL,
-    profesor_id UUID REFERENCES profesores(id) ON DELETE SET NULL,
-    invitado_id UUID REFERENCES invitados(id) ON DELETE SET NULL,
-    nombre VARCHAR(150),
-    asiento_id VARCHAR(30),
-    orden INT NOT NULL DEFAULT 1 CHECK (orden > 0),
-    creado_en TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT uq_padrino_orden UNIQUE (egresado_id, orden),
-    CONSTRAINT ck_padrino_consistencia CHECK (
-        (tipo = 'PROFESOR' AND profesor_id IS NOT NULL) OR
-        (tipo = 'FAMILIAR' AND invitado_id IS NOT NULL) OR
-        (tipo = 'EXTERNO'  AND nombre IS NOT NULL)
-    )
-);
-
-CREATE TABLE IF NOT EXISTS otp_historial (
-    id BIGSERIAL PRIMARY KEY,
-    egresado_id UUID NOT NULL REFERENCES egresados(id) ON DELETE CASCADE,
-    otp_hash VARCHAR(64) NOT NULL,
-    ip_origen VARCHAR(45),
-    resultado resultado_otp NOT NULL DEFAULT 'ENVIADO',
-    solicitado_en TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
-    verificado_en TIMESTAMPTZ
-);
-
-CREATE TABLE IF NOT EXISTS configuracion_anfiteatro (
-    id BIGSERIAL PRIMARY KEY,
-    ceremonia_id UUID NOT NULL REFERENCES ceremonias(id) ON DELETE CASCADE,
-    estructura JSONB NOT NULL DEFAULT '{}'::jsonb,
-    mapa_roles JSONB NOT NULL DEFAULT '{}'::jsonb,
-    actualizado_en TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS configuracion_sistema (
-    clave VARCHAR(100) PRIMARY KEY,
-    valor TEXT NOT NULL,
-    descripcion TEXT,
-    actualizado_en TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS logs_auditoria (
-    id BIGSERIAL PRIMARY KEY,
-    usuario_id UUID REFERENCES usuarios(id) ON DELETE SET NULL,
-    accion tipo_log NOT NULL,
-    tabla_afectada VARCHAR(60) NOT NULL,
-    registro_afectado UUID,
-    valores_anteriores JSONB,
-    valores_nuevos JSONB,
-    ip_origen VARCHAR(45),
-    fecha TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX IF NOT EXISTS idx_egresados_token ON egresados(token);
-CREATE INDEX IF NOT EXISTS idx_egresados_dni ON egresados(dni);
-CREATE INDEX IF NOT EXISTS idx_invitados_presente ON invitados(presente);
-CREATE INDEX IF NOT EXISTS idx_logs_fecha ON logs_auditoria(fecha DESC);
-
--- 5. DATOS SEMILLA (SEEDS)
-INSERT INTO configuracion_sistema (clave, valor, descripcion) VALUES
-('modo_mantenimiento', 'false', 'Modo mantenimiento institucional')
-ON CONFLICT (clave) DO NOTHING;
-
-INSERT INTO usuarios (id, nombre, email, password_hash, rol) VALUES
-('11111111-1111-4111-8111-111111111111', 'Administrador SiGIC', 'admin@sigic.com.ar', crypt('Admin2026!', gen_salt('bf', 10)), 'ADMIN')
-ON CONFLICT (email) DO NOTHING;
-
-INSERT INTO ceremonias (id, nombre, fecha, lugar, activa) VALUES
-('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Colacion de Grados 2026 · Analista de Sistemas', '2026-11-20', 'Sede Beltran', TRUE)
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO profesores (id, nombre, dni, materia) VALUES
-('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbb01', 'Ing. Roberto Gomez', '18234567', 'Practica Profesionalizante III')
-ON CONFLICT (dni) DO NOTHING;
-
-INSERT INTO egresados (id, ceremonia_id, token, nombre, legajo, dni, correo, estado, promedio, asiento_id) VALUES
-('cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'token_demo_cancelo_julian_2026', 'Cancelo Julian', 'ITB-8891', '42111222', 'cancelo.julian@sigic.com.ar', 'ACEPTADO', 9.50, 'platea-A-1')
-ON CONFLICT (token) DO NOTHING;
-
-INSERT INTO invitados (id, egresado_id, nombre, dni, relacion, asiento_id, presente) VALUES
-('dddddddd-dddd-4ddd-8ddd-dddddddddd01', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'Marta Gonzalez', '20111222', 'Madre', 'platea-A-2', FALSE)
-ON CONFLICT (egresado_id, dni) DO NOTHING;
-
-INSERT INTO padrinos (id, egresado_id, tipo, profesor_id, orden) VALUES
-('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'PROFESOR', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbb01', 1)
-ON CONFLICT (egresado_id, orden) DO NOTHING;</code></pre>
-
-    <!-- ========================================== -->
-    <!-- 6. OPERACIONES CRUD SINTETICAS             -->
-    <!-- ========================================== -->
-    <div class="salto"></div>
-    <h1>6. Operaciones CRUD Esenciales</h1>
-
-    <div class="no-quiebre">
-      <h2>6.1. Ceremonias: Activacion Atomica</h2>
-      <pre><code>BEGIN;
-UPDATE ceremonias SET activa = FALSE WHERE activa = TRUE;
-UPDATE ceremonias SET activa = TRUE WHERE id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
-COMMIT;</code></pre>
-    </div>
-
-    <div class="no-quiebre">
-      <h2>6.2. Egresados: Carga Masiva (Bulk Insert) y Actualizacion de Estado</h2>
-      <pre><code>-- Bulk Insert desde planilla Excel
-INSERT INTO egresados (ceremonia_id, token, nombre, legajo, dni, correo, promedio)
-VALUES ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', md5(random()::text), 'Cancelo Julian', 'ITB-8891', '42111222', 'julian@sigic.com.ar', 9.50)
-ON CONFLICT (ceremonia_id, dni) DO UPDATE SET promedio = EXCLUDED.promedio;
-
--- Confirmacion de asistencia y reserva de butaca
-UPDATE egresados 
-SET estado = 'ACEPTADO', asiento_id = 'platea-A-1' 
-WHERE id = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';</code></pre>
-    </div>
-
-    <div class="no-quiebre">
-      <h2>6.3. Invitados: Acreditacion QR en Porteria en Tiempo Real</h2>
-      <pre><code>-- Validacion instantanea al escanear credencial QR
-UPDATE invitados
-SET presente = TRUE, fecha_presente = CURRENT_TIMESTAMP
-WHERE id = 'dddddddd-dddd-4ddd-8ddd-dddddddddd01' AND presente = FALSE
-RETURNING nombre, presente, fecha_presente;</code></pre>
-    </div>
-
-    <div class="no-quiebre">
-      <h2>6.4. Autenticacion Passwordless: Verificacion de Codigo OTP (10 Minutos)</h2>
-      <pre><code>-- Validacion del hash SHA-256 dentro de la ventana valida
-UPDATE otp_historial
-SET resultado = 'VERIFICADO', verificado_en = CURRENT_TIMESTAMP
-WHERE id = (
-    SELECT id FROM otp_historial
-    WHERE egresado_id = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc'
-      AND resultado = 'ENVIADO'
-      AND otp_hash = encode(digest('773311', 'sha256'), 'hex')
-      AND solicitado_en >= (CURRENT_TIMESTAMP - INTERVAL '10 minutes')
-    ORDER BY solicitado_en DESC LIMIT 1
-)
-RETURNING resultado, verificado_en;</code></pre>
-    </div>
-
-    <div class="no-quiebre">
-      <h2>6.5. Reporte Analitico de Estrado para Ceremonial y Locucion</h2>
-      <pre><code>SELECT 
-    e.nombre AS egresado,
-    e.promedio,
-    p.orden,
-    CASE 
-        WHEN p.tipo = 'PROFESOR' THEN prof.nombre || ' (Docente - ' || prof.materia || ')'
-        WHEN p.tipo = 'FAMILIAR' THEN inv.nombre || ' (Acompanante - ' || inv.relacion || ')'
-        WHEN p.tipo = 'EXTERNO'  THEN p.nombre || ' (Allegado)'
-    END AS entregador_diploma
-FROM egresados e
-JOIN padrinos p ON p.egresado_id = e.id
-LEFT JOIN profesores prof ON prof.id = p.profesor_id
-LEFT JOIN invitados inv ON inv.id = p.invitado_id
-WHERE e.ceremonia_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
-ORDER BY e.promedio DESC, e.nombre ASC;</code></pre>
-    </div>
-
-    <div class="pie-pagina">
-      <strong>SiGIC — Sistema de Gestion Institucional de Colaciones</strong> · Autor: Cancelo Julian · Analista de Sistemas<br>
-      Instituto Tecnologico Beltran · Avellaneda, Buenos Aires · Ciclo 2026
+    <!-- PIE Y LEYENDA -->
+    <div class="leyenda">
+      <div class="leyenda-item">
+        <span class="badge-pk">PK</span> Clave Primaria (Primary Key)
+      </div>
+      <div class="leyenda-item">
+        <span class="badge-fk">FK</span> Clave Foránea con Integridad Referencial
+      </div>
+      <div class="leyenda-item">
+        <span class="badge-uk">UK</span> Restricción de Unicidad (Unique Index)
+      </div>
+      <div class="leyenda-item">
+        <strong>1:N / 1:1</strong> Cardinalidad Formal en Tercera Forma Normal (3FN)
+      </div>
+      <div>
+        Documentación Técnica Oficial · <strong>SiGIC</strong>
+      </div>
     </div>
 
   </div>
