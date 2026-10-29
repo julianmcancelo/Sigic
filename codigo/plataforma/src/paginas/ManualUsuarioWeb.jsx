@@ -1948,6 +1948,16 @@ export function ManualUsuarioWeb({ onVolver, sinHeader }) {
           </div>
         </div>
         <div className="flex items-center gap-2 sm:gap-4">
+          <a
+            href="/manual-minimalista.html"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-[9px] font-bold uppercase tracking-wider text-slate-700 shadow-xs transition hover:bg-slate-50 sm:text-[10px]"
+            title="Abrir edición minimalista optimizada para impresión A4 y ahorro de tóner"
+          >
+            <Printer size={14} />
+            <span className="hidden sm:inline">Imprimir A4</span>
+          </a>
           <button
             type="button"
             onClick={() => setMostrarCredencial(true)}

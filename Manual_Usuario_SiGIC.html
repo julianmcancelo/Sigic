@@ -201,40 +201,90 @@
       transition: background 0.25s ease, color 0.25s ease;
     }
 
-    /* BARRA SUPERIOR FIJA */
+    /* BARRA SUPERIOR FIJA CON GLASSMORPHISM */
     .barra-superior {
       position: sticky;
       top: 0;
       z-index: 100;
-      background: var(--color-primario-oscuro);
+      background: rgba(8, 22, 36, 0.94);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       color: #ffffff;
       padding: 10px 24px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
     }
 
     .marca-barra {
       display: flex;
       align-items: center;
       gap: 12px;
-      font-weight: 800;
-      font-size: 15px;
-      letter-spacing: 0.5px;
     }
 
     .logo-cuadrado {
-      width: 32px;
-      height: 32px;
+      width: 36px;
+      height: 36px;
       background: #ffffff;
-      border-radius: 8px;
+      border-radius: 10px;
+      padding: 4px;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--color-primario);
-      font-weight: 900;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+      border: 1.5px solid rgba(255, 255, 255, 0.4);
+      flex-shrink: 0;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .logo-cuadrado:hover {
+      transform: scale(1.05);
+      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.4);
+    }
+
+    .logo-img-barra {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .titulos-marca-barra {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .nombre-sistema-barra {
       font-size: 16px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      color: #ffffff;
+    }
+
+    .separador-barra {
+      color: var(--color-primario-claro, #38bdf8);
+      font-weight: 900;
+      font-size: 14px;
+    }
+
+    .subtitulo-barra {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #cbd5e1;
+      letter-spacing: 0.2px;
+    }
+
+    .badge-version-barra {
+      background: rgba(56, 189, 248, 0.16);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      color: #7dd3fc;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
     }
 
     .acciones-barra {
@@ -1117,8 +1167,15 @@
   <!-- BARRA SUPERIOR FIJA DE NAVEGACION Y ACCIONES -->
   <header class="barra-superior">
     <div class="marca-barra">
-      <div class="logo-cuadrado">S</div>
-      <span>SiGIC · Manual de Usuario Oficial</span>
+      <div class="logo-cuadrado">
+        <img src="logo-oficial.png" alt="Logo Oficial SiGIC" onerror="this.onerror=null; this.src='/logo-oficial.png';" class="logo-img-barra" />
+      </div>
+      <div class="titulos-marca-barra">
+        <span class="nombre-sistema-barra">SiGIC</span>
+        <span class="separador-barra">·</span>
+        <span class="subtitulo-barra">Manual de Usuario Oficial</span>
+      </div>
+      <span class="badge-version-barra">v5.2.0</span>
     </div>
 
     <div class="acciones-barra">
@@ -1157,6 +1214,10 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
         <span id="texto-boton-tema">Modo</span>
       </button>
+
+      <a href="manual-minimalista.html" class="btn-accion btn-secundario" title="Abrir edición minimalista optimizada para impresión en blanco y negro / ahorro de tóner">
+        Edición Minimalista
+      </a>
 
       <button type="button" class="btn-accion" onclick="window.print();" title="Imprimir o exportar como documento A4 / PDF">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
