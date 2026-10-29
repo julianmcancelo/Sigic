@@ -190,7 +190,52 @@ El **Modo Mantenimiento** es un protocolo de protección preventiva que suspende
 | El graduado rechazó por error. | Completó el flujo de inasistencia. | El administrador puede editar su estado en el panel de graduados para rehabilitar su circuito de inscripción. |
 | La app móvil dice "Servidor no alcanzable". | Celular en red diferente a la de la plataforma. | Conectar el celular a la red Wi-Fi del evento y re-escanear el QR de configuración del servidor. |
 | El QR escaneado da "Denegado". | Credencial de ceremonia anterior o inválida. | Verificar el DNI en el padrón de la ceremonia activa desde el buscador de emergencia. |
+| Un invitado requiere movilidad reducida pero no avisó antes. | Carga tardía del egresado. | Reasignar al invitado en el mapa del anfiteatro a una butaca preferencial (violeta) contigua a las rampas. |
 
 ---
 
-*Manual operativo elaborado para el Instituto Tecnológico Beltrán — Avellaneda, Buenos Aires.*
+## 11. GLOSARIO EN PALABRAS COTIDIANAS
+
+Términos del sistema explicados en lenguaje directo y sencillo, tal como se usan en la operatoria cotidiana del instituto:
+
+*   **Ceremonia Activa:** Es el acto de colación que se realiza hoy. Aunque en el sistema existan actos de años anteriores guardados, el sistema solo procesa las reservas y escaneos de la ceremonia marcada con la estrella de activa.
+*   **Padrón:** La nómina oficial de estudiantes que terminaron la carrera y están habilitados para recibir el diploma, cargada desde una planilla Excel.
+*   **Aforo:** Cantidad máxima de personas permitidas en la sala. Determina cuántos acompañantes puede llevar cada egresado (ejemplo: 2 por graduado).
+*   **Código OTP:** Clave de 6 números enviada al correo del egresado. Sirve para entrar a elegir asientos sin tener que recordar una contraseña fija. Vence a los 10 minutos.
+*   **Token de Acceso:** Enlace privado y único que se envía al alumno. Al hacer clic, ingresa directo a su panel sin pedirle códigos ni claves.
+*   **Credencial QR:** Tarjeta digital con código cuadrado que el graduado muestra desde la pantalla de su teléfono o impresa en papel para acreditarse en la entrada.
+*   **Pase Grupal:** Modalidad que permite que con el mismo código QR del egresado ingresen él y todos sus acompañantes registrados en conjunto.
+*   **Código Alfanumérico:** Código de 8 letras y números (ejemplo: `BM4600F4`) del comprobante. Si el celular se descarga o la pantalla está rota, el portero lo busca con ese código.
+*   **Butaca Protocolar:** Asientos de las primeras filas pintados de gris oscuro y reservados para autoridades, directivos y docentes.
+*   **Butaca Accesible (Violeta):** Asientos reservados contiguos a rampas y pasillos para personas con movilidad reducida o en silla de ruedas.
+*   **Entregador de Título:** Persona que sube al escenario a entregar el diploma. Puede ser un familiar elegido por el egresado o un docente del instituto.
+*   **Check-in / Acreditación:** Momento en que la persona llega a la puerta del anfiteatro, el portero valida su credencial y el sistema la marca como presente en sala.
+
+---
+
+## 12. BIBLIOGRAFÍA Y MARCO TÉCNICO DE REFERENCIA
+
+*   **ISO/IEC 18004:2015:** Estándar internacional para generación y decodificación de códigos bidimensionales de barras de matriz QR (Quick Response Code).
+*   **RFC 7519 (JSON Web Tokens):** Especificación del IETF para autenticación stateless de sesiones seguras mediante firma criptográfica HMAC SHA-256.
+*   **W3C Web Content Accessibility Guidelines (WCAG 2.1 - Nivel AA):** Criterios de contraste, tamaño de tipografía y accesibilidad universal aplicados a las pantallas de egresados y butacas.
+*   **PostgreSQL Global Development Group (v16):** Manual oficial de administración de base de datos relacional ACID, indexación B-Tree y esquemas serverless en Neon Cloud.
+*   **Next.js 16 App Router & Turbopack Documentation:** Arquitectura moderna de renderizado híbrido en Vercel Edge Network.
+*   **Flutter & Dart Engineering Guidelines (Google):** Arquitectura de aplicaciones móviles compiladas nativamente en Android con aceleración por hardware.
+
+---
+
+## 13. FICHA TÉCNICA INSTITUCIONAL
+
+*   **Institución Académica:** Instituto Tecnológico Beltrán (ITB)
+*   **Carrera:** Tecnicatura Superior en Analista de Sistemas
+*   **Asignatura / Espacio:** Práctica Profesionalizante · Proyecto Final
+*   **Autor y Desarrollador Líder:** Cancelo Julian
+*   **Sistema Oficial:** SiGIC — Sistema de Gestión Institucional de Colaciones
+*   **Ciclo Lectivo:** 2026
+*   **Ubicación:** Avellaneda, Provincia de Buenos Aires, Argentina
+*   **Acceso Web:** `https://app.sigic.com.ar`
+*   **Manual Digital Interactivo:** `https://app.sigic.com.ar/manual`
+
+---
+
+*Manual operativo oficial elaborado para el Instituto Tecnológico Beltrán — Avellaneda, Buenos Aires.*
