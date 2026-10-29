@@ -21,6 +21,7 @@
       --color-texto: #0f172a;
       --color-texto-suave: #475569;
       --color-borde: #e2e8f0;
+      --gradiente-portada: linear-gradient(135deg, #081624 0%, #0d2b45 50%, #0056b3 100%);
       --color-exito-bg: #ecfdf5;
       --color-exito-txt: #065f46;
       --color-exito-borde: #a7f3d0;
@@ -37,23 +38,146 @@
       --fuente-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     }
 
-    body.tema-oscuro {
-      --color-fondo: #0b1329;
-      --color-superficie: #131f3d;
-      --color-texto: #f1f5f9;
+    /* 1. Azul Beltrán (Oficial - Predeterminado) */
+    body.tema-beltran {
+      --color-primario: #0284c7;
+      --color-primario-oscuro: #081624;
+      --color-primario-claro: #00b7d3;
+      --color-acento: #0ea5e9;
+      --color-fondo: #081624;
+      --color-superficie: #0d2b45;
+      --color-texto: #f8fafc;
       --color-texto-suave: #94a3b8;
-      --color-borde: #1e293b;
-      --color-exito-bg: #064e3b;
-      --color-exito-txt: #a7f3d0;
-      --color-exito-borde: #047857;
-      --color-alerta-bg: #78350f;
-      --color-alerta-txt: #fde68a;
-      --color-alerta-borde: #b45309;
-      --color-peligro-bg: #7f1d1d;
-      --color-peligro-txt: #fecaca;
-      --color-peligro-borde: #b91c1c;
-      --sombra-tarjeta: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-      --sombra-elevada: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+      --color-borde: #1e3a5f;
+      --gradiente-portada: linear-gradient(135deg, #081624 0%, #0d2b45 50%, #0070f3 100%);
+      --sombra-tarjeta: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+      --sombra-elevada: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+    }
+
+    /* 2. SiGIC Clásico (Original) */
+    body.tema-original {
+      --color-primario: #0056b3;
+      --color-primario-oscuro: #06194d;
+      --color-primario-claro: #087fbd;
+      --color-acento: #0284c7;
+      --color-fondo: #f8fafc;
+      --color-superficie: #ffffff;
+      --color-texto: #0f172a;
+      --color-texto-suave: #475569;
+      --color-borde: #e2e8f0;
+      --gradiente-portada: linear-gradient(135deg, #06194d 0%, #0c2b6f 50%, #0056b3 100%);
+    }
+
+    /* 3. Obsidiana & Carbón */
+    body.tema-carbon {
+      --color-primario: #64748b;
+      --color-primario-oscuro: #0b0f17;
+      --color-primario-claro: #94a3b8;
+      --color-acento: #94a3b8;
+      --color-fondo: #0b0f17;
+      --color-superficie: #181f2a;
+      --color-texto: #f8fafc;
+      --color-texto-suave: #94a3b8;
+      --color-borde: #273244;
+      --gradiente-portada: linear-gradient(135deg, #0b0f17 0%, #181f2a 50%, #334155 100%);
+    }
+
+    /* 4. Índigo Ceremonial */
+    body.tema-ceremonial {
+      --color-primario: #f59e0b;
+      --color-primario-oscuro: #0f172a;
+      --color-primario-claro: #fbbf24;
+      --color-acento: #f59e0b;
+      --color-fondo: #0f172a;
+      --color-superficie: #1e1b4b;
+      --color-texto: #fffbeb;
+      --color-texto-suave: #cbd5e1;
+      --color-borde: #312e81;
+      --gradiente-portada: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #b45309 100%);
+    }
+
+    /* 5. Medianoche Aurora */
+    body.tema-aurora {
+      --color-primario: #10b981;
+      --color-primario-oscuro: #041c24;
+      --color-primario-claro: #34d399;
+      --color-acento: #10b981;
+      --color-fondo: #041c24;
+      --color-superficie: #083332;
+      --color-texto: #f0fdf4;
+      --color-texto-suave: #a7f3d0;
+      --color-borde: #134e4a;
+      --gradiente-portada: linear-gradient(135deg, #041c24 0%, #083332 50%, #059669 100%);
+    }
+
+    /* 6. Malla Tecnológica (Cybergrid) */
+    body.tema-cybergrid {
+      --color-primario: #38bdf8;
+      --color-primario-oscuro: #051329;
+      --color-primario-claro: #7dd3fc;
+      --color-acento: #0284c7;
+      --color-fondo: #051329;
+      --color-superficie: #082540;
+      --color-texto: #f0f9ff;
+      --color-texto-suave: #94a3b8;
+      --color-borde: #0c4a6e;
+      --gradiente-portada: linear-gradient(135deg, #051329 0%, #082540 50%, #0284c7 100%);
+    }
+
+    /* 7. Ocaso & Cobre (Sunset) */
+    body.tema-sunset {
+      --color-primario: #f97316;
+      --color-primario-oscuro: #1a0f2e;
+      --color-primario-claro: #fb923c;
+      --color-acento: #f97316;
+      --color-fondo: #1a0f2e;
+      --color-superficie: #2a1245;
+      --color-texto: #fff7ed;
+      --color-texto-suave: #cbd5e1;
+      --color-borde: #4c1d95;
+      --gradiente-portada: linear-gradient(135deg, #1a0f2e 0%, #2a1245 50%, #c2410c 100%);
+    }
+
+    /* 8. Esmeralda Académica */
+    body.tema-emerald {
+      --color-primario: #10b981;
+      --color-primario-oscuro: #041f17;
+      --color-primario-claro: #eab308;
+      --color-acento: #10b981;
+      --color-fondo: #041f17;
+      --color-superficie: #083828;
+      --color-texto: #ecfdf5;
+      --color-texto-suave: #a7f3d0;
+      --color-borde: #065f46;
+      --gradiente-portada: linear-gradient(135deg, #041f17 0%, #083828 50%, #047857 100%);
+    }
+
+    /* 9. Zafiro Cósmico */
+    body.tema-sapphire {
+      --color-primario: #3b82f6;
+      --color-primario-oscuro: #0a1128;
+      --color-primario-claro: #60a5fa;
+      --color-acento: #2563eb;
+      --color-fondo: #0a1128;
+      --color-superficie: #001f54;
+      --color-texto: #eff6ff;
+      --color-texto-suave: #93c5fd;
+      --color-borde: #1e40af;
+      --gradiente-portada: linear-gradient(135deg, #0a1128 0%, #001f54 50%, #1d4ed8 100%);
+    }
+
+    /* 10. Blanco Alabastro (Luz Pura) */
+    body.tema-alabaster {
+      --color-primario: #0284c7;
+      --color-primario-oscuro: #0f172a;
+      --color-primario-claro: #38bdf8;
+      --color-acento: #0284c7;
+      --color-fondo: #f8fafc;
+      --color-superficie: #ffffff;
+      --color-texto: #0f172a;
+      --color-texto-suave: #475569;
+      --color-borde: #e2e8f0;
+      --gradiente-portada: linear-gradient(135deg, #0284c7 0%, #0369a1 50%, #075985 100%);
     }
 
     * {
@@ -74,6 +198,7 @@
       font-family: var(--fuente-base);
       font-size: 14px;
       line-height: 1.6;
+      transition: background 0.25s ease, color 0.25s ease;
     }
 
     /* BARRA SUPERIOR FIJA */
@@ -118,7 +243,7 @@
       gap: 10px;
     }
 
-    .selector-indice {
+    .selector-indice, .selector-tema {
       background: rgba(255, 255, 255, 0.12);
       color: #ffffff;
       border: 1px solid rgba(255, 255, 255, 0.25);
@@ -130,8 +255,8 @@
       cursor: pointer;
     }
 
-    .selector-indice option {
-      background: var(--color-primario-oscuro);
+    .selector-indice option, .selector-tema option {
+      background: #081624;
       color: #ffffff;
     }
 
@@ -151,7 +276,7 @@
     }
 
     .btn-accion:hover {
-      background: #0369a1;
+      filter: brightness(1.1);
     }
 
     .btn-accion:active {
@@ -174,92 +299,311 @@
       padding: 0 20px;
     }
 
-    /* PORTADA DEL MANUAL */
+    /* PORTADA DEL MANUAL EJECUTIVA */
     .portada-ejecutiva {
-      background: linear-gradient(135deg, var(--color-primario-oscuro) 0%, #0c2b6f 50%, #0056b3 100%);
+      background: var(--gradiente-portada, linear-gradient(135deg, #081624 0%, #0d2b45 50%, #0056b3 100%));
       color: #ffffff;
       border-radius: 20px;
-      padding: 48px 40px;
+      padding: 40px 36px;
       box-shadow: var(--sombra-elevada);
       margin-bottom: 32px;
       position: relative;
       overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      min-height: 840px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
     .portada-ejecutiva::after {
       content: "";
       position: absolute;
-      top: -40px;
-      right: -40px;
-      width: 260px;
-      height: 260px;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 70%);
+      top: -80px;
+      right: -80px;
+      width: 380px;
+      height: 380px;
+      background: radial-gradient(circle, rgba(56, 189, 248, 0.22) 0%, rgba(255, 255, 255, 0) 70%);
       border-radius: 50%;
       pointer-events: none;
     }
 
-    .cintillo-institucional {
+    .portada-superior {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+      padding-bottom: 22px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .marca-institucional-portada {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .logo-portada-marco {
+      width: 72px;
+      height: 72px;
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      flex-shrink: 0;
+    }
+
+    .logo-portada-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .titulos-institucionales {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .institucion-nombre {
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: #ffffff;
+      margin: 0;
+    }
+
+    .carrera-nombre {
+      font-size: 12px;
+      font-weight: 700;
+      color: #38bdf8;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      margin: 0;
+    }
+
+    .catedra-nombre {
+      font-size: 10px;
+      color: #cbd5e1;
+      letter-spacing: 0.4px;
+      margin: 0;
+    }
+
+    .sello-portada {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+
+    .badge-sello {
+      background: rgba(56, 189, 248, 0.2);
+      border: 1px solid rgba(56, 189, 248, 0.5);
+      color: #e0f2fe;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 4px 12px;
+      border-radius: 20px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+
+    .ciclo-sello {
+      font-size: 11px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: 0.5px;
+    }
+
+    .portada-centro {
+      padding: 24px 0;
+      text-align: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .pill-sistema {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      background: rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.12);
       border: 1px solid rgba(255, 255, 255, 0.25);
-      padding: 4px 14px;
+      padding: 5px 16px;
       border-radius: 20px;
       font-size: 11px;
       font-weight: 800;
-      letter-spacing: 1px;
+      letter-spacing: 1.5px;
       text-transform: uppercase;
-      margin-bottom: 16px;
+      color: #7dd3fc;
+      margin-bottom: 12px;
     }
 
-    .titulo-portada {
-      font-size: 32px;
+    .titulo-portada-gigante {
+      font-size: 52px;
       font-weight: 900;
-      line-height: 1.15;
+      line-height: 1;
+      letter-spacing: -1.5px;
+      margin: 0 0 10px 0;
+      color: #ffffff;
+      text-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .titulo-manual-portada {
+      font-size: 22px;
+      font-weight: 800;
+      color: #ffffff;
       margin: 0 0 8px 0;
-      letter-spacing: -0.5px;
+      letter-spacing: -0.3px;
     }
 
-    .subtitulo-portada {
-      font-size: 16px;
-      font-weight: 600;
+    .subtitulo-manual-portada {
+      font-size: 13.5px;
+      font-weight: 500;
       color: #bae6fd;
-      margin: 0 0 24px 0;
-      line-height: 1.4;
+      max-width: 780px;
+      margin: 0 auto 18px auto;
+      line-height: 1.5;
     }
 
-    .linea-gradiente {
+    .linea-gradiente-portada {
       height: 3px;
-      background: linear-gradient(90deg, #38bdf8 0%, #ffffff 50%, rgba(255,255,255,0) 100%);
+      background: linear-gradient(90deg, rgba(56, 189, 248, 0) 0%, #38bdf8 30%, #ffffff 50%, #38bdf8 70%, rgba(56, 189, 248, 0) 100%);
       border-radius: 2px;
-      margin-bottom: 24px;
+      margin: 16px auto;
+      max-width: 600px;
     }
 
-    .grilla-metadatos-portada {
+    .pills-capacidades {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .pill-capacidad {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 4px 12px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #f1f5f9;
+      letter-spacing: 0.3px;
+    }
+
+    .portada-inferior {
+      border-top: 1px solid rgba(255, 255, 255, 0.18);
+      padding-top: 18px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 24px;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .bloque-equipo-portada {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .titulo-bloque-inferior {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #7dd3fc;
+      margin: 0;
+    }
+
+    .grilla-equipo-portada {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-      gap: 16px;
-      background: rgba(0, 0, 0, 0.25);
-      padding: 16px 20px;
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      gap: 8px 16px;
     }
 
-    .dato-metadato small {
-      display: block;
-      font-size: 10px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: #93c5fd;
+    .miembro-equipo {
+      display: flex;
+      flex-direction: column;
     }
 
-    .dato-metadato span {
-      font-size: 13px;
-      font-weight: 700;
+    .nombre-miembro {
+      font-size: 12.5px;
+      font-weight: 800;
       color: #ffffff;
+    }
+
+    .rol-miembro {
+      font-size: 10.5px;
+      color: #93c5fd;
+      font-weight: 600;
+    }
+
+    .bloque-meta-portada {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      font-size: 11px;
+      color: #cbd5e1;
+      margin-top: 6px;
+      padding-top: 8px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.15);
+    }
+
+    .bloque-meta-portada span strong {
+      color: #ffffff;
+    }
+
+    .tarjeta-qr-portada {
+      background: #ffffff;
+      padding: 10px 12px;
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      width: 140px;
+      flex-shrink: 0;
+    }
+
+    .qr-contenedor {
+      width: 110px;
+      height: 110px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .qr-contenedor svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .qr-texto-portada {
+      font-size: 8.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #06194d;
+      margin-top: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    .qr-subtexto-portada {
+      font-size: 7.5px;
+      color: #475569;
+      margin: 1px 0 0 0;
+      line-height: 1.1;
     }
 
     /* TARJETAS DE SECCION */
@@ -683,13 +1027,13 @@
     @media print {
       @page {
         size: A4 portrait;
-        margin: 12mm 12mm 14mm 12mm;
+        margin: 10mm 12mm 12mm 12mm;
       }
 
       body {
         background: #ffffff !important;
-        color: #000000 !important;
-        font-size: 9.5pt;
+        color: #0f172a !important;
+        font-size: 9.2pt;
         line-height: 1.35;
       }
 
@@ -703,18 +1047,71 @@
         padding: 0 !important;
       }
 
-      .seccion-manual {
-        box-shadow: none !important;
-        border: 1px solid #cbd5e1 !important;
-        padding: 16px !important;
-        margin-bottom: 14px !important;
-        page-break-inside: avoid;
+      .portada-ejecutiva {
+        min-height: 272mm !important;
+        height: 272mm !important;
+        max-height: 272mm !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        page-break-after: always !important;
+        page-break-inside: avoid !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+        padding: 24px 22px !important;
+        background: linear-gradient(135deg, #081624 0%, #0d2b45 50%, #0056b3 100%) !important;
+        color: #ffffff !important;
+        border-radius: 12px !important;
+        border: none !important;
       }
 
-      .portada-ejecutiva {
-        border-radius: 10px !important;
-        padding: 28px !important;
-        page-break-after: always;
+      .portada-ejecutiva * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+
+      .titulo-portada-gigante {
+        font-size: 42px !important;
+      }
+
+      .titulo-manual-portada {
+        font-size: 18px !important;
+      }
+
+      .subtitulo-manual-portada {
+        font-size: 11.5px !important;
+      }
+
+      .seccion-manual {
+        background: #ffffff !important;
+        box-shadow: none !important;
+        border: 1px solid #cbd5e1 !important;
+        padding: 16px 18px !important;
+        margin-bottom: 12px !important;
+        page-break-inside: avoid;
+        color: #0f172a !important;
+      }
+
+      .seccion-manual h2, .seccion-manual h3, .seccion-manual h4 {
+        color: #06194d !important;
+      }
+
+      .seccion-manual p, .seccion-manual li, .seccion-manual td {
+        color: #334155 !important;
+      }
+
+      .tarjeta-paso, .item-faq, .tarjeta-ficha {
+        background: #f8fafc !important;
+        border: 1px solid #cbd5e1 !important;
+        color: #0f172a !important;
+      }
+
+      .campo-ficha span, .tarjeta-paso h4 {
+        color: #06194d !important;
+      }
+
+      .campo-ficha small {
+        color: #475569 !important;
       }
 
       .salto-pagina {
@@ -723,6 +1120,7 @@
 
       .marco-pantalla {
         box-shadow: none !important;
+        border-color: #cbd5e1 !important;
       }
     }
   </style>
@@ -733,34 +1131,47 @@
   <header class="barra-superior">
     <div class="marca-barra">
       <div class="logo-cuadrado">S</div>
-      <span>SiGIC · Manual de Usuario</span>
+      <span>SiGIC · Manual de Usuario Oficial</span>
     </div>
 
     <div class="acciones-barra">
-      <select class="selector-indice" onchange="location.hash = this.value;">
-        <option value="">Ir a una seccion...</option>
-        <option value="#introduccion">1. Introduccion y Proposito</option>
-        <option value="#acceso">2. Acceso e Inicio de Sesion</option>
-        <option value="#ceremonias">3. Activacion de Ceremonia</option>
-        <option value="#padron">4. Padron de Egresados y Despacho</option>
+      <select id="selector-indice" class="selector-indice" onchange="location.hash = this.value;" title="Ir a una sección específica del manual">
+        <option value="">Ir a una sección...</option>
+        <option value="#introduccion">1. Introducción y Propósito</option>
+        <option value="#acceso">2. Acceso e Inicio de Sesión</option>
+        <option value="#ceremonias">3. Activación de Ceremonia</option>
+        <option value="#padron">4. Padrón de Egresados y Despacho</option>
         <option value="#egresados">5. Portal del Egresado (OTP / Token)</option>
         <option value="#anfiteatro">6. Anfiteatro y Butacas</option>
-        <option value="#porteria">7. Acreditacion Movil (Porteria QR)</option>
-        <option value="#contingencia">8. Acreditacion de Contingencia</option>
+        <option value="#porteria">7. Acreditación Móvil (Portería QR)</option>
+        <option value="#contingencia">8. Acreditación de Contingencia</option>
         <option value="#reportes">9. Reportes y Cierre</option>
         <option value="#mantenimiento">10. Modo Mantenimiento</option>
         <option value="#faq">11. Preguntas Frecuentes</option>
         <option value="#glosario">12. Glosario en Palabras Sencillas</option>
-        <option value="#bibliografia">13. Bibliografia y Estandares</option>
-        <option value="#ficha-tecnica">14. Ficha Tecnica Institucional</option>
+        <option value="#bibliografia">13. Bibliografía y Estándares</option>
+        <option value="#ficha-tecnica">14. Ficha Técnica Institucional</option>
       </select>
 
-      <button type="button" class="btn-accion btn-secundario" onclick="alternarTema();">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-        <span>Tema</span>
+      <select id="selector-tema" class="selector-tema" onchange="aplicarTema(this.value);" title="Seleccionar tema visual idéntico a la plataforma">
+        <option value="beltran">Tema: Azul Beltrán (Oficial)</option>
+        <option value="original">Tema: SiGIC Clásico (Original)</option>
+        <option value="carbon">Tema: Obsidiana & Carbón</option>
+        <option value="ceremonial">Tema: Índigo Ceremonial</option>
+        <option value="aurora">Tema: Medianoche Aurora</option>
+        <option value="cybergrid">Tema: Malla Tecnológica</option>
+        <option value="sunset">Tema: Ocaso & Cobre</option>
+        <option value="emerald">Tema: Esmeralda Académica</option>
+        <option value="sapphire">Tema: Zafiro Cósmico</option>
+        <option value="alabaster">Tema: Blanco Alabastro</option>
+      </select>
+
+      <button type="button" class="btn-accion btn-secundario" onclick="alternarModoClaroOscuro();" title="Alternar entre modo claro y oscuro">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+        <span id="texto-boton-tema">Modo</span>
       </button>
 
-      <button type="button" class="btn-accion" onclick="window.print();">
+      <button type="button" class="btn-accion" onclick="window.print();" title="Imprimir o exportar como documento A4 / PDF">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
         <span>Imprimir A4 / PDF</span>
       </button>
@@ -772,33 +1183,84 @@
 
     <!-- PORTADA EJECUTIVA OFICIAL -->
     <header class="portada-ejecutiva">
-      <div class="cintillo-institucional">
-        <span>Instituto Tecnologico Beltran · Avellaneda</span>
+      <div class="portada-superior">
+        <div class="marca-institucional-portada">
+          <div class="logo-portada-marco">
+            <img src="logo-oficial.png" alt="Logo Oficial SiGIC" onerror="this.onerror=null; this.src='/logo-oficial.png';" class="logo-portada-img" />
+          </div>
+          <div class="titulos-institucionales">
+            <h4 class="institucion-nombre">INSTITUTO TECNOLÓGICO BELTRÁN</h4>
+            <p class="carrera-nombre">Tecnicatura Superior en Analista de Sistemas</p>
+            <p class="catedra-nombre">Práctica Profesionalizante · Proyecto Institucional de Graduación</p>
+          </div>
+        </div>
+
+        <div class="sello-portada">
+          <span class="badge-sello">DOCUMENTO INSTITUCIONAL OFICIAL</span>
+          <span class="ciclo-sello">CICLO LECTIVO 2026 · AVELLANEDA</span>
+        </div>
       </div>
 
-      <h1 class="titulo-portada">SiGIC · Manual de Usuario</h1>
-      <p class="subtitulo-portada">
-        Guia Operativa Integral de la Plataforma Web y App Movil de Porteria para la Gestion de Colaciones de Grado
-      </p>
+      <div class="portada-centro">
+        <div class="pill-sistema">SISTEMA DE GESTIÓN INSTITUCIONAL DE COLACIONES</div>
+        <h1 class="titulo-portada-gigante">SiGIC</h1>
+        <h2 class="titulo-manual-portada">MANUAL DE USUARIO Y GUÍA OPERATIVA COTIDIANA</h2>
+        <p class="subtitulo-manual-portada">
+          Padrón de Egresados, Despacho Masivo de Invitaciones, Asignación Interactiva de Asientos en Anfiteatro y Acreditación de Ingreso mediante Códigos QR y Protocolo de Contingencia
+        </p>
 
-      <div class="linea-gradiente"></div>
+        <div class="linea-gradiente-portada"></div>
 
-      <div class="grilla-metadatos-portada">
-        <div class="dato-metadato">
-          <small>Carrera Oficial</small>
-          <span>Tecnicatura Superior en Analista de Sistemas</span>
+        <div class="pills-capacidades">
+          <span class="pill-capacidad">Padrón Automatizado Excel</span>
+          <span class="pill-capacidad">Autogestión OTP de un solo uso</span>
+          <span class="pill-capacidad">Anfiteatro Protocolar & Accesible</span>
+          <span class="pill-capacidad">Acreditación Móvil &lt; 500 ms</span>
+          <span class="pill-capacidad">Soporte Offline de Emergencia</span>
+          <span class="pill-capacidad">Modo Mantenimiento en Tiempo Real</span>
         </div>
-        <div class="dato-metadato">
-          <small>Autor y Desarrollo</small>
-          <span>Cancelo Julian</span>
+      </div>
+
+      <div class="portada-inferior">
+        <div class="bloque-equipo-portada">
+          <h4 class="titulo-bloque-inferior">Equipo de Proyecto y Desarrollo</h4>
+          <div class="grilla-equipo-portada">
+            <div class="miembro-equipo">
+              <span class="nombre-miembro">Cancelo Julian</span>
+              <span class="rol-miembro">Líder de Proyecto & Desarrollador Fullstack</span>
+            </div>
+            <div class="miembro-equipo">
+              <span class="nombre-miembro">Alfonso Alan Alexis</span>
+              <span class="rol-miembro">Analista de Sistemas & Documentación</span>
+            </div>
+            <div class="miembro-equipo">
+              <span class="nombre-miembro">Contreras Villalba Sol Heilin</span>
+              <span class="rol-miembro">Analista de Sistemas & Relevamiento</span>
+            </div>
+            <div class="miembro-equipo">
+              <span class="nombre-miembro">Frassia Matias</span>
+              <span class="rol-miembro">Analista de Sistemas & Operaciones</span>
+            </div>
+            <div class="miembro-equipo">
+              <span class="nombre-miembro">Santillan Luis Gabriel</span>
+              <span class="rol-miembro">Analista de Sistemas & Calidad</span>
+            </div>
+          </div>
+
+          <div class="bloque-meta-portada">
+            <span><strong>Plataforma:</strong> Web v5.2.0 · Móvil v1.0.9+10</span>
+            <span><strong>Base de Datos:</strong> PostgreSQL (Cifrado SSL)</span>
+            <span><strong>Stack:</strong> Next.js 16 · React 19 · PostgreSQL · Flutter 3 · TailwindCSS 4</span>
+            <span><strong>Portal Oficial:</strong> https://app.sigic.com.ar</span>
+          </div>
         </div>
-        <div class="dato-metadato">
-          <small>Version de Plataforma</small>
-          <span>v5.2.0 (Web) · v1.0.9+10 (Movil)</span>
-        </div>
-        <div class="dato-metadato">
-          <small>Ciclo Lectivo</small>
-          <span>2026 · Buenos Aires, Argentina</span>
+
+        <div class="tarjeta-qr-portada">
+          <div class="qr-contenedor">
+            <svg xmlns="http://www.w3.org/2000/svg" width="110" height="110" viewBox="0 0 31 31" shape-rendering="crispEdges"><path fill="#ffffff" d="M0 0h31v31H0z"/><path stroke="#06194d" d="M1 1.5h7m4 0h2m2 0h2m1 0h3m1 0h7M1 2.5h1m5 0h1m2 0h3m6 0h1m3 0h1m5 0h1M1 3.5h1m1 0h3m1 0h1m1 0h1m1 0h2m2 0h1m1 0h1m2 0h2m1 0h1m1 0h3m1 0h1M1 4.5h1m1 0h3m1 0h1m1 0h1m3 0h1m3 0h2m1 0h1m2 0h1m1 0h3m1 0h1M1 5.5h1m1 0h3m1 0h1m1 0h3m1 0h4m3 0h1m2 0h1m1 0h3m1 0h1M1 6.5h1m5 0h1m1 0h1m2 0h1m1 0h6m1 0h1m1 0h1m5 0h1M1 7.5h7m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m1 0h7M9 8.5h1m4 0h1m1 0h1m2 0h1m1 0h1M1 9.5h1m1 0h5m4 0h1m2 0h2m1 0h3m2 0h5M1 10.5h2m1 0h3m3 0h1m1 0h2m2 0h6m1 0h3m3 0h1M1 11.5h2m1 0h1m2 0h1m3 0h2m5 0h1m2 0h2M1 12.5h2m3 0h1m1 0h2m2 0h2m1 0h1m1 0h1m2 0h2m1 0h2m1 0h1m1 0h1M1 13.5h3m1 0h4m4 0h1m3 0h2m1 0h1m5 0h2M1 14.5h1m1 0h1m1 0h2m2 0h1m2 0h1m1 0h3m1 0h6m1 0h1m3 0h1M1 15.5h1m1 0h1m2 0h2m2 0h8m3 0h3m1 0h3M3 16.5h1m2 0h1m1 0h1m2 0h2m1 0h1m1 0h1m3 0h1m4 0h1m2 0h1M1 17.5h1m1 0h5m1 0h3m3 0h2m1 0h1m5 0h1m1 0h2M1 18.5h2m1 0h1m1 0h1m1 0h1m1 0h1m1 0h1m3 0h2m1 0h7m1 0h1m1 0h1M1 19.5h1m1 0h2m1 0h4m2 0h2m5 0h1m5 0h1m1 0h1M1 20.5h1m1 0h3m2 0h4m3 0h1m1 0h1m2 0h2m1 0h1m1 0h1m2 0h1M1 21.5h1m1 0h2m1 0h8m4 0h1m1 0h6m1 0h3M9 22.5h3m1 0h4m1 0h2m1 0h1m3 0h5M1 23.5h7m2 0h3m1 0h3m1 0h1m1 0h2m1 0h1m1 0h3M1 24.5h1m5 0h1m1 0h1m2 0h3m1 0h2m1 0h1m1 0h1m3 0h1m3 0h1M1 25.5h1m1 0h3m1 0h1m1 0h2m1 0h2m1 0h1m2 0h1m2 0h5m1 0h1m1 0h1M1 26.5h1m1 0h3m1 0h1m1 0h3m5 0h1m2 0h2m2 0h1m1 0h2M1 27.5h1m1 0h3m1 0h1m1 0h1m2 0h1m1 0h4m4 0h7M1 28.5h1m5 0h1m2 0h2m2 0h1m1 0h1m4 0h6m1 0h1M1 29.5h7m1 0h1m1 0h1m2 0h1m1 0h1m1 0h1m1 0h1m4 0h1m1 0h1"/></svg>
+          </div>
+          <span class="qr-texto-portada">Acceso Digital</span>
+          <p class="qr-subtexto-portada">Escaneá para ver el manual interactivo en línea</p>
         </div>
       </div>
     </header>
@@ -839,580 +1301,134 @@
         <svg class="icono-alerta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
         <div class="caja-alerta-contenido">
           <h4>Arquitectura Sin Friccion</h4>
-          <p>Toda la plataforma opera sobre servicios en la nube de alta disponibilidad (Vercel Serverless, Neon PostgreSQL SSL y canal de parches Shorebird OTA), garantizando que las butacas y las acreditaciones esten sincronizadas segundo a segundo sin margen de duplicacion.</p>
+          <p>Toda la plataforma opera sobre servicios en la nube de alta disponibilidad (Vercel Serverless, PostgreSQL con conexión segura SSL y canal de parches Shorebird OTA), garantizando que las butacas y las acreditaciones esten sincronizadas segundo a segundo sin margen de duplicacion.</p>
         </div>
       </div>
-    </section>
-
-    <!-- SECCION 2: ACCESO E INICIO DE SESION -->
-    <section id="acceso" class="seccion-manual salto-pagina">
+    </section>    <!-- SECCION 14: FICHA TECNICA INSTITUCIONAL -->
+    <section id="ficha-tecnica" class="seccion-manual salto-pagina">
       <div class="cabecera-seccion">
-        <h2 class="titulo-seccion">2. Acceso a la Plataforma e Inicio de Sesion</h2>
-        <span class="badge-seccion">Autenticacion</span>
+        <h2 class="titulo-seccion">14. Ficha Técnica Institucional y Créditos de Proyecto</h2>
+        <span class="badge-seccion">Créditos Oficiales</span>
       </div>
 
-      <p>
-        SiGIC cuenta con un portal de entrada unificado que distingue de forma automatica y segura a cada tipo de operador:
-      </p>
+      <div class="tarjeta-ficha">
+        <h3 style="margin-top:0; color:var(--color-primario-oscuro); font-size:16px;">Instituto Tecnológico Beltrán</h3>
+        <p style="margin:0 0 16px 0; font-size:12px; font-weight:700; color:var(--color-primario);">
+          Tecnicatura Superior en Analista de Sistemas · Práctica Profesionalizante · Ciclo Lectivo 2026
+        </p>
 
-      <h3>Vias de Acceso al Sistema:</h3>
-      <ul>
-        <li><strong>Personal Administrativo, Auditor y Soporte:</strong> Ingresan con su direccion de correo electronico institucional y contraseña cifrada. Se valida su rol en base de datos y se expide un token criptografico JWT con vencimiento programado.</li>
-        <li><strong>Graduados y Familias:</strong> No requieren recordar contraseñas de memoria. Ingresan escribiendo su DNI para recibir un codigo temporal de 6 digitos (OTP) en su casilla de correo, o haciendo clic directamente en el enlace seguro recibido por invitacion.</li>
-        <li><strong>Personal de Seguridad (Porteria):</strong> Inician sesion en la App Movil mediante un pase QR generado desde la administracion web, evitando teclear claves largas en la entrada del evento.</li>
-      </ul>
+        <h4 style="font-size:13px; font-weight:800; color:var(--color-texto); margin:16px 0 8px 0; text-transform:uppercase; letter-spacing:0.5px;">
+          Equipo de Análisis y Desarrollo del Proyecto
+        </h4>
+        
+        <table class="tabla-estilizada" style="margin:8px 0 16px 0;">
+          <thead>
+            <tr>
+              <th style="width:35%;">Integrante</th>
+              <th style="width:35%;">Rol y Especialidad</th>
+              <th style="width:30%;">Carrera y Sede</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Cancelo Julian</strong></td>
+              <td>Líder de Proyecto & Desarrollador Fullstack</td>
+              <td>Analista de Sistemas · ITB Avellaneda</td>
+            </tr>
+            <tr>
+              <td><strong>Alfonso Alan Alexis</strong></td>
+              <td>Analista de Sistemas & Documentación Técnica</td>
+              <td>Analista de Sistemas · ITB Avellaneda</td>
+            </tr>
+            <tr>
+              <td><strong>Contreras Villalba Sol Heilin</strong></td>
+              <td>Analista de Sistemas & Relevamiento de Procesos</td>
+              <td>Analista de Sistemas · ITB Avellaneda</td>
+            </tr>
+            <tr>
+              <td><strong>Frassia Matias</strong></td>
+              <td>Analista de Sistemas & Control Operativo de Ceremonia</td>
+              <td>Analista de Sistemas · ITB Avellaneda</td>
+            </tr>
+            <tr>
+              <td><strong>Santillan Luis Gabriel</strong></td>
+              <td>Analista de Sistemas & Auditoría de Calidad y Seguridad</td>
+              <td>Analista de Sistemas · ITB Avellaneda</td>
+            </tr>
+          </tbody>
+        </table>
 
-      <div class="caja-alerta caja-alerta-advertencia">
-        <svg class="icono-alerta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-        <div class="caja-alerta-contenido">
-          <h4>Gesto Institucional de Acceso Administrativo (5 Clics)</h4>
-          <p>Para proteger la tranquilidad de los graduados y no exponer formularios de administracion en la pantalla publica, hacer 5 clics seguidos sobre el logo central de SiGIC en la portada desbloquea de inmediato el selector de inicio de sesion de gestion.</p>
+        <h4 style="font-size:13px; font-weight:800; color:var(--color-texto); margin:20px 0 8px 0; text-transform:uppercase; letter-spacing:0.5px;">
+          Stack Tecnológico Completo de la Plataforma
+        </h4>
+
+        <div class="grilla-ficha" style="margin-top:8px;">
+          <div class="campo-ficha">
+            <small>Frontend Web Principal</small>
+            <span>React 19 + Next.js 16 (App Router & Turbopack)</span>
+          </div>
+          <div class="campo-ficha">
+            <small>Diseño y Estilos</small>
+            <span>TailwindCSS 4 + Lucide React + Glassmorphism</span>
+          </div>
+          <div class="campo-ficha">
+            <small>Backend y APIs</small>
+            <span>Node.js REST API Serverless modular (Route Handlers)</span>
+          </div>
+          <div class="campo-ficha">
+            <small>Motor de Base de Datos</small>
+            <span>PostgreSQL (Relacional ACID, conexión segura SSL vía driver pg)</span>
+          </div>
+          <div class="campo-ficha">
+            <small>App Móvil de Portería</small>
+            <span>Flutter 3 & Dart nativo Android (validación óptica &lt; 500 ms)</span>
+          </div>
+          <div class="campo-ficha">
+            <small>Servicio de Correo</small>
+            <span>Nodemailer SMTP seguro con cifrado TLS y templates HTML</span>
+          </div>
+          <div class="campo-ficha">
+            <small>Infraestructura Cloud</small>
+            <span>Vercel Edge Network (Web) + Shorebird CodePush OTA (Móvil)</span>
+          </div>
+          <div class="campo-ficha">
+            <small>Criptografía y Seguridad</small>
+            <span>Tokens JWT HMAC SHA-256 + OTP de 6 dígitos + Contingencia alfanumérica</span>
+          </div>
+        </div>
+
+        <h4 style="font-size:13px; font-weight:800; color:var(--color-texto); margin:20px 0 8px 0; text-transform:uppercase; letter-spacing:0.5px;">
+          Canales Institucionales y Soporte
+        </h4>
+
+        <div class="grilla-ficha" style="margin-top:8px;">
+          <div class="campo-ficha">
+            <small>Portal Web Oficial</small>
+            <span>https://app.sigic.com.ar</span>
+          </div>
+          <div class="campo-ficha">
+            <small>Manual en Línea</small>
+            <span>https://app.sigic.com.ar/manual</span>
+          </div>
+          <div class="campo-ficha">
+            <small>Mesa de Ayuda Técnica</small>
+            <span>soporte@ibeltran.com.ar</span>
+          </div>
+          <div class="campo-ficha">
+            <small>Localización Geográfica</small>
+            <span>Avellaneda, Provincia de Buenos Aires, Argentina</span>
+          </div>
         </div>
       </div>
-
-      <div class="marco-pantalla">
-        <div class="barra-marco">
-          <span class="circulo-marco circulo-rojo"></span>
-          <span class="circulo-marco circulo-amarillo"></span>
-          <span class="circulo-marco circulo-verde"></span>
-          <span class="titulo-marco">sigic.com.ar/admin · Formulario de Autenticacion de Personal</span>
-        </div>
-        <div class="contenido-marco">
-          <p style="margin:0; font-size:12px; font-weight:600; color:var(--color-primario);">
-            Portal de Gestion Segura · Ingrese correo institucional (@sigic.com.ar o @ibeltran.com.ar) y contraseña asignada.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECCION 3: ACTIVACION DE CEREMONIA -->
-    <section id="ceremonias" class="seccion-manual">
-      <div class="cabecera-seccion">
-        <h2 class="titulo-seccion">3. Operatoria Diaria y Activacion de Ceremonias</h2>
-        <span class="badge-seccion">Gestion</span>
-      </div>
-
-      <p>
-        El sistema puede almacenar los historiales de multiples ceremonias (distintos años, cohortes o turnos). Sin embargo, <strong>solamente una ceremonia puede encontrarse en estado ACTIVA al mismo tiempo</strong>.
-      </p>
-      <p>
-        Toda reserva de butacas por los estudiantes, emision de codigos OTP y escaneo en las puertas de ingreso opera exclusivamente sobre la ceremonia activa.
-      </p>
-
-      <h3>Paso a Paso para Activar la Ceremonia de la Jornada:</h3>
-      <div class="grilla-pasos">
-        <div class="tarjeta-paso">
-          <div class="numero-paso">1</div>
-          <h4>Ingresar al Modulo</h4>
-          <p>En el menu de administracion, haga clic en <strong>Ceremonias</strong> para visualizar el listado general de eventos.</p>
-        </div>
-        <div class="tarjeta-paso">
-          <div class="numero-paso">2</div>
-          <h4>Verificar o Crear</h4>
-          <p>Si la ceremonia no esta cargada, presione <strong>Crear Ceremonia</strong> indicando fecha, horario, sede y limite de acompañantes por egresado.</p>
-        </div>
-        <div class="tarjeta-paso">
-          <div class="numero-paso">3</div>
-          <h4>Activar con un Clic</h4>
-          <p>En la fila correspondiente, presione el boton de activar. Se encendera una estrella dorada y la leyenda <strong>ACTIVA</strong> sincronizando el sistema al instante.</p>
-        </div>
-      </div>
-
-      <table class="tabla-estilizada">
-        <thead>
-          <tr>
-            <th>Parametro de Ceremonia</th>
-            <th>Descripcion Operativa</th>
-            <th>Impacto en el Sistema</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>Nombre de la Colacion</strong></td>
-            <td>Identificacion formal (ej. Colacion Beltran 2026 - Turno Tarde).</td>
-            <td>Encabeza correos, credenciales y reportes oficiales.</td>
-          </tr>
-          <tr>
-            <td><strong>Fecha y Horario</strong></td>
-            <td>Dia y hora de inicio de apertura de puertas y acreditacion.</td>
-            <td>Configura la cuenta regresiva en el portal del alumno.</td>
-          </tr>
-          <tr>
-            <td><strong>Aforo de Acompañantes</strong></td>
-            <td>Cantidad maxima de invitados permitidos por cada estudiante (ej. 2, 3 o 4).</td>
-            <td>Limita estrictamente los cupos asignables en el anfiteatro.</td>
-          </tr>
-          <tr>
-            <td><strong>Estado Activo</strong></td>
-            <td>Bandera booleana principal de sincronizacion de base de datos.</td>
-            <td>Direcciona el escaneo movil y las solicitudes OTP a este evento.</td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
-
-    <!-- SECCION 4: PADRON DE EGRESADOS Y DESPACHO MASIVO -->
-    <section id="padron" class="seccion-manual salto-pagina">
-      <div class="cabecera-seccion">
-        <h2 class="titulo-seccion">4. Carga del Padron de Egresados y Despacho Masivo</h2>
-        <span class="badge-seccion">Padrón</span>
-      </div>
-
-      <p>
-        Antes de que los estudiantes puedan ingresar a seleccionar butacas, la administracion debe cargar la nomina oficial aprobada por el Departamento de Alumnos.
-      </p>
-
-      <h3>Estructura Exigida en la Planilla Excel:</h3>
-      <p>El archivo <code>.xlsx</code> o <code>.xls</code> debe contener exactamente 4 columnas en su primera hoja:</p>
-
-      <table class="tabla-estilizada">
-        <thead>
-          <tr>
-            <th>Columna Excel</th>
-            <th>Tipo de Dato</th>
-            <th>Ejemplo</th>
-            <th>Requisito</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><strong>Nombre</strong></td>
-            <td>Texto</td>
-            <td>Perez Julieta</td>
-            <td>Nombre y apellido tal como figurara en el diploma.</td>
-          </tr>
-          <tr>
-            <td><strong>DNI</strong></td>
-            <td>Numerico</td>
-            <td>41222333</td>
-            <td>Solo numeros, sin puntos, espacios ni guiones.</td>
-          </tr>
-          <tr>
-            <td><strong>Correo</strong></td>
-            <td>Email</td>
-            <td>julieta.perez@alumno.ibeltran.com.ar</td>
-            <td>Direccion valida donde recibira los accesos y credencial.</td>
-          </tr>
-          <tr>
-            <td><strong>Carrera</strong></td>
-            <td>Texto</td>
-            <td>Tecnicatura Superior en Analista de Sistemas</td>
-            <td>Nombre formal de la carrera finalizada.</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <h3>Circuito de Despacho Masivo por Correo:</h3>
-      <ol>
-        <li>Ingrese a <strong>Gestionar Graduados</strong> y presione <strong>Cargar desde Excel</strong>.</li>
-        <li>Arrastre el archivo. El servidor verificara que los DNI no esten duplicados y guardara los registros en estado <span class="pill-estado pill-gris">PENDIENTE</span>.</li>
-        <li>Presione el boton azul <strong>Enviar Invitaciones por Correo</strong>. La plataforma despachara los emails personalizados con el enlace de acceso exclusivo a cada graduado.</li>
-      </ol>
-
-      <div class="caja-alerta caja-alerta-peligro">
-        <svg class="icono-alerta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-        <div class="caja-alerta-contenido">
-          <h4>¿Que hacer si un estudiante no recibe el correo de invitacion?</h4>
-          <p>
-            1. En <strong>Gestionar Graduados</strong>, busque al alumno por DNI o apellido.<br>
-            2. En el extremo derecho de su fila, haga clic en el boton azul de <strong>Enlace Directo</strong>.<br>
-            3. Se copiara al portapapeles una URL segura con token criptografico incorporado. Envie ese enlace al estudiante por WhatsApp institucional o chat interno. El estudiante ingresara al instante sin pedirle codigo OTP.
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECCION 5: PORTAL DEL EGRESADO -->
-    <section id="egresados" class="seccion-manual">
-      <div class="cabecera-seccion">
-        <h2 class="titulo-seccion">5. Portal de Autogestion del Egresado</h2>
-        <span class="badge-seccion">Experiencia Alumno</span>
-      </div>
-
-      <p>
-        El graduado ingresa a una interfaz web fluida y adaptada a telefonos celulares donde completa su confirmacion en cuatro simples pasos guiados:
-      </p>
-
-      <div class="grilla-pasos">
-        <div class="tarjeta-paso">
-          <div class="numero-paso">1</div>
-          <h4>Confirmacion de Asistencia</h4>
-          <p>El alumno declara si asistira al acto. Si marca que no podra participar, el sistema libera su cupo de butacas y cancela su invitacion de forma ordenada.</p>
-        </div>
-        <div class="tarjeta-paso">
-          <div class="numero-paso">2</div>
-          <h4>Carga de Acompañantes</h4>
-          <p>Indica la cantidad de invitados permitidos por el aforo y completa Nombre, DNI y parentesco. Permite marcar si alguno posee <strong>movilidad reducida</strong>.</p>
-        </div>
-        <div class="tarjeta-paso">
-          <div class="numero-paso">3</div>
-          <h4>Designacion de Entregador</h4>
-          <p>El estudiante elige quien le hara entrega del diploma en el escenario: puede ser uno de sus familiares registrados o un profesor del cuerpo docente.</p>
-        </div>
-        <div class="tarjeta-paso">
-          <div class="numero-paso">4</div>
-          <h4>Seleccion de Asientos</h4>
-          <p>Elige visualmente en el plano del anfiteatro su butaca y las de sus acompañantes. Al finalizar, se emite su <strong>Credencial Digital con QR</strong>.</p>
-        </div>
-      </div>
-
-      <h3>Pipeline de Estados del Egresado:</h3>
-      <table class="tabla-estilizada">
-        <thead>
-          <tr>
-            <th>Estado</th>
-            <th>Significado</th>
-            <th>Accion Siguiente</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><span class="pill-estado pill-gris">PENDIENTE</span></td>
-            <td>El alumno fue importado en el padron pero aun no se le envio la invitacion.</td>
-            <td>Ejecutar Despacho Masivo de Correos.</td>
-          </tr>
-          <tr>
-            <td><span class="pill-estado pill-azul">INVITADO</span></td>
-            <td>Se le envio el correo con enlace directo y codigo de acceso.</td>
-            <td>A la espera de que el alumno ingrese al portal.</td>
-          </tr>
-          <tr>
-            <td><span class="pill-estado pill-naranja">ACEPTADO</span></td>
-            <td>Confirmo que asistira al acto; esta completando invitados y butacas.</td>
-            <td>El alumno debe finalizar la seleccion de asientos.</td>
-          </tr>
-          <tr>
-            <td><span class="pill-estado pill-verde">CONFIRMADO</span></td>
-            <td>Completo todo el registro y ya cuenta con su credencial QR emitida.</td>
-            <td>Habilitado para ingresar el dia del acto en porteria.</td>
-          </tr>
-          <tr>
-            <td><span class="pill-estado pill-rojo">RECHAZADO</span></td>
-            <td>Declaro que no podra asistir al acto de colacion.</td>
-            <td>Su butaca queda libre para ser reasignada.</td>
-          </tr>
-        </tbody>
-      </table>
-    </section>
-
-    <!-- SECCION 6: ANFITEATRO Y BUTACAS -->
-    <section id="anfiteatro" class="seccion-manual salto-pagina">
-      <div class="cabecera-seccion">
-        <h2 class="titulo-seccion">6. Distribucion de Asientos y Control del Anfiteatro</h2>
-        <span class="badge-seccion">Plano Interactivo</span>
-      </div>
-
-      <p>
-        El plano del anfiteatro permite organizar la distribucion del salon de manera visual. Los administradores pueden consultar en tiempo real que asientos estan libres, ocupados o reservados para el protocolo.
-      </p>
-
-      <h3>Codigo Cromático Oficial de Butacas:</h3>
-      <table class="tabla-estilizada">
-        <thead>
-          <tr>
-            <th>Color / Muestra</th>
-            <th>Categoria</th>
-            <th>Definicion Operativa</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><span class="pill-estado pill-azul">AZUL</span></td>
-            <td><strong>Egresado</strong></td>
-            <td>Butaca asignada al estudiante que subira al escenario a recibir su diploma.</td>
-          </tr>
-          <tr>
-            <td><span class="pill-estado pill-verde">VERDE</span></td>
-            <td><strong>Acompañante</strong></td>
-            <td>Asiento reservado por los familiares e invitados cargados por el graduado.</td>
-          </tr>
-          <tr>
-            <td><span class="pill-estado pill-rojo">ROJO</span></td>
-            <td><strong>Ocupado</strong></td>
-            <td>Asientos que ya han sido confirmados y bloqueados por otros alumnos.</td>
-          </tr>
-          <tr>
-            <td><span class="pill-estado pill-gris">GRIS CLARO</span></td>
-            <td><strong>Libre</strong></td>
-            <td>Butacas disponibles para ser seleccionadas por los participantes.</td>
-          </tr>
-          <tr>
-            <td><span class="pill-estado" style="background:#334155; color:#ffffff;">GRIS OSCURO</span></td>
-            <td><strong>Protocolo / Docentes</strong></td>
-            <td>Asientos reservados para autoridades del ITB, directivos y profesores invitados.</td>
-          </tr>
-          <tr>
-            <td><span class="pill-estado pill-violeta">VIOLETA</span></td>
-            <td><strong>Movilidad Reducida</strong></td>
-            <td>Ubicaciones preferenciales cercanas a pasillos principales y rampas de acceso.</td>
-          </tr>
-        </tbody>
-      </table>
 
       <div class="caja-alerta caja-alerta-info">
         <svg class="icono-alerta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
         <div class="caja-alerta-contenido">
-          <h4>Deteccion Temprana de Accesibilidad</h4>
-          <p>Cuando un egresado marca que su acompañante utiliza silla de ruedas o posee movilidad reducida, la butaca se ilumina con borde violeta e icono distintivo en el mapa del administrador. Esto le permite a los coordinadores de salon retirar butacas moviles o ubicar rampas con anterioridad al ingreso del publico.</p>
+          <h4>Validez y Certificación Operativa</h4>
+          <p>Este documento constituye el manual técnico formal y la guía operativa de capacitación para las autoridades directivas, personal administrativo, cuerpo docente y equipo de portería del Instituto Tecnológico Beltrán para la gestión y realización de colaciones de grado institucionales.</p>
         </div>
       </div>
-    </section>
-
-    <!-- SECCION 7: ACREDITACION MOVIL (PORTERIA QR) -->
-    <section id="porteria" class="seccion-manual">
-      <div class="cabecera-seccion">
-        <h2 class="titulo-seccion">7. Operatoria de Acreditacion el Dia del Acto (Porteria)</h2>
-        <span class="badge-seccion">App Móvil</span>
-      </div>
-
-      <p>
-        El control en las puertas de ingreso se lleva a cabo mediante la aplicacion movil oficial <strong>SiGIC Porteria</strong> (desarrollada en Flutter, v1.0.9+10) instalada en los telefonos del personal de seguridad.
-      </p>
-
-      <h3>Protocolo de Colores del Escaner:</h3>
-      <table class="tabla-estilizada">
-        <thead>
-          <tr>
-            <th>Respuesta en Pantalla</th>
-            <th>Estado de Acceso</th>
-            <th>Comportamiento del Celular y Accion Requerida</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><span class="pill-estado pill-verde">PANTALLA VERDE</span></td>
-            <td><strong>ACCESO AUTORIZADO</strong></td>
-            <td>Pitido agudo y vibracion suave. Muestra nombre completo del egresado/invitado y numero de butaca. Se autoriza el ingreso al salon de inmediato.</td>
-          </tr>
-          <tr>
-            <td><span class="pill-estado pill-naranja">PANTALLA NARANJA</span></td>
-            <td><strong>ACCESO DUPLICADO</strong></td>
-            <td>Alerta sonora de precaucion. Indica la hora exacta en la que ese mismo QR ya ingreso previamente. <strong>Accion:</strong> Solicitar DNI fisico al portador para constatar identidad y evitar pases compartidos.</td>
-          </tr>
-          <tr>
-            <td><span class="pill-estado pill-rojo">PANTALLA ROJA</span></td>
-            <td><strong>ACCESO DENEGADO</strong></td>
-            <td>Vibracion prolongada de error. Codigo invalido, corrupto, perteneciente a otra ceremonia o dado de baja por inasistencia. No se permite el ingreso.</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <h3>Inicio de Sesion Rapido en Porteria:</h3>
-      <ol>
-        <li>El administrador ingresa a <strong>Seguridad</strong> en el panel web y presiona <strong>Mostrar Acceso QR</strong> en la cuenta del operador.</li>
-        <li>El portero abre la aplicacion movil y escanea el codigo QR en pantalla para autenticar la terminal sin teclear claves.</li>
-        <li>La app queda conectada a la ceremonia activa y lista para el escaneo continuo a alta velocidad.</li>
-      </ol>
-    </section>
-
-    <!-- SECCION 8: ACREDITACION DE CONTINGENCIA -->
-    <section id="contingencia" class="seccion-manual salto-pagina">
-      <div class="cabecera-seccion">
-        <h2 class="titulo-seccion">8. Acreditacion de Contingencia y Emergencias</h2>
-        <span class="badge-seccion">Respaldo</span>
-      </div>
-
-      <p>
-        Para garantizar que ningun egresado o familiar quede afuera por rotura de pantalla, falta de bateria en el celular o problemas de conexion, SiGIC posee mecanismos de contingencia redundantes:
-      </p>
-
-      <h3>1. Busqueda Manual en la App Movil:</h3>
-      <p>
-        En la pestaña <strong>Asistencia</strong> de la app movil, el operador puede escribir el DNI del egresado o su <strong>Codigo Alfanumerico de 8 Caracteres</strong> (ejemplo: <code>BM4600F4</code>). El sistema localizara el registro al instante y permitira marcar el check-in manualmente.
-      </p>
-
-      <h3>2. Soporte en Soporte Papel (Sin Red ni Bateria):</h3>
-      <p>
-        Antes de abrir las puertas, la administracion debe imprimir desde el modulo de Reportes la <strong>Planilla Oficial de Ingresos</strong>. Contiene la lista ordenada por apellido, numero de butaca y codigo de validacion. El portero puede verificar la identidad con el DNI del egresado y tildar el ingreso a mano.
-      </p>
-
-      <div class="caja-alerta caja-alerta-exito">
-        <svg class="icono-alerta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-        <div class="caja-alerta-contenido">
-          <h4>Sincronizacion Offline Automatica</h4>
-          <p>Si la señal Wi-Fi o de datos moviles cae temporalmente en la puerta del auditorio, la aplicacion guarda los ingresos en la memoria segura del dispositivo y los retransmite a la nube tan pronto recupera la conexion.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECCION 9: REPORTES Y CIERRE -->
-    <section id="reportes" class="seccion-manual">
-      <div class="cabecera-seccion">
-        <h2 class="titulo-seccion">9. Reportes y Cierre de la Ceremonia</h2>
-        <span class="badge-seccion">Estadísticas</span>
-      </div>
-
-      <p>
-        Una vez finalizado el acto de colacion, los coordinadores del evento pueden extraer los balances finales y estadisticas desde el modulo <strong>Reportes</strong>:
-      </p>
-
-      <ul>
-        <li><strong>Listado de Asistencia en Excel:</strong> Planilla completa con DNI, nombre, butaca ocupada y marca temporal exacta (hora, minuto y segundo) de su acreditacion en puerta.</li>
-        <li><strong>Acta Oficial de Colacion:</strong> Resumen formal en formato para imprimir con el porcentaje total de aforo completado, egresados que recibieron titulo y desglose de ausencias.</li>
-        <li><strong>Registro de Entregadores:</strong> Listado de profesores y familiares que subieron al estrado a otorgar diplomas para el archivo institucional de la carrera.</li>
-      </ul>
-    </section>
-
-    <!-- SECCION 10: MODO MANTENIMIENTO -->
-    <section id="mantenimiento" class="seccion-manual salto-pagina">
-      <div class="cabecera-seccion">
-        <h2 class="titulo-seccion">10. Seguridad y Modo Mantenimiento</h2>
-        <span class="badge-seccion">Ajustes Técnicos</span>
-      </div>
-
-      <p>
-        El <strong>Modo Mantenimiento</strong> es un mecanismo de proteccion tecnica que permite a los administradores congelar el acceso publico para egresados e invitados mientras se efectuan ajustes en el padron o se rediseña la disposicion del salon.
-      </p>
-
-      <div class="caja-alerta caja-alerta-advertencia">
-        <svg class="icono-alerta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-        <div class="caja-alerta-contenido">
-          <h4>Efectos del Modo Mantenimiento</h4>
-          <p>
-            - El portal publico muestra una pantalla de resguardo con engranaje giratorio informando que se estan realizando mejoras tecnicas.<br>
-            - Se sincroniza de forma inmediata en la base de datos de Neon PostgreSQL, localStorage y todos los navegadores abiertos.<br>
-            - El personal administrativo y el manual de usuario continúan operativos para supervisar la configuracion.
-          </p>
-        </div>
-      </div>
-
-      <h3>Como Activar o Desactivar el Mantenimiento:</h3>
-      <ol>
-        <li>Ingrese al panel principal y haga clic en <strong>Ajustes</strong>.</li>
-        <li>En la seccion <strong>Comportamiento del Sistema</strong>, ubique la opcion <strong>Modo mantenimiento</strong>.</li>
-        <li>Presione el interruptor. El sistema conmutara su estado y emitira la alerta de sincronizacion en tiempo real.</li>
-      </ol>
-    </section>
-
-    <!-- SECCION 11: PREGUNTAS FRECUENTES -->
-    <section id="faq" class="seccion-manual">
-      <div class="cabecera-seccion">
-        <h2 class="titulo-seccion">11. Preguntas Frecuentes y Mesa de Ayuda</h2>
-        <span class="badge-seccion">Resolución de Problemas</span>
-      </div>
-
-      <div class="item-faq">
-        <div class="pregunta-faq">1. El alumno no recibio el correo de invitacion</div>
-        <p class="respuesta-faq">Indiquele revisar su bandeja de correo no deseado (spam). Si aun no figura, ingrese a Gestionar Graduados, copie su enlace de acceso directo y envienselo por WhatsApp institucional o mensaje privado.</p>
-      </div>
-
-      <div class="item-faq">
-        <div class="pregunta-faq">2. El egresado marco "No voy a participar" por equivocacion</div>
-        <p class="respuesta-faq">El estado pasa a Rechazado y libera la butaca. El administrador puede rehabilitar al estudiante desde el panel de graduados volviendo a cambiar su estado a Invitado para que pueda reingresar al portal.</p>
-      </div>
-
-      <div class="item-faq">
-        <div class="pregunta-faq">3. No veo a los alumnos en el listado de graduados</div>
-        <p class="respuesta-faq">Verifique que la ceremonia correcta este marcada con la estrella dorada de ACTIVA y que el archivo Excel se haya importado sobre dicha ceremonia.</p>
-      </div>
-
-      <div class="item-faq">
-        <div class="pregunta-faq">4. La app de porteria muestra "Sin conexion"</div>
-        <p class="respuesta-faq">Verifique que el telefono este conectado a la red Wi-Fi del evento o tenga paquete de datos activo. En la pestaña Ajustes de la app puede presionar "Probar conexion" para constatar el enlace con la nube.</p>
-      </div>
-
-      <div class="item-faq">
-        <div class="pregunta-faq">5. Un invitado tiene problemas de movilidad pero no lo aviso con tiempo</div>
-        <p class="respuesta-faq">El administrador puede abrir el plano del anfiteatro en cualquier momento y reubicar al invitado en una de las butacas de accesibilidad preferencial (violeta) cercanas a la rampa de acceso.</p>
-      </div>
-    </section>
-
-    <!-- SECCION 12: GLOSARIO EN PALABRAS SENCILLAS -->
-    <section id="glosario" class="seccion-manual salto-pagina">
-      <div class="cabecera-seccion">
-        <h2 class="titulo-seccion">12. Glosario en Palabras Cotidianas</h2>
-        <span class="badge-seccion">Términos Explicados</span>
-      </div>
-
-      <p>
-        Definicion de los terminos del sistema explicados en lenguaje directo y claro, tal como los usamos en la operatoria diaria del instituto:
-      </p>
-
-      <div class="lista-glosario">
-        <div class="item-glosario">
-          <div class="termino-glosario">Ceremonia Activa</div>
-          <p class="definicion-glosario">Es el evento de colacion que se esta llevando a cabo hoy. Aunque haya actos de otros años guardados, el sistema solo atiende a la que tiene la estrella de activa.</p>
-        </div>
-
-        <div class="item-glosario">
-          <div class="termino-glosario">Padron</div>
-          <p class="definicion-glosario">Es la lista de los estudiantes que terminaron la carrera y estan habilitados para recibir el titulo, cargada desde un archivo de Excel.</p>
-        </div>
-
-        <div class="item-glosario">
-          <div class="termino-glosario">Aforo</div>
-          <p class="definicion-glosario">Es la cantidad maxima de personas permitidas en el salon. Indica cuantos acompañantes puede llevar cada egresado (por ejemplo, 2 por alumno).</p>
-        </div>
-
-        <div class="item-glosario">
-          <div class="termino-glosario">Codigo OTP</div>
-          <p class="definicion-glosario">Una clave de 6 numeros que llega al correo del estudiante. Sirve para entrar a elegir asientos sin tener que acordarse de una contraseña fija.</p>
-        </div>
-
-        <div class="item-glosario">
-          <div class="termino-glosario">Token de Acceso</div>
-          <p class="definicion-glosario">Un enlace privado y unico que se manda al alumno. Al tocarlo, entra derecho a su panel sin que le pida codigos ni claves.</p>
-        </div>
-
-        <div class="item-glosario">
-          <div class="termino-glosario">Credencial QR</div>
-          <p class="definicion-glosario">La tarjeta digital con codigo de barras cuadrado que el graduado muestra desde el celular o impresa en papel para que lo dejen pasar en la puerta.</p>
-        </div>
-
-        <div class="item-glosario">
-          <div class="termino-glosario">Pase Grupal</div>
-          <p class="definicion-glosario">Quiere decir que el mismo codigo QR del egresado sirve para hacer entrar a toda su familia junta sin tener que repartir pases individuales.</p>
-        </div>
-
-        <div class="item-glosario">
-          <div class="termino-glosario">Codigo Alfanumerico</div>
-          <p class="definicion-glosario">Un codigo corto de 8 letras y numeros (como BM4600F4) que viene en el comprobante. Si el celular no prende o el QR esta roto, el portero lo busca con eso.</p>
-        </div>
-
-        <div class="item-glosario">
-          <div class="termino-glosario">Butaca Protocolar</div>
-          <p class="definicion-glosario">Los asientos de las primeras filas que se pintan de gris oscuro y se bloquean para que se sienten los directores, profesores y autoridades.</p>
-        </div>
-
-        <div class="item-glosario">
-          <div class="termino-glosario">Butaca Accesible (Violeta)</div>
-          <p class="definicion-glosario">Asientos reservados al lado de las rampas y pasillos anchos para familiares o alumnos que andan en silla de ruedas o les cuesta caminar.</p>
-        </div>
-
-        <div class="item-glosario">
-          <div class="termino-glosario">Entregador de Titulo</div>
-          <p class="definicion-glosario">La persona que sube al escenario a entregar el diploma. Puede ser un familiar elegido por el egresado o un docente del instituto.</p>
-        </div>
-
-        <div class="item-glosario">
-          <div class="termino-glosario">Check-in / Acreditacion</div>
-          <p class="definicion-glosario">El momento exacto en que la persona llega a la puerta, le leen el pase y el sistema la marca como "presente en la sala".</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- SECCION 13: BIBLIOGRAFIA Y ESTANDARES -->
-    <section id="bibliografia" class="seccion-manual">
-      <div class="cabecera-seccion">
-        <h2 class="titulo-seccion">13. Bibliografia y Marco Tecnico de Referencia</h2>
-        <span class="badge-seccion">Estándares</span>
-      </div>
-
-      <p>
-        Fundamentos tecnicos, normas internacionales y marcos de trabajo aplicados en el diseño y construccion de SiGIC:
-      </p>
-
-      <ul>
-        <li><strong>ISO/IEC 18004:2015:</strong> Estandar internacional para generacion y lectura optica de codigos de matriz bidimensional QR (Quick Response Code).</li>
-        <li><strong>RFC 7519 (JSON Web Tokens):</strong> Estandar del IETF para autenticacion stateless de sesiones seguras mediante firma criptografica HMAC SHA-256.</li>
-        <li><strong>W3C Web Content Accessibility Guidelines (WCAG 2.1 - Nivel AA):</strong> Criterios de contraste, tamaño de tipografia y accesibilidad universal aplicados a las pantallas de egresados y butacas.</li>
-        <li><strong>PostgreSQL Global Development Group (v16):</strong> Manual oficial de administracion de base de datos relacional ACID, indexacion B-Tree y esquemas serverless en Neon Cloud.</li>
-        <li><strong>Next.js 16 App Router & Turbopack Documentation:</strong> Arquitectura moderna de renderizado hibrido en Vercel Edge Network.</li>
-        <li><strong>Flutter & Dart Engineering Guidelines (Google):</strong> Arquitectura de aplicaciones moviles compiladas nativamente en Android con aceleracion por hardware.</li>
-      </ul>
-    </section>
-
-    <!-- SECCION 14: FICHA TECNICA INSTITUCIONAL -->
+    </section>    <!-- SECCION 14: FICHA TECNICA INSTITUCIONAL -->
     <section id="ficha-tecnica" class="seccion-manual salto-pagina">
       <div class="cabecera-seccion">
         <h2 class="titulo-seccion">14. Ficha Tecnica Institucional</h2>
@@ -1472,20 +1488,71 @@
 
     <!-- PIE DE PAGINA -->
     <footer class="pie-documento">
-      <p style="margin:0 0 4px 0; font-weight:700;">
-        SiGIC — Sistema de Gestion Institucional de Colaciones
+      <p style="margin:0 0 4px 0; font-weight:800; font-size:12px;">
+        SiGIC — Sistema de Gestión Institucional de Colaciones
       </p>
-      <p style="margin:0; font-size:10px;">
-        Instituto Tecnologico Beltran · Tecnicatura Superior en Analista de Sistemas · Autor: Cancelo Julian · 2026
+      <p style="margin:0 0 4px 0; font-size:11px; font-weight:600;">
+        Instituto Tecnológico Beltrán · Tecnicatura Superior en Analista de Sistemas · Ciclo Lectivo 2026 · Avellaneda, Buenos Aires
+      </p>
+      <p style="margin:0; font-size:10px; color:var(--color-texto-suave);">
+        Equipo de Proyecto: Cancelo Julian · Alfonso Alan Alexis · Contreras Villalba Sol Heilin · Frassia Matias · Santillan Luis Gabriel
       </p>
     </footer>
 
   </main>
 
   <script>
-    function alternarTema() {
-      document.body.classList.toggle('tema-oscuro');
+    const TEMAS_DISPONIBLES = [
+      'beltran', 'original', 'carbon', 'ceremonial',
+      'aurora', 'cybergrid', 'sunset', 'emerald',
+      'sapphire', 'alabaster'
+    ];
+
+    function aplicarTema(id) {
+      if (!TEMAS_DISPONIBLES.includes(id)) {
+        id = 'beltran';
+      }
+      TEMAS_DISPONIBLES.forEach(t => {
+        document.body.classList.remove('tema-' + t);
+      });
+      document.body.classList.add('tema-' + id);
+      try {
+        localStorage.setItem('sigic_fondo', id);
+        if (id === 'alabaster' || id === 'original') {
+          localStorage.setItem('sigic_tema', 'claro');
+        } else {
+          localStorage.setItem('sigic_tema', 'oscuro');
+        }
+      } catch (e) {}
+
+      const selector = document.getElementById('selector-tema');
+      if (selector && selector.value !== id) {
+        selector.value = id;
+      }
+
+      const textoBoton = document.getElementById('texto-boton-tema');
+      if (textoBoton) {
+        textoBoton.textContent = (id === 'alabaster' || id === 'original') ? 'Oscuro' : 'Claro';
+      }
     }
+
+    function alternarModoClaroOscuro() {
+      const temaActual = localStorage.getItem('sigic_fondo') || 'beltran';
+      if (temaActual === 'alabaster' || temaActual === 'original') {
+        aplicarTema('beltran');
+      } else {
+        aplicarTema('alabaster');
+      }
+    }
+
+    // Inicializar tema al cargar
+    (function () {
+      let temaInicial = 'beltran';
+      try {
+        temaInicial = localStorage.getItem('sigic_fondo') || 'beltran';
+      } catch (e) {}
+      aplicarTema(temaInicial);
+    })();
   </script>
 </body>
 </html>

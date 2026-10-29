@@ -166,7 +166,7 @@ Concluida la ceremonia, el sistema permite generar los informes oficiales de aud
 
 *   **Firmas Criptográficas JWT:** Sesiones autenticadas y protegidas contra manipulación.
 *   **Códigos OTP Hasheados:** Los códigos de 6 dígitos se validan con expiración a los 10 minutos.
-*   **Persistencia Cloud Segura:** Base de datos relacional Neon PostgreSQL con cifrado SSL obligatorio.
+*   **Persistencia Cloud Segura:** Base de datos relacional PostgreSQL con cifrado SSL obligatorio y pooling transaccional.
 *   **Backups Institucionales:** La cuenta de soporte técnico puede descargar volcados completos en formato JSON/SQL antes de cada cierre de ciclo lectivo.
 
 ### 9.1. Modo Mantenimiento del Sistema
@@ -218,23 +218,42 @@ Términos del sistema explicados en lenguaje directo y sencillo, tal como se usa
 *   **ISO/IEC 18004:2015:** Estándar internacional para generación y decodificación de códigos bidimensionales de barras de matriz QR (Quick Response Code).
 *   **RFC 7519 (JSON Web Tokens):** Especificación del IETF para autenticación stateless de sesiones seguras mediante firma criptográfica HMAC SHA-256.
 *   **W3C Web Content Accessibility Guidelines (WCAG 2.1 - Nivel AA):** Criterios de contraste, tamaño de tipografía y accesibilidad universal aplicados a las pantallas de egresados y butacas.
-*   **PostgreSQL Global Development Group (v16):** Manual oficial de administración de base de datos relacional ACID, indexación B-Tree y esquemas serverless en Neon Cloud.
+*   **PostgreSQL Global Development Group (v16):** Manual oficial de administración de base de datos relacional ACID, indexación B-Tree y arquitectura de persistencia segura con cifrado SSL.
 *   **Next.js 16 App Router & Turbopack Documentation:** Arquitectura moderna de renderizado híbrido en Vercel Edge Network.
 *   **Flutter & Dart Engineering Guidelines (Google):** Arquitectura de aplicaciones móviles compiladas nativamente en Android con aceleración por hardware.
 
 ---
 
-## 13. FICHA TÉCNICA INSTITUCIONAL
+## 13. FICHA TÉCNICA INSTITUCIONAL Y CRÉDITOS DE PROYECTO
 
 *   **Institución Académica:** Instituto Tecnológico Beltrán (ITB)
-*   **Carrera:** Tecnicatura Superior en Analista de Sistemas
-*   **Asignatura / Espacio:** Práctica Profesionalizante · Proyecto Final
-*   **Autor y Desarrollador Líder:** Cancelo Julian
+*   **Carrera Oficial:** Tecnicatura Superior en Analista de Sistemas
+*   **Asignatura / Espacio:** Práctica Profesionalizante · Proyecto Final Integrador de Grado
 *   **Sistema Oficial:** SiGIC — Sistema de Gestión Institucional de Colaciones
+*   **Versión de Plataforma:** v5.2.0 (Web) · v1.0.9+10 (Móvil Android)
 *   **Ciclo Lectivo:** 2026
 *   **Ubicación:** Avellaneda, Provincia de Buenos Aires, Argentina
 *   **Acceso Web:** `https://app.sigic.com.ar`
 *   **Manual Digital Interactivo:** `https://app.sigic.com.ar/manual`
+*   **Mesa de Ayuda Técnica:** `soporte@ibeltran.com.ar`
+
+### Equipo de Análisis y Desarrollo del Proyecto
+| Integrante | Rol y Especialidad | Carrera y Sede |
+| :--- | :--- | :--- |
+| **Cancelo Julian** | Líder de Proyecto & Desarrollador Fullstack | Analista de Sistemas · ITB Avellaneda |
+| **Alfonso Alan Alexis** | Analista de Sistemas & Documentación Técnica | Analista de Sistemas · ITB Avellaneda |
+| **Contreras Villalba Sol Heilin** | Analista de Sistemas & Relevamiento de Procesos | Analista de Sistemas · ITB Avellaneda |
+| **Frassia Matias** | Analista de Sistemas & Control Operativo de Ceremonia | Analista de Sistemas · ITB Avellaneda |
+| **Santillan Luis Gabriel** | Analista de Sistemas & Auditoría de Calidad y Seguridad | Analista de Sistemas · ITB Avellaneda |
+
+### Stack Tecnológico Integral
+*   **Frontend Web:** React 19 + Next.js 16 (App Router con Turbopack) + TailwindCSS 4 + Lucide React.
+*   **Backend Serverless:** Node.js REST API modular (Route Handlers en Next.js).
+*   **Motor de Base de Datos:** PostgreSQL (Relacional ACID, conexión segura SSL TLS 1.3 con pool de conexiones nativo `pg`).
+*   **Aplicación Móvil de Portería:** Flutter 3 & Dart nativo para Android (validación óptica rápida < 500 ms, feedback táctil y acústico).
+*   **Servicio de Mensajería:** Nodemailer con protocolo transaccional SMTP TLS y plantillas HTML enriquecidas.
+*   **Infraestructura Cloud:** Vercel Edge Network (Web) y canal de parches Shorebird CodePush OTA (Móvil).
+*   **Criptografía y Seguridad:** Tokens JWT firmados con HMAC SHA-256, códigos OTP de 6 dígitos, sesiones de portería sincronizadas por QR bidireccional y plan de contingencia offline con códigos alfanuméricos de 8 caracteres.
 
 ---
 
