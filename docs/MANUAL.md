@@ -240,7 +240,7 @@ Términos del sistema explicados en lenguaje directo y sencillo, tal como se usa
 ### Equipo de Análisis y Desarrollo del Proyecto
 | Integrante | Rol y Especialidad | Carrera y Sede |
 | :--- | :--- | :--- |
-| **Cancelo Julian** | Líder de Proyecto & Desarrollador Fullstack | Analista de Sistemas · ITB Avellaneda |
+| **Cancelo Julian** | Analista de Sistemas & Desarrollador Fullstack | Analista de Sistemas · ITB Avellaneda |
 | **Alfonso Alan Alexis** | Analista de Sistemas & Documentación Técnica | Analista de Sistemas · ITB Avellaneda |
 | **Contreras Villalba Sol Heilin** | Analista de Sistemas & Relevamiento de Procesos | Analista de Sistemas · ITB Avellaneda |
 | **Frassia Matias** | Analista de Sistemas & Control Operativo de Ceremonia | Analista de Sistemas · ITB Avellaneda |
