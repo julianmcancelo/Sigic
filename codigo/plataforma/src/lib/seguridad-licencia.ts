@@ -526,6 +526,18 @@ export async function asegurarTablasSeguridadLicencia(): Promise<void> {
         expira_en TIMESTAMP,
         creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+      CREATE TABLE IF NOT EXISTS desafios_login_qr_nfc (
+        challenge_id VARCHAR(40) PRIMARY KEY,
+        estado VARCHAR(24) NOT NULL DEFAULT 'PENDIENTE',
+        token_jwt TEXT,
+        usuario_json JSONB,
+        uid_llave VARCHAR(80),
+        ip_pc VARCHAR(120),
+        ip_celular VARCHAR(120),
+        expira_en TIMESTAMP NOT NULL,
+        autorizado_en TIMESTAMP,
+        creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
     `);
 
     await query(`

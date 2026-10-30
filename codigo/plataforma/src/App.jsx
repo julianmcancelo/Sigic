@@ -53,9 +53,10 @@ import { PantallaCargaInicial } from './componentes/PantallaCargaInicial'
 import { AsistenteOperativoCeremonia } from './componentes/AsistenteOperativoCeremonia'
 import { MenuInicio } from './componentes/MenuInicio'
 import PantallaBloqueoLicencia from './componentes/PantallaBloqueoLicencia'
+import PantallaPuenteQrNfcMovil from './componentes/PantallaPuenteQrNfcMovil'
 
 // Servicios
-import { validarToken, obtenerCeremoniaActiva, obtenerEstadoSetup, responderInvitacion, limpiarTokenSesion, guardarTokenSesion, obtenerTokenSesion, obtenerAjustes, actualizarAjuste, cerrarSesionServidor, validarSesionLocal, obtenerEstadoLicenciaSeguridad, desbloquearConTarjetaNFC } from './servicios/api'
+import { validarToken, obtenerCeremoniaActiva, obtenerEstadoSetup, responderInvitacion, limpiarTokenSesion, guardarTokenSesion, obtenerTokenSesion, obtenerAjustes, actualizarAjuste, cerrarSesionServidor, validarSesionLocal, obtenerEstadoLicenciaSeguridad, desbloquearConTarjetaNFC, autorizarDesafioLoginQrNfc } from './servicios/api'
 import { generarDatosDemoAleatorios, obtenerDatosDemoActuales, limpiarDatosDemo } from './lib/generador-datos-demo'
 import { demoSandbox } from './lib/demo-sandbox'
 
@@ -122,6 +123,9 @@ function App() {
   // ─── 0. DETECCIÓN DE CONTEXTO (URL) ───
   const [tokenURL, setTokenURL] = useState(
     () => typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('token') : null
+  )
+  const [qrNfcChallengeURL, setQrNfcChallengeURL] = useState(
+    () => typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('qr_nfc') : null
   )
   const [esModoPreview, setEsModoPreview] = useState(() => {
     if (typeof window === 'undefined') return false
@@ -536,6 +540,16 @@ function App() {
                   localStorage.setItem('admin_user', JSON.stringify(resNfc.sesion.usuario))
                   setAdminUser(resNfc.sesion.usuario)
                   setAdminActivo(true)
+                }
+                const desafioPendiente = localStorage.getItem('sigic_pending_qr_nfc')
+                if (desafioPendiente) {
+                  try {
+                    await autorizarDesafioLoginQrNfc({
+                      challengeId: desafioPendiente,
+                      tokenNfc: nfcParam,
+                    })
+                    localStorage.removeItem('sigic_pending_qr_nfc')
+                  } catch (_) {}
                 }
                 window.history.replaceState({}, document.title, window.location.pathname)
               } catch (errNfc) {
@@ -965,11 +979,29 @@ function App() {
     return <ManualUsuarioWeb onVolver={() => window.location.href = '/'} />
   }
 
+  // CASO PUENTE QR + NFC MOVIL: Cuando el celular escanea el QR de una PC para autorizarla con Tag NFC
+  if (qrNfcChallengeURL) {
+    return (
+      <PantallaPuenteQrNfcMovil
+        challengeId={qrNfcChallengeURL}
+        adminActivo={adminActivo}
+        adminUser={adminUser}
+        onFinalizado={() => {
+          setQrNfcChallengeURL(null)
+          if (typeof window !== 'undefined') {
+            window.history.replaceState({}, document.title, window.location.pathname)
+          }
+        }}
+      />
+    )
+  }
+
   // CASO SEGURIDAD CRIPTOGRAFICA: Licencia bloqueada o dominio no autorizado
   if (estadoLicenciaSeguridad?.bloqueado) {
     return (
       <PantallaBloqueoLicencia
         estadoLicencia={estadoLicenciaSeguridad}
+        onLoginExitoso={(usuario) => manejarLoginAdminExitoso(usuario)}
         onDesbloqueado={(nuevoEstado) => {
           setEstadoLicenciaSeguridad(nuevoEstado || { bloqueado: false, valida: true })
         }}

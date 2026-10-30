@@ -21,7 +21,7 @@ export interface ResultadoVerificacionAuditoria {
   mensaje: string;
 }
 
-const HASH_GENESIS = 'GENESIS_SIGIC_SHA256_00000000000000000000000000000000000000000000';
+const HASH_GENESIS = 'GENESIS_SIGIC_SHA256_0000000000000000000000000000000000000000000';
 
 let columnasHashVerificadas = false;
 
@@ -99,9 +99,11 @@ export async function registrarAuditoria({
       ? (req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '127.0.0.1').slice(0, 120)
       : 'sistema';
 
-    const correoStr = usuarioCorreo ? String(usuarioCorreo) : null;
-    const rolStr = rol ? String(rol) : null;
-    const entidadIdStr = entidadId ? String(entidadId) : null;
+    const correoStr = usuarioCorreo ? String(usuarioCorreo).slice(0, 120) : null;
+    const rolStr = rol ? String(rol).slice(0, 48) : null;
+    const entidadIdStr = entidadId ? String(entidadId).slice(0, 60) : null;
+    const accionStr = String(accion).slice(0, 60);
+    const entidadStr = String(entidad).slice(0, 60);
     const detallesJson = detalles ? JSON.stringify(detalles) : null;
 
     // Obtener el ultimo hash_integridad registrado
@@ -119,8 +121,8 @@ export async function registrarAuditoria({
       id,
       usuarioCorreo: correoStr,
       rol: rolStr,
-      accion,
-      entidad,
+      accion: accionStr,
+      entidad: entidadStr,
       entidadId: entidadIdStr,
       detallesJson,
       ip,
@@ -135,11 +137,11 @@ export async function registrarAuditoria({
     `,
       [
         id,
-        usuarioId ? String(usuarioId) : null,
+        usuarioId ? String(usuarioId).slice(0, 60) : null,
         correoStr,
         rolStr,
-        accion,
-        entidad,
+        accionStr,
+        entidadStr,
         entidadIdStr,
         detallesJson,
         ip,

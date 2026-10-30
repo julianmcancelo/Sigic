@@ -1472,6 +1472,50 @@ export async function GET(
       }, { headers });
     }
 
+    if (slug[0] === 'seguridad' && slug[1] === 'qr-nfc' && slug[2] === 'estado' && slug[3]) {
+      await asegurarTablasSeguridadLicencia();
+      const challengeId = String(slug[3]).trim();
+      const resDesafio = await query(
+        'SELECT challenge_id, estado, token_jwt, usuario_json, uid_llave, expira_en, autorizado_en FROM desafios_login_qr_nfc WHERE challenge_id = $1',
+        [challengeId]
+      ).catch(() => ({ rows: [] }));
+
+      const fila = resDesafio.rows[0];
+      if (!fila) {
+        return NextResponse.json({ ok: false, estado: 'NO_ENCONTRADO', error: 'Desafio QR no encontrado.' }, { status: 404, headers });
+      }
+
+      if (fila.estado === 'PENDIENTE' && new Date(fila.expira_en).getTime() < Date.now()) {
+        await query("UPDATE desafios_login_qr_nfc SET estado = 'EXPIRADO' WHERE challenge_id = $1", [challengeId]).catch(() => {});
+        return NextResponse.json({ ok: true, estado: 'EXPIRADO' }, { headers });
+      }
+
+      if (fila.estado === 'AUTORIZADO' && fila.token_jwt) {
+        await query("UPDATE desafios_login_qr_nfc SET estado = 'CONSUMIDO' WHERE challenge_id = $1", [challengeId]).catch(() => {});
+        const resp = NextResponse.json({
+          ok: true,
+          estado: 'AUTORIZADO',
+          sesion: {
+            token: fila.token_jwt,
+            usuario: typeof fila.usuario_json === 'string' ? JSON.parse(fila.usuario_json) : fila.usuario_json,
+          },
+        }, { headers });
+        resp.cookies.set('sigic_admin_session', fila.token_jwt, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          path: '/',
+          maxAge: 12 * 60 * 60,
+        });
+        return resp;
+      }
+
+      return NextResponse.json({
+        ok: true,
+        estado: fila.estado,
+      }, { headers });
+    }
+
     // Fallback: 404 para GET
     return NextResponse.json({ error: `Ruta GET '${path}' no encontrada` }, { status: 404, headers });
 
@@ -1817,6 +1861,177 @@ export async function POST(
       return NextResponse.json({
         ok: true,
         mensaje: activo ? 'Gafete NFC reactivado.' : 'Gafete NFC revocado.',
+      }, { headers });
+    }
+
+    if (path === 'seguridad/qr-nfc/crear-desafio') {
+      await asegurarTablasSeguridadLicencia();
+      await query("DELETE FROM desafios_login_qr_nfc WHERE expira_en < CURRENT_TIMESTAMP - INTERVAL '1 hour'").catch(() => {});
+      const challengeId = `SES-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
+      const hostHeader = req.headers.get('x-forwarded-host') || req.headers.get('host') || 'localhost:3000';
+      const proto = req.headers.get('x-forwarded-proto') || (hostHeader.includes('sigic.com.ar') ? 'https' : 'http');
+      const origenUrl = String(body.origenUrl || `${proto}://${hostHeader}`).replace(/\/+$/, '');
+      const ipPc = (req.headers.get('x-forwarded-for') || 'local').slice(0, 110);
+
+      await query(
+        `INSERT INTO desafios_login_qr_nfc (challenge_id, estado, ip_pc, expira_en)
+         VALUES ($1, 'PENDIENTE', $2, CURRENT_TIMESTAMP + INTERVAL '5 minutes')`,
+        [challengeId, ipPc]
+      );
+
+      const urlMovil = `${origenUrl}/?qr_nfc=${encodeURIComponent(challengeId)}`;
+      return NextResponse.json({
+        ok: true,
+        challengeId,
+        urlMovil,
+        qrPayload: urlMovil,
+        expiraSegundos: 300,
+      }, { headers });
+    }
+
+    if (path === 'seguridad/qr-nfc/autorizar') {
+      await asegurarTablasSeguridadLicencia();
+      const challengeId = String(body.challengeId || '').trim().toUpperCase();
+      const tokenNfc = String(body.tokenNfc || '').trim();
+      const codigoTotp = String(body.codigoTotp || '').trim();
+      const usarSesionActual = Boolean(body.usarSesionActual);
+
+      if (!challengeId) {
+        return NextResponse.json({ ok: false, error: 'Codigo de sesion QR requerido.' }, { status: 400, headers });
+      }
+
+      const resDesafio = await query(
+        'SELECT challenge_id, estado, expira_en FROM desafios_login_qr_nfc WHERE challenge_id = $1',
+        [challengeId]
+      );
+      const desafio = resDesafio.rows[0];
+      if (!desafio) {
+        return NextResponse.json({ ok: false, error: 'El codigo QR de la PC no existe o ya fue utilizado.' }, { status: 404, headers });
+      }
+      if (desafio.estado !== 'PENDIENTE' || new Date(desafio.expira_en).getTime() < Date.now()) {
+        return NextResponse.json({ ok: false, error: 'El codigo QR de la PC ha expirado. Genera uno nuevo en la pantalla.' }, { status: 400, headers });
+      }
+
+      let correoAutorizado = '';
+      let nombreAutorizado = '';
+      let rolAutorizado = 'SUPER_ADMIN';
+      let uidLlaveUsada = '';
+
+      if (tokenNfc) {
+        const verifNfc = verificarTokenNFC(tokenNfc);
+        if (!verifNfc.valido) {
+          return NextResponse.json({ ok: false, error: verifNfc.motivo || 'Tag NFC invalido.' }, { status: 403, headers });
+        }
+        uidLlaveUsada = verifNfc.datos?.uid_llave || 'NFC-MASTER-JC-01';
+        const gafeteDb = await query('SELECT activo, expira_en FROM gafetes_nfc_autorizados WHERE uid_llave = $1', [uidLlaveUsada]);
+        if (gafeteDb.rows.length > 0) {
+          if (!gafeteDb.rows[0].activo) {
+            return NextResponse.json({ ok: false, error: 'Este Tag NFC fue revocado por el administrador.' }, { status: 403, headers });
+          }
+          if (gafeteDb.rows[0].expira_en && new Date(gafeteDb.rows[0].expira_en).getTime() < Date.now()) {
+            return NextResponse.json({ ok: false, error: 'Este Tag NFC ha expirado.' }, { status: 403, headers });
+          }
+          await query(
+            'UPDATE gafetes_nfc_autorizados SET dispositivos_vinculados = dispositivos_vinculados + 1, ultimo_uso = CURRENT_TIMESTAMP WHERE uid_llave = $1',
+            [uidLlaveUsada]
+          );
+        }
+        correoAutorizado = (verifNfc.datos?.correo || 'juliancancelo@gmail.com').toLowerCase();
+        nombreAutorizado = verifNfc.datos?.propietario || 'Cancelo Julian';
+        rolAutorizado = verifNfc.datos?.rol || 'SUPER_ADMIN';
+      } else if (usarSesionActual) {
+        const auth = await obtenerUsuarioAutenticado(req, ROLES_GESTION);
+        if (!auth.valido || !auth.datos) {
+          return NextResponse.json({ ok: false, error: 'Tu celular no tiene una sesion administrativa activa. Apoya tu Tag NFC primero.' }, { status: 403, headers });
+        }
+        correoAutorizado = String(auth.datos.email || 'juliancancelo@gmail.com').toLowerCase();
+        nombreAutorizado = String(auth.datos.nombre || 'Administrador SiGIC');
+        rolAutorizado = String(auth.datos.rol || 'SUPER_ADMIN');
+        uidLlaveUsada = 'SESION-MOVIL-NFC';
+      } else if (codigoTotp && verificarCodigoTOTP(codigoTotp)) {
+        correoAutorizado = 'juliancancelo@gmail.com';
+        nombreAutorizado = 'Cancelo Julian';
+        rolAutorizado = 'SUPER_ADMIN';
+        uidLlaveUsada = 'CODIGO-MAESTRO-TOTP';
+      } else {
+        return NextResponse.json({
+          ok: false,
+          error: 'Debes apoyar tu Tag NFC fisico o tener sesion activa en el celular para autorizar la PC.',
+        }, { status: 403, headers });
+      }
+
+      await query(
+        `INSERT INTO configuracion_sistema (clave, valor, descripcion, actualizado_en)
+         VALUES ('licencia_bloqueo_remoto', 'false', 'Desbloqueado por Login QR + NFC', CURRENT_TIMESTAMP)
+         ON CONFLICT (clave) DO UPDATE SET valor = 'false', actualizado_en = CURRENT_TIMESTAMP`
+      );
+
+      let userRes = await query(
+        'SELECT id, nombre, email, rol FROM usuarios_sistema WHERE LOWER(email) = LOWER($1) AND activo = 1 LIMIT 1',
+        [correoAutorizado]
+      );
+      if (userRes.rows.length === 0) {
+        const rolDb = rolAutorizado === 'PORTERIA' ? 'PORTERIA' : 'ADMINISTRATIVO';
+        const hashAuto = await bcrypt.hash(process.env.SIGIC_MASTER_PIN || '04051990', 10);
+        await query(
+          `INSERT INTO usuarios_sistema (nombre, email, password_hash, rol, activo)
+           VALUES ($1, $2, $3, $4, 1)
+           ON CONFLICT (email) DO UPDATE SET activo = 1, nombre = EXCLUDED.nombre`,
+          [nombreAutorizado, correoAutorizado, hashAuto, rolDb]
+        ).catch(() => {});
+        userRes = await query(
+          'SELECT id, nombre, email, rol FROM usuarios_sistema WHERE LOWER(email) = LOWER($1) LIMIT 1',
+          [correoAutorizado]
+        );
+      }
+      if (userRes.rows.length === 0) {
+        userRes = await query("SELECT id, nombre, email, rol FROM usuarios_sistema WHERE activo = 1 ORDER BY id ASC LIMIT 1");
+      }
+
+      const u = userRes.rows[0] || { id: 1, nombre: nombreAutorizado, email: correoAutorizado, rol: rolAutorizado };
+      const tokenJwt = firmar(
+        {
+          tipo: 'personal',
+          id: u.id,
+          nombre: nombreAutorizado || u.nombre,
+          email: u.email,
+          rol: rolAutorizado || u.rol || 'SUPER_ADMIN',
+          sessionVersion: 1,
+        },
+        12 * 60 * 60
+      );
+      const usuarioFinal = {
+        id: u.id,
+        nombre: nombreAutorizado || u.nombre,
+        email: u.email,
+        correo: u.email,
+        rol: rolAutorizado || u.rol || 'SUPER_ADMIN',
+        autorizadoPorNfc: uidLlaveUsada,
+      };
+
+      await query(
+        `UPDATE desafios_login_qr_nfc
+         SET estado = 'AUTORIZADO',
+             token_jwt = $1,
+             usuario_json = $2,
+             uid_llave = $3,
+             autorizado_en = CURRENT_TIMESTAMP
+         WHERE challenge_id = $4`,
+        [tokenJwt, JSON.stringify(usuarioFinal), uidLlaveUsada, challengeId]
+      );
+
+      await registrarAuditoria({
+        accion: 'LOGIN_PC_CON_QR_Y_NFC',
+        entidad: 'desafios_login_qr_nfc',
+        entidadId: challengeId,
+        detalles: { propietario: usuarioFinal.nombre, correo: usuarioFinal.email, uidLlave: uidLlaveUsada },
+        req,
+      });
+
+      return NextResponse.json({
+        ok: true,
+        mensaje: `Acceso en PC autorizado para ${usuarioFinal.nombre}.`,
+        usuario: usuarioFinal,
       }, { headers });
     }
 

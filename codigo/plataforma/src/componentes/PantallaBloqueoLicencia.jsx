@@ -15,19 +15,63 @@ import {
   activarSerialLicenciaCriptografica,
   desbloquearConTarjetaNFC,
   conmutarBloqueoSeguridad,
+  crearDesafioLoginQrNfc,
+  consultarEstadoDesafioQrNfc,
+  guardarTokenSesion,
 } from '@/servicios/api';
 import { obtenerTemaActual } from '@/datos/fondos-pantalla';
 
-export default function PantallaBloqueoLicencia({ estadoLicencia, onDesbloqueado }) {
+export default function PantallaBloqueoLicencia({ estadoLicencia, onDesbloqueado, onLoginExitoso }) {
   const [metodoActivo, setMetodoActivo] = useState('totp'); // 'totp' | 'nfc' | 'serial'
   const [serialInput, setSerialInput] = useState('');
   const [codigoTotp, setCodigoTotp] = useState('');
   const [tokenNfcManual, setTokenNfcManual] = useState('');
   const [escaneandoNfc, setEscaneandoNfc] = useState(false);
   const [mostrarQrAyuda, setMostrarQrAyuda] = useState(false);
+  const [desafioQrNfc, setDesafioQrNfc] = useState(null);
   const [cargando, setCargando] = useState(false);
   const [mensajeExito, setMensajeExito] = useState('');
   const [mensajeError, setMensajeError] = useState('');
+
+  useEffect(() => {
+    if (metodoActivo !== 'nfc') return undefined;
+    let cancelado = false;
+    const origen = typeof window !== 'undefined' ? window.location.origin : undefined;
+    crearDesafioLoginQrNfc(origen)
+      .then((res) => {
+        if (!cancelado) setDesafioQrNfc(res);
+      })
+      .catch(() => {});
+    return () => {
+      cancelado = true;
+    };
+  }, [metodoActivo]);
+
+  useEffect(() => {
+    if (metodoActivo !== 'nfc' || !desafioQrNfc?.challengeId) return undefined;
+    let cancelado = false;
+    const intervalo = window.setInterval(async () => {
+      try {
+        const res = await consultarEstadoDesafioQrNfc(desafioQrNfc.challengeId);
+        if (cancelado) return;
+        if (res.estado === 'AUTORIZADO' && res.sesion?.token && res.sesion?.usuario) {
+          window.clearInterval(intervalo);
+          guardarTokenSesion(res.sesion.token);
+          localStorage.setItem('sesion_admin', 'true');
+          localStorage.setItem('admin_user', JSON.stringify(res.sesion.usuario));
+          setMensajeExito(`Autorizado por NFC (${res.sesion.usuario.nombre}). Desbloqueando...`);
+          setTimeout(() => {
+            if (onLoginExitoso) onLoginExitoso(res.sesion.usuario);
+            if (onDesbloqueado) onDesbloqueado({ bloqueado: false, valida: true });
+          }, 350);
+        }
+      } catch (_) {}
+    }, 1700);
+    return () => {
+      cancelado = true;
+      window.clearInterval(intervalo);
+    };
+  }, [metodoActivo, desafioQrNfc?.challengeId]);
 
   const [temaId, setTemaId] = useState(() =>
     typeof window !== 'undefined' ? localStorage.getItem('sigic_fondo') || 'beltran' : 'beltran'
@@ -336,6 +380,24 @@ export default function PantallaBloqueoLicencia({ estadoLicencia, onDesbloqueado
 
           {metodoActivo === 'nfc' && (
             <div className="space-y-3.5">
+              {desafioQrNfc?.urlMovil && (
+                <div
+                  className={`p-3.5 rounded-2xl border flex flex-col items-center text-center gap-2 ${
+                    esClaro ? 'bg-slate-50 border-slate-200' : 'bg-slate-950/60 border-white/10'
+                  }`}
+                >
+                  <div className="p-2.5 bg-white rounded-xl border border-slate-200 shadow-xs">
+                    <QRCodeSVG value={desafioQrNfc.urlMovil} size={136} level="M" />
+                  </div>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-slate-900 text-white">
+                    {desafioQrNfc.challengeId}
+                  </span>
+                  <p className={`text-[11px] leading-snug ${esClaro ? 'text-slate-600' : 'text-slate-300'}`}>
+                    Escanea este QR con tu celular y apoya tu <strong>Tag NFC</strong> para desbloquear esta PC automaticamente.
+                  </p>
+                </div>
+              )}
+
               <button
                 type="button"
                 onClick={iniciarLecturaNFCFisico}
@@ -344,7 +406,7 @@ export default function PantallaBloqueoLicencia({ estadoLicencia, onDesbloqueado
                 style={{ backgroundColor: acento }}
               >
                 <SmartphoneNfc size={15} />
-                <span>{escaneandoNfc ? 'Acerca tu tarjeta NFC...' : 'Leer Tarjeta / Llavero NFC'}</span>
+                <span>{escaneandoNfc ? 'Acerca tu tarjeta NFC...' : 'Leer Tarjeta NFC en este Dispositivo'}</span>
               </button>
 
               <form onSubmit={manejarDesbloqueoNFCManual} className="space-y-2 pt-2 border-t border-slate-500/15">

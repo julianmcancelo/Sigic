@@ -1138,3 +1138,39 @@ export async function emitirLoteNfcEquipoOficial(origenUrl: string, codigoTotp?:
   if (!res.ok) throw new Error(json.error || 'No se pudo emitir el lote de Tags NFC del equipo.');
   return json;
 }
+
+export async function crearDesafioLoginQrNfc(origenUrl?: string) {
+  const res = await fetch(`${BASE_CLASSIC}/seguridad/qr-nfc/crear-desafio`, {
+    method: 'POST',
+    headers: cabeceras(),
+    body: JSON.stringify({ origenUrl }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo crear el desafio QR + NFC.');
+  return json;
+}
+
+export async function consultarEstadoDesafioQrNfc(challengeId: string) {
+  const res = await fetch(`${BASE_CLASSIC}/seguridad/qr-nfc/estado/${encodeURIComponent(challengeId)}`, {
+    headers: cabeceras(),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Error al verificar el estado del QR.');
+  return json;
+}
+
+export async function autorizarDesafioLoginQrNfc(datos: {
+  challengeId: string;
+  tokenNfc?: string;
+  codigoTotp?: string;
+  usarSesionActual?: boolean;
+}) {
+  const res = await fetch(`${BASE_CLASSIC}/seguridad/qr-nfc/autorizar`, {
+    method: 'POST',
+    headers: cabeceras(),
+    body: JSON.stringify(datos),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo autorizar el inicio de sesion en la PC.');
+  return json;
+}

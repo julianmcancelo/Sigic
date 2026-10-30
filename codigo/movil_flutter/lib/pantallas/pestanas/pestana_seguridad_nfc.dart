@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../modelos/usuario_sesion.dart';
 import '../../nucleo/tema/tema_sigic.dart';
@@ -36,6 +37,7 @@ class _PestanaSeguridadNfcState extends State<PestanaSeguridadNfc> {
     text: 'juliancancelo@gmail.com',
   );
   final TextEditingController _ctrlDias = TextEditingController(text: '365');
+  final TextEditingController _ctrlCodigoQrPc = TextEditingController();
 
   String _rolSeleccionado = 'SUPER_ADMIN';
   bool _cargando = true;
@@ -106,6 +108,7 @@ class _PestanaSeguridadNfcState extends State<PestanaSeguridadNfc> {
     _ctrlPropietario.dispose();
     _ctrlCorreo.dispose();
     _ctrlDias.dispose();
+    _ctrlCodigoQrPc.dispose();
     super.dispose();
   }
 
@@ -366,6 +369,161 @@ class _PestanaSeguridadNfcState extends State<PestanaSeguridadNfc> {
         e.toString().replaceFirst('Exception: ', ''),
         error: true,
       );
+    }
+  }
+
+  Future<void> _escanearQrPcModal() async {
+    final codigoLeido = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.black,
+      builder: (ctx) {
+        var detectado = false;
+        return SizedBox(
+          height: MediaQuery.of(ctx).size.height * 0.68,
+          child: Stack(
+            children: [
+              MobileScanner(
+                onDetect: (captura) {
+                  if (detectado) return;
+                  for (final b in captura.barcodes) {
+                    final raw = b.rawValue?.trim();
+                    if (raw != null && raw.isNotEmpty) {
+                      detectado = true;
+                      Navigator.of(ctx).pop(raw);
+                      break;
+                    }
+                  }
+                },
+              ),
+              Positioned(
+                top: 16,
+                left: 16,
+                right: 16,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.72),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.qr_code_scanner_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 10),
+                      const Expanded(
+                        child: Text(
+                          'Apunta al codigo QR en la pantalla de la PC',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        child: const Text(
+                          'Cerrar',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (codigoLeido != null && codigoLeido.isNotEmpty) {
+      if (codigoLeido.startsWith('http://') ||
+          codigoLeido.startsWith('https://')) {
+        final uri = Uri.tryParse(codigoLeido);
+        if (uri != null && uri.host.isNotEmpty) {
+          final origenEscaneado =
+              '${uri.scheme}://${uri.host}${uri.hasPort ? ':${uri.port}' : ''}/api';
+          await widget.servicioApi.guardarApiUrl(
+            origenEscaneado,
+            conservarSesion: true,
+          );
+        }
+      }
+      setState(() {
+        _ctrlCodigoQrPc.text = codigoLeido;
+      });
+      await _autorizarPcConQrYNfc(codigoQr: codigoLeido, pedirTagFisico: true);
+    }
+  }
+
+  Future<void> _autorizarPcConQrYNfc({
+    required String codigoQr,
+    required bool pedirTagFisico,
+  }) async {
+    if (codigoQr.trim().isEmpty) {
+      _mostrarAviso(
+        'Escanea el QR de la PC o escribe el codigo SES-XXXXXX.',
+        error: true,
+      );
+      return;
+    }
+
+    setState(() {
+      _operando = true;
+      _esperandoNfcFisico = pedirTagFisico;
+      _mensajeEstadoNfc = pedirTagFisico
+          ? 'Acerca ahora tu Tag NFC detras del celular para abrir la sesion en la PC...'
+          : 'Autorizando PC con tu sesion activa...';
+    });
+
+    try {
+      String? contenidoTag;
+      if (pedirTagFisico) {
+        final lectura = await _servicioNfc.leerTagFisico();
+        contenidoTag = (lectura['contenido'] ?? '').toString();
+        if (contenidoTag.isEmpty || !contenidoTag.contains('SIGIC-NFC-v1.')) {
+          throw Exception(
+            'El Tag NFC leido no contiene una firma SIGIC-NFC-v1 valida.',
+          );
+        }
+      }
+
+      final res = await widget.servicioApi.autorizarDesafioQrNfcPc(
+        codigoQrOChallenge: codigoQr,
+        contenidoTagNfc: contenidoTag,
+        usarSesionActual: !pedirTagFisico && _usuarioActual != null,
+        codigoTotp: (!pedirTagFisico && _usuarioActual == null)
+            ? _ctrlPin.text.trim()
+            : null,
+      );
+
+      await ServicioFeedback.accesoPermitido();
+      _mostrarAviso(
+        (res['mensaje'] ?? 'PC autorizada correctamente.').toString(),
+      );
+      await _cargarTodo();
+    } catch (e) {
+      await ServicioFeedback.accesoDenegado();
+      _mostrarAviso(
+        e.toString().replaceFirst('Exception: ', ''),
+        error: true,
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _operando = false;
+          _esperandoNfcFisico = false;
+          _mensajeEstadoNfc = '';
+        });
+      }
     }
   }
 
@@ -714,6 +872,97 @@ class _PestanaSeguridadNfcState extends State<PestanaSeguridadNfc> {
                               'Leer Tarjeta NFC para Autorizar / Desbloquear',
                             ),
                           ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  // 1.5. Iniciar Sesion en PC con QR + Tag NFC
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Iniciar Sesion en PC (QR + Tag NFC)',
+                            style: TextStyle(
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          const Text(
+                            'En la computadora haz clic en "Ingresar con Celular + Tag NFC", escanea el QR que aparece en pantalla y apoya tu llavero NFC detras del telefono.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF64748B),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: double.infinity,
+                            child: FilledButton.icon(
+                              onPressed: _operando ? null : _escanearQrPcModal,
+                              icon: const Icon(
+                                Icons.qr_code_scanner_rounded,
+                                size: 18,
+                              ),
+                              label: const Text(
+                                'Escanear QR de PC y Apoyar Tag NFC',
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: TextField(
+                                  controller: _ctrlCodigoQrPc,
+                                  decoration: const InputDecoration(
+                                    labelText: 'O codigo SES-XXXXXX',
+                                    prefixIcon: Icon(Icons.key_rounded),
+                                    isDense: true,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              OutlinedButton.icon(
+                                onPressed: _operando
+                                    ? null
+                                    : () => _autorizarPcConQrYNfc(
+                                          codigoQr: _ctrlCodigoQrPc.text,
+                                          pedirTagFisico: true,
+                                        ),
+                                icon: const Icon(Icons.nfc_rounded, size: 16),
+                                label: const Text('Con NFC'),
+                              ),
+                            ],
+                          ),
+                          if (_usuarioActual != null &&
+                              _ctrlCodigoQrPc.text.trim().isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: _operando
+                                    ? null
+                                    : () => _autorizarPcConQrYNfc(
+                                          codigoQr: _ctrlCodigoQrPc.text,
+                                          pedirTagFisico: false,
+                                        ),
+                                icon: const Icon(
+                                  Icons.check_circle_rounded,
+                                  size: 16,
+                                ),
+                                label: Text(
+                                  'Autorizar directo como ${_usuarioActual!.nombre}',
+                                ),
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),

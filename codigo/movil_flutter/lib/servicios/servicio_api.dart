@@ -415,6 +415,56 @@ class ServicioApi {
     return mapa;
   }
 
+  Future<Map<String, dynamic>> autorizarDesafioQrNfcPc({
+    required String codigoQrOChallenge,
+    String? contenidoTagNfc,
+    String? codigoTotp,
+    bool usarSesionActual = false,
+  }) async {
+    var challengeId = codigoQrOChallenge.trim();
+    if (challengeId.contains('qr_nfc=')) {
+      final uri = Uri.tryParse(challengeId);
+      final param = uri?.queryParameters['qr_nfc'];
+      if (param != null && param.isNotEmpty) {
+        challengeId = Uri.decodeComponent(param);
+      } else {
+        final partes = challengeId.split('qr_nfc=');
+        if (partes.length > 1) {
+          challengeId = Uri.decodeComponent(partes[1].split('&').first);
+        }
+      }
+    } else if (challengeId.startsWith('sigic-qr-nfc:')) {
+      challengeId = challengeId.replaceFirst('sigic-qr-nfc:', '');
+    }
+    challengeId = challengeId.trim().toUpperCase();
+
+    String? tokenNfc;
+    if (contenidoTagNfc != null && contenidoTagNfc.trim().isNotEmpty) {
+      var limpio = contenidoTagNfc.trim();
+      if (limpio.contains('nfc=')) {
+        final uri = Uri.tryParse(limpio);
+        final param = uri?.queryParameters['nfc'];
+        if (param != null && param.isNotEmpty) {
+          limpio = Uri.decodeComponent(param);
+        }
+      }
+      tokenNfc = limpio;
+    }
+
+    final res = await _request(
+      '/seguridad/qr-nfc/autorizar',
+      metodo: 'POST',
+      cuerpo: {
+        'challengeId': challengeId,
+        if (tokenNfc != null && tokenNfc.isNotEmpty) 'tokenNfc': tokenNfc,
+        if (codigoTotp != null && codigoTotp.isNotEmpty)
+          'codigoTotp': codigoTotp,
+        if (usarSesionActual) 'usarSesionActual': true,
+      },
+    );
+    return (res as Map).cast<String, dynamic>();
+  }
+
   Future<dynamic> _request(
     String ruta, {
     String metodo = 'GET',
