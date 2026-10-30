@@ -31,6 +31,8 @@ export default function PantallaPuenteQrNfcMovil({
   const [mensajeError, setMensajeError] = useState('');
   const [codigoPin, setCodigoPin] = useState('');
   const [mostrarPinManual, setMostrarPinManual] = useState(false);
+  const [mostrarTokenManual, setMostrarTokenManual] = useState(false);
+  const [tokenPegado, setTokenPegado] = useState('');
 
   // Selector y sincronización activa de tema (por defecto Modo Claro institucional 'alabaster')
   const [temaId, setTemaId] = useState(() => {
@@ -79,12 +81,54 @@ export default function PantallaPuenteQrNfcMovil({
     }
   };
 
+  const autorizarConTokenDirecto = async (tokenRaw) => {
+    setMensajeError('');
+    let tokenExtraido = (tokenRaw || '').trim();
+    if (!tokenExtraido) return;
+
+    if (tokenExtraido.includes('nfc=')) {
+      try {
+        const urlObj = new URL(tokenExtraido);
+        tokenExtraido = urlObj.searchParams.get('nfc') || tokenExtraido;
+      } catch (_) {
+        const partes = tokenExtraido.split('nfc=');
+        if (partes[1]) tokenExtraido = decodeURIComponent(partes[1].split('&')[0]);
+      }
+    }
+
+    if (tokenExtraido.includes('SIGIC-NFC-v1.')) {
+      const idx = tokenExtraido.indexOf('SIGIC-NFC-v1.');
+      tokenExtraido = tokenExtraido.substring(idx);
+    } else {
+      setMensajeError('El enlace o certificado no corresponde a una credencial oficial SIGIC-NFC-v1.');
+      return;
+    }
+
+    setCargando(true);
+    try {
+      const res = await autorizarDesafioLoginQrNfc({
+        challengeId,
+        tokenNfc: tokenExtraido,
+      });
+      localStorage.removeItem('sigic_pending_qr_nfc');
+      setNombreAutorizado(res?.usuario?.nombre || 'Miembro del Equipo');
+      setAutorizadoExito(true);
+      setEscaneandoNfc(false);
+    } catch (err) {
+      setMensajeError(err.message || 'Ocurrió un problema al autorizar la credencial.');
+    } finally {
+      setCargando(false);
+      setEscaneandoNfc(false);
+    }
+  };
+
   const iniciarLecturaNFC = async () => {
     setMensajeError('');
     if (typeof window === 'undefined' || !('NDEFReader' in window)) {
       setMensajeError(
-        'Para leer directo con un toque necesitás Chrome en Android con NFC prendido. Si tu celu ya abrió el link al apoyar la tarjeta, se autoriza solo.'
+        'El navegador actual no habilita lectura web NFC directa. Si tu tarjeta tiene el enlace grabado, apoyala al teléfono con la pantalla desbloqueada y se autorizará automáticamente. También podés pegar su enlace aquí abajo.'
       );
+      setMostrarTokenManual(true);
       return;
     }
 
@@ -97,30 +141,12 @@ export default function PantallaPuenteQrNfcMovil({
           const decoder = new TextDecoder();
           for (const record of event.message.records) {
             const texto = decoder.decode(record.data);
-            let tokenExtraido = texto.trim();
-            if (tokenExtraido.includes('nfc=')) {
-              try {
-                const urlObj = new URL(tokenExtraido);
-                tokenExtraido = urlObj.searchParams.get('nfc') || tokenExtraido;
-              } catch (_) {
-                const partes = tokenExtraido.split('nfc=');
-                if (partes[1]) tokenExtraido = decodeURIComponent(partes[1].split('&')[0]);
-              }
-            }
-            if (tokenExtraido.includes('SIGIC-NFC-v1.')) {
-              setCargando(true);
-              const res = await autorizarDesafioLoginQrNfc({
-                challengeId,
-                tokenNfc: tokenExtraido,
-              });
-              localStorage.removeItem('sigic_pending_qr_nfc');
-              setNombreAutorizado(res?.usuario?.nombre || 'Miembro del Equipo');
-              setAutorizadoExito(true);
-              setEscaneandoNfc(false);
+            if (texto && (texto.includes('SIGIC-NFC-v1.') || texto.includes('nfc='))) {
+              await autorizarConTokenDirecto(texto);
               return;
             }
           }
-          setMensajeError('La tarjeta no corresponde a una credencial oficial de SiGIC.');
+          setMensajeError('La tarjeta no contiene una credencial oficial de SiGIC.');
         } catch (err) {
           setMensajeError(err.message || 'Ocurrió un problema al leer la tarjeta.');
         } finally {
@@ -130,7 +156,7 @@ export default function PantallaPuenteQrNfcMovil({
       };
     } catch (err) {
       setEscaneandoNfc(false);
-      setMensajeError('No pudimos activar el lector NFC del teléfono.');
+      setMensajeError('No pudimos activar el sensor NFC. Si el teléfono ya abrió el link al apoyar la tarjeta, se autoriza sola.');
     }
   };
 
@@ -386,25 +412,44 @@ export default function PantallaPuenteQrNfcMovil({
                 </div>
               ) : null}
 
-              {/* Opción alternativa discreta: Ingreso por PIN */}
-              <div className="pt-1 text-center">
-                <button
-                  type="button"
-                  onClick={() => setMostrarPinManual((prev) => !prev)}
-                  className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
-                >
-                  <KeyRound size={12} />
-                  <span>{mostrarPinManual ? 'Ocultar ingreso por clave' : '¿Preferís ingresar con clave?'}</span>
-                </button>
+              {/* Opciones alternativas: Clave o Pegar Enlace NFC */}
+              <div className="pt-1 text-center space-y-2">
+                <div className="flex items-center justify-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMostrarPinManual((prev) => !prev);
+                      if (!mostrarPinManual) setMostrarTokenManual(false);
+                    }}
+                    className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+                  >
+                    <KeyRound size={12} />
+                    <span>{mostrarPinManual ? 'Ocultar PIN' : 'Entrar con PIN'}</span>
+                  </button>
+
+                  <span className="text-slate-300">·</span>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMostrarTokenManual((prev) => !prev);
+                      if (!mostrarTokenManual) setMostrarPinManual(false);
+                    }}
+                    className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 hover:text-slate-800 transition-colors cursor-pointer"
+                  >
+                    <SmartphoneNfc size={12} />
+                    <span>{mostrarTokenManual ? 'Ocultar código' : 'Pegar código o link'}</span>
+                  </button>
+                </div>
 
                 {mostrarPinManual ? (
-                  <form onSubmit={autorizarConPin} className="mt-3 flex gap-2 animate-fade-in">
+                  <form onSubmit={autorizarConPin} className="mt-2 flex gap-2 animate-fade-in">
                     <input
                       type="password"
                       inputMode="numeric"
                       value={codigoPin}
                       onChange={(e) => setCodigoPin(e.target.value.replace(/\D/g, ''))}
-                      placeholder="PIN o clave"
+                      placeholder="PIN o clave maestra"
                       className="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-center text-xs font-bold outline-none bg-white text-slate-900"
                     />
                     <button
@@ -414,6 +459,33 @@ export default function PantallaPuenteQrNfcMovil({
                       style={{ backgroundColor: acento }}
                     >
                       Entrar
+                    </button>
+                  </form>
+                ) : null}
+
+                {mostrarTokenManual ? (
+                  <form
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      autorizarConTokenDirecto(tokenPegado);
+                    }}
+                    className="mt-2 flex flex-col gap-2 animate-fade-in text-left"
+                  >
+                    <input
+                      type="text"
+                      value={tokenPegado}
+                      onChange={(e) => setTokenPegado(e.target.value)}
+                      placeholder="Pegá el link del Tag o certificado SIGIC-NFC-v1..."
+                      className="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs font-medium outline-none bg-white text-slate-900 placeholder:text-slate-400"
+                    />
+                    <button
+                      type="submit"
+                      disabled={cargando || !tokenPegado.trim()}
+                      className="w-full py-2.5 rounded-xl text-white text-xs font-bold cursor-pointer transition-opacity disabled:opacity-50 flex items-center justify-center gap-1.5"
+                      style={{ backgroundColor: acento }}
+                    >
+                      <span>Validar credencial</span>
+                      <ArrowRight size={13} />
                     </button>
                   </form>
                 ) : null}

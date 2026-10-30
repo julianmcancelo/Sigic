@@ -126,7 +126,11 @@ function App() {
     () => typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('token') : null
   )
   const [qrNfcChallengeURL, setQrNfcChallengeURL] = useState(
-    () => typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('qr_nfc') : null
+    () => {
+      if (typeof window === 'undefined') return null
+      const params = new URLSearchParams(window.location.search)
+      return params.get('qr_nfc') || params.get('challenge') || null
+    }
   )
   const [esModoPreview, setEsModoPreview] = useState(() => {
     if (typeof window === 'undefined') return false
@@ -528,8 +532,15 @@ function App() {
           // autorizar automaticamente el celular, desbloquear el sistema e iniciar sesion.
           if (typeof window !== 'undefined') {
             const paramsUrl = new URLSearchParams(window.location.search)
-            const nfcParam = paramsUrl.get('nfc')
-            if (nfcParam && nfcParam.startsWith('SIGIC-NFC-v1.')) {
+            let nfcParam = paramsUrl.get('nfc')
+            if (nfcParam) {
+              nfcParam = decodeURIComponent(nfcParam).trim()
+            }
+            if (nfcParam && nfcParam.includes('SIGIC-NFC-v1.')) {
+              if (!nfcParam.startsWith('SIGIC-NFC-v1.')) {
+                const idx = nfcParam.indexOf('SIGIC-NFC-v1.')
+                nfcParam = nfcParam.substring(idx)
+              }
               try {
                 const resNfc = await desbloquearConTarjetaNFC(nfcParam, false)
                 if (resNfc?.estado) {
@@ -550,6 +561,16 @@ function App() {
                       tokenNfc: nfcParam,
                     })
                     localStorage.removeItem('sigic_pending_qr_nfc')
+                  } catch (_) {}
+                }
+                // Si la URL traía un desafío explícito además del NFC, autorizarlo
+                const desafioUrl = paramsUrl.get('qr_nfc') || paramsUrl.get('challenge')
+                if (desafioUrl) {
+                  try {
+                    await autorizarDesafioLoginQrNfc({
+                      challengeId: desafioUrl,
+                      tokenNfc: nfcParam,
+                    })
                   } catch (_) {}
                 }
                 window.history.replaceState({}, document.title, window.location.pathname)
