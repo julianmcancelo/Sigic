@@ -52,9 +52,10 @@ import { GuiaDemostracionAutomatica } from './componentes/GuiaDemostracionAutoma
 import { PantallaCargaInicial } from './componentes/PantallaCargaInicial'
 import { AsistenteOperativoCeremonia } from './componentes/AsistenteOperativoCeremonia'
 import { MenuInicio } from './componentes/MenuInicio'
+import PantallaBloqueoLicencia from './componentes/PantallaBloqueoLicencia'
 
 // Servicios
-import { validarToken, obtenerCeremoniaActiva, obtenerEstadoSetup, responderInvitacion, limpiarTokenSesion, guardarTokenSesion, obtenerTokenSesion, obtenerAjustes, actualizarAjuste, cerrarSesionServidor, validarSesionLocal } from './servicios/api'
+import { validarToken, obtenerCeremoniaActiva, obtenerEstadoSetup, responderInvitacion, limpiarTokenSesion, guardarTokenSesion, obtenerTokenSesion, obtenerAjustes, actualizarAjuste, cerrarSesionServidor, validarSesionLocal, obtenerEstadoLicenciaSeguridad } from './servicios/api'
 import { generarDatosDemoAleatorios, obtenerDatosDemoActuales, limpiarDatosDemo } from './lib/generador-datos-demo'
 import { demoSandbox } from './lib/demo-sandbox'
 
@@ -387,6 +388,7 @@ function App() {
 
   // ─── 3.0 ESTADO DE CONFIGURACIÓN INICIAL (SETUP) ───
   const [requiereSetup, setRequiereSetup] = useState(null)
+  const [estadoLicenciaSeguridad, setEstadoLicenciaSeguridad] = useState(null)
   const [cargandoSetup, setCargandoSetup] = useState(true)
 
   const [mostrarPresentacionInicial, setMostrarPresentacionInicial] = useState(() => {
@@ -516,6 +518,10 @@ function App() {
     async function inicializarApp() {
       const inicioCarga = Date.now()
       try {
+        try {
+          const lic = await obtenerEstadoLicenciaSeguridad()
+          setEstadoLicenciaSeguridad(lic)
+        } catch (_) {}
         const estado = await obtenerEstadoSetup()
         setRequiereSetup(estado.requiereConfiguracionInicial)
         
@@ -933,6 +939,18 @@ function App() {
   // CASO EXPLICITO: Acceso directo y libre al Manual de Usuario
   if (typeof window !== 'undefined' && window.location.pathname === '/manual') {
     return <ManualUsuarioWeb onVolver={() => window.location.href = '/'} />
+  }
+
+  // CASO SEGURIDAD CRIPTOGRAFICA: Licencia bloqueada o dominio no autorizado
+  if (estadoLicenciaSeguridad?.bloqueado) {
+    return (
+      <PantallaBloqueoLicencia
+        estadoLicencia={estadoLicenciaSeguridad}
+        onDesbloqueado={(nuevoEstado) => {
+          setEstadoLicenciaSeguridad(nuevoEstado || { bloqueado: false, valida: true })
+        }}
+      />
+    )
   }
 
   // CASO 0: Cargando estado inicial

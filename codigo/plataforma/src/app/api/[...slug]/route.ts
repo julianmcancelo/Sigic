@@ -12,7 +12,19 @@ import os from 'os';
 import { inicializarBaseDatos } from '@/lib/schema';
 import { generarPaseGoogleWallet } from '@/lib/google-wallet';
 import { obtenerCache, guardarCache, invalidarCache } from '@/lib/cache';
-import { registrarAuditoria } from '@/lib/auditoria';
+import { registrarAuditoria, verificarIntegridadCadenaAuditoria } from '@/lib/auditoria';
+import {
+  obtenerEstadoLicenciaActual,
+  verificarSerialLicencia,
+  verificarTokenNFC,
+  verificarCodigoTOTP,
+  generarCodigoTOTP,
+  obtenerUriProvisionamientoTOTP,
+  registrarAlertaForense,
+  asegurarTablasSeguridadLicencia,
+  TOKEN_NFC_MAESTRO_FIRMADO,
+  CLAVE_PUBLICA_ED25519_PEM,
+} from '@/lib/seguridad-licencia';
 
 import {
   RONDAS_BCRYPT,
@@ -1399,6 +1411,59 @@ export async function GET(
       return NextResponse.json(result.rows[0], { headers });
     }
 
+    // -------------------------------------------------------------
+    // CIBERSEGURIDAD, LICENCIAMIENTO ED25519 Y CUSTODIA DE PROPIEDAD INTELECTUAL
+    // -------------------------------------------------------------
+    if (path === 'seguridad/estado-licencia') {
+      const hostActual = req.headers.get('x-forwarded-host') || req.headers.get('host') || 'localhost';
+      const estado = await obtenerEstadoLicenciaActual(hostActual);
+
+      if (estado.bloqueado && estado.motivo === 'DOMINIO_NO_AUTORIZADO') {
+        const ip = (req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '127.0.0.1').slice(0, 120);
+        const ua = (req.headers.get('user-agent') || 'Desconocido').slice(0, 280);
+        await registrarAlertaForense({
+          tipoAlerta: 'EJECUCION_DOMINIO_NO_AUTORIZADO',
+          dominioDetectado: estado.dominioDetectado,
+          ipOrigen: ip,
+          agenteUsuario: ua,
+          detalles: { hostHeader: hostActual, motivo: estado.motivo },
+        });
+      }
+
+      const auth = await obtenerUsuarioAutenticado(req, ROLES_LECTURA);
+      const esAdminAutenticado = Boolean(auth.valido && auth.datos?.tipo === 'personal');
+
+      return NextResponse.json({
+        ...estado,
+        clavePublicaEd25519: CLAVE_PUBLICA_ED25519_PEM,
+        ...(esAdminAutenticado
+          ? {
+              tokenNfcMaestro: TOKEN_NFC_MAESTRO_FIRMADO,
+              totpProvisioning: obtenerUriProvisionamientoTOTP(),
+              codigoTotpActualDemo: generarCodigoTOTP(),
+            }
+          : {}),
+      }, { headers });
+    }
+
+    if (path === 'seguridad/auditoria-integridad') {
+      await asegurarTablasSeguridadLicencia();
+      const cadena = await verificarIntegridadCadenaAuditoria();
+      const alertasRes = await query(
+        'SELECT id, tipo_alerta, dominio_detectado, ip_origen, agente_usuario, detalles, creado_en FROM alertas_seguridad_licencia ORDER BY creado_en DESC LIMIT 25'
+      ).catch(() => ({ rows: [] }));
+      const llavesRes = await query(
+        'SELECT credencial_id, nombre_llave, propietario, transporte, usos_count, ultimo_uso, creado_en FROM llaves_seguridad_fido2 ORDER BY creado_en DESC'
+      ).catch(() => ({ rows: [] }));
+
+      return NextResponse.json({
+        ok: true,
+        cadenaAuditoria: cadena,
+        alertasForenses: alertasRes.rows,
+        llavesFido2: llavesRes.rows,
+      }, { headers });
+    }
+
     // Fallback: 404 para GET
     return NextResponse.json({ error: `Ruta GET '${path}' no encontrada` }, { status: 404, headers });
 
@@ -1426,6 +1491,238 @@ export async function POST(
   }
 
   try {
+
+    // -------------------------------------------------------------
+    // CIBERSEGURIDAD: ACTIVACION DE SERIAL ED25519, TOTP, NFC Y WEBAUTHN FIDO2
+    // -------------------------------------------------------------
+    if (path === 'seguridad/activar-serial') {
+      await asegurarTablasSeguridadLicencia();
+      const serial = String(body.serial || '').trim();
+      const hostActual = req.headers.get('x-forwarded-host') || req.headers.get('host') || 'localhost';
+      const resultado = verificarSerialLicencia(serial, hostActual, false);
+
+      if (!resultado.valida) {
+        const ip = (req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '127.0.0.1').slice(0, 120);
+        const ua = (req.headers.get('user-agent') || 'Desconocido').slice(0, 280);
+        await registrarAlertaForense({
+          tipoAlerta: 'INTENTO_SERIAL_INVALIDO',
+          dominioDetectado: resultado.dominioDetectado,
+          ipOrigen: ip,
+          agenteUsuario: ua,
+          detalles: { motivo: resultado.motivo, mensaje: resultado.mensaje },
+        });
+        return NextResponse.json({
+          ok: false,
+          error: resultado.mensaje,
+          motivo: resultado.motivo,
+        }, { status: 403, headers });
+      }
+
+      await query(
+        `INSERT INTO configuracion_sistema (clave, valor, descripcion, actualizado_en)
+         VALUES ('licencia_serial_ed25519', $1, 'Certificado de licencia criptografica Ed25519', CURRENT_TIMESTAMP)
+         ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor, actualizado_en = CURRENT_TIMESTAMP`,
+        [serial]
+      );
+      await query(
+        `INSERT INTO configuracion_sistema (clave, valor, descripcion, actualizado_en)
+         VALUES ('licencia_bloqueo_remoto', 'false', 'Bloqueo de seguridad activado por el autor', CURRENT_TIMESTAMP)
+         ON CONFLICT (clave) DO UPDATE SET valor = 'false', actualizado_en = CURRENT_TIMESTAMP`
+      );
+
+      await registrarAuditoria({
+        accion: 'ACTIVAR_LICENCIA_ED25519',
+        entidad: 'seguridad_licencia',
+        entidadId: resultado.licencia?.serial_id || 'LIC-ED25519',
+        detalles: {
+          institucion: resultado.licencia?.institucion,
+          autoridad: resultado.licencia?.autoridad_seguridad,
+          expiracion: resultado.licencia?.fecha_expiracion,
+        },
+        req,
+      });
+
+      return NextResponse.json({
+        ok: true,
+        mensaje: 'Certificado criptografico Ed25519 verificado y activado correctamente.',
+        estado: await obtenerEstadoLicenciaActual(hostActual),
+      }, { headers });
+    }
+
+    if (path === 'seguridad/desbloquear-nfc') {
+      await asegurarTablasSeguridadLicencia();
+      const tokenNfc = String(body.tokenNfc || '').trim();
+      const verifNfc = verificarTokenNFC(tokenNfc);
+
+      if (!verifNfc.valido) {
+        const ip = (req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '127.0.0.1').slice(0, 120);
+        const ua = (req.headers.get('user-agent') || 'Desconocido').slice(0, 280);
+        await registrarAlertaForense({
+          tipoAlerta: 'INTENTO_TAG_NFC_RECHAZADO',
+          dominioDetectado: req.headers.get('host') || 'localhost',
+          ipOrigen: ip,
+          agenteUsuario: ua,
+          detalles: { error: verifNfc.error },
+        });
+        return NextResponse.json({ ok: false, error: verifNfc.error }, { status: 403, headers });
+      }
+
+      const accionDeseada = body.bloquear === true ? 'true' : 'false';
+      await query(
+        `INSERT INTO configuracion_sistema (clave, valor, descripcion, actualizado_en)
+         VALUES ('licencia_bloqueo_remoto', $1, 'Bloqueo de seguridad activado por el autor', CURRENT_TIMESTAMP)
+         ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor, actualizado_en = CURRENT_TIMESTAMP`,
+        [accionDeseada]
+      );
+
+      await registrarAuditoria({
+        accion: accionDeseada === 'true' ? 'BLOQUEO_SISTEMA_POR_NFC' : 'DESBLOQUEO_SISTEMA_POR_NFC',
+        entidad: 'seguridad_licencia',
+        entidadId: verifNfc.datos?.uid_llave || 'NFC-KEY',
+        detalles: verifNfc.datos || {},
+        req,
+      });
+
+      const hostActual = req.headers.get('x-forwarded-host') || req.headers.get('host') || 'localhost';
+      return NextResponse.json({
+        ok: true,
+        mensaje: accionDeseada === 'true'
+          ? 'Sistema bloqueado con llave maestra NFC.'
+          : 'Autorizacion fisica NFC Ed25519 verificada. Sistema desbloqueado.',
+        datosLlave: verifNfc.datos,
+        estado: await obtenerEstadoLicenciaActual(hostActual),
+      }, { headers });
+    }
+
+    if (path === 'seguridad/conmutar-bloqueo') {
+      await asegurarTablasSeguridadLicencia();
+      const codigoTotp = String(body.codigoTotp || '').trim();
+      const tokenNfc = String(body.tokenNfc || '').trim();
+      const credencialFidoId = String(body.credencialFidoId || '').trim();
+      const bloquear = Boolean(body.bloquear);
+
+      let metodoAutorizado = '';
+      if (codigoTotp && verificarCodigoTOTP(codigoTotp)) {
+        metodoAutorizado = 'TOTP_RFC6238';
+      } else if (tokenNfc && verificarTokenNFC(tokenNfc).valido) {
+        metodoAutorizado = 'TARJETA_NFC_ED25519';
+      } else if (credencialFidoId) {
+        const fidoRes = await query('SELECT credencial_id FROM llaves_seguridad_fido2 WHERE credencial_id = $1', [credencialFidoId]);
+        if (fidoRes.rows.length > 0) {
+          metodoAutorizado = 'PASSKEY_FIDO2_WEBAUTHN';
+          await query('UPDATE llaves_seguridad_fido2 SET usos_count = usos_count + 1, ultimo_uso = CURRENT_TIMESTAMP WHERE credencial_id = $1', [credencialFidoId]);
+        }
+      } else {
+        const auth = await obtenerUsuarioAutenticado(req, ROLES_GESTION);
+        if (auth.valido && auth.datos?.tipo === 'personal' && bloquear) {
+          metodoAutorizado = 'PANEL_AUTORIDAD_ADMIN';
+        }
+      }
+
+      if (!metodoAutorizado) {
+        return NextResponse.json({
+          ok: false,
+          error: 'Codigo TOTP, firma NFC o llave FIDO2 invalida. Se requiere autenticacion criptografica de la Autoridad del Sistema.',
+        }, { status: 403, headers });
+      }
+
+      await query(
+        `INSERT INTO configuracion_sistema (clave, valor, descripcion, actualizado_en)
+         VALUES ('licencia_bloqueo_remoto', $1, 'Bloqueo de seguridad activado por el autor', CURRENT_TIMESTAMP)
+         ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor, actualizado_en = CURRENT_TIMESTAMP`,
+        [bloquear ? 'true' : 'false']
+      );
+
+      await registrarAuditoria({
+        accion: bloquear ? 'ACTIVAR_BLOQUEO_SEGURIDAD' : 'DESACTIVAR_BLOQUEO_SEGURIDAD',
+        entidad: 'seguridad_licencia',
+        entidadId: metodoAutorizado,
+        detalles: { metodo: metodoAutorizado, bloqueado: bloquear },
+        req,
+      });
+
+      const hostActual = req.headers.get('x-forwarded-host') || req.headers.get('host') || 'localhost';
+      return NextResponse.json({
+        ok: true,
+        metodoAutorizado,
+        mensaje: bloquear
+          ? `Sistema bloqueado criptograficamente mediante ${metodoAutorizado}.`
+          : `Sistema desbloqueado exitosamente mediante ${metodoAutorizado}.`,
+        estado: await obtenerEstadoLicenciaActual(hostActual),
+      }, { headers });
+    }
+
+    if (path === 'seguridad/fido2/registrar') {
+      await asegurarTablasSeguridadLicencia();
+      const auth = await obtenerUsuarioAutenticado(req, ROLES_GESTION);
+      const totpValido = body.codigoTotp && verificarCodigoTOTP(String(body.codigoTotp));
+      if (!auth.valido && !totpValido) {
+        return NextResponse.json({ error: 'Se requiere sesion administrativa o codigo TOTP para registrar una Passkey FIDO2.' }, { status: 403, headers });
+      }
+
+      const credencialId = String(body.credencialId || '').trim();
+      const nombreLlave = String(body.nombreLlave || 'Llave Fisica FIDO2 / Passkey').trim().slice(0, 140);
+      const propietario = String(body.propietario || 'Cancelo Julian').trim().slice(0, 140);
+      const clavePublica = String(body.clavePublica || 'WEBAUTHN_FIDO2_PUBKEY').trim();
+      const transporte = String(body.transporte || 'internal,nfc,usb').trim().slice(0, 80);
+
+      if (!credencialId) {
+        return NextResponse.json({ error: 'Identificador de credencial WebAuthn requerido.' }, { status: 400, headers });
+      }
+
+      await query(
+        `INSERT INTO llaves_seguridad_fido2 (credencial_id, nombre_llave, propietario, clave_publica, transporte, usos_count, ultimo_uso)
+         VALUES ($1, $2, $3, $4, $5, 1, CURRENT_TIMESTAMP)
+         ON CONFLICT (credencial_id) DO UPDATE SET
+           nombre_llave = EXCLUDED.nombre_llave,
+           ultimo_uso = CURRENT_TIMESTAMP`,
+        [credencialId, nombreLlave, propietario, clavePublica, transporte]
+      );
+
+      await registrarAuditoria({
+        accion: 'REGISTRAR_LLAVE_FIDO2_WEBAUTHN',
+        entidad: 'llaves_seguridad_fido2',
+        entidadId: credencialId.slice(0, 48),
+        detalles: { nombreLlave, propietario, transporte },
+        req,
+      });
+
+      return NextResponse.json({
+        ok: true,
+        mensaje: `Llave de hardware / Passkey '${nombreLlave}' vinculada al motor de seguridad.`,
+      }, { headers });
+    }
+
+    if (path === 'seguridad/configurar-alertas') {
+      await asegurarTablasSeguridadLicencia();
+      const auth = await obtenerUsuarioAutenticado(req, ROLES_GESTION);
+      if (!auth.valido) {
+        return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+      }
+
+      const correoAlertas = String(body.correoAlertas || '').trim().slice(0, 180);
+      const webhookAlertas = String(body.webhookAlertas || '').trim().slice(0, 350);
+
+      if (correoAlertas) {
+        await query(
+          `INSERT INTO configuracion_sistema (clave, valor, descripcion, actualizado_en)
+           VALUES ('licencia_correo_alertas', $1, 'Correo del autor para alertas forenses', CURRENT_TIMESTAMP)
+           ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor, actualizado_en = CURRENT_TIMESTAMP`,
+          [correoAlertas]
+        );
+      }
+      await query(
+        `INSERT INTO configuracion_sistema (clave, valor, descripcion, actualizado_en)
+         VALUES ('licencia_webhook_alertas', $1, 'Webhook SIEM/Telegram/Discord para alertas de licencia', CURRENT_TIMESTAMP)
+         ON CONFLICT (clave) DO UPDATE SET valor = EXCLUDED.valor, actualizado_en = CURRENT_TIMESTAMP`,
+        [webhookAlertas]
+      );
+
+      return NextResponse.json({
+        ok: true,
+        mensaje: 'Canales de telemetria y alertas forenses actualizados.',
+      }, { headers });
+    }
 
     // -------------------------------------------------------------
     // DISPARAR ACTUALIZACION DINAMICA

@@ -35,8 +35,9 @@ export async function obtenerUsuarioAutenticado(
     };
   }
 
-  // Soporte de sesión de demostración / expositor
-  if (token.startsWith('bypass-admin-') || token === 'bypass-admin-token') {
+  // Soporte de sesión de demostración / expositor (solo con cabecera explícita X-Sigic-Demo)
+  const esModoDemoExplicito = req.headers.get('x-sigic-demo') === '1';
+  if (esModoDemoExplicito && (token.startsWith('bypass-admin-') || token === 'bypass-admin-token')) {
     return {
       valido: true,
       datos: {

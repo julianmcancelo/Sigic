@@ -158,3 +158,73 @@ test('Excel: importa y exporta el padrón con la biblioteca actualizada', () => 
   const recuperado = xlsx.read(buffer, { type: 'buffer' });
   assert.deepEqual(xlsx.utils.sheet_to_json(recuperado.Sheets.Graduados), filas);
 });
+
+
+test('Ciberseguridad Ed25519, NFC, TOTP RFC 6238 y Cadena SHA-256 de Auditoria', () => {
+  const seg = cargar('lib/seguridad-licencia.ts', {
+    '@/lib/db': { query: async () => ({ rows: [] }) },
+    '@/lib/email': { enviarCorreo: async () => {} },
+  });
+
+  // 1. Verificar licencia inicial firmada con Ed25519 en dominios autorizados
+  const resLocal = seg.verificarSerialLicencia(seg.SERIAL_LICENCIA_INICIAL, 'localhost:3000', false);
+  assert.equal(resLocal.valida, true);
+  assert.equal(resLocal.bloqueado, false);
+  assert.equal(resLocal.licencia.autoridad_seguridad, 'Cancelo Julian');
+
+  const resVercel = seg.verificarSerialLicencia(seg.SERIAL_LICENCIA_INICIAL, 'sigic-preview.vercel.app', false);
+  assert.equal(resVercel.valida, true);
+
+  // 2. Rechazar ejecucion en un dominio no autorizado
+  const resPirata = seg.verificarSerialLicencia(seg.SERIAL_LICENCIA_INICIAL, 'copia-no-autorizada.org', false);
+  assert.equal(resPirata.valida, false);
+  assert.equal(resPirata.bloqueado, true);
+  assert.equal(resPirata.motivo, 'DOMINIO_NO_AUTORIZADO');
+
+  // 3. Rechazar cualquier alteracion en la firma Ed25519
+  const serialAlterado = seg.SERIAL_LICENCIA_INICIAL.slice(0, -4) + 'AAAA';
+  const resAlterado = seg.verificarSerialLicencia(serialAlterado, 'localhost', false);
+  assert.equal(resAlterado.valida, false);
+  assert.equal(resAlterado.motivo, 'FIRMA_CRIPTOGRAFICA_INVALIDA');
+
+  // 4. Verificar llave maestra NFC firmada con Ed25519
+  const nfcOk = seg.verificarTokenNFC(seg.TOKEN_NFC_MAESTRO_FIRMADO);
+  assert.equal(nfcOk.valido, true);
+  assert.equal(nfcOk.datos.propietario, 'Cancelo Julian');
+  assert.equal(seg.verificarTokenNFC(seg.TOKEN_NFC_MAESTRO_FIRMADO + 'X').valido, false);
+
+  // 5. Verificar motor TOTP (RFC 6238) de 6 digitos
+  const codigoActual = seg.generarCodigoTOTP();
+  assert.match(codigoActual, /^\d{6}$/);
+  assert.equal(seg.verificarCodigoTOTP(codigoActual), true);
+  assert.equal(seg.verificarCodigoTOTP('000000'), codigoActual === '000000');
+
+  // 6. Verificar encadenamiento hash SHA-256 de auditoria
+  const aud = cargar('lib/auditoria.ts', {
+    '@/lib/db': { query: async () => ({ rows: [] }) },
+  });
+  const h1 = aud.calcularHashEslabonAuditoria({
+    id: '1',
+    usuarioCorreo: 'jcancelo.dev@gmail.com',
+    rol: 'ADMINISTRATIVO',
+    accion: 'ACTIVAR_LICENCIA_ED25519',
+    entidad: 'seguridad_licencia',
+    entidadId: 'LIC-001',
+    detallesJson: '{"ok":true}',
+    ip: '127.0.0.1',
+    hashPrevio: 'GENESIS',
+  });
+  const h2 = aud.calcularHashEslabonAuditoria({
+    id: '1',
+    usuarioCorreo: 'jcancelo.dev@gmail.com',
+    rol: 'ADMINISTRATIVO',
+    accion: 'ACTIVAR_LICENCIA_ED25519',
+    entidad: 'seguridad_licencia',
+    entidadId: 'LIC-001',
+    detallesJson: '{"ok":false}',
+    ip: '127.0.0.1',
+    hashPrevio: 'GENESIS',
+  });
+  assert.equal(h1.length, 64);
+  assert.notEqual(h1, h2);
+});

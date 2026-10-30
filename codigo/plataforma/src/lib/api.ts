@@ -1001,3 +1001,100 @@ export async function obtenerRegistrosAuditoria(entidad?: string, limite = 100) 
 }
 
 
+
+// ============================================================
+// CIBERSEGURIDAD, LICENCIAMIENTO ED25519 Y LLAVES FIDO2 / NFC / TOTP
+// ============================================================
+
+export async function obtenerEstadoLicenciaSeguridad() {
+  const res = await fetch(`${BASE_CLASSIC}/seguridad/estado-licencia`, {
+    headers: cabeceras(),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo consultar el estado de licencia criptografica.');
+  return json;
+}
+
+export async function obtenerIntegridadAuditoriaYAlertas() {
+  const res = await fetch(`${BASE_CLASSIC}/seguridad/auditoria-integridad`, {
+    headers: cabeceras(),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo verificar la cadena SHA-256 de auditoria.');
+  return json;
+}
+
+export async function activarSerialLicenciaCriptografica(serial: string) {
+  const res = await fetch(`${BASE_CLASSIC}/seguridad/activar-serial`, {
+    method: 'POST',
+    headers: cabeceras(),
+    body: JSON.stringify({ serial }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Certificado Ed25519 rechazado.');
+  return json;
+}
+
+export async function desbloquearConTarjetaNFC(tokenNfc: string, bloquear = false) {
+  const res = await fetch(`${BASE_CLASSIC}/seguridad/desbloquear-nfc`, {
+    method: 'POST',
+    headers: cabeceras(),
+    body: JSON.stringify({ tokenNfc, bloquear }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Firma criptografica del chip NFC invalida.');
+  return json;
+}
+
+export async function conmutarBloqueoSeguridad({
+  bloquear,
+  codigoTotp,
+  tokenNfc,
+  credencialFidoId,
+}: {
+  bloquear: boolean;
+  codigoTotp?: string;
+  tokenNfc?: string;
+  credencialFidoId?: string;
+}) {
+  const res = await fetch(`${BASE_CLASSIC}/seguridad/conmutar-bloqueo`, {
+    method: 'POST',
+    headers: cabeceras(),
+    body: JSON.stringify({ bloquear, codigoTotp, tokenNfc, credencialFidoId }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo cambiar el estado de bloqueo de seguridad.');
+  return json;
+}
+
+export async function registrarLlaveSeguridadFido2(datos: {
+  credencialId: string;
+  nombreLlave: string;
+  propietario?: string;
+  clavePublica?: string;
+  transporte?: string;
+  codigoTotp?: string;
+}) {
+  const res = await fetch(`${BASE_CLASSIC}/seguridad/fido2/registrar`, {
+    method: 'POST',
+    headers: cabeceras(),
+    body: JSON.stringify(datos),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo registrar la llave fisica FIDO2.');
+  return json;
+}
+
+export async function configurarAlertasSeguridad(datos: {
+  correoAlertas: string;
+  webhookAlertas: string;
+}) {
+  const res = await fetch(`${BASE_CLASSIC}/seguridad/configurar-alertas`, {
+    method: 'POST',
+    headers: cabeceras(),
+    body: JSON.stringify(datos),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudieron guardar los canales de alerta forense.');
+  return json;
+}
