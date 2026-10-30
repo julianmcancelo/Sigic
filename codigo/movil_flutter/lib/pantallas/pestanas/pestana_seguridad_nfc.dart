@@ -800,7 +800,7 @@ class _PestanaSeguridadNfcState extends State<PestanaSeguridadNfc> {
                             child: Row(
                               children: [
                                 const Icon(
-                                  Icons.public_rounded,
+                                  Icons.dns_rounded,
                                   size: 16,
                                   color: Color(0xFF0284C7),
                                 ),
