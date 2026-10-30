@@ -10,6 +10,10 @@ import {
   Laptop,
   Sun,
   Moon,
+  GraduationCap,
+  Building2,
+  Radio,
+  Lock,
 } from 'lucide-react';
 import { autorizarDesafioLoginQrNfc } from '@/servicios/api';
 import { obtenerTemaActual, aplicarTemaGlobal } from '@/datos/fondos-pantalla';
@@ -28,16 +32,20 @@ export default function PantallaPuenteQrNfcMovil({
   const [codigoPin, setCodigoPin] = useState('');
   const [mostrarPinManual, setMostrarPinManual] = useState(false);
 
-  // Selector y sincronización activa de tema (soporte total Modo Claro / Modo Oscuro)
-  const [temaId, setTemaId] = useState(() =>
-    typeof window !== 'undefined' ? localStorage.getItem('sigic_fondo') || 'beltran' : 'beltran'
-  );
+  // Selector y sincronización activa de tema (por defecto Modo Claro institucional 'alabaster')
+  const [temaId, setTemaId] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const guardado = localStorage.getItem('sigic_fondo_puente');
+      if (guardado) return guardado;
+    }
+    return 'alabaster';
+  });
 
   const alternarModoClaroOscuro = () => {
     const nuevoTemaId = esClaro ? 'beltran' : 'alabaster';
     setTemaId(nuevoTemaId);
     if (typeof window !== 'undefined') {
-      localStorage.setItem('sigic_fondo', nuevoTemaId);
+      localStorage.setItem('sigic_fondo_puente', nuevoTemaId);
       window.dispatchEvent(new CustomEvent('sigic-fondo-cambiado', { detail: nuevoTemaId }));
       aplicarTemaGlobal(nuevoTemaId);
     }
@@ -162,30 +170,39 @@ export default function PantallaPuenteQrNfcMovil({
     >
       {/* Cabecera Institucional Superior con Toggle de Modo Claro / Oscuro */}
       <header className="w-full max-w-sm pt-4 flex items-center justify-between animate-fade-in">
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-3">
           <div
-            className={`h-9 w-9 rounded-xl p-1.5 shadow-md flex items-center justify-center ${
-              esClaro ? 'bg-white border border-slate-200' : 'bg-white/95'
+            className={`h-10 w-10 rounded-2xl p-2 shadow-md flex items-center justify-center transition-all ${
+              esClaro ? 'bg-white border border-slate-200/90 shadow-slate-200/60' : 'bg-white/95'
             }`}
           >
-            <img src="/logo.png" alt="Logo Beltrán" className="h-full w-full object-contain" />
+            <img src="/logo-oficial.png" alt="Logo Beltrán" className="h-full w-full object-contain" />
           </div>
           <div>
-            <p
-              className={`text-[10px] font-extrabold uppercase tracking-widest ${
-                esClaro ? 'text-sky-700' : 'text-sky-300'
-              }`}
-            >
-              Instituto Beltrán
-            </p>
-            <p className={`text-sm font-black leading-tight ${esClaro ? 'text-slate-900' : 'text-white'}`}>
-              SiGIC
+            <div className="flex items-center gap-1.5">
+              <span
+                className={`text-[10px] font-extrabold uppercase tracking-widest ${
+                  esClaro ? 'text-sky-700' : 'text-sky-300'
+                }`}
+              >
+                Instituto Beltrán
+              </span>
+              <span
+                className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full ${
+                  esClaro ? 'bg-sky-100 text-sky-800' : 'bg-sky-500/20 text-sky-200'
+                }`}
+              >
+                Oficial
+              </span>
+            </div>
+            <p className={`text-sm font-black leading-tight flex items-center gap-1 ${esClaro ? 'text-slate-900' : 'text-white'}`}>
+              SiGIC <span className="text-[10px] font-medium text-slate-400">· Colaciones</span>
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Botón flotante para cambiar entre Modo Claro y Oscuro con 1 clic */}
+          {/* Botón para alternar entre Modo Claro y Oscuro */}
           <button
             type="button"
             onClick={alternarModoClaroOscuro}
@@ -207,7 +224,7 @@ export default function PantallaPuenteQrNfcMovil({
             }`}
           >
             <ShieldCheck size={13} className={esClaro ? 'text-sky-600' : 'text-sky-400'} />
-            <span>Acceso</span>
+            <span>Acceso Seguro</span>
           </div>
         </div>
       </header>
@@ -417,13 +434,23 @@ export default function PantallaPuenteQrNfcMovil({
       </main>
 
       {/* Pie Institucional Oficial */}
-      <footer className="w-full max-w-sm pb-4 text-center animate-fade-in">
+      <footer className="w-full max-w-sm pb-4 pt-2 text-center animate-fade-in space-y-1">
+        <div className="flex items-center justify-center gap-1.5">
+          <GraduationCap size={13} className={esClaro ? 'text-sky-600' : 'text-sky-400'} />
+          <p
+            className={`text-[11px] font-bold tracking-wide ${
+              esClaro ? 'text-slate-700' : 'text-white/80'
+            }`}
+          >
+            Tecnicatura Superior en Analista de Sistemas
+          </p>
+        </div>
         <p
-          className={`text-[10px] font-semibold tracking-wide ${
-            esClaro ? 'text-slate-500' : 'text-white/70'
+          className={`text-[10px] font-medium tracking-wider uppercase ${
+            esClaro ? 'text-slate-600' : 'text-white/40'
           }`}
         >
-          Tecnicatura Superior en Analista de Sistemas
+          Instituto Tecnológico Beltrán · Sistema de Gestión Institucional de Colaciones
         </p>
       </footer>
     </div>
