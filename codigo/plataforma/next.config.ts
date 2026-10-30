@@ -49,7 +49,16 @@ const nextConfig: NextConfig = {
   // 'standalone' se utiliza para compilar el appliance OS local o Docker.
   ...(process.env.VERCEL ? {} : { output: 'standalone' }),
   poweredByHeader: false,
-  allowedDevOrigins: ['192.168.0.60', 'localhost', '127.0.0.1'],
+  allowedDevOrigins: [
+    '192.168.0.18',
+    '192.168.0.60',
+    '192.168.0.*',
+    '192.168.1.*',
+    '192.168.56.1',
+    '10.*.*.*',
+    'localhost',
+    '127.0.0.1',
+  ],
 
   async redirects() {
     return [

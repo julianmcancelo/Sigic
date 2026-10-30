@@ -516,7 +516,7 @@ class _ModalConfiguracionServidorState
       if (preset == 'produccion') {
         _controlador.text = ServicioApi.urlBasePorDefecto;
       } else if (preset == 'demo') {
-        _controlador.text = 'http://192.168.0.60:3000/api';
+        _controlador.text = 'http://192.168.0.18:3000/api';
       }
     });
     _probarConexion();

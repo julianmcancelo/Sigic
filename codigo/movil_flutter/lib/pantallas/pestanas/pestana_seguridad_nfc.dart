@@ -467,14 +467,15 @@ class _PestanaSeguridadNfcState extends State<PestanaSeguridadNfc> {
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
-                              if (!_apiUrlActual.contains('192.168.0.60'))
+                              if (!_apiUrlActual.contains('192.168.0.18'))
                                 TextButton(
                                   onPressed: () async {
                                     await widget.servicioApi.guardarApiUrl(
-                                      'http://192.168.0.60:3000/api',
+                                      'http://192.168.0.18:3000/api',
+                                      conservarSesion: true,
                                     );
                                     _mostrarAviso(
-                                      'Conectado a servidor LAN de pruebas (192.168.0.60:3000)',
+                                      'Conectado a servidor LAN de pruebas (192.168.0.18:3000)',
                                     );
                                     await _cargarTodo();
                                   },

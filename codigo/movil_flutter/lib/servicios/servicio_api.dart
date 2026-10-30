@@ -39,10 +39,12 @@ class ServicioApi {
     return _normalizarApiUrl(guardada);
   }
 
-  Future<void> guardarApiUrl(String url) async {
+  Future<void> guardarApiUrl(String url, {bool conservarSesion = false}) async {
     final nueva = _normalizarApiUrl(url);
     final anterior = await _almacenamiento.obtenerApiUrl() ?? urlBasePorDefecto;
-    if (nueva != anterior) await _almacenamiento.limpiarSesion();
+    if (nueva != anterior && !conservarSesion) {
+      await _almacenamiento.limpiarSesion();
+    }
     await _almacenamiento.guardarApiUrl(nueva);
   }
 
@@ -431,7 +433,7 @@ class ServicioApi {
           !baseUrl.contains('192.168.') &&
           !baseUrl.contains('localhost')) {
         throw Exception(
-          'El servidor actual ($baseUrl) todavia no tiene desplegado el modulo NFC. Toca "Usar LAN Local" arriba para conectarte a tu PC (192.168.0.60:3000).',
+          'El servidor actual ($baseUrl) todavia no tiene desplegado el modulo NFC. Toca "Usar LAN Local" arriba para conectarte a tu PC (192.168.0.18:3000).',
         );
       }
       if (respuesta.statusCode == 401) {
