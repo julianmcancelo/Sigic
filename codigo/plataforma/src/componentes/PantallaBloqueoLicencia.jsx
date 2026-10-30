@@ -144,11 +144,63 @@ export default function PantallaBloqueoLicencia({ estadoLicencia, onDesbloqueado
     }
   };
 
+  const procesarDesbloqueoConTokenNFC = async (tokenExtraido) => {
+    limpiarMensajes();
+    let tokenLimpio = (tokenExtraido || '').trim();
+    if (tokenLimpio.includes('nfc=')) {
+      try {
+        const urlObj = new URL(tokenLimpio);
+        tokenLimpio = urlObj.searchParams.get('nfc') || tokenLimpio;
+      } catch (_) {
+        const partes = tokenLimpio.split('nfc=');
+        if (partes[1]) tokenLimpio = decodeURIComponent(partes[1].split('&')[0]);
+      }
+    }
+    if (tokenLimpio.includes('SIGIC-NFC-v1.')) {
+      const idx = tokenLimpio.indexOf('SIGIC-NFC-v1.');
+      tokenLimpio = tokenLimpio.substring(idx);
+    } else {
+      setMensajeError('El enlace o certificado no contiene un token oficial SIGIC-NFC-v1 válido.');
+      return;
+    }
+
+    setCargando(true);
+    try {
+      const res = await desbloquearConTarjetaNFC(tokenLimpio, false);
+      const usuarioLogueado = res?.sesion?.usuario || {
+        nombre: res?.datosLlave?.propietario || 'Autoridad SiGIC',
+        email: res?.datosLlave?.correo || 'juliancancelo@gmail.com',
+        correo: res?.datosLlave?.correo || 'juliancancelo@gmail.com',
+        rol: res?.datosLlave?.rol || 'SUPER_ADMIN',
+      };
+
+      if (res?.sesion?.token) {
+        guardarTokenSesion(res.sesion.token);
+        localStorage.setItem('sesion_admin', 'true');
+        localStorage.setItem('admin_user', JSON.stringify(usuarioLogueado));
+      }
+
+      setMensajeExito(
+        `Plataforma desbloqueada con éxito a nombre de ${usuarioLogueado.nombre}. Ingresando...`
+      );
+      setEscaneandoNfc(false);
+      setTimeout(() => {
+        if (onLoginExitoso) onLoginExitoso(usuarioLogueado);
+        if (onDesbloqueado) onDesbloqueado(res.estado || { bloqueado: false, valida: true });
+      }, 450);
+    } catch (err) {
+      setMensajeError(err.message || 'Error al verificar la tarjeta NFC.');
+    } finally {
+      setCargando(false);
+      setEscaneandoNfc(false);
+    }
+  };
+
   const iniciarLecturaNFCFisico = async () => {
     limpiarMensajes();
     if (typeof window === 'undefined' || !('NDEFReader' in window)) {
       setMensajeError(
-        'Para escanear por aproximacion usa Chrome en Android con NFC activo, o pega el token firmado abajo.'
+        'El navegador actual no habilita lectura web NFC directa. Si tu tarjeta tiene el enlace grabado, acercála a tu celular o pegá su enlace/certificado abajo.'
       );
       return;
     }
@@ -162,18 +214,12 @@ export default function PantallaBloqueoLicencia({ estadoLicencia, onDesbloqueado
           const decoder = new TextDecoder();
           for (const record of event.message.records) {
             const texto = decoder.decode(record.data);
-            if (texto.includes('SIGIC-NFC-v1.')) {
-              setCargando(true);
-              const res = await desbloquearConTarjetaNFC(texto.trim(), false);
-              setMensajeExito(res.mensaje || 'Llave fisica NFC verificada.');
-              setEscaneandoNfc(false);
-              setTimeout(() => {
-                if (onDesbloqueado) onDesbloqueado(res.estado);
-              }, 450);
+            if (texto && (texto.includes('SIGIC-NFC-v1.') || texto.includes('nfc='))) {
+              await procesarDesbloqueoConTokenNFC(texto);
               return;
             }
           }
-          setMensajeError('La tarjeta NFC leida no contiene un certificado SIGIC-NFC-v1 valido.');
+          setMensajeError('La tarjeta NFC leída no contiene un certificado SIGIC-NFC-v1 válido.');
         } catch (err) {
           setMensajeError(err.message || 'Error al verificar la tarjeta NFC.');
         } finally {
@@ -189,23 +235,7 @@ export default function PantallaBloqueoLicencia({ estadoLicencia, onDesbloqueado
 
   const manejarDesbloqueoNFCManual = async (e) => {
     e.preventDefault();
-    limpiarMensajes();
-    if (!tokenNfcManual.trim().startsWith('SIGIC-NFC-v1.')) {
-      setMensajeError('Ingresa un certificado SIGIC-NFC-v1 valido.');
-      return;
-    }
-    setCargando(true);
-    try {
-      const res = await desbloquearConTarjetaNFC(tokenNfcManual.trim(), false);
-      setMensajeExito(res.mensaje || 'Tarjeta NFC verificada.');
-      setTimeout(() => {
-        if (onDesbloqueado) onDesbloqueado(res.estado);
-      }, 450);
-    } catch (err) {
-      setMensajeError(err.message || 'Firma NFC rechazada.');
-    } finally {
-      setCargando(false);
-    }
+    await procesarDesbloqueoConTokenNFC(tokenNfcManual);
   };
 
   return (
@@ -411,14 +441,14 @@ export default function PantallaBloqueoLicencia({ estadoLicencia, onDesbloqueado
 
               <form onSubmit={manejarDesbloqueoNFCManual} className="space-y-2 pt-2 border-t border-slate-500/15">
                 <label className={`block text-[11px] font-semibold ${esClaro ? 'text-slate-600' : 'text-slate-400'}`}>
-                  O pega el certificado firmado de tu tarjeta (SIGIC-NFC-v1):
+                  O pega el link o certificado firmado de cualquier miembro (Julián, Sol, Alan, Gaby, Mati):
                 </label>
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={tokenNfcManual}
                     onChange={(e) => setTokenNfcManual(e.target.value)}
-                    placeholder="SIGIC-NFC-v1.eyJ..."
+                    placeholder="https://app.sigic.com.ar/?nfc=SIGIC-NFC-v1..."
                     className={`flex-1 rounded-xl border px-3 py-2 font-mono text-xs outline-none ${
                       esClaro
                         ? 'bg-slate-50 border-slate-200 text-slate-800'
@@ -427,11 +457,11 @@ export default function PantallaBloqueoLicencia({ estadoLicencia, onDesbloqueado
                   />
                   <button
                     type="submit"
-                    disabled={cargando}
-                    className="px-4 py-2 rounded-xl text-white text-xs font-bold cursor-pointer"
+                    disabled={cargando || !tokenNfcManual.trim()}
+                    className="px-4 py-2 rounded-xl text-white text-xs font-bold cursor-pointer disabled:opacity-50"
                     style={{ backgroundColor: acento }}
                   >
-                    Validar
+                    Desbloquear
                   </button>
                 </div>
               </form>
