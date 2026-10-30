@@ -1184,7 +1184,7 @@ class _PestanaAjustesState extends State<PestanaAjustes> {
                   const SizedBox(height: 12),
                   const Center(
                     child: Text(
-                      'Versión 1.0.9 (Build 10) · Avellaneda, Buenos Aires',
+                      'Versión 1.1.0 (Build 11) · Avellaneda, Buenos Aires',
                       style: TextStyle(
                         fontSize: 10,
                         color: Color(0xFF94A3B8),

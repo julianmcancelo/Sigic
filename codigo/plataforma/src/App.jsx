@@ -55,7 +55,7 @@ import { MenuInicio } from './componentes/MenuInicio'
 import PantallaBloqueoLicencia from './componentes/PantallaBloqueoLicencia'
 
 // Servicios
-import { validarToken, obtenerCeremoniaActiva, obtenerEstadoSetup, responderInvitacion, limpiarTokenSesion, guardarTokenSesion, obtenerTokenSesion, obtenerAjustes, actualizarAjuste, cerrarSesionServidor, validarSesionLocal, obtenerEstadoLicenciaSeguridad } from './servicios/api'
+import { validarToken, obtenerCeremoniaActiva, obtenerEstadoSetup, responderInvitacion, limpiarTokenSesion, guardarTokenSesion, obtenerTokenSesion, obtenerAjustes, actualizarAjuste, cerrarSesionServidor, validarSesionLocal, obtenerEstadoLicenciaSeguridad, desbloquearConTarjetaNFC } from './servicios/api'
 import { generarDatosDemoAleatorios, obtenerDatosDemoActuales, limpiarDatosDemo } from './lib/generador-datos-demo'
 import { demoSandbox } from './lib/demo-sandbox'
 
@@ -519,6 +519,30 @@ function App() {
       const inicioCarga = Date.now()
       try {
         try {
+          // Si el usuario abrio la plataforma acercando un Tag NFC (?nfc=SIGIC-NFC-v1...),
+          // autorizar automaticamente el celular, desbloquear el sistema e iniciar sesion.
+          if (typeof window !== 'undefined') {
+            const paramsUrl = new URLSearchParams(window.location.search)
+            const nfcParam = paramsUrl.get('nfc')
+            if (nfcParam && nfcParam.startsWith('SIGIC-NFC-v1.')) {
+              try {
+                const resNfc = await desbloquearConTarjetaNFC(nfcParam, false)
+                if (resNfc?.estado) {
+                  setEstadoLicenciaSeguridad(resNfc.estado)
+                }
+                if (resNfc?.sesion?.token && resNfc?.sesion?.usuario) {
+                  guardarTokenSesion(resNfc.sesion.token)
+                  localStorage.setItem('sesion_admin', 'true')
+                  localStorage.setItem('admin_user', JSON.stringify(resNfc.sesion.usuario))
+                  setAdminUser(resNfc.sesion.usuario)
+                  setAdminActivo(true)
+                }
+                window.history.replaceState({}, document.title, window.location.pathname)
+              } catch (errNfc) {
+                console.warn('No se pudo autorizar con el Tag NFC de la URL:', errNfc.message)
+              }
+            }
+          }
           const lic = await obtenerEstadoLicenciaSeguridad()
           setEstadoLicenciaSeguridad(lic)
         } catch (_) {}
@@ -1191,7 +1215,7 @@ function App() {
           />
         )
       } else if (pantallaAdmin === 'centro-control') {
-        if (adminUser?.rol === 'ADMINISTRATIVO') {
+        if (['ADMINISTRATIVO', 'SUPER_ADMIN', 'ADMIN', 'SOPORTE'].includes(adminUser?.rol)) {
           contenido = (
             <CentroControl
               usuario={adminUser}

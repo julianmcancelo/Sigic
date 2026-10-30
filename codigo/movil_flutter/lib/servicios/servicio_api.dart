@@ -169,7 +169,7 @@ class ServicioApi {
           'sistema': sistema,
           'versionSistema': versionSO,
           'tipoDispositivo': 'Telefono',
-          'versionApp': '1.0.5+6',
+          'versionApp': '1.1.0+11',
           'esDispositivoReal': true,
         },
       );
@@ -289,6 +289,107 @@ class ServicioApi {
     return (respuesta as Map).cast<String, dynamic>();
   }
 
+  // =========================================================================
+  // CIBERSEGURIDAD, LICENCIAMIENTO ED25519 Y LLAVES NFC DE LA AUTORIDAD
+  // =========================================================================
+
+  Future<Map<String, dynamic>> obtenerEstadoLicenciaSeguridad() async {
+    final res = await _request('/seguridad/estado-licencia');
+    return (res as Map).cast<String, dynamic>();
+  }
+
+  Future<Map<String, dynamic>> obtenerIntegridadYAlertasSeguridad() async {
+    final res = await _request('/seguridad/auditoria-integridad');
+    return (res as Map).cast<String, dynamic>();
+  }
+
+  Future<Map<String, dynamic>> conmutarBloqueoSeguridad({
+    required bool bloquear,
+    String? codigoTotp,
+    String? tokenNfc,
+  }) async {
+    final res = await _request(
+      '/seguridad/conmutar-bloqueo',
+      metodo: 'POST',
+      cuerpo: {
+        'bloquear': bloquear,
+        if (codigoTotp != null && codigoTotp.isNotEmpty)
+          'codigoTotp': codigoTotp,
+        if (tokenNfc != null && tokenNfc.isNotEmpty) 'tokenNfc': tokenNfc,
+      },
+    );
+    return (res as Map).cast<String, dynamic>();
+  }
+
+  Future<Map<String, dynamic>> emitirGafeteNfcAutorizacion({
+    required String propietario,
+    required String correo,
+    required String rol,
+    int diasValidez = 365,
+    String? codigoTotp,
+  }) async {
+    final base = await obtenerApiUrl();
+    final origenWeb = base.replaceAll(RegExp(r'/api$'), '');
+    final res = await _request(
+      '/seguridad/nfc/emitir-gafete',
+      metodo: 'POST',
+      cuerpo: {
+        'propietario': propietario,
+        'correo': correo,
+        'rol': rol,
+        'diasValidez': diasValidez,
+        'origenUrl': origenWeb,
+        if (codigoTotp != null && codigoTotp.isNotEmpty)
+          'codigoTotp': codigoTotp,
+      },
+    );
+    return (res as Map).cast<String, dynamic>();
+  }
+
+  Future<Map<String, dynamic>> revocarGafeteNfcAutorizacion({
+    required String uidLlave,
+    required bool activo,
+  }) async {
+    final res = await _request(
+      '/seguridad/nfc/revocar-gafete',
+      metodo: 'POST',
+      cuerpo: {'uidLlave': uidLlave, 'activo': activo},
+    );
+    return (res as Map).cast<String, dynamic>();
+  }
+
+  Future<Map<String, dynamic>> autorizarDispositivoConTagNfc(
+    String contenidoLeido, {
+    bool bloquear = false,
+  }) async {
+    var tokenNfc = contenidoLeido.trim();
+    if (tokenNfc.contains('nfc=')) {
+      final uri = Uri.tryParse(tokenNfc);
+      final param = uri?.queryParameters['nfc'];
+      if (param != null && param.isNotEmpty) {
+        tokenNfc = Uri.decodeComponent(param);
+      }
+    }
+    final res = await _request(
+      '/seguridad/desbloquear-nfc',
+      metodo: 'POST',
+      cuerpo: {'tokenNfc': tokenNfc, 'bloquear': bloquear},
+    );
+    final mapa = (res as Map).cast<String, dynamic>();
+    final sesion = mapa['sesion'];
+    if (sesion is Map) {
+      final token = (sesion['token'] ?? '').toString();
+      final usrMap = sesion['usuario'];
+      if (token.isNotEmpty && usrMap is Map) {
+        await _almacenamiento.guardarToken(token);
+        await _almacenamiento.guardarUsuario(
+          UsuarioSesion.desdeMapa(usrMap.cast<String, dynamic>()),
+        );
+      }
+    }
+    return mapa;
+  }
+
   Future<dynamic> _request(
     String ruta, {
     String metodo = 'GET',
@@ -374,11 +475,13 @@ class ServicioApi {
   String _normalizarApiUrl(String url) {
     var valor = url.trim();
     if (!valor.startsWith('http://') && !valor.startsWith('https://')) {
-      valor = 'https://$valor';
+      final esIpLan = RegExp(r'^(192\.168\.|10\.|172\.(1[6-9]|2\d|3[0-1])\.)').hasMatch(valor);
+      valor = '${esIpLan ? 'http' : 'https'}://$valor';
     }
     final uri = Uri.tryParse(valor);
-    if (uri == null || uri.scheme != 'https' || uri.host.isEmpty || uri.userInfo.isNotEmpty || uri.hasQuery || uri.hasFragment) {
-      throw Exception('Ingresá una dirección HTTPS válida para el servidor.');
+    final esEsquemaValido = uri != null && (uri.scheme == 'https' || uri.scheme == 'http');
+    if (!esEsquemaValido || uri.host.isEmpty || uri.userInfo.isNotEmpty || uri.hasQuery || uri.hasFragment) {
+      throw Exception('Ingresá una dirección válida para el servidor.');
     }
     valor = valor.replaceAll(RegExp(r'/$'), '');
     if (!valor.endsWith('/api')) {

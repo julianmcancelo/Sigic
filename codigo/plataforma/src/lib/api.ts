@@ -1098,3 +1098,32 @@ export async function configurarAlertasSeguridad(datos: {
   if (!res.ok) throw new Error(json.error || 'No se pudieron guardar los canales de alerta forense.');
   return json;
 }
+
+export async function emitirGafeteNfcAutorizacion(datos: {
+  propietario: string;
+  correo: string;
+  rol?: string;
+  diasValidez?: number;
+  origenUrl?: string;
+  codigoTotp?: string;
+}) {
+  const res = await fetch(`${BASE_CLASSIC}/seguridad/nfc/emitir-gafete`, {
+    method: 'POST',
+    headers: cabeceras(),
+    body: JSON.stringify(datos),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo emitir el Tag NFC de autorizacion.');
+  return json;
+}
+
+export async function revocarGafeteNfcAutorizacion(uidLlave: string, activo: boolean) {
+  const res = await fetch(`${BASE_CLASSIC}/seguridad/nfc/revocar-gafete`, {
+    method: 'POST',
+    headers: cabeceras(),
+    body: JSON.stringify({ uidLlave, activo }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo cambiar el estado del Tag NFC.');
+  return json;
+}

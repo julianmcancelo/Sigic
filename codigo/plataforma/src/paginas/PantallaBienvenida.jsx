@@ -984,10 +984,11 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
     },
     {
       icono: Server,
-      titulo: 'Centro de Control',
-      descripcion: 'Estado del servidor cloud, latencias, base de datos Neon y backups',
+      titulo: 'Ciberseguridad & Control',
+      descripcion: 'Licenciamiento Ed25519, llaves físicas NFC / FIDO2 / TOTP y respaldos PostgreSQL',
       pantalla: 'centro-control',
-      badge: 'Nube',
+      badge: 'Ciberseguridad',
+      destacado: true,
     },
   ]
 
@@ -1353,7 +1354,7 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
                       if (esSoporte) {
                         return ['gestion-porteria', 'gestion-ceremonias', 'centro-control'].includes(a.pantalla)
                       }
-                      return a.pantalla !== 'centro-control'
+                      return true
                     })
                     .map(a => (
                       <AccesoGrande

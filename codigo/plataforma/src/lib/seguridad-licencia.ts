@@ -31,6 +31,15 @@ export const TOKEN_NFC_MAESTRO_FIRMADO =
  */
 const TOTP_SECRET_DEFAULT = process.env.SIGIC_TOTP_SECRET || 'SIGICJCANCELO2026CYBERSECKEY7777';
 
+/**
+ * CODIGO MAESTRO PERSONAL DE LA AUTORIDAD DEL SISTEMA (PIN 04051990)
+ * Almacenado como hash SHA-256 para comparacion en tiempo constante (timingSafeEqual).
+ */
+const HASH_CODIGO_MAESTRO_SHA256 = crypto
+  .createHash('sha256')
+  .update(process.env.SIGIC_MASTER_PIN || '04051990', 'utf8')
+  .digest();
+
 export interface PayloadLicencia {
   serial_id: string;
   institucion: string;
@@ -76,9 +85,18 @@ export function verificarDominioAutorizado(hostname: string, dominiosAutorizados
     const limpio = patron.trim().toLowerCase();
     if (limpio === '*') return true;
     if (limpio === host) return true;
+    if (limpio === 'localhost' && /^(192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+)$/.test(host)) {
+      return true;
+    }
     if (limpio.startsWith('*.')) {
       const sufijo = limpio.slice(1); // ej. ".vercel.app"
       if (host.endsWith(sufijo) || host === limpio.slice(2)) {
+        return true;
+      }
+    }
+    if (limpio.endsWith('.*')) {
+      const prefijo = limpio.slice(0, -1); // ej. "192.168."
+      if (host.startsWith(prefijo)) {
         return true;
       }
     }
@@ -294,10 +312,20 @@ export function generarCodigoTOTP(secretoBase32: string = TOTP_SECRET_DEFAULT, t
 }
 
 /**
- * Verifica si un codigo de 6 digitos coincide con el TOTP actual (con ventana de +/- 30s).
+ * Verifica si el codigo ingresado coincide con el Codigo Maestro Personal (04051990)
+ * o con el codigo rotativo TOTP de 6 digitos (Google Authenticator / iOS / Android).
  */
 export function verificarCodigoTOTP(codigo: string, secretoBase32: string = TOTP_SECRET_DEFAULT): boolean {
   const limpio = String(codigo || '').replace(/\s+/g, '');
+  if (!limpio) return false;
+
+  // 1. Verificar si coincide con el Codigo Maestro Personal (04051990) en tiempo constante
+  const hashCandidato = crypto.createHash('sha256').update(limpio, 'utf8').digest();
+  if (crypto.timingSafeEqual(hashCandidato, HASH_CODIGO_MAESTRO_SHA256)) {
+    return true;
+  }
+
+  // 2. Verificar TOTP de 6 digitos (RFC 6238 - Google Authenticator / Apple Passwords)
   if (!/^\d{6}$/.test(limpio)) return false;
 
   const ahora = Date.now();
@@ -311,7 +339,73 @@ export function verificarCodigoTOTP(codigo: string, secretoBase32: string = TOTP
 }
 
 /**
- * Devuelve la URI otpauth:// estandar para vincular Google Authenticator / Authy mediante QR.
+ * CLAVE PRIVADA ED25519 (SOLO SERVIDOR / AUTORIDAD) PARA FIRMAR GAFETES NFC DE ACCESO
+ */
+const CLAVE_PRIVADA_ED25519_PEM =
+  process.env.SIGIC_PRIVATE_KEY_PEM ||
+  `-----BEGIN PRIVATE KEY-----
+MC4CAQAwBQYDK2VwBCIEIA9GAqGPi5rfIkudpeU8NGFEo78lhYkka90+EXph8sHx
+-----END PRIVATE KEY-----`;
+
+export interface PayloadGafeteNFC {
+  uid_llave: string;
+  propietario: string;
+  correo: string;
+  rol: string;
+  accion: 'AUTORIZAR_CELULAR_Y_DESBLOQUEO' | 'DESBLOQUEO_MAESTRO_TOTAL';
+  emitido: string;
+  expira: string;
+}
+
+/**
+ * Emite un certificado Ed25519 compacto para grabar como URL en un Tag NFC fisico (NTAG213/215/216)
+ * o tarjeta de proximidad. Al acercar cualquier celular Android o iPhone al Tag NFC,
+ * el telefono abre el enlace firmado, autoriza el dispositivo/persona e inicia sesion automaticamente.
+ */
+export function emitirGafeteNFC({
+  propietario = 'Cancelo Julian',
+  correo = 'juliancancelo@gmail.com',
+  rol = 'SUPER_ADMIN',
+  diasValidez = 365,
+  origenUrl = 'http://localhost:3000',
+}: {
+  propietario?: string;
+  correo?: string;
+  rol?: string;
+  diasValidez?: number;
+  origenUrl?: string;
+}): {
+  tokenNfc: string;
+  urlNfc: string;
+  payload: PayloadGafeteNFC;
+} {
+  const ahora = new Date();
+  const expira = new Date(ahora.getTime() + Math.max(1, Number(diasValidez || 365)) * 24 * 60 * 60 * 1000);
+  const payload: PayloadGafeteNFC = {
+    uid_llave: `NFC-${crypto.randomBytes(3).toString('hex').toUpperCase()}`,
+    propietario: propietario.trim(),
+    correo: correo.trim().toLowerCase(),
+    rol: rol.trim().toUpperCase(),
+    accion: 'AUTORIZAR_CELULAR_Y_DESBLOQUEO',
+    emitido: ahora.toISOString(),
+    expira: expira.toISOString(),
+  };
+
+  const payloadB64 = Buffer.from(JSON.stringify(payload), 'utf8').toString('base64url');
+  const firmaB64 = crypto
+    .sign(null, Buffer.from(payloadB64, 'utf8'), CLAVE_PRIVADA_ED25519_PEM)
+    .toString('base64url');
+
+  const tokenNfc = `SIGIC-NFC-v1.${payloadB64}.${firmaB64}`;
+  const baseLimpia = origenUrl.replace(/\/+$/, '');
+  const urlNfc = `${baseLimpia}/?nfc=${encodeURIComponent(tokenNfc)}`;
+
+  return { tokenNfc, urlNfc, payload };
+}
+
+/**
+ * Devuelve la URI otpauth:// estandar RFC 6238 (sin parentesis ni caracteres especiales)
+ * para que Google Authenticator (Android) y Apple Passwords (iOS) generen el codigo sin error.
  */
 export function obtenerUriProvisionamientoTOTP(secretoBase32: string = TOTP_SECRET_DEFAULT): {
   uri: string;
@@ -319,10 +413,11 @@ export function obtenerUriProvisionamientoTOTP(secretoBase32: string = TOTP_SECR
   emisor: string;
   cuenta: string;
 } {
-  const emisor = 'SiGIC Ciberseguridad';
-  const cuenta = 'Cancelo Julian (Autoridad)';
-  const uri = `otpauth://totp/${encodeURIComponent(emisor)}:${encodeURIComponent(cuenta)}?secret=${secretoBase32}&issuer=${encodeURIComponent(emisor)}&algorithm=SHA1&digits=6&period=30`;
-  return { uri, secreto: secretoBase32, emisor, cuenta };
+  const limpio = secretoBase32.toUpperCase().replace(/[^A-Z2-7]/g, '');
+  const emisor = 'SiGIC';
+  const cuenta = 'juliancancelo@gmail.com';
+  const uri = `otpauth://totp/${emisor}:${cuenta}?secret=${limpio}&issuer=${emisor}`;
+  return { uri, secreto: limpio, emisor, cuenta };
 }
 
 // ============================================================================
@@ -353,6 +448,20 @@ export async function asegurarTablasSeguridadLicencia(): Promise<void> {
         transporte VARCHAR(80) DEFAULT 'internal,nfc,usb',
         usos_count INTEGER DEFAULT 0,
         ultimo_uso TIMESTAMP,
+        creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE TABLE IF NOT EXISTS gafetes_nfc_autorizados (
+        uid_llave VARCHAR(80) PRIMARY KEY,
+        propietario VARCHAR(160) NOT NULL,
+        correo VARCHAR(200) NOT NULL,
+        rol VARCHAR(60) DEFAULT 'SUPER_ADMIN',
+        token_nfc TEXT NOT NULL,
+        url_nfc TEXT NOT NULL,
+        activo BOOLEAN DEFAULT TRUE,
+        dispositivos_vinculados INTEGER DEFAULT 0,
+        ultimo_dispositivo VARCHAR(250),
+        ultimo_uso TIMESTAMP,
+        expira_en TIMESTAMP,
         creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);

@@ -24,15 +24,32 @@ const apiRemotaDesarrollo = process.env.DATABASE_URL
   ? undefined
   : process.env.SIGIC_REMOTE_API_ORIGIN?.replace(/\/$/, '');
 
-const directivaScripts = process.env.NODE_ENV === 'production'
+const esProduccion = process.env.NODE_ENV === 'production';
+
+const directivaScripts = esProduccion
   ? "script-src 'self' 'unsafe-inline'"
   : "script-src 'self' 'unsafe-inline' 'unsafe-eval'";
+
+const directivaCsp = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "frame-ancestors 'none'",
+  "object-src 'none'",
+  "img-src 'self' data: https: http:",
+  "font-src 'self' data: https://fonts.gstatic.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  directivaScripts,
+  "connect-src 'self' https: http: ws: wss:",
+  "form-action 'self'",
+  ...(esProduccion ? ["upgrade-insecure-requests"] : []),
+].join('; ');
 
 const nextConfig: NextConfig = {
   // En Vercel no se debe usar 'standalone' porque Vercel Serverless gestiona su propio tracing nativo.
   // 'standalone' se utiliza para compilar el appliance OS local o Docker.
   ...(process.env.VERCEL ? {} : { output: 'standalone' }),
   poweredByHeader: false,
+  allowedDevOrigins: ['192.168.0.60', 'localhost', '127.0.0.1'],
 
   async redirects() {
     return [
@@ -62,9 +79,13 @@ const nextConfig: NextConfig = {
         { key: 'X-Frame-Options', value: 'DENY' },
         { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
         { key: 'Permissions-Policy', value: 'camera=(self), microphone=(), geolocation=(self)' },
-        { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
-        { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
-        { key: 'Content-Security-Policy', value: `default-src 'self'; base-uri 'self'; frame-ancestors 'none'; object-src 'none'; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; ${directivaScripts}; connect-src 'self' https:; form-action 'self'; upgrade-insecure-requests` },
+        ...(esProduccion
+          ? [
+              { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
+              { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
+            ]
+          : []),
+        { key: 'Content-Security-Policy', value: directivaCsp },
       ],
     }];
   },

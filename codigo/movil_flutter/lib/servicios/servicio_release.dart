@@ -17,7 +17,7 @@ class ReleaseDisponible {
 
 class ServicioRelease {
   // Versión base de la aplicación Flutter
-  static const versionInstalada = '1.0.9+10';
+  static const versionInstalada = '1.1.0+11';
   static const _githubApiUrl =
       'https://api.github.com/repos/julianmcancelo/Sigic/releases/latest';
 

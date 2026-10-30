@@ -20,6 +20,7 @@ import {
   verificarCodigoTOTP,
   generarCodigoTOTP,
   obtenerUriProvisionamientoTOTP,
+  emitirGafeteNFC,
   registrarAlertaForense,
   asegurarTablasSeguridadLicencia,
   TOKEN_NFC_MAESTRO_FIRMADO,
@@ -1455,12 +1456,16 @@ export async function GET(
       const llavesRes = await query(
         'SELECT credencial_id, nombre_llave, propietario, transporte, usos_count, ultimo_uso, creado_en FROM llaves_seguridad_fido2 ORDER BY creado_en DESC'
       ).catch(() => ({ rows: [] }));
+      const gafetesRes = await query(
+        'SELECT uid_llave, propietario, correo, rol, token_nfc, url_nfc, activo, dispositivos_vinculados, ultimo_dispositivo, ultimo_uso, expira_en, creado_en FROM gafetes_nfc_autorizados ORDER BY creado_en DESC'
+      ).catch(() => ({ rows: [] }));
 
       return NextResponse.json({
         ok: true,
         cadenaAuditoria: cadena,
         alertasForenses: alertasRes.rows,
         llavesFido2: llavesRes.rows,
+        gafetesNfc: gafetesRes.rows,
       }, { headers });
     }
 
@@ -1567,6 +1572,36 @@ export async function POST(
         return NextResponse.json({ ok: false, error: verifNfc.error }, { status: 403, headers });
       }
 
+      // Verificar si el gafete fue revocado en la tabla gafetes_nfc_autorizados
+      const uidLlave = verifNfc.datos?.uid_llave || 'NFC-KEY';
+      const checkGafete = await query(
+        'SELECT activo, expira_en FROM gafetes_nfc_autorizados WHERE uid_llave = $1',
+        [uidLlave]
+      ).catch(() => ({ rows: [] }));
+      if (checkGafete.rows.length > 0) {
+        if (checkGafete.rows[0].activo === false) {
+          return NextResponse.json(
+            { ok: false, error: 'Este Tag NFC fue revocado por la Autoridad de Seguridad.' },
+            { status: 403, headers }
+          );
+        }
+        if (checkGafete.rows[0].expira_en && new Date(checkGafete.rows[0].expira_en).getTime() < Date.now()) {
+          return NextResponse.json(
+            { ok: false, error: 'El permiso temporal de este Tag NFC ha expirado.' },
+            { status: 403, headers }
+          );
+        }
+        const ua = (req.headers.get('user-agent') || 'Celular / Navegador').slice(0, 220);
+        await query(
+          `UPDATE gafetes_nfc_autorizados
+           SET dispositivos_vinculados = dispositivos_vinculados + 1,
+               ultimo_dispositivo = $1,
+               ultimo_uso = CURRENT_TIMESTAMP
+           WHERE uid_llave = $2`,
+          [ua, uidLlave]
+        ).catch(() => {});
+      }
+
       const accionDeseada = body.bloquear === true ? 'true' : 'false';
       await query(
         `INSERT INTO configuracion_sistema (clave, valor, descripcion, actualizado_en)
@@ -1575,10 +1610,57 @@ export async function POST(
         [accionDeseada]
       );
 
+      // Si el Tag NFC se uso para autorizar un celular / persona, emitir sesion JWT firmada
+      let sesionEmitida: any = null;
+      if (accionDeseada === 'false') {
+        const correoTarget = (verifNfc.datos?.correo || 'juliancancelo@gmail.com').toLowerCase().trim();
+        const userRes = await query(
+          `SELECT id, nombre, email, rol, session_version
+           FROM usuarios_sistema
+           WHERE (LOWER(email) = $1 OR LOWER(email) IN ('juliancancelo@gmail.com', 'jcancelo.dev@gmail.com'))
+             AND activo = 1
+           ORDER BY CASE WHEN LOWER(email) = $1 THEN 0 ELSE 1 END
+           LIMIT 1`,
+          [correoTarget]
+        ).catch(() => ({ rows: [] }));
+
+        const u = userRes.rows[0] || {
+          id: 'bypass-admin',
+          nombre: verifNfc.datos?.propietario || 'Cancelo Julian',
+          email: correoTarget,
+          rol: verifNfc.datos?.rol || 'SUPER_ADMIN',
+          session_version: 1,
+        };
+
+        const jwtToken = firmar(
+          {
+            tipo: 'personal',
+            id: u.id,
+            nombre: verifNfc.datos?.propietario || u.nombre,
+            email: u.email,
+            rol: verifNfc.datos?.rol || u.rol || 'SUPER_ADMIN',
+            sessionVersion: Number(u.session_version || 1),
+          },
+          12 * 60 * 60
+        );
+
+        sesionEmitida = {
+          token: jwtToken,
+          usuario: {
+            id: u.id,
+            nombre: verifNfc.datos?.propietario || u.nombre,
+            correo: u.email,
+            email: u.email,
+            rol: verifNfc.datos?.rol || u.rol || 'SUPER_ADMIN',
+            autorizadoPorNfc: uidLlave,
+          },
+        };
+      }
+
       await registrarAuditoria({
-        accion: accionDeseada === 'true' ? 'BLOQUEO_SISTEMA_POR_NFC' : 'DESBLOQUEO_SISTEMA_POR_NFC',
+        accion: accionDeseada === 'true' ? 'BLOQUEO_SISTEMA_POR_NFC' : 'AUTORIZACION_DISPOSITIVO_POR_NFC',
         entidad: 'seguridad_licencia',
-        entidadId: verifNfc.datos?.uid_llave || 'NFC-KEY',
+        entidadId: uidLlave,
         detalles: verifNfc.datos || {},
         req,
       });
@@ -1588,9 +1670,83 @@ export async function POST(
         ok: true,
         mensaje: accionDeseada === 'true'
           ? 'Sistema bloqueado con llave maestra NFC.'
-          : 'Autorizacion fisica NFC Ed25519 verificada. Sistema desbloqueado.',
+          : `Celular y acceso autorizados para ${verifNfc.datos?.propietario || 'Cancelo Julian'} mediante Tag NFC.`,
         datosLlave: verifNfc.datos,
+        sesion: sesionEmitida,
         estado: await obtenerEstadoLicenciaActual(hostActual),
+      }, { headers });
+    }
+
+    if (path === 'seguridad/nfc/emitir-gafete') {
+      await asegurarTablasSeguridadLicencia();
+      const auth = await obtenerUsuarioAutenticado(req, ROLES_GESTION);
+      const totpValido = body.codigoTotp && verificarCodigoTOTP(String(body.codigoTotp));
+      if (!auth.valido && !totpValido) {
+        return NextResponse.json(
+          { error: 'Se requiere sesion administrativa o Codigo Maestro para emitir un Gafete NFC.' },
+          { status: 403, headers }
+        );
+      }
+
+      const propietario = String(body.propietario || 'Cancelo Julian').trim().slice(0, 140);
+      const correo = String(body.correo || 'juliancancelo@gmail.com').trim().toLowerCase().slice(0, 180);
+      const rol = String(body.rol || 'SUPER_ADMIN').trim().toUpperCase().slice(0, 40);
+      const diasValidez = Math.min(Math.max(Number(body.diasValidez || 365), 1), 1825);
+      const origenUrl = String(body.origenUrl || req.headers.get('origin') || `http://${req.headers.get('host') || 'localhost:3000'}`);
+
+      const emitido = emitirGafeteNFC({ propietario, correo, rol, diasValidez, origenUrl });
+
+      await query(
+        `INSERT INTO gafetes_nfc_autorizados
+          (uid_llave, propietario, correo, rol, token_nfc, url_nfc, activo, dispositivos_vinculados, expira_en)
+         VALUES ($1, $2, $3, $4, $5, $6, TRUE, 0, $7)`,
+        [
+          emitido.payload.uid_llave,
+          emitido.payload.propietario,
+          emitido.payload.correo,
+          emitido.payload.rol,
+          emitido.tokenNfc,
+          emitido.urlNfc,
+          emitido.payload.expira,
+        ]
+      );
+
+      await registrarAuditoria({
+        accion: 'EMITIR_GAFETE_NFC_AUTORIZACION',
+        entidad: 'gafetes_nfc_autorizados',
+        entidadId: emitido.payload.uid_llave,
+        detalles: { propietario, correo, rol, diasValidez },
+        req,
+      });
+
+      return NextResponse.json({
+        ok: true,
+        mensaje: `Tag NFC de autorizacion emitido para ${propietario}.`,
+        gafete: {
+          uid_llave: emitido.payload.uid_llave,
+          propietario: emitido.payload.propietario,
+          correo: emitido.payload.correo,
+          rol: emitido.payload.rol,
+          token_nfc: emitido.tokenNfc,
+          url_nfc: emitido.urlNfc,
+          expira_en: emitido.payload.expira,
+          activo: true,
+        },
+      }, { headers });
+    }
+
+    if (path === 'seguridad/nfc/revocar-gafete') {
+      await asegurarTablasSeguridadLicencia();
+      const auth = await obtenerUsuarioAutenticado(req, ROLES_GESTION);
+      if (!auth.valido) {
+        return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+      }
+      const uidLlave = String(body.uidLlave || '').trim();
+      const activo = Boolean(body.activo);
+      await query('UPDATE gafetes_nfc_autorizados SET activo = $1 WHERE uid_llave = $2', [activo, uidLlave]);
+      return NextResponse.json({
+        ok: true,
+        mensaje: activo ? 'Gafete NFC reactivado.' : 'Gafete NFC revocado.',
       }, { headers });
     }
 

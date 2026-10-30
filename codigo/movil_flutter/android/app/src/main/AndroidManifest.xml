@@ -3,12 +3,13 @@
     <uses-sdk tools:overrideLibrary="androidx.camera.featurecombinationquery, androidx.core.backported.fixes, com.it_nomads.fluttersecurestorage, dev.steenbakker.mobile_scanner, androidx.camera.camera2.pipe, androidx.camera.core, androidx.camera.camera2, androidx.camera.lifecycle, androidx.camera.view" />
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.NFC"/>
     <application
         android:label="SiGIC Accesos"
         android:name="${applicationName}"
         android:icon="@drawable/logo_sigic_launcher"
         android:allowBackup="false"
-        android:usesCleartextTraffic="false">
+        android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -37,11 +38,6 @@
             android:name="flutterEmbedding"
             android:value="2" />
     </application>
-    <!-- Required to query activities that can process text, see:
-         https://developer.android.com/training/package-visibility and
-         https://developer.android.com/reference/android/content/Intent#ACTION_PROCESS_TEXT.
-
-         In particular, this is used by the Flutter engine in io.flutter.plugin.text.ProcessTextPlugin. -->
     <queries>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>

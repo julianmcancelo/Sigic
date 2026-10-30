@@ -1,28 +1,27 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
-  Settings,
   Shield,
   RefreshCw,
   Database,
-  AlertTriangle,
   Server,
   CheckCircle2,
   Download,
   Trash2,
-  Terminal,
   ArrowLeft,
   Mail,
   ExternalLink,
   KeyRound,
   SmartphoneNfc,
-  Fingerprint,
   Lock,
   Unlock,
   Copy,
-  QrCode,
   FileCheck2,
   BellRing,
+  Smartphone,
+  UserCheck,
+  Plus,
 } from 'lucide-react'
+import { QRCodeSVG } from 'qrcode.react'
 import { VERSION_LABEL } from '../../lib/version'
 import {
   obtenerEstadoSetup,
@@ -32,79 +31,63 @@ import {
   obtenerIntegridadAuditoriaYAlertas,
   activarSerialLicenciaCriptografica,
   conmutarBloqueoSeguridad,
-  registrarLlaveSeguridadFido2,
   configurarAlertasSeguridad,
+  emitirGafeteNfcAutorizacion,
+  revocarGafeteNfcAutorizacion,
 } from '../../servicios/api'
 import { useConfirmacion } from '../../componentes/ModalConfirmacion'
+import { obtenerTemaActual } from '../../datos/fondos-pantalla'
 
-const ACCENT = '#0EA5E9'
-const DARK = '#2A3448'
-
-function bufferABase64Url(buffer) {
-  const bytes = new Uint8Array(buffer)
-  let binario = ''
-  for (let i = 0; i < bytes.byteLength; i++) {
-    binario += String.fromCharCode(bytes[i])
-  }
-  return btoa(binario).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
-}
-
-export function CentroControl({ usuario, onVolver, onCerrarSesion }) {
+export function CentroControl({ usuario, onVolver }) {
   const { confirmar, dialogoConfirmacion } = useConfirmacion()
+  const [pestanaActiva, setPestanaActiva] = useState('acceso') // 'acceso' | 'gafetes-nfc' | 'certificado' | 'infraestructura'
   const [metricas, setMetricas] = useState({
     usuarios: 0,
     ceremonias: 0,
     egresados: 0,
     invitados: 0,
   })
-  const [cargando, setCargando] = useState(true)
   const [ejecutandoAccion, setEjecutandoAccion] = useState(null)
   const [dbStatus, setDbStatus] = useState('conectado')
   const [apiLatency, setApiLatency] = useState(0)
-  const [logs, setLogs] = useState([])
-  const consoleEndRef = useRef(null)
 
   // Estados de Ciberseguridad y Licenciamiento Ed25519
   const [estadoLicencia, setEstadoLicencia] = useState(null)
   const [integridadDatos, setIntegridadDatos] = useState(null)
   const [nuevoSerialInput, setNuevoSerialInput] = useState('')
   const [codigoTotpInput, setCodigoTotpInput] = useState('')
-  const [nombrePasskey, setNombrePasskey] = useState('Llave Fisica FIDO2 — Cancelo Julian')
   const [correoAlertas, setCorreoAlertas] = useState('jcancelo.dev@gmail.com')
   const [webhookAlertas, setWebhookAlertas] = useState('')
   const [mensajeSeguridad, setMensajeSeguridad] = useState(null)
 
-  const isVercel = typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')
-  const hostBase = typeof window !== 'undefined' ? window.location.origin : 'https://sigic-one.vercel.app'
+  // Estados para emitir Gafete / Tag NFC de Autorizacion de Celulares y Personas
+  const [formNfcPropietario, setFormNfcPropietario] = useState('Cancelo Julian')
+  const [formNfcCorreo, setFormNfcCorreo] = useState('juliancancelo@gmail.com')
+  const [formNfcRol, setFormNfcRol] = useState('SUPER_ADMIN')
+  const [formNfcDias, setFormNfcDias] = useState(365)
+  const [ultimoGafeteEmitido, setUltimoGafeteEmitido] = useState(null)
+
+  const [temaId, setTemaId] = useState(() =>
+    typeof window !== 'undefined' ? localStorage.getItem('sigic_fondo') || 'beltran' : 'beltran'
+  )
 
   useEffect(() => {
-    inicializarConsola()
+    const manejarCambioTema = (e) => {
+      if (e?.detail) setTemaId(e.detail)
+      else if (typeof window !== 'undefined') setTemaId(localStorage.getItem('sigic_fondo') || 'beltran')
+    }
+    window.addEventListener('sigic-fondo-cambiado', manejarCambioTema)
+    return () => window.removeEventListener('sigic-fondo-cambiado', manejarCambioTema)
+  }, [])
+
+  const tema = obtenerTemaActual(temaId)
+  const acento = tema.colorPrincipal || '#0ea5e9'
+  const hostBase = typeof window !== 'undefined' ? window.location.origin : 'http://192.168.0.60:3000'
+
+  useEffect(() => {
     cargarDiagnostico()
     cargarPanelCiberseguridad()
   }, [])
-
-  useEffect(() => {
-    if (consoleEndRef.current) {
-      consoleEndRef.current.scrollIntoView({ behavior: 'smooth' })
-    }
-  }, [logs])
-
-  function registrarLog(texto, tipo = 'INFO') {
-    const hora = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-    setLogs((prev) => [...prev, { hora, texto, tipo }])
-  }
-
-  function inicializarConsola() {
-    setLogs([])
-    const hora = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-    setLogs([
-      { hora, texto: 'Iniciando modulo de diagnostico de infraestructura y seguridad criptografica...', tipo: 'INFO' },
-      { hora, texto: 'Plataforma base: Next.js + TailwindCSS (Vercel Edge Ready)', tipo: 'INFO' },
-      { hora, texto: `Servidor de API: ${hostBase}/api`, tipo: 'INFO' },
-      { hora, texto: 'Motor de Base de Datos: PostgreSQL Cloud (SSL Activo)', tipo: 'INFO' },
-      { hora, texto: 'Motor de Custodia: Ed25519 (RFC 8032) + TOTP (RFC 6238) + Auditoria SHA-256', tipo: 'AUDIT' },
-    ])
-  }
 
   async function cargarPanelCiberseguridad() {
     try {
@@ -117,12 +100,11 @@ export function CentroControl({ usuario, onVolver, onCerrarSesion }) {
       if (lic?.correoAlertas) setCorreoAlertas(lic.correoAlertas)
       if (lic?.webhookAlertas !== undefined) setWebhookAlertas(lic.webhookAlertas || '')
     } catch (err) {
-      registrarLog(`Advertencia al consultar motor de licencias: ${err.message}`, 'ERROR')
+      // Silencioso en carga inicial
     }
   }
 
   async function cargarDiagnostico() {
-    setCargando(true)
     const inicio = performance.now()
     try {
       const res = await obtenerEstadoSetup()
@@ -130,54 +112,28 @@ export function CentroControl({ usuario, onVolver, onCerrarSesion }) {
       setApiLatency(Math.round(fin - inicio))
       setMetricas(res.metricas || { usuarios: 0, ceremonias: 0, egresados: 0, invitados: 0 })
       setDbStatus('conectado')
-
-      const hora = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-      setLogs((prev) => [
-        ...prev,
-        {
-          hora,
-          texto: `Conexion con PostgreSQL establecida exitosamente (Latencia: ${Math.round(fin - inicio)}ms)`,
-          tipo: 'OK',
-        },
-        {
-          hora,
-          texto: `Infraestructura activa y operativa en ${isVercel ? 'Vercel CDN Edge' : 'Localhost'}.`,
-          tipo: 'OK',
-        },
-      ])
     } catch (err) {
       setDbStatus('error')
-      registrarLog('Fallo al conectar con la base de datos PostgreSQL. Verifique DATABASE_URL.', 'ERROR')
-    } finally {
-      setCargando(false)
     }
   }
 
   async function handleProbarConexion() {
     setEjecutandoAccion('probar')
-    registrarLog('Iniciando test de conexion e integridad criptografica...', 'AUDIT')
-
-    await new Promise((r) => setTimeout(r, 400))
     const inicio = performance.now()
     try {
       const res = await obtenerEstadoSetup()
       const fin = performance.now()
-      const lat = Math.round(fin - inicio)
-      setApiLatency(lat)
-      setMetricas(res.metricas)
+      setApiLatency(Math.round(fin - inicio))
+      setMetricas(res.metricas || { usuarios: 0, ceremonias: 0, egresados: 0, invitados: 0 })
       setDbStatus('conectado')
-
-      registrarLog(`Latencia del servidor: ${lat}ms`, 'OK')
-      registrarLog('Diagnostico de Base de Datos PostgreSQL completado:', 'INFO')
-      registrarLog(`  |- Tabla usuarios_sistema: ${res.metricas?.usuarios || 0} registros`, 'INFO')
-      registrarLog(`  |- Tabla ceremonias: ${res.metricas?.ceremonias || 0} registros`, 'INFO')
-      registrarLog(`  |- Tabla egresados: ${res.metricas?.egresados || 0} registros`, 'INFO')
-      registrarLog(`  |- Tabla invitados: ${res.metricas?.invitados || 0} registros`, 'INFO')
       await cargarPanelCiberseguridad()
-      registrarLog('Certificado Ed25519 y cadena SHA-256 verificados.', 'OK')
+      setMensajeSeguridad({
+        tipo: 'ok',
+        texto: `Diagnostico completado (${Math.round(fin - inicio)}ms). Firma Ed25519 y cadena SHA-256 verificadas.`,
+      })
     } catch (err) {
       setDbStatus('error')
-      registrarLog('Fallo critico de conexion con PostgreSQL. Intente nuevamente.', 'ERROR')
+      setMensajeSeguridad({ tipo: 'error', texto: 'Fallo de conexion con PostgreSQL.' })
     } finally {
       setEjecutandoAccion(null)
     }
@@ -193,10 +149,8 @@ export function CentroControl({ usuario, onVolver, onCerrarSesion }) {
       setEstadoLicencia(res.estado)
       setNuevoSerialInput('')
       setMensajeSeguridad({ tipo: 'ok', texto: res.mensaje })
-      registrarLog('Nuevo certificado de licencia Ed25519 verificado y activado.', 'OK')
     } catch (err) {
       setMensajeSeguridad({ tipo: 'error', texto: err.message })
-      registrarLog(`Rechazo criptografico Ed25519: ${err.message}`, 'ERROR')
     } finally {
       setEjecutandoAccion(null)
     }
@@ -212,118 +166,93 @@ export function CentroControl({ usuario, onVolver, onCerrarSesion }) {
       })
       setEstadoLicencia(res.estado)
       setMensajeSeguridad({ tipo: 'ok', texto: res.mensaje })
-      registrarLog(res.mensaje, 'AUDIT')
     } catch (err) {
       setMensajeSeguridad({ tipo: 'error', texto: err.message })
-      registrarLog(`Error en control de bloqueo: ${err.message}`, 'ERROR')
     } finally {
       setEjecutandoAccion(null)
     }
   }
 
-  async function handleRegistrarPasskeyFido2() {
-    setMensajeSeguridad(null)
-    if (typeof window === 'undefined' || !window.PublicKeyCredential) {
-      setMensajeSeguridad({
-        tipo: 'error',
-        texto: 'Este navegador no soporta registro de llaves de hardware WebAuthn / FIDO2.',
-      })
-      return
-    }
+  const [esperandoTagFisico, setEsperandoTagFisico] = useState(false)
+  const soportaWebNfcDirecto = typeof window !== 'undefined' && 'NDEFReader' in window
 
-    setEjecutandoAccion('fido2')
+  async function handleEmitirGafeteNFC(e, grabarEnUnPaso = true) {
+    if (e?.preventDefault) e.preventDefault()
+    setEjecutandoAccion('emitir-nfc')
+    setMensajeSeguridad(null)
     try {
-      const challenge = new Uint8Array(32)
-      window.crypto.getRandomValues(challenge)
-      const userId = new Uint8Array(16)
-      window.crypto.getRandomValues(userId)
-
-      const credencial = await navigator.credentials.create({
-        publicKey: {
-          challenge,
-          rp: {
-            name: 'SiGIC Ciberseguridad',
-            id: window.location.hostname,
-          },
-          user: {
-            id: userId,
-            name: 'jcancelo.dev@gmail.com',
-            displayName: 'Cancelo Julian (Autoridad SiGIC)',
-          },
-          pubKeyCredParams: [
-            { alg: -7, type: 'public-key' }, // ES256
-            { alg: -8, type: 'public-key' }, // Ed25519
-            { alg: -257, type: 'public-key' }, // RS256
-          ],
-          authenticatorSelection: {
-            userVerification: 'preferred',
-          },
-          timeout: 60000,
-        },
+      const res = await emitirGafeteNfcAutorizacion({
+        propietario: formNfcPropietario,
+        correo: formNfcCorreo,
+        rol: formNfcRol,
+        diasValidez: Number(formNfcDias || 365),
+        origenUrl: hostBase,
       })
-
-      if (!credencial || !credencial.rawId) {
-        throw new Error('No se pudo generar la credencial FIDO2.')
-      }
-
-      const credencialId = bufferABase64Url(credencial.rawId)
-      const res = await registrarLlaveSeguridadFido2({
-        credencialId,
-        nombreLlave: nombrePasskey || 'Passkey FIDO2 — Cancelo Julian',
-        propietario: 'Cancelo Julian',
-        transporte: 'internal,nfc,usb',
-        codigoTotp: codigoTotpInput.trim() || undefined,
-      })
-
-      setMensajeSeguridad({ tipo: 'ok', texto: res.mensaje })
-      registrarLog(`Passkey FIDO2 registrada: ${credencialId.slice(0, 20)}...`, 'OK')
+      setUltimoGafeteEmitido(res.gafete)
       await cargarPanelCiberseguridad()
+
+      // Si el navegador tiene lector/grabador NFC activo (ej. Chrome en Android o lector NFC compatible),
+      // inicia la grabacion fisica inmediatamente en el mismo paso:
+      if (grabarEnUnPaso && typeof window !== 'undefined' && 'NDEFReader' in window) {
+        await handleGrabarUrlEnChipNFC(res.gafete.url_nfc, res.gafete.propietario)
+      } else {
+        navigator.clipboard?.writeText(res.gafete.url_nfc)
+        setMensajeSeguridad({
+          tipo: 'ok',
+          texto: `Llave NFC de ${res.gafete.propietario} generada y copiada. Si estas en PC sin antena NFC fisica, escanea el QR de la derecha con tu celular Android para apoyar y grabar el Tag NFC desde ahi mismo.`,
+        })
+      }
     } catch (err) {
-      setMensajeSeguridad({
-        tipo: 'error',
-        texto: err.message || 'Registro de Passkey cancelado o no disponible en este dispositivo.',
-      })
+      setMensajeSeguridad({ tipo: 'error', texto: err.message })
     } finally {
       setEjecutandoAccion(null)
     }
   }
 
-  async function handleGrabarTarjetaNFCFisica() {
+  async function handleGrabarUrlEnChipNFC(urlParaGrabar, nombrePropietario = '') {
     setMensajeSeguridad(null)
-    const tokenParaGrabar = estadoLicencia?.tokenNfcMaestro
-    if (!tokenParaGrabar) {
-      setMensajeSeguridad({ tipo: 'error', texto: 'Token maestro NFC no disponible en la sesion actual.' })
-      return
-    }
+    if (!urlParaGrabar) return
 
     if (typeof window === 'undefined' || !('NDEFReader' in window)) {
-      navigator.clipboard?.writeText(tokenParaGrabar)
+      navigator.clipboard?.writeText(urlParaGrabar)
       setMensajeSeguridad({
         tipo: 'ok',
         texto:
-          'Payload NDEF firmado (SIGIC-NFC-v1) copiado al portapapeles. En Android Chrome puedes grabarlo directamente apoyando tu tarjeta NFC o usando NFC Tools.',
+          'Este dispositivo (PC) no tiene antena NFC integrada en el navegador. Se copio el enlace firmado al portapapeles, o puedes abrir esta misma pantalla desde tu celular para grabarlo apoyando el Tag NFC.',
       })
       return
     }
 
-    setEjecutandoAccion('nfc')
+    setEjecutandoAccion('grabar-nfc')
+    setEsperandoTagFisico(true)
     try {
       const ndef = new window.NDEFReader()
       await ndef.write({
-        records: [{ recordType: 'text', data: tokenParaGrabar }],
+        records: [{ recordType: 'url', data: urlParaGrabar }],
       })
+      setEsperandoTagFisico(false)
       setMensajeSeguridad({
         tipo: 'ok',
-        texto: 'Certificado Ed25519 grabado exitosamente en el chip fisico de tu tarjeta NFC.',
+        texto: `Listo: Tag NFC fisico grabado directamente para ${nombrePropietario || 'el usuario'}. Al acercar cualquier celular entrara autorizado.`,
       })
-      registrarLog('Tarjeta fisica NFC grabada con certificado Ed25519 SIGIC-NFC-v1.', 'OK')
     } catch (err) {
+      setEsperandoTagFisico(false)
       setMensajeSeguridad({
         tipo: 'error',
-        texto: `No se pudo escribir en el tag NFC: ${err.message}`,
+        texto: `No se pudo escribir en el chip NFC: ${err.message}`,
       })
     } finally {
       setEjecutandoAccion(null)
+    }
+  }
+
+  async function handleToggleGafeteNFC(uidLlave, nuevoEstado) {
+    try {
+      const res = await revocarGafeteNfcAutorizacion(uidLlave, nuevoEstado)
+      setMensajeSeguridad({ tipo: 'ok', texto: res.mensaje })
+      await cargarPanelCiberseguridad()
+    } catch (err) {
+      setMensajeSeguridad({ tipo: 'error', texto: err.message })
     }
   }
 
@@ -337,7 +266,6 @@ export function CentroControl({ usuario, onVolver, onCerrarSesion }) {
         webhookAlertas,
       })
       setMensajeSeguridad({ tipo: 'ok', texto: res.mensaje })
-      registrarLog('Canales de telemetria y alerta forense actualizados.', 'OK')
     } catch (err) {
       setMensajeSeguridad({ tipo: 'error', texto: err.message })
     } finally {
@@ -347,11 +275,8 @@ export function CentroControl({ usuario, onVolver, onCerrarSesion }) {
 
   async function handleExportarDB() {
     setEjecutandoAccion('exportar')
-    registrarLog('Solicitando exportacion de datos (Backup JSON)...', 'AUDIT')
     try {
       const datos = await exportarBaseDatos()
-      registrarLog('Carga de datos recibida desde PostgreSQL.', 'OK')
-
       const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(datos, null, 2))
       const downloadAnchor = document.createElement('a')
       downloadAnchor.setAttribute('href', dataStr)
@@ -359,10 +284,9 @@ export function CentroControl({ usuario, onVolver, onCerrarSesion }) {
       document.body.appendChild(downloadAnchor)
       downloadAnchor.click()
       downloadAnchor.remove()
-
-      registrarLog('Archivo JSON de backup generado y descargado con exito.', 'OK')
+      setMensajeSeguridad({ tipo: 'ok', texto: 'Respaldo JSON descargado correctamente.' })
     } catch (err) {
-      registrarLog(`Error al exportar la base de datos: ${err.message || 'Permiso denegado'}`, 'ERROR')
+      setMensajeSeguridad({ tipo: 'error', texto: err.message || 'No se pudo exportar la base de datos.' })
     } finally {
       setEjecutandoAccion(null)
     }
@@ -379,525 +303,720 @@ export function CentroControl({ usuario, onVolver, onCerrarSesion }) {
     if (!confirmado) return
 
     const confirmacionText = prompt('Por favor, escribe "RESET" para confirmar el formateo del sistema:')
-    if (confirmacionText !== 'RESET') {
-      alert('Confirmacion cancelada.')
-      return
-    }
+    if (confirmacionText !== 'RESET') return
 
     setEjecutandoAccion('reset')
-    registrarLog('Iniciando proceso de borrado de base de datos...', 'AUDIT')
     try {
       await resetearSistema()
-      registrarLog('Todas las tablas fueron limpiadas con exito. Flag de Setup marcado como incompleto.', 'OK')
-      registrarLog('Redirigiendo al asistente de configuracion...', 'AUDIT')
-
       setTimeout(() => {
         window.location.reload()
-      }, 2000)
+      }, 1500)
     } catch (err) {
-      registrarLog(`Fallo al resetear el sistema: ${err.message}`, 'ERROR')
+      setMensajeSeguridad({ tipo: 'error', texto: err.message })
       setEjecutandoAccion(null)
     }
   }
 
+  // URI ultra-compatible RFC 6238 (sin parentesis ni caracteres que bloqueen Google Authenticator)
+  const uriQrTotp =
+    estadoLicencia?.totpProvisioning?.uri ||
+    'otpauth://totp/SiGIC:juliancancelo@gmail.com?secret=SIGICJCANCELO2026CYBERSECKEY7777&issuer=SiGIC'
+
+  const pestanas = [
+    { id: 'acceso', nombre: 'PIN Maestro, QR & Bloqueo', icono: Smartphone },
+    { id: 'gafetes-nfc', nombre: 'Autorizar Celulares / Personas con NFC', icono: SmartphoneNfc },
+    { id: 'certificado', nombre: 'Licencia Ed25519 & Auditoria', icono: KeyRound },
+    { id: 'infraestructura', nombre: 'Base de Datos & Respaldo', icono: Database },
+  ]
+
   return (
-    <div className="font-sans pb-10">
-      {/* HEADER INTEGRADO PRO */}
-      <div className="flex items-center justify-between mb-8 pb-5 border-b border-slate-100/80 flex-wrap gap-4">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={onVolver}
-            className="flex h-10 w-10 items-center justify-center rounded-2xl border border-slate-100 hover:bg-slate-50 text-slate-500 hover:text-slate-800 transition active:scale-95 shadow-sm shadow-slate-100/50 bg-white"
+    <div className="font-sans max-w-5xl mx-auto space-y-4 pb-10">
+      {/* Cabecera minimalista acorde al tema activo */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-xs">
+        <div className="flex items-center gap-3">
+          {onVolver && (
+            <button
+              onClick={onVolver}
+              className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200/80 hover:bg-slate-50 text-slate-600 transition cursor-pointer"
+              title="Volver"
+            >
+              <ArrowLeft size={16} />
+            </button>
+          )}
+          <div
+            className="grid h-10 w-10 place-items-center rounded-xl text-white shadow-xs shrink-0"
+            style={{ background: `linear-gradient(135deg, ${tema.colores[0]}, ${tema.colores[1]})` }}
           >
-            <ArrowLeft size={16} />
-          </button>
+            <Shield size={19} />
+          </div>
           <div>
-            <h2 className="text-lg font-black tracking-tight" style={{ color: DARK }}>
-              Centro de Control de Infraestructura y Ciberseguridad
-            </h2>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
-              Servidor Serverless Vercel & PostgreSQL Cloud · Licenciamiento Ed25519
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="text-sm font-black text-slate-800 tracking-tight">
+                Ciberseguridad, Licenciamiento y Control
+              </h2>
+              <span
+                className="px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider"
+                style={{
+                  backgroundColor: tema.colorAcentoLight,
+                  color: acento,
+                  border: `1px solid ${tema.colorAcentoBorder}`,
+                }}
+              >
+                Tema {tema.nombre.split(' ')[0]}
+              </span>
+            </div>
+            <p className="text-[11px] text-slate-500">
+              Autoridad Criptografica: <strong className="text-slate-700">Cancelo Julian</strong> · Tecnicatura Superior en Analista de Sistemas
             </p>
-            <p className="text-[9px] font-bold text-slate-300 uppercase tracking-widest mt-1 font-mono">{VERSION_LABEL}</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
-          <button
-            onClick={inicializarConsola}
-            className="px-3.5 py-2.5 rounded-xl border border-slate-100 hover:bg-slate-50 text-slate-500 hover:text-slate-800 bg-white transition active:scale-95 text-[10px] font-bold uppercase tracking-wider shadow-sm"
-          >
-            Limpiar Consola
-          </button>
+        <div className="flex items-center gap-2">
+          {estadoLicencia?.valida && !estadoLicencia?.bloqueado ? (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <CheckCircle2 size={13} /> Activo ({estadoLicencia?.diasRestantes ?? 180}d)
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold bg-rose-50 text-rose-700 border border-rose-200">
+              <Lock size={13} /> Bloqueado
+            </span>
+          )}
 
           <button
             onClick={handleProbarConexion}
             disabled={ejecutandoAccion !== null}
-            className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-sky-500 to-indigo-500 hover:from-sky-600 hover:to-indigo-600 text-white rounded-full text-[10px] font-black uppercase tracking-wider shadow-md shadow-sky-500/20 active:scale-95 transition-all"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-white text-xs font-bold transition cursor-pointer shadow-xs"
+            style={{ backgroundColor: acento }}
           >
-            <RefreshCw size={14} className={ejecutandoAccion === 'probar' ? 'animate-spin' : ''} /> Probar Conexiones
+            <RefreshCw size={13} className={ejecutandoAccion === 'probar' ? 'animate-spin' : ''} />
+            <span>Verificar</span>
           </button>
         </div>
       </div>
 
-      {/* TARJETAS DE SERVICIOS */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        {/* CARD: SERVIDOR WEB */}
-        <div className="bg-white border border-slate-100 rounded-[32px] p-6 shadow-sm flex flex-col justify-between hover:shadow-md transition duration-300">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-50 text-sky-500 border border-sky-100 shadow-sm shadow-sky-100/50">
-              <Server size={18} />
-            </div>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-100">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Activo (Vercel)
-            </span>
-          </div>
-          <div>
-            <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">Servidor Cloud</h3>
-            <p className="text-sm font-black text-slate-800 mt-1 truncate">{hostBase.replace('https://', '')}</p>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
-              Latencia API: {apiLatency > 0 ? `${apiLatency}ms` : 'calculando...'}
-            </p>
-          </div>
-        </div>
-
-        {/* CARD: BASE DE DATOS */}
-        <div className="bg-white border border-slate-100 rounded-[32px] p-6 shadow-sm flex flex-col justify-between hover:shadow-md transition duration-300">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-purple-50 text-purple-500 border border-purple-100 shadow-sm shadow-purple-100/50">
-              <Database size={18} />
-            </div>
-            {dbStatus === 'conectado' ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-100">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Conectado
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-wider text-rose-700 bg-rose-50 border border-rose-100">
-                <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
-                Desconectado
-              </span>
-            )}
-          </div>
-          <div>
-            <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">Base de Datos</h3>
-            <p className="text-sm font-black text-slate-800 mt-1">PostgreSQL Cloud</p>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
-              Graduados: {metricas.egresados} | Invitados: {metricas.invitados}
-            </p>
-            <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between">
-              <a
-                href="/esquema/index.html"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-[10px] font-bold text-purple-600 hover:text-purple-700 transition"
-              >
-                <ExternalLink size={11} /> Ver Esquema DER Interactivo
-              </a>
-            </div>
-          </div>
-        </div>
-
-        {/* CARD: SERVIDOR SMTP */}
-        <div className="bg-white border border-slate-100 rounded-[32px] p-6 shadow-sm flex flex-col justify-between hover:shadow-md transition duration-300">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-50 text-amber-500 border border-amber-100 shadow-sm shadow-amber-100/50">
-              <Mail size={18} />
-            </div>
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-wider text-sky-700 bg-sky-50 border border-sky-100">
-              <span className="h-1.5 w-1.5 rounded-full bg-sky-500 animate-pulse" />
-              SMTP Listo
-            </span>
-          </div>
-          <div>
-            <h3 className="text-xs font-black uppercase tracking-wider text-slate-400">Servicio de Correo</h3>
-            <p className="text-sm font-black text-slate-800 mt-1">SMTP Integrado (Nube)</p>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
-              Invitaciones, Alertas Forenses y Tokens OTP Activos
-            </p>
-          </div>
-        </div>
+      {/* Navegacion de pestañas limpia */}
+      <div className="flex items-center gap-1.5 bg-white p-1.5 rounded-2xl border border-slate-200/80 shadow-xs overflow-x-auto">
+        {pestanas.map(({ id, nombre, icono: Icono }) => {
+          const activa = pestanaActiva === id
+          return (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setPestanaActiva(id)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                activa ? 'text-white shadow-xs' : 'text-slate-600 hover:bg-slate-50'
+              }`}
+              style={
+                activa
+                  ? { background: `linear-gradient(135deg, ${tema.colores[0]}, ${tema.colores[1]})` }
+                  : undefined
+              }
+            >
+              <Icono size={14} />
+              <span>{nombre}</span>
+            </button>
+          )
+        })}
       </div>
 
-      {/* ===================================================================== */}
-      {/* PANEL DE CIBERSEGURIDAD, LICENCIAMIENTO ED25519 Y LLAVES FISICAS       */}
-      {/* ===================================================================== */}
-      <div className="bg-slate-900 text-white border border-slate-800 rounded-[32px] p-6 sm:p-8 shadow-xl mb-8 space-y-6">
-        <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-800 pb-5">
-          <div className="flex items-start gap-3.5">
-            <div className="h-12 w-12 rounded-2xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-400 shrink-0">
-              <Shield size={22} />
-            </div>
-            <div>
-              <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-500/20 text-sky-300 border border-sky-500/30 mb-1">
-                Criptografia Asimetrica Ed25519 + Hardware MFA
-              </div>
-              <h3 className="text-base sm:text-lg font-black tracking-tight text-white">
-                Custodia de Propiedad Intelectual, Licenciamiento y Llaves Fisicas (NFC / FIDO2 / TOTP)
-              </h3>
-              <p className="text-xs text-slate-400 mt-0.5">
-                Autoridad de Certificacion: <strong className="text-slate-200">Cancelo Julian</strong> · Carrera: Tecnicatura Superior en Analista de Sistemas
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {estadoLicencia?.valida && !estadoLicencia?.bloqueado ? (
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-                <CheckCircle2 size={14} /> Licencia Ed25519 Activa ({estadoLicencia?.diasRestantes ?? 180} dias)
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-rose-500/20 text-rose-300 border border-rose-500/40">
-                <Lock size={14} /> Sistema Bloqueado ({estadoLicencia?.motivo})
-              </span>
-            )}
-          </div>
-        </div>
-
-        {mensajeSeguridad && (
-          <div
-            className={`rounded-2xl px-4 py-3 text-xs font-semibold flex items-center justify-between gap-3 border ${
-              mensajeSeguridad.tipo === 'ok'
-                ? 'bg-emerald-950/70 border-emerald-700/60 text-emerald-200'
-                : 'bg-rose-950/70 border-rose-700/60 text-rose-200'
-            }`}
+      {/* Notificacion de estado */}
+      {mensajeSeguridad && (
+        <div
+          className={`rounded-xl px-4 py-3 text-xs font-semibold flex items-center justify-between gap-3 border ${
+            mensajeSeguridad.tipo === 'ok'
+              ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+              : 'bg-rose-50 border-rose-200 text-rose-800'
+          }`}
+        >
+          <span>{mensajeSeguridad.texto}</span>
+          <button
+            onClick={() => setMensajeSeguridad(null)}
+            className="text-[10px] font-bold uppercase opacity-70 hover:opacity-100 cursor-pointer"
           >
-            <span>{mensajeSeguridad.texto}</span>
-            <button onClick={() => setMensajeSeguridad(null)} className="text-[10px] uppercase opacity-75 hover:opacity-100">
-              Cerrar
-            </button>
-          </div>
-        )}
-
-        {/* Resumen del Certificado Actual + Cadena SHA-256 */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="rounded-2xl bg-slate-950/80 border border-slate-800 p-4 space-y-2">
-            <div className="flex items-center justify-between text-xs font-bold text-sky-400">
-              <span className="flex items-center gap-1.5">
-                <KeyRound size={14} /> Certificado Ed25519
-              </span>
-              <span className="font-mono text-[11px] text-slate-400">
-                {estadoLicencia?.licencia?.serial_id || 'SIGIC-ITB-2026-OFICIAL-001'}
-              </span>
-            </div>
-            <p className="text-xs text-slate-300">
-              Institucion: <strong>{estadoLicencia?.licencia?.institucion || 'Instituto Tecnologico Beltran'}</strong>
-            </p>
-            <p className="text-[11px] text-slate-400">
-              Dominios autorizados:{' '}
-              <code className="text-sky-300 font-mono">
-                {(estadoLicencia?.licencia?.dominios_autorizados || ['localhost', 'app.sigic.com.ar', '*.vercel.app']).join(', ')}
-              </code>
-            </p>
-            <p className="text-[11px] text-slate-400">
-              Host actual detectado: <code className="text-emerald-300 font-mono">{estadoLicencia?.dominioDetectado || 'localhost'}</code>
-            </p>
-          </div>
-
-          <div className="rounded-2xl bg-slate-950/80 border border-slate-800 p-4 space-y-2">
-            <div className="flex items-center justify-between text-xs font-bold text-emerald-400">
-              <span className="flex items-center gap-1.5">
-                <FileCheck2 size={14} /> Cadena de Custodia SHA-256
-              </span>
-              <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300">
-                {integridadDatos?.cadenaAuditoria?.integra !== false ? 'INTEGRA' : 'ALTERADA'}
-              </span>
-            </div>
-            <p className="text-xs text-slate-300">
-              {integridadDatos?.cadenaAuditoria?.mensaje || 'Verificador criptografico SHA-256 de auditoria en linea.'}
-            </p>
-            <p className="text-[11px] text-slate-400">
-              Eslabones verificados: <strong>{integridadDatos?.cadenaAuditoria?.totalAnalizados ?? 0}</strong> · Alertas forenses:{' '}
-              <strong>{integridadDatos?.alertasForenses?.length ?? 0}</strong>
-            </p>
-          </div>
-
-          <div className="rounded-2xl bg-slate-950/80 border border-slate-800 p-4 space-y-2">
-            <div className="flex items-center justify-between text-xs font-bold text-amber-400">
-              <span className="flex items-center gap-1.5">
-                <QrCode size={14} /> Codigo Maestro TOTP (RFC 6238)
-              </span>
-              {estadoLicencia?.codigoTotpActualDemo && (
-                <span className="font-mono text-sm font-black tracking-widest bg-amber-500/20 text-amber-300 px-2.5 py-0.5 rounded-lg border border-amber-500/30">
-                  {estadoLicencia.codigoTotpActualDemo}
-                </span>
-              )}
-            </div>
-            <p className="text-[11px] text-slate-300">
-              Semilla Base32 (Google Authenticator / Authy):
-            </p>
-            <div className="flex items-center gap-2">
-              <code className="flex-1 bg-slate-900 border border-slate-800 px-2.5 py-1.5 rounded-lg font-mono text-[11px] text-amber-300 truncate">
-                {estadoLicencia?.totpProvisioning?.secreto || 'SIGICJCANCELO2026CYBERSECKEY7777'}
-              </code>
-              <button
-                type="button"
-                onClick={() => {
-                  navigator.clipboard?.writeText(
-                    estadoLicencia?.totpProvisioning?.secreto || 'SIGICJCANCELO2026CYBERSECKEY7777'
-                  )
-                  setMensajeSeguridad({
-                    tipo: 'ok',
-                    texto: 'Semilla TOTP Base32 copiada para agregar en Google Authenticator.',
-                  })
-                }}
-                className="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200"
-                title="Copiar Semilla TOTP"
-              >
-                <Copy size={13} />
-              </button>
-            </div>
-          </div>
+            Cerrar
+          </button>
         </div>
+      )}
 
-        {/* Controles de Llaves Fisicas (NFC + FIDO2 Passkey + Bloqueo Maestro) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* 1. Tarjeta Fisica NFC */}
-          <div className="rounded-2xl bg-slate-950/60 border border-slate-800 p-4 flex flex-col justify-between gap-3">
+      {/* ===================================================================== */}
+      {/* PESTAÑA 1: PIN MAESTRO, QR MOVIL (CORREGIDO) Y BLOQUEO                */}
+      {/* ===================================================================== */}
+      {pestanaActiva === 'acceso' && (
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+          <div className="md:col-span-7 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs flex flex-col justify-between gap-4">
             <div>
-              <h4 className="text-xs font-bold text-white flex items-center gap-2">
-                <SmartphoneNfc size={15} className="text-sky-400" /> 1. Llave Fisica NFC (Ed25519)
-              </h4>
-              <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
-                Graba el certificado firmado <code className="text-sky-300">SIGIC-NFC-v1</code> en una tarjeta o llavero NFC (NTAG213/215) para desbloquear SiGIC con solo apoyar la tarjeta.
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                <Smartphone size={12} style={{ color: acento }} /> Android & iOS (Formato Estandar Limpio)
+              </span>
+              <h3 className="text-sm font-black text-slate-800 mt-0.5">
+                Codigo Maestro Fijo (04051990) y QR para Google Authenticator / iOS
+              </h3>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                Se elimino el formato con parentesis que daba error en Google Authenticator. Escanea este nuevo QR para generar codigos de 6 digitos o usa siempre tu codigo maestro <strong>04051990</strong>.
               </p>
             </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={handleGrabarTarjetaNFCFisica}
-                disabled={ejecutandoAccion !== null}
-                className="flex-1 py-2.5 px-3 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-[11px] font-bold transition flex items-center justify-center gap-1.5"
-              >
-                <SmartphoneNfc size={14} /> Grabar / Copiar Tag NFC
-              </button>
+
+            <div className="flex flex-col sm:flex-row items-center gap-5 bg-slate-50/80 rounded-2xl p-4 border border-slate-200/70">
+              <div className="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-xs shrink-0">
+                <QRCodeSVG value={uriQrTotp} size={136} level="M" />
+              </div>
+
+              <div className="space-y-2.5 flex-1 text-center sm:text-left">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                    Tu Codigo Maestro Personal (Fijo)
+                  </span>
+                  <div className="flex items-center justify-center sm:justify-start gap-2 mt-0.5">
+                    <code className="text-base font-black font-mono tracking-widest text-slate-800 bg-white px-3 py-1 rounded-lg border border-slate-200">
+                      04051990
+                    </code>
+                    <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                      Siempre activo
+                    </span>
+                  </div>
+                </div>
+
+                {estadoLicencia?.codigoTotpActualDemo && (
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                      Codigo Dinamico Actual (Celular 30s)
+                    </span>
+                    <code
+                      className="inline-block mt-0.5 text-sm font-black font-mono tracking-widest px-2.5 py-0.5 rounded-lg"
+                      style={{
+                        backgroundColor: tema.colorAcentoLight,
+                        color: acento,
+                        border: `1px solid ${tema.colorAcentoBorder}`,
+                      }}
+                    >
+                      {estadoLicencia.codigoTotpActualDemo}
+                    </code>
+                  </div>
+                )}
+
+                <div className="pt-1 flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard?.writeText(
+                        estadoLicencia?.totpProvisioning?.secreto || 'SIGICJCANCELO2026CYBERSECKEY7777'
+                      )
+                      setMensajeSeguridad({
+                        tipo: 'ok',
+                        texto: 'Clave Base32 copiada (SIGICJCANCELO2026CYBERSECKEY7777).',
+                      })
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-[11px] font-bold transition cursor-pointer"
+                  >
+                    <Copy size={12} /> Copiar Clave Base32
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setPestanaActiva('gafetes-nfc')}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-white text-[11px] font-bold transition cursor-pointer"
+                    style={{ backgroundColor: acento }}
+                  >
+                    <SmartphoneNfc size={12} /> Autorizar Celulares con NFC
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* 2. Passkey FIDO2 / WebAuthn */}
-          <div className="rounded-2xl bg-slate-950/60 border border-slate-800 p-4 flex flex-col justify-between gap-3">
+          <div className="md:col-span-5 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs flex flex-col justify-between gap-4">
             <div>
-              <h4 className="text-xs font-bold text-white flex items-center gap-2">
-                <Fingerprint size={15} className="text-purple-400" /> 2. Passkey Hardware FIDO2
-              </h4>
-              <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
-                Vincula tu huella biometrica (Windows Hello / TouchID / Android) o YubiKey USB/NFC ({integridadDatos?.llavesFido2?.length || 0} registradas).
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                <Lock size={12} style={{ color: acento }} /> Escudo de Ejecucion
+              </span>
+              <h3 className="text-sm font-black text-slate-800 mt-0.5">
+                Prueba de Bloqueo y Desbloqueo Instantaneo
+              </h3>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                Activa el bloqueo total para verificar la pantalla de proteccion. Desbloquea con tu codigo maestro{' '}
+                <code className="font-mono font-bold text-slate-700">04051990</code>, con QR o acercando un Tag NFC.
               </p>
-              <input
-                type="text"
-                value={nombrePasskey}
-                onChange={(e) => setNombrePasskey(e.target.value)}
-                placeholder="Nombre de la llave FIDO2"
-                className="mt-2 w-full rounded-lg bg-slate-900 border border-slate-800 px-2.5 py-1.5 text-[11px] text-slate-200"
-              />
-            </div>
-            <button
-              type="button"
-              onClick={handleRegistrarPasskeyFido2}
-              disabled={ejecutandoAccion !== null}
-              className="w-full py-2.5 px-3 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-[11px] font-bold transition flex items-center justify-center gap-1.5"
-            >
-              <Fingerprint size={14} /> Vincular Passkey / Biometria
-            </button>
-          </div>
 
-          {/* 3. Conmutador de Bloqueo Remoto / Prueba en Vivo */}
-          <div className="rounded-2xl bg-slate-950/60 border border-slate-800 p-4 flex flex-col justify-between gap-3">
-            <div>
-              <h4 className="text-xs font-bold text-white flex items-center gap-2">
-                <Lock size={15} className="text-rose-400" /> 3. Control de Bloqueo Criptografico
-              </h4>
-              <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
-                Permite probar el escudo de bloqueo total en vivo o desbloquear con codigo TOTP de 6 digitos.
-              </p>
-              <input
-                type="text"
-                maxLength={6}
-                value={codigoTotpInput}
-                onChange={(e) => setCodigoTotpInput(e.target.value.replace(/\D/g, ''))}
-                placeholder="Codigo TOTP (6 digitos opcional)"
-                className="mt-2 w-full rounded-lg bg-slate-900 border border-slate-800 px-2.5 py-1.5 text-[11px] font-mono text-slate-200"
-              />
+              <div className="mt-4">
+                <label className="block text-[11px] font-bold text-slate-600 mb-1.5">
+                  Codigo Maestro (04051990) o Codigo del Celular:
+                </label>
+                <input
+                  type="text"
+                  maxLength={12}
+                  value={codigoTotpInput}
+                  onChange={(e) => setCodigoTotpInput(e.target.value.replace(/\D/g, ''))}
+                  placeholder="04051990"
+                  className="w-full rounded-xl bg-slate-50 border border-slate-200 focus:bg-white px-3.5 py-2.5 text-center font-mono text-sm font-bold tracking-widest text-slate-800 outline-none transition"
+                />
+              </div>
             </div>
-            <div className="flex gap-2">
+
+            <div className="grid grid-cols-2 gap-2.5 pt-2">
               <button
                 type="button"
                 onClick={() => handleConmutarBloqueo(true)}
                 disabled={ejecutandoAccion !== null}
-                className="flex-1 py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-[11px] font-bold transition flex items-center justify-center gap-1.5"
+                className="py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
               >
-                <Lock size={13} /> Bloquear Ahora
+                <Lock size={14} /> Bloquear Sistema
               </button>
               <button
                 type="button"
                 onClick={() => handleConmutarBloqueo(false)}
                 disabled={ejecutandoAccion !== null}
-                className="flex-1 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold transition flex items-center justify-center gap-1.5"
+                className="py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
               >
-                <Unlock size={13} /> Desbloquear
+                <Unlock size={14} /> Desbloquear
               </button>
             </div>
           </div>
         </div>
+      )}
 
-        {/* Actualizacion de Serial Ed25519 y Destino de Alertas Forenses */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-2 border-t border-slate-800">
-          <form onSubmit={handleActivarSerial} className="space-y-2">
-            <label className="block text-xs font-bold text-slate-300">
-              Cargar Nuevo Certificado Serial Criptografico (SIGIC-LIC-v1):
-            </label>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={nuevoSerialInput}
-                onChange={(e) => setNuevoSerialInput(e.target.value)}
-                placeholder="SIGIC-LIC-v1.eyJzZXJpYWxfaWQiOi..."
-                className="flex-1 rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 font-mono text-xs text-slate-200"
-              />
-              <button
-                type="submit"
-                disabled={ejecutandoAccion !== null}
-                className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shrink-0"
-              >
-                Verificar y Aplicar
-              </button>
-            </div>
-          </form>
-
-          <form onSubmit={handleGuardarAlertas} className="space-y-2">
-            <label className="block text-xs font-bold text-slate-300 flex items-center gap-1.5">
-              <BellRing size={13} className="text-amber-400" /> Correo y Webhook del Autor para Alertas Forenses (Canary):
-            </label>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <input
-                type="email"
-                value={correoAlertas}
-                onChange={(e) => setCorreoAlertas(e.target.value)}
-                placeholder="jcancelo.dev@gmail.com"
-                className="flex-1 rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 text-xs text-slate-200"
-              />
-              <input
-                type="text"
-                value={webhookAlertas}
-                onChange={(e) => setWebhookAlertas(e.target.value)}
-                placeholder="https://webhook-siem-o-discord..."
-                className="flex-1 rounded-xl bg-slate-950 border border-slate-800 px-3 py-2 text-xs text-slate-200"
-              />
-              <button
-                type="submit"
-                disabled={ejecutandoAccion !== null}
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold shrink-0"
-              >
-                Guardar
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      {/* CONSOLA DE AUDITORIA EN TIEMPO REAL */}
-      <div className="bg-slate-950 border border-slate-900 shadow-2xl rounded-[32px] overflow-hidden mb-8">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-900 bg-slate-900/40 select-none">
-          <div className="flex items-center gap-2.5">
-            <div className="flex gap-1.5">
-              <span className="h-3 w-3 rounded-full bg-rose-500/80" />
-              <span className="h-3 w-3 rounded-full bg-amber-500/80" />
-              <span className="h-3 w-3 rounded-full bg-emerald-500/80" />
-            </div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 font-mono flex items-center gap-1.5">
-              <Terminal size={12} className="text-sky-500" /> consola_diagnostico_cloud.sh
-            </span>
-          </div>
-          <span className="text-[9px] font-bold text-slate-600 font-mono">Status: ONLINE</span>
-        </div>
-
-        <div className="p-6 h-72 overflow-y-auto font-mono text-[10px] leading-relaxed text-slate-300 space-y-1.5 select-text">
-          {logs.map((l, idx) => {
-            let colorCls = 'text-slate-400'
-            if (l.tipo === 'OK') colorCls = 'text-emerald-400'
-            if (l.tipo === 'ERROR') colorCls = 'text-rose-400'
-            if (l.tipo === 'AUDIT') colorCls = 'text-sky-400 font-bold'
-
-            return (
-              <div key={idx} className="flex gap-3">
-                <span className="text-slate-600 shrink-0">{l.hora}</span>
-                <span className={colorCls}>{l.texto}</span>
+      {/* ===================================================================== */}
+      {/* PESTAÑA 2: AUTORIZAR CELULARES Y PERSONAS CON TAG NFC                 */}
+      {/* ===================================================================== */}
+      {pestanaActiva === 'gafetes-nfc' && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+            {/* Formulario para emitir un Tag NFC que autoriza celulares / personas */}
+            <form
+              onSubmit={handleEmitirGafeteNFC}
+              className="md:col-span-6 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-3.5"
+            >
+              <div>
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                  <SmartphoneNfc size={12} style={{ color: acento }} /> Llave de Proximidad Ed25519
+                </span>
+                <h3 className="text-sm font-black text-slate-800 mt-0.5">
+                  Crear Tag NFC para Autorizar Celulares o Personas
+                </h3>
+                <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                  Genera un enlace firmado con tu clave privada Ed25519 para grabarlo en un llavero o tarjeta NFC.{' '}
+                  <strong>Al apoyar cualquier celular Android o iPhone sobre el Tag NFC</strong>, el telefono abrira SiGIC, desbloqueara el sistema e iniciara sesion automaticamente con la persona autorizada.
+                </p>
               </div>
-            )
-          })}
-          <div ref={consoleEndRef} />
-        </div>
-      </div>
 
-      {/* CONTROLES DE MANTENIMIENTO AVANZADO */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* EXPORTACION DE BACKUP */}
-        <div className="bg-white border border-slate-100 rounded-[32px] p-6 shadow-sm flex flex-col justify-between gap-4">
-          <div className="flex gap-4">
-            <div className="p-3 bg-emerald-50 text-emerald-500 rounded-2xl border border-emerald-100 shrink-0 h-fit">
-              <Download size={20} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                    Persona o Dispositivo a Autorizar
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formNfcPropietario}
+                    onChange={(e) => setFormNfcPropietario(e.target.value)}
+                    placeholder="Ej: Cancelo Julian / Operador"
+                    className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-800 outline-none focus:bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                    Correo de la Cuenta
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={formNfcCorreo}
+                    onChange={(e) => setFormNfcCorreo(e.target.value)}
+                    placeholder="juliancancelo@gmail.com"
+                    className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-800 outline-none focus:bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                    Rol que Otorga el Tag NFC
+                  </label>
+                  <select
+                    value={formNfcRol}
+                    onChange={(e) => setFormNfcRol(e.target.value)}
+                    className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-800 outline-none focus:bg-white"
+                  >
+                    <option value="SUPER_ADMIN">Super Admin (Control Total)</option>
+                    <option value="ADMINISTRATIVO">Administrativo (Gestion Ceremonia)</option>
+                    <option value="PORTERIA">Porteria (Solo Escaner Acreditacion)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">
+                    Validez del Tag (Dias)
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={1825}
+                    value={formNfcDias}
+                    onChange={(e) => setFormNfcDias(e.target.value)}
+                    className="w-full rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-800 outline-none focus:bg-white"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-2">
+                <button
+                  type="submit"
+                  disabled={ejecutandoAccion !== null}
+                  className="flex-1 py-2.5 px-4 rounded-xl text-white text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                  style={{ backgroundColor: acento }}
+                >
+                  <SmartphoneNfc size={14} />
+                  <span>
+                    {esperandoTagFisico
+                      ? 'Acerca tu tarjeta NFC ahora...'
+                      : soportaWebNfcDirecto
+                        ? 'Generar y Grabar en Tag NFC Ahora'
+                        : 'Generar Llave NFC y Copiar'}
+                  </span>
+                </button>
+              </div>
+              {esperandoTagFisico && (
+                <div className="rounded-xl bg-sky-50 border border-sky-200 px-3 py-2 text-[11px] font-bold text-sky-800 flex items-center justify-between">
+                  <span>Esperando tarjeta o llavero NFC: apoyalo detras del dispositivo para grabarlo...</span>
+                </div>
+              )}
+            </form>
+
+            {/* Panel Derecho: Gafete Recien Emitido o Maestro */}
+            <div className="md:col-span-6 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs flex flex-col justify-between gap-4">
+              {ultimoGafeteEmitido ? (
+                <>
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                        Tag Listo: {ultimoGafeteEmitido.uid_llave}
+                      </span>
+                      <span className="text-[10px] font-bold text-slate-400">
+                        Rol: {ultimoGafeteEmitido.rol}
+                      </span>
+                    </div>
+                    <h4 className="text-sm font-black text-slate-800 mt-2">
+                      Gafete NFC de {ultimoGafeteEmitido.propietario}
+                    </h4>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Graba este enlace en tu chip NFC (como registro URL) o escanea el QR con el celular que quieras dejar autorizado ahora mismo:
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-center gap-4 bg-slate-50 rounded-2xl p-3.5 border border-slate-200/70">
+                    <div className="bg-white p-2.5 rounded-xl border border-slate-200 shrink-0">
+                      <QRCodeSVG value={ultimoGafeteEmitido.url_nfc} size={112} level="L" />
+                    </div>
+                    <div className="space-y-2 flex-1 min-w-0 w-full">
+                      <input
+                        type="text"
+                        readOnly
+                        value={ultimoGafeteEmitido.url_nfc}
+                        className="w-full rounded-lg bg-white border border-slate-200 px-2.5 py-1.5 font-mono text-[10px] text-slate-600"
+                      />
+                      <div className="flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleGrabarUrlEnChipNFC(ultimoGafeteEmitido.url_nfc)}
+                          className="flex-1 py-2 px-3 rounded-xl text-white text-[11px] font-bold flex items-center justify-center gap-1.5 cursor-pointer"
+                          style={{ backgroundColor: acento }}
+                        >
+                          <SmartphoneNfc size={13} /> Grabar en Tag NFC
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard?.writeText(ultimoGafeteEmitido.url_nfc)
+                            setMensajeSeguridad({
+                              tipo: 'ok',
+                              texto: 'Enlace NFC copiado. Pegalo como registro URL en NFC Tools para grabar tu tarjeta.',
+                            })
+                          }}
+                          className="py-2 px-3 rounded-xl bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-[11px] font-bold flex items-center gap-1 cursor-pointer"
+                        >
+                          <Copy size={12} /> Copiar URL
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-center p-4 space-y-2">
+                  <div
+                    className="h-11 w-11 rounded-2xl flex items-center justify-center"
+                    style={{ backgroundColor: tema.colorAcentoLight, color: acento }}
+                  >
+                    <UserCheck size={20} />
+                  </div>
+                  <h4 className="text-xs font-black text-slate-800">
+                    ¿Como funciona la autorizacion con NFC en iPhone y Android?
+                  </h4>
+                  <p className="text-[11px] text-slate-500 max-w-sm leading-relaxed">
+                    1. Completa los datos a la izquierda y presiona <strong>Generar Llave NFC</strong>.<br />
+                    2. Graba el enlace generado como <strong>URL</strong> en tu llavero o tarjeta NFC.<br />
+                    3. Cuando cualquier celular autorizado apoye la tarjeta NFC, el telefono abre SiGIC y entra directo sin pedir claves. Si alguien pierde la tarjeta, la revocas abajo con 1 clic.
+                  </p>
+                </div>
+              )}
             </div>
-            <div>
-              <h3 className="text-xs font-black uppercase tracking-wider text-slate-700">Respaldar Base de Datos</h3>
-              <p className="text-[11px] font-bold text-slate-400 mt-1 leading-relaxed">
-                Descarga un volcado completo de la base de datos PostgreSQL en formato JSON. Incluye egresados, invitados, ceremonias y parametros del sistema.
+          </div>
+
+          {/* Lista de Gafetes / Tags NFC Emitidos con boton de Revocar */}
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-black text-slate-800">
+                Tags NFC y Personas Autorizadas ({integridadDatos?.gafetesNfc?.length || 0})
+              </h4>
+              <span className="text-[10px] text-slate-400">
+                Puedes desactivar cualquier Tag NFC en tiempo real
+              </span>
+            </div>
+
+            {!integridadDatos?.gafetesNfc || integridadDatos.gafetesNfc.length === 0 ? (
+              <p className="text-xs text-slate-400 py-3 text-center">
+                Aun no has emitido gafetes NFC personalizados. Usa el formulario superior para crear el primero.
+              </p>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {integridadDatos.gafetesNfc.map((g) => (
+                  <div key={g.uid_llave} className="py-3 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-slate-800">{g.propietario}</span>
+                        <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">
+                          {g.uid_llave}
+                        </span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-sky-50 text-sky-700">
+                          {g.rol}
+                        </span>
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded ${
+                            g.activo ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
+                          }`}
+                        >
+                          {g.activo ? 'Autorizado' : 'Revocado'}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        {g.correo} · Usos en celulares: <strong>{g.dispositivos_vinculados || 0}</strong>
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setUltimoGafeteEmitido(g)}
+                        className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-bold cursor-pointer"
+                      >
+                        Ver QR / URL
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleGafeteNFC(g.uid_llave, !g.activo)}
+                        className={`px-3 py-1.5 rounded-lg text-[11px] font-bold cursor-pointer ${
+                          g.activo
+                            ? 'bg-rose-50 hover:bg-rose-100 text-rose-700'
+                            : 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700'
+                        }`}
+                      >
+                        {g.activo ? 'Revocar Tag' : 'Reactivar'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ===================================================================== */}
+      {/* PESTAÑA 3: CERTIFICADO ED25519, CADENA SHA-256 Y ALERTAS              */}
+      {/* ===================================================================== */}
+      {pestanaActiva === 'certificado' && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                  <KeyRound size={14} style={{ color: acento }} /> Certificado Ed25519 Activo
+                </span>
+                <span className="font-mono text-[11px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded-md">
+                  {estadoLicencia?.licencia?.serial_id || 'SIGIC-ITB-2026-OFICIAL-001'}
+                </span>
+              </div>
+              <p className="text-xs text-slate-600">
+                Institucion licenciada:{' '}
+                <strong className="text-slate-800">
+                  {estadoLicencia?.licencia?.institucion || 'Instituto Tecnologico Beltran'}
+                </strong>
+              </p>
+              <p className="text-[11px] text-slate-500">
+                Dominios autorizados:{' '}
+                <code className="font-mono text-slate-700">
+                  {(estadoLicencia?.licencia?.dominios_autorizados || ['localhost', 'app.sigic.com.ar', '*.vercel.app']).join(', ')}
+                </code>
+              </p>
+              <p className="text-[11px] text-slate-500">
+                Host actual: <code className="font-mono font-bold text-emerald-700">{estadoLicencia?.dominioDetectado || 'localhost'}</code>
+              </p>
+            </div>
+
+            <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-black text-slate-800 flex items-center gap-1.5">
+                  <FileCheck2 size={14} className="text-emerald-600" /> Auditoria Inmutable SHA-256
+                </span>
+                <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  {integridadDatos?.cadenaAuditoria?.integra !== false ? 'CADENA INTEGRA' : 'ALTERADA'}
+                </span>
+              </div>
+              <p className="text-xs text-slate-600">
+                {integridadDatos?.cadenaAuditoria?.mensaje || 'Cadena criptografica de auditoria verificada sin alteraciones.'}
+              </p>
+              <p className="text-[11px] text-slate-500">
+                Registros encadenados: <strong className="text-slate-800">{integridadDatos?.cadenaAuditoria?.totalAnalizados ?? 0}</strong> ·
+                Alertas registradas: <strong className="text-slate-800">{integridadDatos?.alertasForenses?.length ?? 0}</strong>
               </p>
             </div>
           </div>
-          <div className="flex justify-end">
-            <button
-              onClick={handleExportarDB}
-              disabled={ejecutandoAccion !== null}
-              className="flex items-center gap-1.5 px-5 py-3 bg-emerald-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-wider hover:bg-emerald-700 transition active:scale-95 shadow-md shadow-emerald-600/10 cursor-pointer"
-            >
-              {ejecutandoAccion === 'exportar' ? <RefreshCw size={12} className="animate-spin" /> : <Download size={12} />}{' '}
-              Exportar Base de Datos
-            </button>
-          </div>
-        </div>
 
-        {/* REINICIAR SISTEMA */}
-        <div className="bg-white border border-slate-100 rounded-[32px] p-6 shadow-sm flex flex-col justify-between gap-4">
-          <div className="flex gap-4">
-            <div className="p-3 bg-rose-50 text-rose-500 rounded-2xl border border-rose-100 shrink-0 h-fit">
-              <AlertTriangle size={20} />
-            </div>
-            <div>
-              <h3 className="text-xs font-black uppercase tracking-wider text-slate-750">Formatear Sistema (Reset)</h3>
-              <p className="text-[11px] font-bold text-slate-400 mt-1 leading-relaxed">
-                Elimina todos los datos de las ceremonias en PostgreSQL y apaga el flag de configuracion inicial para reiniciar el asistente web de setup.
-              </p>
-            </div>
-          </div>
-          <div className="flex justify-end">
-            <button
-              onClick={handleResetearSistema}
-              disabled={ejecutandoAccion !== null}
-              className={`flex items-center gap-1.5 px-5 py-3 bg-rose-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-wider hover:bg-rose-700 transition active:scale-95 shadow-md shadow-rose-600/10 cursor-pointer ${
-                ejecutandoAccion === 'reset' ? 'animate-alert-vibe bg-red-700 shadow-xl shadow-red-700/50' : ''
-              }`}
-            >
-              {ejecutandoAccion === 'reset' ? <RefreshCw size={12} className="animate-spin" /> : <Trash2 size={12} />}{' '}
-              Formatear & Resetear
-            </button>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <form onSubmit={handleActivarSerial} className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-3">
+              <label className="block text-xs font-black text-slate-800">
+                Actualizar Certificado Serial (SIGIC-LIC-v1)
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={nuevoSerialInput}
+                  onChange={(e) => setNuevoSerialInput(e.target.value)}
+                  placeholder="SIGIC-LIC-v1.eyJzZXJpYWxfaWQiOi..."
+                  className="flex-1 rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 font-mono text-xs text-slate-800 outline-none focus:bg-white"
+                />
+                <button
+                  type="submit"
+                  disabled={ejecutandoAccion !== null}
+                  className="px-4 py-2 rounded-xl text-white text-xs font-bold shrink-0 cursor-pointer"
+                  style={{ backgroundColor: acento }}
+                >
+                  Aplicar
+                </button>
+              </div>
+            </form>
+
+            <form onSubmit={handleGuardarAlertas} className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-3">
+              <label className="block text-xs font-black text-slate-800 flex items-center gap-1.5">
+                <BellRing size={13} style={{ color: acento }} /> Correo de Alertas del Autor
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="email"
+                  value={correoAlertas}
+                  onChange={(e) => setCorreoAlertas(e.target.value)}
+                  placeholder="jcancelo.dev@gmail.com"
+                  className="flex-1 rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-xs text-slate-800 outline-none focus:bg-white"
+                />
+                <button
+                  type="submit"
+                  disabled={ejecutandoAccion !== null}
+                  className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shrink-0 cursor-pointer"
+                >
+                  Guardar
+                </button>
+              </div>
+            </form>
           </div>
         </div>
-      </div>
+      )}
+
+      {/* ===================================================================== */}
+      {/* PESTAÑA 4: INFRAESTRUCTURA, BASE DE DATOS Y RESPALDO                  */}
+      {/* ===================================================================== */}
+      {pestanaActiva === 'infraestructura' && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs">
+              <div className="flex items-center justify-between mb-2">
+                <Server size={16} style={{ color: acento }} />
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
+                  Online ({apiLatency > 0 ? `${apiLatency}ms` : '...'})
+                </span>
+              </div>
+              <p className="text-xs font-black text-slate-800 truncate">{hostBase.replace(/^https?:\/\//, '')}</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">{VERSION_LABEL}</p>
+            </div>
+
+            <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs">
+              <div className="flex items-center justify-between mb-2">
+                <Database size={16} style={{ color: acento }} />
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">
+                  {dbStatus === 'conectado' ? 'Conectado' : 'Error'}
+                </span>
+              </div>
+              <p className="text-xs font-black text-slate-800">PostgreSQL</p>
+              <div className="flex items-center justify-between mt-0.5">
+                <p className="text-[10px] text-slate-500">
+                  Graduados: {metricas.egresados} · Invitados: {metricas.invitados}
+                </p>
+                <a
+                  href="/esquema/index.html"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[10px] font-bold hover:underline inline-flex items-center gap-1"
+                  style={{ color: acento }}
+                >
+                  DER <ExternalLink size={10} />
+                </a>
+              </div>
+            </div>
+
+            <div className="bg-white border border-slate-200/80 rounded-2xl p-4 shadow-xs">
+              <div className="flex items-center justify-between mb-2">
+                <Mail size={16} style={{ color: acento }} />
+                <span className="text-[10px] font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md">SMTP Listo</span>
+              </div>
+              <p className="text-xs font-black text-slate-800">Despacho de Correos</p>
+              <p className="text-[10px] text-slate-500 mt-0.5">Invitaciones OTP y alertas</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs flex items-center justify-between gap-4">
+              <div>
+                <h3 className="text-xs font-black text-slate-800">Respaldar Base de Datos (JSON)</h3>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  Descarga una copia completa de graduados, invitados y ceremonias.
+                </p>
+              </div>
+              <button
+                onClick={handleExportarDB}
+                disabled={ejecutandoAccion !== null}
+                className="flex items-center gap-1.5 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shrink-0 cursor-pointer"
+              >
+                <Download size={14} /> Exportar
+              </button>
+            </div>
+
+            <div className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-xs flex items-center justify-between gap-4">
+              <div>
+                <h3 className="text-xs font-black text-slate-800">Reiniciar Sistema (Reset)</h3>
+                <p className="text-[11px] text-slate-500 mt-0.5">
+                  Limpia las tablas operativas y reinicia el asistente de configuracion.
+                </p>
+              </div>
+              <button
+                onClick={handleResetearSistema}
+                disabled={ejecutandoAccion !== null}
+                className="flex items-center gap-1.5 px-4 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition shrink-0 cursor-pointer"
+              >
+                <Trash2 size={14} /> Formatear
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {dialogoConfirmacion}
-      <style>{`
-        @keyframes alert-vibe {
-          0%, 100% { transform: scale(1) translate(0, 0) rotate(0deg); }
-          20% { transform: scale(1.02) translate(-2px, 1px) rotate(-0.5deg); }
-          40% { transform: scale(0.98) translate(1.5px, -2px) rotate(0.5deg); }
-          60% { transform: scale(1.01) translate(-1px, 2px) rotate(-0.2deg); }
-          80% { transform: scale(0.99) translate(2px, -1px) rotate(0.2deg); }
-        }
-        .animate-alert-vibe {
-          animation: alert-vibe 0.15s infinite linear;
-        }
-      `}</style>
     </div>
   )
 }

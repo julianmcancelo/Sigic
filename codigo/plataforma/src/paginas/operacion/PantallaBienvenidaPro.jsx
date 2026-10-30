@@ -452,7 +452,7 @@ export function PantallaBienvenidaPro({
           {!esSoporte && renderMenuItem(Award, 'Docentes', 'gestion-profesores')}
           {!esSoporte && renderMenuItem(BarChart3, 'Reportes', 'panel-reportes')}
           {renderMenuItem(Shield, 'Seguridad', 'gestion-porteria')}
-          {esSoporte && renderMenuItem(Server, 'Centro de Control', 'centro-control')}
+          {renderMenuItem(Server, 'Ciberseguridad & Control', 'centro-control')}
           {!esSoporte && renderMenuItem(Settings, 'Configuración', 'ajustes')}
           {renderMenuItem(HelpCircle, 'Manual de Ayuda', 'manual-usuario')}
         </nav>

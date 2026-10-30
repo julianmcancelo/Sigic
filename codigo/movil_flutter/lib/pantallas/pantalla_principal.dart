@@ -14,6 +14,7 @@ import 'pestanas/pestana_asistencia.dart';
 import 'pestanas/pestana_administracion.dart';
 import 'pestanas/pestana_ajustes.dart';
 import 'pestanas/pestana_escaner.dart';
+import 'pestanas/pestana_seguridad_nfc.dart';
 
 class PantallaPrincipal extends StatefulWidget {
   const PantallaPrincipal({super.key});
@@ -33,6 +34,7 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
   int _revisionSesion = 0;
   bool _inicializandoSistema = true;
   bool _tieneSesion = false;
+  bool _esAutoridadSeguridad = false;
   bool _buscandoActualizaciones = false;
   String _estadoInicio = 'Verificando actualizaciones seguras...';
   Timer? _timerHeartbeat;
@@ -62,9 +64,22 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
 
   Future<void> _verificarSesion() async {
     final token = await _servicioApi.obtenerTokenGuardado();
+    final usr = await _servicioApi.obtenerUsuarioLocal();
+    final mail = (usr?.email ?? '').toLowerCase().trim();
+    final rol = (usr?.rol ?? '').toUpperCase().trim();
+    final esAutoridad =
+        mail == 'juliancancelo@gmail.com' ||
+        mail == 'jcancelo.dev@gmail.com' ||
+        mail == 'julianmcancelo@gmail.com' ||
+        rol == 'SUPER_ADMIN' ||
+        rol == 'ADMIN' ||
+        rol == 'SOPORTE' ||
+        rol == 'ADMINISTRATIVO';
+
     if (mounted) {
       setState(() {
         _tieneSesion = token != null && token.isNotEmpty;
+        _esAutoridadSeguridad = _tieneSesion && esAutoridad;
       });
     }
   }
@@ -79,7 +94,7 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
             SizedBox(width: 10),
             Expanded(
               child: Text(
-                'Acceso restringido: Debes identificarte en Portería para acceder a Asistencia, Administración o Ajustes.',
+                'Acceso restringido: Debes identificarte en Porteria para acceder a Asistencia, Administracion, Seguridad NFC o Ajustes.',
                 style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
               ),
             ),
@@ -137,7 +152,8 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
         _buscandoActualizaciones = false;
         _mensajeShorebird = mensaje;
         _releasePendiente = release;
-        _estadoInicio = mensaje ??
+        _estadoInicio =
+            mensaje ??
             (release != null
                 ? 'Nueva version ${release.version} disponible.'
                 : 'Sistema al dia. No hay actualizaciones pendientes.');
@@ -158,7 +174,6 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
     final inicio = DateTime.now();
     final mensaje = await _servicioShorebird.buscarYDescargarActualizacion();
     final transcurrido = DateTime.now().difference(inicio);
-    // Evita un parpadeo de la pantalla de inicio sin demorar el trabajo en puerta.
     final espera = const Duration(milliseconds: 1200) - transcurrido;
     if (espera > Duration.zero) {
       await Future<void>.delayed(espera);
@@ -268,6 +283,16 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
         servicioApi: _servicioApi,
         revisionSesion: _revisionSesion,
       ),
+      PestanaSeguridadNfc(
+        servicioApi: _servicioApi,
+        revisionSesion: _revisionSesion,
+        alCambiarSesion: () {
+          _verificarSesion();
+          setState(() {
+            _revisionSesion++;
+          });
+        },
+      ),
       PestanaAjustes(
         servicioApi: _servicioApi,
         servicioShorebird: _servicioShorebird,
@@ -297,7 +322,8 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
             labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
             selectedIndex: _indiceActual,
             onDestinationSelected: (indice) {
-              if (indice != 0 && !_tieneSesion) {
+              // Permitimos acceder a Seguridad NFC incluso para desbloquear con Tag NFC o PIN Maestro
+              if (indice != 0 && indice != 3 && !_tieneSesion) {
                 _mostrarAvisoAccesoRequerido();
                 return;
               }
@@ -312,27 +338,56 @@ class _PantallaPrincipalState extends State<PantallaPrincipal> {
                 label: 'Escanear',
               ),
               NavigationDestination(
-                icon: Icon(_tieneSesion ? Icons.groups_2_outlined : Icons.lock_outline_rounded),
-                selectedIcon: Icon(_tieneSesion ? Icons.groups_2 : Icons.lock_rounded),
+                icon: Icon(
+                  _tieneSesion
+                      ? Icons.groups_2_outlined
+                      : Icons.lock_outline_rounded,
+                ),
+                selectedIcon: Icon(
+                  _tieneSesion ? Icons.groups_2 : Icons.lock_rounded,
+                ),
                 label: _tieneSesion ? 'Asistencia' : 'Protegido',
               ),
               NavigationDestination(
-                icon: Icon(_tieneSesion ? Icons.admin_panel_settings_outlined : Icons.lock_outline_rounded),
-                selectedIcon: Icon(_tieneSesion ? Icons.admin_panel_settings : Icons.lock_rounded),
-                label: _tieneSesion ? 'Administración' : 'Protegido',
+                icon: Icon(
+                  _tieneSesion
+                      ? Icons.admin_panel_settings_outlined
+                      : Icons.lock_outline_rounded,
+                ),
+                selectedIcon: Icon(
+                  _tieneSesion
+                      ? Icons.admin_panel_settings
+                      : Icons.lock_rounded,
+                ),
+                label: _tieneSesion ? 'Admin' : 'Protegido',
+              ),
+              NavigationDestination(
+                icon: Icon(
+                  _esAutoridadSeguridad
+                      ? Icons.nfc_rounded
+                      : Icons.shield_outlined,
+                ),
+                selectedIcon: const Icon(Icons.nfc_rounded),
+                label: 'NFC & Llave',
               ),
               NavigationDestination(
                 icon: Badge(
                   isLabelVisible: _releasePendiente != null,
                   backgroundColor: const Color(0xFFEF4444),
                   smallSize: 8,
-                  child: Icon(_tieneSesion ? Icons.settings_outlined : Icons.lock_outline_rounded),
+                  child: Icon(
+                    _tieneSesion
+                        ? Icons.settings_outlined
+                        : Icons.lock_outline_rounded,
+                  ),
                 ),
                 selectedIcon: Badge(
                   isLabelVisible: _releasePendiente != null,
                   backgroundColor: const Color(0xFFEF4444),
                   smallSize: 8,
-                  child: Icon(_tieneSesion ? Icons.settings : Icons.lock_rounded),
+                  child: Icon(
+                    _tieneSesion ? Icons.settings : Icons.lock_rounded,
+                  ),
                 ),
                 label: _tieneSesion ? 'Ajustes' : 'Acceso',
               ),
