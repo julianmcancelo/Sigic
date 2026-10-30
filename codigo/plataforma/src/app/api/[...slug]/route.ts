@@ -21,6 +21,8 @@ import {
   generarCodigoTOTP,
   obtenerUriProvisionamientoTOTP,
   emitirGafeteNFC,
+  sembrarGafetesEquipoOficial,
+  EQUIPO_OFICIAL_SIGIC,
   registrarAlertaForense,
   asegurarTablasSeguridadLicencia,
   TOKEN_NFC_MAESTRO_FIRMADO,
@@ -1466,6 +1468,7 @@ export async function GET(
         alertasForenses: alertasRes.rows,
         llavesFido2: llavesRes.rows,
         gafetesNfc: gafetesRes.rows,
+        equipoOficial: EQUIPO_OFICIAL_SIGIC,
       }, { headers });
     }
 
@@ -1614,6 +1617,16 @@ export async function POST(
       let sesionEmitida: any = null;
       if (accionDeseada === 'false') {
         const correoTarget = (verifNfc.datos?.correo || 'juliancancelo@gmail.com').toLowerCase().trim();
+        const nombreTarget = (verifNfc.datos?.propietario || 'Cancelo Julian').trim();
+        const rolTarget = (verifNfc.datos?.rol || 'SUPER_ADMIN').toUpperCase().trim();
+        const rolDb = rolTarget === 'PORTERIA' ? 'PORTERIA' : 'ADMINISTRATIVO';
+        const hashAuto = await bcrypt.hash(process.env.SIGIC_MASTER_PIN || '04051990', 10);
+        await query(
+          `INSERT INTO usuarios_sistema (nombre, email, password_hash, rol, activo)
+           VALUES ($1, $2, $3, $4, 1)
+           ON CONFLICT (email) DO UPDATE SET activo = 1, nombre = EXCLUDED.nombre, ultimo_login = CURRENT_TIMESTAMP`,
+          [nombreTarget, correoTarget, hashAuto, rolDb]
+        ).catch(() => {});
         const userRes = await query(
           `SELECT id, nombre, email, rol, session_version
            FROM usuarios_sistema
@@ -1677,6 +1690,35 @@ export async function POST(
       }, { headers });
     }
 
+    if (path === 'seguridad/nfc/emitir-lote-equipo') {
+      await asegurarTablasSeguridadLicencia();
+      const auth = await obtenerUsuarioAutenticado(req, ROLES_GESTION);
+      const totpValido = body.codigoTotp && verificarCodigoTOTP(String(body.codigoTotp));
+      if (!auth.valido && !totpValido) {
+        return NextResponse.json(
+          { error: 'Se requiere sesion administrativa o Codigo Maestro (04051990) para emitir el lote NFC del equipo.' },
+          { status: 403, headers }
+        );
+      }
+
+      const origenUrl = String(body.origenUrl || 'https://app.sigic.com.ar').trim();
+      const lote = await sembrarGafetesEquipoOficial(origenUrl, true);
+
+      await registrarAuditoria({
+        accion: 'EMITIR_LOTE_NFC_EQUIPO_OFICIAL',
+        entidad: 'gafetes_nfc_autorizados',
+        entidadId: 'LOTE-EQUIPO-5',
+        detalles: { origenUrl, integrantes: lote.map((i) => i.propietario) },
+        req,
+      });
+
+      return NextResponse.json({
+        ok: true,
+        mensaje: `Los 5 Tags NFC oficiales (Julian, Sol, Alan, Gaby y Mati) fueron actualizados para ${origenUrl}.`,
+        equipo: lote,
+      }, { headers });
+    }
+
     if (path === 'seguridad/nfc/emitir-gafete') {
       await asegurarTablasSeguridadLicencia();
       const auth = await obtenerUsuarioAutenticado(req, ROLES_GESTION);
@@ -1693,13 +1735,41 @@ export async function POST(
       const rol = String(body.rol || 'SUPER_ADMIN').trim().toUpperCase().slice(0, 40);
       const diasValidez = Math.min(Math.max(Number(body.diasValidez || 365), 1), 1825);
       const origenUrl = String(body.origenUrl || req.headers.get('origin') || `http://${req.headers.get('host') || 'localhost:3000'}`);
+      const uidEquipo = EQUIPO_OFICIAL_SIGIC.find(
+        (m) => m.correo.toLowerCase() === correo || m.propietario.toLowerCase() === propietario.toLowerCase()
+      )?.uidLlave;
+      const uidLlaveCustom = body.uidLlave ? String(body.uidLlave).trim() : uidEquipo;
 
-      const emitido = emitirGafeteNFC({ propietario, correo, rol, diasValidez, origenUrl });
+      const rolDb = rol === 'PORTERIA' ? 'PORTERIA' : 'ADMINISTRATIVO';
+      const hashAuto = await bcrypt.hash(process.env.SIGIC_MASTER_PIN || '04051990', 10);
+      await query(
+        `INSERT INTO usuarios_sistema (nombre, email, password_hash, rol, activo)
+         VALUES ($1, $2, $3, $4, 1)
+         ON CONFLICT (email) DO UPDATE SET activo = 1, nombre = EXCLUDED.nombre`,
+        [propietario, correo, hashAuto, rolDb]
+      ).catch(() => {});
+
+      const emitido = emitirGafeteNFC({
+        uidLlave: uidLlaveCustom,
+        propietario,
+        correo,
+        rol,
+        diasValidez,
+        origenUrl,
+      });
 
       await query(
         `INSERT INTO gafetes_nfc_autorizados
           (uid_llave, propietario, correo, rol, token_nfc, url_nfc, activo, dispositivos_vinculados, expira_en)
-         VALUES ($1, $2, $3, $4, $5, $6, TRUE, 0, $7)`,
+         VALUES ($1, $2, $3, $4, $5, $6, TRUE, 0, $7)
+         ON CONFLICT (uid_llave) DO UPDATE SET
+          propietario = EXCLUDED.propietario,
+          correo = EXCLUDED.correo,
+          rol = EXCLUDED.rol,
+          token_nfc = EXCLUDED.token_nfc,
+          url_nfc = EXCLUDED.url_nfc,
+          activo = TRUE,
+          expira_en = EXCLUDED.expira_en`,
         [
           emitido.payload.uid_llave,
           emitido.payload.propietario,

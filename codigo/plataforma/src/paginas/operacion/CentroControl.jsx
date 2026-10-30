@@ -34,6 +34,7 @@ import {
   configurarAlertasSeguridad,
   emitirGafeteNfcAutorizacion,
   revocarGafeteNfcAutorizacion,
+  emitirLoteNfcEquipoOficial,
 } from '../../servicios/api'
 import { useConfirmacion } from '../../componentes/ModalConfirmacion'
 import { obtenerTemaActual } from '../../datos/fondos-pantalla'
@@ -65,7 +66,51 @@ export function CentroControl({ usuario, onVolver }) {
   const [formNfcCorreo, setFormNfcCorreo] = useState('juliancancelo@gmail.com')
   const [formNfcRol, setFormNfcRol] = useState('SUPER_ADMIN')
   const [formNfcDias, setFormNfcDias] = useState(365)
+  const [modoUrlNfc, setModoUrlNfc] = useState('produccion') // 'produccion' | 'local'
   const [ultimoGafeteEmitido, setUltimoGafeteEmitido] = useState(null)
+
+  const EQUIPO_SIGIC_PRESETS = [
+    {
+      apodo: 'Julian',
+      uidLlave: 'NFC-EQUIPO-JULIAN',
+      propietario: 'Cancelo Julian',
+      correo: 'juliancancelo@gmail.com',
+      rol: 'SUPER_ADMIN',
+      area: 'Analista de Sistemas & Desarrollador Fullstack',
+    },
+    {
+      apodo: 'Sol',
+      uidLlave: 'NFC-EQUIPO-SOL',
+      propietario: 'Contreras Villalba Sol Heilin',
+      correo: 'sol.contreras@sigic.com.ar',
+      rol: 'SUPER_ADMIN',
+      area: 'Diseño UX/UI & Documentación',
+    },
+    {
+      apodo: 'Alan',
+      uidLlave: 'NFC-EQUIPO-ALAN',
+      propietario: 'Alfonso Alan Alexis',
+      correo: 'alan.alfonso@sigic.com.ar',
+      rol: 'SUPER_ADMIN',
+      area: 'Desarrollo & Lógica de Negocio',
+    },
+    {
+      apodo: 'Gaby',
+      uidLlave: 'NFC-EQUIPO-GABY',
+      propietario: 'Santillan Luis Gabriel',
+      correo: 'gabriel.santillan@sigic.com.ar',
+      rol: 'SUPER_ADMIN',
+      area: 'Control de Calidad & Despliegue',
+    },
+    {
+      apodo: 'Mati',
+      uidLlave: 'NFC-EQUIPO-MATI',
+      propietario: 'Frassia Matias',
+      correo: 'matias.frassia@sigic.com.ar',
+      rol: 'SUPER_ADMIN',
+      area: 'Infraestructura & Base de Datos',
+    },
+  ]
 
   const [temaId, setTemaId] = useState(() =>
     typeof window !== 'undefined' ? localStorage.getItem('sigic_fondo') || 'beltran' : 'beltran'
@@ -82,7 +127,9 @@ export function CentroControl({ usuario, onVolver }) {
 
   const tema = obtenerTemaActual(temaId)
   const acento = tema.colorPrincipal || '#0ea5e9'
-  const hostBase = typeof window !== 'undefined' ? window.location.origin : 'http://192.168.0.60:3000'
+  const hostBase = typeof window !== 'undefined' ? window.location.origin : 'http://192.168.0.18:3000'
+  const urlBaseNfcSeleccionada =
+    modoUrlNfc === 'produccion' ? 'https://app.sigic.com.ar' : hostBase
 
   useEffect(() => {
     cargarDiagnostico()
@@ -186,22 +233,40 @@ export function CentroControl({ usuario, onVolver }) {
         correo: formNfcCorreo,
         rol: formNfcRol,
         diasValidez: Number(formNfcDias || 365),
-        origenUrl: hostBase,
+        origenUrl: urlBaseNfcSeleccionada,
       })
       setUltimoGafeteEmitido(res.gafete)
       await cargarPanelCiberseguridad()
 
-      // Si el navegador tiene lector/grabador NFC activo (ej. Chrome en Android o lector NFC compatible),
-      // inicia la grabacion fisica inmediatamente en el mismo paso:
       if (grabarEnUnPaso && typeof window !== 'undefined' && 'NDEFReader' in window) {
         await handleGrabarUrlEnChipNFC(res.gafete.url_nfc, res.gafete.propietario)
       } else {
         navigator.clipboard?.writeText(res.gafete.url_nfc)
         setMensajeSeguridad({
           tipo: 'ok',
-          texto: `Llave NFC de ${res.gafete.propietario} generada y copiada. Si estas en PC sin antena NFC fisica, escanea el QR de la derecha con tu celular Android para apoyar y grabar el Tag NFC desde ahi mismo.`,
+          texto: `Llave NFC de ${res.gafete.propietario} generada para ${urlBaseNfcSeleccionada} y copiada al portapapeles.`,
         })
       }
+    } catch (err) {
+      setMensajeSeguridad({ tipo: 'error', texto: err.message })
+    } finally {
+      setEjecutandoAccion(null)
+    }
+  }
+
+  async function handleEmitirLoteEquipo() {
+    setEjecutandoAccion('lote-equipo')
+    setMensajeSeguridad(null)
+    try {
+      const res = await emitirLoteNfcEquipoOficial(urlBaseNfcSeleccionada, codigoTotpInput || '04051990')
+      await cargarPanelCiberseguridad()
+      if (res.equipo && res.equipo.length > 0) {
+        setUltimoGafeteEmitido(res.equipo[0])
+      }
+      setMensajeSeguridad({
+        tipo: 'ok',
+        texto: res.mensaje || 'Los 5 Tags NFC de Julian, Sol, Alan, Gaby y Mati fueron actualizados.',
+      })
     } catch (err) {
       setMensajeSeguridad({ tipo: 'error', texto: err.message })
     } finally {
@@ -579,6 +644,130 @@ export function CentroControl({ usuario, onVolver }) {
       {/* ===================================================================== */}
       {pestanaActiva === 'gafetes-nfc' && (
         <div className="space-y-4">
+          {/* Selector rapido para el Equipo Oficial SiGIC (Julian, Sol, Alan, Gaby, Mati) + Entorno */}
+          <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-3.5">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <span className="inline-flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                  <UserCheck size={12} style={{ color: acento }} /> Equipo Oficial SiGIC · Tecnicatura Superior en Analista de Sistemas
+                </span>
+                <h3 className="text-sm font-black text-slate-800 mt-0.5">
+                  Tags NFC del Equipo (Julian, Sol, Alan, Gaby y Mati)
+                </h3>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200/70">
+                  <button
+                    type="button"
+                    onClick={() => setModoUrlNfc('produccion')}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer ${
+                      modoUrlNfc === 'produccion'
+                        ? 'bg-white text-slate-900 shadow-2xs'
+                        : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    Producción (app.sigic.com.ar)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setModoUrlNfc('local')}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition cursor-pointer ${
+                      modoUrlNfc === 'local'
+                        ? 'bg-white text-slate-900 shadow-2xs'
+                        : 'text-slate-500 hover:text-slate-700'
+                    }`}
+                  >
+                    Red Local ({hostBase.replace(/^https?:\/\//, '')})
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleEmitirLoteEquipo}
+                  disabled={ejecutandoAccion !== null}
+                  className="px-3 py-1.5 rounded-xl text-white text-[11px] font-bold transition cursor-pointer shadow-xs"
+                  style={{ backgroundColor: acento }}
+                >
+                  Sincronizar los 5 Tags
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
+              {EQUIPO_SIGIC_PRESETS.map((miembro) => {
+                const gafeteGuardado = integridadDatos?.gafetesNfc?.find(
+                  (g) => g.uid_llave === miembro.uidLlave || g.correo === miembro.correo
+                )
+                const seleccionado = formNfcCorreo === miembro.correo
+                return (
+                  <div
+                    key={miembro.uidLlave}
+                    className={`rounded-xl border p-3 transition flex flex-col justify-between gap-2 ${
+                      seleccionado
+                        ? 'bg-sky-50/60 border-sky-300'
+                        : 'bg-slate-50/70 border-slate-200/80 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between gap-1">
+                        <span
+                          className="text-xs font-black px-2 py-0.5 rounded-md text-white"
+                          style={{ backgroundColor: acento }}
+                        >
+                          {miembro.apodo}
+                        </span>
+                        <span className="font-mono text-[9.5px] font-bold text-slate-400">
+                          {miembro.uidLlave.replace('NFC-EQUIPO-', '')}
+                        </span>
+                      </div>
+                      <p className="text-xs font-bold text-slate-800 mt-1.5 truncate">
+                        {miembro.propietario}
+                      </p>
+                      <p className="text-[10.5px] text-slate-500 truncate">{miembro.correo}</p>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFormNfcPropietario(miembro.propietario)
+                          setFormNfcCorreo(miembro.correo)
+                          setFormNfcRol(miembro.rol)
+                          setFormNfcDias(1095)
+                          if (gafeteGuardado) {
+                            setUltimoGafeteEmitido(gafeteGuardado)
+                          }
+                        }}
+                        className="flex-1 py-1.5 px-2 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 text-[10.5px] font-bold transition cursor-pointer"
+                      >
+                        Seleccionar
+                      </button>
+                      {gafeteGuardado && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setUltimoGafeteEmitido(gafeteGuardado)
+                            navigator.clipboard?.writeText(gafeteGuardado.url_nfc)
+                            setMensajeSeguridad({
+                              tipo: 'ok',
+                              texto: `Tag NFC de ${miembro.apodo} (${miembro.propietario}) copiado y listo en vista previa.`,
+                            })
+                          }}
+                          className="py-1.5 px-2 rounded-lg text-white text-[10.5px] font-bold transition cursor-pointer"
+                          style={{ backgroundColor: acento }}
+                          title="Copiar enlace NFC y mostrar QR"
+                        >
+                          QR / URL
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
             {/* Formulario para emitir un Tag NFC que autoriza celulares / personas */}
             <form

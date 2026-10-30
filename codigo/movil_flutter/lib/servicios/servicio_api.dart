@@ -328,10 +328,13 @@ class ServicioApi {
     required String correo,
     required String rol,
     int diasValidez = 365,
+    String? origenUrl,
     String? codigoTotp,
   }) async {
     final base = await obtenerApiUrl();
-    final origenWeb = base.replaceAll(RegExp(r'/api$'), '');
+    final origenWeb = (origenUrl != null && origenUrl.trim().isNotEmpty)
+        ? origenUrl.trim()
+        : base.replaceAll(RegExp(r'/api$'), '');
     final res = await _request(
       '/seguridad/nfc/emitir-gafete',
       metodo: 'POST',
@@ -340,6 +343,26 @@ class ServicioApi {
         'correo': correo,
         'rol': rol,
         'diasValidez': diasValidez,
+        'origenUrl': origenWeb,
+        if (codigoTotp != null && codigoTotp.isNotEmpty)
+          'codigoTotp': codigoTotp,
+      },
+    );
+    return (res as Map).cast<String, dynamic>();
+  }
+
+  Future<Map<String, dynamic>> emitirLoteNfcEquipoOficial({
+    String? origenUrl,
+    String? codigoTotp,
+  }) async {
+    final base = await obtenerApiUrl();
+    final origenWeb = (origenUrl != null && origenUrl.trim().isNotEmpty)
+        ? origenUrl.trim()
+        : base.replaceAll(RegExp(r'/api$'), '');
+    final res = await _request(
+      '/seguridad/nfc/emitir-lote-equipo',
+      metodo: 'POST',
+      cuerpo: {
         'origenUrl': origenWeb,
         if (codigoTotp != null && codigoTotp.isNotEmpty)
           'codigoTotp': codigoTotp,

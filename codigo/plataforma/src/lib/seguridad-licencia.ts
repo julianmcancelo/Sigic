@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 import { query } from '@/lib/db';
 import { enviarCorreo } from '@/lib/email';
 
@@ -85,6 +86,7 @@ export function verificarDominioAutorizado(hostname: string, dominiosAutorizados
     const limpio = patron.trim().toLowerCase();
     if (limpio === '*') return true;
     if (limpio === host) return true;
+    if (limpio === 'sigic.com.ar' && host.endsWith('.sigic.com.ar')) return true;
     if (limpio === 'localhost' && /^(192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[0-1])\.\d+\.\d+)$/.test(host)) {
       return true;
     }
@@ -357,18 +359,76 @@ export interface PayloadGafeteNFC {
   expira: string;
 }
 
+export interface IntegranteEquipoOficialNFC {
+  apodo: string;
+  uidLlave: string;
+  propietario: string;
+  correo: string;
+  rol: 'SUPER_ADMIN' | 'ADMINISTRATIVO' | 'PORTERIA';
+  especialidad: string;
+}
+
+/**
+ * EQUIPO OFICIAL DE DESARROLLO SiGIC — Tecnicatura Superior en Analista de Sistemas
+ * Sus 5 Tags NFC se pre-generan y siembran automaticamente con firma Ed25519.
+ */
+export const EQUIPO_OFICIAL_SIGIC: IntegranteEquipoOficialNFC[] = [
+  {
+    apodo: 'Julian',
+    uidLlave: 'NFC-EQUIPO-JULIAN',
+    propietario: 'Cancelo Julian',
+    correo: 'juliancancelo@gmail.com',
+    rol: 'SUPER_ADMIN',
+    especialidad: 'Analista de Sistemas & Desarrollador Fullstack',
+  },
+  {
+    apodo: 'Sol',
+    uidLlave: 'NFC-EQUIPO-SOL',
+    propietario: 'Contreras Villalba Sol Heilin',
+    correo: 'sol.contreras@sigic.com.ar',
+    rol: 'SUPER_ADMIN',
+    especialidad: 'Diseño UX/UI & Documentación',
+  },
+  {
+    apodo: 'Alan',
+    uidLlave: 'NFC-EQUIPO-ALAN',
+    propietario: 'Alfonso Alan Alexis',
+    correo: 'alan.alfonso@sigic.com.ar',
+    rol: 'SUPER_ADMIN',
+    especialidad: 'Desarrollo & Lógica de Negocio',
+  },
+  {
+    apodo: 'Gaby',
+    uidLlave: 'NFC-EQUIPO-GABY',
+    propietario: 'Santillan Luis Gabriel',
+    correo: 'gabriel.santillan@sigic.com.ar',
+    rol: 'SUPER_ADMIN',
+    especialidad: 'Control de Calidad & Despliegue',
+  },
+  {
+    apodo: 'Mati',
+    uidLlave: 'NFC-EQUIPO-MATI',
+    propietario: 'Frassia Matias',
+    correo: 'matias.frassia@sigic.com.ar',
+    rol: 'SUPER_ADMIN',
+    especialidad: 'Infraestructura & Base de Datos',
+  },
+];
+
 /**
  * Emite un certificado Ed25519 compacto para grabar como URL en un Tag NFC fisico (NTAG213/215/216)
  * o tarjeta de proximidad. Al acercar cualquier celular Android o iPhone al Tag NFC,
  * el telefono abre el enlace firmado, autoriza el dispositivo/persona e inicia sesion automaticamente.
  */
 export function emitirGafeteNFC({
+  uidLlave,
   propietario = 'Cancelo Julian',
   correo = 'juliancancelo@gmail.com',
   rol = 'SUPER_ADMIN',
   diasValidez = 365,
-  origenUrl = 'http://localhost:3000',
+  origenUrl = 'https://app.sigic.com.ar',
 }: {
+  uidLlave?: string;
   propietario?: string;
   correo?: string;
   rol?: string;
@@ -377,12 +437,13 @@ export function emitirGafeteNFC({
 }): {
   tokenNfc: string;
   urlNfc: string;
+  urlProduccion: string;
   payload: PayloadGafeteNFC;
 } {
   const ahora = new Date();
   const expira = new Date(ahora.getTime() + Math.max(1, Number(diasValidez || 365)) * 24 * 60 * 60 * 1000);
   const payload: PayloadGafeteNFC = {
-    uid_llave: `NFC-${crypto.randomBytes(3).toString('hex').toUpperCase()}`,
+    uid_llave: uidLlave || `NFC-${crypto.randomBytes(3).toString('hex').toUpperCase()}`,
     propietario: propietario.trim(),
     correo: correo.trim().toLowerCase(),
     rol: rol.trim().toUpperCase(),
@@ -399,8 +460,9 @@ export function emitirGafeteNFC({
   const tokenNfc = `SIGIC-NFC-v1.${payloadB64}.${firmaB64}`;
   const baseLimpia = origenUrl.replace(/\/+$/, '');
   const urlNfc = `${baseLimpia}/?nfc=${encodeURIComponent(tokenNfc)}`;
+  const urlProduccion = `https://app.sigic.com.ar/?nfc=${encodeURIComponent(tokenNfc)}`;
 
-  return { tokenNfc, urlNfc, payload };
+  return { tokenNfc, urlNfc, urlProduccion, payload };
 }
 
 /**
@@ -476,10 +538,101 @@ export async function asegurarTablasSeguridadLicencia(): Promise<void> {
       ON CONFLICT (clave) DO NOTHING
     `, [SERIAL_LICENCIA_INICIAL]);
 
+    // Sembrar cuentas y Gafetes NFC oficiales para los 5 miembros del equipo (Julian, Sol, Alan, Gaby, Mati)
+    await sembrarGafetesEquipoOficial('https://app.sigic.com.ar', false);
+
     tablasSeguridadInicializadas = true;
   } catch (err) {
     console.error('Error al inicializar tablas de seguridad:', err);
   }
+}
+
+/**
+ * Siembra o actualiza los 5 Gafetes NFC oficiales del equipo de desarrollo (Julian, Sol, Alan, Gaby, Mati)
+ * y garantiza que sus cuentas existan activas en usuarios_sistema.
+ */
+export async function sembrarGafetesEquipoOficial(
+  origenUrl: string = 'https://app.sigic.com.ar',
+  forzarActualizacionUrl: boolean = false
+): Promise<Array<Record<string, any>>> {
+  const hashEquipo = await bcrypt.hash(process.env.SIGIC_MASTER_PIN || '04051990', 10);
+  const resultados: Array<Record<string, any>> = [];
+
+  for (const integrante of EQUIPO_OFICIAL_SIGIC) {
+    // 1. Asegurar que la cuenta del integrante exista en usuarios_sistema (rol ADMINISTRATIVO en DB)
+    await query(
+      `INSERT INTO usuarios_sistema (nombre, email, password_hash, rol, activo)
+       VALUES ($1, $2, $3, 'ADMINISTRATIVO', 1)
+       ON CONFLICT (email) DO UPDATE SET activo = 1, nombre = EXCLUDED.nombre`,
+      [integrante.propietario, integrante.correo, hashEquipo]
+    ).catch(() => {});
+
+    // 2. Emitir su certificado Ed25519 oficial con UID deterministico
+    const emitido = emitirGafeteNFC({
+      uidLlave: integrante.uidLlave,
+      propietario: integrante.propietario,
+      correo: integrante.correo,
+      rol: integrante.rol,
+      diasValidez: 1095, // 3 años de validez institucional
+      origenUrl,
+    });
+
+    if (forzarActualizacionUrl) {
+      await query(
+        `INSERT INTO gafetes_nfc_autorizados
+          (uid_llave, propietario, correo, rol, token_nfc, url_nfc, activo, dispositivos_vinculados, expira_en)
+         VALUES ($1, $2, $3, $4, $5, $6, TRUE, 0, $7)
+         ON CONFLICT (uid_llave) DO UPDATE SET
+          propietario = EXCLUDED.propietario,
+          correo = EXCLUDED.correo,
+          rol = EXCLUDED.rol,
+          token_nfc = EXCLUDED.token_nfc,
+          url_nfc = EXCLUDED.url_nfc,
+          activo = TRUE,
+          expira_en = EXCLUDED.expira_en`,
+        [
+          emitido.payload.uid_llave,
+          emitido.payload.propietario,
+          emitido.payload.correo,
+          emitido.payload.rol,
+          emitido.tokenNfc,
+          emitido.urlNfc,
+          emitido.payload.expira,
+        ]
+      ).catch(() => {});
+    } else {
+      await query(
+        `INSERT INTO gafetes_nfc_autorizados
+          (uid_llave, propietario, correo, rol, token_nfc, url_nfc, activo, dispositivos_vinculados, expira_en)
+         VALUES ($1, $2, $3, $4, $5, $6, TRUE, 0, $7)
+         ON CONFLICT (uid_llave) DO NOTHING`,
+        [
+          emitido.payload.uid_llave,
+          emitido.payload.propietario,
+          emitido.payload.correo,
+          emitido.payload.rol,
+          emitido.tokenNfc,
+          emitido.urlNfc,
+          emitido.payload.expira,
+        ]
+      ).catch(() => {});
+    }
+
+    resultados.push({
+      apodo: integrante.apodo,
+      especialidad: integrante.especialidad,
+      uid_llave: emitido.payload.uid_llave,
+      propietario: emitido.payload.propietario,
+      correo: emitido.payload.correo,
+      rol: emitido.payload.rol,
+      token_nfc: emitido.tokenNfc,
+      url_nfc: emitido.urlNfc,
+      url_produccion: emitido.urlProduccion,
+      expira_en: emitido.payload.expira,
+    });
+  }
+
+  return resultados;
 }
 
 /**

@@ -46,6 +46,40 @@ class _PestanaSeguridadNfcState extends State<PestanaSeguridadNfc> {
   bool _nfcSoportado = false;
   bool _nfcActivo = false;
   String _apiUrlActual = '';
+  bool _grabarParaProduccion = true; // true: https://app.sigic.com.ar, false: LAN
+
+  static const List<Map<String, String>> _equipoOficialPresets = [
+    {
+      'apodo': 'Julian',
+      'nombre': 'Cancelo Julian',
+      'correo': 'juliancancelo@gmail.com',
+      'rol': 'SUPER_ADMIN',
+    },
+    {
+      'apodo': 'Sol',
+      'nombre': 'Contreras Villalba Sol Heilin',
+      'correo': 'sol.contreras@sigic.com.ar',
+      'rol': 'SUPER_ADMIN',
+    },
+    {
+      'apodo': 'Alan',
+      'nombre': 'Alfonso Alan Alexis',
+      'correo': 'alan.alfonso@sigic.com.ar',
+      'rol': 'SUPER_ADMIN',
+    },
+    {
+      'apodo': 'Gaby',
+      'nombre': 'Santillan Luis Gabriel',
+      'correo': 'gabriel.santillan@sigic.com.ar',
+      'rol': 'SUPER_ADMIN',
+    },
+    {
+      'apodo': 'Mati',
+      'nombre': 'Frassia Matias',
+      'correo': 'matias.frassia@sigic.com.ar',
+      'rol': 'SUPER_ADMIN',
+    },
+  ];
 
   Map<String, dynamic>? _estadoLicencia;
   List<Map<String, dynamic>> _gafetesEmitidos = const [];
@@ -177,11 +211,15 @@ class _PestanaSeguridadNfcState extends State<PestanaSeguridadNfc> {
     });
 
     try {
+      final urlDestino = _grabarParaProduccion
+          ? 'https://app.sigic.com.ar'
+          : _apiUrlActual.replaceAll(RegExp(r'/api$'), '');
       final res = await widget.servicioApi.emitirGafeteNfcAutorizacion(
         propietario: propietario,
         correo: correo,
         rol: _rolSeleccionado,
         diasValidez: dias,
+        origenUrl: urlDestino,
         codigoTotp: _ctrlPin.text.trim(),
       );
 
@@ -699,10 +737,105 @@ class _PestanaSeguridadNfcState extends State<PestanaSeguridadNfc> {
                           ),
                           const SizedBox(height: 6),
                           const Text(
-                            'Emite un certificado Ed25519 y grabalo directamente apoyando tu tarjeta o llavero NFC detras de este telefono. Al acercar cualquier celular a esa tarjeta, entrara autorizado.',
+                            'Toca un integrante del equipo (Julian, Sol, Alan, Gaby o Mati) para cargar sus datos al instante y grabar su llavero o tarjeta NFC:',
                             style: TextStyle(
                               fontSize: 12,
                               color: Color(0xFF64748B),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
+                            children: _equipoOficialPresets.map((m) {
+                              final apodo = m['apodo']!;
+                              final correo = m['correo']!;
+                              final nombre = m['nombre']!;
+                              final activoChip =
+                                  _ctrlCorreo.text.trim().toLowerCase() ==
+                                  correo.toLowerCase();
+                              return ActionChip(
+                                backgroundColor: activoChip
+                                    ? const Color(0xFF0284C7)
+                                    : const Color(0xFFF1F5F9),
+                                side: BorderSide(
+                                  color: activoChip
+                                      ? const Color(0xFF0284C7)
+                                      : const Color(0xFFCBD5E1),
+                                ),
+                                label: Text(
+                                  apodo,
+                                  style: TextStyle(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: activoChip
+                                        ? Colors.white
+                                        : const Color(0xFF1E293B),
+                                  ),
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _ctrlPropietario.text = nombre;
+                                    _ctrlCorreo.text = correo;
+                                    _rolSeleccionado = 'SUPER_ADMIN';
+                                    _ctrlDias.text = '1095';
+                                  });
+                                },
+                              );
+                            }).toList(),
+                          ),
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF8FAFC),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: const Color(0xFFE2E8F0),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.public_rounded,
+                                  size: 16,
+                                  color: Color(0xFF0284C7),
+                                ),
+                                const SizedBox(width: 8),
+                                const Expanded(
+                                  child: Text(
+                                    'Dominio del Chip NFC:',
+                                    style: TextStyle(
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                                ChoiceChip(
+                                  label: const Text(
+                                    'sigic.com.ar',
+                                    style: TextStyle(fontSize: 10.5),
+                                  ),
+                                  selected: _grabarParaProduccion,
+                                  onSelected: (_) => setState(
+                                    () => _grabarParaProduccion = true,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                ChoiceChip(
+                                  label: const Text(
+                                    'LAN Local',
+                                    style: TextStyle(fontSize: 10.5),
+                                  ),
+                                  selected: !_grabarParaProduccion,
+                                  onSelected: (_) => setState(
+                                    () => _grabarParaProduccion = false,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           const SizedBox(height: 12),

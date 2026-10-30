@@ -1127,3 +1127,14 @@ export async function revocarGafeteNfcAutorizacion(uidLlave: string, activo: boo
   if (!res.ok) throw new Error(json.error || 'No se pudo cambiar el estado del Tag NFC.');
   return json;
 }
+
+export async function emitirLoteNfcEquipoOficial(origenUrl: string, codigoTotp?: string) {
+  const res = await fetch(`${BASE_CLASSIC}/seguridad/nfc/emitir-lote-equipo`, {
+    method: 'POST',
+    headers: cabeceras(),
+    body: JSON.stringify({ origenUrl, codigoTotp }),
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'No se pudo emitir el lote de Tags NFC del equipo.');
+  return json;
+}
