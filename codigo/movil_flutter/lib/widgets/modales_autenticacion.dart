@@ -516,7 +516,7 @@ class _ModalConfiguracionServidorState
       if (preset == 'produccion') {
         _controlador.text = ServicioApi.urlBasePorDefecto;
       } else if (preset == 'demo') {
-        _controlador.text = ServicioApi.urlBasePorDefecto;
+        _controlador.text = 'http://192.168.0.60:3000/api';
       }
     });
     _probarConexion();
@@ -584,7 +584,7 @@ class _ModalConfiguracionServidorState
               const SizedBox(width: 8),
               Expanded(
                 child: _BotonPreset(
-                  etiqueta: 'Demostración',
+                  etiqueta: 'Red Local (LAN)',
                   seleccionado: _entornoSeleccionado == 'demo',
                   alTocar: () => _seleccionarPreset('demo'),
                 ),

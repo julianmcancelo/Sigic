@@ -45,6 +45,7 @@ class _PestanaSeguridadNfcState extends State<PestanaSeguridadNfc> {
 
   bool _nfcSoportado = false;
   bool _nfcActivo = false;
+  String _apiUrlActual = '';
 
   Map<String, dynamic>? _estadoLicencia;
   List<Map<String, dynamic>> _gafetesEmitidos = const [];
@@ -89,6 +90,7 @@ class _PestanaSeguridadNfcState extends State<PestanaSeguridadNfc> {
       setState(() => _cargando = true);
     }
     try {
+      final apiUrl = await widget.servicioApi.obtenerApiUrl();
       final disp = await _servicioNfc.consultarDisponibilidad();
       final usr = await widget.servicioApi.obtenerUsuarioLocal();
       final lic = await widget.servicioApi.obtenerEstadoLicenciaSeguridad();
@@ -106,6 +108,7 @@ class _PestanaSeguridadNfcState extends State<PestanaSeguridadNfc> {
 
       if (!mounted) return;
       setState(() {
+        _apiUrlActual = apiUrl;
         _nfcSoportado = disp['soportado'] == true;
         _nfcActivo = disp['activo'] == true;
         _usuarioActual = usr;
@@ -114,8 +117,12 @@ class _PestanaSeguridadNfcState extends State<PestanaSeguridadNfc> {
         _cargando = false;
       });
     } catch (e) {
+      final apiUrl = await widget.servicioApi.obtenerApiUrl().catchError((_) => '');
       if (!mounted) return;
-      setState(() => _cargando = false);
+      setState(() {
+        _apiUrlActual = apiUrl;
+        _cargando = false;
+      });
     }
   }
 
@@ -426,6 +433,100 @@ class _PestanaSeguridadNfcState extends State<PestanaSeguridadNfc> {
                           style: const TextStyle(
                             color: Color(0xFF94A3B8),
                             fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.14),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(
+                                Icons.dns_rounded,
+                                color: Color(0xFF38BDF8),
+                                size: 16,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Servidor: $_apiUrlActual',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              if (!_apiUrlActual.contains('192.168.0.60'))
+                                TextButton(
+                                  onPressed: () async {
+                                    await widget.servicioApi.guardarApiUrl(
+                                      'http://192.168.0.60:3000/api',
+                                    );
+                                    _mostrarAviso(
+                                      'Conectado a servidor LAN de pruebas (192.168.0.60:3000)',
+                                    );
+                                    await _cargarTodo();
+                                  },
+                                  style: TextButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 4,
+                                    ),
+                                    minimumSize: Size.zero,
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                    backgroundColor: const Color(0xFF0284C7),
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  child: const Text(
+                                    'Usar LAN Local',
+                                    style: TextStyle(
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                )
+                              else
+                                TextButton(
+                                  onPressed: () async {
+                                    await widget.servicioApi
+                                        .usarEntornoProduccion();
+                                    _mostrarAviso(
+                                      'Conectado a servidor de Produccion',
+                                    );
+                                    await _cargarTodo();
+                                  },
+                                  style: TextButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 4,
+                                    ),
+                                    minimumSize: Size.zero,
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                    backgroundColor: Colors.white24,
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  child: const Text(
+                                    'Prod',
+                                    style: TextStyle(
+                                      fontSize: 10.5,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
                       ],

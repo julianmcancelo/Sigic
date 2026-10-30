@@ -426,6 +426,14 @@ class ServicioApi {
 
     final json = _decodificarRespuesta(respuesta);
     if (!_esExitosa(respuesta.statusCode)) {
+      if (respuesta.statusCode == 404 &&
+          ruta.startsWith('/seguridad/') &&
+          !baseUrl.contains('192.168.') &&
+          !baseUrl.contains('localhost')) {
+        throw Exception(
+          'El servidor actual ($baseUrl) todavia no tiene desplegado el modulo NFC. Toca "Usar LAN Local" arriba para conectarte a tu PC (192.168.0.60:3000).',
+        );
+      }
       if (respuesta.statusCode == 401) {
         await cerrarSesion();
       }
