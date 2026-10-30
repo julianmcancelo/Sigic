@@ -54,6 +54,7 @@ import { AsistenteOperativoCeremonia } from './componentes/AsistenteOperativoCer
 import { MenuInicio } from './componentes/MenuInicio'
 import PantallaBloqueoLicencia from './componentes/PantallaBloqueoLicencia'
 import PantallaPuenteQrNfcMovil from './componentes/PantallaPuenteQrNfcMovil'
+import { esAutoridadCancelo } from './lib/autoridad-cancelo'
 
 // Servicios
 import { validarToken, obtenerCeremoniaActiva, obtenerEstadoSetup, responderInvitacion, limpiarTokenSesion, guardarTokenSesion, obtenerTokenSesion, obtenerAjustes, actualizarAjuste, cerrarSesionServidor, validarSesionLocal, obtenerEstadoLicenciaSeguridad, desbloquearConTarjetaNFC, autorizarDesafioLoginQrNfc } from './servicios/api'
@@ -1247,7 +1248,7 @@ function App() {
           />
         )
       } else if (pantallaAdmin === 'centro-control') {
-        if (['ADMINISTRATIVO', 'SUPER_ADMIN', 'ADMIN', 'SOPORTE'].includes(adminUser?.rol)) {
+        if (esAutoridadCancelo(adminUser)) {
           contenido = (
             <CentroControl
               usuario={adminUser}
@@ -2275,7 +2276,7 @@ function AdminDock({ pantallaActual, onNavegar, posicion, setPosicion, usuario }
     { id: 'panel-reportes', titulo: 'Reportes', icono: BarChart3 },
     ...(esSoporte ? [
       { id: 'gestion-porteria', titulo: 'Seguridad', icono: Shield },
-      { id: 'centro-control', titulo: 'Control', icono: Server }
+      ...(esAutoridadCancelo(usuario) ? [{ id: 'centro-control', titulo: 'Control', icono: Server }] : [])
     ] : [
       { id: 'ajustes', titulo: 'Ajustes', icono: Settings }
     ])

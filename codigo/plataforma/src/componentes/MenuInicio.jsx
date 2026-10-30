@@ -3,6 +3,7 @@
 import React, { forwardRef, useEffect, useRef, useState } from 'react'
 import { Search, X, ArrowUpRight, ChevronRight, CalendarDays, Power, LayoutGrid, Clock, LayoutDashboard, Sparkles } from 'lucide-react'
 import { AnimatedThemeToggler } from './AnimatedThemeToggler'
+import { esAutoridadCancelo } from '../lib/autoridad-cancelo'
 import './menu-inicio.css'
 
 const informacion = {
@@ -51,7 +52,7 @@ export const MenuInicio = forwardRef(function MenuInicio({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [onCerrar])
 
-  const disponibles = aplicaciones.filter(app => app.id !== 'bienvenida')
+  const disponibles = aplicaciones.filter(app => app.id !== 'bienvenida' && (app.id !== 'centro-control' || esAutoridadCancelo(usuario)))
   const termino = normalizar(busqueda.trim())
   const resultados = disponibles.filter(app => normalizar(`${app.titulo} ${(informacion[app.id] || []).join(' ')}`).includes(termino))
   const ultima = [...ventanas].reverse().map(id => disponibles.find(app => app.id === id)).find(Boolean)

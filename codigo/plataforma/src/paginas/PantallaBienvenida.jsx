@@ -19,6 +19,7 @@ import {
 import { BASE, cabeceras } from '../servicios/api'
 import { HeaderGlobal } from '../componentes/HeaderGlobal'
 import { FONDOS_DISPONIBLES, obtenerTemaActual } from '../datos/fondos-pantalla'
+import { esAutoridadCancelo } from '../lib/autoridad-cancelo'
 
 // ─── Colores del sistema ───────────────────────────────────────
 const DARK   = '#2A3448'
@@ -982,14 +983,14 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
       pantalla: 'gestion-ceremonias',
       badge: 'Hábitats',
     },
-    {
+    ...(esAutoridadCancelo(usuario) ? [{
       icono: Server,
       titulo: 'Ciberseguridad & Control',
       descripcion: 'Licenciamiento Ed25519, llaves físicas NFC / FIDO2 / TOTP y respaldos PostgreSQL',
       pantalla: 'centro-control',
       badge: 'Ciberseguridad',
       destacado: true,
-    },
+    }] : []),
   ]
 
 
