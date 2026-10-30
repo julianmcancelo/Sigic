@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   iniciarSesionAdmin,
   solicitarRestablecimientoContrasena,
@@ -23,6 +23,7 @@ import {
   QrCode,
   SmartphoneNfc,
   RefreshCw,
+  KeyRound,
 } from 'lucide-react'
 
 const formularioInicial = { correo: '', clave: '' }
@@ -46,6 +47,11 @@ export function FormularioInicioSesion({ onInicioSesionExitoso, onIrAEgresado, o
   const [desafioQr, setDesafioQr] = useState(null)
   const [cargandoQr, setCargandoQr] = useState(false)
   const [errorQr, setErrorQr] = useState('')
+  const onLoginRef = useRef(onInicioSesionExitoso)
+
+  useEffect(() => {
+    onLoginRef.current = onInicioSesionExitoso
+  }, [onInicioSesionExitoso])
 
   async function iniciarDesafioQrNfc() {
     setCargandoQr(true)
@@ -71,23 +77,43 @@ export function FormularioInicioSesion({ onInicioSesionExitoso, onIrAEgresado, o
         if (cancelado) return
         if (res.estado === 'AUTORIZADO' && res.sesion?.token && res.sesion?.usuario) {
           window.clearInterval(intervalo)
+          const u = res.sesion.usuario
           guardarTokenSesion(res.sesion.token)
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('sigic_modo_demo', 'false')
+            sessionStorage.removeItem('sigic_demo_activa')
+            sessionStorage.removeItem('sigic_demo_sandbox_activo')
+            localStorage.setItem('sesion_admin', 'true')
+            localStorage.setItem(
+              'admin_user',
+              JSON.stringify({
+                id: u.id,
+                nombre: u.nombre,
+                correo: u.email || u.correo,
+                email: u.email || u.correo,
+                rol: u.rol,
+              })
+            )
+          }
           setVerificado(true)
-          setMensajeEstado(`Autorizado por NFC (${res.sesion.usuario.nombre}). Ingresando...`)
+          setMensajeEstado(`Autorizado por NFC (${u.nombre}). Ingresando...`)
           setTimeout(() => {
-            onInicioSesionExitoso({
-              nombre: res.sesion.usuario.nombre,
-              correo: res.sesion.usuario.email || res.sesion.usuario.correo,
-              id: res.sesion.usuario.id,
-              rol: res.sesion.usuario.rol,
-            })
-          }, 350)
+            if (onLoginRef.current) {
+              onLoginRef.current({
+                nombre: u.nombre,
+                correo: u.email || u.correo,
+                email: u.email || u.correo,
+                id: u.id,
+                rol: u.rol,
+              })
+            }
+          }, 250)
         } else if (res.estado === 'EXPIRADO') {
           window.clearInterval(intervalo)
           setErrorQr('El codigo QR expiro. Genera uno nuevo para continuar.')
         }
       } catch (_) {}
-    }, 1700)
+    }, 1500)
     return () => {
       cancelado = true
       window.clearInterval(intervalo)
@@ -239,7 +265,7 @@ export function FormularioInicioSesion({ onInicioSesionExitoso, onIrAEgresado, o
   }
 
   return (
-    <div className="space-y-6 animate-reveal-up text-left">
+    <div className="space-y-5 animate-reveal-up text-left">
       <header className="space-y-1.5">
         <div className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-sky-700 bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-200/70">
           <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
@@ -251,9 +277,41 @@ export function FormularioInicioSesion({ onInicioSesionExitoso, onIrAEgresado, o
         <p className="text-xs text-slate-500 font-medium">
           {modoQrNfc
             ? 'Escaneá el código con tu celular y apoyá tu Tag NFC institucional.'
-            : 'Ingresá con tus credenciales de organizador o directivo.'}
+            : 'Ingresá con tus credenciales o vinculá tu llave física NFC.'}
         </p>
       </header>
+
+      <div className="grid grid-cols-2 gap-1.5 p-1 rounded-2xl bg-slate-100 border border-slate-200/80">
+        <button
+          type="button"
+          onClick={() => {
+            setModoQrNfc(false)
+            setErrorQr('')
+          }}
+          className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            !modoQrNfc
+              ? 'bg-white text-slate-950 shadow-xs border border-slate-200/60'
+              : 'text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <KeyRound size={14} className={!modoQrNfc ? 'text-blue-600' : ''} />
+          <span>Credenciales</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            if (!modoQrNfc) iniciarDesafioQrNfc()
+          }}
+          className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            modoQrNfc
+              ? 'bg-slate-950 text-white shadow-xs'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <SmartphoneNfc size={14} className={modoQrNfc ? 'text-sky-400' : 'text-sky-600'} />
+          <span>Celular + Tag NFC</span>
+        </button>
+      </div>
 
       {modoQrNfc ? (
         <div className="space-y-4">

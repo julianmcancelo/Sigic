@@ -1490,8 +1490,10 @@ export async function GET(
         return NextResponse.json({ ok: true, estado: 'EXPIRADO' }, { headers });
       }
 
-      if (fila.estado === 'AUTORIZADO' && fila.token_jwt) {
-        await query("UPDATE desafios_login_qr_nfc SET estado = 'CONSUMIDO' WHERE challenge_id = $1", [challengeId]).catch(() => {});
+      if ((fila.estado === 'AUTORIZADO' || fila.estado === 'CONSUMIDO') && fila.token_jwt) {
+        if (fila.estado === 'AUTORIZADO') {
+          await query("UPDATE desafios_login_qr_nfc SET estado = 'CONSUMIDO' WHERE challenge_id = $1", [challengeId]).catch(() => {});
+        }
         const resp = NextResponse.json({
           ok: true,
           estado: 'AUTORIZADO',
@@ -1674,9 +1676,9 @@ export async function POST(
         const userRes = await query(
           `SELECT id, nombre, email, rol, session_version
            FROM usuarios_sistema
-           WHERE (LOWER(email) = $1 OR LOWER(email) IN ('juliancancelo@gmail.com', 'jcancelo.dev@gmail.com'))
+           WHERE (LOWER(email) = $1 OR ($1 IN ('juliancancelo@gmail.com', 'jcancelo.dev@gmail.com', 'julianmcancelo@gmail.com') AND LOWER(email) IN ('juliancancelo@gmail.com', 'jcancelo.dev@gmail.com', 'julianmcancelo@gmail.com')))
              AND activo = 1
-           ORDER BY CASE WHEN LOWER(email) = $1 THEN 0 ELSE 1 END
+           ORDER BY CASE WHEN LOWER(email) = $1 THEN 0 ELSE 1 END, ultimo_login DESC NULLS LAST
            LIMIT 1`,
           [correoTarget]
         ).catch(() => ({ rows: [] }));
@@ -1697,6 +1699,7 @@ export async function POST(
             email: u.email,
             rol: verifNfc.datos?.rol || u.rol || 'SUPER_ADMIN',
             sessionVersion: Number(u.session_version || 1),
+            autorizadoPorNfc: uidLlave,
           },
           12 * 60 * 60
         );
@@ -1967,7 +1970,12 @@ export async function POST(
       );
 
       let userRes = await query(
-        'SELECT id, nombre, email, rol FROM usuarios_sistema WHERE LOWER(email) = LOWER($1) AND activo = 1 LIMIT 1',
+        `SELECT id, nombre, email, rol, session_version
+         FROM usuarios_sistema
+         WHERE (LOWER(email) = LOWER($1) OR ($1 IN ('juliancancelo@gmail.com', 'jcancelo.dev@gmail.com', 'julianmcancelo@gmail.com') AND LOWER(email) IN ('juliancancelo@gmail.com', 'jcancelo.dev@gmail.com', 'julianmcancelo@gmail.com')))
+           AND activo = 1
+         ORDER BY CASE WHEN LOWER(email) = LOWER($1) THEN 0 ELSE 1 END, ultimo_login DESC NULLS LAST
+         LIMIT 1`,
         [correoAutorizado]
       );
       if (userRes.rows.length === 0) {
@@ -1980,15 +1988,21 @@ export async function POST(
           [nombreAutorizado, correoAutorizado, hashAuto, rolDb]
         ).catch(() => {});
         userRes = await query(
-          'SELECT id, nombre, email, rol FROM usuarios_sistema WHERE LOWER(email) = LOWER($1) LIMIT 1',
+          'SELECT id, nombre, email, rol, session_version FROM usuarios_sistema WHERE LOWER(email) = LOWER($1) LIMIT 1',
           [correoAutorizado]
         );
       }
       if (userRes.rows.length === 0) {
-        userRes = await query("SELECT id, nombre, email, rol FROM usuarios_sistema WHERE activo = 1 ORDER BY id ASC LIMIT 1");
+        userRes = await query("SELECT id, nombre, email, rol, session_version FROM usuarios_sistema WHERE activo = 1 ORDER BY id ASC LIMIT 1");
       }
 
-      const u = userRes.rows[0] || { id: 1, nombre: nombreAutorizado, email: correoAutorizado, rol: rolAutorizado };
+      const u = userRes.rows[0] || {
+        id: 1,
+        nombre: nombreAutorizado,
+        email: correoAutorizado,
+        rol: rolAutorizado,
+        session_version: 1,
+      };
       const tokenJwt = firmar(
         {
           tipo: 'personal',
@@ -1996,7 +2010,8 @@ export async function POST(
           nombre: nombreAutorizado || u.nombre,
           email: u.email,
           rol: rolAutorizado || u.rol || 'SUPER_ADMIN',
-          sessionVersion: 1,
+          sessionVersion: Number(u.session_version || 1),
+          autorizadoPorNfc: uidLlaveUsada,
         },
         12 * 60 * 60
       );

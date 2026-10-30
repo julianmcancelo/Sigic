@@ -77,9 +77,12 @@ export async function obtenerUsuarioAutenticado(
         [datos.id]
       );
       const usuario = resultadoUsuario.rows[0];
+      const versionDb = Number(usuario?.session_version || 1);
+      const versionToken = Number(datos.sessionVersion || 1);
+      const esSesionNfcVigente = Boolean((datos as any).autorizadoPorNfc);
       if (!usuario || Number(usuario.activo) !== 1 ||
           !ROLES_OPERACION.includes(usuario.rol) ||
-          datos.sessionVersion !== Number(usuario.session_version)) {
+          (!esSesionNfcVigente && versionToken !== versionDb)) {
         return { valido: false, error: 'Sesión revocada. Volvé a iniciar sesión.', statusCode: 401 };
       }
       datos.rol = usuario.rol;
