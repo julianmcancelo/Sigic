@@ -1,30 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
-import {
-  iniciarSesionAdmin,
-  solicitarRestablecimientoContrasena,
-  crearDesafioLoginQrNfc,
-  consultarEstadoDesafioQrNfc,
-  guardarTokenSesion,
-} from '../servicios/api'
+import { useEffect, useState } from 'react'
+import { iniciarSesionAdmin, solicitarRestablecimientoContrasena } from '../servicios/api'
 import { validarFormularioLogin } from '../utilidades/validar-formulario-login'
 import { CampoFormulario } from './CampoFormulario'
-import { QRCodeSVG } from 'qrcode.react'
-import {
-  AlertTriangle,
-  ArrowRight,
-  BookOpen,
-  Check,
-  GraduationCap,
-  LifeBuoy,
-  LockKeyhole,
-  Mail,
-  ArrowLeft,
-  Shield,
-  QrCode,
-  SmartphoneNfc,
-  RefreshCw,
-  KeyRound,
-} from 'lucide-react'
+import { AlertTriangle, ArrowRight, BookOpen, Check, GraduationCap, LifeBuoy, LockKeyhole, Mail, ArrowLeft, Shield } from 'lucide-react'
 
 const formularioInicial = { correo: '', clave: '' }
 
@@ -43,82 +21,6 @@ export function FormularioInicioSesion({ onInicioSesionExitoso, onIrAEgresado, o
   const [verificado, setVerificado] = useState(false)
 
   const [cargando, setCargando] = useState(false)
-  const [modoQrNfc, setModoQrNfc] = useState(false)
-  const [desafioQr, setDesafioQr] = useState(null)
-  const [cargandoQr, setCargandoQr] = useState(false)
-  const [errorQr, setErrorQr] = useState('')
-  const onLoginRef = useRef(onInicioSesionExitoso)
-
-  useEffect(() => {
-    onLoginRef.current = onInicioSesionExitoso
-  }, [onInicioSesionExitoso])
-
-  async function iniciarDesafioQrNfc() {
-    setCargandoQr(true)
-    setErrorQr('')
-    try {
-      const origen = typeof window !== 'undefined' ? window.location.origin : undefined
-      const res = await crearDesafioLoginQrNfc(origen)
-      setDesafioQr(res)
-      setModoQrNfc(true)
-    } catch (err) {
-      setErrorQr(err.message || 'No se pudo generar el codigo QR de vinculacion.')
-    } finally {
-      setCargandoQr(false)
-    }
-  }
-
-  useEffect(() => {
-    if (!modoQrNfc || !desafioQr?.challengeId) return undefined
-    let cancelado = false
-    const intervalo = window.setInterval(async () => {
-      try {
-        const res = await consultarEstadoDesafioQrNfc(desafioQr.challengeId)
-        if (cancelado) return
-        if (res.estado === 'AUTORIZADO' && res.sesion?.token && res.sesion?.usuario) {
-          window.clearInterval(intervalo)
-          const u = res.sesion.usuario
-          guardarTokenSesion(res.sesion.token)
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('sigic_modo_demo', 'false')
-            sessionStorage.removeItem('sigic_demo_activa')
-            sessionStorage.removeItem('sigic_demo_sandbox_activo')
-            localStorage.setItem('sesion_admin', 'true')
-            localStorage.setItem(
-              'admin_user',
-              JSON.stringify({
-                id: u.id,
-                nombre: u.nombre,
-                correo: u.email || u.correo,
-                email: u.email || u.correo,
-                rol: u.rol,
-              })
-            )
-          }
-          setVerificado(true)
-          setMensajeEstado(`Autorizado por NFC (${u.nombre}). Ingresando...`)
-          setTimeout(() => {
-            if (onLoginRef.current) {
-              onLoginRef.current({
-                nombre: u.nombre,
-                correo: u.email || u.correo,
-                email: u.email || u.correo,
-                id: u.id,
-                rol: u.rol,
-              })
-            }
-          }, 250)
-        } else if (res.estado === 'EXPIRADO') {
-          window.clearInterval(intervalo)
-          setErrorQr('El codigo QR expiro. Genera uno nuevo para continuar.')
-        }
-      } catch (_) {}
-    }, 1500)
-    return () => {
-      cancelado = true
-      window.clearInterval(intervalo)
-    }
-  }, [modoQrNfc, desafioQr?.challengeId])
 
   useEffect(() => {
     if (bloqueoSegundos <= 0) return undefined
@@ -265,116 +167,20 @@ export function FormularioInicioSesion({ onInicioSesionExitoso, onIrAEgresado, o
   }
 
   return (
-    <div className="space-y-5 animate-reveal-up text-left">
+    <div className="space-y-6 animate-reveal-up text-left">
       <header className="space-y-1.5">
         <div className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-sky-700 bg-sky-50 px-2.5 py-0.5 rounded-full border border-sky-200/70">
           <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
           Panel Administrativo
         </div>
         <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-          {modoQrNfc ? 'Acceso con QR + NFC' : 'Iniciar Sesión'}
+          Iniciar Sesión
         </h1>
         <p className="text-xs text-slate-500 font-medium">
-          {modoQrNfc
-            ? 'Escaneá el código con tu celular y apoyá tu Tag NFC institucional.'
-            : 'Ingresá con tus credenciales o vinculá tu llave física NFC.'}
+          Ingresá con tus credenciales de organizador o directivo.
         </p>
       </header>
 
-      <div className="grid grid-cols-2 gap-1.5 p-1 rounded-2xl bg-slate-100 border border-slate-200/80">
-        <button
-          type="button"
-          onClick={() => {
-            setModoQrNfc(false)
-            setErrorQr('')
-          }}
-          className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-            !modoQrNfc
-              ? 'bg-white text-slate-950 shadow-xs border border-slate-200/60'
-              : 'text-slate-500 hover:text-slate-800'
-          }`}
-        >
-          <KeyRound size={14} className={!modoQrNfc ? 'text-blue-600' : ''} />
-          <span>Credenciales</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            if (!modoQrNfc) iniciarDesafioQrNfc()
-          }}
-          className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-            modoQrNfc
-              ? 'bg-slate-950 text-white shadow-xs'
-              : 'text-slate-600 hover:text-slate-900'
-          }`}
-        >
-          <SmartphoneNfc size={14} className={modoQrNfc ? 'text-sky-400' : 'text-sky-600'} />
-          <span>Celular + Tag NFC</span>
-        </button>
-      </div>
-
-      {modoQrNfc ? (
-        <div className="space-y-4">
-          <div className="rounded-2xl border border-sky-200/80 bg-gradient-to-b from-sky-50/60 to-white p-5 flex flex-col items-center text-center shadow-sm">
-            {desafioQr?.urlMovil ? (
-              <div className="p-3 bg-white rounded-2xl border border-slate-200 shadow-xs">
-                <QRCodeSVG value={desafioQr.urlMovil} size={172} level="M" />
-              </div>
-            ) : (
-              <div className="h-[196px] w-[196px] flex items-center justify-center">
-                <div className="w-7 h-7 border-2 border-sky-500/30 border-t-sky-600 rounded-full animate-spin" />
-              </div>
-            )}
-
-            <div className="mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900 text-white text-[11px] font-mono font-bold tracking-wider">
-              <SmartphoneNfc size={13} className="text-sky-400" />
-              <span>{desafioQr?.challengeId || 'GENERANDO...'}</span>
-            </div>
-
-            <div className="mt-3 space-y-1 text-[11px] text-slate-600 font-medium max-w-xs">
-              <p><strong>1.</strong> Escaneá este QR con la cámara de tu celular o desde la App SiGIC.</p>
-              <p><strong>2.</strong> Apoyá tu tarjeta o llavero <strong>NFC</strong> en tu teléfono.</p>
-              <p><strong>3.</strong> Esta PC ingresará automáticamente sin escribir contraseñas.</p>
-            </div>
-
-            {verificado && (
-              <div className="mt-3 w-full rounded-xl border border-emerald-200 bg-emerald-50 p-2.5 text-xs font-bold text-emerald-700 flex items-center justify-center gap-2">
-                <Check size={15} />
-                <span>{mensajeEstado || 'Autorizado. Abriendo panel...'}</span>
-              </div>
-            )}
-
-            {errorQr && (
-              <div className="mt-3 w-full rounded-xl border border-rose-200 bg-rose-50 p-2.5 text-xs font-bold text-rose-700">
-                {errorQr}
-              </div>
-            )}
-
-            <div className="mt-4 flex items-center gap-2 w-full">
-              <button
-                type="button"
-                onClick={iniciarDesafioQrNfc}
-                disabled={cargandoQr}
-                className="flex-1 py-2.5 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
-              >
-                <RefreshCw size={13} className={cargandoQr ? 'animate-spin' : ''} />
-                <span>Renovar QR</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setModoQrNfc(false)
-                  setErrorQr('')
-                }}
-                className="flex-1 py-2.5 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
-              >
-                <ArrowLeft size={13} />
-                <span>Usar Contraseña</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : (
       <form className="space-y-4" onSubmit={manejarEnvio}>
         <CampoFormulario
           etiqueta="Correo electrónico"
@@ -463,17 +269,6 @@ export function FormularioInicioSesion({ onInicioSesionExitoso, onIrAEgresado, o
           )}
         </button>
 
-        <button
-          type="button"
-          onClick={iniciarDesafioQrNfc}
-          disabled={cargandoQr}
-          className="w-full rounded-xl border border-sky-200 bg-sky-50/70 hover:bg-sky-100/80 hover:border-sky-300 px-4 py-3 text-xs font-bold text-sky-900 transition-all flex items-center justify-center gap-2 cursor-pointer"
-        >
-          <QrCode size={15} className="text-sky-600" />
-          <SmartphoneNfc size={15} className="text-sky-600" />
-          <span>{cargandoQr ? 'Generando código QR...' : 'Ingresar con Celular + Tag NFC'}</span>
-        </button>
-
         {/* Mensaje de estado */}
         {mensajeEstado ? (
           <p
@@ -487,7 +282,6 @@ export function FormularioInicioSesion({ onInicioSesionExitoso, onIrAEgresado, o
           </p>
         ) : null}
       </form>
-      )}
 
       {/* ══ APARTADO DE ACCESO DISCRETO PARA GRADUADOS ══ */}
       <div className="pt-3 space-y-4 border-t border-slate-100">
