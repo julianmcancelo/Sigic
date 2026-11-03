@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react'
 import {
   Send, Download, Printer, CheckCircle2, AlertCircle, QrCode,
   Users, Armchair, ShieldCheck, Search, Filter, RefreshCw, X,
-  ExternalLink, Mail, Award, Check, Sparkles, ChevronRight, Eye, Maximize2, Minimize2
+  ExternalLink, Mail, Award, Check, Sparkles, ChevronRight, Eye, Maximize2, Minimize2,
+  AlertTriangle, CheckCheck
 } from 'lucide-react'
 import { BASE, cabeceras } from '../servicios/api'
 import { ModalCredencial } from './ModalCredencial'
@@ -47,12 +48,21 @@ export function ModalDespachoCredenciales({
     let coincideEstado = true
     if (filtroEstado === 'enviados') coincideEstado = tieneCredencial
     if (filtroEstado === 'pendientes') coincideEstado = !tieneCredencial
+    if (filtroEstado === 'sin_asiento') coincideEstado = !g.asiento_id
+    if (filtroEstado === 'sin_correo') coincideEstado = !g.correo
+    if (filtroEstado === 'listos') coincideEstado = Boolean(g.asiento_id && g.correo && !tieneCredencial)
 
     return coincideBusqueda && coincideCarrera && coincideEstado
   })
 
   const totalEnviados = graduadosConfirmados.filter(g => g.credencial_enviada_en || g.credencial_envios_count > 0).length
   const totalPendientes = graduadosConfirmados.length - totalEnviados
+
+  // Diagnóstico inteligente de validaciones para el administrativo
+  const sinButaca = graduadosConfirmados.filter(g => !g.asiento_id)
+  const sinCorreo = graduadosConfirmados.filter(g => !g.correo)
+  const listosParaDespacho = graduadosConfirmados.filter(g => g.asiento_id && g.correo)
+  const pendientesListos = listosParaDespacho.filter(g => !g.credencial_enviada_en && (!g.credencial_envios_count || g.credencial_envios_count === 0))
 
   async function despacharIndividual(graduado) {
     if (!graduado.id) return
@@ -242,6 +252,70 @@ export function ModalDespachoCredenciales({
             </div>
           </div>
 
+          {/* ASISTENTE INTELIGENTE DE CONTROL PREVIO AL DESPACHO */}
+          {(sinButaca.length > 0 || sinCorreo.length > 0) ? (
+            <div className="rounded-2xl border border-amber-300/80 bg-gradient-to-r from-amber-500/10 via-amber-50 to-white p-3.5 shadow-2xs animate-in fade-in duration-200">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                <div className="flex items-start sm:items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                    <AlertTriangle size={16} />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-black text-amber-950 flex items-center gap-1.5">
+                      Diagnóstico: Faltan datos para el despacho masivo
+                      <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-amber-200 text-amber-900 uppercase">
+                        Requiere Acción
+                      </span>
+                    </h4>
+                    <p className="text-[11px] text-amber-900/80 font-medium mt-0.5">
+                      {sinButaca.length > 0 && (
+                        <span className="inline-block mr-2">
+                          • <strong>{sinButaca.length}</strong> {sinButaca.length === 1 ? 'egresado no tiene butaca asignada' : 'egresados no tienen butaca asignada'}.
+                        </span>
+                      )}
+                      {sinCorreo.length > 0 && (
+                        <span className="inline-block">
+                          • <strong>{sinCorreo.length}</strong> sin correo electrónico registrado.
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
+                  <button
+                    type="button"
+                    onClick={() => setFiltroEstado('sin_asiento')}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white border border-amber-300 text-amber-900 text-xs font-bold hover:bg-amber-100/60 transition cursor-pointer"
+                  >
+                    <span>Ver sin butaca ({sinButaca.length})</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-emerald-300/80 bg-gradient-to-r from-emerald-500/10 via-emerald-50 to-white p-3 px-4 shadow-2xs flex items-center justify-between gap-2 text-xs">
+              <div className="flex items-center gap-2.5">
+                <span className="w-6 h-6 rounded-lg bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                  <CheckCheck size={14} />
+                </span>
+                <div>
+                  <p className="text-xs font-black text-emerald-950">
+                    ¡Padrón validado! Todos los confirmados cuentan con butaca y correo asignados
+                  </p>
+                  <p className="text-[10.5px] text-emerald-800/80 font-medium">
+                    Las credenciales digitales se emitirán con información completa de acceso.
+                  </p>
+                </div>
+              </div>
+              {pendientesListos.length > 0 && (
+                <span className="text-[10px] font-black text-emerald-800 bg-emerald-100/80 px-2.5 py-1 rounded-lg shrink-0">
+                  {pendientesListos.length} listos para despacho
+                </span>
+              )}
+            </div>
+          )}
+
           {/* ACCIONES MASIVAS PRINCIPALES */}
           <div className="flex flex-wrap items-center justify-between gap-2.5 bg-white p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs">
             <div className="flex flex-wrap items-center gap-2">
@@ -299,9 +373,12 @@ export function ModalDespachoCredenciales({
                 onChange={e => setFiltroEstado(e.target.value)}
                 className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 outline-none shadow-2xs cursor-pointer"
               >
-                <option value="todos">Todos los Estados</option>
+                <option value="todos">Todos los Estados ({graduadosConfirmados.length})</option>
                 <option value="pendientes">Pendientes ({totalPendientes})</option>
                 <option value="enviados">Enviados ({totalEnviados})</option>
+                <option value="sin_asiento">Incompletos: Sin Butaca ({sinButaca.length})</option>
+                <option value="sin_correo">Incompletos: Sin Correo ({sinCorreo.length})</option>
+                <option value="listos">Listos p/ despacho ({pendientesListos.length})</option>
               </select>
 
               {carrerasUnicas.length > 0 && (
@@ -364,7 +441,11 @@ export function ModalDespachoCredenciales({
                                 Butaca {g.asiento_id}
                               </span>
                             ) : (
-                              <span className="text-[10px] text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded">
+                              <span 
+                                className="inline-flex items-center gap-1 text-[9.5px] text-amber-700 font-black bg-amber-50 border border-amber-300 px-2 py-0.5 rounded-md shadow-2xs"
+                                title="Este graduado aún no tiene butaca asignada en el auditorio"
+                              >
+                                <AlertTriangle size={10} className="text-amber-600" />
                                 Sin Asignar
                               </span>
                             )}
@@ -375,6 +456,9 @@ export function ModalDespachoCredenciales({
                               <Users size={11} />
                               {invitadosGraduado.length} pase(s)
                             </span>
+                            {invitadosGraduado.length === 0 && (
+                              <span className="block text-[8.5px] text-slate-400 font-medium">Solo graduado</span>
+                            )}
                           </td>
 
                           <td className="py-2.5 px-3.5 text-center">
@@ -382,9 +466,17 @@ export function ModalDespachoCredenciales({
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-[9.5px] font-black text-emerald-700">
                                 <Check size={10} strokeWidth={3} /> Enviada
                               </span>
+                            ) : !g.asiento_id ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-[9.5px] font-black text-rose-700" title="Requiere asignarle asiento antes de emitir credencial final">
+                                Falta Butaca
+                              </span>
+                            ) : !g.correo ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-[9.5px] font-black text-rose-700" title="No tiene correo para el despacho">
+                                Sin Correo
+                              </span>
                             ) : (
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-[9.5px] font-bold text-amber-700">
-                                Pendiente
+                                Listo p/ Enviar
                               </span>
                             )}
                           </td>
@@ -410,8 +502,12 @@ export function ModalDespachoCredenciales({
                                 type="button"
                                 onClick={() => despacharIndividual(g)}
                                 disabled={estaEnviando || !g.correo}
-                                title={g.correo ? 'Despachar por correo electrónico' : 'No tiene correo registrado'}
-                                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold text-[10.5px] transition active:scale-95 disabled:opacity-40 cursor-pointer"
+                                title={!g.correo ? 'No tiene correo registrado' : !g.asiento_id ? 'Advertencia: Se despachará sin asiento asignado' : 'Despachar credencial por correo'}
+                                className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg font-bold text-[10.5px] transition active:scale-95 disabled:opacity-40 cursor-pointer ${
+                                  !g.asiento_id 
+                                    ? 'bg-amber-600 hover:bg-amber-700 text-white' 
+                                    : 'bg-slate-900 hover:bg-slate-800 text-white'
+                                }`}
                               >
                                 {estaEnviando ? (
                                   <RefreshCw size={11} className="animate-spin" />

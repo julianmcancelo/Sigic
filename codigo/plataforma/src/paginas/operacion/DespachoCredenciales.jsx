@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react'
 import {
   Send, Download, Printer, CheckCircle2, AlertCircle, QrCode,
   Users, Armchair, ShieldCheck, Search, Filter, RefreshCw, X,
-  ExternalLink, Mail, Award, Check, Sparkles, ChevronRight, Eye, ArrowLeft
+  ExternalLink, Mail, Award, Check, Sparkles, ChevronRight, Eye, ArrowLeft,
+  AlertTriangle, Info, CheckCheck
 } from 'lucide-react'
 import { BASE, cabeceras, obtenerCeremoniaActiva, obtenerGraduados, obtenerInvitados } from '../../servicios/api'
 import { ModalCredencial } from '../../componentes/ModalCredencial'
@@ -74,12 +75,25 @@ export function DespachoCredenciales({
     let coincideEstado = true
     if (filtroEstado === 'enviados') coincideEstado = tieneCredencial
     if (filtroEstado === 'pendientes') coincideEstado = !tieneCredencial
+    if (filtroEstado === 'sin_asiento') coincideEstado = !g.asiento_id
+    if (filtroEstado === 'sin_correo') coincideEstado = !g.correo
+    if (filtroEstado === 'listos') coincideEstado = Boolean(g.asiento_id && g.correo && !tieneCredencial)
 
     return coincideBusqueda && coincideCarrera && coincideEstado
   })
 
   const totalEnviados = graduadosConfirmados.filter(g => g.credencial_enviada_en || g.credencial_envios_count > 0).length
   const totalPendientes = graduadosConfirmados.length - totalEnviados
+
+  // Diagnóstico inteligente de validaciones para el administrativo
+  const sinButaca = graduadosConfirmados.filter(g => !g.asiento_id)
+  const sinCorreo = graduadosConfirmados.filter(g => !g.correo)
+  const sinPases = graduadosConfirmados.filter(g => {
+    const invs = invitados.filter(i => i.egresado_id === g.id || i.egresadoId === g.id)
+    return invs.length === 0
+  })
+  const listosParaDespacho = graduadosConfirmados.filter(g => g.asiento_id && g.correo)
+  const pendientesListos = listosParaDespacho.filter(g => !g.credencial_enviada_en && (!g.credencial_envios_count || g.credencial_envios_count === 0))
 
   async function despacharIndividual(graduado) {
     if (!graduado.id) return
@@ -307,6 +321,83 @@ export function DespachoCredenciales({
           </div>
         </div>
 
+        {/* ASISTENTE INTELIGENTE DE CONTROL PREVIO AL DESPACHO */}
+        {(sinButaca.length > 0 || sinCorreo.length > 0) ? (
+          <div className="rounded-xl border border-amber-300/80 bg-gradient-to-r from-amber-500/10 via-amber-50 to-white p-3 shadow-2xs animate-in fade-in duration-200">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+              <div className="flex items-start sm:items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                  <AlertTriangle size={15} />
+                </div>
+                <div>
+                  <h4 className="text-xs font-black text-amber-950 flex items-center gap-1.5">
+                    Atención Administrativa: Egresados con datos incompletos
+                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-amber-200 text-amber-900 uppercase">
+                      Requiere Acción
+                    </span>
+                  </h4>
+                  <p className="text-[10.5px] text-amber-900/80 font-medium mt-0.5">
+                    {sinButaca.length > 0 && (
+                      <span className="inline-block mr-2">
+                        • <strong>{sinButaca.length}</strong> {sinButaca.length === 1 ? 'egresado no tiene butaca asignada' : 'egresados no tienen butaca asignada'}.
+                      </span>
+                    )}
+                    {sinCorreo.length > 0 && (
+                      <span className="inline-block">
+                        • <strong>{sinCorreo.length}</strong> no {sinCorreo.length === 1 ? 'posee' : 'poseen'} correo electrónico registrado.
+                      </span>
+                    )}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
+                {sinButaca.length > 0 && onNavegar && (
+                  <button
+                    type="button"
+                    onClick={() => onNavegar('preparacion-ceremonia')}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-[10.5px] font-bold shadow-xs transition active:scale-95 cursor-pointer"
+                    title="Ir al paso 4 para auto-asignar butacas faltantes"
+                  >
+                    <Armchair size={11} />
+                    <span>Asignar Butacas</span>
+                  </button>
+                )}
+                {sinButaca.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setFiltroEstado('sin_asiento')}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white border border-amber-300 text-amber-900 text-[10.5px] font-bold hover:bg-amber-100/60 transition cursor-pointer"
+                  >
+                    <span>Ver faltantes ({sinButaca.length})</span>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-xl border border-emerald-300/80 bg-gradient-to-r from-emerald-500/10 via-emerald-50 to-white p-2.5 px-3.5 shadow-2xs flex items-center justify-between gap-2 text-xs">
+            <div className="flex items-center gap-2">
+              <span className="w-5 h-5 rounded-md bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                <CheckCheck size={13} />
+              </span>
+              <div>
+                <p className="text-[11px] font-black text-emerald-950">
+                  ¡Validación Completa! Todos los egresados confirmados tienen butaca y correo asignados
+                </p>
+                <p className="text-[10px] text-emerald-800/80 font-medium">
+                  El padrón está listo para el despacho masivo de credenciales QR.
+                </p>
+              </div>
+            </div>
+            {pendientesListos.length > 0 && (
+              <span className="text-[10px] font-black text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-md shrink-0">
+                {pendientesListos.length} listos para enviar
+              </span>
+            )}
+          </div>
+        )}
+
         {/* BARRA DE FILTRO Y BUSCADOR COMPACTO */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2 bg-white p-2 rounded-xl border border-slate-200/80 shadow-2xs">
           <div className="relative flex-1 w-full">
@@ -320,7 +411,7 @@ export function DespachoCredenciales({
             />
           </div>
 
-          <div className="flex items-center gap-1.5 w-full sm:w-auto shrink-0">
+          <div className="flex items-center gap-1.5 w-full sm:w-auto shrink-0 flex-wrap">
             <select
               value={filtroEstado}
               onChange={e => setFiltroEstado(e.target.value)}
@@ -329,6 +420,9 @@ export function DespachoCredenciales({
               <option value="todos">Todos ({graduadosConfirmados.length})</option>
               <option value="pendientes">Pendientes ({totalPendientes})</option>
               <option value="enviados">Enviados ({totalEnviados})</option>
+              <option value="sin_asiento">Incompletos: Sin Butaca ({sinButaca.length})</option>
+              <option value="sin_correo">Incompletos: Sin Correo ({sinCorreo.length})</option>
+              <option value="listos">Listos p/ despacho ({pendientesListos.length})</option>
             </select>
 
             {carrerasUnicas.length > 0 && (
@@ -398,7 +492,11 @@ export function DespachoCredenciales({
                               Butaca {g.asiento_id}
                             </span>
                           ) : (
-                            <span className="text-[9.5px] text-amber-600 font-bold bg-amber-50 px-1.5 py-0.5 rounded">
+                            <span 
+                              className="inline-flex items-center gap-1 text-[9.5px] text-amber-700 font-black bg-amber-50 border border-amber-300 px-2 py-0.5 rounded-md shadow-2xs"
+                              title="Este graduado aún no tiene butaca asignada en el auditorio"
+                            >
+                              <AlertTriangle size={10} className="text-amber-600" />
                               Sin Asignar
                             </span>
                           )}
@@ -409,6 +507,9 @@ export function DespachoCredenciales({
                             <Users size={11} />
                             {invitadosGraduado.length} pase(s)
                           </span>
+                          {invitadosGraduado.length === 0 && (
+                            <span className="block text-[8.5px] text-slate-400 font-medium">Solo graduado</span>
+                          )}
                         </td>
 
                         <td className="py-2 px-3 text-center">
@@ -416,9 +517,17 @@ export function DespachoCredenciales({
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 border border-emerald-200 text-[9.5px] font-black text-emerald-700">
                               <Check size={10} strokeWidth={3} /> Enviada
                             </span>
+                          ) : !g.asiento_id ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-[9.5px] font-black text-rose-700" title="Requiere asignarle asiento antes de emitir credencial final">
+                              Falta Butaca
+                            </span>
+                          ) : !g.correo ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 border border-rose-200 text-[9.5px] font-black text-rose-700" title="No tiene correo para el despacho">
+                              Sin Correo
+                            </span>
                           ) : (
                             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-[9.5px] font-bold text-amber-700">
-                              Pendiente
+                              Listo p/ Enviar
                             </span>
                           )}
                         </td>
@@ -444,8 +553,12 @@ export function DespachoCredenciales({
                               type="button"
                               onClick={() => despacharIndividual(g)}
                               disabled={estaEnviando || !g.correo}
-                              title={g.correo ? 'Despachar por correo electrónico' : 'No tiene correo registrado'}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-bold text-[10.5px] transition active:scale-95 disabled:opacity-40 cursor-pointer"
+                              title={!g.correo ? 'No tiene correo registrado' : !g.asiento_id ? 'Advertencia: Se despachará sin asiento asignado' : 'Despachar credencial por correo'}
+                              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg font-bold text-[10.5px] transition active:scale-95 disabled:opacity-40 cursor-pointer ${
+                                !g.asiento_id 
+                                  ? 'bg-amber-600 hover:bg-amber-700 text-white' 
+                                  : 'bg-slate-900 hover:bg-slate-800 text-white'
+                              }`}
                             >
                               {estaEnviando ? (
                                 <RefreshCw size={11} className="animate-spin" />
