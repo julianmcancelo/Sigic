@@ -214,7 +214,7 @@ function App() {
       try {
         const u = JSON.parse(localStorage.getItem('admin_user') || 'null');
         const estilo = localStorage.getItem('sigic_estilo_interfaz') || 'dashboard';
-        if (estilo === 'escritorio' && u?.rol === 'ADMINISTRATIVO') {
+        if (estilo === 'escritorio' && u?.rol === 'ADMINISTRATIVO' && esAutoridadCancelo(u)) {
           return 'centro-control';
         }
         if (u && (u.rol === 'PORTERIA' || u.rol === 'SEGURIDAD')) {
@@ -841,7 +841,7 @@ function App() {
       guardarTokenSesion(tokenBypass)
     }
     if (datosNormalizados?.rol === 'ADMINISTRATIVO') {
-      setPantallaAdmin(estiloInterfaz === 'dashboard' ? 'bienvenida' : 'centro-control')
+      setPantallaAdmin(estiloInterfaz === 'dashboard' ? 'bienvenida' : (esAutoridadCancelo(datosNormalizados) ? 'centro-control' : 'bienvenida'))
     } else if (datosNormalizados && (datosNormalizados.rol === 'PORTERIA' || datosNormalizados.rol === 'SEGURIDAD')) {
       setPantallaAdmin('control-ingreso')
     } else {
