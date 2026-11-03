@@ -956,11 +956,18 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
       pantalla: 'gestion-profesores',
     },
     {
+      icono: Armchair,
+      titulo: 'Preparación & Asientos',
+      descripcion: 'Auto-Seating en 1 clic y asignación de butacas a graduados e invitados',
+      pantalla: 'preparacion-ceremonia',
+      badge: 'Auto-Seating',
+    },
+    {
       icono: MapPin,
-      titulo: 'Plano Anfiteatro',
-      descripcion: 'Visualización y asignación de ubicaciones en el plano',
+      titulo: 'Diseño de Anfiteatro',
+      descripcion: 'Configurar dimensiones, filas y sectores del plano',
       pantalla: 'seleccion-asientos',
-      badge: 'Nuevo',
+      badge: 'Matriz',
     },
     {
       icono: Shield,

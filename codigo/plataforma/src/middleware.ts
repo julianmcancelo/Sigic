@@ -20,6 +20,15 @@ export function middleware(request: NextRequest) {
     return NextResponse.json({ error: 'Origen no autorizado.' }, { status: 403 });
   }
   const host = request.headers.get('host')?.split(':')[0]?.toLowerCase();
+  // Si acceden a la plataforma desde www.sigic.com.ar o sigic.com.ar, redirigir a app.sigic.com.ar
+  if (host === 'www.sigic.com.ar' || host === 'sigic.com.ar') {
+    const destino = request.nextUrl.clone();
+    destino.hostname = 'app.sigic.com.ar';
+    destino.protocol = 'https:';
+    destino.port = '';
+    return NextResponse.redirect(destino, { status: 301 });
+  }
+
   if (host === 'app.sigic.com.ar' && request.nextUrl.pathname === '/' && request.nextUrl.searchParams.has('token') && request.nextUrl.searchParams.get('vista') !== 'preview') {
     const destino = request.nextUrl.clone();
     destino.hostname = 'graduados.sigic.com.ar';
@@ -32,4 +41,4 @@ export function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
-export const config = { matcher: ['/', '/api/:path*'] };
+export const config = { matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mp3|ttf|woff|woff2)).*)'] };
