@@ -286,13 +286,13 @@ export function EditorAnfiteatro({ ceremoniaId, onVolver, sinHeader }) {
       <div className="bg-white rounded-3xl border border-slate-300/80 shadow-lg shadow-slate-200/50 p-4 sm:p-6 space-y-4">
         
         {/* CABECERA CON ACCIONES INTEGRADAS EN 1 LÍNEA */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3.5 border-b border-slate-200">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3.5 border-b border-slate-200">
           <div>
             <div className="flex items-center gap-2.5">
-              <h2 className="text-lg sm:text-xl font-black tracking-tight text-slate-900">
+              <h2 className="text-base sm:text-lg font-black tracking-tight text-slate-900">
                 Diseño y Maquetación de Auditorio
               </h2>
-              <span className="px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-900 border border-sky-300 text-[9.5px] font-black uppercase tracking-wider">
+              <span className="px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-900 border border-sky-300 text-[9px] font-black uppercase tracking-wider">
                 Interactivo
               </span>
             </div>
@@ -417,10 +417,10 @@ export function EditorAnfiteatro({ ceremoniaId, onVolver, sinHeader }) {
         )}
 
         {/* CONTENEDOR PRINCIPAL: PANEL LATERAL + MAPA */}
-        <div className="flex flex-col xl:flex-row gap-5 items-start">
+        <div className="flex flex-col lg:flex-row gap-4 items-start">
           
           {/* PANEL DE HERRAMIENTAS Y PINCELES */}
-          <div className="w-full xl:w-72 shrink-0 space-y-4">
+          <div className="w-full lg:w-72 shrink-0 space-y-3">
             
             {/* Pincel de Asignación */}
             <div className="bg-slate-50/80 rounded-2xl p-3.5 border border-slate-300 shadow-2xs space-y-2.5">
