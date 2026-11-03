@@ -65,8 +65,9 @@ export const CANONICAL_MAP = {
   'despacho-credenciales': 'despacho-credenciales',
   'credenciales': 'despacho-credenciales',
   'asistente-operativo': 'asistente-operativo',
-  'butacas': 'seleccion-asientos',
-  'seleccion-asientos': 'seleccion-asientos',
+  'butacas': 'preparacion-ceremonia',
+  'seleccion-asientos': 'preparacion-ceremonia',
+  'diseno-anfiteatro': 'seleccion-asientos',
   'acreditacion': 'control-ingreso',
   'control-ingreso': 'control-ingreso',
   'envivo': 'estado-ceremonia',
@@ -1004,7 +1005,7 @@ export function PantallaBienvenidaPro({
             />
           )}
 
-          {/* VISTA 6: BUTACAS */}
+          {/* VISTA: BUTACAS / PREPARACION CEREMONIA */}
           {(vistaActiva === 'butacas' || vistaActiva === 'preparacion-ceremonia') && (
             <PreparacionCeremonia 
               onVolver={() => manejarNavegar('bienvenida')}
@@ -1014,7 +1015,7 @@ export function PantallaBienvenidaPro({
           )}
 
           {/* VISTA DISENO ANFITEATRO */}
-          {(vistaActiva === 'diseno-anfiteatro' || vistaActiva === 'seleccion-asientos') && (
+          {vistaActiva === 'diseno-anfiteatro' && (
             <EditorAnfiteatro 
               sinHeader={true}
               onVolver={() => manejarNavegar('bienvenida')}

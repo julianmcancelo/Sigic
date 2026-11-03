@@ -582,9 +582,9 @@ function CircuitoOperativoPasos({ ceremonia, onNavegar, onAbrirCrearCircuito, on
     {
       numero: '04',
       etiqueta: 'BUTACAS',
-      titulo: 'Anfiteatro',
+      titulo: 'Preparación',
       detalle: planoConfigurado ? 'Distribución asignada' : 'Auto-Seating en 1 clic',
-      destino: 'seleccion-asientos',
+      destino: 'preparacion-ceremonia',
       icono: Armchair,
       color: 'cyan',
       completado: paso4Completado,
