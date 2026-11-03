@@ -57,20 +57,13 @@ export function ModalGestionFamiliaresAdmin({ egresado, onCerrar, onActualizado 
     setGuardando(true)
     setError('')
     try {
-      const payload = [
-        ...invitados.map(inv => ({
-          nombre: inv.nombre,
-          dni: inv.dni || '',
-          es_padrino: Boolean(inv.es_padrino || inv.esPadrino)
-        })),
-        {
-          nombre: nuevoNombre.trim(),
-          dni: dniLimpio,
-          es_padrino: esPadrino
-        }
-      ]
+      const nuevoInvitado = {
+        nombre: nuevoNombre.trim(),
+        dni: dniLimpio,
+        es_padrino: esPadrino
+      }
 
-      await cargarInvitados(null, payload, egresado.id)
+      await cargarInvitados(null, [nuevoInvitado], egresado.id)
       setNuevoNombre('')
       setNuevoDni('')
       setEsPadrino(false)
