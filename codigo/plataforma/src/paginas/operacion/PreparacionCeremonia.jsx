@@ -3,7 +3,8 @@ import {
   Armchair, Sparkles, Users, Layers, Save, RotateCcw,
   CheckCircle2, AlertCircle, Search, ArrowRight, ArrowLeft, UserCheck,
   Download, Layout, ShieldCheck, ChevronRight, ChevronLeft,
-  X, Info, GraduationCap, ZoomIn, ZoomOut, Check, Award, RefreshCw, ScrollText, Scale
+  X, Info, GraduationCap, ZoomIn, ZoomOut, Check, Award, RefreshCw, ScrollText, Scale,
+  AlertTriangle, CheckCheck, Filter
 } from 'lucide-react'
 import {
   BASE,
@@ -43,6 +44,7 @@ export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: cer
   const [rolPincel, setRolPincel] = useState('egresado')
   const [verProtocoloJuramento, setVerProtocoloJuramento] = useState(false)
   const [filtroJuramento, setFiltroJuramento] = useState('TODOS') // 'TODOS' | 'DIOS_Y_PATRIA' | 'PATRIA' | 'SIN_DEFINIR'
+  const [filtroAsignacion, setFiltroAsignacion] = useState('TODOS') // 'TODOS' | 'SIN_ASIENTO' | 'CON_ASIENTO'
   const [estructura, setEstructura] = useState({
     baja: { filas: 7, asientos: 20 },
     alta: { filas: 5, asientos: 22 }
@@ -326,6 +328,10 @@ export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: cer
 
   // Filtrado de graduados para la pestaña de lista
   const graduadosFiltrados = graduados.filter(g => {
+    // Filtro por asignación de butaca
+    if (filtroAsignacion === 'SIN_ASIENTO' && g.asiento_id) return false
+    if (filtroAsignacion === 'CON_ASIENTO' && !g.asiento_id) return false
+
     // Filtro por juramento
     if (filtroJuramento === 'DIOS_Y_PATRIA' && !(g.formula_juramento || '').toUpperCase().includes('DIOS')) return false
     if (filtroJuramento === 'PATRIA' && (g.formula_juramento || '').toUpperCase() !== 'PATRIA') return false
@@ -341,6 +347,10 @@ export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: cer
       (g.formula_juramento && g.formula_juramento.toLowerCase().includes(q))
     )
   })
+
+  // Diagnóstico inteligente de la ceremonia
+  const graduadosSinButaca = graduados.filter(g => !g.asiento_id)
+  const egresadosSinAsignarCount = graduadosSinButaca.length
 
   return (
     <div className="font-sans space-y-2.5 w-full mx-auto pb-4">
@@ -779,9 +789,73 @@ export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: cer
 
       {/* PESTAÑA: LISTA DE GRADUADOS Y ASIGNACIONES */}
       {pestana === 'graduados' && (
-        <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden space-y-0">
           
-          {/* Barra de búsqueda y Filtro por Juramento */}
+          {/* BANNER INTELIGENTE DE ESTADO */}
+          {egresadosSinAsignarCount > 0 ? (
+            <div className="p-3 bg-gradient-to-r from-amber-500/10 via-amber-50 to-white border-b border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                  <AlertTriangle size={15} />
+                </div>
+                <div>
+                  <h4 className="text-xs font-black text-amber-950 flex items-center gap-1.5">
+                    Atención Administrativa: Graduados sin ubicación en el anfiteatro
+                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-amber-200 text-amber-900 uppercase">
+                      {egresadosSinAsignarCount} pendientes
+                    </span>
+                  </h4>
+                  <p className="text-[10.5px] text-amber-900/80 font-medium">
+                    Hay {egresadosSinAsignarCount} de {graduados.length} estudiantes que aún no tienen una butaca asignada para recibir su diploma.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
+                <button
+                  type="button"
+                  onClick={() => setMostrarModalAutoAsignar(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white text-[10.5px] font-black shadow-xs transition active:scale-95 cursor-pointer"
+                >
+                  <Sparkles size={12} />
+                  <span>Auto-Asignar en 1 Clic</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFiltroAsignacion(filtroAsignacion === 'SIN_ASIENTO' ? 'TODOS' : 'SIN_ASIENTO')}
+                  className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-[10.5px] font-bold transition cursor-pointer ${
+                    filtroAsignacion === 'SIN_ASIENTO'
+                      ? 'bg-amber-600 text-white border-amber-600 shadow-2xs'
+                      : 'bg-white border-amber-300 text-amber-900 hover:bg-amber-100/60'
+                  }`}
+                >
+                  <Filter size={11} />
+                  <span>{filtroAsignacion === 'SIN_ASIENTO' ? 'Viendo sin butaca' : `Filtrar sin butaca (${egresadosSinAsignarCount})`}</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="p-2.5 px-3.5 bg-gradient-to-r from-emerald-500/10 via-emerald-50 to-white border-b border-emerald-200 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="w-5 h-5 rounded-md bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                  <CheckCheck size={13} />
+                </span>
+                <div>
+                  <p className="text-xs font-black text-emerald-950">
+                    ¡Todos los estudiantes tienen su butaca asignada! ({graduados.length}/{graduados.length})
+                  </p>
+                  <p className="text-[10px] text-emerald-800/80 font-medium">
+                    El plano se encuentra 100% organizado para el acto de colación.
+                  </p>
+                </div>
+              </div>
+              <span className="text-[10px] font-black text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md">
+                Completo
+              </span>
+            </div>
+          )}
+
+          {/* Barra de búsqueda y Filtros */}
           <div className="p-2.5 border-b border-slate-100 flex flex-col md:flex-row items-center justify-between gap-2.5 bg-slate-50/50">
             <div className="relative flex-1 w-full">
               <Search className="absolute left-3 top-2 text-slate-400" size={13} />
@@ -794,44 +868,67 @@ export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: cer
               />
             </div>
 
-            {/* Selector de filtro protocolar de juramento */}
+            {/* Filtros Inteligentes de Butaca y Juramento */}
             <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
-              <span className="text-[9px] font-black uppercase text-slate-400">Jura:</span>
-              <button
-                type="button"
-                onClick={() => setFiltroJuramento('TODOS')}
-                className={`px-2 py-1 rounded text-[9.5px] font-bold transition cursor-pointer ${
-                  filtroJuramento === 'TODOS'
-                    ? 'bg-slate-900 text-white shadow-xs'
-                    : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
-                }`}
-              >
-                Todos ({graduados.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => setFiltroJuramento('DIOS_Y_PATRIA')}
-                className={`px-2 py-1 rounded text-[9.5px] font-bold transition cursor-pointer flex items-center gap-1 ${
-                  filtroJuramento === 'DIOS_Y_PATRIA'
-                    ? 'bg-blue-700 text-white border-blue-800 shadow-xs'
-                    : 'bg-white border border-amber-300 text-amber-900 hover:bg-amber-50/50'
-                }`}
-              >
-                <span>Dios y Patria</span>
-                <span className="text-[8.5px] font-black px-1 py-0.2 rounded bg-amber-200 text-amber-900">{totalDiosYPatria}</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setFiltroJuramento('PATRIA')}
-                className={`px-2 py-1 rounded text-[9.5px] font-bold transition cursor-pointer flex items-center gap-1 ${
-                  filtroJuramento === 'PATRIA'
-                    ? 'bg-sky-600 text-white border-sky-700 shadow-xs'
-                    : 'bg-white border border-sky-300 text-sky-900 hover:bg-sky-50/50'
-                }`}
-              >
-                <span>Por la Patria</span>
-                <span className="text-[8.5px] font-black px-1 py-0.2 rounded bg-sky-200 text-sky-900">{totalPorLaPatria}</span>
-              </button>
+              <div className="flex items-center bg-white p-0.5 rounded-lg border border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setFiltroAsignacion('TODOS')}
+                  className={`px-2 py-0.5 rounded text-[9.5px] font-bold transition cursor-pointer ${
+                    filtroAsignacion === 'TODOS' ? 'bg-slate-900 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Todos ({graduados.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFiltroAsignacion('SIN_ASIENTO')}
+                  className={`px-2 py-0.5 rounded text-[9.5px] font-bold transition cursor-pointer ${
+                    filtroAsignacion === 'SIN_ASIENTO' ? 'bg-amber-600 text-white shadow-2xs' : 'text-amber-800 hover:bg-amber-50'
+                  }`}
+                >
+                  Sin Asignar ({egresadosSinAsignarCount})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFiltroAsignacion('CON_ASIENTO')}
+                  className={`px-2 py-0.5 rounded text-[9.5px] font-bold transition cursor-pointer ${
+                    filtroAsignacion === 'CON_ASIENTO' ? 'bg-emerald-600 text-white shadow-2xs' : 'text-emerald-800 hover:bg-emerald-50'
+                  }`}
+                >
+                  Con Asiento ({graduados.length - egresadosSinAsignarCount})
+                </button>
+              </div>
+
+              <div className="h-4 w-px bg-slate-200 hidden sm:block" />
+
+              {/* Selector de filtro protocolar de juramento */}
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setFiltroJuramento('DIOS_Y_PATRIA')}
+                  className={`px-2 py-1 rounded text-[9.5px] font-bold transition cursor-pointer flex items-center gap-1 ${
+                    filtroJuramento === 'DIOS_Y_PATRIA'
+                      ? 'bg-blue-700 text-white border-blue-800 shadow-xs'
+                      : 'bg-white border border-amber-300 text-amber-900 hover:bg-amber-50/50'
+                  }`}
+                >
+                  <span>Dios y Patria</span>
+                  <span className="text-[8.5px] font-black px-1 py-0.2 rounded bg-amber-200 text-amber-900">{totalDiosYPatria}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFiltroJuramento('PATRIA')}
+                  className={`px-2 py-1 rounded text-[9.5px] font-bold transition cursor-pointer flex items-center gap-1 ${
+                    filtroJuramento === 'PATRIA'
+                      ? 'bg-sky-600 text-white border-sky-700 shadow-xs'
+                      : 'bg-white border border-sky-300 text-sky-900 hover:bg-sky-50/50'
+                  }`}
+                >
+                  <span>Por la Patria</span>
+                  <span className="text-[8.5px] font-black px-1 py-0.2 rounded bg-sky-200 text-sky-900">{totalPorLaPatria}</span>
+                </button>
+              </div>
             </div>
 
             <div className="text-[10px] font-bold text-slate-500 shrink-0">
@@ -893,7 +990,10 @@ export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: cer
                               <Armchair size={11} /> {g.asiento_id}
                             </span>
                           ) : (
-                            <span className="text-slate-400 italic text-[9.5px]">Sin asignar</span>
+                            <span className="inline-flex items-center gap-1 text-[9.5px] font-black text-amber-700 bg-amber-50 border border-amber-300 px-2 py-0.5 rounded-md shadow-2xs">
+                              <AlertTriangle size={10} className="text-amber-600" />
+                              Sin asignar
+                            </span>
                           )}
                         </td>
                         <td className="py-2 px-3">
@@ -925,9 +1025,14 @@ export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: cer
                           <button
                             type="button"
                             onClick={() => setGraduadoParaAsignar(g)}
-                            className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 hover:bg-sky-50 text-slate-700 hover:text-sky-700 border border-slate-200 hover:border-sky-200 rounded-lg text-[10px] font-bold transition cursor-pointer active:scale-95"
+                            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer active:scale-95 ${
+                              !g.asiento_id
+                                ? 'bg-amber-500 hover:bg-amber-600 text-slate-950 font-black shadow-xs'
+                                : 'bg-slate-100 hover:bg-sky-50 text-slate-700 hover:text-sky-700 border border-slate-200 hover:border-sky-200'
+                            }`}
                           >
-                            <Armchair size={11} /> Asignar
+                            <Armchair size={11} />
+                            <span>{!g.asiento_id ? 'Asignar Ahora' : 'Cambiar'}</span>
                           </button>
                         </td>
                       </tr>
