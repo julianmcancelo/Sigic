@@ -19,6 +19,8 @@ import { ModalAsignarAsientos } from '../../componentes/ModalAsignarAsientos'
 import { ModalAutoAsignar } from '../../componentes/ModalAutoAsignar'
 import { ModalResumenDemostracion } from '../../componentes/ModalResumenDemostracion'
 import { ModalDespachoCredenciales } from '../../componentes/ModalDespachoCredenciales'
+import { FormularioGraduado } from '../../componentes/FormularioGraduado'
+import { ModalImportar } from '../../componentes/ModalImportar'
 import { emitirCambioSync, useSincronizacion } from '../../lib/sync'
 
 export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: ceremoniaProp }) {
@@ -34,6 +36,9 @@ export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: cer
   const [mensaje, setMensaje] = useState(null)
   const [mostrarResumenFinal, setMostrarResumenFinal] = useState(false)
   const [mostrarDespachoCredenciales, setMostrarDespachoCredenciales] = useState(false)
+  const [mostrarModalNuevoGraduado, setMostrarModalNuevoGraduado] = useState(false)
+  const [mostrarModalImportar, setMostrarModalImportar] = useState(false)
+  const [asientoDestinoNuevo, setAsientoDestinoNuevo] = useState(null)
   
   // Pestañas
   const [pestana, setPestana] = useState('mapa') // 'mapa' | 'graduados' | 'estructura'
@@ -273,8 +278,19 @@ export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: cer
       return
     }
 
-    // Si no está ocupado por persona, aplicar el pincel de rol
-    setAsientoSeleccionadoInfo(null)
+    // Si no está ocupado por persona
+    const rolActual = mapaRoles[asientoId] || 'disponible'
+    setAsientoSeleccionadoInfo({
+      asientoId,
+      tipo: 'Vacio',
+      rolActual,
+      nombre: 'Butaca Libre / Sin Asignar',
+      dni: null,
+      carrera: null,
+      objeto: null
+    })
+
+    // Aplicar el pincel de rol activo
     setMapaRoles(prev => ({
       ...prev,
       [asientoId]: rolPincel
@@ -389,6 +405,30 @@ export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: cer
         </div>
 
         <div className="flex items-center gap-2 shrink-0 flex-wrap">
+          {/* Botones de Carga Rápida de Alumnos */}
+          <button
+            type="button"
+            onClick={() => {
+              setAsientoDestinoNuevo(null)
+              setMostrarModalNuevoGraduado(true)
+            }}
+            className="inline-flex items-center gap-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white px-3 py-2 text-xs font-bold transition active:scale-95 cursor-pointer border border-white/15"
+            title="Registrar un nuevo graduado en esta ceremonia"
+          >
+            <UserCheck size={14} className="text-sky-400" />
+            <span>Nuevo Graduado</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setMostrarModalImportar(true)}
+            className="inline-flex items-center gap-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white px-3 py-2 text-xs font-bold transition active:scale-95 cursor-pointer border border-white/15"
+            title="Importar lista de egresados desde archivo Excel"
+          >
+            <Download size={14} className="text-emerald-400" />
+            <span>Importar Excel</span>
+          </button>
+
           <button
             id="btn-auto-asignar-butacas"
             type="button"
@@ -620,7 +660,7 @@ export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: cer
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  {asientoSeleccionadoInfo.tipo === 'Egresado' && (
+                  {asientoSeleccionadoInfo.tipo === 'Graduado' && (
                     <button
                       type="button"
                       onClick={() => {
@@ -632,6 +672,22 @@ export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: cer
                       <Armchair size={13} />
                       <span>Reasignar Butaca</span>
                     </button>
+                  )}
+                  {asientoSeleccionadoInfo.tipo === 'Vacio' && (
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAsientoDestinoNuevo(asientoSeleccionadoInfo.asientoId)
+                          setMostrarModalNuevoGraduado(true)
+                        }}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-[11px] font-bold shadow-xs transition active:scale-95 cursor-pointer"
+                        title="Registrar y sentar un nuevo egresado en esta butaca"
+                      >
+                        <UserCheck size={13} />
+                        <span>Cargar Egresado Aquí</span>
+                      </button>
+                    </div>
                   )}
                   <button
                     type="button"
@@ -1225,6 +1281,81 @@ export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: cer
           onReiniciar={() => {
             setMostrarResumenFinal(false)
             window.location.reload()
+          }}
+        />
+      )}
+
+      {/* MODAL REGISTRAR NUEVO GRADUADO */}
+      {mostrarModalNuevoGraduado && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/70 backdrop-blur-xs p-3">
+          <div className="w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-5 py-3.5 bg-slate-900 text-white flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-sky-400">
+                  {asientoDestinoNuevo ? `Asignación Inmediata · Butaca ${asientoDestinoNuevo}` : 'Padrón de la Ceremonia'}
+                </span>
+                <h3 className="text-sm font-black">Registrar Nuevo Graduado</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setMostrarModalNuevoGraduado(false)
+                  setAsientoDestinoNuevo(null)
+                }}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="p-5 max-h-[80vh] overflow-y-auto">
+              <FormularioGraduado
+                enModal={true}
+                onCancelar={() => {
+                  setMostrarModalNuevoGraduado(false)
+                  setAsientoDestinoNuevo(null)
+                }}
+                onCreado={async (nuevoGraduado) => {
+                  setMostrarModalNuevoGraduado(false)
+                  
+                  // Si se abrió haciendo clic en una butaca vacía, sentarlo directamente allí
+                  if (asientoDestinoNuevo && nuevoGraduado?.id) {
+                    try {
+                      await fetch(`${BASE}/egresados/${nuevoGraduado.id}/asiento`, {
+                        method: 'PUT',
+                        headers: cabeceras(),
+                        body: JSON.stringify({ asientoId: asientoDestinoNuevo })
+                      })
+                      emitirCambioSync('BUTACAS', { asientoId: asientoDestinoNuevo })
+                      setMensaje({ tipo: 'exito', texto: `Graduado ${nuevoGraduado.nombre} registrado y asignado a la butaca ${asientoDestinoNuevo}.` })
+                    } catch (e) {
+                      setMensaje({ tipo: 'advertencia', texto: `Graduado registrado, pero no se pudo vincular a la butaca ${asientoDestinoNuevo}.` })
+                    }
+                  } else {
+                    setMensaje({ tipo: 'exito', texto: `Graduado ${nuevoGraduado.nombre} agregado al padrón.` })
+                  }
+                  
+                  setAsientoDestinoNuevo(null)
+                  await cargarDatos()
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL IMPORTACIÓN MASIVA EXCEL */}
+      {mostrarModalImportar && (
+        <ModalImportar
+          graduadosExistentes={graduados}
+          onCerrar={() => setMostrarModalImportar(false)}
+          onCompletado={async () => {
+            setMostrarModalImportar(false)
+            await cargarDatos()
+            setMensaje({ tipo: 'exito', texto: 'Padrón importado correctamente desde Excel.' })
+          }}
+          onActualizarPadron={async () => {
+            await cargarDatos()
           }}
         />
       )}
