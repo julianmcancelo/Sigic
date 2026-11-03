@@ -25,6 +25,7 @@ import { DespachoCredenciales } from './DespachoCredenciales'
 import { GestionProfesores } from './GestionProfesores'
 import { ControlIngreso } from './ControlIngreso'
 import { EditorAnfiteatro } from './EditorAnfiteatro'
+import { PreparacionCeremonia } from './PreparacionCeremonia'
 import { EstadoCeremonia } from './EstadoCeremonia'
 import { PanelAjustes } from './PanelAjustes'
 import { PanelReportes } from './PanelReportes'
@@ -1004,8 +1005,17 @@ export function PantallaBienvenidaPro({
             />
           )}
 
-          {/* VISTA: BUTACAS */}
-          {vistaActiva === 'seleccion-asientos' && (
+          {/* VISTA 6: BUTACAS */}
+          {(vistaActiva === 'butacas' || vistaActiva === 'preparacion-ceremonia') && (
+            <PreparacionCeremonia 
+              onVolver={() => manejarNavegar('bienvenida')}
+              onNavegar={manejarNavegar}
+              ceremoniaActiva={ceremoniaActiva}
+            />
+          )}
+
+          {/* VISTA DISENO ANFITEATRO */}
+          {(vistaActiva === 'diseno-anfiteatro' || vistaActiva === 'seleccion-asientos') && (
             <EditorAnfiteatro 
               sinHeader={true}
               onVolver={() => manejarNavegar('bienvenida')}

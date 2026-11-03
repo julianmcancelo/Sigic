@@ -104,6 +104,22 @@ const nextConfig: NextConfig = {
   outputFileTracingIncludes: {
     '/api/[...slug]': ['./node_modules/pdfkit/js/data/**/*'],
   },
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host' as const, value: 'www.sigic.com.ar' }],
+        destination: 'https://app.sigic.com.ar/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [{ type: 'host' as const, value: 'sigic.com.ar' }],
+        destination: 'https://app.sigic.com.ar/:path*',
+        permanent: true,
+      },
+    ];
+  },
   async rewrites() {
     const descargas = {
       source: '/',

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import {
   Armchair, Sparkles, Users, Layers, Save, RotateCcw,
-  CheckCircle2, AlertCircle, Search, ArrowRight, UserCheck,
+  CheckCircle2, AlertCircle, Search, ArrowRight, ArrowLeft, UserCheck,
   Download, Layout, ShieldCheck, ChevronRight, ChevronLeft,
   X, Info, GraduationCap, ZoomIn, ZoomOut, Check, Award, RefreshCw, ScrollText, Scale
 } from 'lucide-react'
@@ -20,7 +20,7 @@ import { ModalResumenDemostracion } from '../../componentes/ModalResumenDemostra
 import { ModalDespachoCredenciales } from '../../componentes/ModalDespachoCredenciales'
 import { emitirCambioSync, useSincronizacion } from '../../lib/sync'
 
-export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp }) {
+export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: ceremoniaProp }) {
   const [ceremonia, setCeremonia] = useState(ceremoniaProp || null)
   const solicitudDatos = useRef(0)
   const ceremoniaActual = useRef(ceremoniaProp)
@@ -345,11 +345,21 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
   return (
     <div className="font-sans space-y-2.5 max-w-7xl mx-auto pb-4">
       
-      {/* HEADER INTEGRADO */}
-      <header className="rounded-2xl bg-slate-900 px-4 py-3 text-white shadow-xs flex flex-wrap items-center justify-between gap-3 border border-slate-800">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-400/20 text-sky-400 flex items-center justify-center shrink-0">
-            <Armchair size={20} />
+      {/* HEADER ULTRA COMPACTO */}
+      <header className="rounded-xl bg-slate-900 px-4 py-2.5 text-white shadow-sm flex flex-wrap items-center justify-between gap-2.5 border border-slate-800">
+        <div className="flex items-center gap-2.5 min-w-0">
+          {onVolver && (
+            <button
+              type="button"
+              onClick={onVolver}
+              className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center shrink-0 transition-colors cursor-pointer"
+              title="Volver"
+            >
+              <ArrowLeft size={16} />
+            </button>
+          )}
+          <div className="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-400/20 text-sky-400 flex items-center justify-center shrink-0">
+            <Armchair size={17} />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-2">
@@ -599,14 +609,29 @@ export function PreparacionCeremonia({ onNavegar, ceremoniaActiva: ceremoniaProp
                     </p>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setAsientoSeleccionadoInfo(null)}
-                  className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-white/80 rounded-lg cursor-pointer transition"
-                  title="Cerrar detalle"
-                >
-                  <X size={15} />
-                </button>
+                <div className="flex items-center gap-2">
+                  {asientoSeleccionadoInfo.tipo === 'Egresado' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const grad = graduados.find(g => g.id === asientoSeleccionadoInfo.objeto?.id || g.asiento_id === asientoSeleccionadoInfo.asientoId)
+                        if (grad) setGraduadoParaAsignar(grad)
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold shadow-xs transition active:scale-95 cursor-pointer"
+                    >
+                      <Armchair size={13} />
+                      <span>Reasignar Butaca</span>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setAsientoSeleccionadoInfo(null)}
+                    className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-white/80 rounded-lg cursor-pointer transition"
+                    title="Cerrar detalle"
+                  >
+                    <X size={15} />
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="w-full mb-2 px-3 py-1.5 bg-slate-50 border border-slate-200/80 rounded-lg flex items-center justify-between text-[11px] text-slate-500">
