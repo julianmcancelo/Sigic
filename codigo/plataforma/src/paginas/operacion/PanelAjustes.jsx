@@ -3,7 +3,7 @@ import {
   Settings, Save, RefreshCw, Building2, Users, MapPin, 
   Globe, Shield, ChevronRight, LogOut, LayoutGrid, Monitor, SlidersHorizontal,
   Fingerprint, CheckCircle2, Mail, Send, CircleCheck, CircleAlert,
-  Palette, Check, Grid, Layers, Sparkles, GraduationCap, BookOpen, Plus, Trash2, Edit3, Award, X
+  Palette, Check, Grid, Layers, Sparkles, GraduationCap, BookOpen, Plus, Trash2, Edit3, Award, X, Armchair
 } from 'lucide-react'
 import { 
   obtenerAjustes, actualizarAjuste, enviarCorreoPrueba,
@@ -11,6 +11,7 @@ import {
 } from '../../servicios/api'
 import { FONDOS_DISPONIBLES } from '../../datos/fondos-pantalla'
 import { AnimatedThemeToggler } from '../../componentes/AnimatedThemeToggler'
+import { EditorAnfiteatro } from './EditorAnfiteatro'
 
 const INTERRUPTORES_ACTIVOS_POR_DEFECTO = { modo_mantenimiento: false }
 
@@ -247,6 +248,7 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
   const secciones = [
     { id: 'plataforma', nombre: 'Plataforma', detalle: 'Comportamiento y accesos', icono: SlidersHorizontal },
     { id: 'academico', nombre: 'Académico', detalle: 'Carreras, materias y docentes', icono: GraduationCap },
+    { id: 'anfiteatro', nombre: 'Auditorio', detalle: 'Diseño base de butacas', icono: Armchair },
     { id: 'identidad', nombre: 'Identidad', detalle: 'Institución y presentación', icono: Building2 },
     { id: 'apariencia', nombre: 'Apariencia', detalle: 'Fondos y estilos visuales', icono: Palette },
     { id: 'ceremonia', nombre: 'Reglas y Cupos', detalle: 'Parámetros por defecto', icono: LayoutGrid },
@@ -314,7 +316,7 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
       </div>
 
       {/* Pestañas de navegación compactas */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2">
         {secciones.map(({ id, nombre, detalle, icono: Icono }) => {
           const activa = seccionActiva === id
           return (
@@ -460,6 +462,17 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
                   </div>
                 </div>
               )}
+            </section>
+          )}
+
+          {/* SECCIÓN: MAQUETACIÓN Y DISEÑO DEL AUDITORIO */}
+          {seccionActiva === 'anfiteatro' && (
+            <section className="space-y-3">
+              <EditorAnfiteatro
+                ceremoniaId={ceremoniaActiva?.id}
+                sinHeader={true}
+                onVolver={() => setSeccionActiva('plataforma')}
+              />
             </section>
           )}
 
@@ -633,11 +646,11 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
           {/* Pie de accesos rápidos */}
           <div className="flex items-center justify-between pt-3 border-t border-slate-100">
             <button
-              onClick={() => onNavegar('seleccion-asientos')}
+              onClick={() => setSeccionActiva('anfiteatro')}
               className="text-xs font-bold text-slate-600 hover:text-sky-600 flex items-center gap-1 cursor-pointer"
             >
-              <LayoutGrid size={13} />
-              <span>Diseñar Anfiteatro</span>
+              <Armchair size={13} />
+              <span>Diseñar Auditorio</span>
             </button>
             <button
               onClick={onCerrarSesion}

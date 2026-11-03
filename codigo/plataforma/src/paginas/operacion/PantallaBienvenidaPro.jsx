@@ -440,7 +440,7 @@ export function PantallaBienvenidaPro({
               {renderMenuItem(CalendarPlus, '1. Inicializar', 'gestion-ceremonias')}
               {renderMenuItem(GraduationCap, '2. Graduados', 'gestion-graduados', `${graduados.length || 0}`)}
               {renderMenuItem(Send, '3. Convocatoria', 'convocatoria')}
-              {renderMenuItem(Armchair, '4. Butacas', 'seleccion-asientos')}
+              {renderMenuItem(Armchair, '4. Butacas', 'preparacion-ceremonia')}
               {renderMenuItem(ScanLine, '5. Acreditación', 'control-ingreso')}
               {renderMenuItem(Activity, '6. En Vivo', 'estado-ceremonia')}
             </>
@@ -681,7 +681,7 @@ export function PantallaBienvenidaPro({
 
                   {/* PASO 4 */}
                   <button
-                    onClick={() => manejarNavegar('seleccion-asientos')}
+                    onClick={() => manejarNavegar('preparacion-ceremonia')}
                     className="text-left p-4 rounded-2xl border transition-all duration-200 hover:-translate-y-0.5 cursor-pointer bg-slate-50/70 hover:bg-white border-slate-200/70 hover:border-cyan-300 hover:shadow-md group"
                   >
                     <div className="flex items-center justify-between mb-2">

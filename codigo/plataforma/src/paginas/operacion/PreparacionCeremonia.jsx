@@ -343,7 +343,7 @@ export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: cer
   })
 
   return (
-    <div className="font-sans space-y-2.5 max-w-7xl mx-auto pb-4">
+    <div className="font-sans space-y-2.5 w-full mx-auto pb-4">
       
       {/* HEADER ULTRA COMPACTO */}
       <header className="rounded-xl bg-slate-900 px-4 py-2.5 text-white shadow-sm flex flex-wrap items-center justify-between gap-2.5 border border-slate-800">
@@ -367,7 +367,7 @@ export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: cer
                 Distribución y Asignación de Butacas
               </h2>
               {ceremonia && (
-                <span className="text-xs font-bold text-slate-300 bg-white/10 px-2 py-0.5 rounded-lg shrink-0 truncate max-w-[160px]">
+                <span className="text-xs font-bold text-slate-300 bg-white/10 px-2 py-0.5 rounded-lg shrink-0 truncate max-w-[200px]">
                   {ceremonia.nombre}
                 </span>
               )}
@@ -432,59 +432,59 @@ export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: cer
         </div>
       )}
 
-      {/* KPI STATS BAR */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
-            <Layers size={18} />
+      {/* KPI STATS BAR COMPACTO */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-2.5">
+        <div className="p-2.5 sm:p-3 bg-white rounded-xl border border-slate-200/80 shadow-xs flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+            <Layers size={16} />
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">Capacidad</p>
-            <p className="text-sm sm:text-base font-black text-slate-900 leading-tight truncate">{totalCapacidad} butacas</p>
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider truncate">Capacidad</p>
+            <p className="text-xs sm:text-sm font-black text-slate-900 leading-tight truncate">{totalCapacidad} butacas</p>
           </div>
         </div>
 
-        <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
-            <UserCheck size={18} />
+        <div className="p-2.5 sm:p-3 bg-white rounded-xl border border-slate-200/80 shadow-xs flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+            <UserCheck size={16} />
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-bold text-indigo-700 uppercase tracking-wider truncate">Graduados</p>
-            <p className="text-sm sm:text-base font-black text-slate-900 leading-tight truncate">
-              {graduadosConAsiento.length} <span className="text-xs text-slate-400 font-bold">/ {graduados.length}</span>
+            <p className="text-[10px] font-bold text-indigo-700 uppercase tracking-wider truncate">Graduados</p>
+            <p className="text-xs sm:text-sm font-black text-slate-900 leading-tight truncate">
+              {graduadosConAsiento.length} <span className="text-[10px] text-slate-400 font-bold">/ {graduados.length}</span>
             </p>
           </div>
         </div>
 
-        <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-            <Users size={18} />
+        <div className="p-2.5 sm:p-3 bg-white rounded-xl border border-slate-200/80 shadow-xs flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+            <Users size={16} />
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-bold text-amber-700 uppercase tracking-wider truncate">Acompañantes</p>
-            <p className="text-sm sm:text-base font-black text-slate-900 leading-tight truncate">
-              {invitadosConAsiento.length} <span className="text-xs text-slate-400 font-bold">/ {invitados.length}</span>
+            <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider truncate">Acompañantes</p>
+            <p className="text-xs sm:text-sm font-black text-slate-900 leading-tight truncate">
+              {invitadosConAsiento.length} <span className="text-[10px] text-slate-400 font-bold">/ {invitados.length}</span>
             </p>
           </div>
         </div>
 
-        <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
-            <Armchair size={18} />
+        <div className="p-2.5 sm:p-3 bg-white rounded-xl border border-slate-200/80 shadow-xs flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
+            <Armchair size={16} />
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-bold text-sky-700 uppercase tracking-wider truncate">Ocupadas</p>
-            <p className="text-sm sm:text-base font-black text-slate-900 leading-tight truncate">{totalOcupados} asientos</p>
+            <p className="text-[10px] font-bold text-sky-700 uppercase tracking-wider truncate">Ocupadas</p>
+            <p className="text-xs sm:text-sm font-black text-slate-900 leading-tight truncate">{totalOcupados} asientos</p>
           </div>
         </div>
 
-        <div className="p-3.5 bg-white rounded-2xl border border-slate-200/80 shadow-xs flex items-center gap-3 col-span-2 sm:col-span-1">
-          <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-            <CheckCircle2 size={18} />
+        <div className="p-2.5 sm:p-3 bg-white rounded-xl border border-slate-200/80 shadow-xs flex items-center gap-2.5 col-span-2 sm:col-span-1">
+          <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <CheckCircle2 size={16} />
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-bold text-emerald-700 uppercase tracking-wider truncate">Disponibles</p>
-            <p className="text-sm sm:text-base font-black text-slate-900 leading-tight truncate">{disponibles} libres</p>
+            <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider truncate">Disponibles</p>
+            <p className="text-xs sm:text-sm font-black text-slate-900 leading-tight truncate">{disponibles} libres</p>
           </div>
         </div>
       </div>
