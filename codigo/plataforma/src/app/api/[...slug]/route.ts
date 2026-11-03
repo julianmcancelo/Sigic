@@ -3301,15 +3301,21 @@ export async function POST(
         }
 
         for (const inv of nuevos) {
-          const existRes = await client.query(
-            `SELECT i.id FROM invitados i
-             JOIN egresados e ON e.id = i.egresado_id
-             WHERE e.ceremonia_id = $1
-               AND REGEXP_REPLACE(COALESCE(i.dni, ''), '[^0-9]', '', 'g') = $2`,
-            [egresado.ceremonia_id, String(inv.dni || '').replace(/\D/g, '')]
-          );
-          if (existRes.rows.length > 0) {
-            throw new Error(`El DNI ${inv.dni} ya está registrado en el sistema.`);
+          const dniLimpio = String(inv.dni || '').replace(/\D/g, '');
+          if (dniLimpio) {
+            const existRes = await client.query(
+              `SELECT i.id, i.nombre, e.nombre AS titular
+               FROM invitados i
+               JOIN egresados e ON e.id = i.egresado_id
+               WHERE e.ceremonia_id = $1
+                 AND e.id != $2
+                 AND REGEXP_REPLACE(COALESCE(i.dni, ''), '[^0-9]', '', 'g') = $3`,
+              [egresado.ceremonia_id, egresado.id, dniLimpio]
+            );
+            if (existRes.rows.length > 0) {
+              const prev = existRes.rows[0];
+              throw new Error(`El DNI ${inv.dni} ya está registrado como acompañante (${prev.nombre}) de ${prev.titular} en esta ceremonia.`);
+            }
           }
         }
 

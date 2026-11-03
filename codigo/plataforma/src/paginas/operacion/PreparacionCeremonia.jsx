@@ -23,7 +23,7 @@ import { ModalResumenDemostracion } from '../../componentes/ModalResumenDemostra
 import { ModalDespachoCredenciales } from '../../componentes/ModalDespachoCredenciales'
 import { FormularioGraduado } from '../../componentes/FormularioGraduado'
 import { ModalImportar } from '../../componentes/ModalImportar'
-import { ModalGestionFamiliaresAdmin } from '../../componentes/ModalGestionFamiliaresAdmin'
+import { ModalGestionPresencialGraduado } from '../../componentes/ModalGestionPresencialGraduado'
 import { emitirCambioSync, useSincronizacion } from '../../lib/sync'
 
 export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: ceremoniaProp }) {
@@ -1532,7 +1532,7 @@ export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: cer
 
       {/* MODAL GESTION FAMILIARES ASISTIDA POR ADMINISTRATIVO */}
       {graduadoFamiliares && (
-        <ModalGestionFamiliaresAdmin
+        <ModalGestionPresencialGraduado
           egresado={graduadoFamiliares}
           onCerrar={() => setGraduadoFamiliares(null)}
           onActualizado={async () => {

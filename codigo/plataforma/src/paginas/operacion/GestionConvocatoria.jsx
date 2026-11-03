@@ -18,7 +18,7 @@ import { useSincronizacion } from '../../lib/sync'
 import { useConfirmacion } from '../../componentes/ModalConfirmacion'
 import { ModalPreviewCorreo } from '../../componentes/ModalPreviewCorreo'
 import { ModalDespachoMasivo } from '../../componentes/ModalDespachoMasivo'
-import { ModalGestionFamiliaresAdmin } from '../../componentes/ModalGestionFamiliaresAdmin'
+import { ModalGestionPresencialGraduado } from '../../componentes/ModalGestionPresencialGraduado'
 
 const PESTANAS = [
   { id: 'TODOS', etiqueta: 'Todos' },
@@ -936,7 +936,7 @@ export function GestionConvocatoria({ onNavegar, usuario, ceremoniaActiva: cerem
 
       {/* MODAL GESTION FAMILIARES ASISTIDA POR ADMINISTRATIVO */}
       {graduadoFamiliares && (
-        <ModalGestionFamiliaresAdmin
+        <ModalGestionPresencialGraduado
           egresado={graduadoFamiliares}
           onCerrar={() => setGraduadoFamiliares(null)}
           onActualizado={() => {
