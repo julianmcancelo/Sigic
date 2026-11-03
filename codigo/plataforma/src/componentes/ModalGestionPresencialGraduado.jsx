@@ -182,7 +182,7 @@ export function ModalGestionPresencialGraduado({ egresado: egresadoInicial, onCe
       await asignarEntregador({
         egresado_id: egresado.id,
         nombre: prof.nombre,
-        tipo: 'DOCENTE',
+        tipo: 'PROFESOR',
         profesor_id: prof.id
       })
       setProfesorSeleccionado('')
