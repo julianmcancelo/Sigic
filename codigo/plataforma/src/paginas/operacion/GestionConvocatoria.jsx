@@ -18,12 +18,14 @@ import { useSincronizacion } from '../../lib/sync'
 import { useConfirmacion } from '../../componentes/ModalConfirmacion'
 import { ModalPreviewCorreo } from '../../componentes/ModalPreviewCorreo'
 import { ModalDespachoMasivo } from '../../componentes/ModalDespachoMasivo'
+import { ModalGestionFamiliaresAdmin } from '../../componentes/ModalGestionFamiliaresAdmin'
 
 const PESTANAS = [
   { id: 'TODOS', etiqueta: 'Todos' },
   { id: 'PENDIENTES', etiqueta: 'Por Invitar' },
   { id: 'RESPUESTAS', etiqueta: 'Sin Respuesta' },
   { id: 'ACEPTADOS', etiqueta: 'Confirmados' },
+  { id: 'RECHAZADOS', etiqueta: 'Rechazados / Inasistencias' },
   { id: 'GRUPOS', etiqueta: 'Completando Grupo' },
   { id: 'CREDENCIALES', etiqueta: 'Credenciales Listas' },
   { id: 'SIN_CORREO', etiqueta: 'Sin Correo' },
@@ -49,6 +51,7 @@ export function GestionConvocatoria({ onNavegar, usuario, ceremoniaActiva: cerem
   const [editandoCorreo, setEditandoCorreo] = useState(null)
   const [nuevoCorreo, setNuevoCorreo] = useState('')
   const [guardandoCorreo, setGuardandoCorreo] = useState(false)
+  const [graduadoFamiliares, setGraduadoFamiliares] = useState(null)
 
   async function cargar() {
     setCargando(true)
@@ -139,7 +142,15 @@ export function GestionConvocatoria({ onNavegar, usuario, ceremoniaActiva: cerem
     [graduados]
   )
 
-  // 6. Sin correo: egresados sin dirección de correo registrada
+  // 6. Rechazados / Inasistencias
+  const rechazados = useMemo(() => 
+    graduados.filter(item => 
+      item.estado === 'RECHAZADO' || item.estado_flujo === 'RECHAZADO'
+    ), 
+    [graduados]
+  )
+
+  // 7. Sin correo: egresados sin dirección de correo registrada
   const sinCorreo = useMemo(() => 
     graduados.filter(item => 
       !item.correo && 
@@ -154,6 +165,7 @@ export function GestionConvocatoria({ onNavegar, usuario, ceremoniaActiva: cerem
     if (pestaña === 'PENDIENTES') base = pendientes
     else if (pestaña === 'RESPUESTAS') base = esperandoRespuesta
     else if (pestaña === 'ACEPTADOS') base = aceptados
+    else if (pestaña === 'RECHAZADOS') base = rechazados
     else if (pestaña === 'GRUPOS') base = completandoGrupo
     else if (pestaña === 'CREDENCIALES') base = credencialesListas
     else if (pestaña === 'SIN_CORREO') base = sinCorreo
@@ -440,13 +452,14 @@ export function GestionConvocatoria({ onNavegar, usuario, ceremoniaActiva: cerem
         )}
 
         {/* METRICAS COMPACTAS EN PASTILLAS */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
           {PESTANAS.map(item => {
             let cant = 0
             if (item.id === 'TODOS') cant = graduados.length
             else if (item.id === 'PENDIENTES') cant = pendientes.length
             else if (item.id === 'RESPUESTAS') cant = esperandoRespuesta.length
             else if (item.id === 'ACEPTADOS') cant = aceptados.length
+            else if (item.id === 'RECHAZADOS') cant = rechazados.length
             else if (item.id === 'GRUPOS') cant = completandoGrupo.length
             else if (item.id === 'CREDENCIALES') cant = credencialesListas.length
             else if (item.id === 'SIN_CORREO') cant = sinCorreo.length
@@ -806,14 +819,36 @@ export function GestionConvocatoria({ onNavegar, usuario, ceremoniaActiva: cerem
                           <ExternalLink size={14} />
                         </button>
 
-                        {/* BOTÓN CONFIRMAR MANUAL (SI NO ESTÁ CONFIRMADO O SI HABÍA RECHAZADO) */}
-                        {g.estado !== 'ACEPTADO' && (
+                        {/* BOTÓN GESTIÓN FAMILIARES ASISTIDA */}
+                        <button
+                          type="button"
+                          onClick={() => setGraduadoFamiliares(g)}
+                          className="p-2 rounded-xl bg-slate-100 hover:bg-sky-50 text-slate-700 hover:text-sky-700 transition cursor-pointer flex items-center gap-1 text-xs font-bold"
+                          title="Cargar o modificar familiares/acompañantes presencialmente"
+                        >
+                          <Users size={14} className="text-sky-600" />
+                          <span className="hidden xl:inline">Familiares</span>
+                        </button>
+
+                        {/* BOTÓN CONFIRMAR MANUAL O SUBSANAR RECHAZO ACCIDENTAL */}
+                        {g.estado === 'RECHAZADO' || g.estado_flujo === 'RECHAZADO' ? (
+                          <button
+                            type="button"
+                            onClick={() => confirmarManual(g)}
+                            disabled={ocupado}
+                            className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-black transition cursor-pointer disabled:opacity-40 shrink-0 shadow-xs"
+                            title="Subsanar rechazo y reincorporar al egresado como Confirmado"
+                          >
+                            <RefreshCw size={13} className={ocupado ? 'animate-spin' : ''} />
+                            <span>Subsanar Rechazo</span>
+                          </button>
+                        ) : g.estado !== 'ACEPTADO' && (
                           <button
                             type="button"
                             onClick={() => confirmarManual(g)}
                             disabled={ocupado}
                             className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white border border-emerald-200 text-xs font-black transition cursor-pointer disabled:opacity-40 shrink-0"
-                            title={g.estado === 'RECHAZADO' ? 'Revertir rechazo y confirmar asistencia' : 'Confirmar asistencia del graduado'}
+                            title="Confirmar asistencia del graduado"
                           >
                             <UserCheck size={14} />
                             <span>Confirmar</span>
@@ -894,6 +929,17 @@ export function GestionConvocatoria({ onNavegar, usuario, ceremoniaActiva: cerem
           onCompletado={() => {
             setModalDespachoConfig(null)
             setSeleccionados([])
+            cargar()
+          }}
+        />
+      )}
+
+      {/* MODAL GESTION FAMILIARES ASISTIDA POR ADMINISTRATIVO */}
+      {graduadoFamiliares && (
+        <ModalGestionFamiliaresAdmin
+          egresado={graduadoFamiliares}
+          onCerrar={() => setGraduadoFamiliares(null)}
+          onActualizado={() => {
             cargar()
           }}
         />

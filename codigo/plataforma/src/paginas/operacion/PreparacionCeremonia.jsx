@@ -4,7 +4,8 @@ import {
   CheckCircle2, AlertCircle, Search, ArrowRight, ArrowLeft, UserCheck,
   Download, Layout, ShieldCheck, ChevronRight, ChevronLeft,
   X, Info, GraduationCap, ZoomIn, ZoomOut, Check, Award, RefreshCw, ScrollText, Scale,
-  AlertTriangle, CheckCheck, Filter
+  AlertTriangle, CheckCheck, Filter, Lock, Unlock, Eye, PanelRightClose, PanelRightOpen,
+  UserX, RotateCcw as ReincorporarIcon, HeartHandshake
 } from 'lucide-react'
 import {
   BASE,
@@ -12,6 +13,7 @@ import {
   obtenerGraduados,
   obtenerInvitados,
   autoAsignarButacas,
+  actualizarGraduado,
   cabeceras
 } from '../../servicios/api'
 import { SeleccionAsientos } from '../SeleccionAsientos'
@@ -21,6 +23,7 @@ import { ModalResumenDemostracion } from '../../componentes/ModalResumenDemostra
 import { ModalDespachoCredenciales } from '../../componentes/ModalDespachoCredenciales'
 import { FormularioGraduado } from '../../componentes/FormularioGraduado'
 import { ModalImportar } from '../../componentes/ModalImportar'
+import { ModalGestionFamiliaresAdmin } from '../../componentes/ModalGestionFamiliaresAdmin'
 import { emitirCambioSync, useSincronizacion } from '../../lib/sync'
 
 export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: ceremoniaProp }) {
@@ -43,13 +46,17 @@ export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: cer
   // Pestañas
   const [pestana, setPestana] = useState('mapa') // 'mapa' | 'graduados' | 'estructura'
   
-  // Estado del mapa
+  // Estado del mapa y protección de edición
   const [nivel, setNivel] = useState('baja')
   const [zoom, setZoom] = useState(0.9)
   const [rolPincel, setRolPincel] = useState('egresado')
+  const [modoEdicionSectores, setModoEdicionSectores] = useState(false)
+  const [mostrarPanelLateral, setMostrarPanelLateral] = useState(true)
   const [verProtocoloJuramento, setVerProtocoloJuramento] = useState(false)
   const [filtroJuramento, setFiltroJuramento] = useState('TODOS') // 'TODOS' | 'DIOS_Y_PATRIA' | 'PATRIA' | 'SIN_DEFINIR'
   const [filtroAsignacion, setFiltroAsignacion] = useState('TODOS') // 'TODOS' | 'SIN_ASIENTO' | 'CON_ASIENTO'
+  const [filtroEstadoAsistencia, setFiltroEstadoAsistencia] = useState('TODOS') // 'TODOS' | 'CONFIRMADOS' | 'PENDIENTES' | 'RECHAZADOS'
+  const [graduadoFamiliares, setGraduadoFamiliares] = useState(null)
   const [estructura, setEstructura] = useState({
     baja: { filas: 7, asientos: 20 },
     alta: { filas: 5, asientos: 22 }
@@ -290,11 +297,27 @@ export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: cer
       objeto: null
     })
 
-    // Aplicar el pincel de rol activo
-    setMapaRoles(prev => ({
-      ...prev,
-      [asientoId]: rolPincel
-    }))
+    // Aplicar el pincel de rol activo únicamente si el modo de edición está desbloqueado
+    if (modoEdicionSectores) {
+      setMapaRoles(prev => ({
+        ...prev,
+        [asientoId]: rolPincel
+      }))
+    }
+  }
+
+  // Subsanación de inasistencia / rechazo accidental
+  async function manejarSubsanarRechazo(egresado) {
+    if (!window.confirm(`¿Deseas reincorporar a ${egresado.nombre}? Su estado pasará a Aceptado/Confirmado para que pueda recibir butaca y registrar acompañantes.`)) return
+    try {
+      await actualizarGraduado(egresado.id, { estado: 'ACEPTADO', estado_flujo: 'COMPLETO' })
+      emitirCambioSync('EGRESADOS', { id: egresado.id })
+      setMensaje({ tipo: 'exito', texto: `${egresado.nombre} reincorporado exitosamente como graduado confirmado.` })
+      await cargarDatos()
+      setTimeout(() => setMensaje(null), 4000)
+    } catch (err) {
+      setMensaje({ tipo: 'error', texto: err.message || 'Error al reincorporar graduado.' })
+    }
   }
 
   // Métricas calculadas
@@ -342,8 +365,18 @@ export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: cer
     }
   })
 
+  // Contadores por estado de asistencia
+  const egresadosConfirmados = graduados.filter(g => g.estado === 'ACEPTADO' || g.estado_flujo === 'COMPLETO')
+  const egresadosPendientes = graduados.filter(g => g.estado !== 'ACEPTADO' && g.estado !== 'RECHAZADO')
+  const egresadosRechazados = graduados.filter(g => g.estado === 'RECHAZADO' || g.estado_flujo === 'RECHAZADO')
+
   // Filtrado de graduados para la pestaña de lista
   const graduadosFiltrados = graduados.filter(g => {
+    // Filtro por estado de asistencia
+    if (filtroEstadoAsistencia === 'CONFIRMADOS' && g.estado !== 'ACEPTADO' && g.estado_flujo !== 'COMPLETO') return false
+    if (filtroEstadoAsistencia === 'PENDIENTES' && (g.estado === 'ACEPTADO' || g.estado === 'RECHAZADO' || g.estado_flujo === 'RECHAZADO')) return false
+    if (filtroEstadoAsistencia === 'RECHAZADOS' && g.estado !== 'RECHAZADO' && g.estado_flujo !== 'RECHAZADO') return false
+
     // Filtro por asignación de butaca
     if (filtroAsignacion === 'SIN_ASIENTO' && g.asiento_id) return false
     if (filtroAsignacion === 'CON_ASIENTO' && !g.asiento_id) return false
@@ -578,6 +611,39 @@ export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: cer
 
         {pestana === 'mapa' && (
           <div className="flex items-center gap-2 flex-wrap justify-between sm:justify-end">
+            {/* Botón de Bloqueo / Desbloqueo de Modo Edición */}
+            <button
+              type="button"
+              onClick={() => {
+                setModoEdicionSectores(!modoEdicionSectores)
+                if (!modoEdicionSectores) {
+                  setMostrarPanelLateral(true)
+                }
+              }}
+              className={`px-2.5 py-1 rounded-md text-[10.5px] font-black transition cursor-pointer flex items-center gap-1.5 border shadow-2xs ${
+                modoEdicionSectores
+                  ? 'bg-amber-500 text-slate-950 border-amber-400 ring-2 ring-amber-300/40 animate-pulse'
+                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+              }`}
+              title={modoEdicionSectores ? 'Modo edición activo: clics en butacas vacías modificarán su rol con el pincel' : 'Edición bloqueada: clics en butacas muestran su ficha sin alterar roles'}
+            >
+              {modoEdicionSectores ? <Unlock size={12} className="text-slate-950" /> : <Lock size={12} className="text-slate-500" />}
+              <span>{modoEdicionSectores ? 'Pincel Activo (Desbloqueado)' : 'Edición Bloqueada (Segura)'}</span>
+            </button>
+
+            {/* Botón para Colapsar/Expandir Panel Lateral */}
+            <button
+              type="button"
+              onClick={() => setMostrarPanelLateral(!mostrarPanelLateral)}
+              className="px-2 py-1 rounded-md text-[10.5px] font-bold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition cursor-pointer flex items-center gap-1 shadow-2xs"
+              title={mostrarPanelLateral ? 'Ocultar panel lateral y expandir mapa al 100%' : 'Mostrar panel de herramientas'}
+            >
+              {mostrarPanelLateral ? <PanelRightClose size={12} className="text-slate-500" /> : <PanelRightOpen size={12} className="text-sky-500" />}
+              <span>{mostrarPanelLateral ? 'Ocultar Pinceles' : 'Herramientas'}</span>
+            </button>
+
+            <div className="h-4 w-px bg-slate-200 hidden sm:block" />
+
             {/* Switch Protocolar de Fórmulas de Jura */}
             <button
               type="button"
@@ -628,8 +694,8 @@ export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: cer
       {pestana === 'mapa' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-start">
           
-          {/* MAPA PRINCIPAL (8 COLS) */}
-          <div className="lg:col-span-8 xl:col-span-9 bg-white rounded-xl border border-slate-200/90 p-3 shadow-2xs flex flex-col items-center min-h-[460px] overflow-hidden">
+          {/* MAPA PRINCIPAL (Ocupa 12 cols si panel está colapsado, o 8-9 cols si está visible) */}
+          <div className={`${mostrarPanelLateral ? 'lg:col-span-8 xl:col-span-9' : 'col-span-12 w-full'} bg-white rounded-xl border border-slate-200/90 p-3 shadow-2xs flex flex-col items-center min-h-[460px] overflow-hidden transition-all duration-300`}>
             
             {/* Info si se cliquea una butaca */}
             {asientoSeleccionadoInfo ? (
@@ -770,8 +836,9 @@ export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: cer
             </div>
           </div>
 
-          {/* PANEL LATERAL DE PINCELES Y ZOOM (4 COLS) */}
-          <div className="lg:col-span-4 xl:col-span-3 space-y-2.5">
+          {/* PANEL LATERAL DE PINCELES Y ZOOM (4 COLS O COLAPSADO) */}
+          {mostrarPanelLateral && (
+            <div className="lg:col-span-4 xl:col-span-3 space-y-2.5 animate-in fade-in slide-in-from-right-2 duration-200">
             
             {/* Pinceles de Rol Compactos */}
             <div className="bg-white rounded-xl border border-slate-200/90 p-3 shadow-2xs space-y-2">
@@ -779,8 +846,28 @@ export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: cer
                 <h4 className="text-[9.5px] font-black uppercase tracking-wider text-slate-600 flex items-center gap-1">
                   <ShieldCheck size={13} className="text-sky-500" /> Pincel de Sectores
                 </h4>
-                <span className="text-[8.5px] font-bold text-slate-400">Clic para pintar</span>
+                <span className={`text-[8.5px] font-bold px-1.5 py-0.5 rounded ${modoEdicionSectores ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-500'}`}>
+                  {modoEdicionSectores ? 'Desbloqueado' : 'Solo lectura'}
+                </span>
               </div>
+
+              {!modoEdicionSectores && (
+                <div className="p-2 rounded-lg bg-slate-50 border border-slate-200/80 text-[10px] text-slate-600 space-y-1">
+                  <p className="font-bold flex items-center gap-1 text-slate-800">
+                    <Lock size={11} className="text-amber-600" /> Edición protegida
+                  </p>
+                  <p className="text-[9px] text-slate-500 leading-tight">
+                    El plano está bloqueado contra cambios accidentales. Habilitá el pincel para pintar sectores.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setModoEdicionSectores(true)}
+                    className="mt-1 w-full bg-slate-900 hover:bg-slate-800 text-white font-black text-[9px] uppercase tracking-wider py-1 rounded transition cursor-pointer"
+                  >
+                    Habilitar Pincel de Edición
+                  </button>
+                </div>
+              )}
 
               <div className="grid grid-cols-1 gap-1">
                 {[
@@ -840,6 +927,7 @@ export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: cer
               </div>
             </div>
           </div>
+        )}
         </div>
       )}
 
@@ -924,8 +1012,49 @@ export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: cer
               />
             </div>
 
-            {/* Filtros Inteligentes de Butaca y Juramento */}
+            {/* Filtros Inteligentes de Estado de Asistencia, Butaca y Juramento */}
             <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+              {/* Filtro por estado de asistencia */}
+              <div className="flex items-center bg-white p-0.5 rounded-lg border border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setFiltroEstadoAsistencia('TODOS')}
+                  className={`px-2 py-0.5 rounded text-[9.5px] font-bold transition cursor-pointer ${
+                    filtroEstadoAsistencia === 'TODOS' ? 'bg-slate-900 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Todos ({graduados.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFiltroEstadoAsistencia('CONFIRMADOS')}
+                  className={`px-2 py-0.5 rounded text-[9.5px] font-bold transition cursor-pointer ${
+                    filtroEstadoAsistencia === 'CONFIRMADOS' ? 'bg-emerald-600 text-white shadow-2xs' : 'text-emerald-800 hover:bg-emerald-50'
+                  }`}
+                >
+                  Confirmados ({egresadosConfirmados.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFiltroEstadoAsistencia('PENDIENTES')}
+                  className={`px-2 py-0.5 rounded text-[9.5px] font-bold transition cursor-pointer ${
+                    filtroEstadoAsistencia === 'PENDIENTES' ? 'bg-amber-600 text-white shadow-2xs' : 'text-amber-800 hover:bg-amber-50'
+                  }`}
+                >
+                  Pendientes ({egresadosPendientes.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFiltroEstadoAsistencia('RECHAZADOS')}
+                  className={`px-2 py-0.5 rounded text-[9.5px] font-bold transition cursor-pointer ${
+                    filtroEstadoAsistencia === 'RECHAZADOS' ? 'bg-rose-600 text-white shadow-2xs' : 'text-rose-800 hover:bg-rose-50'
+                  }`}
+                >
+                  No Asisten ({egresadosRechazados.length})
+                </button>
+              </div>
+
+              {/* Filtro por Butaca */}
               <div className="flex items-center bg-white p-0.5 rounded-lg border border-slate-200">
                 <button
                   type="button"
@@ -1021,7 +1150,22 @@ export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: cer
                     return (
                       <tr key={g.id} className="hover:bg-slate-50/50">
                         <td className="py-2 px-3">
-                          <p className="font-bold text-slate-900 leading-tight">{g.nombre}</p>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="font-bold text-slate-900 leading-tight">{g.nombre}</p>
+                            {g.estado === 'RECHAZADO' || g.estado_flujo === 'RECHAZADO' ? (
+                              <span className="text-[8.5px] font-black uppercase px-1.5 py-0.2 rounded bg-rose-100 text-rose-800 border border-rose-200">
+                                Inasistencia
+                              </span>
+                            ) : g.estado === 'ACEPTADO' || g.estado_flujo === 'COMPLETO' ? (
+                              <span className="text-[8.5px] font-black uppercase px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                Confirmado
+                              </span>
+                            ) : (
+                              <span className="text-[8.5px] font-black uppercase px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 border border-amber-200">
+                                Pendiente
+                              </span>
+                            )}
+                          </div>
                           <p className="text-[9.5px] text-slate-400">DNI: {g.dni} {g.legajo ? `· Leg: ${g.legajo}` : ''}</p>
                         </td>
                         <td className="py-2 px-3 text-slate-600 max-w-xs truncate text-[10.5px]">
@@ -1078,18 +1222,44 @@ export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: cer
                           )}
                         </td>
                         <td className="py-2 px-3 text-right">
-                          <button
-                            type="button"
-                            onClick={() => setGraduadoParaAsignar(g)}
-                            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer active:scale-95 ${
-                              !g.asiento_id
-                                ? 'bg-amber-500 hover:bg-amber-600 text-slate-950 font-black shadow-xs'
-                                : 'bg-slate-100 hover:bg-sky-50 text-slate-700 hover:text-sky-700 border border-slate-200 hover:border-sky-200'
-                            }`}
-                          >
-                            <Armchair size={11} />
-                            <span>{!g.asiento_id ? 'Asignar Ahora' : 'Cambiar'}</span>
-                          </button>
+                          <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                            {/* Botón Gestión de Familiares */}
+                            <button
+                              type="button"
+                              onClick={() => setGraduadoFamiliares(g)}
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 transition cursor-pointer active:scale-95"
+                              title="Gestionar acompañantes y familiares de este graduado"
+                            >
+                              <Users size={11} className="text-sky-500" />
+                              <span>Familiares ({invs.length})</span>
+                            </button>
+
+                            {/* Si rechazó por error: Subsanar */}
+                            {g.estado === 'RECHAZADO' || g.estado_flujo === 'RECHAZADO' ? (
+                              <button
+                                type="button"
+                                onClick={() => manejarSubsanarRechazo(g)}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black bg-rose-600 hover:bg-rose-500 text-white shadow-xs transition cursor-pointer active:scale-95"
+                                title="Subsanar error de inasistencia y reincorporar al estudiante"
+                              >
+                                <ReincorporarIcon size={11} />
+                                <span>Subsanar Rechazo</span>
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setGraduadoParaAsignar(g)}
+                                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer active:scale-95 ${
+                                  !g.asiento_id
+                                    ? 'bg-amber-500 hover:bg-amber-600 text-slate-950 font-black shadow-xs'
+                                    : 'bg-slate-100 hover:bg-sky-50 text-slate-700 hover:text-sky-700 border border-slate-200 hover:border-sky-200'
+                                }`}
+                              >
+                                <Armchair size={11} />
+                                <span>{!g.asiento_id ? 'Asignar Ahora' : 'Cambiar'}</span>
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     )
@@ -1355,6 +1525,17 @@ export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: cer
             setMensaje({ tipo: 'exito', texto: 'Padrón importado correctamente desde Excel.' })
           }}
           onActualizarPadron={async () => {
+            await cargarDatos()
+          }}
+        />
+      )}
+
+      {/* MODAL GESTION FAMILIARES ASISTIDA POR ADMINISTRATIVO */}
+      {graduadoFamiliares && (
+        <ModalGestionFamiliaresAdmin
+          egresado={graduadoFamiliares}
+          onCerrar={() => setGraduadoFamiliares(null)}
+          onActualizado={async () => {
             await cargarDatos()
           }}
         />

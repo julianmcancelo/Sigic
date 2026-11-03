@@ -130,7 +130,8 @@ async function inicializarTablasAdicionales() {
     await query('CREATE INDEX IF NOT EXISTS idx_otp_historial_egresado ON otp_historial (egresado_id)');
     await query('CREATE INDEX IF NOT EXISTS idx_entregadores_egresado ON entregadores (egresado_id)');
 
-    // Asignar cualquier egresado huérfano a la ceremonia activa para evitar registros invisibles
+    // Asignar cualquier egresado huérfano (sin ceremonia_id) a la primera ceremonia activa
+    // sólo si nunca tuvo ceremonia asignada (evita reasignar alumnos de otras ceremonias)
     await query(`
       UPDATE egresados
       SET ceremonia_id = (SELECT id FROM ceremonias WHERE activa = 1 ORDER BY fecha DESC, id DESC LIMIT 1)
@@ -1342,7 +1343,7 @@ export async function GET(
         ? 'TRUE'
         : (ceremoniaId 
           ? '(e.ceremonia_id = $1)' 
-          : '(c.activa = 1 OR e.ceremonia_id IS NULL OR e.ceremonia_id = (SELECT id FROM ceremonias WHERE activa = 1 ORDER BY fecha DESC, id DESC LIMIT 1))');
+          : '(e.ceremonia_id = (SELECT id FROM ceremonias WHERE activa = 1 ORDER BY fecha DESC, id DESC LIMIT 1))');
 
       const queryStr = `
         SELECT 

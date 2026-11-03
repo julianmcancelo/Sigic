@@ -481,47 +481,67 @@ export function FormularioGraduado({ onCreado, onCancelar, enModal = false }) {
         </div>
       </form>
 
-      {/* Modal de confirmación de identidad */}
+      {/* Modal de confirmación y autocompletado inteligente de identidad */}
       {mostrarModalIdentidad && coincidencias.length > 0 && (
         <div className="fixed inset-0 z-[220] flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm" role="dialog" aria-modal="true">
-          <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl">
+          <div className="w-full max-w-md rounded-2xl bg-white p-5 shadow-2xl border border-sky-100">
             <div className="flex items-start gap-3">
-              <div className="rounded-xl bg-amber-100 p-2 text-amber-700">
-                <AlertTriangle size={20} />
+              <div className="rounded-xl bg-sky-100 p-2.5 text-sky-700 shrink-0">
+                <Sparkles size={20} />
               </div>
-              <div>
-                <h3 className="text-sm font-bold text-slate-900">DNI coincidente detectado</h3>
-                <p className="mt-1 text-xs text-slate-600">
-                  El DNI <strong>{form.dni}</strong> ya pertenece a <strong>{coincidencias[0]?.nombre}</strong>.
+              <div className="min-w-0">
+                <span className="text-[10px] font-black uppercase tracking-wider text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-200/60 inline-block mb-1">
+                  Padrón Institucional Histórico
+                </span>
+                <h3 className="text-sm font-black text-slate-900">Estudiante Registrado en el Instituto</h3>
+                <p className="mt-1 text-xs text-slate-600 leading-relaxed">
+                  El DNI <strong>{form.dni}</strong> coincide con <strong>{coincidencias[0]?.nombre}</strong>
+                  {coincidencias[0]?.carrera ? ` (${coincidencias[0].carrera})` : ''}.
                 </p>
+                {coincidenciaEnCeremoniaActiva ? (
+                  <p className="mt-2 text-xs font-bold text-amber-700 bg-amber-50 p-2 rounded-xl border border-amber-200">
+                    Atención: Este estudiante ya se encuentra inscripto en la ceremonia activa.
+                  </p>
+                ) : (
+                  <p className="mt-2 text-[11px] text-slate-500 font-medium">
+                    ¿Deseas autocompletar automáticamente sus datos de contacto (nombre, teléfono y correo) para esta nueva ceremonia?
+                  </p>
+                )}
               </div>
             </div>
 
-            <div className="mt-4 flex justify-end gap-2">
+            <div className="mt-5 flex justify-end items-center gap-2 border-t border-slate-100 pt-3">
               <button
                 type="button"
                 onClick={() => {
                   setMostrarModalIdentidad(false)
                   setCoincidencias([])
                   setIdentidadConfirmada(false)
-                  setForm(p => ({ ...p, dni: '' }))
                 }}
-                className="rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50"
+                className="rounded-xl border border-slate-200 px-3.5 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 transition cursor-pointer"
               >
-                Es otra persona
+                Cargar manualmente
               </button>
               <button
                 type="button"
                 autoFocus
                 onClick={() => {
                   const persona = coincidencias[0]
-                  setForm(p => ({ ...p, nombre: persona.nombre || p.nombre, correo: persona.correo || p.correo }))
+                  setForm(p => ({
+                    ...p,
+                    nombre: persona.nombre || p.nombre,
+                    correo: persona.correo || p.correo,
+                    correo_personal: persona.correo_personal || p.correo_personal,
+                    telefono: persona.telefono || p.telefono,
+                    legajo: p.legajo || persona.legajo || ''
+                  }))
                   setIdentidadConfirmada(true)
                   setMostrarModalIdentidad(false)
                 }}
-                className="rounded-xl bg-slate-900 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-emerald-600"
+                className="rounded-xl bg-sky-600 px-4 py-2 text-xs font-black text-white hover:bg-sky-500 transition shadow-sm cursor-pointer flex items-center gap-1.5"
               >
-                Confirmar identidad
+                <Sparkles size={13} />
+                Autocompletar datos
               </button>
             </div>
           </div>
