@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { AlertCircle, ArrowRight, ArrowLeft, KeyRound, Calendar, MapPin, Building2, User, Mail, Lock, CheckCircle2 } from 'lucide-react'
-import { inicializarSistema } from '../servicios/api'
+import { inicializarSistema, iniciarSesionAdmin } from '../servicios/api'
 
 export function AsistenteSetup({ onFinalizado }) {
   const [paso, setPaso] = useState(1) // 1: Info Evento, 2: Info Admin
@@ -22,6 +22,19 @@ export function AsistenteSetup({ onFinalizado }) {
 
   const esPaso1Valido = evento.nombreEvento.trim() && evento.fechaEvento && evento.lugarEvento.trim()
   const esPaso2Valido = admin.nombre.trim() && admin.email.trim() && admin.password.trim() && admin.setupKey.trim()
+
+  async function handleUsarCuentasPredeterminadas() {
+    setCargando(true)
+    setError(null)
+    try {
+      const respuesta = await iniciarSesionAdmin('admin@sigic.com.ar', '04051990')
+      onFinalizado(respuesta)
+    } catch (err) {
+      setError(err.message || 'No se pudo iniciar sesión con las cuentas por defecto')
+    } finally {
+      setCargando(false)
+    }
+  }
 
   async function handleFinalizar(e) {
     e.preventDefault()
@@ -162,10 +175,11 @@ export function AsistenteSetup({ onFinalizado }) {
               <div className="mt-7 pt-4 border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-3">
                 <button
                   type="button"
-                  onClick={onFinalizado}
-                  className="text-slate-400 hover:text-slate-700 text-xs font-medium cursor-pointer"
+                  disabled={cargando}
+                  onClick={handleUsarCuentasPredeterminadas}
+                  className="text-slate-400 hover:text-slate-700 disabled:opacity-50 text-xs font-medium cursor-pointer"
                 >
-                  Usar cuentas por defecto →
+                  {cargando ? 'Iniciando...' : 'Usar cuentas por defecto →'}
                 </button>
 
                 <button 
