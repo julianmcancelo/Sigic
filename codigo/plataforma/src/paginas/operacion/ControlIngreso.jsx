@@ -714,21 +714,21 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
   const todosAcreditados = egresadoActual?.presente && (listaInvitados.length === 0 || listaInvitados.every((i) => i.presente))
 
   return (
-    <div className="sigic-control-acreditacion-view min-h-screen bg-slate-950 text-slate-100 p-3 sm:p-6 font-sans transition-colors duration-300 relative selection:bg-sky-500/30">
+    <div className="sigic-control-acreditacion-view min-h-screen bg-slate-50/70 text-slate-800 p-3 sm:p-6 font-sans transition-colors duration-300 relative selection:bg-sky-500/20">
       {/* Luz ambiental institucional */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[340px] bg-gradient-to-b from-sky-500/10 via-indigo-500/5 to-transparent blur-3xl opacity-60" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[340px] bg-gradient-to-b from-sky-500/5 via-slate-100/40 to-transparent blur-3xl opacity-40" />
       </div>
 
       {/* HEADER PRINCIPAL */}
-      <header className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-slate-800 relative z-10">
+      <header className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-4 p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 shadow-xs relative z-10">
         <div className="flex items-center gap-3.5">
           <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-sky-500/20 to-indigo-500/20 text-sky-400 border border-sky-500/30 flex items-center justify-center shadow-lg shadow-sky-500/10">
             <ShieldCheck size={24} />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white">Control de Acreditación</h1>
+              <h1 className="text-lg sm:text-xl font-black tracking-tight text-slate-900">Control de Acreditación</h1>
               <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[9px] font-black uppercase tracking-wider flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 En Vivo
@@ -738,7 +738,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
               </span>
             </div>
             <div className="flex flex-wrap items-center gap-2 mt-1">
-              <span className="text-xs font-semibold text-slate-400 flex items-center gap-1.5">
+              <span className="text-xs font-semibold text-slate-500 flex items-center gap-1.5">
                 <CalendarDays size={13} className="text-sky-400" />
                 {ceremonia?.nombre || 'Ceremonia en curso'} · {ceremonia?.lugar || 'Sede Central Beltrán'}
               </span>
@@ -749,7 +749,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                     value={ceremonia?.id || ''}
                     onChange={(e) => handleCambiarCeremonia(e.target.value)}
                     disabled={cambiandoCeremonia}
-                    className="text-[11px] font-bold bg-slate-900 text-sky-300 border border-slate-700 rounded-lg px-2 py-0.5 outline-none cursor-pointer hover:bg-slate-800 transition"
+                    className="text-[11px] font-bold bg-slate-50 text-sky-700 border border-slate-200 rounded-lg px-2 py-0.5 outline-none cursor-pointer hover:bg-slate-800 transition"
                     title="Cambiar ceremonia activa para esta terminal"
                   >
                     {ceremoniasDisponibles.map((c) => (
@@ -805,7 +805,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
           {onVolver && (
             <button
               onClick={onVolver}
-              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-200 transition active:scale-95 cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-bold text-slate-700 transition active:scale-95 cursor-pointer"
             >
               Volver
             </button>
@@ -814,7 +814,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
           {onCerrarSesion && (
             <button
               onClick={onCerrarSesion}
-              className="px-4 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-bold transition active:scale-95 cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition active:scale-95 cursor-pointer"
             >
               Cerrar Turno
             </button>
@@ -823,14 +823,14 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
       </header>
 
       {/* BANNER DE ESTADO DE CONEXIÓN Y SINCRONIZACIÓN OFFLINE */}
-      <div className="max-w-7xl mx-auto mt-4 px-4 py-3 rounded-2xl bg-slate-900/80 border border-slate-800/90 backdrop-blur-md flex flex-wrap items-center justify-between gap-3 text-xs shadow-lg relative z-10">
+      <div className="max-w-7xl mx-auto mt-3 px-4 py-3 rounded-2xl bg-white border border-slate-200/90 flex flex-wrap items-center justify-between gap-3 text-xs shadow-xs relative z-10">
         <div className="flex items-center gap-2.5">
           <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${estaOnline ? 'bg-emerald-400 shadow-sm shadow-emerald-400/50' : 'bg-amber-400 animate-pulse'}`} />
-          <span className="font-bold text-slate-200">
+          <span className="font-bold text-slate-800">
             {estaOnline ? 'Terminal conectada · Validación en tiempo real' : 'Modo sin conexión · Validando con padrón local'}
           </span>
           {manifiestoDescargado && (
-            <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-md bg-slate-800 text-sky-300 text-[10px] font-bold border border-slate-700">
+            <span className="hidden sm:inline-block px-2.5 py-0.5 rounded-md bg-sky-50 text-sky-700 text-[10px] font-bold border border-sky-200">
               Padrón local listo
             </span>
           )}
@@ -854,14 +854,14 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
       </div>
 
       {/* BARRA DE PESTAÑAS Y MODALIDADES */}
-      <div className="max-w-7xl mx-auto mt-4 flex items-center justify-between border-b border-slate-800 pb-3 gap-3 overflow-x-auto relative z-10">
+      <div className="max-w-7xl mx-auto mt-3 flex items-center justify-between border-b border-slate-200/90 pb-2.5 gap-2 overflow-x-auto relative z-10">
         <div className="flex items-center gap-2">
           <button
             onClick={() => setModalidad('flutter')}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black transition cursor-pointer ${
               modalidad === 'flutter'
-                ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-md shadow-sky-500/20'
-                : 'bg-slate-900/80 text-slate-300 hover:bg-slate-850 hover:text-white border border-slate-800'
+                ? 'bg-slate-900 text-white shadow-xs'
+                : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200/90'
             }`}
           >
             <Smartphone size={15} />
@@ -875,8 +875,8 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
             onClick={() => setModalidad('respaldo_web')}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black transition cursor-pointer ${
               modalidad === 'respaldo_web'
-                ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-md shadow-sky-500/20'
-                : 'bg-slate-900/80 text-slate-300 hover:bg-slate-850 hover:text-white border border-slate-800'
+                ? 'bg-slate-900 text-white shadow-xs'
+                : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200/90'
             }`}
           >
             <Laptop size={15} />
@@ -887,8 +887,8 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
             onClick={() => setModalidad('monitor')}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black transition cursor-pointer ${
               modalidad === 'monitor'
-                ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-md shadow-sky-500/20'
-                : 'bg-slate-900/80 text-slate-300 hover:bg-slate-850 hover:text-white border border-slate-800'
+                ? 'bg-slate-900 text-white shadow-xs'
+                : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200/90'
             }`}
           >
             <Activity size={15} />
@@ -898,7 +898,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
 
         <div className="hidden md:flex items-center gap-3 text-xs text-slate-400">
           <span>Aforo Presente:</span>
-          <span className="font-mono font-black text-emerald-400 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800">
+          <span className="font-mono font-black text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
             {stats?.presentes || 0} / {stats?.totalInvitados ? (stats.totalInvitados + (stats.totalEgresados || 0)) : '—'}
           </span>
         </div>
@@ -909,7 +909,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
         <main className="max-w-6xl mx-auto space-y-7 my-6 px-3 sm:px-0">
           
           {/* BANNER PRINCIPAL / HERO MODERNO */}
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900/90 to-sky-950/40 border border-slate-800 p-6 sm:p-8 shadow-2xl backdrop-blur-xl">
+          <div className="relative overflow-hidden rounded-3xl bg-white border border-slate-200/90 p-6 sm:p-7 shadow-xs">
             <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
             <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none" />
 
@@ -926,10 +926,10 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                   </span>
                 </div>
 
-                <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
                   Control de Acreditación Móvil en Puerta
                 </h2>
-                <p className="text-xs sm:text-sm text-slate-300/90 font-medium leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed">
                   Terminales de mano para personal operativo, seguridad y administración. Escaneo ultrarrápido de credenciales QR, validación instantánea de butacas oficiales y sincronización automática bidireccional.
                 </p>
               </div>
@@ -956,7 +956,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                       ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
                       : pingStatus === 'error'
                       ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
-                      : 'bg-slate-800/80 hover:bg-slate-800 text-slate-200 border-slate-700'
+                      : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
                   }`}
                   title="Verifica que el endpoint sea alcanzable por los teléfonos"
                 >
@@ -969,7 +969,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                 <button
                   onClick={simularEscaneoDePrueba}
                   disabled={simulandoEscaneo}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-200 text-xs font-bold transition active:scale-95 cursor-pointer"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold transition active:scale-95 cursor-pointer"
                   title="Simula un escaneo exitoso sin necesidad de un celular físico"
                 >
                   <Play size={14} className={simulandoEscaneo ? 'animate-spin' : ''} />
@@ -983,7 +983,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             
             {/* PASO 1: INSTALACIÓN DEL APK OFICIAL */}
-            <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-7 shadow-xl flex flex-col justify-between space-y-6 relative overflow-hidden group hover:border-slate-700 transition">
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between space-y-5 relative overflow-hidden group hover:border-slate-300 transition">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
@@ -991,7 +991,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                       1
                     </span>
                     <div>
-                      <h3 className="text-base font-black text-white">Instalar Aplicación Portería</h3>
+                      <h3 className="text-sm font-black text-slate-900">Instalar Aplicación Portería</h3>
                       <p className="text-[11px] text-slate-400">Android APK Oficial · Tecnicatura Superior en Analista de Sistemas</p>
                     </div>
                   </div>
@@ -1000,13 +1000,13 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                   </span>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center gap-5 bg-slate-950/60 p-4 rounded-2xl border border-slate-800/80">
+                <div className="flex flex-col sm:flex-row items-center gap-5 bg-slate-50/80 p-4 rounded-xl border border-slate-200/80">
                   <div className="p-3 bg-white rounded-2xl shadow-xl shrink-0 group-hover:scale-105 transition-transform duration-300">
                     <QRCodeSVG value={urlApk} size={135} level="M" />
                   </div>
 
                   <div className="space-y-2.5 text-center sm:text-left">
-                    <p className="text-xs text-slate-200 font-semibold leading-snug">
+                    <p className="text-xs text-slate-700 font-semibold leading-snug">
                       Apuntá la cámara nativa de cualquier Android a este código para iniciar la descarga directa.
                     </p>
                     <div className="space-y-1 text-[11px] text-slate-400">
@@ -1043,7 +1043,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
 
                   <button
                     onClick={() => copiarTexto(urlApk, 'apk')}
-                    className="py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-750 text-slate-200 border border-slate-700 text-xs font-bold transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
+                    className="py-3 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 text-xs font-bold transition active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
                   >
                     {copiadoApk ? <CheckCheck size={15} className="text-emerald-400" /> : <Copy size={15} />}
                     <span>{copiadoApk ? 'Enlace Copiado' : 'Copiar Enlace'}</span>
@@ -1076,7 +1076,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
             </div>
 
             {/* PASO 2: VINCULACIÓN Y ENLACE DE RED CON AUTO-DETECCIÓN */}
-            <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-7 shadow-xl flex flex-col justify-between space-y-6 relative overflow-hidden group hover:border-slate-700 transition">
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col justify-between space-y-5 relative overflow-hidden group hover:border-slate-300 transition">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
@@ -1084,7 +1084,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                       2
                     </span>
                     <div>
-                      <h3 className="text-base font-black text-white">Vincular Celular a la Ceremonia</h3>
+                      <h3 className="text-sm font-black text-slate-900">Vincular Celular a la Ceremonia</h3>
                       <p className="text-[11px] text-slate-400">Escaneá desde la App Móvil SiGIC</p>
                     </div>
                   </div>
@@ -1094,13 +1094,13 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                   </span>
                 </div>
 
-                <div className="flex flex-col sm:flex-row items-center gap-5 bg-slate-950/60 p-4 rounded-2xl border border-slate-800/80">
+                <div className="flex flex-col sm:flex-row items-center gap-5 bg-slate-50/80 p-4 rounded-xl border border-slate-200/80">
                   <div className="p-3 bg-white rounded-2xl shadow-xl shrink-0 group-hover:scale-105 transition-transform duration-300">
                     <QRCodeSVG value={`sigic-config:${urlServidor}`} size={135} level="H" />
                   </div>
 
                   <div className="space-y-2.5 text-center sm:text-left flex-1 min-w-0">
-                    <p className="text-xs text-slate-200 font-semibold leading-snug">
+                    <p className="text-xs text-slate-700 font-semibold leading-snug">
                       Abrí la app en el celular y apuntá su escáner a este QR para conectarse inmediatamente.
                     </p>
                     <p className="text-[11px] text-slate-400 leading-relaxed">
@@ -1144,7 +1144,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                 ) : (
                   <div 
                     onClick={() => copiarTexto(urlServidor, 'servidor')}
-                    className="w-full py-2.5 px-3.5 rounded-xl bg-slate-950 border border-slate-800 text-cyan-300 font-mono text-xs font-bold truncate cursor-pointer hover:border-slate-700 transition flex items-center justify-between"
+                    className="w-full py-2.5 px-3.5 rounded-xl bg-slate-50 border border-slate-200 text-sky-800 font-mono text-xs font-bold truncate cursor-pointer hover:border-slate-700 transition flex items-center justify-between"
                     title="Click para copiar URL"
                   >
                     <span className="truncate">{urlServidor}</span>
@@ -1217,13 +1217,13 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
           </div>
 
           {/* SECCIÓN 3: FLOTA DE TERMINALES MÓVILES VINCULADAS EN VIVO */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-7 shadow-xl space-y-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+          <div className="bg-white border border-slate-200/90 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
               <div className="space-y-1">
                 <div className="flex items-center gap-2.5">
                   <Radio size={18} className="text-emerald-400 animate-pulse" />
-                  <h3 className="text-lg font-black text-white">Terminales Móviles de Portería</h3>
-                  <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 text-xs font-bold border border-slate-700">
+                  <h3 className="text-sm font-black text-slate-900">Terminales Móviles de Portería</h3>
+                  <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200">
                     {dispositivosMoviles.length} vinculada(s)
                   </span>
                 </div>
@@ -1236,7 +1236,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                 <button
                   onClick={cargarDispositivos}
                   disabled={cargandoDispositivos}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-slate-200 transition active:scale-95 cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 border border-slate-200 text-xs font-bold text-slate-700 transition active:scale-95 cursor-pointer"
                 >
                   <RefreshCw size={13} className={cargandoDispositivos ? 'animate-spin' : ''} />
                   <span>Refrescar</span>
@@ -1245,12 +1245,12 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
             </div>
 
             {dispositivosMoviles.length === 0 ? (
-              <div className="text-center py-10 space-y-3 bg-slate-950/40 rounded-2xl border border-dashed border-slate-800">
+              <div className="text-center py-10 space-y-3 bg-slate-50/60 rounded-xl border border-dashed border-slate-200 py-8">
                 <div className="w-12 h-12 rounded-2xl bg-slate-800/80 border border-slate-700 text-slate-400 flex items-center justify-center mx-auto">
                   <Smartphone size={24} />
                 </div>
                 <div className="space-y-1 max-w-sm mx-auto">
-                  <h4 className="text-sm font-bold text-white">Ningún celular conectado todavía</h4>
+                  <h4 className="text-sm font-bold text-slate-800">Ningún celular conectado todavía</h4>
                   <p className="text-xs text-slate-400">
                     Instalá la app en el teléfono de portería y escaneá el código QR del <strong>Paso 2</strong> para que aparezca aquí en tiempo real.
                   </p>
@@ -1265,7 +1265,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                   return (
                     <div
                       key={dev.dispositivoId || Math.random()}
-                      className="bg-slate-950/70 border border-slate-800 hover:border-slate-700 rounded-2xl p-4 flex flex-col justify-between space-y-3 transition"
+                      className="bg-slate-50/70 border border-slate-200 hover:border-slate-300 rounded-xl p-4 flex flex-col justify-between space-y-3 transition"
                     >
                       <div className="space-y-2">
                         <div className="flex items-start justify-between gap-2">
@@ -1274,7 +1274,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                               <Smartphone size={18} />
                             </div>
                             <div className="min-w-0">
-                              <h4 className="text-xs font-black text-white truncate">
+                              <h4 className="text-xs font-black text-slate-900 truncate">
                                 {dev.nombreDispositivo || dev.modelo || 'Terminal Android'}
                               </h4>
                               <p className="text-[11px] text-slate-400 truncate">
@@ -1337,10 +1337,10 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
           </div>
 
           {/* BARRA INFERIOR DE ESTADO Y ACCESOS RÁPIDOS */}
-          <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-4 text-xs">
+          <div className="bg-white border border-slate-200/90 rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-3 text-xs shadow-xs">
             <div className="flex items-center gap-3">
               <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="font-bold text-slate-200">
+              <span className="font-bold text-slate-700">
                 {dispositivosMoviles.length > 0 
                   ? `${dispositivosMoviles.length} terminal(es) móvil(es) sincronizada(s) con la ceremonia activa` 
                   : 'Sistema a la espera de conexiones móviles en puerta'}
@@ -1372,7 +1372,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
           <div className="lg:col-span-5 space-y-4">
             
             {/* BARRA DE ENTRADA MANUAL Y LECTOR */}
-            <div className="bg-slate-900/85 border border-slate-800 rounded-3xl p-4 sm:p-5 shadow-xl backdrop-blur-md">
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs">
               <h2 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-3 flex items-center justify-between">
                 <span>Búsqueda Rápida / Pistola USB</span>
                 <span className="text-[9px] px-2 py-0.5 rounded-md bg-slate-800 text-sky-300 font-bold border border-slate-700">Autodetect</span>
@@ -1394,7 +1394,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
                     value={busquedaManual}
                     onChange={(e) => setBusquedaManual(e.target.value)}
                     placeholder="DNI, Token o código escaneado..."
-                    className="w-full bg-slate-950 border border-slate-800 rounded-2xl pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-sky-400 font-medium transition"
+                    className="w-full bg-slate-50 border border-slate-200 focus:bg-white rounded-xl pl-10 pr-4 py-2 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-sky-500 font-medium transition"
                     autoFocus
                   />
                 </div>
@@ -1410,7 +1410,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
             </div>
 
             {/* VISOR DE CÁMARA QR */}
-            <div className="bg-slate-900/85 border border-slate-800 rounded-3xl p-4 sm:p-5 shadow-xl backdrop-blur-md space-y-3">
+            <div className="bg-white border border-slate-200/90 rounded-2xl p-4 sm:p-5 shadow-xs space-y-3">
               <div className="flex items-center justify-between">
                 <h2 className="text-xs font-black uppercase tracking-wider text-slate-400 flex items-center gap-2">
                   <Camera size={15} className="text-sky-400" />
@@ -1430,7 +1430,7 @@ export function ControlIngreso({ usuario, onVolver, onCerrarSesion, sinHeader })
               </div>
 
               {/* Contenedor del video HTML5 QR Code */}
-              <div className="relative rounded-2xl overflow-hidden bg-slate-950 border border-slate-750 min-h-[260px] flex items-center justify-center">
+              <div className="relative rounded-xl overflow-hidden bg-slate-100 border border-slate-200 min-h-[260px] flex items-center justify-center">
                 <div id="sigic-reader-container" className={`w-full ${camaraActiva ? 'block' : 'hidden'}`} />
 
                 {!camaraActiva && (
