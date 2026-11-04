@@ -1,24 +1,39 @@
+import React from 'react'
+
 export function PantallaCargaInicial({ saliendo = false }) {
   return (
     <main className={`sigic-boot-screen sigic-boot-console sigic-welcome${saliendo ? ' is-leaving' : ''}`}>
       <div className="sigic-boot-noise" aria-hidden="true" />
-      <section className="sigic-welcome-content" aria-live="polite" aria-label="Bienvenido a SiGIC">
+      
+      {/* Resplandor ambiental de fondo */}
+      <div className="sigic-boot-glow sigic-boot-glow-one" aria-hidden="true" />
+      <div className="sigic-boot-glow sigic-boot-glow-two" aria-hidden="true" />
+
+      <section className="sigic-welcome-content" aria-live="polite" aria-label="Iniciando SiGIC">
+        {/* Isotipo con aura de carga Beltrán */}
         <div className="sigic-welcome-mark">
           <span aria-hidden="true" />
           <img src="/logo.png" alt="SiGIC" />
         </div>
-        <p>Gestión institucional</p>
+
+        <p>Instituto Tecnológico Beltrán</p>
         <h1>SiGIC</h1>
-        <strong>Tu ceremonia comienza acá</strong>
-        <div className="sigic-welcome-line" aria-hidden="true"><i /></div>
-        <small><b /> Acceso seguro habilitado</small>
+        <strong>Sistema de Gestión Integral de Colaciones</strong>
+        
+        {/* Barra de progreso / escaneo fino */}
+        <div className="sigic-welcome-line" aria-hidden="true">
+          <i />
+        </div>
+
+        <small>
+          <b /> Plataforma Oficial · Acceso Seguro
+        </small>
       </section>
-      <aside className="sigic-welcome-panel" aria-hidden="true">
-        <i /><strong /><span /><span /><button />
-      </aside>
+
+      {/* Pie de pantalla institucional */}
       <footer className="sigic-boot-footer">
-        <span>Instituto Tecnológico Beltrán</span>
-        <span>Conexión segura</span>
+        <span>Tecnicatura Superior en Analista de Sistemas</span>
+        <span>Conexión institucional cifrada</span>
       </footer>
     </main>
   )
