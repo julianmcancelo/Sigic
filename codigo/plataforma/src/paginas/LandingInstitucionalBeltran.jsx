@@ -165,23 +165,23 @@ export function LandingInstitucionalBeltran({
   }, [])
 
   return (
-    <div className="min-h-screen bg-[#070e17] text-slate-100 font-sans selection:bg-cyan-500 selection:text-slate-950 antialiased relative overflow-x-hidden">
+    <div className="min-h-screen bg-[#070e17] text-white font-sans selection:bg-sky-500 selection:text-slate-950 antialiased relative overflow-x-hidden">
       
       {/* ─── BARRA SUPERIOR INSTITUCIONAL ─── */}
-      <div className="bg-[#002038] border-b border-sky-900/60 text-xs px-4 sm:px-8 py-2.5 flex flex-wrap items-center justify-between gap-3 text-slate-300">
+      <div className="bg-[#002038] border-b border-sky-900/60 text-xs px-4 sm:px-8 py-2.5 flex flex-wrap items-center justify-between gap-3 text-sky-100">
         <div className="flex items-center gap-2.5">
           <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="font-bold text-[11px] tracking-wide text-sky-300">
+          <span className="font-bold text-[11px] tracking-wide text-sky-200">
             {DATOS_PORTAL_BELTRAN.institucion.nombre}
           </span>
-          <span className="hidden md:inline text-slate-400">·</span>
-          <span className="hidden md:inline text-slate-400 text-[11px]">
+          <span className="hidden md:inline text-sky-300/60">·</span>
+          <span className="hidden md:inline text-sky-200/90 text-[11px]">
             {DATOS_PORTAL_BELTRAN.institucion.carreraPrincipal}
           </span>
         </div>
 
         <div className="flex items-center gap-4 text-[11px]">
-          <span className="hidden sm:inline text-slate-400">{DATOS_PORTAL_BELTRAN.institucion.sede}</span>
+          <span className="hidden sm:inline text-sky-200/80">{DATOS_PORTAL_BELTRAN.institucion.sede}</span>
           {onVolver && (
             <button
               onClick={onVolver}
@@ -238,7 +238,7 @@ export function LandingInstitucionalBeltran({
 
             <button
               onClick={onIrAEgresado}
-              className="px-4.5 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-400 hover:to-cyan-400 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg shadow-sky-500/25 transition active:scale-95 cursor-pointer flex items-center gap-2"
+              className="px-4.5 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg shadow-sky-500/25 transition active:scale-95 cursor-pointer flex items-center gap-2"
             >
               <GraduationCap size={15} />
               <span>Portal Egresado</span>
@@ -274,7 +274,7 @@ export function LandingInstitucionalBeltran({
           {/* Título Principal */}
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white max-w-4xl mx-auto leading-tight">
             {DATOS_PORTAL_BELTRAN.ceremonia.titulo}
-            <span className="block mt-3 bg-gradient-to-r from-sky-400 via-cyan-300 to-indigo-300 bg-clip-text text-transparent">
+            <span className="block mt-3 text-sky-400 font-black">
               {DATOS_PORTAL_BELTRAN.institucion.nombre}
             </span>
           </h1>
@@ -303,7 +303,7 @@ export function LandingInstitucionalBeltran({
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
             <button
               onClick={onIrAEgresado}
-              className="px-8 py-4 rounded-2xl bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-400 hover:to-cyan-400 text-slate-950 font-black text-sm uppercase tracking-wider shadow-xl shadow-sky-500/30 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-3"
+              className="px-8 py-4 rounded-2xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-black text-sm uppercase tracking-wider shadow-xl shadow-sky-500/30 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer flex items-center gap-3"
             >
               <QrCode size={19} />
               <span>Ingresar al Portal del Graduado</span>
@@ -326,19 +326,19 @@ export function LandingInstitucionalBeltran({
             </p>
             <div className="grid grid-cols-4 gap-3 text-center">
               <div className="bg-[#06121f] rounded-2xl p-3 border border-sky-900/50">
-                <span className="block text-2xl sm:text-4xl font-black text-white font-mono">{tiempoRestante.dias}</span>
+                <span className="block text-2xl sm:text-4xl font-black text-white font-mono tabular-nums">{tiempoRestante.dias}</span>
                 <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">Días</span>
               </div>
               <div className="bg-[#06121f] rounded-2xl p-3 border border-sky-900/50">
-                <span className="block text-2xl sm:text-4xl font-black text-white font-mono">{String(tiempoRestante.horas).padStart(2, '0')}</span>
+                <span className="block text-2xl sm:text-4xl font-black text-white font-mono tabular-nums">{String(tiempoRestante.horas).padStart(2, '0')}</span>
                 <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">Horas</span>
               </div>
               <div className="bg-[#06121f] rounded-2xl p-3 border border-sky-900/50">
-                <span className="block text-2xl sm:text-4xl font-black text-white font-mono">{String(tiempoRestante.minutos).padStart(2, '0')}</span>
+                <span className="block text-2xl sm:text-4xl font-black text-white font-mono tabular-nums">{String(tiempoRestante.minutos).padStart(2, '0')}</span>
                 <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">Minutos</span>
               </div>
               <div className="bg-[#06121f] rounded-2xl p-3 border border-sky-900/50">
-                <span className="block text-2xl sm:text-4xl font-black text-cyan-400 font-mono animate-pulse">{String(tiempoRestante.segundos).padStart(2, '0')}</span>
+                <span className="block text-2xl sm:text-4xl font-black text-cyan-400 font-mono tabular-nums animate-pulse">{String(tiempoRestante.segundos).padStart(2, '0')}</span>
                 <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400">Segundos</span>
               </div>
             </div>
@@ -353,7 +353,7 @@ export function LandingInstitucionalBeltran({
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 text-center">
             {DATOS_PORTAL_BELTRAN.estadisticas.map((item, idx) => (
               <div key={idx} className="p-4 rounded-2xl bg-white/[0.02] border border-white/5">
-                <p className="text-3xl sm:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-cyan-200 font-mono">
+                <p className="text-3xl sm:text-4xl font-black text-sky-400 font-mono tabular-nums">
                   {item.valor}
                 </p>
                 <p className="mt-2 text-xs sm:text-sm font-black text-white uppercase tracking-wider">
@@ -391,7 +391,7 @@ export function LandingInstitucionalBeltran({
                 className="bg-[#0b1a2a] rounded-3xl p-6 border border-slate-800 hover:border-sky-500/40 transition-all duration-300 hover:-translate-y-1 shadow-lg"
               >
                 <div className="flex items-center justify-between mb-5">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-500/10 border border-sky-400/30 text-sky-400 font-mono font-black text-base">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-500/10 border border-sky-400/30 text-sky-400 font-mono tabular-nums font-black text-base">
                     {paso.numero}
                   </span>
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-sky-950 text-sky-300 border border-sky-800/60">
@@ -432,7 +432,7 @@ export function LandingInstitucionalBeltran({
                 className="bg-[#070e17] border border-slate-800 rounded-2xl p-5 sm:p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 hover:border-sky-500/30 transition shadow-md"
               >
                 <div className="md:w-52 shrink-0">
-                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-sky-500/10 text-sky-300 font-mono text-xs font-bold border border-sky-500/20 mb-2">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-sky-500/10 text-sky-300 font-mono tabular-nums text-xs font-bold border border-sky-500/20 mb-2">
                     <Clock size={13} />
                     <span>{item.hora}</span>
                   </div>
