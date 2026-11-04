@@ -332,6 +332,20 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
           </div>
           
           <div className="w-full space-y-3 mb-6">
+            {/* Acceso a Portal de la Ceremonia */}
+            <button
+              onClick={onSeleccionarLanding}
+              className="group relative flex w-full items-center gap-3.5 rounded-2xl border border-sky-300 bg-sky-50/60 p-4 transition-all hover:bg-sky-100 hover:border-sky-400 active:scale-[0.98] cursor-pointer text-left shadow-xs hover:shadow-md"
+            >
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-sky-500 text-slate-950 transition-colors group-hover:bg-sky-600 group-hover:text-white shrink-0">
+                <Sparkles size={20} />
+              </div>
+              <div>
+                <p className="text-xs font-black text-slate-900">Portal de la Ceremonia</p>
+                <p className="text-[11px] text-slate-600 font-medium">Landing institucional Beltrán y cronograma</p>
+              </div>
+              <ChevronRight size={15} className="absolute right-4 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-sky-600" />
+            </button>
             {/* Opción Admin */}
             <button
               onClick={onSeleccionarAdmin}
