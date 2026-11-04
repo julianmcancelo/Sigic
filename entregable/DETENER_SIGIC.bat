@@ -1,8 +1,14 @@
 @echo off
-chcp 65001 > nul
-title SiGIC — Detener Sistema
-
-echo Deteniendo contenedores SiGIC...
+title SiGIC - Detener Sistema
+cls
+color 0E
+echo ============================================================
+echo   Deteniendo contenedores de SiGIC...
+echo ============================================================
+echo.
 docker compose down
-echo [OK] Contenedores detenidos.
+echo.
+color 0A
+echo [OK] Servicios detenidos y memoria liberada correctamente.
+echo.
 pause
