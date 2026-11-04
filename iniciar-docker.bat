@@ -1,26 +1,9 @@
 @echo off
-setlocal EnableDelayedExpansion
+setlocal
 chcp 65001 > nul
-title SiGIC · Centro de Control Docker - Instituto Tecnológico Beltrán
+title SiGIC - Centro de Control Docker (Instituto Tecnologico Beltran)
 mode con: cols=92 lines=34
 color 0B
-
-rem Configurar colores ANSI
-set "ESC="
-for /F %%a in ('"prompt $E$S & for %%b in (1) do rem"') do set "ESC=%%a"
-
-set "C_RESET=%ESC%[0m"
-set "C_BOLD=%ESC%[1m"
-set "C_CYAN=%ESC%[38;2;56;189;248m"
-set "C_BLUE=%ESC%[38;2;14;165;233m"
-set "C_DARKBLUE=%ESC%[38;2;2;132;199m"
-set "C_WHITE=%ESC%[38;2;255;255;255m"
-set "C_GRAY=%ESC%[38;2;148;163;184m"
-set "C_DARKGRAY=%ESC%[38;2;71;85;105m"
-set "C_GREEN=%ESC%[38;2;52;211;153m"
-set "C_YELLOW=%ESC%[38;2;251;191;36m"
-set "C_RED=%ESC%[38;2;248;113;113m"
-set "BG_BLUE=%ESC%[48;2;0;32;56m"
 
 rem Agregar Docker al PATH si esta en AppData
 set "DOCKER_BIN=C:\Users\Julian\AppData\Local\Programs\DockerDesktop\resources\bin"
@@ -30,50 +13,40 @@ if exist "%DOCKER_BIN%\docker.exe" (
 
 :menuPrincipal
 cls
-echo %BG_BLUE%%C_WHITE%                                                                                            %C_RESET%
-echo %BG_BLUE%%C_CYAN%%C_BOLD%   ███████╗██╗ ██████╗ ██╗ ██████╗     CENTRO DE CONTROL DOCKER                       %C_RESET%
-echo %BG_BLUE%%C_CYAN%%C_BOLD%   ██╔════╝██║██╔════╝ ██║██╔════╝     Sistema de Gestión Institucional de Colaciones %C_RESET%
-echo %BG_BLUE%%C_BLUE%   ███████╗██║██║  ███╗██║██║          Instituto Tecnológico Beltrán                  %C_RESET%
-echo %BG_BLUE%%C_BLUE%   ╚════██║██║██║   ██║██║██║          Tecnicatura Superior en Analista de Sistemas   %C_RESET%
-echo %BG_BLUE%%C_DARKBLUE%   ███████║██║╚██████╔╝██║╚██████╗     Promoción 2026 · Entorno Contenerizado         %C_RESET%
-echo %BG_BLUE%%C_WHITE%                                                                                            %C_RESET%
+echo ============================================================================================
+echo   SiGIC  ^|  CENTRO DE CONTROL DOCKER
+echo   Sistema de Gestion Institucional de Colaciones  -  Instituto Tecnologico Beltran
+echo   Tecnicatura Superior en Analista de Sistemas   -  Promocion 2026
+echo ============================================================================================
 echo.
 
 rem Chequeo rapido de estado del daemon
 docker info >nul 2>nul
 if %errorlevel% equ 0 (
-    echo    %C_GRAY%Estado Docker:%C_RESET%  %C_GREEN%● MOTOR ACTIVO Y CONECTADO (WSL2 / Engine 29.9)%C_RESET%
+    echo    Estado Docker:   [ACTIVO] Motor de Docker Desktop conectado correctamente
 ) else (
-    echo    %C_GRAY%Estado Docker:%C_RESET%  %C_YELLOW%▲ MOTOR INACTIVO O INICIANDO%C_RESET%
+    echo    Estado Docker:   [AVISO] Motor de Docker Desktop apagado o iniciando
 )
 
-rem Chequeo de contenedores activos
-for /f %%i in ('docker ps -q --filter "name=sigic" 2^>nul ^| find /c /v ""') do set "CONT_ACTIVOS=%%i"
-if "%CONT_ACTIVOS%"=="" set "CONT_ACTIVOS=0"
-if %CONT_ACTIVOS% gtr 0 (
-    echo    %C_GRAY%Contenedores:%C_RESET%   %C_CYAN%● %CONT_ACTIVOS% servicio(s) en ejecución en http://localhost:3000%C_RESET%
-) else (
-    echo    %C_GRAY%Contenedores:%C_RESET%   %C_DARKGRAY%○ Ningún contenedor de SiGIC corriendo actualmente%C_RESET%
-)
-
-echo %C_DARKGRAY%   ───────────────────────────────────────────────────────────────────────────────────────%C_RESET%
+echo    URL Plataforma:  http://localhost:3000
+echo    -----------------------------------------------------------------------------------------
 echo.
-echo    %C_BOLD%%C_WHITE%DESPLIEGUE Y OPERACIÓN:%C_RESET%
+echo    DESPLIEGUE Y OPERACION:
 echo.
-echo    %C_CYAN%[1]%C_RESET% %C_WHITE%Modo Autónomo Local%C_RESET%   %C_GRAY%Plataforma Web + Base PostgreSQL 16 (100%% Offline)%C_RESET%
-echo    %C_CYAN%[2]%C_RESET% %C_WHITE%Modo Híbrido Cloud%C_RESET%    %C_GRAY%Plataforma Web conectada a Neon Cloud (.env.local)%C_RESET%
-echo    %C_CYAN%[3]%C_RESET% %C_WHITE%Abrir en Navegador%C_RESET%    %C_GRAY%Ingresar a http://localhost:3000 (Plataforma SiGIC)%C_RESET%
+echo    [1] Modo Autonomo Local   (Plataforma Web + Base PostgreSQL 16 - 100%% Offline)
+echo    [2] Modo Hibrido Cloud    (Plataforma Web conectada a Neon Cloud .env.local)
+echo    [3] Abrir en Navegador    (http://localhost:3000)
 echo.
-echo    %C_BOLD%%C_WHITE%MONITOREO Y GESTIÓN:%C_RESET%
+echo    MONITOREO Y GESTION:
 echo.
-echo    %C_CYAN%[4]%C_RESET% %C_WHITE%Ver Logs en Tiempo Real%C_RESET%  %C_GRAY%Consola interactiva de peticiones y base de datos%C_RESET%
-echo    %C_CYAN%[5]%C_RESET% %C_WHITE%Estado de Contenedores%C_RESET%   %C_GRAY%Listar CPU, memoria, puertos y nombres de servicio%C_RESET%
-echo    %C_CYAN%[6]%C_RESET% %C_YELLOW%Detener Contenedores%C_RESET%    %C_GRAY%Apagar servicios sin borrar datos almacenados%C_RESET%
-echo    %C_CYAN%[7]%C_RESET% %C_RED%Recompilar Todo (Clean)%C_RESET% %C_GRAY%Reconstrucción limpia sin caché de imágenes%C_RESET%
-echo    %C_CYAN%[0]%C_RESET% %C_DARKGRAY%Salir%C_RESET%
+echo    [4] Ver Logs en Vivo      (Peticiones web y base de datos)
+echo    [5] Estado de Servicios   (Listar contenedores activos)
+echo    [6] Detener Contenedores  (Apagar servicios sin borrar datos)
+echo    [7] Recompilar Imagen     (Reconstruccion limpia)
+echo    [0] Salir
 echo.
-echo %C_DARKGRAY%   ───────────────────────────────────────────────────────────────────────────────────────%C_RESET%
-set /p opcion="   %C_BOLD%%C_CYAN%Seleccioná una opción [1-7]: %C_RESET%"
+echo    -----------------------------------------------------------------------------------------
+set /p opcion="   Selecciona una opcion [1-7]: "
 
 if "%opcion%"=="1" goto :opcionLocal
 if "%opcion%"=="2" goto :opcionCloud
@@ -85,57 +58,57 @@ if "%opcion%"=="7" goto :opcionRebuild
 if "%opcion%"=="0" exit /b 0
 
 echo.
-echo    %C_RED%Opción no válida. Presioná una tecla para reintentar...%C_RESET%
+echo    Opcion no valida. Presiona una tecla para reintentar...
 pause >nul
 goto :menuPrincipal
 
 :opcionLocal
 cls
 echo.
-echo    %C_CYAN%========================================================================%C_RESET%
-echo    %C_WHITE%%C_BOLD%  INICIANDO SiGIC EN MODO AUTÓNOMO LOCAL (OFFLINE)%C_RESET%
-echo    %C_GRAY%  Plataforma Web (Next.js 16) + PostgreSQL 16 con esquema automático%C_RESET%
-echo    %C_CYAN%========================================================================%C_RESET%
+echo    ========================================================================
+echo      INICIANDO SiGIC EN MODO AUTONOMO LOCAL (OFFLINE)
+echo      Plataforma Web (Next.js 16) + PostgreSQL 16 con esquema oficial
+echo    ========================================================================
 echo.
 docker compose -f docker-compose.yml up --build -d
 echo.
 if %errorlevel% equ 0 (
-    echo    %C_GREEN%[OK] Servicios desplegados correctamente!%C_RESET%
-    echo    %C_WHITE%Accedé desde tu navegador en:%C_RESET% %C_CYAN%%C_BOLD%http://localhost:3000%C_RESET%
+    echo    [OK] Servicios desplegados correctamente!
+    echo    Accede desde tu navegador en: http://localhost:3000
     echo.
-    echo    %C_GRAY%Deseas abrir la plataforma en el navegador ahora mismo? (S/N)%C_RESET%
+    echo    Deseas abrir la plataforma en el navegador ahora mismo? (S/N)
     set /p abrirNav="   > "
-    if /i "!abrirNav!"=="S" start http://localhost:3000
+    if /i "%abrirNav%"=="S" start http://localhost:3000
 ) else (
-    echo    %C_RED%[ERROR] Hubo un problema al iniciar los contenedores.%C_RESET%
+    echo    [ERROR] Hubo un problema al iniciar los contenedores.
 )
 echo.
-echo    Presioná una tecla para volver al menú...
+echo    Presiona una tecla para volver al menu...
 pause >nul
 goto :menuPrincipal
 
 :opcionCloud
 cls
 echo.
-echo    %C_CYAN%========================================================================%C_RESET%
-echo    %C_WHITE%%C_BOLD%  INICIANDO SiGIC EN MODO HÍBRIDO (NEON CLOUD)%C_RESET%
-echo    %C_GRAY%  Plataforma Web conectada a la base de datos de producción Neon%C_RESET%
-echo    %C_CYAN%========================================================================%C_RESET%
+echo    ========================================================================
+echo      INICIANDO SiGIC EN MODO HIBRIDO (NEON CLOUD)
+echo      Plataforma Web conectada a la base de datos de produccion Neon
+echo    ========================================================================
 echo.
 docker compose -f docker-compose.cloud.yml up --build -d
 echo.
 if %errorlevel% equ 0 (
-    echo    %C_GREEN%[OK] Contenedor Web iniciado y vinculado a Neon Cloud!%C_RESET%
-    echo    %C_WHITE%Accedé desde tu navegador en:%C_RESET% %C_CYAN%%C_BOLD%http://localhost:3000%C_RESET%
+    echo    [OK] Contenedor Web iniciado y vinculado a Neon Cloud!
+    echo    Accede desde tu navegador en: http://localhost:3000
     echo.
-    echo    %C_GRAY%Deseas abrir la plataforma en el navegador ahora mismo? (S/N)%C_RESET%
+    echo    Deseas abrir la plataforma en el navegador ahora mismo? (S/N)
     set /p abrirNav="   > "
-    if /i "!abrirNav!"=="S" start http://localhost:3000
+    if /i "%abrirNav%"=="S" start http://localhost:3000
 ) else (
-    echo    %C_RED%[ERROR] Hubo un problema al iniciar el contenedor web.%C_RESET%
+    echo    [ERROR] Hubo un problema al iniciar el contenedor web.
 )
 echo.
-echo    Presioná una tecla para volver al menú...
+echo    Presiona una tecla para volver al menu...
 pause >nul
 goto :menuPrincipal
 
@@ -146,9 +119,9 @@ goto :menuPrincipal
 :opcionLogs
 cls
 echo.
-echo    %C_CYAN%========================================================================%C_RESET%
-echo    %C_WHITE%%C_BOLD%  LOGS EN VIVO DE SiGIC (Presioná Ctrl+C para salir de los logs)%C_RESET%
-echo    %C_CYAN%========================================================================%C_RESET%
+echo    ========================================================================
+echo      LOGS EN VIVO DE SiGIC (Presiona Ctrl+C para salir de los logs)
+echo    ========================================================================
 echo.
 docker compose logs -f
 goto :menuPrincipal
@@ -156,41 +129,40 @@ goto :menuPrincipal
 :opcionEstado
 cls
 echo.
-echo    %C_CYAN%========================================================================%C_RESET%
-echo    %C_WHITE%%C_BOLD%  ESTADO ACTUAL DE LOS CONTENEDORES SiGIC%C_RESET%
-echo    %C_CYAN%========================================================================%C_RESET%
+echo    ========================================================================
+echo      ESTADO ACTUAL DE LOS CONTENEDORES SiGIC
+echo    ========================================================================
 echo.
-docker ps -a --filter "name=sigic" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}\t{{.Size}}"
+docker ps -a --filter "name=sigic"
 echo.
-echo    Presioná una tecla para volver al menú...
+echo    Presiona una tecla para volver al menu...
 pause >nul
 goto :menuPrincipal
 
 :opcionDetener
 cls
 echo.
-echo    %C_YELLOW%Deteniendo todos los contenedores de SiGIC...%C_RESET%
+echo    Deteniendo todos los contenedores de SiGIC...
 docker compose -f docker-compose.yml down
 docker compose -f docker-compose.cloud.yml down
 echo.
-echo    %C_GREEN%[OK] Todos los contenedores fueron detenidos con éxito.%C_RESET%
+echo    [OK] Todos los contenedores fueron detenidos con exito.
 echo.
-echo    Presioná una tecla para volver al menú...
+echo    Presiona una tecla para volver al menu...
 pause >nul
 goto :menuPrincipal
 
 :opcionRebuild
 cls
 echo.
-echo    %C_RED%========================================================================%C_RESET%
-echo    %C_WHITE%%C_BOLD%  RECOMPILACIÓN TOTAL LIMPIA (NO-CACHE)%C_RESET%
-echo    %C_GRAY%  Esto descargará y reconstruirá la imagen desde cero%C_RESET%
-echo    %C_RED%========================================================================%C_RESET%
+echo    ========================================================================
+echo      RECOMPILACION TOTAL LIMPIA (NO-CACHE)
+echo    ========================================================================
 echo.
 docker compose -f docker-compose.yml build --no-cache
 echo.
-echo    %C_GREEN%[OK] Recompilación limpia finalizada.%C_RESET%
+echo    [OK] Recompilacion finalizada.
 echo.
-echo    Presioná una tecla para volver al menú...
+echo    Presiona una tecla para volver al menu...
 pause >nul
 goto :menuPrincipal
