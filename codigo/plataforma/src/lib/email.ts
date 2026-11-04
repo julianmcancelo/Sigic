@@ -1192,10 +1192,14 @@ export async function generarPdfCredencial({
     });
   }
 
-  // Pre-generar QR individuales para cada invitado/familiar
-  const qrsIntegrantes: Buffer[] = [];
-  for (let i = 0; i < integrantes.length; i++) {
-    const intItem = integrantes[i];
+  // Familiares y padrinos de diploma cargados por el egresado que requieren su credencial/QR individual
+  // (Los docentes institucionales solo figuran a título informativo en la nómina oficial de la página 1)
+  const familiaresConCredencial = integrantes.filter(it => it.tipo !== 'PADRINO_DOCENTE');
+
+  // Pre-generar QR individuales para cada familiar/invitado cargado
+  const qrsFamiliares: Buffer[] = [];
+  for (let i = 0; i < familiaresConCredencial.length; i++) {
+    const intItem = familiaresConCredencial[i];
     const urlIndividual = `${acceso}&invitado=${encodeURIComponent(intItem.nombre)}&asiento=${encodeURIComponent(intItem.asiento)}`;
     try {
       const dataUrl = await QRCode.toDataURL(urlIndividual, {
@@ -1204,9 +1208,9 @@ export async function generarPdfCredencial({
         color: { dark: '#002038', light: '#ffffff' },
         errorCorrectionLevel: 'M',
       });
-      qrsIntegrantes.push(Buffer.from(dataUrl.split(',')[1], 'base64'));
+      qrsFamiliares.push(Buffer.from(dataUrl.split(',')[1], 'base64'));
     } catch {
-      qrsIntegrantes.push(qrPrincipal);
+      qrsFamiliares.push(qrPrincipal);
     }
   }
 
@@ -1369,9 +1373,9 @@ export async function generarPdfCredencial({
     // =========================================================================
     // PÁGINA 2+: TARJETAS / CREDENCIALES INDIVIDUALES DE FAMILIARES Y PADRINOS
     // =========================================================================
-    if (integrantes.length > 0) {
+    if (familiaresConCredencial.length > 0) {
       const porPagina = 4;
-      for (let p = 0; p < integrantes.length; p += porPagina) {
+      for (let p = 0; p < familiaresConCredencial.length; p += porPagina) {
         doc.addPage({ size: 'A4', margin: 0 });
         doc.rect(0, 0, 595, 842).fill('#f8fafc');
 
@@ -1391,8 +1395,8 @@ export async function generarPdfCredencial({
         doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(14).text('PASE INDIVIDUAL DE ACCESO · FAMILIARES Y PADRINOS', 102, 31);
         doc.fillColor('#cbd5e1').font('Helvetica').fontSize(8).text(`Egresado Titular: ${nombre} · ${ceremonia}`, 102, 50, { width: 440 });
 
-        // Grilla de 4 tarjetas individuales
-        const grupo = integrantes.slice(p, p + porPagina);
+        // Grilla de 4 tarjetas individuales (exclusivas para familiares y acompañantes cargados)
+        const grupo = familiaresConCredencial.slice(p, p + porPagina);
         const cardW = 252;
         const cardH = 320;
         const startX = 36;
@@ -1437,7 +1441,7 @@ export async function generarPdfCredencial({
           );
 
           // Código QR Individual
-          const qrIndiv = qrsIntegrantes[p + gIdx] || qrPrincipal;
+          const qrIndiv = qrsFamiliares[p + gIdx] || qrPrincipal;
           const qrIndW = 105;
           doc.roundedRect(cX + (cardW - qrIndW) / 2, cY + 104, qrIndW, qrIndW, 8).fill('#f8fafc');
           doc.roundedRect(cX + (cardW - qrIndW) / 2, cY + 104, qrIndW, qrIndW, 8).lineWidth(1).strokeColor('#e2e8f0').stroke();
