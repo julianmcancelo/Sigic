@@ -1462,19 +1462,14 @@ function App() {
     )
   }
 
-  // CASO E.2: Selección Inicial
+  // CASO E.2: Portal Principal Oficial (Landing Institucional Beltrán)
   else {
     contenido = (
-      <PantallaSeleccionLogin 
-        modoDemo={modoDemoActivo}
-        enMantenimiento={enMantenimiento}
-        accesoOculto={accesoOculto}
-        onSeleccionarAdmin={() => setVistaLogin('admin')}
-        onSeleccionarEgresado={() => setVistaLogin('graduado')}
-        onSeleccionarManual={() => setVistaLogin('manual')}
-        onSeleccionarLanding={() => setVistaLogin('landing')}
-        onLoginAdminExitoso={manejarLoginAdminExitoso}
-        onLoginGraduadoExitoso={manejarLoginGraduadoExitoso}
+      <LandingPageNerdearlaStyle
+        onIrAEgresado={() => modoDemoActivo ? manejarLoginGraduadoExitoso(EGRESADA_DEMO) : setVistaLogin('graduado')}
+        onIrAAdmin={() => setVistaLogin('admin')}
+        onIrAManual={() => setVistaLogin('manual')}
+        onVolver={null}
       />
     )
   }
