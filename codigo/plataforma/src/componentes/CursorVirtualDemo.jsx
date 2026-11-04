@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+﻿import React, { useState, useEffect, useRef, useCallback } from 'react'
 import rutinasOficiales from '../datos/rutinas-demo-oficiales.json'
 import { obtenerDatosDemoActuales } from '../lib/generador-datos-demo'
 
@@ -891,7 +891,7 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
           {
             tipo: 'mover',
             selector: '#btn-template-studio, button.bg-slate-100, button',
-            textoBoton: 'Template Studio',
+            textoBoton: 'Plantillas de Correo',
             rx: 0.72, ry: 0.14,
             etiqueta: 'Previsualizando plantilla oficial de invitación...',
             pausaDespues: 500
@@ -899,8 +899,8 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
           {
             tipo: 'click',
             selector: '#btn-template-studio, button.bg-slate-100, button',
-            textoBoton: 'Template Studio',
-            etiqueta: 'Abriendo Template Studio con branding Beltrán...',
+            textoBoton: 'Plantillas de Correo',
+            etiqueta: 'Abriendo Plantillas de Correo con branding Beltrán...',
             pausaDespues: 850
           },
           {
@@ -1113,7 +1113,7 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
             selector: '#btn-auto-asignar-butacas, button',
             textoBoton: 'Auto-Asignar Butacas',
             rx: 0.76, ry: 0.12,
-            etiqueta: 'Ejecutando algoritmo Auto-Seating por carrera...',
+            etiqueta: 'Ejecutando algoritmo Asignación Automática por carrera...',
             pausaDespues: 650,
             esperarElemento: true
           },
@@ -1528,4 +1528,6 @@ export function CursorVirtualDemo({ pasoActual, pausado, velocidad = 1, activo =
     </div>
   )
 }
+
+
 

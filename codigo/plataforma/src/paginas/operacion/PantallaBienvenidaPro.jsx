@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+﻿import { useState, useEffect, useRef } from 'react'
 import { 
   GraduationCap, Calendar, CalendarPlus, Users, FileSpreadsheet, Settings, 
   LogOut, Search, Bell, Eye, Edit3, CheckCircle2, AlertTriangle, 
@@ -689,7 +689,7 @@ export function PantallaBienvenidaPro({
                       <span className="text-[10px] font-black text-cyan-600 font-mono">04. BUTACAS</span>
                       <Armchair size={16} className="text-cyan-500 group-hover:scale-110 transition-transform" />
                     </div>
-                    <h4 className="text-xs font-bold text-slate-800">Auto-Seating</h4>
+                    <h4 className="text-xs font-bold text-slate-800">Asignación Automática</h4>
                     <p className="text-[9.5px] text-slate-400 mt-1 leading-snug">Distribución de 3 bloques en 1 clic.</p>
                   </button>
 
@@ -1193,3 +1193,5 @@ export function PantallaBienvenidaPro({
     </div>
   )
 }
+
+

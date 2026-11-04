@@ -94,7 +94,7 @@ export function CircuitoOperativoPasosCompacto({
       clave: 'preparacion-ceremonia',
       etiqueta: 'BUTACAS',
       titulo: 'Preparación',
-      detalle: planoConfigurado ? 'Distribución lista' : 'Auto-Seating',
+      detalle: planoConfigurado ? 'Distribución lista' : 'Asignación automática',
       destino: 'preparacion-ceremonia',
       icono: Armchair,
       completado: paso4Completado,

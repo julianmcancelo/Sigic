@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+﻿import React, { useState } from 'react'
 import {
   Sparkles, CheckCircle2, Award, Users, Send,
   Armchair, QrCode, Calendar, MapPin, X, ArrowRight,
@@ -208,7 +208,7 @@ export function ModalResumenDemostracion({
                     <div className="h-4 w-4 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
                       <Check size={10} strokeWidth={3} />
                     </div>
-                    <span className="font-semibold text-slate-800 text-[11px]">Auto-Seating en auditorio</span>
+                    <span className="font-semibold text-slate-800 text-[11px]">Asignación Automática en auditorio</span>
                   </div>
                 </div>
               </div>
@@ -321,4 +321,5 @@ export function ModalResumenDemostracion({
     </div>
   )
 }
+
 

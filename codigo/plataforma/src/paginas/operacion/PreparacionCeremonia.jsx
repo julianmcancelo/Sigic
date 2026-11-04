@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+﻿import React, { useState, useEffect, useRef } from 'react'
 import {
   Armchair, Sparkles, Users, Layers, Save, RotateCcw,
   CheckCircle2, AlertCircle, Search, ArrowRight, ArrowLeft, UserCheck,
@@ -432,7 +432,7 @@ export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: cer
               )}
             </div>
             <p className="text-xs text-slate-400 font-medium truncate mt-0.5">
-              Auto-Seating inteligente, mapa del anfiteatro y distribución de sectores.
+              Asignación inteligente, mapa del anfiteatro y distribución de sectores.
             </p>
           </div>
         </div>
@@ -1544,3 +1544,4 @@ export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: cer
     </div>
   )
 }
+

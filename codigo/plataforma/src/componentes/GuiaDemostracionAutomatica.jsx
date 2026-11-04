@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react'
+﻿import React, { useState, useEffect, useRef, useCallback } from 'react'
 import {
   Play, Pause, ChevronRight, ChevronLeft, X, Sparkles,
   Users, Send, ScrollText, GraduationCap, QrCode, Armchair,
@@ -96,9 +96,9 @@ export const PASOS_DEMO = [
     icono: Armchair,
     vistaAdmin: 'preparacion-ceremonia',
     tipoUsuario: 'admin',
-    titulo: '7. Distribución Inteligente de Butacas (Auto-Seating)',
+    titulo: '7. Distribución Inteligente de Butacas (Asignación Automática)',
     descripcion: 'El algoritmo ubica a los egresados en Platea Baja por carrera y sienta a sus familias contiguas en Pullman. Cierre y agradecimiento institucional.',
-    accionSimulada: 'Auto-Seating completado · Resumen ejecutivo y agradecimiento institucional',
+    accionSimulada: 'Asignación Automática completado · Resumen ejecutivo y agradecimiento institucional',
     duracionSegundos: 21,
   },
 ]
@@ -1362,3 +1362,4 @@ export function GuiaDemostracionAutomatica({
     </>
   )
 }
+

@@ -1,4 +1,4 @@
-import { origenPortalGraduados } from '../../lib/graduate-origin'
+﻿import { origenPortalGraduados } from '../../lib/graduate-origin'
 import React, { useEffect, useState, useMemo } from 'react'
 import {
   AlertCircle, Check, CheckCircle2, Clock3, Copy, CreditCard, Edit3, ExternalLink,
@@ -407,7 +407,7 @@ export function GestionConvocatoria({ onNavegar, usuario, ceremoniaActiva: cerem
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition cursor-pointer"
               title="Previsualizar plantillas de correo"
             >
-              <Eye size={14} /> Template Studio
+              <Eye size={14} /> Plantillas de Correo
             </button>
 
             {onNavegar && (
@@ -910,7 +910,7 @@ export function GestionConvocatoria({ onNavegar, usuario, ceremoniaActiva: cerem
         </div>
       )}
 
-      {/* MODAL TEMPLATE STUDIO / PREVIEW */}
+      {/* MODAL Plantillas de Correo / PREVIEW */}
       {modalPreviewAbierto && (
         <ModalPreviewCorreo
           graduadoEjemplo={graduados[0]}
@@ -949,3 +949,4 @@ export function GestionConvocatoria({ onNavegar, usuario, ceremoniaActiva: cerem
     </>
   )
 }
+
