@@ -31,11 +31,11 @@ export function AsistenteSetup({ onFinalizado }) {
     setError(null)
 
     try {
-      await inicializarSistema({
+      const respuesta = await inicializarSistema({
         ...evento,
         ...admin
       })
-      onFinalizado()
+      onFinalizado(respuesta)
     } catch (err) {
       setError(err.message)
     } finally {
