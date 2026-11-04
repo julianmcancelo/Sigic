@@ -63,7 +63,7 @@ export const DATOS_LANDING_SIGIC = {
     },
     {
       hora: '18:30 - 19:30',
-      titulo: 'Colación Promoción Analista de Sistemas & Desarrollo de Software',
+      titulo: 'Colación Promoción Analista de Sistemas ',
       categoria: 'Graduación',
       track: 'sistemas',
       lugar: 'Estrado Mayor',

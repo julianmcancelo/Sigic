@@ -27,7 +27,7 @@ import { PantallaSeleccionLogin } from './paginas/PantallaSeleccionLogin'
 import { AsistenteSetup } from './paginas/AsistenteSetup'
 import { PantallaAceptacion } from './paginas/PantallaAceptacion'
 import { ManualUsuarioWeb } from './paginas/ManualUsuarioWeb'
-import { LandingPageNerdearlaStyle } from './paginas/LandingPageNerdearlaStyle'
+import { LandingInstitucionalBeltran as LandingPageNerdearlaStyle } from './paginas/LandingInstitucionalBeltran'
 import { PantallaBienvenidaPro, TITULOS_PANTALLAS } from './paginas/operacion/PantallaBienvenidaPro'
 import { HeaderGlobal } from './componentes/HeaderGlobal'
 import { CircuitoOperativoPasosCompacto } from './componentes/CircuitoOperativoPasosCompacto'
@@ -1534,7 +1534,7 @@ function App() {
             { id: 'manual-usuario', titulo: 'Manual Oficial', icono: BookOpen, color: 'bg-sky-600' },
             { id: 'actualizar-sigic', titulo: 'Actualizar SiGIC', icono: ArrowUpCircle, color: 'bg-emerald-600' },
             { id: 'acerca-de', titulo: 'Acerca de SiGIC', icono: Info, color: 'bg-indigo-600' },
-            { id: 'landing-page', titulo: 'Landing Evento (Nerdearla)', icono: Sparkles, color: 'bg-cyan-500' },
+            { id: 'landing-page', titulo: 'Portal Institucional Colación', icono: Sparkles, color: 'bg-cyan-500' },
           ]}
           usuario={adminUser}
           ceremonia={ceremoniaActiva}

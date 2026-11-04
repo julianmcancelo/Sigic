@@ -29,7 +29,7 @@ import { EstadoCeremonia } from './EstadoCeremonia'
 import { PanelAjustes } from './PanelAjustes'
 import { PanelReportes } from './PanelReportes'
 import { ManualUsuarioWeb } from '../ManualUsuarioWeb'
-import { LandingPageNerdearlaStyle } from '../LandingPageNerdearlaStyle'
+import { LandingInstitucionalBeltran as LandingPageNerdearlaStyle } from '../LandingInstitucionalBeltran'
 import { GestionPorteria } from './GestionPorteria'
 import { CentroControl } from './CentroControl'
 
@@ -49,7 +49,7 @@ export const TITULOS_PANTALLAS = {
   'centro-control': 'Centro de Control e Infraestructura',
   'ajustes': 'Configuración del Sistema',
   'manual-usuario': 'Manual de Usuario',
-  'landing-page': 'Landing Page (Nerdearla)'
+  'landing-page': 'Portal Institucional Beltrán'
 }
 
 export const CANONICAL_MAP = {
