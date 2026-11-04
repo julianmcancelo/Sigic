@@ -20,6 +20,8 @@ COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
+# Secreto temporal para compilación estática de rutas Next.js
+ENV JWT_SECRET="sigic_production_default_secret_key_beltran_2026_minimum_32_characters"
 
 # Ejecutar el build de producción Next.js
 RUN npm run build
