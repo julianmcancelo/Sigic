@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect, useRef } from 'react'
-import { Settings, Users, GraduationCap, BookOpen, ChevronRight, Info, LogIn, Sparkles } from 'lucide-react'
+import { Settings, Users, GraduationCap, BookOpen, ChevronRight, Info, LogIn, Sparkles, Play } from 'lucide-react'
+import { ModalTourVideo } from '../componentes/ModalTourVideo'
 import { VERSION_LABEL } from '../lib/version'
 
 export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresado, onSeleccionarManual, onSeleccionarLanding, enMantenimiento, accesoOculto, modoDemo = false }) {
@@ -7,6 +8,7 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
   const [snapActivo, setSnapActivo] = useState(false)
   const [revelado, setRevelado] = useState(false)
   const [mostrarInfo, setMostrarInfo] = useState(false)
+  const [mostrarTourVideo, setMostrarTourVideo] = useState(false)
   const [fraseTooltip, setFraseTooltip] = useState('SiGIC')
   const canvasRef = useRef(null)
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
@@ -178,7 +180,9 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
 
           <p className="mt-10 text-[9px] font-bold uppercase tracking-[0.2em] text-slate-400 font-mono">{VERSION_LABEL}</p>
         </section>
-      </main>
+        {/* Modal Recorrido Interactivo */}
+      <ModalTourVideo abierto={mostrarTourVideo} alCerrar={() => setMostrarTourVideo(false)} />
+    </main>
     )
   }
 
