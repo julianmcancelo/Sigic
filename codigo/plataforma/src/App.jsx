@@ -400,6 +400,12 @@ function App() {
   const [requiereSetup, setRequiereSetup] = useState(null)
   const [estadoLicenciaSeguridad, setEstadoLicenciaSeguridad] = useState(null)
   const [cargandoSetup, setCargandoSetup] = useState(true)
+  const [yaMostroSplashSesion, setYaMostroSplashSesion] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('sigic_splash_mostrado') === 'true'
+    }
+    return false
+  })
 
   const [mostrarPresentacionInicial, setMostrarPresentacionInicial] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -652,10 +658,18 @@ function App() {
       } catch (e) {
         console.warn("No se pudo contactar al servidor para el estado inicial:", e.message)
       } finally {
-        // La apertura institucional debe ser perceptible incluso con respuestas muy rápidas.
-        const esperaRestante = Math.max(0, 1600 - (Date.now() - inicioCarga))
-        if (esperaRestante) {
-          await new Promise(resolve => setTimeout(resolve, esperaRestante))
+        // Apertura inteligente: solo demora si es la primera vez que abre la sesión.
+        // Si recarga con F5 o ya cargó previamente, no demora ni bloquea con splash.
+        const yaVisto = typeof window !== 'undefined' && sessionStorage.getItem('sigic_splash_mostrado') === 'true'
+        if (!yaVisto) {
+          const esperaRestante = Math.max(0, 1000 - (Date.now() - inicioCarga))
+          if (esperaRestante > 0) {
+            await new Promise(resolve => setTimeout(resolve, esperaRestante))
+          }
+          if (typeof window !== 'undefined') {
+            sessionStorage.setItem('sigic_splash_mostrado', 'true')
+            setYaMostroSplashSesion(true)
+          }
         }
         setCargandoSetup(false)
       }
@@ -1034,6 +1048,10 @@ function App() {
 
   // CASO 0: Cargando estado inicial
   if (cargandoSetup) {
+    // Si ya vio el splash en esta sesión de navegación (ej: tocó F5), no volvemos a mostrar el splash a pantalla completa
+    if (yaMostroSplashSesion) {
+      return null
+    }
     return <PantallaCargaInicial />
     /*
     return (
