@@ -9,6 +9,13 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
   const [mostrarInfo, setMostrarInfo] = useState(false)
   const [fraseTooltip, setFraseTooltip] = useState('SiGIC')
   const canvasRef = useRef(null)
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
+  const handleMouseMove = (e) => {
+    const x = (e.clientX / window.innerWidth - 0.5) * 2
+    const y = (e.clientY / window.innerHeight - 0.5) * 2
+    setMousePos({ x, y })
+  }
+
 
   useEffect(() => {
     if (accesoOculto === false) {
@@ -176,14 +183,14 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
   }
 
   return (
-    <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden select-none text-slate-800 font-sans bg-gradient-to-tr from-slate-100 via-sky-50/40 to-blue-50/30 p-4 selection:bg-sky-500 selection:text-white antialiased">
+    <main onMouseMove={handleMouseMove} className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden select-none text-slate-800 font-sans bg-gradient-to-tr from-slate-100 via-sky-50/40 to-blue-50/30 p-4 selection:bg-sky-500 selection:text-white antialiased">
       {/* Fondo con gradiente claro y orbes suaves */}
       <div className="absolute inset-0 pointer-events-none opacity-60 [background-image:radial-gradient(circle_at_20%_20%,rgba(56,189,248,.15),transparent_35%),radial-gradient(circle_at_80%_80%,rgba(99,102,241,.1),transparent_35%)]" />
 
       {/* Orbes de luz decorativos de fondo */}
-      <div className="absolute top-1/4 left-1/4 h-[420px] w-[420px] rounded-full bg-sky-300/20 blur-[130px] pointer-events-none animate-orb-1" />
-      <div className="absolute bottom-1/4 right-1/4 h-[450px] w-[450px] rounded-full bg-indigo-300/15 blur-[140px] pointer-events-none animate-orb-2" />
-      <div className="absolute top-2/3 left-1/2 -translate-x-1/2 h-[300px] w-[300px] rounded-full bg-cyan-200/20 blur-[110px] pointer-events-none animate-orb-3" />
+      <div style={{ transform: `translate3d(${mousePos.x * 24}px, ${mousePos.y * 24}px, 0)` }} className="absolute top-1/4 left-1/4 h-[420px] w-[420px] rounded-full bg-sky-300/20 blur-[130px] pointer-events-none transition-transform duration-700 ease-out will-change-transform animate-orb-1" />
+      <div style={{ transform: `translate3d(${mousePos.x * -28}px, ${mousePos.y * -28}px, 0)` }} className="absolute bottom-1/4 right-1/4 h-[450px] w-[450px] rounded-full bg-indigo-300/15 blur-[140px] pointer-events-none transition-transform duration-700 ease-out will-change-transform animate-orb-2" />
+      <div style={{ transform: `translate3d(calc(-50% + ${mousePos.x * 16}px), ${mousePos.y * 16}px, 0)` }} className="absolute top-2/3 left-1/2 h-[300px] w-[300px] rounded-full bg-cyan-200/20 blur-[110px] pointer-events-none transition-transform duration-700 ease-out will-change-transform animate-orb-3" />
 
       {/* Canvas para partículas de Thanos */}
       {snapActivo && (
@@ -252,7 +259,10 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
           {/* Logo de SiGIC en tarjeta blanca con resplandor suave */}
           <div 
             onClick={manejarClickLogo}
-            className={`group relative mb-8 flex h-20 w-20 items-center justify-center rounded-2xl bg-white/90 backdrop-blur-md border border-slate-200/80 shadow-xl shadow-slate-200/60 p-2.5 cursor-pointer active:scale-95 transition-all duration-500 hover:shadow-2xl hover:-translate-y-1.5 animate-levitate ${
+            style={{
+              transform: `perspective(600px) rotateY(${mousePos.x * 12}deg) rotateX(${mousePos.y * -12}deg)`
+            }}
+            className={`group relative mb-8 flex h-20 w-20 items-center justify-center rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/80 shadow-xl shadow-slate-200/70 p-2.5 cursor-pointer active:scale-95 transition-transform duration-500 ease-out hover:shadow-2xl will-change-transform animate-levitate ${
               clickCount === 1 ? 'animate-shake-1' :
               clickCount === 2 ? 'animate-shake-2' :
               clickCount === 3 ? 'animate-shake-3' :
@@ -260,7 +270,8 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
             }`}
             title={fraseTooltip}
           >
-            <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-sky-400/20 to-blue-500/20 blur-md opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute -inset-[1.5px] rounded-2xl bg-gradient-to-r from-sky-400 via-indigo-400 to-sky-400 opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-[0.5px] -z-10 animate-border-shimmer" />
+            <div className="absolute -inset-3 rounded-3xl bg-gradient-to-r from-sky-400/25 via-indigo-400/20 to-sky-400/25 blur-lg opacity-40 group-hover:opacity-100 transition-opacity duration-500 -z-20" />
             <img
               src="/logo.png"
               alt="SiGIC"
@@ -454,6 +465,16 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
       <style>{`
         
         /* Animaciones vivas y elegantes sin ser invasivas */
+        @keyframes borderShimmer {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        .animate-border-shimmer {
+          background-size: 200% 200%;
+          animation: borderShimmer 4s ease infinite;
+        }
+
         @keyframes levitate {
           0%, 100% {
             transform: translateY(0px);
