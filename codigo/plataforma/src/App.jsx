@@ -30,6 +30,7 @@ import { ManualUsuarioWeb } from './paginas/ManualUsuarioWeb'
 import { LandingPageNerdearlaStyle } from './paginas/LandingPageNerdearlaStyle'
 import { PantallaBienvenidaPro, TITULOS_PANTALLAS } from './paginas/operacion/PantallaBienvenidaPro'
 import { HeaderGlobal } from './componentes/HeaderGlobal'
+import { CircuitoOperativoPasosCompacto } from './componentes/CircuitoOperativoPasosCompacto'
 import { PanelReportes } from './paginas/operacion/PanelReportes'
 import { GestionPorteria } from './paginas/operacion/GestionPorteria'
 import { CentroControl } from './paginas/operacion/CentroControl'
@@ -1379,7 +1380,16 @@ function App() {
                 }}
                 onCambiarEstiloInterfaz={() => cambiarEstiloInterfaz('escritorio')}
               />
-              <main className="max-w-7xl mx-auto px-2.5 sm:px-6 py-4 sm:py-8">
+              <main className="max-w-7xl mx-auto px-2.5 sm:px-6 py-4 sm:py-8 space-y-4">
+                {/* Circuito Operativo Guiado Visible en Todas las Pantallas Administrativas */}
+                {pantallaAdmin !== 'bienvenida' && (
+                  <CircuitoOperativoPasosCompacto
+                    ceremonia={ceremoniaActiva}
+                    vistaActual={pantallaAdmin}
+                    onNavegar={setPantallaAdmin}
+                  />
+                )}
+
                 <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-3.5 sm:p-6 backdrop-blur-xs">
                   {contenido}
                 </div>
