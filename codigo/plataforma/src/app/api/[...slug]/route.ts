@@ -249,6 +249,8 @@ async function despacharCredencialEgresado(graduadoId: string, req: NextRequest)
     lugar: graduado.ceremonia_lugar,
     asiento: graduado.asiento_id,
     acompanantes: acompanantesPdf,
+    invitadosDetallados: acompanantesEstructurados,
+    padrinosDocentes,
     acceso,
   });
 

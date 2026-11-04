@@ -1080,6 +1080,7 @@ export function generarPlantillaCredencialCeremonia({
 }
 
 /** Credencial PDF ejecutiva oficial de colación para presentar en portería o imprimir. */
+/** Credencial PDF ejecutiva oficial con credencial principal y credenciales individuales desglosadas por familiar/padrino */
 export async function generarPdfCredencial({
   nombre,
   ceremonia,
@@ -1087,6 +1088,8 @@ export async function generarPdfCredencial({
   lugar,
   asiento,
   acompanantes,
+  invitadosDetallados,
+  padrinosDocentes,
   acceso,
 }: {
   nombre: string;
@@ -1095,6 +1098,14 @@ export async function generarPdfCredencial({
   lugar: string;
   asiento?: string | null;
   acompanantes: string[];
+  invitadosDetallados?: Array<{
+    nombre: string;
+    asiento?: string | null;
+    esPadrino?: boolean;
+    ordenPadrino?: number | null;
+    relacion?: string | null;
+  }>;
+  padrinosDocentes?: string[];
   acceso: string;
 }) {
   const qrDataUrl = await QRCode.toDataURL(acceso, {
@@ -1103,17 +1114,17 @@ export async function generarPdfCredencial({
     color: { dark: '#002038', light: '#ffffff' },
     errorCorrectionLevel: 'H'
   });
-  const qr = Buffer.from(qrDataUrl.split(',')[1], 'base64');
+  const qrPrincipal = Buffer.from(qrDataUrl.split(',')[1], 'base64');
   const fechaTexto = formatearFechaLegible(fecha);
 
-  // Buscar logo institucional en public
+  // Buscar logo recortado o logo oficial
   let logoBuffer: Buffer | null = null;
   try {
     const posiblesRutas = [
-      path.join(process.cwd(), 'public', 'logo-oficial.png'),
+      path.join(process.cwd(), 'codigo', 'plataforma', 'public', 'logo-escudo-recortado.png'),
+      path.join(process.cwd(), 'public', 'logo-escudo-recortado.png'),
       path.join(process.cwd(), 'codigo', 'plataforma', 'public', 'logo-oficial.png'),
-      path.join(process.cwd(), 'public', 'logo.png'),
-      path.join(process.cwd(), 'codigo', 'plataforma', 'public', 'logo.png'),
+      path.join(process.cwd(), 'public', 'logo-oficial.png'),
     ];
     for (const r of posiblesRutas) {
       if (fs.existsSync(/*turbopackIgnore: true*/ r)) {
@@ -1121,8 +1132,82 @@ export async function generarPdfCredencial({
         break;
       }
     }
-  } catch (err) {
-    // Si falla la lectura, se continúa sin imagen
+  } catch (err) {}
+
+  // Estructurar nómina completa de integrantes
+  type Integrante = {
+    nombre: string;
+    rol: string;
+    tipo: 'PADRINO_DOCENTE' | 'PADRINO_DIPLOMA' | 'FAMILIAR' | 'ACOMPANANTE';
+    asiento: string;
+    esPadrino: boolean;
+  };
+
+  const integrantes: Integrante[] = [];
+
+  if (invitadosDetallados && Array.isArray(invitadosDetallados) && invitadosDetallados.length > 0) {
+    invitadosDetallados.forEach((inv) => {
+      let rol = 'Acompañante';
+      let tipo: Integrante['tipo'] = 'ACOMPANANTE';
+
+      if (inv.esPadrino) {
+        rol = inv.ordenPadrino ? `Padrino/Madrina de Diploma (${inv.ordenPadrino}°) · Estrado` : 'Padrino/Madrina de Diploma · Estrado';
+        tipo = 'PADRINO_DIPLOMA';
+      } else if (inv.relacion) {
+        rol = `Familiar (${inv.relacion})`;
+        tipo = 'FAMILIAR';
+      }
+
+      integrantes.push({
+        nombre: inv.nombre,
+        rol,
+        tipo,
+        asiento: inv.asiento ? `Butaca ${inv.asiento}` : 'Ubicación General',
+        esPadrino: Boolean(inv.esPadrino),
+      });
+    });
+  } else if (acompanantes && Array.isArray(acompanantes)) {
+    acompanantes.forEach((str) => {
+      const esPad = str.toLowerCase().includes('padrino') || str.toLowerCase().includes('madrina');
+      integrantes.push({
+        nombre: str.split('·')[0].split('(')[0].trim(),
+        rol: esPad ? 'Padrino/Madrina de Diploma' : 'Acompañante',
+        tipo: esPad ? 'PADRINO_DIPLOMA' : 'ACOMPANANTE',
+        asiento: str.includes('Butaca') ? str.split('Butaca')[1].split('(')[0].trim() : 'Ubicación General',
+        esPadrino: esPad,
+      });
+    });
+  }
+
+  // Agregar padrinos docentes
+  if (padrinosDocentes && Array.isArray(padrinosDocentes)) {
+    padrinosDocentes.forEach((docente) => {
+      integrantes.push({
+        nombre: docente.startsWith('Prof.') ? docente : `Prof. ${docente}`,
+        rol: 'Padrino Docente Institucional · Estrado',
+        tipo: 'PADRINO_DOCENTE',
+        asiento: 'Estrado Oficial Beltrán',
+        esPadrino: true,
+      });
+    });
+  }
+
+  // Pre-generar QR individuales para cada invitado/familiar
+  const qrsIntegrantes: Buffer[] = [];
+  for (let i = 0; i < integrantes.length; i++) {
+    const intItem = integrantes[i];
+    const urlIndividual = `${acceso}&invitado=${encodeURIComponent(intItem.nombre)}&asiento=${encodeURIComponent(intItem.asiento)}`;
+    try {
+      const dataUrl = await QRCode.toDataURL(urlIndividual, {
+        width: 280,
+        margin: 1,
+        color: { dark: '#002038', light: '#ffffff' },
+        errorCorrectionLevel: 'M',
+      });
+      qrsIntegrantes.push(Buffer.from(dataUrl.split(',')[1], 'base64'));
+    } catch {
+      qrsIntegrantes.push(qrPrincipal);
+    }
   }
 
   return new Promise<Buffer>((resolve, reject) => {
@@ -1133,137 +1218,256 @@ export async function generarPdfCredencial({
     doc.on('end', () => resolve(Buffer.concat(partes)));
     doc.on('error', reject);
 
-    // 1. FONDO GENERAL
+    // ==========================================
+    // PÁGINA 1: CREDENCIAL PRINCIPAL Y PASE GRUPAL
+    // ==========================================
     doc.rect(0, 0, 595, 842).fill('#f8fafc');
 
-    // 2. ENCABEZADO INSTITUCIONAL AZUL BELTRÁN (0, 0, 595, 140)
-    doc.rect(0, 0, 595, 140).fill('#002038');
-    // Línea de acento celeste Beltrán
-    doc.rect(0, 137, 595, 3).fill('#0284c7');
+    // Header Azul Beltrán
+    doc.rect(0, 0, 595, 118).fill('#002038');
+    doc.rect(0, 115, 595, 3).fill('#0284c7');
+    doc.circle(535, 18, 75).fillOpacity(0.08).fill('#38bdf8');
+    doc.circle(580, 95, 55).fillOpacity(0.06).fill('#0284c7');
+    doc.fillOpacity(1.0);
 
-    // Círculos decorativos sutiles en el fondo del header
-    doc.circle(540, 20, 80).fillOpacity(0.08).fill('#38bdf8');
-    doc.circle(580, 100, 60).fillOpacity(0.06).fill('#0284c7');
-    doc.fillOpacity(1.0); // Restaurar opacidad
+    // Caja blanca destacada para el Escudo Oficial Beltrán
+    const logoX = 36;
+    const logoY = 16;
+    const logoBoxW = 78;
+    const logoBoxH = 84;
+    doc.roundedRect(logoX, logoY, logoBoxW, logoBoxH, 10).fill('#ffffff');
+    doc.roundedRect(logoX, logoY, logoBoxW, logoBoxH, 10).lineWidth(1.5).strokeColor('#38bdf8').stroke();
 
-    // Logo oficial Beltrán
     if (logoBuffer) {
       try {
-        doc.image(logoBuffer, 44, 25, { width: 85, height: 85 });
-      } catch (e) {
-        // Fallback visual si hay error de imagen
-      }
+        doc.image(logoBuffer, logoX + 11, logoY + 6, { width: 56, height: 72 });
+      } catch (e) {}
     }
 
     // Textos institucionales del encabezado
-    const textoHeaderX = logoBuffer ? 144 : 48;
-    doc.fillColor('#38bdf8').font('Helvetica-Bold').fontSize(10).text('INSTITUTO TECNOLÓGICO BELTRÁN', textoHeaderX, 32, { characterSpacing: 1.2 });
-    doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(18).text('CREDENCIAL DIGITAL OFICIAL', textoHeaderX, 48);
-    doc.fillColor('#94a3b8').font('Helvetica-Bold').fontSize(10).text('TECNICATURA SUPERIOR EN ANALISTA DE SISTEMAS', textoHeaderX, 72, { characterSpacing: 0.8 });
-    
-    // Badge de Pase Oficial en cabecera
-    doc.roundedRect(textoHeaderX, 93, 175, 22, 6).fill('#084370');
-    doc.rect(textoHeaderX, 93, 175, 22).lineWidth(1).strokeColor('#0284c7').stroke();
-    doc.fillColor('#e0f2fe').font('Helvetica-Bold').fontSize(8.5).text('PASE GRUPAL HABILITADO', textoHeaderX + 16, 99, { characterSpacing: 1 });
+    const tx = 126;
+    doc.fillColor('#38bdf8').font('Helvetica-Bold').fontSize(9.5).text('INSTITUTO TECNOLÓGICO BELTRÁN', tx, 25, { characterSpacing: 1.1 });
+    doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(16.5).text('CREDENCIAL DIGITAL OFICIAL & PASE GRUPAL', tx, 39);
+    doc.fillColor('#94a3b8').font('Helvetica-Bold').fontSize(9).text('TECNICATURA SUPERIOR EN ANALISTA DE SISTEMAS', tx, 61, { characterSpacing: 0.6 });
 
-    // 3. TARJETA PRINCIPAL DEL GRADUADO Y QR (44, 158, 507, 240)
-    doc.roundedRect(44, 158, 507, 240, 12).fill('#ffffff');
-    doc.roundedRect(44, 158, 507, 240, 12).lineWidth(1).strokeColor('#e2e8f0').stroke();
+    // Badge de Validación Institucional
+    doc.roundedRect(tx, 76, 220, 20, 5).fill('#084370');
+    doc.roundedRect(tx, 76, 220, 20, 5).lineWidth(1).strokeColor('#0284c7').stroke();
+    doc.fillColor('#e0f2fe').font('Helvetica-Bold').fontSize(8).text('HABILITACIÓN OFICIAL · PASE GRUPAL AUTORIZADO', tx + 12, 82, { characterSpacing: 0.6 });
 
-    // Columna Izquierda: Datos del Graduado y Ceremonia
-    doc.fillColor('#0284c7').font('Helvetica-Bold').fontSize(9).text('EGRESADO / A TITULAR', 68, 178, { characterSpacing: 1 });
-    doc.fillColor('#002038').font('Helvetica-Bold').fontSize(22).text(nombre, 68, 194, { width: 285 });
+    // Tarjeta del Egresado Titular y QR Principal (y: 132 a 352)
+    doc.roundedRect(36, 132, 523, 222, 12).fill('#ffffff');
+    doc.roundedRect(36, 132, 523, 222, 12).lineWidth(1).strokeColor('#e2e8f0').stroke();
 
-    // Detalle de Ceremonia y Convocatoria
-    const yInfo = 250;
-    doc.fillColor('#64748b').font('Helvetica-Bold').fontSize(8.5).text('CEREMONIA:', 68, yInfo);
-    doc.fillColor('#0f172a').font('Helvetica').fontSize(9.5).text(ceremonia, 142, yInfo, { width: 205 });
+    // Columna Izquierda: Datos del Egresado
+    doc.fillColor('#0284c7').font('Helvetica-Bold').fontSize(9).text('EGRESADO / A TITULAR DE CEREMONIA', 56, 150, { characterSpacing: 1 });
+    doc.fillColor('#002038').font('Helvetica-Bold').fontSize(22).text(nombre, 56, 166, { width: 300 });
 
-    doc.fillColor('#64748b').font('Helvetica-Bold').fontSize(8.5).text('FECHA Y HORA:', 68, yInfo + 26);
-    doc.fillColor('#0f172a').font('Helvetica-Bold').fontSize(9.5).text(fechaTexto || 'Fecha a confirmar', 142, yInfo + 26);
+    const yInfo = 216;
+    doc.fillColor('#64748b').font('Helvetica-Bold').fontSize(8.5).text('CEREMONIA:', 56, yInfo);
+    doc.fillColor('#0f172a').font('Helvetica').fontSize(9).text(ceremonia, 132, yInfo, { width: 224 });
 
-    doc.fillColor('#64748b').font('Helvetica-Bold').fontSize(8.5).text('SEDE Y LUGAR:', 68, yInfo + 52);
-    doc.fillColor('#0f172a').font('Helvetica').fontSize(9.5).text(lugar || 'Instituto Tecnológico Beltrán (Av. Belgrano 1191)', 142, yInfo + 52, { width: 205 });
+    doc.fillColor('#64748b').font('Helvetica-Bold').fontSize(8.5).text('FECHA Y HORA:', 56, yInfo + 25);
+    doc.fillColor('#0f172a').font('Helvetica-Bold').fontSize(9).text(fechaTexto || 'Fecha a confirmar', 132, yInfo + 25);
 
-    doc.fillColor('#64748b').font('Helvetica-Bold').fontSize(8.5).text('CONVOCATORIA:', 68, yInfo + 88);
-    doc.fillColor('#b45309').font('Helvetica-Bold').fontSize(9).text('Presentarse 45 min antes para acreditación', 142, yInfo + 88);
+    doc.fillColor('#64748b').font('Helvetica-Bold').fontSize(8.5).text('SEDE Y LUGAR:', 56, yInfo + 50);
+    doc.fillColor('#0f172a').font('Helvetica').fontSize(9).text(lugar || 'Instituto Tecnológico Beltrán (Av. Belgrano 1191)', 132, yInfo + 50, { width: 224 });
 
-    // Columna Derecha: Contenedor del Código QR (Marco distinguido)
-    const qrBoxX = 368;
-    const qrBoxY = 175;
-    const qrBoxW = 160;
-    const qrBoxH = 206;
+    doc.fillColor('#64748b').font('Helvetica-Bold').fontSize(8.5).text('CONVOCATORIA:', 56, yInfo + 82);
+    doc.fillColor('#b45309').font('Helvetica-Bold').fontSize(8.5).text('Presentarse 45 min antes para acreditación en portería', 132, yInfo + 82);
 
-    doc.roundedRect(qrBoxX, qrBoxY, qrBoxW, qrBoxH, 10).fill('#f8fafc');
-    doc.roundedRect(qrBoxX, qrBoxY, qrBoxW, qrBoxH, 10).lineWidth(1).strokeColor('#cbd5e1').stroke();
+    // Columna Derecha: QR Principal
+    const qrX = 380;
+    const qrY = 148;
+    const qrW = 160;
+    const qrH = 190;
+    doc.roundedRect(qrX, qrY, qrW, qrH, 10).fill('#f8fafc');
+    doc.roundedRect(qrX, qrY, qrW, qrH, 10).lineWidth(1).strokeColor('#cbd5e1').stroke();
 
-    // Imagen del QR
-    doc.image(qr, qrBoxX + 17, qrBoxY + 14, { width: 126, height: 126 });
+    doc.image(qrPrincipal, qrX + 18, qrY + 12, { width: 124, height: 124 });
 
-    // Badge inferior del QR
-    doc.roundedRect(qrBoxX + 12, qrBoxY + 148, 136, 22, 6).fill('#002038');
-    doc.fillColor('#38bdf8').font('Helvetica-Bold').fontSize(8).text('ESCANEAR EN PORTERIA', qrBoxX + 12, qrBoxY + 155, { width: 136, align: 'center', characterSpacing: 0.5 });
+    doc.roundedRect(qrX + 12, qrY + 142, 136, 20, 5).fill('#002038');
+    doc.fillColor('#38bdf8').font('Helvetica-Bold').fontSize(7.5).text('ESCANEAR EN PORTERÍA', qrX + 12, qrY + 148, { width: 136, align: 'center', characterSpacing: 0.5 });
 
-    // Token / Hash de seguridad resumido
-    const tokenSeguridad = acceso.length > 28 ? acceso.slice(-18).toUpperCase() : acceso;
-    doc.fillColor('#64748b').font('Helvetica').fontSize(7).text('COD: ' + tokenSeguridad, qrBoxX + 10, qrBoxY + 178, { width: 140, align: 'center' });
+    const tokenSeguridad = acceso.length > 26 ? acceso.slice(-18).toUpperCase() : acceso;
+    doc.fillColor('#64748b').font('Helvetica').fontSize(6.5).text('COD: ' + tokenSeguridad, qrX + 10, qrY + 168, { width: 140, align: 'center' });
 
-    // 4. BLOQUE DE UBICACIÓN Y BUTACA ASIGNADA (44, 412, 507, 86)
-    doc.roundedRect(44, 412, 507, 86, 12).fill('#f0f9ff');
-    doc.roundedRect(44, 412, 507, 86, 12).lineWidth(1.2).strokeColor('#7dd3fc').stroke();
+    // Tarjeta Butaca Asignada Egresado (y: 366 a 442)
+    doc.roundedRect(36, 366, 523, 76, 10).fill('#f0f9ff');
+    doc.roundedRect(36, 366, 523, 76, 10).lineWidth(1.2).strokeColor('#7dd3fc').stroke();
 
-    doc.fillColor('#0284c7').font('Helvetica-Bold').fontSize(9).text('UBICACION ASIGNADA EN ANFITEATRO', 68, 426, { characterSpacing: 1 });
-    doc.fillColor('#002038').font('Helvetica-Bold').fontSize(24).text(asiento ? Butaca  : 'Ubicación General Reservada', 68, 442);
-    doc.fillColor('#334155').font('Helvetica').fontSize(9.5).text(
+    doc.fillColor('#0284c7').font('Helvetica-Bold').fontSize(8.5).text('UBICACIÓN ASIGNADA DEL EGRESADO EN ANFITEATRO', 56, 378, { characterSpacing: 0.8 });
+    const textoButacaEgresado = asiento ? `Butaca ${asiento}` : 'Ubicación General Reservada';
+    doc.fillColor('#002038').font('Helvetica-Bold').fontSize(22).text(textoButacaEgresado, 56, 393);
+    doc.fillColor('#334155').font('Helvetica').fontSize(8.5).text(
       asiento
-        ? 'Sector Egresados Beltrán. Tu butaca se encuentra reservada exclusivamente a tu nombre.'
-        : 'La numeración específica de tu butaca se confirmará al ingresar en portería o vía portal.',
-      68,
-      472
+        ? 'Sector Egresados Beltrán. Butaca numerada y nominada exclusivamente a tu nombre.'
+        : 'Sector Egresados Beltrán. Tu butaca se confirmará en el portal o al ingresar en portería.',
+      56,
+      422
     );
 
-    // 5. BLOQUE DE INTEGRANTES DEL GRUPO / ACOMPAÑANTES (44, 512, 507, 185)
-    doc.roundedRect(44, 512, 507, 185, 12).fill('#ffffff');
-    doc.roundedRect(44, 512, 507, 185, 12).lineWidth(1).strokeColor('#e2e8f0').stroke();
+    // Módulo de Padrinos y Acompañantes Detallados (y: 454 a 705)
+    doc.roundedRect(36, 454, 523, 252, 10).fill('#ffffff');
+    doc.roundedRect(36, 454, 523, 252, 10).lineWidth(1).strokeColor('#e2e8f0').stroke();
 
-    // Encabezado del bloque
-    doc.fillColor('#0284c7').font('Helvetica-Bold').fontSize(9).text('INTEGRANTES DEL GRUPO FAMILIAR Y ACOMPANANTES', 68, 528, { characterSpacing: 1 });
-    doc.fillColor('#64748b').font('Helvetica').fontSize(8.5).text('Este pase habilita el ingreso conjunto de las siguientes personas registradas:', 68, 542);
+    doc.fillColor('#002038').font('Helvetica-Bold').fontSize(11).text('INTEGRANTES DEL GRUPO, PADRINOS DE DIPLOMA Y ACOMPAÑANTES', 56, 470);
+    doc.fillColor('#64748b').font('Helvetica').fontSize(8.5).text('Detalle formal de personas autorizadas a ingresar y sus butacas asignadas:', 56, 485);
+    doc.moveTo(56, 500).lineTo(539, 500).lineWidth(0.8).strokeColor('#e2e8f0').stroke();
 
-    // Línea divisoria
-    doc.moveTo(68, 558).lineTo(527, 558).lineWidth(0.8).strokeColor('#f1f5f9').stroke();
+    if (integrantes.length > 0) {
+      let yFila = 510;
+      integrantes.slice(0, 6).forEach((item, idx) => {
+        const bgFila = item.esPadrino ? '#fefce8' : (idx % 2 === 0 ? '#f8fafc' : '#ffffff');
+        const borderFila = item.esPadrino ? '#fef08a' : '#e2e8f0';
 
-    if (acompanantes.length > 0) {
-      let yAcomp = 570;
-      acompanantes.slice(0, 5).forEach((acomp, idx) => {
-        // Indicador numérico circular
-        doc.roundedRect(68, yAcomp - 2, 18, 18, 4).fill('#e0f2fe');
-        doc.fillColor('#0369a1').font('Helvetica-Bold').fontSize(8.5).text(String(idx + 1), 74, yAcomp + 2);
+        doc.roundedRect(54, yFila - 2, 487, 28, 6).fill(bgFila);
+        doc.roundedRect(54, yFila - 2, 487, 28, 6).lineWidth(0.8).strokeColor(borderFila).stroke();
 
-        // Nombre y detalle
-        doc.fillColor('#0f172a').font('Helvetica-Bold').fontSize(9.5).text(acomp, 96, yAcomp + 1, { width: 420 });
+        // Badge numérico
+        doc.roundedRect(62, yFila + 2, 20, 20, 4).fill(item.esPadrino ? '#ca8a04' : '#0284c7');
+        doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(8.5).text(String(idx + 1), 62, yFila + 6, { width: 20, align: 'center' });
 
-        yAcomp += 24;
+        // Nombre
+        doc.fillColor('#0f172a').font('Helvetica-Bold').fontSize(9.5).text(item.nombre, 90, yFila + 3, { width: 175 });
+
+        // Rol con badge
+        if (item.tipo === 'PADRINO_DIPLOMA') {
+          doc.roundedRect(268, yFila + 2, 142, 20, 4).fill('#fef3c7');
+          doc.fillColor('#854d0e').font('Helvetica-Bold').fontSize(7.5).text(item.rol, 272, yFila + 7, { width: 134, align: 'center' });
+        } else if (item.tipo === 'PADRINO_DOCENTE') {
+          doc.roundedRect(268, yFila + 2, 142, 20, 4).fill('#e0e7ff');
+          doc.fillColor('#3730a3').font('Helvetica-Bold').fontSize(7.5).text(item.rol, 272, yFila + 7, { width: 134, align: 'center' });
+        } else {
+          doc.fillColor('#475569').font('Helvetica').fontSize(8.5).text(item.rol, 272, yFila + 7, { width: 138 });
+        }
+
+        // Asiento
+        doc.roundedRect(418, yFila + 2, 115, 20, 4).fill('#002038');
+        doc.fillColor('#38bdf8').font('Helvetica-Bold').fontSize(8).text(item.asiento, 418, yFila + 7, { width: 115, align: 'center' });
+
+        yFila += 32;
       });
     } else {
-      doc.fillColor('#64748b').font('Helvetica-Oblique').fontSize(9.5).text('No se han registrado acompanantes adicionales para este pase grupal.', 68, 580);
+      doc.fillColor('#64748b').font('Helvetica-Oblique').fontSize(9).text('Sin acompañantes ni padrinos registrados en este grupo.', 56, 520);
     }
 
-    // 6. PIE DE PÁGINA INSTITUCIONAL Y DE SEGURIDAD (44, 712, 507, 95)
-    doc.roundedRect(44, 712, 507, 95, 10).fill('#f1f5f9');
-    doc.roundedRect(44, 712, 507, 95, 10).lineWidth(1).strokeColor('#cbd5e1').stroke();
+    // Pie de Seguridad de Página 1 (y: 718 a 808)
+    doc.roundedRect(36, 718, 523, 90, 8).fill('#f1f5f9');
+    doc.roundedRect(36, 718, 523, 90, 8).lineWidth(1).strokeColor('#cbd5e1').stroke();
 
-    doc.fillColor('#002038').font('Helvetica-Bold').fontSize(9).text('AVISO DE SEGURIDAD Y PROTOCOLO INSTITUCIONAL', 68, 725, { characterSpacing: 0.8 });
-    doc.fillColor('#475569').font('Helvetica').fontSize(8).text(
-      'Documento oficial e intransferible expedido por el Sistema de Gestion Institucional de Colaciones (SiGIC).\n' +
-      'Debera exhibirse desde la pantalla del dispositivo movil o impreso ante el personal de control y porteria.\n' +
-      'Instituto Tecnologico Beltran · Av. Manuel Belgrano 1191, Avellaneda · www.ibeltran.com.ar',
-      68,
-      740,
-      { width: 460, lineGap: 3 }
+    doc.fillColor('#002038').font('Helvetica-Bold').fontSize(8.5).text('AVISO DE SEGURIDAD, PROTOCOLO Y VALIDEZ INSTITUCIONAL', 54, 729, { characterSpacing: 0.6 });
+    doc.fillColor('#475569').font('Helvetica').fontSize(7.5).text(
+      'Este documento oficial habilita el ingreso del egresado titular y de cada acompañante registrado.\n' +
+      'En la siguiente hoja encontrará las CREDENCIALES INDIVIDUALES DESGLOSADAS para cada miembro de la familia o padrino.\n' +
+      'Instituto Tecnológico Beltrán · Av. Manuel Belgrano 1191, Avellaneda · Sede Central · www.ibeltran.com.ar',
+      54,
+      744,
+      { width: 487, lineGap: 3 }
     );
 
-    // Finalizar el documento
+    // =========================================================================
+    // PÁGINA 2+: TARJETAS / CREDENCIALES INDIVIDUALES DE FAMILIARES Y PADRINOS
+    // =========================================================================
+    if (integrantes.length > 0) {
+      const porPagina = 4;
+      for (let p = 0; p < integrantes.length; p += porPagina) {
+        doc.addPage({ size: 'A4', margin: 0 });
+        doc.rect(0, 0, 595, 842).fill('#f8fafc');
+
+        // Header secundario superior
+        doc.rect(0, 0, 595, 80).fill('#002038');
+        doc.rect(0, 78, 595, 2).fill('#0284c7');
+
+        // Escudo en header secundario
+        doc.roundedRect(36, 12, 54, 56, 6).fill('#ffffff');
+        if (logoBuffer) {
+          try {
+            doc.image(logoBuffer, 44, 16, { width: 38, height: 48 });
+          } catch {}
+        }
+
+        doc.fillColor('#38bdf8').font('Helvetica-Bold').fontSize(8.5).text('INSTITUTO TECNOLÓGICO BELTRÁN', 102, 18, { characterSpacing: 1 });
+        doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(14).text('PASE INDIVIDUAL DE ACCESO · FAMILIARES Y PADRINOS', 102, 31);
+        doc.fillColor('#cbd5e1').font('Helvetica').fontSize(8).text(`Egresado Titular: ${nombre} · ${ceremonia}`, 102, 50, { width: 440 });
+
+        // Grilla de 4 tarjetas individuales
+        const grupo = integrantes.slice(p, p + porPagina);
+        const cardW = 252;
+        const cardH = 320;
+        const startX = 36;
+        const startY = 96;
+        const gapX = 19;
+        const gapY = 18;
+
+        grupo.forEach((persona, gIdx) => {
+          const col = gIdx % 2;
+          const row = Math.floor(gIdx / 2);
+          const cX = startX + col * (cardW + gapX);
+          const cY = startY + row * (cardH + gapY);
+
+          // Fondo tarjeta
+          doc.roundedRect(cX, cY, cardW, cardH, 10).fill('#ffffff');
+          doc.roundedRect(cX, cY, cardW, cardH, 10).lineWidth(persona.esPadrino ? 1.5 : 1).strokeColor(persona.esPadrino ? '#ca8a04' : '#cbd5e1').stroke();
+
+          // Header de la tarjeta individual
+          const bgCardHeader = persona.esPadrino ? '#002038' : '#084370';
+          doc.roundedRect(cX, cY, cardW, 46, 10).fill(bgCardHeader);
+          doc.rect(cX, cY + 36, cardW, 10).fill(bgCardHeader);
+          doc.rect(cX, cY + 44, cardW, 2).fill(persona.esPadrino ? '#eab308' : '#0284c7');
+
+          doc.fillColor('#ffffff').font('Helvetica-Bold').fontSize(10).text(
+            persona.esPadrino ? 'PADRINO DE DIPLOMA' : 'PASE DE ACOMPAÑANTE',
+            cX + 12,
+            cY + 10,
+            { characterSpacing: 0.5 }
+          );
+          doc.fillColor('#94a3b8').font('Helvetica').fontSize(7.5).text('INSTITUTO TECNOLÓGICO BELTRÁN', cX + 12, cY + 25);
+
+          // Nombre del integrante
+          doc.fillColor('#002038').font('Helvetica-Bold').fontSize(13).text(persona.nombre, cX + 12, cY + 56, { width: cardW - 24 });
+
+          // Rol o parentesco
+          doc.roundedRect(cX + 12, cY + 76, cardW - 24, 20, 4).fill(persona.esPadrino ? '#fef3c7' : '#f1f5f9');
+          doc.fillColor(persona.esPadrino ? '#854d0e' : '#0369a1').font('Helvetica-Bold').fontSize(8).text(
+            persona.rol,
+            cX + 16,
+            cY + 81,
+            { width: cardW - 32, align: 'center' }
+          );
+
+          // Código QR Individual
+          const qrIndiv = qrsIntegrantes[p + gIdx] || qrPrincipal;
+          const qrIndW = 105;
+          doc.roundedRect(cX + (cardW - qrIndW) / 2, cY + 104, qrIndW, qrIndW, 8).fill('#f8fafc');
+          doc.roundedRect(cX + (cardW - qrIndW) / 2, cY + 104, qrIndW, qrIndW, 8).lineWidth(1).strokeColor('#e2e8f0').stroke();
+          doc.image(qrIndiv, cX + (cardW - qrIndW) / 2 + 5, cY + 109, { width: 95, height: 95 });
+
+          // Ubicación en la tarjeta
+          doc.roundedRect(cX + 12, cY + 218, cardW - 24, 42, 6).fill('#f0f9ff');
+          doc.roundedRect(cX + 12, cY + 218, cardW - 24, 42, 6).lineWidth(1).strokeColor('#7dd3fc').stroke();
+          doc.fillColor('#0284c7').font('Helvetica-Bold').fontSize(7).text('UBICACIÓN ASIGNADA EN SALA', cX + 18, cY + 224, { characterSpacing: 0.5 });
+          doc.fillColor('#002038').font('Helvetica-Bold').fontSize(14).text(persona.asiento, cX + 18, cY + 236);
+
+          // Microtextos de pie de tarjeta
+          doc.fillColor('#64748b').font('Helvetica').fontSize(6.5).text(`Egresado: ${nombre}`, cX + 12, cY + 268, { width: cardW - 24 });
+          doc.fillColor('#64748b').font('Helvetica').fontSize(6.5).text(`Fecha: ${fechaTexto || 'Colación 2026'}`, cX + 12, cY + 279, { width: cardW - 24 });
+          doc.fillColor('#94a3b8').font('Helvetica-Bold').fontSize(6.5).text('PRESENTAR AL INGRESAR EN PORTERÍA', cX + 12, cY + 296, { width: cardW - 24, align: 'center' });
+        });
+
+        // Footer inferior de la página de credenciales individuales
+        doc.roundedRect(36, 764, 523, 48, 6).fill('#ffffff');
+        doc.roundedRect(36, 764, 523, 48, 6).lineWidth(1).strokeColor('#e2e8f0').stroke();
+        doc.fillColor('#64748b').font('Helvetica').fontSize(7).text(
+          'Cada pase individual puede ser recortado o exhibido directamente desde el celular por el familiar o padrino correspondiente.\n' +
+          'SiGIC · Sistema de Gestión Institucional de Colaciones · Instituto Tecnológico Beltrán',
+          50,
+          776,
+          { width: 495, align: 'center', lineGap: 3 }
+        );
+      }
+    }
+
     doc.end();
   });
 }
