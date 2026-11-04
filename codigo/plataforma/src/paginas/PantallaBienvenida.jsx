@@ -766,7 +766,12 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
   const [stats, setStats]                   = useState(null)
   const [config, setConfig]                 = useState({})
   const [ceremonias, setCeremonias]         = useState([])
-  const [cargandoStats, setCargandoStats]   = useState(true)
+  const [cargandoStats, setCargandoStats]   = useState(() => {
+    if (typeof window !== 'undefined') {
+      return !sessionStorage.getItem('sigic_bienvenida_stats_cargadas')
+    }
+    return true
+  })
   const [backendOnline, setBackendOnline]   = useState(true)
   const [mostrarMetricas, setMostrarMetricas] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('sigic_mostrar_metricas') !== 'false' : true))
   const [modoVistaAccesos, setModoVistaAccesos] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('sigic_vista_accesos') || 'comoda' : 'comoda'))
@@ -892,6 +897,9 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
       if (resCer.ok) setCeremonias(await resCer.json())
 
       setBackendOnline(true)
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('sigic_bienvenida_stats_cargadas', 'true')
+      }
     } catch {
       setBackendOnline(false)
     } finally {
@@ -1003,21 +1011,20 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
 
   if (cargandoStats) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC] select-none">
-        <div className="text-center space-y-5 p-10 rounded-[32px] bg-white border border-slate-100 shadow-xl shadow-slate-100/50">
-          {/* Double ring orbit spinner */}
-          <div className="relative w-16 h-16 mx-auto flex items-center justify-center">
-            <div className="absolute inset-0 rounded-full border-4 border-t-[#0ea5e9] border-r-transparent border-b-transparent border-l-transparent animate-spin" style={{ animationDuration: '0.8s' }} />
-            <div className="absolute inset-1.5 rounded-full border-4 border-b-indigo-500 border-t-transparent border-r-transparent border-l-transparent animate-spin" style={{ animationDuration: '1.2s', animationDirection: 'reverse' }} />
+      <div className="flex min-h-screen items-center justify-center bg-slate-50/70 backdrop-blur-xs select-none p-4 animate-in fade-in duration-200">
+        <div className="w-full max-w-xs text-center space-y-3.5 p-6 rounded-2xl bg-white border border-slate-200/80 shadow-md">
+          <div className="relative w-12 h-12 mx-auto flex items-center justify-center">
+            <div className="absolute inset-0 rounded-full border-2 border-sky-500/20" />
+            <div className="absolute inset-0 rounded-full border-2 border-t-sky-600 border-r-transparent border-b-transparent border-l-transparent animate-spin" style={{ animationDuration: '0.9s' }} />
             <img 
-              src="/logo-oficial.png" 
+              src="/logo.png" 
               alt="SiGIC" 
-              className="h-8 w-auto object-contain animate-pulse z-10 filter drop-shadow-[0_0_8px_rgba(14,165,233,0.4)]" 
+              className="h-6 w-6 object-contain z-10 drop-shadow-xs" 
             />
           </div>
-          <div className="space-y-1.5">
-            <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-700">Iniciando Centro de Control</p>
-            <p className="text-[8px] font-bold text-sky-500 uppercase tracking-widest animate-pulse">Sincronizando Entornos...</p>
+          <div className="space-y-1">
+            <p className="text-[11px] font-black uppercase tracking-wider text-slate-800">Cargando Panel de Control</p>
+            <p className="text-[9.5px] font-medium text-slate-400">Actualizando información institucional...</p>
           </div>
         </div>
       </div>
