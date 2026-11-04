@@ -1,5 +1,5 @@
 services:
-  # ─── SERVICIO DE BASE DE DATOS LOCAL (PostgreSQL 16) ───
+  # ─── SERVICIO DE BASE DE DATOS LOCAL VACÍA (PostgreSQL 16) ───
   sigic-db:
     image: postgres:16-alpine
     container_name: sigic-postgres
@@ -12,13 +12,12 @@ services:
       - "5432:5432"
     volumes:
       - sigic_pgdata:/var/lib/postgresql/data
-      - ./codigo/plataforma/public/Esquema_Base_Datos_SiGIC.sql:/docker-entrypoint-initdb.d/01_esquema.sql:ro
     networks:
       - sigic-net
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U sigic_admin -d sigic_db"]
-      interval: 5s
-      timeout: 5s
+      interval: 3s
+      timeout: 3s
       retries: 5
 
   # ─── SERVICIO WEB SiGIC (Next.js 16 + React 19) ───
@@ -34,7 +33,6 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - HOSTNAME=0.0.0.0
-      # Conexión automática al contenedor de PostgreSQL interno:
       - DATABASE_URL=postgresql://sigic_admin:sigic_password_segura_2026@sigic-db:5432/sigic_db?sslmode=disable
       - JWT_SECRET=sigic_jwt_secret_beltran_institucional_2026_academico
       - NEXT_PUBLIC_APP_URL=http://localhost:3000
