@@ -1,5 +1,5 @@
 services:
-  # ─── SERVICIO DE BASE DE DATOS (PostgreSQL 16) ───
+  # ─── 1. BASE DE DATOS (PostgreSQL 16) ───
   sigic-db:
     image: postgres:16-alpine
     container_name: sigic-postgres
@@ -21,7 +21,7 @@ services:
       timeout: 3s
       retries: 5
 
-  # ─── SERVICIO WEB SiGIC (Next.js 16 + React 19) ───
+  # ─── 2. PLATAFORMA WEB SiGIC (Next.js 16 + React 19) ───
   sigic-web:
     build:
       context: ../codigo/plataforma

@@ -1,55 +1,75 @@
-# SiGIC — Paquete de Entrega Oficial (Dockerizado)
+# PAQUETE DE ENTREGA OFICIAL — SiGIC (PENDRIVE)
 
 > **Sistema de Gestión Institucional de Colaciones**  
-> **Instituto Tecnológico Beltrán**  
+> **Institución:** Instituto Tecnológico Beltrán  
 > **Carrera:** Tecnicatura Superior en Analista de Sistemas  
+> **Autores:** Alan Alfonso, Julián Cancelo, Sol Contreras, Matías Frassia, Luis Santillán  
 
 ---
 
-## Contenido del Entregable
+## 1. ¿Qué contiene este Pendrive / Carpeta?
 
-Este directorio contiene todo lo necesario para ejecutar la solución completa de SiGIC en cualquier equipo que cuente con Docker Desktop / Docker Engine sin necesidad de instalar dependencias locales (Node.js, PostgreSQL, etc.).
+Este paquete reúne la solución integral completa lista para ser evaluada, auditada y ejecutada en cualquier computadora:
 
-| Archivo | Descripción |
-|---|---|
-| `docker-compose.yml` | Orquestador de servicios (PostgreSQL 16 + Next.js 16/React 19) |
-| `init.sql` | Estructura completa y datos iniciales de la base de datos |
-| `INICIAR_SIGIC.bat` | Script de 1 clic para Windows (levanta todo y abre el navegador) |
-| `DETENER_SIGIC.bat` | Script para apagar y liberar recursos |
-
----
-
-## Requisitos Previos
-
-- Tener instalado y en ejecución [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows / macOS) o Docker Engine (Linux).
-
----
-
-## Instrucciones de Uso
-
-### Opción 1: En Windows con doble clic
-1. Haga doble clic sobre `INICIAR_SIGIC.bat`.
-2. El script levantará la base de datos PostgreSQL, la plataforma web y abrirá automáticamente [http://localhost:3000](http://localhost:3000) en el navegador predeterminado.
-3. Para apagar el sistema, ejecute `DETENER_SIGIC.bat`.
-
-### Opción 2: Desde terminal (Cualquier sistema operativo)
-```bash
-# Iniciar servicios en segundo plano
-docker compose up -d
-
-# Ver registros en tiempo real
-docker compose logs -f
-
-# Detener los servicios
-docker compose down
+```text
+entregable/
+├── INICIAR_SIGIC.bat           # Ejecutable de 1 clic: levanta todo el sistema en Docker
+├── DETENER_SIGIC.bat           # Detiene y apaga los servicios de forma limpia
+├── docker-compose.yml          # Orquestador Docker (Next.js 16 + PostgreSQL 16)
+├── init.sql                    # Base de datos pre-configurada (esquema + datos iniciales)
+│
+├── app_movil_apk/              # Aplicación móvil para portería y control de accesos
+│   └── SiGIC-Porteria.apk      # APK lista para instalar en teléfonos Android
+│
+├── padrones_ejemplo/           # Planillas para pruebas de carga masiva
+│   ├── padron_TSAS_Practicas_III_2025.xlsx  (Excel con egresados de prueba)
+│   └── padron_TSAS_Practicas_III_2025.csv   (CSV alternativo)
+│
+└── documentacion/              # Manuales técnicos, de usuario y diagramas
+    ├── MANUAL.md               # Manual de usuario completo y arquitectura
+    ├── ESQUEMA_BASE_DE_DATOS.md# Diccionario de datos y relaciones
+    ├── ESQUEMA_INTERACTIVO_BD.html # Visualizador interactivo de base de datos
+    ├── SEGURIDAD.md            # Modelo de autenticación, OTP y auditoría
+    └── protocolo_acreditacion_y_seguridad.md # Procedimiento operativo en puerta
 ```
 
 ---
 
-## Puertos y Servicios
+## 2. Puesta en Marcha Rápida (1 Clic)
 
-- **Plataforma Web SiGIC**: `http://localhost:3000`
-- **Base de Datos PostgreSQL**: `localhost:5432`
-  - Usuario: `sigic_admin`
-  - Clave: `sigic_password_segura_2026`
-  - Base: `sigic_db`
+### Requisito previo:
+Tener instalado y abierto **Docker Desktop** (en Windows o macOS) o **Docker Engine** (en Linux).
+
+### Pasos:
+1. Haga doble clic en el archivo **`INICIAR_SIGIC.bat`**.
+2. El script iniciará los contenedores de Docker (Base de Datos PostgreSQL y Plataforma Web Next.js).
+3. Se abrirá automáticamente el navegador en:
+   👉 **[http://localhost:3000](http://localhost:3000)**
+
+---
+
+## 3. Credenciales y Cuentas de Acceso
+
+El sistema viene preconfigurado con las siguientes cuentas de prueba:
+
+| Rol | Correo Electrónico | Contraseña | Propósito |
+|---|---|---|---|
+| **Administrador** | `admin@sigic.com.ar` | `Admin2026!` | Gestión total: egresados, ceremonias, auditorio y reportes |
+| **Soporte Técnico** | `soporte@sigic.com.ar` | `Soporte2026!` | Centro de control, logs y auditoría |
+| **Auditor** | `auditor@sigic.com.ar` | `Auditor2026!` | Solo lectura y trazabilidad de operaciones |
+
+*(También se puede utilizar el **Panel del Expositor** ubicado en la esquina inferior derecha para alternar roles con 1 clic en modo demostración).*
+
+---
+
+## 4. App Móvil de Portería (Acreditación QR)
+
+- Ubicación del instalador: `app_movil_apk/SiGIC-Porteria.apk`
+- Permite a los guardias de portería escanear los códigos QR de las credenciales de egresados y acompañantes en tiempo real para autorizar o rechazar ingresos al auditorio.
+
+---
+
+## 5. Finalizar la Ejecución
+
+Para apagar el sistema y liberar la memoria RAM:
+- Haga doble clic en **`DETENER_SIGIC.bat`** (o ejecute `docker compose down` en la terminal).

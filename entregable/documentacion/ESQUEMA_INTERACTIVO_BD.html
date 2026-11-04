@@ -1,0 +1,1815 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SiGIC — Esquema Relacional de Base de Datos (PostgreSQL 16)</title>
+  <style>
+    :root {
+      --bg-canvas: #f8fafc;
+      --bg-header: #ffffff;
+      --bg-card: #ffffff;
+      --bg-card-hover: #f1f5f9;
+      --border-card: #cbd5e1;
+      --border-header: #e2e8f0;
+      --border-accent: #0284c7;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --text-sub: #64748b;
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --primary-light: #e0f2fe;
+      --success: #059669;
+      --success-light: #ecfdf5;
+      --warning: #d97706;
+      --warning-light: #fffbeb;
+      --purple: #6366f1;
+      --purple-light: #eef2ff;
+      --font: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Inter', Roboto, sans-serif;
+      --font-mono: 'Consolas', 'Courier New', 'Monaco', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+    }
+
+    body {
+      background-color: var(--bg-canvas);
+      color: var(--text-main);
+      font-family: var(--font);
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* =========================================================================
+       HEADER INSTITUCIONAL Y BARRA SUPERIOR
+       ========================================================================= */
+    header {
+      background: var(--bg-header);
+      border-bottom: 1px solid var(--border-header);
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      z-index: 100;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .brand-section {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .badge-instituto {
+      background: #0369a1;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 4px;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+
+    .header-text h1 {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-text .subtitle {
+      font-size: 11.5px;
+      color: var(--text-sub);
+      margin-top: 1px;
+    }
+
+    /* Filtros por Subsistema */
+    .filter-pills {
+      display: flex;
+      align-items: center;
+      background: #f1f5f9;
+      padding: 3px;
+      border-radius: 6px;
+      border: 1px solid #e2e8f0;
+      gap: 2px;
+    }
+
+    .pill {
+      background: transparent;
+      color: #475569;
+      border: none;
+      padding: 5px 12px;
+      font-size: 11.5px;
+      font-weight: 600;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+
+    .pill:hover {
+      color: #0f172a;
+      background: rgba(255, 255, 255, 0.6);
+    }
+
+    .pill.active {
+      background: #ffffff;
+      color: #0284c7;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+      border: 1px solid #cbd5e1;
+    }
+
+    /* Acciones y Búsqueda */
+    .actions-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .search-box {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-box input {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      color: #0f172a;
+      padding: 6px 12px 6px 12px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      width: 180px;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    .search-box input:focus {
+      border-color: var(--border-accent);
+      width: 220px;
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+    }
+
+    .btn {
+      background: #ffffff;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+      padding: 6px 13px;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      background: #f8fafc;
+      border-color: #94a3b8;
+      color: #0f172a;
+    }
+
+    .btn-primary {
+      background: #0284c7;
+      border-color: #0284c7;
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background: #0369a1;
+      border-color: #0369a1;
+      color: #ffffff;
+    }
+
+    .btn-defense {
+      background: #4f46e5;
+      border-color: #4f46e5;
+      color: #ffffff;
+    }
+
+    .btn-defense:hover {
+      background: #4338ca;
+      border-color: #4338ca;
+      color: #ffffff;
+    }
+
+    /* =========================================================================
+       ÁREA DEL LIENZO Y VISTA GRÁFICA
+       ========================================================================= */
+    #canvas-container {
+      flex: 1;
+      position: relative;
+      background-color: var(--bg-canvas);
+      cursor: grab;
+      overflow: hidden;
+    }
+
+    #canvas-container:active {
+      cursor: grabbing;
+    }
+
+    canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    /* Controles HUD flotantes */
+    .hud-controls {
+      position: absolute;
+      left: 18px;
+      top: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 10;
+    }
+
+    .hud-btn {
+      width: 32px;
+      height: 32px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      color: #334155;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      transition: all 0.15s;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .hud-btn:hover {
+      background: #f1f5f9;
+      color: #0284c7;
+      border-color: #0284c7;
+    }
+
+    .hud-zoom-indicator {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      padding: 3px 6px;
+      border-radius: 4px;
+      font-size: 9.5px;
+      color: #475569;
+      text-align: center;
+      font-weight: 600;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Leyenda de Integridad y Métricas Inferiores */
+    .legend-overlay {
+      position: absolute;
+      left: 18px;
+      bottom: 18px;
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid #cbd5e1;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      z-index: 10;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #475569;
+      font-weight: 500;
+    }
+
+    .legend-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 2px;
+    }
+
+    /* =========================================================================
+       PANEL LATERAL DE INSPECCIÓN Y DEFENSA
+       ========================================================================= */
+    #sidebar {
+      position: absolute;
+      right: 18px;
+      top: 18px;
+      bottom: 18px;
+      width: 440px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      transform: translateX(480px);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 60;
+      overflow: hidden;
+    }
+
+    #sidebar.open {
+      transform: translateX(0);
+    }
+
+    .sidebar-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f8fafc;
+    }
+
+    .sidebar-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .sidebar-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #0f172a;
+      letter-spacing: -0.2px;
+    }
+
+    .sidebar-category-pill {
+      font-size: 9.5px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .close-btn {
+      background: transparent;
+      border: none;
+      color: #64748b;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 4px 7px;
+      border-radius: 4px;
+      transition: all 0.15s;
+    }
+
+    .close-btn:hover {
+      color: #0f172a;
+      background: #e2e8f0;
+    }
+
+    /* Pestañas */
+    .sidebar-tabs {
+      display: flex;
+      border-bottom: 1px solid #e2e8f0;
+      background: #f1f5f9;
+    }
+
+    .sidebar-tab {
+      flex: 1;
+      padding: 9px 4px;
+      background: transparent;
+      border: none;
+      color: #64748b;
+      font-size: 11.5px;
+      font-weight: 600;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+      text-align: center;
+    }
+
+    .sidebar-tab:hover {
+      color: #0f172a;
+      background: rgba(255, 255, 255, 0.5);
+    }
+
+    .sidebar-tab.active {
+      color: #0284c7;
+      border-bottom-color: #0284c7;
+      background: #ffffff;
+    }
+
+    .sidebar-body {
+      padding: 16px 18px;
+      overflow-y: auto;
+      flex: 1;
+      background: #ffffff;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    /* Diccionario */
+    .columns-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+      margin-top: 10px;
+    }
+
+    .columns-table th {
+      text-align: left;
+      padding: 7px 8px;
+      background: #f1f5f9;
+      color: #475569;
+      border-bottom: 1px solid #cbd5e1;
+      font-size: 9.5px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .columns-table td {
+      padding: 7px 8px;
+      border-bottom: 1px solid #e2e8f0;
+      vertical-align: top;
+      color: #334155;
+    }
+
+    .columns-table tr:hover {
+      background: #f8fafc;
+    }
+
+    .badge-pk {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 700;
+      color: #b45309;
+      background: #fef3c7;
+      border: 1px solid #fde68a;
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+
+    .badge-fk {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 700;
+      color: #0369a1;
+      background: #e0f2fe;
+      border: 1px solid #bae6fd;
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+
+    .badge-uk {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 700;
+      color: #047857;
+      background: #d1fae5;
+      border: 1px solid #a7f3d0;
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+
+    .col-type {
+      color: #4338ca;
+      font-family: var(--font-mono);
+      font-size: 10px;
+    }
+
+    /* Justificación Técnica */
+    .defense-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+    }
+
+    .defense-card h4 {
+      font-size: 12px;
+      font-weight: 700;
+      color: #0369a1;
+      margin-bottom: 5px;
+    }
+
+    .defense-card p {
+      font-size: 11.5px;
+      line-height: 1.55;
+      color: #334155;
+    }
+
+    /* Relaciones */
+    .relation-node {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .relation-node:hover {
+      background: #f1f5f9;
+      border-color: #0284c7;
+      transform: translateX(2px);
+    }
+
+    /* DDL SQL */
+    .sql-code-container {
+      position: relative;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 12px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: #0f172a;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      overflow-x: auto;
+      max-height: 480px;
+      user-select: text;
+    }
+
+    .btn-copy-sql {
+      background: #ffffff;
+      color: #334155;
+      border: 1px solid #cbd5e1;
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 4px 9px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-copy-sql:hover {
+      background: #0284c7;
+      color: #ffffff;
+      border-color: #0284c7;
+    }
+
+    /* =========================================================================
+       BARRA DE DEFENSA GUIADA (MODO EXPOSICIÓN)
+       ========================================================================= */
+    #defense-bar {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(140px);
+      width: 720px;
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      z-index: 80;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    #defense-bar.active {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .defense-info {
+      flex: 1;
+    }
+
+    .defense-step-badge {
+      font-size: 10px;
+      font-weight: 800;
+      background: #e0f2fe;
+      color: #0369a1;
+      border: 1px solid #bae6fd;
+      padding: 2px 7px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .defense-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 4px 0 2px 0;
+    }
+
+    .defense-speech {
+      font-size: 11.5px;
+      color: #475569;
+      line-height: 1.4;
+    }
+
+    .defense-nav-btns {
+      display: flex;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- =========================================================================
+       ENCABEZADO INSTITUCIONAL
+       ========================================================================= -->
+  <header>
+    <div class="brand-section">
+      <span class="badge-instituto">ITB · ANALISTA DE SISTEMAS</span>
+      <div class="header-text">
+        <h1>
+          <span>SiGIC</span>
+          <span style="font-size:12px; font-weight:normal; color:#64748b;">· Esquema Relacional de Base de Datos</span>
+        </h1>
+        <div class="subtitle">PostgreSQL 16 · Modelo Físico Normalizado (3FN) e Integridad Referencial</div>
+      </div>
+    </div>
+
+    <!-- Filtros de Subsistema -->
+    <div class="filter-pills">
+      <button class="pill active" onclick="filtrarSubsistema('todos')">Todos (12)</button>
+      <button class="pill" onclick="filtrarSubsistema('graduacion')">Ciclo Colación</button>
+      <button class="pill" onclick="filtrarSubsistema('anfiteatro')">Anfiteatro y Butacas</button>
+      <button class="pill" onclick="filtrarSubsistema('seguridad')">Seguridad y Auditoría</button>
+      <button class="pill" onclick="filtrarSubsistema('academico')">Módulo Académico</button>
+    </div>
+
+    <!-- Toolbar de Búsqueda y Modos -->
+    <div class="actions-bar">
+      <div class="search-box">
+        <input type="text" id="search-input" placeholder="Buscar tabla o columna..." />
+      </div>
+
+      <button id="btn-anim" class="btn btn-primary" onclick="toggleAnimacion()" title="Pausar o activar flujo de datos">
+        Flujo de Datos: Activo
+      </button>
+
+      <button id="btn-defense" class="btn btn-defense" onclick="toggleModoDefensa()" title="Guía secuencial para exposición de la cátedra">
+        Modo Exposición
+      </button>
+
+      <button class="btn" onclick="centrarGrafo()" title="Restablecer posición de cámara">Centrar Vista</button>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       LIENZO INTERACTIVO (CANVAS DE ALTA DEFINICIÓN EN MODO CLARO)
+       ========================================================================= -->
+  <div id="canvas-container">
+    <div class="hud-controls">
+      <button class="hud-btn" onclick="zoomIn()" title="Acercar">+</button>
+      <button class="hud-btn" onclick="zoomOut()" title="Alejar">−</button>
+      <button class="hud-btn" onclick="centrarGrafo()" title="Centrar">C</button>
+      <div class="hud-zoom-indicator" id="zoom-indicator">100%</div>
+    </div>
+
+    <canvas id="relationalCanvas"></canvas>
+
+    <div class="legend-overlay">
+      <div class="legend-item"><span class="legend-dot" style="background:#0284c7;"></span> Núcleo Ceremonial</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#059669;"></span> Operación y Acreditación</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#6366f1;"></span> Seguridad y Auditoría</div>
+      <div class="legend-item"><span class="legend-dot" style="background:#d97706;"></span> Módulo Académico</div>
+      <div class="legend-item" style="color:#cbd5e1;">|</div>
+      <div class="legend-item" style="color:#64748b;">Clic: Inspeccionar · Arrastrar: Reposicionar</div>
+    </div>
+
+    <!-- =========================================================================
+         PANEL LATERAL DE INSPECCIÓN Y DEFENSA DE CÁTEDRA
+         ========================================================================= -->
+    <div id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-title-wrap">
+          <div>
+            <div class="sidebar-title" id="sb-title">Tabla</div>
+            <span class="sidebar-category-pill" id="sb-cat-pill">CORE</span>
+          </div>
+        </div>
+        <button class="close-btn" onclick="cerrarSidebar()" title="Cerrar panel">Cerrar</button>
+      </div>
+
+      <!-- Pestañas -->
+      <div class="sidebar-tabs">
+        <button class="sidebar-tab active" onclick="cambiarTab(0)">Diccionario</button>
+        <button class="sidebar-tab" onclick="cambiarTab(1)">Justificación Cátedra</button>
+        <button class="sidebar-tab" onclick="cambiarTab(2)">Relaciones (1:N)</button>
+        <button class="sidebar-tab" onclick="cambiarTab(3)">DDL SQL</button>
+      </div>
+
+      <div class="sidebar-body">
+        <!-- TAB 0: Diccionario de Columnas -->
+        <div class="tab-content active" id="tab-0">
+          <p id="sb-desc" style="font-size:11.5px; color:#475569; line-height:1.5; margin-bottom:12px;"></p>
+          <div id="sb-stats" style="display:flex; gap:6px; margin-bottom:12px;"></div>
+          <table class="columns-table">
+            <thead>
+              <tr>
+                <th>Columna y Descripción</th>
+                <th>Tipo</th>
+                <th>Restricción</th>
+              </tr>
+            </thead>
+            <tbody id="sb-columns"></tbody>
+          </table>
+        </div>
+
+        <!-- TAB 1: Justificación Técnica para la Cátedra -->
+        <div class="tab-content" id="tab-1">
+          <div id="sb-defense-container"></div>
+        </div>
+
+        <!-- TAB 2: Relaciones y Dependencias -->
+        <div class="tab-content" id="tab-2">
+          <h4 style="font-size:12px; color:#0369a1; margin-bottom:10px;">Entidades Vinculadas</h4>
+          <div id="sb-relations-container"></div>
+        </div>
+
+        <!-- TAB 3: DDL SQL -->
+        <div class="tab-content" id="tab-3">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span style="font-size:11px; color:#64748b;">Sentencia DDL PostgreSQL 16</span>
+            <button class="btn-copy-sql" onclick="copiarSQLActual()">Copiar SQL</button>
+          </div>
+          <div class="sql-code-container" id="sb-sql-code"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         BARRA FLOTANTE DE MODO EXPOSICIÓN (DEFENSA ANTE EL TRIBUNAL)
+         ========================================================================= -->
+    <div id="defense-bar">
+      <div class="defense-info">
+        <span class="defense-step-badge" id="def-badge">Paso 1 de 6</span>
+        <div class="defense-title" id="def-title">Título del Bloque</div>
+        <div class="defense-speech" id="def-speech">Guion formal preparado para los evaluadores...</div>
+      </div>
+      <div class="defense-nav-btns">
+        <button class="btn" onclick="pasoDefensa(-1)">Anterior</button>
+        <button class="btn btn-primary" onclick="pasoDefensa(1)">Siguiente</button>
+        <button class="btn" onclick="cerrarModoDefensa()" title="Cerrar">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // MODELO DE DATOS COMPLETO SiGIC (POSTGRESQL 16) - SIN EMOJIS
+    // =========================================================================
+    const TABLAS = [
+      {
+        id: 'ceremonias',
+        nombre: 'ceremonias',
+        categoria: 'core',
+        subsistemas: ['graduacion', 'anfiteatro'],
+        x: 0, y: -210,
+        desc: 'Entidad central y agregador raíz del ciclo de colación. Centraliza los límites de aforo, control de estados ceremoniales, fechas de corte y activación formal.',
+        justificacion: {
+          resumen: 'Modelada como el agregado raíz del sistema (Patrón DDD). Todas las nóminas, butacas y asignaciones dependen de una ceremonia activa.',
+          puntos: [
+            { titulo: 'Regla de Unicidad Activa a Nivel Motor', desc: 'Implementamos un índice único parcial `CREATE UNIQUE INDEX ceremonias_una_activa ON ceremonias (activa) WHERE activa = 1`. Esto garantiza matemáticamente en el motor PostgreSQL que solo exista una colación en curso simultáneamente, previniendo condiciones de carrera.' },
+            { titulo: 'Desacoplamiento Temporal de Aforo', desc: 'Las columnas `max_invitados` y `max_entregadores` se parametrizan por cada ceremonia, evitando reglas fijas codificadas en el backend o frontend.' },
+            { titulo: 'Trazabilidad de Cierre', desc: 'Los campos `fecha_limite_respuesta` y `fecha_cierre_butacas` permiten que el backend bloquee automáticamente modificaciones de los egresados sin necesidad de intervención manual.' }
+          ]
+        },
+        columnas: [
+          { nombre: 'id', tipo: 'VARCHAR(50)', prop: 'PK', desc: 'Identificador alfanumérico principal' },
+          { nombre: 'nombre', tipo: 'VARCHAR(150)', prop: 'NOT NULL', desc: 'Denominación formal de la colación' },
+          { nombre: 'fecha', tipo: 'VARCHAR(50)', prop: 'NOT NULL', desc: 'Fecha y horario de realización' },
+          { nombre: 'lugar', tipo: 'VARCHAR(150)', prop: 'DEFAULT', desc: 'Sede física o auditorio' },
+          { nombre: 'max_invitados', tipo: 'INTEGER', prop: 'DEFAULT 4', desc: 'Límite de acompañantes por egresado' },
+          { nombre: 'max_entregadores', tipo: 'INTEGER', prop: 'DEFAULT 3', desc: 'Límite de entregadores de diploma' },
+          { nombre: 'activa', tipo: 'INTEGER', prop: 'PARTIAL UK', desc: '1 si es la vigente (índice condicional)' },
+          { nombre: 'estado_operativo', tipo: 'VARCHAR(24)', prop: 'CHECK', desc: 'BORRADOR, CONFIRMADA o FINALIZADA' },
+          { nombre: 'fecha_cierre_butacas', tipo: 'TIMESTAMP', prop: '', desc: 'Vencimiento de asignación de asientos' },
+          { nombre: 'creado_en', tipo: 'TIMESTAMP', prop: 'CURRENT_TIMESTAMP', desc: 'Fecha y hora de registro' }
+        ],
+        ddl: `CREATE TABLE ceremonias (
+  id VARCHAR(50) PRIMARY KEY,
+  nombre VARCHAR(150) NOT NULL,
+  fecha VARCHAR(50) NOT NULL,
+  lugar VARCHAR(150) DEFAULT 'Sede Beltrán',
+  max_invitados INTEGER DEFAULT 4,
+  max_entregadores INTEGER DEFAULT 3,
+  activa INTEGER DEFAULT 0,
+  estado_operativo VARCHAR(24) NOT NULL DEFAULT 'BORRADOR',
+  finalizada_en TIMESTAMP,
+  fecha_limite_respuesta TIMESTAMP,
+  fecha_limite_grupo TIMESTAMP,
+  fecha_cierre_butacas TIMESTAMP,
+  creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Regla de integridad crítica: Solo una ceremonia puede estar activa
+CREATE UNIQUE INDEX ceremonias_una_activa 
+  ON ceremonias (activa) WHERE activa = 1;`
+      },
+      {
+        id: 'egresados',
+        nombre: 'egresados',
+        categoria: 'core',
+        subsistemas: ['graduacion', 'anfiteatro'],
+        x: 0, y: 10,
+        desc: 'Padrón nominal de graduados. Alberga tokens de autogestión criptográficos, vinculación con ceremonia, asignación de butacas y acreditación QR.',
+        justificacion: {
+          resumen: 'Entidad núcleo de graduación. Diseñada con identificadores no predecibles (UUID) y tokens alfanuméricos únicos para autogestión sin credenciales tradicionales.',
+          puntos: [
+            { titulo: 'Uso de UUID v4 frente a Enteros Secuenciales', desc: 'Implementamos `uuid_generate_v4()` para evitar ataques IDOR (Insecure Direct Object References). Si utilizáramos IDs secuenciales (1, 2, 3), un graduado o atacante podría adivinar credenciales QR o URLs de autogestión de terceros.' },
+            { titulo: 'Token de Autogestión Seguro', desc: 'La columna `token` con índice único permite el acceso directo por URL única que activa el flujo de solicitud OTP sin exponer credenciales permanentes.' },
+            { titulo: 'Índice de Inscripción Compuesto', desc: 'Definimos un índice único sobre `(ceremonia_id, legajo, carrera, anio_inscripcion)` para asegurar la idempotencia al importar repetidamente planillas Excel sin duplicar registros.' }
+          ]
+        },
+        columnas: [
+          { nombre: 'id', tipo: 'UUID', prop: 'PK', desc: 'UUID v4 aleatorio e inmutable' },
+          { nombre: 'ceremonia_id', tipo: 'VARCHAR(50)', prop: 'FK', desc: 'Ceremonia asignada (ON DELETE CASCADE)' },
+          { nombre: 'token', tipo: 'VARCHAR(10)', prop: 'UK INDEX', desc: 'Token único para portal de egresado' },
+          { nombre: 'nombre', tipo: 'TEXT', prop: 'NOT NULL', desc: 'Nombre y apellido formal' },
+          { nombre: 'legajo', tipo: 'VARCHAR(50)', prop: 'NOT NULL', desc: 'Legajo institucional del alumno' },
+          { nombre: 'dni', tipo: 'VARCHAR(20)', prop: 'NOT NULL', desc: 'Documento nacional de identidad' },
+          { nombre: 'correo', tipo: 'TEXT', prop: 'INDEX', desc: 'Correo electrónico donde recibe el OTP' },
+          { nombre: 'carrera', tipo: 'TEXT', prop: '', desc: 'Tecnicatura Superior en Analista de Sistemas' },
+          { nombre: 'asiento_id', tipo: 'VARCHAR(30)', prop: '', desc: 'Butaca reservada en el anfiteatro' },
+          { nombre: 'estado', tipo: 'VARCHAR(20)', prop: 'CHECK', desc: 'PENDIENTE, ACEPTADO o RECHAZADO' },
+          { nombre: 'presente', tipo: 'BOOLEAN', prop: 'DEFAULT FALSE', desc: 'Acreditado el día del evento vía QR' },
+          { nombre: 'google_wallet_object_id', tipo: 'VARCHAR(180)', prop: '', desc: 'ID del pase digital en Google Wallet' }
+        ],
+        ddl: `CREATE TABLE egresados (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  ceremonia_id VARCHAR(50) REFERENCES ceremonias(id) ON DELETE CASCADE,
+  registrado_por UUID REFERENCES usuarios_sistema(id) ON DELETE SET NULL,
+  token VARCHAR(10) NOT NULL UNIQUE,
+  nombre TEXT NOT NULL,
+  legajo VARCHAR(50) NOT NULL,
+  dni VARCHAR(20) NOT NULL,
+  correo TEXT,
+  carrera TEXT,
+  anio_inscripcion INTEGER,
+  asiento_id VARCHAR(30),
+  asiento_solicitado_id VARCHAR(30),
+  estado_asignacion_butacas VARCHAR(30) NOT NULL DEFAULT 'SIN_SOLICITUD',
+  entregador_nombre TEXT,
+  entregador_asiento_id VARCHAR(30),
+  estado VARCHAR(20) DEFAULT 'PENDIENTE' CHECK (estado IN ('PENDIENTE','ACEPTADO','RECHAZADO')),
+  presente BOOLEAN DEFAULT FALSE,
+  fecha_presente TIMESTAMP,
+  google_wallet_object_id VARCHAR(180),
+  creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_egresados_token ON egresados(token);
+CREATE INDEX idx_egresados_correo ON egresados(correo);
+CREATE UNIQUE INDEX egresados_inscripcion_ceremonia_key
+  ON egresados (ceremonia_id, UPPER(COALESCE(legajo, '')), UPPER(COALESCE(carrera, '')), COALESCE(anio_inscripcion, 0));`
+      },
+      {
+        id: 'invitados',
+        nombre: 'invitados',
+        categoria: 'operacion',
+        subsistemas: ['graduacion', 'anfiteatro'],
+        x: -260, y: 150,
+        desc: 'Acompañantes registrados por cada egresado. Vinculados al pase grupal digital con validación de butacas y acceso prioritario.',
+        justificacion: {
+          resumen: 'Entidad dependiente en relación 1:N con egresados. Implementa unicidad para evitar que un mismo DNI se registre duplicado para un mismo graduado.',
+          puntos: [
+            { titulo: 'Integridad Referencial en Cascada', desc: 'Clave foránea `REFERENCES egresados(id) ON DELETE CASCADE`. Si un graduado se desvincula o rechaza su invitación, sus acompañantes se eliminan atómicamente liberando sus butacas.' },
+            { titulo: 'Restricción de Unicidad Compuesta', desc: 'Restricción `UNIQUE(dni, egresado_id)` para impedir que un graduado agregue accidentalmente dos veces al mismo familiar.' },
+            { titulo: 'Acreditación Móvil Independiente', desc: 'El booleano `presente` permite que el escáner móvil de portería marque el ingreso de la familia de forma conjunta o individual.' }
+          ]
+        },
+        columnas: [
+          { nombre: 'id', tipo: 'UUID', prop: 'PK', desc: 'ID identificador de acompañante' },
+          { nombre: 'egresado_id', tipo: 'UUID', prop: 'FK', desc: 'Graduado titular responsable' },
+          { nombre: 'nombre', tipo: 'TEXT', prop: 'NOT NULL', desc: 'Nombre y apellido del invitado' },
+          { nombre: 'dni', tipo: 'VARCHAR(20)', prop: 'NOT NULL', desc: 'DNI del invitado' },
+          { nombre: 'relacion', tipo: 'TEXT', prop: '', desc: 'Vínculo (Madre, Padre, Cónyuge, etc.)' },
+          { nombre: 'asiento_id', tipo: 'VARCHAR(30)', prop: '', desc: 'Butaca reservada en anfiteatro' },
+          { nombre: 'discapacidad', tipo: 'INTEGER', prop: 'DEFAULT 0', desc: '1 si requiere butaca de accesibilidad' },
+          { nombre: 'presente', tipo: 'BOOLEAN', prop: 'DEFAULT FALSE', desc: 'Ingreso acreditado en portería' }
+        ],
+        ddl: `CREATE TABLE invitados (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  egresado_id UUID NOT NULL REFERENCES egresados(id) ON DELETE CASCADE,
+  validado_por UUID REFERENCES usuarios_sistema(id) ON DELETE SET NULL,
+  nombre TEXT NOT NULL,
+  dni VARCHAR(20) NOT NULL,
+  correo TEXT,
+  relacion TEXT,
+  asiento_id VARCHAR(30),
+  asiento_solicitado_id VARCHAR(30),
+  discapacidad INTEGER DEFAULT 0,
+  presente BOOLEAN DEFAULT FALSE,
+  fecha_presente TIMESTAMP,
+  creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (dni, egresado_id)
+);
+
+CREATE INDEX idx_invitados_egresado ON invitados(egresado_id);
+CREATE INDEX idx_invitados_presente ON invitados(presente);`
+      },
+      {
+        id: 'entregadores',
+        nombre: 'entregadores',
+        categoria: 'operacion',
+        subsistemas: ['graduacion'],
+        x: 260, y: 150,
+        desc: 'Relación protocolar de estrado. Define las personas designadas para subir al escenario y entregar el título al graduado.',
+        justificacion: {
+          resumen: 'Entidad polimórfica relacional. Puede apuntar a un docente del padrón institucional (`profesor_id`) o a un familiar registrado (`invitado_id`).',
+          puntos: [
+            { titulo: 'Polimorfismo Relacional Puro', desc: 'En lugar de crear tablas separadas, utilizamos una columna `tipo CHECK (tipo IN (\'PROFESOR\', \'FAMILIAR\'))` con claves foráneas opcionales que garantizan integridad sin desnormalizar.' },
+            { titulo: 'Orden Protocolar Estricto', desc: 'La restricción `UNIQUE (egresado_id, orden)` garantiza a nivel de motor de base de datos que no existan dos personas en el mismo orden de llamado en el estrado ceremonial.' }
+          ]
+        },
+        columnas: [
+          { nombre: 'id', tipo: 'UUID', prop: 'PK', desc: 'Identificador del entregador' },
+          { nombre: 'egresado_id', tipo: 'UUID', prop: 'FK', desc: 'Graduado receptor del diploma' },
+          { nombre: 'tipo', tipo: 'VARCHAR(20)', prop: 'CHECK', desc: 'PROFESOR o FAMILIAR' },
+          { nombre: 'profesor_id', tipo: 'UUID', prop: 'FK NULL', desc: 'Docente vinculado (si tipo=PROFESOR)' },
+          { nombre: 'invitado_id', tipo: 'UUID', prop: 'FK NULL', desc: 'Familiar vinculado (si tipo=FAMILIAR)' },
+          { nombre: 'nombre', tipo: 'TEXT', prop: 'NOT NULL', desc: 'Nombre que se anuncia por altavoz' },
+          { nombre: 'orden', tipo: 'INTEGER', prop: 'DEFAULT 1', desc: 'Turno o prioridad ceremonial' }
+        ],
+        ddl: `CREATE TABLE entregadores (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  egresado_id UUID NOT NULL REFERENCES egresados(id) ON DELETE CASCADE,
+  tipo VARCHAR(20) NOT NULL CHECK (tipo IN ('PROFESOR','FAMILIAR')),
+  profesor_id UUID REFERENCES profesores(id) ON DELETE SET NULL,
+  invitado_id UUID REFERENCES invitados(id) ON DELETE SET NULL,
+  nombre TEXT NOT NULL,
+  orden INTEGER NOT NULL DEFAULT 1,
+  creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (egresado_id, orden)
+);
+
+CREATE INDEX idx_entregadores_egresado ON entregadores(egresado_id);`
+      },
+      {
+        id: 'profesores',
+        nombre: 'profesores',
+        categoria: 'operacion',
+        subsistemas: ['graduacion', 'academico'],
+        x: 340, y: 300,
+        desc: 'Padrón de docentes del Instituto Tecnológico Beltrán disponibles para ser convocados como entregadores de títulos o padrinos.',
+        justificacion: {
+          resumen: 'Catálogo de docentes reutilizable entre ceremonias. Permite a los egresados elegir a sus profesores guía sin reescribir sus nombres manualmente.',
+          puntos: [
+            { titulo: 'Reutilización Institucional', desc: 'Mantiene la nómina de docentes centralizada con sus materias vigentes.' },
+            { titulo: 'Borrado Lógico (Soft Delete)', desc: 'La columna `activo INTEGER DEFAULT 1` permite archivar docentes que no participan este ciclo sin quebrar el historial de colaciones precedentes.' }
+          ]
+        },
+        columnas: [
+          { nombre: 'id', tipo: 'UUID', prop: 'PK', desc: 'Identificador del docente' },
+          { nombre: 'nombre', tipo: 'TEXT', prop: 'NOT NULL', desc: 'Nombre y apellido del profesor' },
+          { nombre: 'dni', tipo: 'VARCHAR(20)', prop: '', desc: 'Documento nacional de identidad' },
+          { nombre: 'materia', tipo: 'TEXT', prop: '', desc: 'Cátedra o materia a cargo' },
+          { nombre: 'activo', tipo: 'INTEGER', prop: 'DEFAULT 1', desc: '1 si está disponible' }
+        ],
+        ddl: `CREATE TABLE profesores (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  nombre TEXT NOT NULL,
+  dni VARCHAR(20),
+  materia TEXT,
+  activo INTEGER DEFAULT 1,
+  creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);`
+      },
+      {
+        id: 'configuracion_anfiteatro',
+        nombre: 'configuracion_anfiteatro',
+        categoria: 'operacion',
+        subsistemas: ['anfiteatro'],
+        x: 300, y: -90,
+        desc: 'Distribución espacial y arquitectónica del anfiteatro en formato JSONB con sectores, filas, pasillos y mapeo de zonas.',
+        justificacion: {
+          resumen: 'Aprovechamiento de las capacidades híbridas relacionales y documentales de PostgreSQL mediante tipo JSONB.',
+          puntos: [
+            { titulo: 'JSONB frente a Tablas Estáticas de Butacas', desc: 'Diferentes auditorios tienen geometrías heterogéneas (curvas, gradas, palcos). Almacenar la topología en `JSONB` evita alterar el esquema físico de la base de datos ante cambios en el salón.' },
+            { titulo: 'Integridad Referencial 1:1', desc: 'Cada colación cuenta con un layout de asientos específico vinculado mediante la clave foránea `ceremonia_id`.' }
+          ]
+        },
+        columnas: [
+          { nombre: 'id', tipo: 'SERIAL', prop: 'PK', desc: 'Identificador secuencial autonumérico' },
+          { nombre: 'ceremonia_id', tipo: 'VARCHAR(50)', prop: 'FK', desc: 'Ceremonia a la que pertenece el mapa' },
+          { nombre: 'estructura', tipo: 'JSONB', prop: 'NOT NULL', desc: 'Polígonos, filas, asientos y pasillos' },
+          { nombre: 'mapa_roles', tipo: 'JSONB', prop: 'NOT NULL', desc: 'Distribución de zonas (Palco, Alumnos, Familia)' },
+          { nombre: 'actualizado_en', tipo: 'TIMESTAMP', prop: 'CURRENT_TIMESTAMP', desc: 'Última modificación del layout' }
+        ],
+        ddl: `CREATE TABLE configuracion_anfiteatro (
+  id SERIAL PRIMARY KEY,
+  ceremonia_id VARCHAR(50) REFERENCES ceremonias(id) ON DELETE CASCADE,
+  modificado_por UUID REFERENCES usuarios_sistema(id) ON DELETE SET NULL,
+  estructura JSONB NOT NULL,
+  mapa_roles JSONB NOT NULL,
+  actualizado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);`
+      },
+      {
+        id: 'usuarios_sistema',
+        nombre: 'usuarios_sistema',
+        categoria: 'seguridad',
+        subsistemas: ['seguridad'],
+        x: -300, y: -190,
+        desc: 'Cuentas con acceso autenticado (Administrativos, Soporte Técnico y Operadores de Portería) con roles estrictos y hashing bcrypt.',
+        justificacion: {
+          resumen: 'Módulo de autenticación RBAC (Role-Based Access Control) para operadores internos del sistema.',
+          puntos: [
+            { titulo: 'Hash Criptográfico Bcrypt', desc: 'Almacena `password_hash VARCHAR(255)` con 10 rondas de sal, garantizando que nunca se persistan contraseñas en texto claro.' },
+            { titulo: 'Restricción CHECK de Roles', desc: 'Restricción `CHECK (rol IN (\'ADMINISTRATIVO\', \'PORTERIA\'))` en el motor, impidiendo la asignación de privilegios no contemplados en el diseño.' }
+          ]
+        },
+        columnas: [
+          { nombre: 'id', tipo: 'UUID', prop: 'PK', desc: 'ID único del operador' },
+          { nombre: 'nombre', tipo: 'VARCHAR(100)', prop: 'NOT NULL', desc: 'Nombre del usuario' },
+          { nombre: 'email', tipo: 'VARCHAR(150)', prop: 'UK', desc: 'Correo único de inicio de sesión' },
+          { nombre: 'password_hash', tipo: 'VARCHAR(255)', prop: 'BCRYPT', desc: 'Hash criptográfico salado' },
+          { nombre: 'rol', tipo: 'VARCHAR(20)', prop: 'CHECK', desc: 'ADMINISTRATIVO o PORTERIA' },
+          { nombre: 'activo', tipo: 'INTEGER', prop: 'DEFAULT 1', desc: '1 si la cuenta está habilitada' },
+          { nombre: 'ultimo_login', tipo: 'TIMESTAMP', prop: '', desc: 'Registro de última sesión activa' }
+        ],
+        ddl: `CREATE TABLE usuarios_sistema (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  nombre VARCHAR(100) NOT NULL,
+  email VARCHAR(150) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  rol VARCHAR(20) NOT NULL CHECK (rol IN ('ADMINISTRATIVO','PORTERIA')),
+  activo INTEGER DEFAULT 1,
+  ultimo_login TIMESTAMP,
+  creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);`
+      },
+      {
+        id: 'otp_historial',
+        nombre: 'otp_historial',
+        categoria: 'seguridad',
+        subsistemas: ['seguridad', 'graduacion'],
+        x: -160, y: 300,
+        desc: 'Trazabilidad y auditoría de códigos OTP temporales de un solo uso para validación segura de egresados.',
+        justificacion: {
+          resumen: 'Blindaje contra ataques de fuerza bruta y suplantación de identidad para el ingreso de graduados.',
+          puntos: [
+            { titulo: 'Hashing de Códigos OTP', desc: 'El código OTP no se guarda en texto claro; se persiste su hash SHA-256 (`otp_hash VARCHAR(64)`), cumpliendo con directrices OWASP.' },
+            { titulo: 'Trazabilidad de IP y Resultados', desc: 'Registra la dirección IP de origen y el estado (`EXITOSO`, `EXPIRADO`, `INVALIDO`) para auditoría forense de accesos.' }
+          ]
+        },
+        columnas: [
+          { nombre: 'id', tipo: 'SERIAL', prop: 'PK', desc: 'Identificador secuencial' },
+          { nombre: 'egresado_id', tipo: 'UUID', prop: 'FK', desc: 'Egresado solicitante' },
+          { nombre: 'otp_hash', tipo: 'VARCHAR(64)', prop: 'SHA-256', desc: 'Hash del código de 6 dígitos' },
+          { nombre: 'resultado', tipo: 'VARCHAR(32)', prop: 'NOT NULL', desc: 'EXITOSO, EXPIRADO o INVALIDO' },
+          { nombre: 'ip_origen', tipo: 'VARCHAR(120)', prop: '', desc: 'IP del cliente solicitante' },
+          { nombre: 'solicitado_en', tipo: 'TIMESTAMP', prop: 'CURRENT_TIMESTAMP', desc: 'Timestamp de generación' }
+        ],
+        ddl: `CREATE TABLE otp_historial (
+  id SERIAL PRIMARY KEY,
+  egresado_id UUID NOT NULL REFERENCES egresados(id) ON DELETE CASCADE,
+  otp_hash VARCHAR(64) NOT NULL,
+  ip_origen VARCHAR(120),
+  resultado VARCHAR(32) NOT NULL,
+  solicitado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  verificado_en TIMESTAMP
+);
+
+CREATE INDEX idx_otp_egresado ON otp_historial(egresado_id);`
+      },
+      {
+        id: 'logs_auditoria',
+        nombre: 'logs_auditoria',
+        categoria: 'seguridad',
+        subsistemas: ['seguridad'],
+        x: -360, y: -30,
+        desc: 'Bitácora inmutable de auditoría. Registra deltas JSONB (valores anteriores y nuevos) para cualquier mutación administrativa.',
+        justificacion: {
+          resumen: 'Pista de auditoría forense para cumplimiento normativo y transparencia institucional.',
+          puntos: [
+            { titulo: 'Deltas JSONB Inmutables', desc: 'Almacena `valores_anteriores` y `valores_nuevos` en formato JSONB. Esto permite reconstruir el estado histórico de cualquier registro sin alterar las tablas de producción.' },
+            { titulo: 'Vínculo Débil con Operador', desc: '`ON DELETE SET NULL` en `usuario_id` asegura que si una cuenta se elimina, el registro de auditoría histórico no se borre.' }
+          ]
+        },
+        columnas: [
+          { nombre: 'id', tipo: 'SERIAL', prop: 'PK', desc: 'ID de evento de auditoría' },
+          { nombre: 'usuario_id', tipo: 'UUID', prop: 'FK', desc: 'Operador autor del cambio' },
+          { nombre: 'accion', tipo: 'VARCHAR(50)', prop: 'NOT NULL', desc: 'INSERT, UPDATE, DELETE o ACCESO' },
+          { nombre: 'tabla_afectada', tipo: 'VARCHAR(50)', prop: '', desc: 'Tabla modificada' },
+          { nombre: 'valores_nuevos', tipo: 'JSONB', prop: '', desc: 'Payload con datos modificados' },
+          { nombre: 'ip_origen', tipo: 'VARCHAR(120)', prop: '', desc: 'Dirección IP del operador' }
+        ],
+        ddl: `CREATE TABLE logs_auditoria (
+  id SERIAL PRIMARY KEY,
+  usuario_id UUID REFERENCES usuarios_sistema(id) ON DELETE SET NULL,
+  accion VARCHAR(50) NOT NULL,
+  tabla_afectada VARCHAR(50),
+  registro_afectado UUID,
+  valores_anteriores JSONB,
+  valores_nuevos JSONB,
+  ip_origen VARCHAR(120),
+  fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);`
+      },
+      {
+        id: 'carreras',
+        nombre: 'carreras',
+        categoria: 'academico',
+        subsistemas: ['academico'],
+        x: -80, y: -350,
+        desc: 'Catálogo de carreras institucionales del Instituto Tecnológico Beltrán.',
+        justificacion: {
+          resumen: 'Normalización de carreras para evitar cadenas de texto arbitrarias y permitir la titulación oficial de TSAS.',
+          puntos: [
+            { titulo: 'Carrera Oficial Obligatoria', desc: 'Centraliza la Tecnicatura Superior en Analista de Sistemas y otras ofertas del Beltrán con su duración formal.' }
+          ]
+        },
+        columnas: [
+          { nombre: 'id', tipo: 'UUID', prop: 'PK', desc: 'Identificador único de carrera' },
+          { nombre: 'nombre', tipo: 'VARCHAR(200)', prop: 'UK NOT NULL', desc: 'Nombre formal de la titulación' },
+          { nombre: 'sigla', tipo: 'VARCHAR(50)', prop: '', desc: 'Acrónimo institucional (ej: TSAS)' },
+          { nombre: 'duracion_anios', tipo: 'INTEGER', prop: 'DEFAULT 3', desc: 'Años formales de cursada' },
+          { nombre: 'activa', tipo: 'SMALLINT', prop: 'DEFAULT 1', desc: 'Disponibilidad de la oferta' }
+        ],
+        ddl: `CREATE TABLE carreras (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  nombre VARCHAR(200) NOT NULL UNIQUE,
+  sigla VARCHAR(50),
+  duracion_anios INTEGER DEFAULT 3,
+  activa SMALLINT DEFAULT 1,
+  creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);`
+      },
+      {
+        id: 'materias',
+        nombre: 'materias',
+        categoria: 'academico',
+        subsistemas: ['academico'],
+        x: 180, y: -350,
+        desc: 'Malla curricular y cátedras con asignación de docentes titulares.',
+        justificacion: {
+          resumen: 'Relación entre la carrera y los profesores encargados de las materias.',
+          puntos: [
+            { titulo: 'Integridad en Cascada', desc: '`ON DELETE CASCADE` hacia la carrera y `ON DELETE SET NULL` hacia el profesor titular.' }
+          ]
+        },
+        columnas: [
+          { nombre: 'id', tipo: 'UUID', prop: 'PK', desc: 'Identificador de la cátedra' },
+          { nombre: 'carrera_id', tipo: 'UUID', prop: 'FK', desc: 'Carrera vinculada' },
+          { nombre: 'nombre', tipo: 'VARCHAR(200)', prop: 'NOT NULL', desc: 'Nombre de la materia' },
+          { nombre: 'anio_cursada', tipo: 'INTEGER', prop: 'NOT NULL', desc: 'Año académico (1°, 2°, 3°)' },
+          { nombre: 'profesor_titular_id', tipo: 'UUID', prop: 'FK', desc: 'Profesor titular de la cátedra' }
+        ],
+        ddl: `CREATE TABLE materias (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  carrera_id UUID NOT NULL REFERENCES carreras(id) ON DELETE CASCADE,
+  nombre VARCHAR(200) NOT NULL,
+  anio_cursada INTEGER NOT NULL DEFAULT 1,
+  profesor_titular_id UUID REFERENCES profesores(id) ON DELETE SET NULL,
+  activa SMALLINT DEFAULT 1,
+  creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(carrera_id, nombre)
+);`
+      },
+      {
+        id: 'dispositivos_moviles',
+        nombre: 'dispositivos_moviles',
+        categoria: 'seguridad',
+        subsistemas: ['seguridad'],
+        x: -420, y: 150,
+        desc: 'Registro de terminales móviles autorizadas para el escáner de portería en Android/iOS.',
+        justificacion: {
+          resumen: 'Control perimetral de hardware para que únicamente teléfonos enrolados puedan validar códigos QR en la entrada.',
+          puntos: [
+            { titulo: 'Huella de Terminal Segura', desc: 'Almacena `dispositivo_id`, marca, modelo y estado de sesión activa para desautorizar remotamente teléfonos extraviados.' }
+          ]
+        },
+        columnas: [
+          { nombre: 'dispositivo_id', tipo: 'VARCHAR(100)', prop: 'PK', desc: 'UUID único del teléfono' },
+          { nombre: 'usuario_id', tipo: 'VARCHAR(100)', prop: 'NOT NULL', desc: 'Operador de portería enrolado' },
+          { nombre: 'marca', tipo: 'VARCHAR(100)', prop: '', desc: 'Fabricante de la terminal' },
+          { nombre: 'modelo', tipo: 'VARCHAR(160)', prop: '', desc: 'Modelo del dispositivo' },
+          { nombre: 'sesion_activa', tipo: 'SMALLINT', prop: 'DEFAULT 1', desc: '1 si está habilitado para escanear' }
+        ],
+        ddl: `CREATE TABLE dispositivos_moviles (
+  dispositivo_id VARCHAR(100) PRIMARY KEY,
+  usuario_id VARCHAR(100) NOT NULL,
+  marca VARCHAR(100),
+  fabricante VARCHAR(120),
+  modelo VARCHAR(160),
+  nombre_dispositivo VARCHAR(160),
+  sistema VARCHAR(80),
+  version_sistema VARCHAR(80),
+  tipo_dispositivo VARCHAR(40),
+  version_app VARCHAR(40),
+  es_dispositivo_real SMALLINT DEFAULT 1,
+  ip_ultimo_acceso VARCHAR(120),
+  agente_usuario VARCHAR(300),
+  primera_conexion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  ultimo_acceso TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  sesion_activa SMALLINT DEFAULT 1
+);`
+      }
+    ];
+
+    // =========================================================================
+    // RELACIONES DE CLAVES FORÁNEAS (INTEGRIDAD REFERENCIAL)
+    // =========================================================================
+    const RELACIONES = [
+      { desde: 'ceremonias', hacia: 'egresados', etiqueta: '1 : N (Nómina)', campoFk: 'ceremonia_id' },
+      { desde: 'egresados', hacia: 'invitados', etiqueta: '1 : N (Acompañantes)', campoFk: 'egresado_id' },
+      { desde: 'egresados', hacia: 'entregadores', etiqueta: '1 : N (Entregadores)', campoFk: 'egresado_id' },
+      { desde: 'profesores', hacia: 'entregadores', etiqueta: '1 : N (Padrino Docente)', campoFk: 'profesor_id' },
+      { desde: 'ceremonias', hacia: 'configuracion_anfiteatro', etiqueta: '1 : 1 (Layout Butacas)', campoFk: 'ceremonia_id' },
+      { desde: 'egresados', hacia: 'otp_historial', etiqueta: '1 : N (Auditoría OTP)', campoFk: 'egresado_id' },
+      { desde: 'usuarios_sistema', hacia: 'logs_auditoria', etiqueta: '1 : N (Auditoría)', campoFk: 'usuario_id' },
+      { desde: 'carreras', hacia: 'materias', etiqueta: '1 : N (Malla Curricular)', campoFk: 'carrera_id' },
+      { desde: 'profesores', hacia: 'materias', etiqueta: '1 : N (Cátedra)', campoFk: 'profesor_titular_id' }
+    ];
+
+    // =========================================================================
+    // GUIÓN DE EXPOSICIÓN PASO A PASO (MODO DEFENSA ANTE EL TRIBUNAL)
+    // =========================================================================
+    const PASOS_DEFENSA = [
+      {
+        tablaId: 'ceremonias',
+        badge: 'Paso 1 de 6 · Raíz del Sistema',
+        titulo: 'Entidad Raíz y Agregador: ceremonias',
+        discurso: 'Iniciamos la defensa del modelo con la entidad raíz "ceremonias". Diseñada bajo patrón Domain-Driven Design (DDD), centraliza las fechas protocolares, aforos de invitados y estado operativo. Resaltamos la implementación del índice único condicional que garantiza a nivel del motor PostgreSQL que solo una ceremonia pueda estar activa simultáneamente.'
+      },
+      {
+        tablaId: 'egresados',
+        badge: 'Paso 2 de 6 · Seguridad y Autogestión',
+        titulo: 'Padrón Nominal y Tokenización: egresados',
+        discurso: 'Continuamos con "egresados". Justificamos la utilización de UUID v4 criptográficos en lugar de enteros autoincrementales para mitigar vulnerabilidades IDOR. Cada egresado cuenta con un token alfanumérico único para su autogestión sin contraseñas fijas, y un índice compuesto idempotente para importaciones masivas desde Excel.'
+      },
+      {
+        tablaId: 'invitados',
+        badge: 'Paso 3 de 6 · Control de Aforo',
+        titulo: 'Acompañantes y Pase Grupal: invitados',
+        discurso: 'La entidad "invitados" mantiene una relación 1:N con egresados. Se protege mediante la restricción de integridad compuesta UNIQUE(dni, egresado_id). Al momento de emitir la credencial QR, el graduado recibe un pase grupal unificado que la app móvil de portería valida en milisegundos.'
+      },
+      {
+        tablaId: 'entregadores',
+        badge: 'Paso 4 de 6 · Protocolo de Estrado',
+        titulo: 'Polimorfismo en Estrado: entregadores y profesores',
+        discurso: 'Para el llamado protocolar en el escenario, modelamos "entregadores" con polimorfismo relacional. Puede apuntar a un docente del padrón "profesores" o a un familiar "invitados", garantizando mediante UNIQUE(egresado_id, orden) que no existan colisiones en el orden de subida al estrado.'
+      },
+      {
+        tablaId: 'configuracion_anfiteatro',
+        badge: 'Paso 5 de 6 · Geometría Espacial',
+        titulo: 'Topología Dinámica en JSONB: configuracion_anfiteatro',
+        discurso: 'En lugar de fijar una tabla estática de butacas que exigiría migraciones DDL ante cambios de auditorio, aprovechamos el tipo nativo JSONB de PostgreSQL. Esto permite mapear cualquier teatro, gradas o palcos de forma geométrica y dinámica.'
+      },
+      {
+        tablaId: 'usuarios_sistema',
+        badge: 'Paso 6 de 6 · Auditoría y Blindaje',
+        titulo: 'Auditoría Forense y RBAC: usuarios_sistema y logs_auditoria',
+        discurso: 'Finalizamos con la capa de seguridad. "usuarios_sistema" implementa autenticación bcrypt salada y roles estrictos. Paralelamente, "logs_auditoria" y "otp_historial" aseguran una trazabilidad inmutable de cada cambio administrativo y de cada acceso al sistema.'
+      }
+    ];
+
+    // =========================================================================
+    // MOTOR DE RENDERIZADO EN LIENZO (CANVAS DE ALTA DEFINICIÓN A 60 FPS)
+    // =========================================================================
+    const canvas = document.getElementById('relationalCanvas');
+    const ctx = canvas.getContext('2d');
+    const container = document.getElementById('canvas-container');
+
+    let width, height;
+    let offsetX = 0, offsetY = 0;
+    let zoom = 0.95;
+    let animacionActiva = true;
+    let nodoSeleccionado = null;
+    let nodoArrastrado = null;
+    let isPanning = false;
+    let startPanX = 0, startPanY = 0;
+    let filtroTexto = '';
+    let filtroSubsistema = 'todos';
+    let pasoDefensaActual = 0;
+    let modoDefensaActivo = false;
+
+    // Partículas animadas de flujo de datos (colores sobrios modo claro)
+    const particulas = [];
+    for (let i = 0; i < 32; i++) {
+      particulas.push({
+        relacionIndex: i % RELACIONES.length,
+        t: Math.random(),
+        velocidad: 0.003 + Math.random() * 0.003,
+        color: ['#0284c7', '#059669', '#d97706', '#6366f1'][i % 4]
+      });
+    }
+
+    function resizeCanvas() {
+      width = container.clientWidth;
+      height = container.clientHeight;
+      canvas.width = width * window.devicePixelRatio;
+      canvas.height = height * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    function initPosiciones() {
+      resizeCanvas();
+      offsetX = width / 2;
+      offsetY = height / 2;
+      actualizarZoomIndicator();
+    }
+
+    function actualizarZoomIndicator() {
+      document.getElementById('zoom-indicator').innerText = Math.round(zoom * 100) + '%';
+    }
+
+    // Loop de Dibujado
+    function render() {
+      ctx.clearRect(0, 0, width, height);
+
+      // 1. Cuadrícula Sobria de Fondo (Modo Claro)
+      ctx.save();
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 1;
+      const gridSize = 45 * zoom;
+      const startX = (offsetX % gridSize);
+      const startY = (offsetY % gridSize);
+      for (let x = startX; x < width; x += gridSize) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
+      }
+      for (let y = startY; y < height; y += gridSize) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
+      }
+      ctx.restore();
+
+      // Transformaciones de Cámara
+      ctx.save();
+      ctx.translate(offsetX, offsetY);
+      ctx.scale(zoom, zoom);
+
+      // 2. Relaciones (Líneas Curvas Bézier con Cardinalidad)
+      RELACIONES.forEach((rel, idx) => {
+        const origen = TABLAS.find(t => t.id === rel.desde);
+        const destino = TABLAS.find(t => t.id === rel.hacia);
+        if (!origen || !destino) return;
+
+        const origenVisible = esTablaVisible(origen);
+        const destinoVisible = esTablaVisible(destino);
+        if (!origenVisible && !destinoVisible) return;
+
+        const estaConectada = nodoSeleccionado && (nodoSeleccionado.id === origen.id || nodoSeleccionado.id === destino.id);
+        const atenuada = nodoSeleccionado && !estaConectada;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(origen.x, origen.y);
+
+        const midX = (origen.x + destino.x) / 2;
+        const midY = (origen.y + destino.y) / 2;
+        const curvatura = (idx % 2 === 0 ? 25 : -25);
+        ctx.quadraticCurveTo(midX + curvatura, midY, destino.x, destino.y);
+
+        if (estaConectada) {
+          ctx.strokeStyle = '#0284c7';
+          ctx.lineWidth = 3;
+          ctx.shadowColor = 'rgba(2, 132, 199, 0.3)';
+          ctx.shadowBlur = 8;
+        } else if (atenuada) {
+          ctx.strokeStyle = '#e2e8f0';
+          ctx.lineWidth = 1;
+        } else {
+          ctx.strokeStyle = '#94a3b8';
+          ctx.lineWidth = 1.5;
+        }
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+
+        // Etiqueta de Cardinalidad
+        if (!atenuada) {
+          ctx.fillStyle = estaConectada ? '#0284c7' : '#64748b';
+          ctx.font = 'bold 9px Segoe UI, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(rel.etiqueta, midX + curvatura, midY - 6);
+        }
+        ctx.restore();
+      });
+
+      // 3. Paquetes de Datos Animados
+      if (animacionActiva) {
+        particulas.forEach(p => {
+          const rel = RELACIONES[p.relacionIndex];
+          const origen = TABLAS.find(t => t.id === rel.desde);
+          const destino = TABLAS.find(t => t.id === rel.hacia);
+          if (!origen || !destino) return;
+          if (!esTablaVisible(origen) && !esTablaVisible(destino)) return;
+
+          p.t += p.velocidad;
+          if (p.t > 1) p.t = 0;
+
+          const px = origen.x + (destino.x - origen.x) * p.t;
+          const py = origen.y + (destino.y - origen.y) * p.t;
+
+          ctx.beginPath();
+          ctx.arc(px, py, 3.5, 0, Math.PI * 2);
+          ctx.fillStyle = p.color;
+          ctx.fill();
+        });
+      }
+
+      // 4. Tarjetas de Entidades (Nodos del Modelo)
+      TABLAS.forEach(tabla => {
+        const visible = esTablaVisible(tabla);
+        const estaSeleccionada = (nodoSeleccionado && nodoSeleccionado.id === tabla.id);
+        const esRelacionada = nodoSeleccionado && RELACIONES.some(r => 
+          (r.desde === nodoSeleccionado.id && r.hacia === tabla.id) ||
+          (r.hacia === nodoSeleccionado.id && r.desde === tabla.id)
+        );
+        const atenuada = nodoSeleccionado && !estaSeleccionada && !esRelacionada;
+
+        const cardW = 168;
+        const cardH = 76;
+        const x = tabla.x - cardW / 2;
+        const y = tabla.y - cardH / 2;
+
+        ctx.save();
+        ctx.globalAlpha = (!visible || atenuada) ? 0.25 : 1.0;
+
+        // Sombra suave en modo claro
+        if (estaSeleccionada) {
+          ctx.shadowColor = 'rgba(2, 132, 199, 0.25)';
+          ctx.shadowBlur = 16;
+        } else {
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.05)';
+          ctx.shadowBlur = 6;
+          ctx.shadowOffsetY = 2;
+        }
+
+        // Fondo de Tarjeta Blanco
+        ctx.fillStyle = estaSeleccionada ? '#ffffff' : '#ffffff';
+        ctx.beginPath();
+        ctx.roundRect(x, y, cardW, cardH, 6);
+        ctx.fill();
+
+        // Borde
+        ctx.lineWidth = estaSeleccionada ? 2.5 : (esRelacionada ? 1.8 : 1);
+        ctx.strokeStyle = estaSeleccionada ? '#0284c7' : (esRelacionada ? '#059669' : '#cbd5e1');
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.shadowOffsetY = 0;
+
+        // Barra Superior por Categoría
+        let colorBarra = '#0284c7';
+        if (tabla.categoria === 'operacion') colorBarra = '#059669';
+        if (tabla.categoria === 'seguridad') colorBarra = '#6366f1';
+        if (tabla.categoria === 'academico') colorBarra = '#d97706';
+
+        ctx.fillStyle = colorBarra;
+        ctx.beginPath();
+        ctx.roundRect(x, y, cardW, 4, [6, 6, 0, 0]);
+        ctx.fill();
+
+        // Título de Tabla en Negrita Sobria
+        ctx.fillStyle = '#0f172a';
+        ctx.font = 'bold 12px Segoe UI, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(tabla.nombre, x + 12, y + 26);
+
+        // Subtítulo con cantidad de atributos
+        ctx.fillStyle = '#64748b';
+        ctx.font = '10px Segoe UI, sans-serif';
+        ctx.fillText(`${tabla.columnas.length} atributos · PostgreSQL`, x + 12, y + 44);
+
+        // Indicador de Clave Primaria en Texto
+        const pkCol = tabla.columnas.find(c => c.prop.includes('PK'));
+        if (pkCol) {
+          ctx.fillStyle = '#b45309';
+          ctx.font = '9.5px Consolas, monospace';
+          ctx.fillText(`PK: ${pkCol.nombre} (${pkCol.tipo})`, x + 12, y + 62);
+        }
+
+        ctx.restore();
+      });
+
+      ctx.restore();
+      requestAnimationFrame(render);
+    }
+
+    function esTablaVisible(tabla) {
+      if (filtroSubsistema !== 'todos' && !tabla.subsistemas.includes(filtroSubsistema)) {
+        return false;
+      }
+      if (filtroTexto) {
+        const coincideNombre = tabla.nombre.toLowerCase().includes(filtroTexto);
+        const coincideCampo = tabla.columnas.some(c => c.nombre.toLowerCase().includes(filtroTexto));
+        if (!coincideNombre && !coincideCampo) return false;
+      }
+      return true;
+    }
+
+    // =========================================================================
+    // INTERACTIVIDAD Y DETALLE (CLIC, ARRASTRE, ZOOM)
+    // =========================================================================
+    function getMouseWorldPos(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.clientX - rect.left;
+      const clientY = e.clientY - rect.top;
+      return {
+        x: (clientX - offsetX) / zoom,
+        y: (clientY - offsetY) / zoom
+      };
+    }
+
+    function buscarNodoEnPos(pos) {
+      for (let i = TABLAS.length - 1; i >= 0; i--) {
+        const t = TABLAS[i];
+        if (Math.abs(t.x - pos.x) <= 84 && Math.abs(t.y - pos.y) <= 38) {
+          return t;
+        }
+      }
+      return null;
+    }
+
+    container.addEventListener('mousedown', (e) => {
+      const pos = getMouseWorldPos(e);
+      const nodo = buscarNodoEnPos(pos);
+
+      if (nodo) {
+        nodoArrastrado = nodo;
+        nodoSeleccionado = nodo;
+        mostrarDetalleTabla(nodo);
+      } else {
+        isPanning = true;
+        startPanX = e.clientX - offsetX;
+        startPanY = e.clientY - offsetY;
+      }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (nodoArrastrado) {
+        const pos = getMouseWorldPos(e);
+        nodoArrastrado.x = pos.x;
+        nodoArrastrado.y = pos.y;
+      } else if (isPanning) {
+        offsetX = e.clientX - startPanX;
+        offsetY = e.clientY - startPanY;
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      nodoArrastrado = null;
+      isPanning = false;
+    });
+
+    container.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const factor = e.deltaY < 0 ? 1.09 : 0.91;
+      const nuevoZoom = zoom * factor;
+      if (nuevoZoom >= 0.4 && nuevoZoom <= 2.6) {
+        zoom = nuevoZoom;
+        actualizarZoomIndicator();
+      }
+    });
+
+    // Control del Panel Lateral y Pestañas
+    function mostrarDetalleTabla(tabla) {
+      const sidebar = document.getElementById('sidebar');
+      document.getElementById('sb-title').innerText = tabla.nombre;
+
+      const pill = document.getElementById('sb-cat-pill');
+      pill.innerText = tabla.categoria.toUpperCase();
+      pill.style.background = tabla.categoria === 'core' ? '#e0f2fe' : (tabla.categoria === 'operacion' ? '#ecfdf5' : '#eef2ff');
+      pill.style.color = tabla.categoria === 'core' ? '#0369a1' : (tabla.categoria === 'operacion' ? '#047857' : '#4338ca');
+      pill.style.border = '1px solid ' + (tabla.categoria === 'core' ? '#bae6fd' : (tabla.categoria === 'operacion' ? '#a7f3d0' : '#c7d2fe'));
+
+      document.getElementById('sb-desc').innerText = tabla.desc;
+
+      // Estadísticas
+      document.getElementById('sb-stats').innerHTML = `
+        <span style="background:#f1f5f9; color:#0369a1; font-size:10px; font-weight:700; padding:3px 8px; border-radius:4px; border:1px solid #cbd5e1;">${tabla.columnas.length} Columnas</span>
+        <span style="background:#f1f5f9; color:#047857; font-size:10px; font-weight:700; padding:3px 8px; border-radius:4px; border:1px solid #cbd5e1;">Motor: PostgreSQL 16</span>
+      `;
+
+      // TAB 0: Diccionario
+      document.getElementById('sb-columns').innerHTML = tabla.columnas.map(col => {
+        let badgeRestriccion = '—';
+        if (col.prop.includes('PK')) badgeRestriccion = '<span class="badge-pk">PK</span>';
+        else if (col.prop.includes('FK')) badgeRestriccion = '<span class="badge-fk">FK</span>';
+        else if (col.prop.includes('UK')) badgeRestriccion = '<span class="badge-uk">UK</span>';
+        else if (col.prop.includes('CHECK')) badgeRestriccion = '<span style="font-size:9px; font-weight:700; color:#475569; background:#f1f5f9; border:1px solid #cbd5e1; padding:1px 5px; border-radius:3px;">CHECK</span>';
+        else if (col.prop.includes('NOT NULL')) badgeRestriccion = '<span style="font-size:9px; color:#475569;">NOT NULL</span>';
+
+        return `
+          <tr>
+            <td><strong style="color:#0f172a;">${col.nombre}</strong><br><span style="color:#64748b; font-size:9.5px;">${col.desc}</span></td>
+            <td class="col-type">${col.tipo}</td>
+            <td>${badgeRestriccion}</td>
+          </tr>
+        `;
+      }).join('');
+
+      // TAB 1: Justificación para la Cátedra
+      const def = tabla.justificacion;
+      document.getElementById('sb-defense-container').innerHTML = `
+        <div class="defense-card">
+          <h4>Criterio de Modelado (3FN)</h4>
+          <p>${def.resumen}</p>
+        </div>
+        ${def.puntos.map(p => `
+          <div class="defense-card">
+            <h4>${p.titulo}</h4>
+            <p>${p.desc}</p>
+          </div>
+        `).join('')}
+      `;
+
+      // TAB 2: Relaciones
+      const relsPadre = RELACIONES.filter(r => r.hacia === tabla.id);
+      const relsHijo = RELACIONES.filter(r => r.desde === tabla.id);
+
+      let htmlRel = '';
+      if (relsPadre.length > 0) {
+        htmlRel += `<div style="font-size:11px; font-weight:bold; color:#64748b; margin:8px 0 4px 0;">Depende de (Tablas Padre):</div>`;
+        htmlRel += relsPadre.map(r => `
+          <div class="relation-node" onclick="enfocarTabla('${r.desde}')">
+            <div>
+              <strong style="color:#0369a1;">${r.desde}</strong>
+              <div style="font-size:10px; color:#64748b;">Clave Foránea: <code>${r.campoFk}</code></div>
+            </div>
+            <span style="font-size:10px; background:#e0f2fe; color:#0369a1; padding:2px 6px; border-radius:3px; border:1px solid #bae6fd;">${r.etiqueta}</span>
+          </div>
+        `).join('');
+      }
+
+      if (relsHijo.length > 0) {
+        htmlRel += `<div style="font-size:11px; font-weight:bold; color:#64748b; margin:12px 0 4px 0;">Entidades que dependen de ella (Tablas Hijas):</div>`;
+        htmlRel += relsHijo.map(r => `
+          <div class="relation-node" onclick="enfocarTabla('${r.hacia}')">
+            <div>
+              <strong style="color:#047857;">${r.hacia}</strong>
+              <div style="font-size:10px; color:#64748b;">Clave foránea hacia esta entidad</div>
+            </div>
+            <span style="font-size:10px; background:#ecfdf5; color:#047857; padding:2px 6px; border-radius:3px; border:1px solid #a7f3d0;">${r.etiqueta}</span>
+          </div>
+        `).join('');
+      }
+      if (relsPadre.length === 0 && relsHijo.length === 0) {
+        htmlRel = `<p style="font-size:11px; color:#64748b;">Esta entidad opera como catálogo independiente o registro de auditoría perimetral.</p>`;
+      }
+      document.getElementById('sb-relations-container').innerHTML = htmlRel;
+
+      // TAB 3: DDL SQL
+      document.getElementById('sb-sql-code').innerText = tabla.ddl;
+
+      sidebar.classList.add('open');
+    }
+
+    function cerrarSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      nodoSeleccionado = null;
+    }
+
+    function cambiarTab(index) {
+      const tabs = document.querySelectorAll('.sidebar-tab');
+      const contents = document.querySelectorAll('.tab-content');
+      tabs.forEach((t, i) => t.classList.toggle('active', i === index));
+      contents.forEach((c, i) => c.classList.toggle('active', i === index));
+    }
+
+    function enfocarTabla(tablaId) {
+      const t = TABLAS.find(x => x.id === tablaId);
+      if (!t) return;
+      nodoSeleccionado = t;
+      mostrarDetalleTabla(t);
+      animarCamara(-t.x * zoom + width / 2 - 100, -t.y * zoom + height / 2);
+    }
+
+    function animarCamara(targetX, targetY) {
+      const startX = offsetX, startY = offsetY;
+      const startTime = performance.now();
+      const duracion = 350;
+
+      function step(now) {
+        const progreso = Math.min((now - startTime) / duracion, 1);
+        const ease = 1 - Math.pow(1 - progreso, 3);
+        offsetX = startX + (targetX - startX) * ease;
+        offsetY = startY + (targetY - startY) * ease;
+        if (progreso < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    // Filtros de Subsistema
+    function filtrarSubsistema(subsistema) {
+      filtroSubsistema = subsistema;
+      document.querySelectorAll('.pill').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('onclick').includes(`'${subsistema}'`));
+      });
+    }
+
+    // Buscador instantáneo
+    document.getElementById('search-input').addEventListener('input', (e) => {
+      filtroTexto = e.target.value.toLowerCase().trim();
+      const coincide = TABLAS.find(t => esTablaVisible(t));
+      if (coincide && filtroTexto.length > 2) {
+        enfocarTabla(coincide.id);
+      }
+    });
+
+    // Controles HUD
+    function zoomIn() {
+      if (zoom < 2.5) { zoom *= 1.2; actualizarZoomIndicator(); }
+    }
+
+    function zoomOut() {
+      if (zoom > 0.4) { zoom *= 0.8; actualizarZoomIndicator(); }
+    }
+
+    function centrarGrafo() {
+      animarCamara(width / 2, height / 2);
+      zoom = 0.95;
+      actualizarZoomIndicator();
+    }
+
+    function toggleAnimacion() {
+      animacionActiva = !animacionActiva;
+      const btn = document.getElementById('btn-anim');
+      if (animacionActiva) {
+        btn.innerText = 'Flujo de Datos: Activo';
+        btn.classList.add('btn-primary');
+      } else {
+        btn.innerText = 'Flujo de Datos: En Pausa';
+        btn.classList.remove('btn-primary');
+      }
+    }
+
+    // =========================================================================
+    // MODO EXPOSICIÓN (DEFENSA PROFESIONAL ANTE EL TRIBUNAL)
+    // =========================================================================
+    function toggleModoDefensa() {
+      modoDefensaActivo = !modoDefensaActivo;
+      const defBar = document.getElementById('defense-bar');
+      if (modoDefensaActivo) {
+        defBar.classList.add('active');
+        pasoDefensaActual = 0;
+        cargarPasoDefensa(0);
+      } else {
+        defBar.classList.remove('active');
+      }
+    }
+
+    function cerrarModoDefensa() {
+      modoDefensaActivo = false;
+      document.getElementById('defense-bar').classList.remove('active');
+    }
+
+    function pasoDefensa(direccion) {
+      pasoDefensaActual += direccion;
+      if (pasoDefensaActual < 0) pasoDefensaActual = 0;
+      if (pasoDefensaActual >= PASOS_DEFENSA.length) pasoDefensaActual = PASOS_DEFENSA.length - 1;
+      cargarPasoDefensa(pasoDefensaActual);
+    }
+
+    function cargarPasoDefensa(idx) {
+      const p = PASOS_DEFENSA[idx];
+      document.getElementById('def-badge').innerText = p.badge;
+      document.getElementById('def-title').innerText = p.titulo;
+      document.getElementById('def-speech').innerText = p.discurso;
+      enfocarTabla(p.tablaId);
+      cambiarTab(1); // Muestra la pestaña de Justificación Cátedra
+    }
+
+    function copiarSQLActual() {
+      if (!nodoSeleccionado) return;
+      navigator.clipboard.writeText(nodoSeleccionado.ddl);
+      alert('Sentencia SQL copiada al portapapeles.');
+    }
+
+    // =========================================================================
+    // INICIALIZACIÓN
+    // =========================================================================
+    initPosiciones();
+    render();
+
+    setTimeout(() => {
+      enfocarTabla('ceremonias');
+    }, 400);
+  </script>
+</body>
+</html>
