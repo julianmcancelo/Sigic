@@ -1,0 +1,684 @@
+{
+  "1": [
+    {
+      "tipo": "mover",
+      "selector": "#btn-nueva-ceremonia",
+      "textoBoton": "Nueva Ceremonia",
+      "rx": 0.88,
+      "ry": 0.12,
+      "etiqueta": "Configurando acto oficial de colación...",
+      "pausaDespues": 600,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#btn-nueva-ceremonia",
+      "textoBoton": "Nueva Ceremonia",
+      "rx": 0.88,
+      "ry": 0.12,
+      "etiqueta": "Abriendo inicializador de hábitat de grado...",
+      "pausaDespues": 600,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "#input-nombre-ceremonia",
+      "rx": 0.50,
+      "ry": 0.28,
+      "etiqueta": "Ingresando denominación institucional...",
+      "pausaDespues": 350,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#input-nombre-ceremonia",
+      "rx": 0.50,
+      "ry": 0.28,
+      "etiqueta": "Campo de denominación enfocado",
+      "pausaDespues": 300,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "tipear",
+      "selector": "#input-nombre-ceremonia",
+      "texto": "LXIV Ceremonia Solemne Beltrán 2026",
+      "etiqueta": "Nombre: \"LXIV Ceremonia Solemne Beltrán 2026\"",
+      "pausaDespues": 650,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "#input-fecha-ceremonia",
+      "rx": 0.35,
+      "ry": 0.42,
+      "etiqueta": "Programando fecha oficial del acto...",
+      "pausaDespues": 350,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#input-fecha-ceremonia",
+      "rx": 0.35,
+      "ry": 0.42,
+      "etiqueta": "Campo de fecha enfocado",
+      "pausaDespues": 300,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "tipear",
+      "selector": "#input-fecha-ceremonia",
+      "texto": "2026-11-20",
+      "etiqueta": "Fecha: 20/11/2026",
+      "pausaDespues": 550,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "#input-max-invitados-ceremonia",
+      "rx": 0.65,
+      "ry": 0.42,
+      "etiqueta": "Configurando cupo de invitados por graduado...",
+      "pausaDespues": 300,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#input-max-invitados-ceremonia",
+      "rx": 0.65,
+      "ry": 0.42,
+      "etiqueta": "Campo cupo de invitados enfocado",
+      "pausaDespues": 300,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "tipear",
+      "selector": "#input-max-invitados-ceremonia",
+      "texto": "4",
+      "etiqueta": "Máximo invitados: 4 por egresado",
+      "pausaDespues": 450,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "#input-lugar-ceremonia",
+      "rx": 0.50,
+      "ry": 0.55,
+      "etiqueta": "Validando sede y auditorio...",
+      "pausaDespues": 350,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#input-lugar-ceremonia",
+      "rx": 0.50,
+      "ry": 0.55,
+      "etiqueta": "Campo de sede enfocado",
+      "pausaDespues": 300,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "tipear",
+      "selector": "#input-lugar-ceremonia",
+      "texto": "Sede Beltrán Avellaneda",
+      "etiqueta": "Sede: Sede Beltrán Avellaneda",
+      "pausaDespues": 550,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "#btn-crear-submit-ceremonia",
+      "textoBoton": "Crear",
+      "rx": 0.70,
+      "ry": 0.90,
+      "etiqueta": "Confirmando e inicializando hábitat...",
+      "pausaDespues": 450,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#btn-crear-submit-ceremonia",
+      "textoBoton": "Crear",
+      "rx": 0.70,
+      "ry": 0.90,
+      "etiqueta": "Ceremonia creada y activada con éxito",
+      "pausaDespues": 850,
+      "esperarElemento": true
+    }
+  ],
+  "2": [
+    {
+      "tipo": "mover",
+      "selector": "#btn-importar-excel, button",
+      "textoBoton": "Importar Excel / CSV",
+      "rx": 0.68,
+      "ry": 0.14,
+      "etiqueta": "Abriendo módulo de importación masiva...",
+      "pausaDespues": 600,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#btn-importar-excel, button",
+      "textoBoton": "Importar Excel / CSV",
+      "rx": 0.68,
+      "ry": 0.14,
+      "etiqueta": "Abriendo asistente de padrón institucional...",
+      "pausaDespues": 800,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "#btn-cargar-planilla-modelo, button",
+      "textoBoton": "Cargar Padrón Modelo",
+      "rx": 0.62,
+      "ry": 0.22,
+      "etiqueta": "Cargando cohorte oficial: 12 graduados en 6 carreras...",
+      "pausaDespues": 700,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#btn-cargar-planilla-modelo, button",
+      "textoBoton": "Cargar Padrón Modelo",
+      "rx": 0.62,
+      "ry": 0.22,
+      "etiqueta": "12 egresados previsualizados con DNI, Legajo y Correo",
+      "pausaDespues": 900,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "#btn-confirmar-importacion-masiva, button",
+      "textoBoton": "Comenzar Importación",
+      "rx": 0.85,
+      "ry": 0.90,
+      "etiqueta": "Procesando importación masiva de la cohorte...",
+      "pausaDespues": 600,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#btn-confirmar-importacion-masiva, button",
+      "textoBoton": "Comenzar Importación",
+      "rx": 0.85,
+      "ry": 0.90,
+      "etiqueta": "Importación completada: 12 graduados registrados",
+      "pausaDespues": 1000,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "#btn-finalizar-importacion, button",
+      "textoBoton": "Finalizar y Ver Padrón",
+      "rx": 0.88,
+      "ry": 0.90,
+      "etiqueta": "Cerrando asistente e ingresando a nómina oficial...",
+      "pausaDespues": 600,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#btn-finalizar-importacion, button",
+      "textoBoton": "Finalizar y Ver Padrón",
+      "rx": 0.88,
+      "ry": 0.90,
+      "etiqueta": "Padrón institucional actualizado en tiempo real",
+      "pausaDespues": 900,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "#buscador-graduados, input[placeholder*=\"Buscar\" i], input",
+      "rx": 0.38,
+      "ry": 0.22,
+      "etiqueta": "Buscando en nómina oficial...",
+      "pausaDespues": 500,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "tipear",
+      "selector": "#buscador-graduados, input[placeholder*=\"Buscar\" i], input",
+      "texto": "Julian",
+      "etiqueta": "Filtrando egresado por nombre y DNI...",
+      "pausaDespues": 950,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "tr:has(td), div[class*=\"rounded\"]:has(td), tr, td",
+      "rx": 0.38,
+      "ry": 0.42,
+      "etiqueta": "Egresado verificado: DNI, Legajo y Correo validados",
+      "pausaDespues": 950,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "#btn-paso3-convocatoria, button",
+      "textoBoton": "Paso 3",
+      "rx": 0.88,
+      "ry": 0.18,
+      "etiqueta": "Continuando a convocatoria y despacho de tokens...",
+      "pausaDespues": 700,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#btn-paso3-convocatoria, button",
+      "textoBoton": "Paso 3",
+      "rx": 0.88,
+      "ry": 0.18,
+      "etiqueta": "Avanzando a despacho de tokens OTP...",
+      "pausaDespues": 900,
+      "esperarElemento": true
+    }
+  ],
+  "3": [
+    {
+      "tipo": "mover",
+      "selector": "#tab-convocatoria-pendientes, button",
+      "textoBoton": "Por Invitar",
+      "rx": 0.24,
+      "ry": 0.28,
+      "etiqueta": "Segmentando egresados por convocar...",
+      "pausaDespues": 600,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#tab-convocatoria-pendientes, button",
+      "textoBoton": "Por Invitar",
+      "rx": 0.24,
+      "ry": 0.28,
+      "etiqueta": "Filtro activo: egresados pendientes de invitación",
+      "pausaDespues": 650,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "#btn-template-studio, button",
+      "textoBoton": "Template Studio",
+      "rx": 0.72,
+      "ry": 0.14,
+      "etiqueta": "Previsualizando plantilla oficial de invitación...",
+      "pausaDespues": 500,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#btn-template-studio, button",
+      "textoBoton": "Template Studio",
+      "rx": 0.72,
+      "ry": 0.14,
+      "etiqueta": "Abriendo Template Studio con branding Beltrán...",
+      "pausaDespues": 850,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "#btn-cerrar-preview-correo, header button:has(svg), header button, button",
+      "rx": 0.78,
+      "ry": 0.12,
+      "etiqueta": "Plantilla aprobada: enlace seguro y token criptográfico",
+      "pausaDespues": 650,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#btn-cerrar-preview-correo, header button:has(svg), header button, button",
+      "rx": 0.78,
+      "ry": 0.12,
+      "etiqueta": "Cerrando previsualización...",
+      "pausaDespues": 600,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "button.bg-sky-500, button",
+      "textoBoton": "Enviar Invitación",
+      "rx": 0.82,
+      "ry": 0.42,
+      "etiqueta": "Invitaciones y tokens OTP emitidos con éxito",
+      "pausaDespues": 1200,
+      "esperarElemento": true
+    }
+  ],
+  "4": [
+    {
+      "tipo": "mover",
+      "selector": "#tarjeta-formula-dios-patria, div[class*=\"cursor-pointer\"]",
+      "textoBoton": "Por Dios y por La Patria",
+      "rx": 0.32,
+      "ry": 0.52,
+      "etiqueta": "Explorando fórmulas solemnes de juramento...",
+      "pausaDespues": 600,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#tarjeta-formula-dios-patria, div[class*=\"cursor-pointer\"]",
+      "textoBoton": "Por Dios y por La Patria",
+      "rx": 0.32,
+      "ry": 0.52,
+      "etiqueta": "Seleccionando: Fórmula I (Por Dios y por La Patria)",
+      "pausaDespues": 800,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "#tarjeta-formula-patria, div[class*=\"cursor-pointer\"]",
+      "textoBoton": "Por La Patria",
+      "rx": 0.68,
+      "ry": 0.52,
+      "etiqueta": "Comparando con Fórmula II (Cívica institucional)...",
+      "pausaDespues": 600,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#tarjeta-formula-patria, div[class*=\"cursor-pointer\"]",
+      "textoBoton": "Por La Patria",
+      "rx": 0.68,
+      "ry": 0.52,
+      "etiqueta": "Seleccionando: Fórmula II (Por La Patria)",
+      "pausaDespues": 800,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "#textarea-juramento-comentarios, textarea",
+      "rx": 0.5,
+      "ry": 0.76,
+      "etiqueta": "Registrando comentarios para el estrado oficial...",
+      "pausaDespues": 450,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "tipear",
+      "selector": "#textarea-juramento-comentarios, textarea",
+      "texto": "Asistiré puntual junto a mi familia",
+      "etiqueta": "Escribiendo nota institucional...",
+      "pausaDespues": 850,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "#btn-guardar-juramento, button",
+      "textoBoton": "Guardar comentarios",
+      "rx": 0.66,
+      "ry": 0.86,
+      "etiqueta": "Fórmula protocolar registrada exitosamente",
+      "pausaDespues": 500,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#btn-guardar-juramento, button",
+      "textoBoton": "Guardar comentarios",
+      "rx": 0.66,
+      "ry": 0.86,
+      "etiqueta": "Fórmula guardada en legajo de grado",
+      "pausaDespues": 1000,
+      "esperarElemento": true
+    }
+  ],
+  "5": [
+    {
+      "tipo": "mover",
+      "selector": "#btn-agregar-padrino, button",
+      "textoBoton": "Agregar padrino",
+      "rx": 0.28,
+      "ry": 0.46,
+      "etiqueta": "Asignando docente para la entrega de diploma...",
+      "pausaDespues": 600,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#btn-agregar-padrino, button",
+      "textoBoton": "Agregar padrino",
+      "rx": 0.28,
+      "ry": 0.46,
+      "etiqueta": "Abriendo selector de padrinos de la institución...",
+      "pausaDespues": 750,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "#btn-elegir-primer-profesor, button",
+      "textoBoton": "Elegir",
+      "rx": 0.68,
+      "ry": 0.56,
+      "etiqueta": "Docente de carrera seleccionado...",
+      "pausaDespues": 550,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#btn-elegir-primer-profesor, button",
+      "textoBoton": "Elegir",
+      "rx": 0.68,
+      "ry": 0.56,
+      "etiqueta": "Padrino de colación confirmado",
+      "pausaDespues": 850,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "#tab-graduado-acompanantes, button",
+      "textoBoton": "Acompañantes",
+      "rx": 0.38,
+      "ry": 0.38,
+      "etiqueta": "Verificando grupo familiar para el pase grupal...",
+      "pausaDespues": 600,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#tab-graduado-acompanantes, button",
+      "textoBoton": "Acompañantes",
+      "rx": 0.38,
+      "ry": 0.38,
+      "etiqueta": "Mostrando familiares registrados con DNI...",
+      "pausaDespues": 750,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "article, div[class*=\"rounded-2xl\"], h3",
+      "textoBoton": "Acompañante",
+      "rx": 0.5,
+      "ry": 0.58,
+      "etiqueta": "Pase grupal habilitado: familiares vinculados",
+      "pausaDespues": 1200,
+      "esperarElemento": true
+    }
+  ],
+  "6": [
+    {
+      "tipo": "mover",
+      "selector": "svg[title*=\"QR\" i], aside svg, .credencial-graduado svg, canvas",
+      "rx": 0.68,
+      "ry": 0.44,
+      "etiqueta": "Generando credencial digital QR criptográfica...",
+      "pausaDespues": 700,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "div, section",
+      "textoBoton": "Ubicaciones Asignadas",
+      "rx": 0.42,
+      "ry": 0.54,
+      "etiqueta": "Pase grupal: egresado + familiares vinculados",
+      "pausaDespues": 700,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "#btn-credencial-google-wallet, button",
+      "textoBoton": "Google Wallet",
+      "rx": 0.22,
+      "ry": 0.9,
+      "etiqueta": "Pase oficial listo para Google Wallet (v1.1.0)",
+      "pausaDespues": 600,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#btn-credencial-google-wallet, button",
+      "textoBoton": "Google Wallet",
+      "rx": 0.22,
+      "ry": 0.9,
+      "soloVisual": true,
+      "etiqueta": "Guardando pase en Google Wallet...",
+      "pausaDespues": 850,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "#btn-credencial-exportar-pdf, button",
+      "textoBoton": "Exportar PDF",
+      "rx": 0.48,
+      "ry": 0.9,
+      "etiqueta": "Exportación a PDF con código QR de alta resolución",
+      "pausaDespues": 600,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#btn-credencial-exportar-pdf, button",
+      "textoBoton": "Exportar PDF",
+      "rx": 0.48,
+      "ry": 0.9,
+      "soloVisual": true,
+      "etiqueta": "Credencial lista para validación en portería",
+      "pausaDespues": 1200,
+      "esperarElemento": true
+    }
+  ],
+  "7": [
+    {
+      "tipo": "mover",
+      "selector": "header, h2, div",
+      "textoBoton": "Distribución y Asignación",
+      "rx": 0.35,
+      "ry": 0.12,
+      "etiqueta": "Analizando plano del auditorio: Platea Baja y Pullman...",
+      "pausaDespues": 700,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "#btn-auto-asignar-butacas, button",
+      "textoBoton": "Auto-Asignar Butacas",
+      "rx": 0.76,
+      "ry": 0.12,
+      "etiqueta": "Ejecutando algoritmo Auto-Seating por carrera...",
+      "pausaDespues": 650,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#btn-auto-asignar-butacas, button",
+      "textoBoton": "Auto-Asignar Butacas",
+      "rx": 0.76,
+      "ry": 0.12,
+      "soloVisual": false,
+      "etiqueta": "Configurando protocolo y fórmula de juramento...",
+      "pausaDespues": 700,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "#btn-confirmar-auto-asignar, button",
+      "textoBoton": "Ejecutar Asignación",
+      "rx": 0.55,
+      "ry": 0.85,
+      "etiqueta": "Distribuyendo graduados por juramento y orden protocolar...",
+      "pausaDespues": 600,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#btn-confirmar-auto-asignar, button",
+      "textoBoton": "Ejecutar Asignación",
+      "rx": 0.55,
+      "ry": 0.85,
+      "soloVisual": false,
+      "etiqueta": "Calculando orden y asignando butacas en auditorio...",
+      "pausaDespues": 1000,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "button",
+      "textoBoton": "Platea Baja",
+      "rx": 0.78,
+      "ry": 0.28,
+      "etiqueta": "Graduados ubicados en Platea Baja por orden alfabético",
+      "pausaDespues": 850,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "button",
+      "textoBoton": "Pullman",
+      "rx": 0.88,
+      "ry": 0.28,
+      "etiqueta": "Familiares y acompañantes ubicados en sectores contiguos",
+      "pausaDespues": 850,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "#btn-finalizar-preparacion, button",
+      "textoBoton": "Finalizar Preparación",
+      "rx": 0.72,
+      "ry": 0.17,
+      "etiqueta": "Finalizando preparación oficial de colación...",
+      "pausaDespues": 700,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#btn-finalizar-preparacion, button",
+      "textoBoton": "Finalizar Preparación",
+      "rx": 0.72,
+      "ry": 0.17,
+      "etiqueta": "Generando balance y resumen ejecutivo del acto...",
+      "pausaDespues": 1100,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "#btn-cerrar-modal-resumen-x, div[class*=\"bg-gradient-to-r\"]",
+      "textoBoton": "Ciclo de Colación Concluido",
+      "rx": 0.50,
+      "ry": 0.25,
+      "etiqueta": "Resumen ejecutivo: 12 graduados, 100% butacas asignadas",
+      "pausaDespues": 1200,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "mover",
+      "selector": "#btn-cerrar-resumen-demo, button",
+      "textoBoton": "Finalizar Demostración",
+      "rx": 0.88,
+      "ry": 0.92,
+      "etiqueta": "Agradecimiento del equipo al Instituto Tecnológico Beltrán",
+      "pausaDespues": 900,
+      "esperarElemento": true
+    },
+    {
+      "tipo": "click",
+      "selector": "#btn-cerrar-resumen-demo, button",
+      "textoBoton": "Finalizar Demostración",
+      "rx": 0.88,
+      "ry": 0.92,
+      "etiqueta": "Demostración finalizada · Muchas gracias",
+      "pausaDespues": 1200,
+      "esperarElemento": true
+    }
+  ]
+}

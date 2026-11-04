@@ -1,0 +1,45 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "SiGIC Escritorio",
+  "version": "1.0.5",
+  "identifier": "ar.com.sigic.escritorio",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "frontendDist": "../public/tauri-shell",
+    "devUrl": "http://localhost:3000"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "SiGIC Escritorio · Instituto Tecnológico Beltrán",
+        "width": 1440,
+        "height": 920,
+        "minWidth": 1024,
+        "minHeight": 680,
+        "resizable": true,
+        "center": true
+      }
+    ],
+    "security": { "csp": null }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "createUpdaterArtifacts": false,
+    "publisher": "SiGIC · Instituto Tecnológico Beltrán",
+    "shortDescription": "Sistema Integral de Gestión Institucional",
+    "longDescription": "SiGIC Escritorio centraliza la gestión de ceremonias, graduados, acreditaciones y reportes institucionales.",
+    "icon": ["icons/icon.ico", "icons/icon.png"],
+    "windows": {
+      "nsis": { "languages": ["SpanishInternational"], "displayLanguageSelector": false },
+      "wix": { "language": "es-ES" }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IENENDlBMkQzODE0QTQ0MQpSV1JCcEJRNExaclVEQ2xkOTdDOEk3aWhCSTMvTitlaWdna0tVV1Q1ZE42U28yQ1cwY1E5bWduaQo=",
+      "endpoints": ["https://descargas.sigic.com.ar/tauri/latest.json"],
+      "windows": { "installMode": "passive" }
+    }
+  }
+}

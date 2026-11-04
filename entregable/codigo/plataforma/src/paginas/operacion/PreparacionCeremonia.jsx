@@ -1,0 +1,1547 @@
+﻿import React, { useState, useEffect, useRef } from 'react'
+import {
+  Armchair, Sparkles, Users, Layers, Save, RotateCcw,
+  CheckCircle2, AlertCircle, Search, ArrowRight, ArrowLeft, UserCheck,
+  Download, Layout, ShieldCheck, ChevronRight, ChevronLeft,
+  X, Info, GraduationCap, ZoomIn, ZoomOut, Check, Award, RefreshCw, ScrollText, Scale,
+  AlertTriangle, CheckCheck, Filter, Lock, Unlock, Eye, PanelRightClose, PanelRightOpen,
+  UserX, RotateCcw as ReincorporarIcon, HeartHandshake
+} from 'lucide-react'
+import {
+  BASE,
+  obtenerCeremoniaActiva,
+  obtenerGraduados,
+  obtenerInvitados,
+  autoAsignarButacas,
+  actualizarGraduado,
+  cabeceras
+} from '../../servicios/api'
+import { SeleccionAsientos } from '../SeleccionAsientos'
+import { ModalAsignarAsientos } from '../../componentes/ModalAsignarAsientos'
+import { ModalAutoAsignar } from '../../componentes/ModalAutoAsignar'
+import { ModalResumenDemostracion } from '../../componentes/ModalResumenDemostracion'
+import { ModalDespachoCredenciales } from '../../componentes/ModalDespachoCredenciales'
+import { FormularioGraduado } from '../../componentes/FormularioGraduado'
+import { ModalImportar } from '../../componentes/ModalImportar'
+import { ModalGestionPresencialGraduado } from '../../componentes/ModalGestionPresencialGraduado'
+import { emitirCambioSync, useSincronizacion } from '../../lib/sync'
+
+export function PreparacionCeremonia({ onNavegar, onVolver, ceremoniaActiva: ceremoniaProp }) {
+  const [ceremonia, setCeremonia] = useState(ceremoniaProp || null)
+  const solicitudDatos = useRef(0)
+  const ceremoniaActual = useRef(ceremoniaProp)
+  const [graduados, setGraduados] = useState([])
+  const [invitados, setInvitados] = useState([])
+  const [cargando, setCargando] = useState(true)
+  const [autoAsignando, setAutoAsignando] = useState(false)
+  const [mostrarModalAutoAsignar, setMostrarModalAutoAsignar] = useState(false)
+  const [guardando, setGuardando] = useState(false)
+  const [mensaje, setMensaje] = useState(null)
+  const [mostrarResumenFinal, setMostrarResumenFinal] = useState(false)
+  const [mostrarDespachoCredenciales, setMostrarDespachoCredenciales] = useState(false)
+  const [mostrarModalNuevoGraduado, setMostrarModalNuevoGraduado] = useState(false)
+  const [mostrarModalImportar, setMostrarModalImportar] = useState(false)
+  const [asientoDestinoNuevo, setAsientoDestinoNuevo] = useState(null)
+  
+  // Pestañas
+  const [pestana, setPestana] = useState('mapa') // 'mapa' | 'graduados' | 'estructura'
+  
+  // Estado del mapa y protección de edición
+  const [nivel, setNivel] = useState('baja')
+  const [zoom, setZoom] = useState(0.9)
+  const [rolPincel, setRolPincel] = useState('egresado')
+  const [modoEdicionSectores, setModoEdicionSectores] = useState(false)
+  const [mostrarPanelLateral, setMostrarPanelLateral] = useState(true)
+  const [verProtocoloJuramento, setVerProtocoloJuramento] = useState(false)
+  const [filtroJuramento, setFiltroJuramento] = useState('TODOS') // 'TODOS' | 'DIOS_Y_PATRIA' | 'PATRIA' | 'SIN_DEFINIR'
+  const [filtroAsignacion, setFiltroAsignacion] = useState('TODOS') // 'TODOS' | 'SIN_ASIENTO' | 'CON_ASIENTO'
+  const [filtroEstadoAsistencia, setFiltroEstadoAsistencia] = useState('TODOS') // 'TODOS' | 'CONFIRMADOS' | 'PENDIENTES' | 'RECHAZADOS'
+  const [graduadoFamiliares, setGraduadoFamiliares] = useState(null)
+  const [estructura, setEstructura] = useState({
+    baja: { filas: 7, asientos: 20 },
+    alta: { filas: 5, asientos: 22 }
+  })
+  const [estructuraOriginal, setEstructuraOriginal] = useState(null)
+  const [mapaRoles, setMapaRoles] = useState({})
+  const [mapaRolesOriginal, setMapaRolesOriginal] = useState(null)
+  const [asientoSeleccionadoInfo, setAsientoSeleccionadoInfo] = useState(null)
+
+  // Búsqueda y modal de asignación individual
+  const [busqueda, setBusqueda] = useState('')
+  const [graduadoParaAsignar, setGraduadoParaAsignar] = useState(null)
+
+  // Cargar todos los datos
+  async function cargarDatos() {
+    const solicitud = ++solicitudDatos.current
+    setCargando(true)
+    try {
+      const cerActiva = ceremoniaActual.current || await obtenerCeremoniaActiva()
+      if (solicitud !== solicitudDatos.current) return
+      setCeremonia(cerActiva)
+      setGraduados([])
+      setInvitados([])
+      setMapaRoles({})
+      setMapaRolesOriginal(null)
+      setEstructura({ baja: { filas: 7, asientos: 20 }, alta: { filas: 5, asientos: 22 } })
+      setEstructuraOriginal(null)
+      if (!cerActiva?.id) return
+
+      const [grads, invs] = await Promise.all([
+        obtenerGraduados(cerActiva.id),
+        obtenerInvitados(cerActiva.id)
+      ])
+      if (solicitud !== solicitudDatos.current) return
+      setGraduados(grads)
+      setInvitados(invs)
+
+      if (cerActiva?.id) {
+        const res = await fetch(`${BASE}/configuracion/anfiteatro/estructura/${cerActiva.id}`, {
+          headers: cabeceras()
+        })
+        if (res.ok) {
+          const data = await res.json()
+          if (solicitud !== solicitudDatos.current) return
+          if (data.estructura) {
+            setEstructura(data.estructura)
+            setEstructuraOriginal(data.estructura)
+          }
+          if (data.mapaRoles) {
+            setMapaRoles(data.mapaRoles)
+            setMapaRolesOriginal(data.mapaRoles)
+          }
+        }
+      }
+    } catch (err) {
+      if (solicitud !== solicitudDatos.current) return
+      setMensaje({ tipo: 'error', texto: err.message || 'Error al sincronizar datos del auditorio.' })
+    } finally {
+      if (solicitud === solicitudDatos.current) setCargando(false)
+    }
+  }
+
+  useEffect(() => {
+    ceremoniaActual.current = ceremoniaProp
+    cargarDatos()
+  }, [ceremoniaProp?.id])
+
+  useEffect(() => {
+    const cambiarCeremonia = evento => {
+      ceremoniaActual.current = evento.detail || null
+      setGraduadoParaAsignar(null)
+      setMostrarModalAutoAsignar(false)
+      setMostrarDespachoCredenciales(false)
+      setMostrarResumenFinal(false)
+      setAsientoSeleccionadoInfo(null)
+      cargarDatos()
+    }
+    window.addEventListener('sigic-ceremonia-cambiada', cambiarCeremonia)
+    return () => {
+      ++solicitudDatos.current
+      window.removeEventListener('sigic-ceremonia-cambiada', cambiarCeremonia)
+    }
+  }, [])
+
+  // Sincronización en vivo
+  useSincronizacion(['BUTACAS', 'EGRESADOS', 'INVITADOS'], () => {
+    cargarDatos()
+  })
+
+  // Ejecutar Auto-Seating (Distribución Inteligente)
+  async function ejecutarAutoSeating(opciones = {}) {
+    if (!ceremonia?.id) return
+    setAutoAsignando(true)
+    setMensaje(null)
+    try {
+      // La asignación debe trabajar sobre el mismo plano que está viendo el operador.
+      const guardado = await fetch(`${BASE}/configuracion/anfiteatro/estructura/${ceremonia.id}`, {
+        method: 'POST',
+        headers: cabeceras(),
+        body: JSON.stringify({ estructura, mapaRoles })
+      })
+      if (!guardado.ok) throw new Error('No se pudo guardar el plano. No se asignaron butacas; intentá nuevamente.')
+      setEstructuraOriginal(JSON.parse(JSON.stringify(estructura)))
+      setMapaRolesOriginal(JSON.parse(JSON.stringify(mapaRoles)))
+      const res = await autoAsignarButacas(ceremonia.id, opciones)
+      setMensaje({ 
+        tipo: 'exito', 
+        texto: res.mensaje || '¡Distribución inteligente completada con éxito! Todos los alumnos y acompañantes fueron ubicados.' 
+      })
+      setMostrarModalAutoAsignar(false)
+      emitirCambioSync('BUTACAS')
+      await cargarDatos()
+    } catch (err) {
+      setMensaje({ tipo: 'error', texto: err.message || 'No se pudo completar la auto-asignación.' })
+    } finally {
+      setAutoAsignando(false)
+    }
+  }
+
+  // Guardar configuración del mapa
+  async function guardarMapa() {
+    if (!ceremonia?.id) return
+    setGuardando(true)
+    try {
+      const res = await fetch(`${BASE}/configuracion/anfiteatro/estructura/${ceremonia.id}`, {
+        method: 'POST',
+        headers: cabeceras(),
+        body: JSON.stringify({ estructura, mapaRoles })
+      })
+      if (res.ok) {
+        setMensaje({ tipo: 'exito', texto: 'Estructura y sectores del anfiteatro guardados exitosamente.' })
+        setEstructuraOriginal(JSON.parse(JSON.stringify(estructura)))
+        setMapaRolesOriginal(JSON.parse(JSON.stringify(mapaRoles)))
+        emitirCambioSync('BUTACAS')
+        setTimeout(() => setMensaje(null), 3000)
+      } else {
+        throw new Error('No se pudo guardar la configuración')
+      }
+    } catch (err) {
+      setMensaje({ tipo: 'error', texto: err.message || 'Error al guardar el mapa.' })
+    } finally {
+      setGuardando(false)
+    }
+  }
+
+  // Presets arquitectónicos
+  const aplicarPlantilla = (tipo) => {
+    if (tipo === 'beltran') {
+      const nuevaEstructura = {
+        baja: { filas: 7, asientos: 20 },
+        alta: { filas: 5, asientos: 22 }
+      }
+      const nuevosRoles = {}
+      const letras = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+      letras.forEach((letra, idx) => {
+        nuevosRoles[`baja-${letra}-5`] = 'bloqueado'
+        nuevosRoles[`baja-${letra}-16`] = 'bloqueado'
+        if (idx === 0 || idx === 1) {
+          for (let col = 6; col <= 15; col++) nuevosRoles[`baja-${letra}-${col}`] = 'egresado'
+        }
+        if (idx === 2) {
+          for (let col = 6; col <= 15; col++) nuevosRoles[`baja-${letra}-${col}`] = 'padrino'
+        }
+        if (idx === 0) {
+          nuevosRoles[`baja-A-4`] = 'discapacitado'
+          nuevosRoles[`baja-A-17`] = 'discapacitado'
+          nuevosRoles[`baja-A-1`] = 'autoridad'
+          nuevosRoles[`baja-A-2`] = 'autoridad'
+        }
+      })
+      setEstructura(nuevaEstructura)
+      setMapaRoles(nuevosRoles)
+      setMensaje({ tipo: 'exito', texto: 'Plantilla Auditorio Beltrán (3 Bloques) aplicada.' })
+    } else if (tipo === 'pasillo-central') {
+      const nuevaEstructura = {
+        baja: { filas: 8, asientos: 17 },
+        alta: { filas: 6, asientos: 17 }
+      }
+      const nuevosRoles = {}
+      const letras = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
+      letras.forEach((letra, idx) => {
+        nuevosRoles[`baja-${letra}-9`] = 'bloqueado'
+        if (idx < 2) {
+          for (let col = 1; col <= 8; col++) nuevosRoles[`baja-${letra}-${col}`] = 'egresado'
+          for (let col = 10; col <= 17; col++) nuevosRoles[`baja-${letra}-${col}`] = 'egresado'
+        }
+      })
+      setEstructura(nuevaEstructura)
+      setMapaRoles(nuevosRoles)
+      setMensaje({ tipo: 'exito', texto: 'Plantilla de Pasillo Central aplicada.' })
+    } else if (tipo === 'limpiar') {
+      setMapaRoles({})
+      setMensaje({ tipo: 'exito', texto: 'Mapa de roles restablecido a disponibles.' })
+    }
+    setTimeout(() => setMensaje(null), 3000)
+  }
+
+  // Click en asiento en pestaña de mapa
+  const manejarClickAsientoMapa = (asientoId) => {
+    // Verificar si está ocupado por graduado o invitado
+    const gradOcupante = graduados.find(g => g.asiento_id === asientoId)
+    const invOcupante = invitados.find(i => i.asiento_id === asientoId)
+
+    if (gradOcupante) {
+      setAsientoSeleccionadoInfo({
+        asientoId,
+        tipo: 'Graduado',
+        nombre: gradOcupante.nombre,
+        dni: gradOcupante.dni,
+        carrera: gradOcupante.carrera,
+        objeto: gradOcupante
+      })
+      return
+    }
+
+    if (invOcupante) {
+      const g = graduados.find(x => x.id === invOcupante.egresado_id || x.id === invOcupante.egresadoId)
+      setAsientoSeleccionadoInfo({
+        asientoId,
+        tipo: 'Acompañante',
+        nombre: invOcupante.nombre,
+        dni: invOcupante.dni,
+        carrera: g ? `Acompaña a: ${g.nombre}` : 'Acompañante',
+        objeto: invOcupante
+      })
+      return
+    }
+
+    // Si no está ocupado por persona
+    const rolActual = mapaRoles[asientoId] || 'disponible'
+    setAsientoSeleccionadoInfo({
+      asientoId,
+      tipo: 'Vacio',
+      rolActual,
+      nombre: 'Butaca Libre / Sin Asignar',
+      dni: null,
+      carrera: null,
+      objeto: null
+    })
+
+    // Aplicar el pincel de rol activo únicamente si el modo de edición está desbloqueado
+    if (modoEdicionSectores) {
+      setMapaRoles(prev => ({
+        ...prev,
+        [asientoId]: rolPincel
+      }))
+    }
+  }
+
+  // Subsanación de inasistencia / rechazo accidental
+  async function manejarSubsanarRechazo(egresado) {
+    if (!window.confirm(`¿Deseas reincorporar a ${egresado.nombre}? Su estado pasará a Aceptado/Confirmado para que pueda recibir butaca y registrar acompañantes.`)) return
+    try {
+      await actualizarGraduado(egresado.id, { estado: 'ACEPTADO', estado_flujo: 'COMPLETO' })
+      emitirCambioSync('EGRESADOS', { id: egresado.id })
+      setMensaje({ tipo: 'exito', texto: `${egresado.nombre} reincorporado exitosamente como graduado confirmado.` })
+      await cargarDatos()
+      setTimeout(() => setMensaje(null), 4000)
+    } catch (err) {
+      setMensaje({ tipo: 'error', texto: err.message || 'Error al reincorporar graduado.' })
+    }
+  }
+
+  // Métricas calculadas
+  const totalCapacidad = (estructura.baja.filas * estructura.baja.asientos) + (estructura.alta.filas * estructura.alta.asientos)
+  const graduadosConAsiento = graduados.filter(g => g.asiento_id)
+  const invitadosConAsiento = invitados.filter(i => i.asiento_id)
+  const totalOcupados = graduadosConAsiento.length + invitadosConAsiento.length
+  const disponibles = Math.max(0, totalCapacidad - totalOcupados)
+
+  // Estadísticas protocolares de juramento
+  const totalDiosYPatria = graduados.filter(g => (g.formula_juramento || '').toUpperCase().includes('DIOS')).length
+  const totalPorLaPatria = graduados.filter(g => (g.formula_juramento || '').toUpperCase() === 'PATRIA').length
+  const totalSinDefinir = graduados.length - (totalDiosYPatria + totalPorLaPatria)
+
+  // Asientos ocupados en el mapa y tooltip con nombre de asignados
+  const mapaRolesVisual = { ...mapaRoles }
+  const datosPorAsiento = {}
+
+  graduadosConAsiento.forEach(g => {
+    const esDios = (g.formula_juramento || '').toUpperCase().includes('DIOS')
+    const etiquetaJura = esDios ? 'Dios y Patria' : g.formula_juramento === 'PATRIA' ? 'Por la Patria' : 'General / Sin Definir'
+    
+    // Si la capa protocolar está activa, coloreamos la butaca con el ribete de su juramento
+    if (verProtocoloJuramento) {
+      mapaRolesVisual[g.asiento_id] = esDios ? 'jura_dios' : 'jura_patria'
+    } else {
+      mapaRolesVisual[g.asiento_id] = 'egresado'
+    }
+
+    datosPorAsiento[g.asiento_id] = {
+      nombre: g.nombre,
+      carrera: g.carrera,
+      tipo: 'Graduado',
+      juramento: etiquetaJura
+    }
+  })
+
+  invitadosConAsiento.forEach(i => {
+    mapaRolesVisual[i.asiento_id] = 'acompanante'
+    const egresadoTitular = graduados.find(x => x.id === i.egresado_id || x.id === i.egresadoId)
+    datosPorAsiento[i.asiento_id] = {
+      nombre: i.nombre,
+      carrera: egresadoTitular ? `Acompañante de ${egresadoTitular.nombre}` : 'Acompañante',
+      tipo: i.es_padrino || i.esPadrino ? 'Padrino de Diploma' : 'Acompañante'
+    }
+  })
+
+  // Contadores por estado de asistencia
+  const egresadosConfirmados = graduados.filter(g => g.estado === 'ACEPTADO' || g.estado_flujo === 'COMPLETO')
+  const egresadosPendientes = graduados.filter(g => g.estado !== 'ACEPTADO' && g.estado !== 'RECHAZADO')
+  const egresadosRechazados = graduados.filter(g => g.estado === 'RECHAZADO' || g.estado_flujo === 'RECHAZADO')
+
+  // Filtrado de graduados para la pestaña de lista
+  const graduadosFiltrados = graduados.filter(g => {
+    // Filtro por estado de asistencia
+    if (filtroEstadoAsistencia === 'CONFIRMADOS' && g.estado !== 'ACEPTADO' && g.estado_flujo !== 'COMPLETO') return false
+    if (filtroEstadoAsistencia === 'PENDIENTES' && (g.estado === 'ACEPTADO' || g.estado === 'RECHAZADO' || g.estado_flujo === 'RECHAZADO')) return false
+    if (filtroEstadoAsistencia === 'RECHAZADOS' && g.estado !== 'RECHAZADO' && g.estado_flujo !== 'RECHAZADO') return false
+
+    // Filtro por asignación de butaca
+    if (filtroAsignacion === 'SIN_ASIENTO' && g.asiento_id) return false
+    if (filtroAsignacion === 'CON_ASIENTO' && !g.asiento_id) return false
+
+    // Filtro por juramento
+    if (filtroJuramento === 'DIOS_Y_PATRIA' && !(g.formula_juramento || '').toUpperCase().includes('DIOS')) return false
+    if (filtroJuramento === 'PATRIA' && (g.formula_juramento || '').toUpperCase() !== 'PATRIA') return false
+    if (filtroJuramento === 'SIN_DEFINIR' && g.formula_juramento) return false
+
+    const q = busqueda.toLowerCase().trim()
+    if (!q) return true
+    return (
+      (g.nombre && g.nombre.toLowerCase().includes(q)) ||
+      (g.dni && String(g.dni).includes(q)) ||
+      (g.carrera && g.carrera.toLowerCase().includes(q)) ||
+      (g.asiento_id && g.asiento_id.toLowerCase().includes(q)) ||
+      (g.formula_juramento && g.formula_juramento.toLowerCase().includes(q))
+    )
+  })
+
+  // Diagnóstico inteligente de la ceremonia
+  const graduadosSinButaca = graduados.filter(g => !g.asiento_id)
+  const egresadosSinAsignarCount = graduadosSinButaca.length
+
+  return (
+    <div className="font-sans space-y-2.5 w-full mx-auto pb-4">
+      
+      {/* HEADER ULTRA COMPACTO */}
+      <header className="rounded-xl bg-slate-900 px-4 py-2.5 text-white shadow-sm flex flex-wrap items-center justify-between gap-2.5 border border-slate-800">
+        <div className="flex items-center gap-2.5 min-w-0">
+          {onVolver && (
+            <button
+              type="button"
+              onClick={onVolver}
+              className="w-8 h-8 rounded-lg bg-white/10 hover:bg-white/20 text-white flex items-center justify-center shrink-0 transition-colors cursor-pointer"
+              title="Volver"
+            >
+              <ArrowLeft size={16} />
+            </button>
+          )}
+          <div className="w-8 h-8 rounded-lg bg-sky-500/10 border border-sky-400/20 text-sky-400 flex items-center justify-center shrink-0">
+            <Armchair size={17} />
+          </div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <h2 className="text-base sm:text-lg font-black tracking-tight truncate">
+                Distribución y Asignación de Butacas
+              </h2>
+              {ceremonia && (
+                <span className="text-xs font-bold text-slate-300 bg-white/10 px-2 py-0.5 rounded-lg shrink-0 truncate max-w-[200px]">
+                  {ceremonia.nombre}
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-slate-400 font-medium truncate mt-0.5">
+              Asignación inteligente, mapa del anfiteatro y distribución de sectores.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 shrink-0 flex-wrap">
+          {/* Botones de Carga Rápida de Alumnos */}
+          <button
+            type="button"
+            onClick={() => {
+              setAsientoDestinoNuevo(null)
+              setMostrarModalNuevoGraduado(true)
+            }}
+            className="inline-flex items-center gap-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white px-3 py-2 text-xs font-bold transition active:scale-95 cursor-pointer border border-white/15"
+            title="Registrar un nuevo graduado en esta ceremonia"
+          >
+            <UserCheck size={14} className="text-sky-400" />
+            <span>Nuevo Graduado</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setMostrarModalImportar(true)}
+            className="inline-flex items-center gap-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white px-3 py-2 text-xs font-bold transition active:scale-95 cursor-pointer border border-white/15"
+            title="Importar lista de egresados desde archivo Excel"
+          >
+            <Download size={14} className="text-emerald-400" />
+            <span>Importar Excel</span>
+          </button>
+
+          <button
+            id="btn-auto-asignar-butacas"
+            type="button"
+            onClick={() => setMostrarModalAutoAsignar(true)}
+            disabled={autoAsignando || graduados.length === 0}
+            className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white px-3.5 py-2 text-xs font-black shadow-xs transition active:scale-95 disabled:opacity-40 cursor-pointer"
+          >
+            {autoAsignando ? <Sparkles size={14} className="animate-spin" /> : <Sparkles size={14} />}
+            <span>{autoAsignando ? 'Auto-asignando...' : 'Auto-Asignar Butacas'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={guardarMapa}
+            disabled={guardando}
+            className="inline-flex items-center gap-2 rounded-xl bg-white/10 hover:bg-white/15 text-white px-3 py-2 text-xs font-bold transition active:scale-95 cursor-pointer disabled:opacity-40"
+          >
+            <Save size={14} />
+            <span>{guardando ? 'Guardando...' : 'Guardar Mapa'}</span>
+          </button>
+
+          <button
+            type="button"
+            id="btn-finalizar-preparacion"
+            onClick={() => {
+              if (onNavegar) {
+                onNavegar('despacho-credenciales')
+              } else {
+                setMostrarDespachoCredenciales(true)
+              }
+            }}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white border border-emerald-500/80 px-3.5 py-1.5 text-[11px] font-black transition active:scale-95 cursor-pointer shadow-xs"
+            title="Finalizar preparación y despachar credenciales QR a los confirmados"
+          >
+            <CheckCircle2 size={13} />
+            <span>Finalizar y Despachar QR</span>
+          </button>
+        </div>
+      </header>
+
+      {/* FEEDBACK BANNER COMPACTO */}
+      {mensaje && (
+        <div className={`p-2.5 rounded-xl flex items-center justify-between text-xs font-bold shadow-2xs animate-in slide-in-from-top duration-200 ${
+          mensaje.tipo === 'error' ? 'bg-rose-50 text-rose-800 border border-rose-200' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+        }`}>
+          <div className="flex items-center gap-2">
+            {mensaje.tipo === 'error' ? <AlertCircle size={14} /> : <CheckCircle2 size={14} />}
+            <span className="text-[11px]">{mensaje.texto}</span>
+          </div>
+          <button onClick={() => setMensaje(null)} className="cursor-pointer opacity-70 hover:opacity-100 p-0.5">✕</button>
+        </div>
+      )}
+
+      {/* KPI STATS BAR COMPACTO */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-2.5">
+        <div className="p-2.5 sm:p-3 bg-white rounded-xl border border-slate-200/80 shadow-xs flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+            <Layers size={16} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider truncate">Capacidad</p>
+            <p className="text-xs sm:text-sm font-black text-slate-900 leading-tight truncate">{totalCapacidad} butacas</p>
+          </div>
+        </div>
+
+        <div className="p-2.5 sm:p-3 bg-white rounded-xl border border-slate-200/80 shadow-xs flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+            <UserCheck size={16} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold text-indigo-700 uppercase tracking-wider truncate">Graduados</p>
+            <p className="text-xs sm:text-sm font-black text-slate-900 leading-tight truncate">
+              {graduadosConAsiento.length} <span className="text-[10px] text-slate-400 font-bold">/ {graduados.length}</span>
+            </p>
+          </div>
+        </div>
+
+        <div className="p-2.5 sm:p-3 bg-white rounded-xl border border-slate-200/80 shadow-xs flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+            <Users size={16} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold text-amber-700 uppercase tracking-wider truncate">Acompañantes</p>
+            <p className="text-xs sm:text-sm font-black text-slate-900 leading-tight truncate">
+              {invitadosConAsiento.length} <span className="text-[10px] text-slate-400 font-bold">/ {invitados.length}</span>
+            </p>
+          </div>
+        </div>
+
+        <div className="p-2.5 sm:p-3 bg-white rounded-xl border border-slate-200/80 shadow-xs flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center shrink-0">
+            <Armchair size={16} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold text-sky-700 uppercase tracking-wider truncate">Ocupadas</p>
+            <p className="text-xs sm:text-sm font-black text-slate-900 leading-tight truncate">{totalOcupados} asientos</p>
+          </div>
+        </div>
+
+        <div className="p-2.5 sm:p-3 bg-white rounded-xl border border-slate-200/80 shadow-xs flex items-center gap-2.5 col-span-2 sm:col-span-1">
+          <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+            <CheckCircle2 size={16} />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider truncate">Disponibles</p>
+            <p className="text-xs sm:text-sm font-black text-slate-900 leading-tight truncate">{disponibles} libres</p>
+          </div>
+        </div>
+      </div>
+
+      {/* PESTAÑAS DE NAVEGACIÓN */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between border-b border-slate-200/80 pb-2 pt-1 gap-2">
+        <div className="flex gap-1.5 bg-slate-100/90 p-1 rounded-xl overflow-x-auto [scrollbar-width:none]">
+          <button
+            type="button"
+            onClick={() => setPestana('mapa')}
+            className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 sm:gap-2 shrink-0 ${
+              pestana === 'mapa' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900'
+            }`}
+          >
+            <Armchair size={15} className={pestana === 'mapa' ? 'text-sky-500' : ''} />
+            <span>Mapa Interactivo</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setPestana('graduados')}
+            className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 sm:gap-2 shrink-0 ${
+              pestana === 'graduados' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900'
+            }`}
+          >
+            <Users size={15} className={pestana === 'graduados' ? 'text-indigo-600' : ''} />
+            <span>Padrón y Butacas ({graduados.length})</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setPestana('estructura')}
+            className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-lg text-xs font-bold transition cursor-pointer flex items-center gap-1.5 sm:gap-2 shrink-0 ${
+              pestana === 'estructura' ? 'bg-white text-slate-900 shadow-xs font-black' : 'text-slate-500 hover:text-slate-900'
+            }`}
+          >
+            <Layout size={15} className={pestana === 'estructura' ? 'text-sky-600' : ''} />
+            <span>Estructura & Presets</span>
+          </button>
+        </div>
+
+        {pestana === 'mapa' && (
+          <div className="flex items-center gap-2 flex-wrap justify-between sm:justify-end">
+            {/* Botón de Bloqueo / Desbloqueo de Modo Edición */}
+            <button
+              type="button"
+              onClick={() => {
+                setModoEdicionSectores(!modoEdicionSectores)
+                if (!modoEdicionSectores) {
+                  setMostrarPanelLateral(true)
+                }
+              }}
+              className={`px-2.5 py-1 rounded-md text-[10.5px] font-black transition cursor-pointer flex items-center gap-1.5 border shadow-2xs ${
+                modoEdicionSectores
+                  ? 'bg-amber-500 text-slate-950 border-amber-400 ring-2 ring-amber-300/40 animate-pulse'
+                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+              }`}
+              title={modoEdicionSectores ? 'Modo edición activo: clics en butacas vacías modificarán su rol con el pincel' : 'Edición bloqueada: clics en butacas muestran su ficha sin alterar roles'}
+            >
+              {modoEdicionSectores ? <Unlock size={12} className="text-slate-950" /> : <Lock size={12} className="text-slate-500" />}
+              <span>{modoEdicionSectores ? 'Pincel Activo (Desbloqueado)' : 'Edición Bloqueada (Segura)'}</span>
+            </button>
+
+            {/* Botón para Colapsar/Expandir Panel Lateral */}
+            <button
+              type="button"
+              onClick={() => setMostrarPanelLateral(!mostrarPanelLateral)}
+              className="px-2 py-1 rounded-md text-[10.5px] font-bold bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 transition cursor-pointer flex items-center gap-1 shadow-2xs"
+              title={mostrarPanelLateral ? 'Ocultar panel lateral y expandir mapa al 100%' : 'Mostrar panel de herramientas'}
+            >
+              {mostrarPanelLateral ? <PanelRightClose size={12} className="text-slate-500" /> : <PanelRightOpen size={12} className="text-sky-500" />}
+              <span>{mostrarPanelLateral ? 'Ocultar Pinceles' : 'Herramientas'}</span>
+            </button>
+
+            <div className="h-4 w-px bg-slate-200 hidden sm:block" />
+
+            {/* Switch Protocolar de Fórmulas de Jura */}
+            <button
+              type="button"
+              onClick={() => setVerProtocoloJuramento(!verProtocoloJuramento)}
+              className={`px-2.5 py-1 rounded-md text-[10.5px] font-black transition cursor-pointer flex items-center gap-1.5 border shadow-2xs ${
+                verProtocoloJuramento
+                  ? 'bg-amber-500 text-slate-950 border-amber-400 ring-2 ring-amber-300/40'
+                  : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+              }`}
+              title="Resaltar las butacas de egresados según si juran Por Dios y la Patria o Por la Patria"
+            >
+              <ScrollText size={12} className={verProtocoloJuramento ? 'text-slate-950' : 'text-amber-500'} />
+              <span>{verProtocoloJuramento ? 'Capa Protocolo: Activa' : 'Fórmulas de Jura'}</span>
+              <span className={`px-1 py-0.2 rounded text-[8.5px] font-black uppercase ${
+                verProtocoloJuramento ? 'bg-black text-amber-300' : 'bg-slate-100 text-slate-500'
+              }`}>
+                {totalDiosYPatria + totalPorLaPatria}
+              </span>
+            </button>
+
+            <div className="h-4 w-px bg-slate-200 hidden sm:block" />
+
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setNivel('baja')}
+                className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase transition cursor-pointer ${
+                  nivel === 'baja' ? 'bg-slate-900 text-white shadow-2xs' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                Platea Baja
+              </button>
+              <button
+                type="button"
+                onClick={() => setNivel('alta')}
+                className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase transition cursor-pointer ${
+                  nivel === 'alta' ? 'bg-slate-900 text-white shadow-2xs' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                Pullman (Balcón)
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* CONTENIDO: MAPA INTERACTIVO */}
+      {pestana === 'mapa' && (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 items-start">
+          
+          {/* MAPA PRINCIPAL (Ocupa 12 cols si panel está colapsado, o 8-9 cols si está visible) */}
+          <div className={`${mostrarPanelLateral ? 'lg:col-span-8 xl:col-span-9' : 'col-span-12 w-full'} bg-white rounded-xl border border-slate-200/90 p-3 shadow-2xs flex flex-col items-center min-h-[460px] overflow-hidden transition-all duration-300`}>
+            
+            {/* Info si se cliquea una butaca */}
+            {asientoSeleccionadoInfo ? (
+              <div className="w-full mb-3 p-3 bg-gradient-to-r from-sky-50 via-indigo-50/50 to-white border border-sky-200 rounded-xl flex items-center justify-between shadow-xs animate-in fade-in slide-in-from-top-1">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-xs shrink-0">
+                    <Armchair size={18} />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="text-xs font-black text-slate-900 leading-tight">
+                        {asientoSeleccionadoInfo.nombre}
+                      </p>
+                      <span className="text-[9px] bg-indigo-100 text-indigo-800 font-black px-1.5 py-0.5 rounded uppercase border border-indigo-200/60">
+                        {asientoSeleccionadoInfo.tipo}
+                      </span>
+                      {asientoSeleccionadoInfo.objeto?.formula_juramento && (
+                        <span className="text-[9px] bg-sky-100 text-sky-800 font-black px-1.5 py-0.5 rounded border border-sky-200/60">
+                          {asientoSeleccionadoInfo.objeto.formula_juramento === 'DIOS_Y_PATRIA' ? 'Juramento: Dios y Patria' : 'Juramento: Por la Patria'}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-[10.5px] text-slate-600 font-medium mt-0.5 leading-tight flex items-center gap-2">
+                      <span>Ubicación: <strong className="text-slate-900 font-black">{asientoSeleccionadoInfo.asientoId}</strong></span>
+                      {asientoSeleccionadoInfo.dni && <span>· DNI: <strong>{asientoSeleccionadoInfo.dni}</strong></span>}
+                      {asientoSeleccionadoInfo.carrera && <span>· {asientoSeleccionadoInfo.carrera}</span>}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {asientoSeleccionadoInfo.tipo === 'Graduado' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const grad = graduados.find(g => g.id === asientoSeleccionadoInfo.objeto?.id || g.asiento_id === asientoSeleccionadoInfo.asientoId)
+                        if (grad) setGraduadoParaAsignar(grad)
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-bold shadow-xs transition active:scale-95 cursor-pointer"
+                    >
+                      <Armchair size={13} />
+                      <span>Reasignar Butaca</span>
+                    </button>
+                  )}
+                  {asientoSeleccionadoInfo.tipo === 'Vacio' && (
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAsientoDestinoNuevo(asientoSeleccionadoInfo.asientoId)
+                          setMostrarModalNuevoGraduado(true)
+                        }}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-[11px] font-bold shadow-xs transition active:scale-95 cursor-pointer"
+                        title="Registrar y sentar un nuevo egresado en esta butaca"
+                      >
+                        <UserCheck size={13} />
+                        <span>Cargar Egresado Aquí</span>
+                      </button>
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setAsientoSeleccionadoInfo(null)}
+                    className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-white/80 rounded-lg cursor-pointer transition"
+                    title="Cerrar detalle"
+                  >
+                    <X size={15} />
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="w-full mb-2 px-3 py-1.5 bg-slate-50 border border-slate-200/80 rounded-lg flex items-center justify-between text-[11px] text-slate-500">
+                <span className="flex items-center gap-1.5 font-medium">
+                  <Info size={13} className="text-sky-500" />
+                  <strong>Consejo:</strong> Pasá el mouse sobre cualquier butaca para ver quién está asignado o hacé clic para ver su ficha.
+                </span>
+                <span className="text-[10px] font-bold text-slate-400">
+                  {graduadosConAsiento.length} graduados ubicados
+                </span>
+              </div>
+            )}
+
+            {/* Banner y Leyenda Protocolar cuando la capa de Juramento está activa */}
+            {verProtocoloJuramento && (
+              <div className="w-full mb-2 p-2.5 rounded-xl bg-gradient-to-r from-amber-500/10 via-sky-500/10 to-transparent border border-amber-300/80 flex flex-wrap items-center justify-between gap-2 text-xs animate-in fade-in duration-200">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-lg bg-amber-500 text-slate-950 font-black flex items-center justify-center text-[10px] shrink-0 shadow-2xs">
+                    <Scale size={13} />
+                  </span>
+                  <div>
+                    <p className="font-black text-slate-900 leading-none flex items-center gap-1.5">
+                      Distinción Protocolar de Fórmulas de Jura en Sala
+                      <span className="text-[9px] bg-amber-200 text-amber-900 font-extrabold px-1.5 py-0.2 rounded-full uppercase">
+                        En vivo
+                      </span>
+                    </p>
+                    <p className="text-[10px] text-slate-600 mt-0.5 font-medium">
+                      Visualizá la distribución de bloques para coordinar la toma de juramento desde el estrado.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white border border-amber-300 shadow-2xs">
+                    <span className="w-3.5 h-3.5 rounded bg-blue-700 border-2 border-amber-400 shadow-xs inline-block shrink-0" />
+                    <span className="text-[10px] font-bold text-slate-800">
+                      Dios y la Patria <strong className="text-amber-700">({totalDiosYPatria})</strong>
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-white border border-sky-300 shadow-2xs">
+                    <span className="w-3.5 h-3.5 rounded bg-sky-600 border-2 border-sky-300 shadow-xs inline-block shrink-0" />
+                    <span className="text-[10px] font-bold text-slate-800">
+                      Por la Patria <strong className="text-sky-700">({totalPorLaPatria})</strong>
+                    </span>
+                  </div>
+                  {totalSinDefinir > 0 && (
+                    <span className="text-[9.5px] font-semibold text-slate-400">
+                      {totalSinDefinir} sin especificar
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            <div className="w-full overflow-x-auto flex justify-center py-1 [&_.sigic-mapa]:p-2 [&_.sigic-mapa]:rounded-xl [&_.sigic-escenario]:mb-2 [&_.sigic-escenario__sombra]:h-1 [&_.sigic-stats__pill]:px-2 [&_.sigic-stats__pill]:py-1">
+              <SeleccionAsientos
+                ceremoniaId={ceremonia?.id}
+                nivel={nivel}
+                setNivel={setNivel}
+                zoom={zoom}
+                setZoom={setZoom}
+                estructura={estructura}
+                mapaRoles={mapaRolesVisual}
+                seleccionados={[]}
+                onAsientoClick={manejarClickAsientoMapa}
+                compacto={true}
+                datosPorAsiento={datosPorAsiento}
+              />
+            </div>
+          </div>
+
+          {/* PANEL LATERAL DE PINCELES Y ZOOM (4 COLS O COLAPSADO) */}
+          {mostrarPanelLateral && (
+            <div className="lg:col-span-4 xl:col-span-3 space-y-2.5 animate-in fade-in slide-in-from-right-2 duration-200">
+            
+            {/* Pinceles de Rol Compactos */}
+            <div className="bg-white rounded-xl border border-slate-200/90 p-3 shadow-2xs space-y-2">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-1.5">
+                <h4 className="text-[9.5px] font-black uppercase tracking-wider text-slate-600 flex items-center gap-1">
+                  <ShieldCheck size={13} className="text-sky-500" /> Pincel de Sectores
+                </h4>
+                <span className={`text-[8.5px] font-bold px-1.5 py-0.5 rounded ${modoEdicionSectores ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-500'}`}>
+                  {modoEdicionSectores ? 'Desbloqueado' : 'Solo lectura'}
+                </span>
+              </div>
+
+              {!modoEdicionSectores && (
+                <div className="p-2 rounded-lg bg-slate-50 border border-slate-200/80 text-[10px] text-slate-600 space-y-1">
+                  <p className="font-bold flex items-center gap-1 text-slate-800">
+                    <Lock size={11} className="text-amber-600" /> Edición protegida
+                  </p>
+                  <p className="text-[9px] text-slate-500 leading-tight">
+                    El plano está bloqueado contra cambios accidentales. Habilitá el pincel para pintar sectores.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setModoEdicionSectores(true)}
+                    className="mt-1 w-full bg-slate-900 hover:bg-slate-800 text-white font-black text-[9px] uppercase tracking-wider py-1 rounded transition cursor-pointer"
+                  >
+                    Habilitar Pincel de Edición
+                  </button>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 gap-1">
+                {[
+                  { id: 'egresado', label: 'Azul (Egresados)', color: 'bg-blue-600 text-white', desc: 'Butacas exclusivas para graduados con diploma' },
+                  { id: 'acompanante', label: 'Verde (Acompañantes)', color: 'bg-emerald-600 text-white', desc: 'Asignados a familiares e invitados' },
+                  { id: 'ocupado', label: 'Rojo (Ocupado)', color: 'bg-red-600 text-white', desc: 'Butacas ya reservadas en la ceremonia' },
+                  { id: 'disponible', label: 'Gris Claro (Libre)', color: 'bg-slate-100 border border-slate-300 text-slate-700', desc: 'Asientos libres para selección' },
+                  { id: 'bloqueado', label: 'Gris Oscuro (Bloquear / Protocolo)', color: 'bg-slate-900 text-white', desc: 'Primeras filas para Directivos, Autoridades y Docentes' },
+                  { id: 'discapacitado', label: 'Violeta (Asiento preferencial)', color: 'bg-purple-600 text-white', desc: 'Invitados con discapacidad o movilidad reducida' },
+                  { id: 'padrino', label: 'Sector Padrinos / Diploma', color: 'bg-amber-500 text-white', desc: 'Entregadores de diploma' },
+                ].map(r => (
+                  <button
+                    key={r.id}
+                    type="button"
+                    onClick={() => setRolPincel(r.id)}
+                    className={`flex items-center gap-2 p-1.5 rounded-lg border text-left transition cursor-pointer active:scale-98 ${
+                      rolPincel === r.id
+                        ? 'border-sky-500 bg-sky-50/80 ring-1 ring-sky-400'
+                        : 'border-slate-100 hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className={`w-4 h-4 rounded flex items-center justify-center shrink-0 text-[9px] font-bold shadow-2xs ${r.color}`}>
+                      ✓
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className={`text-[10px] font-black leading-none truncate ${rolPincel === r.id ? 'text-sky-950' : 'text-slate-800'}`}>
+                        {r.label}
+                      </p>
+                      <p className="text-[8.5px] text-slate-400 truncate mt-0.5">{r.desc}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Controles de Escala Compactos */}
+            <div className="bg-white rounded-xl border border-slate-200/90 p-2 shadow-2xs flex items-center justify-between">
+              <span className="text-[9px] font-black text-slate-500 uppercase tracking-wider ml-1">Escala Mapa</span>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setZoom(z => Math.max(0.5, z - 0.1))}
+                  className="w-6 h-6 rounded-md border border-slate-200 hover:bg-slate-50 flex items-center justify-center text-slate-600 cursor-pointer active:scale-95"
+                  title="Reducir zoom"
+                >
+                  <ZoomOut size={11} />
+                </button>
+                <span className="text-[10px] font-bold text-slate-700 w-8 text-center">{Math.round(zoom * 100)}%</span>
+                <button
+                  type="button"
+                  onClick={() => setZoom(z => Math.min(1.3, z + 0.1))}
+                  className="w-6 h-6 rounded-md border border-slate-200 hover:bg-slate-50 flex items-center justify-center text-slate-600 cursor-pointer active:scale-95"
+                  title="Aumentar zoom"
+                >
+                  <ZoomIn size={11} />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        </div>
+      )}
+
+      {/* PESTAÑA: LISTA DE GRADUADOS Y ASIGNACIONES */}
+      {pestana === 'graduados' && (
+        <div className="bg-white rounded-xl border border-slate-200/90 shadow-2xs overflow-hidden space-y-0">
+          
+          {/* BANNER INTELIGENTE DE ESTADO */}
+          {egresadosSinAsignarCount > 0 ? (
+            <div className="p-3 bg-gradient-to-r from-amber-500/10 via-amber-50 to-white border-b border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+              <div className="flex items-center gap-2.5">
+                <div className="w-7 h-7 rounded-lg bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                  <AlertTriangle size={15} />
+                </div>
+                <div>
+                  <h4 className="text-xs font-black text-amber-950 flex items-center gap-1.5">
+                    Atención Administrativa: Graduados sin ubicación en el anfiteatro
+                    <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-amber-200 text-amber-900 uppercase">
+                      {egresadosSinAsignarCount} pendientes
+                    </span>
+                  </h4>
+                  <p className="text-[10.5px] text-amber-900/80 font-medium">
+                    Hay {egresadosSinAsignarCount} de {graduados.length} estudiantes que aún no tienen una butaca asignada para recibir su diploma.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-center">
+                <button
+                  type="button"
+                  onClick={() => setMostrarModalAutoAsignar(true)}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white text-[10.5px] font-black shadow-xs transition active:scale-95 cursor-pointer"
+                >
+                  <Sparkles size={12} />
+                  <span>Auto-Asignar en 1 Clic</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFiltroAsignacion(filtroAsignacion === 'SIN_ASIENTO' ? 'TODOS' : 'SIN_ASIENTO')}
+                  className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-[10.5px] font-bold transition cursor-pointer ${
+                    filtroAsignacion === 'SIN_ASIENTO'
+                      ? 'bg-amber-600 text-white border-amber-600 shadow-2xs'
+                      : 'bg-white border-amber-300 text-amber-900 hover:bg-amber-100/60'
+                  }`}
+                >
+                  <Filter size={11} />
+                  <span>{filtroAsignacion === 'SIN_ASIENTO' ? 'Viendo sin butaca' : `Filtrar sin butaca (${egresadosSinAsignarCount})`}</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="p-2.5 px-3.5 bg-gradient-to-r from-emerald-500/10 via-emerald-50 to-white border-b border-emerald-200 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="w-5 h-5 rounded-md bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                  <CheckCheck size={13} />
+                </span>
+                <div>
+                  <p className="text-xs font-black text-emerald-950">
+                    ¡Todos los estudiantes tienen su butaca asignada! ({graduados.length}/{graduados.length})
+                  </p>
+                  <p className="text-[10px] text-emerald-800/80 font-medium">
+                    El plano se encuentra 100% organizado para el acto de colación.
+                  </p>
+                </div>
+              </div>
+              <span className="text-[10px] font-black text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-md">
+                Completo
+              </span>
+            </div>
+          )}
+
+          {/* Barra de búsqueda y Filtros */}
+          <div className="p-2.5 border-b border-slate-100 flex flex-col md:flex-row items-center justify-between gap-2.5 bg-slate-50/50">
+            <div className="relative flex-1 w-full">
+              <Search className="absolute left-3 top-2 text-slate-400" size={13} />
+              <input
+                type="text"
+                placeholder="Buscar por nombre, DNI, carrera, juramento o butaca..."
+                value={busqueda}
+                onChange={e => setBusqueda(e.target.value)}
+                className="w-full pl-8 pr-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-sky-500 shadow-2xs"
+              />
+            </div>
+
+            {/* Filtros Inteligentes de Estado de Asistencia, Butaca y Juramento */}
+            <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+              {/* Filtro por estado de asistencia */}
+              <div className="flex items-center bg-white p-0.5 rounded-lg border border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setFiltroEstadoAsistencia('TODOS')}
+                  className={`px-2 py-0.5 rounded text-[9.5px] font-bold transition cursor-pointer ${
+                    filtroEstadoAsistencia === 'TODOS' ? 'bg-slate-900 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Todos ({graduados.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFiltroEstadoAsistencia('CONFIRMADOS')}
+                  className={`px-2 py-0.5 rounded text-[9.5px] font-bold transition cursor-pointer ${
+                    filtroEstadoAsistencia === 'CONFIRMADOS' ? 'bg-emerald-600 text-white shadow-2xs' : 'text-emerald-800 hover:bg-emerald-50'
+                  }`}
+                >
+                  Confirmados ({egresadosConfirmados.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFiltroEstadoAsistencia('PENDIENTES')}
+                  className={`px-2 py-0.5 rounded text-[9.5px] font-bold transition cursor-pointer ${
+                    filtroEstadoAsistencia === 'PENDIENTES' ? 'bg-amber-600 text-white shadow-2xs' : 'text-amber-800 hover:bg-amber-50'
+                  }`}
+                >
+                  Pendientes ({egresadosPendientes.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFiltroEstadoAsistencia('RECHAZADOS')}
+                  className={`px-2 py-0.5 rounded text-[9.5px] font-bold transition cursor-pointer ${
+                    filtroEstadoAsistencia === 'RECHAZADOS' ? 'bg-rose-600 text-white shadow-2xs' : 'text-rose-800 hover:bg-rose-50'
+                  }`}
+                >
+                  No Asisten ({egresadosRechazados.length})
+                </button>
+              </div>
+
+              {/* Filtro por Butaca */}
+              <div className="flex items-center bg-white p-0.5 rounded-lg border border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setFiltroAsignacion('TODOS')}
+                  className={`px-2 py-0.5 rounded text-[9.5px] font-bold transition cursor-pointer ${
+                    filtroAsignacion === 'TODOS' ? 'bg-slate-900 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Todos ({graduados.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFiltroAsignacion('SIN_ASIENTO')}
+                  className={`px-2 py-0.5 rounded text-[9.5px] font-bold transition cursor-pointer ${
+                    filtroAsignacion === 'SIN_ASIENTO' ? 'bg-amber-600 text-white shadow-2xs' : 'text-amber-800 hover:bg-amber-50'
+                  }`}
+                >
+                  Sin Asignar ({egresadosSinAsignarCount})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFiltroAsignacion('CON_ASIENTO')}
+                  className={`px-2 py-0.5 rounded text-[9.5px] font-bold transition cursor-pointer ${
+                    filtroAsignacion === 'CON_ASIENTO' ? 'bg-emerald-600 text-white shadow-2xs' : 'text-emerald-800 hover:bg-emerald-50'
+                  }`}
+                >
+                  Con Asiento ({graduados.length - egresadosSinAsignarCount})
+                </button>
+              </div>
+
+              <div className="h-4 w-px bg-slate-200 hidden sm:block" />
+
+              {/* Selector de filtro protocolar de juramento */}
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setFiltroJuramento('DIOS_Y_PATRIA')}
+                  className={`px-2 py-1 rounded text-[9.5px] font-bold transition cursor-pointer flex items-center gap-1 ${
+                    filtroJuramento === 'DIOS_Y_PATRIA'
+                      ? 'bg-blue-700 text-white border-blue-800 shadow-xs'
+                      : 'bg-white border border-amber-300 text-amber-900 hover:bg-amber-50/50'
+                  }`}
+                >
+                  <span>Dios y Patria</span>
+                  <span className="text-[8.5px] font-black px-1 py-0.2 rounded bg-amber-200 text-amber-900">{totalDiosYPatria}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFiltroJuramento('PATRIA')}
+                  className={`px-2 py-1 rounded text-[9.5px] font-bold transition cursor-pointer flex items-center gap-1 ${
+                    filtroJuramento === 'PATRIA'
+                      ? 'bg-sky-600 text-white border-sky-700 shadow-xs'
+                      : 'bg-white border border-sky-300 text-sky-900 hover:bg-sky-50/50'
+                  }`}
+                >
+                  <span>Por la Patria</span>
+                  <span className="text-[8.5px] font-black px-1 py-0.2 rounded bg-sky-200 text-sky-900">{totalPorLaPatria}</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="text-[10px] font-bold text-slate-500 shrink-0">
+              {graduadosFiltrados.length} filtrados
+            </div>
+          </div>
+
+          {/* Tabla de graduados compacta */}
+          <div className="overflow-x-auto max-h-[500px] [scrollbar-width:thin]">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-slate-50 text-slate-600 font-bold uppercase text-[9px] border-b border-slate-100 sticky top-0 z-10">
+                <tr>
+                  <th className="py-2 px-3">Estudiante</th>
+                  <th className="py-2 px-3">Carrera</th>
+                  <th className="py-2 px-3">Fórmula Jura</th>
+                  <th className="py-2 px-3">Butaca Graduado</th>
+                  <th className="py-2 px-3">Acompañantes</th>
+                  <th className="py-2 px-3 text-right">Acción</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-[11px]">
+                {graduadosFiltrados.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="py-6 text-center text-slate-400 font-bold text-xs">
+                      No se encontraron graduados registrados con los filtros seleccionados.
+                    </td>
+                  </tr>
+                ) : (
+                  graduadosFiltrados.map(g => {
+                    const invs = invitados.filter(i => i.egresado_id === g.id || i.egresadoId === g.id)
+                    const esDios = (g.formula_juramento || '').toUpperCase().includes('DIOS')
+                    const esPatria = (g.formula_juramento || '').toUpperCase() === 'PATRIA'
+
+                    return (
+                      <tr key={g.id} className="hover:bg-slate-50/50">
+                        <td className="py-2 px-3">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="font-bold text-slate-900 leading-tight">{g.nombre}</p>
+                            {g.estado === 'RECHAZADO' || g.estado_flujo === 'RECHAZADO' ? (
+                              <span className="text-[8.5px] font-black uppercase px-1.5 py-0.2 rounded bg-rose-100 text-rose-800 border border-rose-200">
+                                Inasistencia
+                              </span>
+                            ) : g.estado === 'ACEPTADO' || g.estado_flujo === 'COMPLETO' ? (
+                              <span className="text-[8.5px] font-black uppercase px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                Confirmado
+                              </span>
+                            ) : (
+                              <span className="text-[8.5px] font-black uppercase px-1.5 py-0.2 rounded bg-amber-100 text-amber-800 border border-amber-200">
+                                Pendiente
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[9.5px] text-slate-400">DNI: {g.dni} {g.legajo ? `· Leg: ${g.legajo}` : ''}</p>
+                        </td>
+                        <td className="py-2 px-3 text-slate-600 max-w-xs truncate text-[10.5px]">
+                          {g.carrera || '-'}
+                        </td>
+                        <td className="py-2 px-3">
+                          {esDios ? (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-black bg-blue-50 text-blue-900 border border-amber-400/80 shadow-2xs">
+                              Dios y Patria
+                            </span>
+                          ) : esPatria ? (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9.5px] font-black bg-sky-50 text-sky-900 border border-sky-300 shadow-2xs">
+                              Por la Patria
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 italic text-[9.5px]">Sin definir</span>
+                          )}
+                        </td>
+                        <td className="py-2 px-3">
+                          {g.asiento_id ? (
+                            <span className="inline-flex items-center gap-1 bg-indigo-50 border border-indigo-200 text-indigo-700 px-2 py-0.5 rounded font-black text-[10px]">
+                              <Armchair size={11} /> {g.asiento_id}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-[9.5px] font-black text-amber-700 bg-amber-50 border border-amber-300 px-2 py-0.5 rounded-md shadow-2xs">
+                              <AlertTriangle size={10} className="text-amber-600" />
+                              Sin asignar
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-2 px-3">
+                          {invs.length > 0 ? (
+                            <div className="flex flex-wrap gap-1">
+                              {invs.map(inv => {
+                                const esPadrino = Boolean(inv.es_padrino || inv.esPadrino)
+                                return (
+                                  <span
+                                    key={inv.id}
+                                    className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                                      esPadrino
+                                        ? 'bg-red-100 border border-red-300 text-red-900 font-black'
+                                        : 'bg-slate-50 border border-slate-200 text-slate-700'
+                                    }`}
+                                    title={esPadrino ? 'Padrino de diploma' : 'Acompañante regular'}
+                                  >
+                                    {esPadrino && <Award size={9} className="text-red-700 shrink-0" />}
+                                    {inv.nombre}{esPadrino ? ' (Padrino)' : ''}: {inv.asiento_id || 'S/B'}
+                                  </span>
+                                )
+                              })}
+                            </div>
+                          ) : (
+                            <span className="text-slate-400 text-[9.5px]">0 acompañantes</span>
+                          )}
+                        </td>
+                        <td className="py-2 px-3 text-right">
+                          <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                            {/* Botón Gestión de Familiares */}
+                            <button
+                              type="button"
+                              onClick={() => setGraduadoFamiliares(g)}
+                              className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 transition cursor-pointer active:scale-95"
+                              title="Gestionar acompañantes y familiares de este graduado"
+                            >
+                              <Users size={11} className="text-sky-500" />
+                              <span>Familiares ({invs.length})</span>
+                            </button>
+
+                            {/* Si rechazó por error: Subsanar */}
+                            {g.estado === 'RECHAZADO' || g.estado_flujo === 'RECHAZADO' ? (
+                              <button
+                                type="button"
+                                onClick={() => manejarSubsanarRechazo(g)}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-black bg-rose-600 hover:bg-rose-500 text-white shadow-xs transition cursor-pointer active:scale-95"
+                                title="Subsanar error de inasistencia y reincorporar al estudiante"
+                              >
+                                <ReincorporarIcon size={11} />
+                                <span>Subsanar Rechazo</span>
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => setGraduadoParaAsignar(g)}
+                                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold transition cursor-pointer active:scale-95 ${
+                                  !g.asiento_id
+                                    ? 'bg-amber-500 hover:bg-amber-600 text-slate-950 font-black shadow-xs'
+                                    : 'bg-slate-100 hover:bg-sky-50 text-slate-700 hover:text-sky-700 border border-slate-200 hover:border-sky-200'
+                                }`}
+                              >
+                                <Armchair size={11} />
+                                <span>{!g.asiento_id ? 'Asignar Ahora' : 'Cambiar'}</span>
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* PESTAÑA: ESTRUCTURA Y PRESETS */}
+      {pestana === 'estructura' && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          
+          {/* Plantillas / Presets */}
+          <div className="bg-white rounded-xl border border-slate-200/90 p-4 shadow-2xs space-y-2.5">
+            <h4 className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5 border-b border-slate-100 pb-1.5">
+              <Sparkles size={14} className="text-sky-500" /> Plantillas de Sala Preconfiguradas
+            </h4>
+            <p className="text-[11px] text-slate-500">
+              Aplicá una arquitectura de sala predeterminada con pasillos y sectores definidos:
+            </p>
+            <div className="space-y-1.5 pt-0.5">
+              <button
+                type="button"
+                onClick={() => aplicarPlantilla('beltran')}
+                className="w-full text-left p-2.5 rounded-lg bg-sky-50/80 hover:bg-sky-100/80 border border-sky-200 text-sky-950 transition cursor-pointer"
+              >
+                <p className="font-black text-xs">★ Auditorio Beltrán (3 Bloques + 2 Pasillos)</p>
+                <p className="text-[9.5px] text-sky-700">7 filas en Platea Baja + 5 filas en Pullman con pasillos laterales.</p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => aplicarPlantilla('pasillo-central')}
+                className="w-full text-left p-2.5 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 transition cursor-pointer"
+              >
+                <p className="font-black text-xs">Aula Magna (2 Bloques con Pasillo Central)</p>
+                <p className="text-[9.5px] text-slate-500">8 filas en Platea Baja con pasillo divisorio en columna central.</p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => aplicarPlantilla('limpiar')}
+                className="w-full text-left p-2 rounded-lg bg-rose-50/60 hover:bg-rose-100 border border-rose-100 text-rose-700 transition text-[11px] font-bold cursor-pointer"
+              >
+                Restablecer todos los roles a disponibles
+              </button>
+            </div>
+          </div>
+
+          {/* Configuración de Filas y Columnas */}
+          <div className="bg-white rounded-xl border border-slate-200/90 p-4 shadow-2xs space-y-3">
+            <h4 className="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5 border-b border-slate-100 pb-1.5">
+              <Layout size={14} className="text-sky-500" /> Dimensiones de la Sala
+            </h4>
+
+            <div className="space-y-2.5">
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                  Platea Baja: Filas ({estructura.baja.filas}) x Asientos ({estructura.baja.asientos})
+                </label>
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                  <input
+                    type="number"
+                    min="1"
+                    max="30"
+                    value={estructura.baja.filas}
+                    onChange={e => setEstructura(prev => ({ ...prev, baja: { ...prev.baja, filas: parseInt(e.target.value) || 1 } }))}
+                    className="p-1.5 border border-slate-200 rounded-lg text-xs font-bold"
+                  />
+                  <input
+                    type="number"
+                    min="1"
+                    max="40"
+                    value={estructura.baja.asientos}
+                    onChange={e => setEstructura(prev => ({ ...prev, baja: { ...prev.baja, asientos: parseInt(e.target.value) || 1 } }))}
+                    className="p-1.5 border border-slate-200 rounded-lg text-xs font-bold"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-500">
+                  Pullman: Filas ({estructura.alta.filas}) x Asientos ({estructura.alta.asientos})
+                </label>
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                  <input
+                    type="number"
+                    min="1"
+                    max="30"
+                    value={estructura.alta.filas}
+                    onChange={e => setEstructura(prev => ({ ...prev, alta: { ...prev.alta, filas: parseInt(e.target.value) || 1 } }))}
+                    className="p-1.5 border border-slate-200 rounded-lg text-xs font-bold"
+                  />
+                  <input
+                    type="number"
+                    min="1"
+                    max="40"
+                    value={estructura.alta.asientos}
+                    onChange={e => setEstructura(prev => ({ ...prev, alta: { ...prev.alta, asientos: parseInt(e.target.value) || 1 } }))}
+                    className="p-1.5 border border-slate-200 rounded-lg text-xs font-bold"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-between">
+                <div>
+                  <p className="text-[9px] font-black uppercase text-slate-400">Aforo Teórico Total</p>
+                  <p className="text-sm font-black text-slate-900">{totalCapacidad} Butacas</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={guardarMapa}
+                  className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-[11px] font-black transition cursor-pointer active:scale-95"
+                >
+                  Aplicar Cambios
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE ASIGNACIÓN INDIVIDUAL */}
+      {graduadoParaAsignar && (
+        <ModalAsignarAsientos
+          graduado={graduadoParaAsignar}
+          invitados={invitados.filter(i => i.egresado_id === graduadoParaAsignar.id || i.egresadoId === graduadoParaAsignar.id)}
+          ceremoniaId={ceremonia?.id}
+          todosLosGraduados={graduados}
+          todosLosInvitados={invitados}
+          modo="confirmacion"
+          onCerrar={() => setGraduadoParaAsignar(null)}
+          onAsignado={async (resultado) => {
+            setGraduadoParaAsignar(null)
+            await cargarDatos()
+            if (resultado?.credencialEnviada) {
+              setMensaje({ tipo: 'exito', texto: 'Butacas confirmadas y credencial con indicaciones del evento enviada al correo del egresado.' })
+            } else if (resultado?.mensajeCredencial) {
+              setMensaje({ tipo: 'advertencia', texto: `Butacas guardadas. ${resultado.mensajeCredencial}` })
+            } else {
+              setMensaje({ tipo: 'exito', texto: 'Ubicación guardada con éxito.' })
+            }
+          }}
+        />
+      )}
+
+      {/* MODAL DE AUTO-ASIGNACIÓN INTELIGENTE */}
+      <ModalAutoAsignar
+        abierto={mostrarModalAutoAsignar}
+        onCerrar={() => setMostrarModalAutoAsignar(false)}
+        onConfirmar={ejecutarAutoSeating}
+        cargando={autoAsignando}
+        totalGraduados={graduados.length}
+        graduadosAceptados={graduados.filter(g => g.estado === 'ACEPTADO').length}
+        totalInvitados={invitados.length}
+      />
+
+      {/* MODAL DE DESPACHO Y EMISIÓN DE CREDENCIALES QR */}
+      {mostrarDespachoCredenciales && (
+        <ModalDespachoCredenciales
+          ceremonia={ceremonia}
+          graduados={graduados}
+          invitados={invitados}
+          onCerrar={() => {
+            setMostrarDespachoCredenciales(false)
+            cargarDatos()
+          }}
+          onIrAPorteria={() => {
+            setMostrarDespachoCredenciales(false)
+            if (onNavegar) onNavegar('porteria')
+          }}
+        />
+      )}
+
+      {/* MODAL DE RESUMEN EJECUTIVO Y AGRADECIMIENTO */}
+      {mostrarResumenFinal && (
+        <ModalResumenDemostracion
+          ceremonia={ceremonia}
+          graduados={graduados}
+          invitados={invitados}
+          butacasAsignadas={graduadosConAsiento.length + invitadosConAsiento.length}
+          onCerrar={() => {
+            setMostrarResumenFinal(false)
+            if (onNavegar) onNavegar('bienvenida')
+          }}
+          onReiniciar={() => {
+            setMostrarResumenFinal(false)
+            window.location.reload()
+          }}
+        />
+      )}
+
+      {/* MODAL REGISTRAR NUEVO GRADUADO */}
+      {mostrarModalNuevoGraduado && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/70 backdrop-blur-xs p-3">
+          <div className="w-full max-w-xl bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="px-5 py-3.5 bg-slate-900 text-white flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-wider text-sky-400">
+                  {asientoDestinoNuevo ? `Asignación Inmediata · Butaca ${asientoDestinoNuevo}` : 'Padrón de la Ceremonia'}
+                </span>
+                <h3 className="text-sm font-black">Registrar Nuevo Graduado</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setMostrarModalNuevoGraduado(false)
+                  setAsientoDestinoNuevo(null)
+                }}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="p-5 max-h-[80vh] overflow-y-auto">
+              <FormularioGraduado
+                enModal={true}
+                onCancelar={() => {
+                  setMostrarModalNuevoGraduado(false)
+                  setAsientoDestinoNuevo(null)
+                }}
+                onCreado={async (nuevoGraduado) => {
+                  setMostrarModalNuevoGraduado(false)
+                  
+                  // Si se abrió haciendo clic en una butaca vacía, sentarlo directamente allí
+                  if (asientoDestinoNuevo && nuevoGraduado?.id) {
+                    try {
+                      await fetch(`${BASE}/egresados/${nuevoGraduado.id}/asiento`, {
+                        method: 'PUT',
+                        headers: cabeceras(),
+                        body: JSON.stringify({ asientoId: asientoDestinoNuevo })
+                      })
+                      emitirCambioSync('BUTACAS', { asientoId: asientoDestinoNuevo })
+                      setMensaje({ tipo: 'exito', texto: `Graduado ${nuevoGraduado.nombre} registrado y asignado a la butaca ${asientoDestinoNuevo}.` })
+                    } catch (e) {
+                      setMensaje({ tipo: 'advertencia', texto: `Graduado registrado, pero no se pudo vincular a la butaca ${asientoDestinoNuevo}.` })
+                    }
+                  } else {
+                    setMensaje({ tipo: 'exito', texto: `Graduado ${nuevoGraduado.nombre} agregado al padrón.` })
+                  }
+                  
+                  setAsientoDestinoNuevo(null)
+                  await cargarDatos()
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL IMPORTACIÓN MASIVA EXCEL */}
+      {mostrarModalImportar && (
+        <ModalImportar
+          graduadosExistentes={graduados}
+          onCerrar={() => setMostrarModalImportar(false)}
+          onCompletado={async () => {
+            setMostrarModalImportar(false)
+            await cargarDatos()
+            setMensaje({ tipo: 'exito', texto: 'Padrón importado correctamente desde Excel.' })
+          }}
+          onActualizarPadron={async () => {
+            await cargarDatos()
+          }}
+        />
+      )}
+
+      {/* MODAL GESTION FAMILIARES ASISTIDA POR ADMINISTRATIVO */}
+      {graduadoFamiliares && (
+        <ModalGestionPresencialGraduado
+          egresado={graduadoFamiliares}
+          onCerrar={() => setGraduadoFamiliares(null)}
+          onActualizado={async () => {
+            await cargarDatos()
+          }}
+        />
+      )}
+
+    </div>
+  )
+}
+

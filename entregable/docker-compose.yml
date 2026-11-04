@@ -24,7 +24,7 @@ services:
   # ─── 2. PLATAFORMA WEB SiGIC (Next.js 16 + React 19) ───
   sigic-web:
     build:
-      context: ../codigo/plataforma
+      context: ./codigo/plataforma
       dockerfile: Dockerfile
     container_name: sigic-plataforma
     restart: unless-stopped

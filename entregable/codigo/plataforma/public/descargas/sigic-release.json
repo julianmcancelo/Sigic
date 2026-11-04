@@ -1,0 +1,6 @@
+{
+  "version": "1.0.9+10",
+  "apkUrl": "https://app.sigic.com.ar/descargas/SIGIC-Porteria-1.0.9.apk",
+  "required": false,
+  "notes": "Control de acceso institucional protegido, inicio de sesion ágil con Pase QR, guía interactiva y diagnóstico de red."
+}

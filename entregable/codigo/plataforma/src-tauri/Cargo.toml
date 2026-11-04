@@ -1,0 +1,18 @@
+[package]
+name = "sigic_escritorio"
+version = "1.0.5"
+description = "Cliente nativo multiplataforma de SiGIC"
+edition = "2021"
+
+[lib]
+name = "sigic_escritorio_lib"
+crate-type = ["cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-updater = "2"
+serde_json = "1"
+url = "2"

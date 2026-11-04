@@ -9,27 +9,32 @@
 
 ## 1. ¿Qué contiene este Pendrive / Carpeta?
 
-Este paquete reúne la solución integral completa lista para ser evaluada, auditada y ejecutada en cualquier computadora:
+Esta carpeta es **100% autónoma y autocontenida**. Contiene el código fuente completo, los servicios dockerizados, la base de datos pre-sembrada, el instalador móvil y toda la documentación técnica:
 
 ```text
 entregable/
-├── INICIAR_SIGIC.bat           # Ejecutable de 1 clic: levanta todo el sistema en Docker
-├── DETENER_SIGIC.bat           # Detiene y apaga los servicios de forma limpia
-├── docker-compose.yml          # Orquestador Docker (Next.js 16 + PostgreSQL 16)
-├── init.sql                    # Base de datos pre-configurada (esquema + datos iniciales)
 │
-├── app_movil_apk/              # Aplicación móvil para portería y control de accesos
-│   └── SiGIC-Porteria.apk      # APK lista para instalar en teléfonos Android
+├── 🚀 INICIAR_SIGIC.bat           # 1 Clic en Windows: Levanta Docker y abre el navegador
+├── 🛑 DETENER_SIGIC.bat           # 1 Clic en Windows: Detiene y libera los contenedores
+├── 🐳 docker-compose.yml          # Orquestador Docker (Next.js 16 + PostgreSQL 16)
+├── 🗄️ init.sql                   # Estructura y datos preconfigurados de la base de datos
+├── 📖 LEEME.md                    # Este instructivo con accesos y verificación
 │
-├── padrones_ejemplo/           # Planillas para pruebas de carga masiva
-│   ├── padron_TSAS_Practicas_III_2025.xlsx  (Excel con egresados de prueba)
-│   └── padron_TSAS_Practicas_III_2025.csv   (CSV alternativo)
+├── 💻 codigo/
+│   └── plataforma/                # Código fuente completo (Next.js 16 + React 19 + Tailwind)
 │
-└── documentacion/              # Manuales técnicos, de usuario y diagramas
-    ├── MANUAL.md               # Manual de usuario completo y arquitectura
-    ├── ESQUEMA_BASE_DE_DATOS.md# Diccionario de datos y relaciones
-    ├── ESQUEMA_INTERACTIVO_BD.html # Visualizador interactivo de base de datos
-    ├── SEGURIDAD.md            # Modelo de autenticación, OTP y auditoría
+├── 📱 app_movil_apk/
+│   └── SiGIC-Porteria.apk         # APK lista para instalar en teléfonos Android (Portería)
+│
+├── 📊 padrones_ejemplo/
+│   ├── padron_TSAS_Practicas_III_2025.xlsx  # Excel de prueba para importación masiva
+│   └── padron_TSAS_Practicas_III_2025.csv   # Formato CSV alternativo
+│
+└── 📚 documentacion/
+    ├── MANUAL.md                  # Manual completo de usuario y soporte
+    ├── ESQUEMA_BASE_DE_DATOS.md   # Diccionario de datos y relaciones SQL
+    ├── ESQUEMA_INTERACTIVO_BD.html# Diagrama visual interactivo de base de datos
+    ├── SEGURIDAD.md               # Modelo criptográfico, OTP y auditoría
     └── protocolo_acreditacion_y_seguridad.md # Procedimiento operativo en puerta
 ```
 
@@ -38,11 +43,11 @@ entregable/
 ## 2. Puesta en Marcha Rápida (1 Clic)
 
 ### Requisito previo:
-Tener instalado y abierto **Docker Desktop** (en Windows o macOS) o **Docker Engine** (en Linux).
+Tener instalado y en ejecución **Docker Desktop** (en Windows o macOS) o **Docker Engine** (en Linux).
 
 ### Pasos:
 1. Haga doble clic en el archivo **`INICIAR_SIGIC.bat`**.
-2. El script iniciará los contenedores de Docker (Base de Datos PostgreSQL y Plataforma Web Next.js).
+2. El script construirá los contenedores locales (PostgreSQL 16 + Plataforma Web) y levantará los servicios.
 3. Se abrirá automáticamente el navegador en:
    👉 **[http://localhost:3000](http://localhost:3000)**
 
@@ -58,7 +63,7 @@ El sistema viene preconfigurado con las siguientes cuentas de prueba:
 | **Soporte Técnico** | `soporte@sigic.com.ar` | `Soporte2026!` | Centro de control, logs y auditoría |
 | **Auditor** | `auditor@sigic.com.ar` | `Auditor2026!` | Solo lectura y trazabilidad de operaciones |
 
-*(También se puede utilizar el **Panel del Expositor** ubicado en la esquina inferior derecha para alternar roles con 1 clic en modo demostración).*
+*(También se puede utilizar el **Panel del Expositor** en la esquina inferior derecha para alternar roles con 1 clic en modo demostración).*
 
 ---
 

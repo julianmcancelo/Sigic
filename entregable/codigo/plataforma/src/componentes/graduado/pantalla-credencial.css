@@ -1,0 +1,51 @@
+.sigic-pase-page { container: pase / inline-size; background: #f5f5f7; min-height: 100%; width: 100%; min-width: 0; }
+.sigic-pase-page > header { position: relative; background: #f6f7f9; box-shadow: none; padding: 10px 18px; }
+.sigic-pase-main { padding: 12px 18px 20px; margin: 0 auto; width: 100%; min-width: 0; box-sizing: border-box; }
+.sigic-pase-layout { display: grid; grid-template-columns: minmax(250px,290px) minmax(0,440px); justify-content: center; gap: clamp(28px,5cqw,100px); align-items: start; padding: 0 12px 32px; }
+.sigic-pase-credencial { display: flex; justify-content: center; min-width: 0; }
+.sigic-pase-credencial > div { max-width: 278px; }
+.sigic-pase-informacion { min-width: 0; width: 100%; max-width: 440px; justify-self: center; margin-top: 150px; padding: 24px; background: white; border: 1px solid #e0e3e8; border-radius: 20px; }
+.sigic-pase-informacion > div { padding: 0; border: 0; border-radius: 0; box-shadow: none; margin-top: 12px; }
+.sigic-pase-informacion > div:first-child { margin-top: 0; }
+.sigic-pase-informacion .space-y-4 > :not(:last-child) { margin-block-end: 12px; }
+.sigic-pase-informacion p { overflow-wrap: anywhere; }
+.sigic-pase-informacion > div:first-child > .absolute { display: none; }
+.sigic-pase-informacion h2 { font-size: 22px; line-height: 1.2; }
+.sigic-pase-visual { display: none; }
+.sigic-pase-foto { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 35% center; opacity: 0; animation: sigic-pase-fotos 28s linear infinite; }
+.sigic-pase-foto:first-child { opacity: 1; }
+@keyframes sigic-pase-fotos { 0% { opacity: 0; } 5%,25% { opacity: 1; } 30%,100% { opacity: 0; } }
+.sigic-pase-visual:hover .sigic-pase-foto { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) { .sigic-pase-foto { animation: none; } .sigic-pase-foto:not(:first-child) { display: none; } }
+.sigic-pase-visual::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg,rgba(3,11,18,.55),rgba(3,11,18,.18) 35%,rgba(3,11,18,.9)); pointer-events: none; }
+.sigic-pase-detalle { margin-top: 16px; border-top: 1px solid #e2e8f0; background: white; }
+.sigic-pase-detalle > summary { cursor: pointer; padding: 14px 0 4px; font-size: 12px; font-weight: 700; color: #0369a1; }
+.sigic-pase-detalle > div { padding: 12px; border: 0; border-radius: 12px; box-shadow: none; }
+.sigic-pase-informacion > div:first-child { padding: 0; }
+.sigic-pase-informacion h2 { font-size: 20px; }
+.sigic-pase-credencial .sigic-credencial-reverso { padding: 12px 16px; }
+.sigic-pase-credencial .sigic-credencial-logo { width: 48px; height: 48px; }
+@container pase (min-width: 1200px) {
+  .sigic-pase-main { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 3fr); gap: 0; padding: 0; }
+  .sigic-pase-layout { padding: 0 32px 40px; gap: clamp(28px,4cqw,90px); }
+  .sigic-pase-visual { display: flex; flex-direction: column; justify-content: space-between; position: relative; min-width: 0; min-height: 740px; align-self: stretch; overflow: hidden; padding: 32px; color: white; background: radial-gradient(ellipse at 90% 25%,#14617a 0,transparent 55%),linear-gradient(155deg,#07121e,#0b293d 65%,#030b12); }
+  .sigic-pase-visual-marca { display: flex; align-items: center; gap: 14px; position: relative; z-index: 1; }
+  .sigic-pase-visual-marca img { width: 52px; height: 52px; object-fit: contain; }
+  .sigic-pase-visual-marca span { max-width: 190px; font-size: 10px; letter-spacing: .18em; line-height: 1.8; color: #bae6fd; }
+  .sigic-pase-visual-arte { position: absolute; inset: 16% -20% 22%; display: grid; place-items: center; transform: rotate(-14deg); }
+  .sigic-pase-visual-arte svg { width: 62%; height: auto; color: #7dd3fc; opacity: .22; }
+  .sigic-pase-visual-arte div { position: absolute; width: 90%; aspect-ratio: 1; border: 1px solid #7dd3fc22; border-radius: 50%; }
+  .sigic-pase-visual-arte div:last-child { width: 115%; }
+  .sigic-pase-visual-texto { position: relative; z-index: 1; }
+  .sigic-pase-visual-texto > span { font-size: 10px; letter-spacing: .22em; color: #7dd3fc; font-weight: 800; }
+  .sigic-pase-visual-texto h2 { font-size: clamp(32px,2.8vw,54px); line-height: 1.1; letter-spacing: -.04em; margin: 18px 0; font-weight: 800; }
+  .sigic-pase-visual-texto p { color: #bacdd8; font-size: 14px; }
+  .sigic-pase-visual-texto > div { border-top: 1px solid #ffffff26; padding-top: 20px; margin-top: 36px; font-size: 11px; color: #7dd3fc; }
+}
+@container pase (max-width: 640px) {
+  .sigic-pase-page > header { padding: 12px 16px; }
+  .sigic-pase-main { padding: 12px; }
+  .sigic-pase-layout { grid-template-columns: minmax(0,1fr); gap: 18px; }
+  .sigic-pase-informacion { margin-top: 0; padding: 20px; }
+}
+@media print { .sigic-pase-visual { display: none; } .sigic-pase-page { padding: 0; } }

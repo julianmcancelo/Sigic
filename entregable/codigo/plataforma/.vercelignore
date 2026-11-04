@@ -1,0 +1,11 @@
+src-tauri/target
+src-tauri/target/**
+.next
+.next/**
+node_modules
+node_modules/**
+*.log
+*.exe
+*.apk
+public/descargas/*.apk
+public/descargas/*.exe
