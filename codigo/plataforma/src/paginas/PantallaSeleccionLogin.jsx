@@ -181,8 +181,9 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
       <div className="absolute inset-0 pointer-events-none opacity-60 [background-image:radial-gradient(circle_at_20%_20%,rgba(56,189,248,.15),transparent_35%),radial-gradient(circle_at_80%_80%,rgba(99,102,241,.1),transparent_35%)]" />
 
       {/* Orbes de luz decorativos de fondo */}
-      <div className="absolute top-1/3 left-1/4 h-[350px] w-[350px] rounded-full bg-sky-300/15 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-1/3 right-1/4 h-[350px] w-[350px] rounded-full bg-indigo-300/15 blur-[120px] pointer-events-none" />
+      <div className="absolute top-1/4 left-1/4 h-[420px] w-[420px] rounded-full bg-sky-300/20 blur-[130px] pointer-events-none animate-orb-1" />
+      <div className="absolute bottom-1/4 right-1/4 h-[450px] w-[450px] rounded-full bg-indigo-300/15 blur-[140px] pointer-events-none animate-orb-2" />
+      <div className="absolute top-2/3 left-1/2 -translate-x-1/2 h-[300px] w-[300px] rounded-full bg-cyan-200/20 blur-[110px] pointer-events-none animate-orb-3" />
 
       {/* Canvas para partículas de Thanos */}
       {snapActivo && (
@@ -251,7 +252,7 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
           {/* Logo de SiGIC en tarjeta blanca con resplandor suave */}
           <div 
             onClick={manejarClickLogo}
-            className={`group relative mb-8 flex h-20 w-20 items-center justify-center rounded-2xl bg-white border border-slate-200/90 shadow-xl shadow-slate-200/70 p-2.5 cursor-pointer active:scale-95 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 ${
+            className={`group relative mb-8 flex h-20 w-20 items-center justify-center rounded-2xl bg-white/90 backdrop-blur-md border border-slate-200/80 shadow-xl shadow-slate-200/60 p-2.5 cursor-pointer active:scale-95 transition-all duration-500 hover:shadow-2xl hover:-translate-y-1.5 animate-levitate ${
               clickCount === 1 ? 'animate-shake-1' :
               clickCount === 2 ? 'animate-shake-2' :
               clickCount === 3 ? 'animate-shake-3' :
@@ -268,22 +269,22 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
           </div>
 
           {/* Kicker Institucional */}
-          <p className="text-[11px] sm:text-xs font-black uppercase tracking-[0.2em] text-sky-600 mb-3.5">
+          <p className="text-[11px] sm:text-xs font-black uppercase tracking-[0.2em] text-sky-600 mb-3.5 animate-fade-in-stagger-1">
             Sistema de Gestión Integral de Ceremonias
           </p>
 
           {/* Título Monumental */}
-          <h1 className="text-4xl sm:text-6xl lg:text-[64px] font-black text-slate-900 tracking-tight leading-[1.1] max-w-2xl mx-auto">
+          <h1 className="text-4xl sm:text-6xl lg:text-[64px] font-black text-slate-900 tracking-tight leading-[1.1] max-w-2xl mx-auto animate-fade-in-stagger-2">
             Estamos preparando <br className="hidden sm:inline" /> algo importante.
           </h1>
 
           {/* Subtítulo */}
-          <p className="mt-4 text-sm sm:text-base text-slate-500 font-medium max-w-lg mx-auto leading-relaxed">
+          <p className="mt-4 text-sm sm:text-base text-slate-500 font-medium max-w-lg mx-auto leading-relaxed animate-fade-in-stagger-3">
             Muy pronto vas a poder conocer la plataforma completa de SiGIC.
           </p>
 
           {/* 2 Botones: [->] Ingresar y ● Próximamente */}
-          <div className="mt-8 flex items-center justify-center gap-3">
+          <div className="mt-8 flex items-center justify-center gap-3 animate-fade-in-stagger-4">
             <button
               type="button"
               onClick={onSeleccionarAdmin}
@@ -451,6 +452,62 @@ export function PantallaSeleccionLogin({ onSeleccionarAdmin, onSeleccionarEgresa
 
       {/* Estilos CSS */}
       <style>{`
+        
+        /* Animaciones vivas y elegantes sin ser invasivas */
+        @keyframes levitate {
+          0%, 100% {
+            transform: translateY(0px);
+            box-shadow: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+          }
+          50% {
+            transform: translateY(-8px);
+            box-shadow: 0 25px 35px -5px rgba(14, 165, 233, 0.18), 0 12px 16px -6px rgba(14, 165, 233, 0.1);
+          }
+        }
+        .animate-levitate {
+          animation: levitate 6s ease-in-out infinite;
+        }
+
+        @keyframes moveOrb1 {
+          0%, 100% { transform: translate(0px, 0px) scale(1); }
+          50% { transform: translate(40px, -30px) scale(1.08); }
+        }
+        .animate-orb-1 {
+          animation: moveOrb1 16s ease-in-out infinite;
+        }
+
+        @keyframes moveOrb2 {
+          0%, 100% { transform: translate(0px, 0px) scale(1); }
+          50% { transform: translate(-35px, 25px) scale(0.94); }
+        }
+        .animate-orb-2 {
+          animation: moveOrb2 19s ease-in-out infinite;
+        }
+
+        @keyframes moveOrb3 {
+          0%, 100% { transform: translate(-50%, 0px) scale(1); opacity: 0.2; }
+          50% { transform: translate(-50%, -20px) scale(1.15); opacity: 0.35; }
+        }
+        .animate-orb-3 {
+          animation: moveOrb3 14s ease-in-out infinite;
+        }
+
+        /* Staggered smooth entrance */
+        @keyframes subtleFadeSlide {
+          from {
+            opacity: 0;
+            transform: translateY(12px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fade-in-stagger-1 { animation: subtleFadeSlide 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both; }
+        .animate-fade-in-stagger-2 { animation: subtleFadeSlide 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both; }
+        .animate-fade-in-stagger-3 { animation: subtleFadeSlide 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both; }
+        .animate-fade-in-stagger-4 { animation: subtleFadeSlide 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both; }
+
         .bg-radial-light {
           background: radial-gradient(circle at center, #f8fafc 0%, #e2e8f0 100%);
         }
