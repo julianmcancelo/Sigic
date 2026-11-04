@@ -520,13 +520,12 @@ function BienvenidaBasica({ usuario, onCerrarSesion }) {
 
 
 // ─── Circuito Operativo Guiado (Paso a Paso Cronológico) ────────
-function CircuitoOperativoPasos({ ceremonia, onNavegar, onAbrirCrearCircuito, onIniciarModoPrueba, colorPrincipal }) {
-  const [expandido, setExpandido] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('sigic_circuito_expandido') !== 'false' : true));
+function CircuitoOperativoPasos({ ceremonia, onNavegar, onAbrirCrearCircuito, onIniciarModoPrueba }) {
+  const [expandido, setExpandido] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('sigic_circuito_expandido') === 'true' : false));
 
   const totalEgresados = Number(ceremonia?.total_egresados || 0);
   const invitacionesEnviadas = Number(ceremonia?.invitaciones_enviadas || 0);
   const egresadosConfirmados = Number(ceremonia?.egresados_confirmados || 0);
-  const respuestasPendientes = Number(ceremonia?.respuestas_pendientes || 0);
   const planoConfigurado = Boolean(ceremonia?.plano_configurado || ceremonia?.egresados_con_butaca);
   const estadoOperativo = ceremonia?.estado_operativo;
 
@@ -550,10 +549,9 @@ function CircuitoOperativoPasos({ ceremonia, onNavegar, onAbrirCrearCircuito, on
       numero: '01',
       etiqueta: 'INICIAR',
       titulo: 'Ceremonia',
-      detalle: ceremonia?.nombre ? (ceremonia.nombre.length > 24 ? ceremonia.nombre.slice(0, 24) + '...' : ceremonia.nombre) : 'Fecha, lugar y cupos',
+      detalle: ceremonia?.nombre ? (ceremonia.nombre.length > 20 ? ceremonia.nombre.slice(0, 20) + '...' : ceremonia.nombre) : 'Crear / Activar',
       destino: 'gestion-ceremonias',
       icono: CalendarPlus,
-      color: 'indigo',
       completado: paso1Completado,
       activo: pasoActivo === 1
     },
@@ -561,10 +559,9 @@ function CircuitoOperativoPasos({ ceremonia, onNavegar, onAbrirCrearCircuito, on
       numero: '02',
       etiqueta: 'PADRÓN',
       titulo: 'Graduados',
-      detalle: totalEgresados > 0 ? `${totalEgresados} graduados cargados` : 'Importar nómina Excel',
+      detalle: totalEgresados > 0 ? `${totalEgresados} graduados` : 'Importar nómina',
       destino: 'gestion-graduados',
       icono: GraduationCap,
-      color: 'emerald',
       completado: paso2Completado,
       activo: pasoActivo === 2
     },
@@ -572,10 +569,9 @@ function CircuitoOperativoPasos({ ceremonia, onNavegar, onAbrirCrearCircuito, on
       numero: '03',
       etiqueta: 'CONVOCAR',
       titulo: 'Invitaciones',
-      detalle: invitacionesEnviadas > 0 ? `${invitacionesEnviadas} enviadas (${egresadosConfirmados} confirmados)` : 'Despachar correos OTP',
+      detalle: invitacionesEnviadas > 0 ? `${invitacionesEnviadas} env. (${egresadosConfirmados} conf.)` : 'Despachar correos',
       destino: 'convocatoria',
       icono: Send,
-      color: 'blue',
       completado: paso3Completado,
       activo: pasoActivo === 3
     },
@@ -583,10 +579,9 @@ function CircuitoOperativoPasos({ ceremonia, onNavegar, onAbrirCrearCircuito, on
       numero: '04',
       etiqueta: 'BUTACAS',
       titulo: 'Preparación',
-      detalle: planoConfigurado ? 'Distribución asignada' : 'Asignación automática de asientos',
+      detalle: planoConfigurado ? 'Distribución lista' : 'Asignación automática',
       destino: 'preparacion-ceremonia',
       icono: Armchair,
-      color: 'cyan',
       completado: paso4Completado,
       activo: pasoActivo === 4
     },
@@ -594,40 +589,59 @@ function CircuitoOperativoPasos({ ceremonia, onNavegar, onAbrirCrearCircuito, on
       numero: '05',
       etiqueta: 'EN VIVO',
       titulo: 'Acreditación',
-      detalle: estadoOperativo === 'FINALIZADA' ? 'Ceremonia concluida' : 'Escáner QR y portería',
+      detalle: estadoOperativo === 'FINALIZADA' ? 'Concluida' : 'Escáner QR y portería',
       destino: 'control-ingreso',
       icono: ScanLine,
-      color: 'amber',
       completado: paso5Completado,
       activo: pasoActivo === 5
     }
   ];
 
   return (
-    <div className={`bg-white border border-slate-200/90 rounded-[28px] sm:rounded-[32px] shadow-md shadow-slate-200/30 transition-all duration-300 ${
-      expandido ? 'p-5 sm:p-6' : 'p-4 sm:p-5'
-    }`}>
-      <div className={`flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all duration-300 ${
-        expandido ? 'pb-4 mb-5 border-b border-slate-100' : 'pb-0 mb-0'
-      }`}>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="flex h-2 w-2 rounded-full bg-sky-500 animate-pulse" />
-            <h3 className="text-xs sm:text-[13px] font-black uppercase tracking-wider text-slate-800">
-              Circuito Operativo de Colación
-            </h3>
-            <span className="text-[9.5px] px-2.5 py-0.5 rounded-full bg-sky-50 text-sky-700 font-bold border border-sky-200">
-              Paso a Paso Oficial
-            </span>
-          </div>
-          <p className="text-[11px] font-medium text-slate-500 mt-1">
-            Seguí el orden cronológico institucional para completar la organización de la ceremonia de principio a fin.
+    <div className="w-full bg-white/95 backdrop-blur-md border border-slate-200/90 rounded-2xl shadow-xs transition-all duration-300 p-2.5 sm:p-3">
+      {/* Barra de cabecera compacta y minimalista */}
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-2 pb-1.5 border-b border-slate-100">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="flex h-2 w-2 rounded-full bg-sky-500 animate-pulse shrink-0" />
+          <p className="text-[10.5px] font-black uppercase tracking-wider text-slate-800 truncate">
+            Circuito Operativo Institucional
           </p>
+          <span className="inline-flex text-[9px] px-2 py-0.2 rounded-full bg-sky-50 text-sky-700 font-bold border border-sky-200/60 shrink-0">
+            Flujo Guiado
+          </span>
+          {ceremonia?.nombre && (
+            <span className="hidden md:inline-block text-[10px] text-slate-400 font-medium truncate">
+              · {ceremonia.nombre}
+            </span>
+          )}
         </div>
 
-        {/* Acciones Rápidas: Tamaño, Modo Prueba y Nuevo Circuito */}
-        <div className="flex items-center gap-2 shrink-0">
-          {/* Botón para Agrandar / Achicar con animación estilo interruptor */}
+        {/* Acciones de cabecera: Modo Prueba, Nuevo Circuito y Expandir/Comprimir */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {onIniciarModoPrueba && (
+            <button
+              type="button"
+              onClick={onIniciarModoPrueba}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-indigo-200 bg-indigo-50/70 hover:bg-indigo-100 text-indigo-700 text-[10px] font-bold transition active:scale-95 cursor-pointer"
+              title="Cargar circuito simulado con datos de prueba realistas"
+            >
+              <Sparkles size={11} className="text-indigo-600" />
+              <span>Modo Prueba</span>
+            </button>
+          )}
+
+          {onAbrirCrearCircuito && (
+            <button
+              type="button"
+              onClick={onAbrirCrearCircuito}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-sky-600 text-white text-[10px] font-black transition active:scale-95 cursor-pointer shadow-xs"
+              title="Crear y activar un nuevo circuito de colación"
+            >
+              <CalendarPlus size={11} />
+              <span>+ Nuevo Circuito</span>
+            </button>
+          )}
+
           <button
             type="button"
             onClick={() => {
@@ -637,118 +651,113 @@ function CircuitoOperativoPasos({ ceremonia, onNavegar, onAbrirCrearCircuito, on
                 localStorage.setItem('sigic_circuito_expandido', String(nuevo));
               }
             }}
-            className="group flex items-center gap-2 px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50/80 hover:bg-slate-100 text-slate-700 text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-2xs"
-            title={expandido ? "Achicar vista del circuito" : "Agrandar vista del circuito"}
+            className="flex items-center gap-1 px-2 py-1 rounded-lg border border-slate-200 hover:bg-slate-50 text-[10px] font-bold text-slate-600 transition active:scale-95 cursor-pointer shrink-0"
+            title={expandido ? "Comprimir circuito a barra minimalista" : "Expandir tarjetas de circuito"}
           >
-            {/* Indicador animado */}
-            <div className={`w-5 h-5 rounded-lg flex items-center justify-center transition-colors duration-300 ${
-              expandido ? 'bg-sky-100 text-sky-700' : 'bg-slate-200 text-slate-600'
-            }`}>
-              {expandido ? (
-                <Minimize2 size={12} className="transition-transform duration-300 group-hover:scale-110" />
-              ) : (
-                <Maximize2 size={12} className="transition-transform duration-300 group-hover:scale-110" />
-              )}
-            </div>
-            <span className="text-[11px] font-black uppercase tracking-wider text-slate-700">
-              {expandido ? 'Achicar' : 'Agrandar'}
-            </span>
-          </button>
-
-          {onIniciarModoPrueba && (
-            <button
-              type="button"
-              onClick={onIniciarModoPrueba}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-indigo-200 bg-indigo-50/70 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-2xs"
-              title="Cargar circuito simulado con datos de prueba realistas"
-            >
-              <Sparkles size={13} className="text-indigo-600" />
-              <span>Modo Prueba</span>
-            </button>
-          )}
-
-          <button
-            type="button"
-            onClick={onAbrirCrearCircuito}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-sky-600 text-white text-xs font-black shadow-md shadow-slate-900/10 transition-all active:scale-95 cursor-pointer"
-            title="Crear y activar un nuevo circuito de colación"
-          >
-            <CalendarPlus size={13} />
-            <span>+ Nuevo Circuito</span>
+            {expandido ? <Minimize2 size={11} /> : <Maximize2 size={11} />}
+            <span>{expandido ? 'Comprimir' : 'Expandir'}</span>
           </button>
         </div>
       </div>
 
-      {/* Grid de Pasos con transición fluida al agrandar / achicar */}
-      <div className={`transition-all duration-500 ease-in-out overflow-hidden ${
-        expandido ? 'opacity-100 max-h-[1000px] mt-0' : 'opacity-100 max-h-[800px] mt-4'
-      }`}>
-        <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 transition-all duration-300 ${
-          expandido ? 'gap-3.5' : 'gap-2'
-        }`}>
-          {pasos.map((paso, idx) => {
-            const Icono = paso.icono;
+      {/* Grid de pasos: modo comprimido (píldoras minimalistas) o expandido (tarjetas sobrias) */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-1.5 sm:gap-2 transition-all duration-300">
+        {pasos.map((paso) => {
+          const Icono = paso.icono;
+          const esPasoActual = paso.activo;
+
+          if (!expandido) {
+            // VERSIÓN MINIMALISTA DE 1 LÍNEA (IDÉNTICA A LA CAPTURA)
             return (
               <button
                 key={paso.numero}
                 type="button"
-                onClick={() => onNavegar(paso.destino)}
-                className={`group relative text-left rounded-2xl border transition-all duration-300 hover:-translate-y-1 cursor-pointer ${
-                  expandido ? 'p-4' : 'p-2.5 sm:p-3'
-                } ${
-                  paso.activo
-                    ? 'bg-gradient-to-b from-sky-50/80 to-white border-sky-300 shadow-md ring-2 ring-sky-500/20'
+                onClick={() => onNavegar && onNavegar(paso.destino)}
+                className={`group flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-xl border text-left transition-all active:scale-98 cursor-pointer ${
+                  esPasoActual
+                    ? 'bg-sky-50 border-sky-400 text-sky-950 font-black shadow-2xs ring-1 ring-sky-400/30'
                     : paso.completado
-                    ? 'bg-slate-50/80 hover:bg-white border-slate-200/80 hover:border-slate-300 hover:shadow-sm'
-                    : 'bg-white hover:bg-slate-50/60 border-slate-200/60 hover:border-slate-300'
+                    ? 'bg-slate-50/80 hover:bg-white border-slate-200 text-slate-700'
+                    : 'bg-white hover:bg-slate-50 border-slate-200/70 text-slate-500'
                 }`}
+                title={`Ir a ${paso.titulo}`}
               >
-                {/* Badge superior */}
-                <div className={`flex items-center justify-between ${expandido ? 'mb-2.5' : 'mb-1.5'}`}>
-                  <span className={`text-[10px] font-black font-mono tracking-wider ${
-                    paso.activo ? 'text-sky-600' : paso.completado ? 'text-emerald-600' : 'text-slate-400'
-                  }`}>
-                    {paso.numero}. {paso.etiqueta}
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <span className={`text-[9px] font-mono font-black ${esPasoActual ? 'text-sky-700' : 'text-slate-400'}`}>
+                    {paso.numero}
                   </span>
-                  
-                  {paso.completado ? (
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 shadow-2xs">
-                      <CheckCircle2 size={13} strokeWidth={2.5} />
-                    </span>
-                  ) : paso.activo ? (
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-sky-100 text-sky-600 shadow-2xs animate-pulse">
-                      <span className="h-2 w-2 rounded-full bg-sky-500" />
-                    </span>
-                  ) : (
-                    <Icono size={15} className="text-slate-300 group-hover:text-slate-500 transition-colors" />
-                  )}
+                  <span className="text-[11px] font-bold truncate">
+                    {paso.titulo}
+                  </span>
                 </div>
 
-                {/* Título */}
-                <h4 className={`font-black text-slate-800 tracking-tight group-hover:text-sky-600 transition-colors ${
-                  expandido ? 'text-[13px]' : 'text-xs'
+                {paso.completado ? (
+                  <CheckCircle2 size={12} className="text-emerald-600 shrink-0" />
+                ) : esPasoActual ? (
+                  <span className="h-1.5 w-1.5 rounded-full bg-sky-500 shrink-0 animate-ping" />
+                ) : (
+                  <ChevronRight size={12} className="text-slate-300 group-hover:text-slate-500 shrink-0" />
+                )}
+              </button>
+            );
+          }
+
+          // VERSIÓN EXPANDIDA: TARJETAS MINIMALISTAS
+          return (
+            <button
+              key={paso.numero}
+              type="button"
+              onClick={() => onNavegar && onNavegar(paso.destino)}
+              className={`group relative flex flex-col justify-between p-2.5 rounded-xl border text-left transition-all duration-200 active:scale-98 cursor-pointer ${
+                esPasoActual
+                  ? 'bg-gradient-to-b from-sky-50 via-white to-sky-50/30 border-sky-400 shadow-sm ring-2 ring-sky-400/20'
+                  : paso.completado
+                  ? 'bg-slate-50/70 hover:bg-white border-slate-200/90 hover:border-slate-300 shadow-2xs'
+                  : 'bg-white hover:bg-slate-50 border-slate-200/70 hover:border-slate-300'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1">
+                <span className={`text-[9.5px] font-black font-mono tracking-wider ${
+                  esPasoActual ? 'text-sky-700' : paso.completado ? 'text-emerald-700' : 'text-slate-400'
+                }`}>
+                  {paso.numero}. {paso.etiqueta}
+                </span>
+
+                {paso.completado ? (
+                  <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                    <CheckCircle2 size={11} strokeWidth={2.5} />
+                  </span>
+                ) : esPasoActual ? (
+                  <span className="flex h-4 w-4 items-center justify-center rounded-full bg-sky-100 text-sky-600 animate-pulse">
+                    <span className="h-1.5 w-1.5 rounded-full bg-sky-500" />
+                  </span>
+                ) : (
+                  <Icono size={13} className="text-slate-300 group-hover:text-slate-500 transition-colors" />
+                )}
+              </div>
+
+              <div>
+                <h4 className={`text-xs font-black tracking-tight leading-tight group-hover:text-sky-700 transition-colors ${
+                  esPasoActual ? 'text-sky-950' : 'text-slate-800'
                 }`}>
                   {paso.titulo}
                 </h4>
-
-                {/* Detalle (en modo achicado se muestra resumido o en 1 línea) */}
-                <p className={`font-medium text-slate-500 leading-snug ${
-                  expandido ? 'text-[10.5px] mt-1 line-clamp-2' : 'text-[10px] mt-0.5 truncate'
-                }`}>
+                <p className="text-[10px] text-slate-500 font-medium truncate mt-0.5 leading-tight">
                   {paso.detalle}
                 </p>
+              </div>
 
-                {/* Flecha indicadora */}
-                <div className={`flex items-center justify-between border-t border-slate-100/80 text-[10px] font-bold text-slate-400 group-hover:text-sky-600 ${
-                  expandido ? 'mt-3 pt-2' : 'mt-2 pt-1.5'
-                }`}>
-                  <span>{paso.activo ? 'Ir al paso' : paso.completado ? 'Revisar' : 'Configurar'}</span>
-                  <ArrowRight size={12} className="transition-transform group-hover:translate-x-1" />
-                </div>
-              </button>
-            );
-          })}
-        </div>
+              <div className="mt-2 pt-1 border-t border-slate-100 flex items-center justify-between text-[9px] font-bold">
+                <span className={esPasoActual ? 'text-sky-700' : 'text-slate-400 group-hover:text-slate-600'}>
+                  {esPasoActual ? 'En este paso' : paso.completado ? 'Revisar' : 'Ir al paso'}
+                </span>
+                <ChevronRight size={11} className={`transition-transform duration-200 ${
+                  esPasoActual ? 'text-sky-600 translate-x-0.5' : 'text-slate-300 group-hover:text-slate-600'
+                }`} />
+              </div>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
