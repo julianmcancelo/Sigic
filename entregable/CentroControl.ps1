@@ -1,4 +1,4 @@
-﻿[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+﻿﻿[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $Host.UI.RawUI.WindowTitle = "SiGIC - Centro de Control Institucional"
 Clear-Host
 
@@ -78,6 +78,7 @@ do {
         "1" {
             Write-Host ""
             Write-Host "  Iniciando contenedores Docker..." -ForegroundColor Cyan
+            & docker rm -f sigic-plataforma sigic-postgres 2>
             & docker compose up -d
             if ($LASTEXITCODE -eq 0) {
                 Write-Host ""
