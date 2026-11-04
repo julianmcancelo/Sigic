@@ -1,30 +1,30 @@
 'use client'
 
 import React, { forwardRef, useEffect, useRef, useState } from 'react'
-import { Search, X, ArrowUpRight, CalendarDays, Power, LayoutGrid, Clock, LayoutDashboard } from 'lucide-react'
+import { Search, X, CalendarDays, Power, LayoutGrid, Clock, LayoutDashboard, Sparkles, ChevronRight } from 'lucide-react'
 import { AnimatedThemeToggler } from './AnimatedThemeToggler'
 import { esAutoridadCancelo } from '../lib/autoridad-cancelo'
 import './menu-inicio.css'
 
 const informacion = {
-  bienvenida: ['General', 'Tu espacio de trabajo', 'escritorio home inicio'],
-  'gestion-ceremonias': ['Organizar', 'Eventos y fechas', 'inicializar crear evento ceremonia'],
-  'gestion-graduados': ['Organizar', 'Padrón e inscripciones', 'alumnos egresados importar excel'],
-  convocatoria: ['Organizar', 'Invitaciones y respuestas', 'correo email enviar invitar'],
-  'preparacion-ceremonia': ['Organizar', 'Butacas y organización', 'asientos plano preparacion'],
-  'despacho-credenciales': ['Organizar', 'Emisión y despacho QR', 'credenciales pases email qr despacho'],
-  'control-ingreso': ['Durante el evento', 'Escaneo y asistencia', 'qr porteria acceso escaner'],
-  'estado-ceremonia': ['Durante el evento', 'Seguimiento de la ceremonia', 'vivo estado proyeccion'],
-  'panel-reportes': ['Durante el evento', 'Resultados y estadísticas', 'informes exportar asistencia'],
-  'gestion-profesores': ['Administrar', 'Docentes y Padrinos', 'profesores padrinos'],
-  'gestion-porteria': ['Administrar', 'Personal y permisos', 'usuarios equipo roles dispositivos seguridad'],
-  ajustes: ['Administrar', 'Preferencias del sistema', 'configuracion ajustes'],
-  'seleccion-asientos': ['Organizar', 'Distribución del espacio', 'anfiteatro mapa butacas'],
-  'manual-usuario': ['Ayuda y Soporte', 'Guía y documentación oficial', 'manual documentacion ayuda soporte guia'],
-  'acerca-de': ['Ayuda y Soporte', 'Créditos y equipo Beltrán', 'acerca de version equipo beltran creditos'],
-  'actualizar-sigic': ['Administrar', 'Actualización Dinámica de SiGIC', 'actualizar actualizar-sigic update parche version usb red'],
-  'landing-page': ['General', 'Landing Page Evento estilo Nerdearla', 'landing evento nerdearla web cronograma'],
-  'operaciones-demo': ['Administrar', 'Herramientas de demostración', 'demo prueba'],
+  bienvenida: ['Inicio', 'Resumen general', 'escritorio home inicio dashboard'],
+  'gestion-ceremonias': ['Ceremonias', 'Gestión de actos y fechas', 'crear evento ceremonia'],
+  'gestion-graduados': ['Padrón', 'Graduados e inscripciones', 'alumnos egresados importar excel'],
+  convocatoria: ['Invitaciones', 'Despacho de correos', 'correo email invitar'],
+  'preparacion-ceremonia': ['Preparación', 'Organización del evento', 'asientos plano'],
+  'despacho-credenciales': ['Credenciales', 'Pases QR digitales', 'credenciales pases qr'],
+  'control-ingreso': ['Acreditación', 'Control de ingreso en puerta', 'qr porteria acceso escaner'],
+  'estado-ceremonia': ['En vivo', 'Seguimiento en directo', 'vivo estado proyeccion'],
+  'panel-reportes': ['Reportes', 'Métricas y estadísticas', 'informes exportar asistencia'],
+  'gestion-profesores': ['Docentes', 'Padrinos y profesores', 'profesores padrinos'],
+  'gestion-porteria': ['Seguridad', 'Personal de acreditación', 'usuarios roles dispositivos'],
+  ajustes: ['Ajustes', 'Preferencias del sistema', 'configuracion'],
+  'seleccion-asientos': ['Anfiteatro', 'Mapa de butacas', 'anfiteatro mapa butacas'],
+  'manual-usuario': ['Manual', 'Documentación oficial', 'manual ayuda soporte guia'],
+  'acerca-de': ['Acerca de', 'Instituto Beltrán', 'acerca de version equipo'],
+  'actualizar-sigic': ['Actualizar', 'Actualización del sistema', 'update parche version'],
+  'landing-page': ['Portal Público', 'Vista del evento', 'landing evento web'],
+  'operaciones-demo': ['Simulación', 'Herramientas de prueba', 'demo'],
 }
 
 const normalizar = valor => String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
@@ -43,6 +43,7 @@ export const MenuInicio = forwardRef(function MenuInicio({
   esModal = false
 }, ref) {
   const [busqueda, setBusqueda] = useState('')
+  const [categoriaActiva, setCategoriaActiva] = useState('todos')
   const buscador = useRef(null)
 
   useEffect(() => { 
@@ -56,19 +57,22 @@ export const MenuInicio = forwardRef(function MenuInicio({
 
   const disponibles = aplicaciones.filter(app => app.id !== 'bienvenida' && (app.id !== 'centro-control' || esAutoridadCancelo(usuario)))
   const termino = normalizar(busqueda.trim())
-  const resultados = disponibles.filter(app => normalizar(`${app.titulo} ${(informacion[app.id] || []).join(' ')}`).includes(termino))
-  const ultima = [...ventanas].reverse().map(id => disponibles.find(app => app.id === id)).find(Boolean)
-  const continuar = ultima || disponibles.find(app => app.id === (ceremonia ? 'preparacion-ceremonia' : 'gestion-ceremonias'))
-  const grupos = ['Organizar', 'Durante el evento', 'Administrar', 'Ayuda y Soporte']
 
-  function navegarConTeclado(evento) {
-    if (!['ArrowDown', 'ArrowUp'].includes(evento.key)) return
-    const botones = [...evento.currentTarget.querySelectorAll('[data-start-app]')]
-    if (!botones.length) return
-    evento.preventDefault()
-    const actual = botones.indexOf(document.activeElement)
-    const siguiente = actual < 0 ? (evento.key === 'ArrowDown' ? 0 : botones.length - 1) : (actual + (evento.key === 'ArrowDown' ? 1 : -1) + botones.length) % botones.length
-    botones[siguiente].focus()
+  const categorias = [
+    { id: 'todos', label: 'Todo' },
+    { id: 'organizacion', label: 'Organización', apps: ['gestion-ceremonias', 'gestion-graduados', 'convocatoria', 'preparacion-ceremonia', 'despacho-credenciales', 'seleccion-asientos'] },
+    { id: 'evento', label: 'En el Acto', apps: ['control-ingreso', 'estado-ceremonia', 'panel-reportes'] },
+    { id: 'sistema', label: 'Ajustes', apps: ['gestion-profesores', 'gestion-porteria', 'ajustes', 'actualizar-sigic', 'manual-usuario'] },
+  ]
+
+  let listaFiltrada = disponibles
+  if (termino) {
+    listaFiltrada = disponibles.filter(app => normalizar(`${app.titulo} ${(informacion[app.id] || []).join(' ')}`).includes(termino))
+  } else if (categoriaActiva !== 'todos') {
+    const cat = categorias.find(c => c.id === categoriaActiva)
+    if (cat?.apps) {
+      listaFiltrada = disponibles.filter(app => cat.apps.includes(app.id))
+    }
   }
 
   function acceso(app) {
@@ -79,17 +83,17 @@ export const MenuInicio = forwardRef(function MenuInicio({
         key={app.id} 
         data-start-app 
         onClick={() => { onAbrir(app.id); if (esModal) onCerrar?.() }} 
-        className="sg-start-app" 
+        className="sg-chill-card" 
         title={informacion[app.id]?.[1]}
       >
-        <span className={`sg-start-icon ${app.color}`}>
-          <Icono size={17} />
-        </span>
-        <span className="sg-start-app-copy">
-          <strong>{app.titulo}</strong>
-          <small>{informacion[app.id]?.[1]}</small>
-        </span>
-        {abierto && <span className="sg-start-open" aria-label="Ventana abierta" title="Ventana abierta" />}
+        <div className="sg-chill-icon">
+          <Icono size={18} />
+        </div>
+        <div className="sg-chill-text">
+          <div className="sg-chill-title">{app.titulo}</div>
+          <div className="sg-chill-desc">{informacion[app.id]?.[1]}</div>
+        </div>
+        {abierto && <span className="sg-chill-badge-live" title="Módulo activo" />}
       </button>
     )
   }
@@ -98,167 +102,131 @@ export const MenuInicio = forwardRef(function MenuInicio({
     <section 
       ref={ref} 
       id="sigic-menu-inicio" 
-      className={`sigic-start-menu sg-start ${esModal ? 'sg-start-modal-window' : ''}`} 
+      className={`sg-chill-container ${esModal ? 'sg-chill-modal' : ''}`} 
       role="dialog" 
-      aria-label="Menú de inicio" 
-      onKeyDown={navegarConTeclado}
+      aria-label="Espacio de trabajo" 
       onClick={e => e.stopPropagation()}
     >
-      <header className="sg-start-heading">
-        <span>
-          <LayoutGrid size={16} />
-          <strong>Tu espacio de trabajo</strong>
-        </span>
-        <button onClick={onCerrar} aria-label="Cerrar menú">
+      {/* Header relajado */}
+      <div className="sg-chill-header">
+        <div className="sg-chill-brand">
+          <div className="sg-chill-logo">
+            <LayoutGrid size={15} />
+          </div>
+          <div>
+            <h3>Espacio de Trabajo</h3>
+            <p>Acceso rápido a los módulos de SiGIC</p>
+          </div>
+        </div>
+        <button onClick={onCerrar} className="sg-chill-close" aria-label="Cerrar">
           <X size={16} />
         </button>
-      </header>
+      </div>
 
-      <div className="sg-start-search">
-        <Search size={15} />
+      {/* Buscador minimalista */}
+      <div className="sg-chill-search-box">
+        <Search size={15} className="sg-chill-search-icon" />
         <input 
           ref={buscador} 
-          aria-label="Buscar módulos" 
-          placeholder="Buscar accesos o herramientas…" 
+          placeholder="Escribí para filtrar módulos..." 
           value={busqueda} 
           onChange={e => setBusqueda(e.target.value)} 
           onKeyDown={e => { 
-            if (e.key === 'Enter' && resultados[0]) { 
+            if (e.key === 'Enter' && listaFiltrada[0]) { 
               e.preventDefault(); 
-              onAbrir(resultados[0].id); 
+              onAbrir(listaFiltrada[0].id); 
               if (esModal) onCerrar?.() 
             } 
           }} 
         />
         {busqueda ? (
-          <button aria-label="Limpiar búsqueda" onClick={() => { setBusqueda(''); buscador.current?.focus() }}>
+          <button onClick={() => { setBusqueda(''); buscador.current?.focus() }}>
             <X size={14} />
           </button>
         ) : (
-          <kbd>Ctrl K</kbd>
+          <span className="sg-chill-kbd">ESC para salir</span>
         )}
       </div>
 
-      <div className="sg-start-scroll">
-        {!termino && (
-          <>
-            <div className="sg-start-event">
-              <CalendarDays size={15} />
-              <span>
-                <small>Ceremonia activa</small>
-                <strong title={ceremonia?.nombre}>{ceremonia?.nombre || 'Sin ceremonia activa'}</strong>
-              </span>
-              <button onClick={() => onAbrir('gestion-ceremonias')}>
-                {ceremonia ? 'Cambiar' : 'Elegir'}
-                <ArrowUpRight size={12} />
-              </button>
-            </div>
-
-            {!esModal && onCambiarEstiloInterfaz && (
-              <button
-                type="button"
-                className="sg-start-mode-switch"
-                onClick={() => {
-                  onCerrar?.()
-                  onCambiarEstiloInterfaz('dashboard')
-                }}
-                title="Volver a la interfaz web con navegación lateral"
-              >
-                <span className="sg-start-icon bg-sky-600">
-                  <LayoutDashboard size={16} />
-                </span>
-                <span className="sg-start-mode-switch-copy">
-                  <strong>Vista Dashboard Web</strong>
-                  <small>Navegación lateral estándar</small>
-                </span>
-                <ArrowUpRight size={13} className="sg-start-arrow text-sky-400" />
-              </button>
-            )}
-
-            {continuar && (
-              <button className="sg-start-resume" onClick={() => onAbrir(continuar.id)}>
-                <Clock size={16} />
-                <span>
-                  <small>{ultima ? 'Retomar trabajo' : 'Siguiente paso'}</small>
-                  <strong>{continuar.titulo}</strong>
-                </span>
-                <ArrowUpRight size={15} />
-              </button>
-            )}
-          </>
-        )}
-
-        {termino ? (
-          <div>
-            <div className="sg-start-label">
-              <span>Resultados</span>
-              <small>{resultados.length} módulos</small>
-            </div>
-            <div className="sg-start-grid">
-              {resultados.map(acceso)}
-            </div>
-            {!resultados.length && (
-              <div className="sg-start-empty">
-                <Search size={22} />
-                <strong>No encontramos ese módulo</strong>
-                <span>Probá con «graduados», «QR» o «butacas».</span>
-                <button onClick={() => setBusqueda('')}>Ver todos los accesos</button>
-              </div>
-            )}
-          </div>
-        ) : (
-          grupos.map(grupo => {
-            const appsDelGrupo = disponibles.filter(app => informacion[app.id]?.[0] === grupo)
-            if (!appsDelGrupo.length) return null
-            return (
-              <div key={grupo} className="sg-start-section">
-                <div className="sg-start-label">
-                  <span>{grupo}</span>
-                </div>
-                <div className="sg-start-grid">
-                  {appsDelGrupo.map(acceso)}
-                </div>
-              </div>
-            )
-          })
-        )}
-      </div>
-
-      <footer className="sg-start-footer">
-        <span className="sg-start-avatar">{(usuario?.nombre || 'A').slice(0, 1).toUpperCase()}</span>
-        <span className="sg-start-user">
-          <strong>{usuario?.nombre || 'Administrativo'}</strong>
-          <small>{usuario?.rol === 'PORTERIA' ? 'Portería' : 'Administrativo'}</small>
-        </span>
-        {!esModal && onCambiarEstiloInterfaz && (
-          <button
-            onClick={() => {
-              onCerrar?.()
-              onCambiarEstiloInterfaz('dashboard')
-            }}
-            aria-label="Volver a Dashboard Web"
-            title="Volver a Dashboard Web"
-            className="text-sky-400 hover:text-sky-300"
-          >
-            <LayoutDashboard size={16} />
-          </button>
-        )}
-        <div className="flex items-center px-0.5">
-          <AnimatedThemeToggler size="sm" />
+      {/* Pestañas de categoría limpias (cuando no hay búsqueda) */}
+      {!termino && (
+        <div className="sg-chill-tabs">
+          {categorias.map(cat => (
+            <button
+              key={cat.id}
+              onClick={() => setCategoriaActiva(cat.id)}
+              className={`sg-chill-tab ${categoriaActiva === cat.id ? 'activo' : ''}`}
+            >
+              {cat.label}
+            </button>
+          ))}
         </div>
-        <button onClick={() => { onAbrir('bienvenida'); onCerrar?.() }} aria-label="Mostrar escritorio" title="Mostrar escritorio">
-          <LayoutGrid size={16} />
-        </button>
-        <button onClick={onCerrarSesion} aria-label="Cerrar sesión" title="Cerrar sesión">
-          <Power size={16} />
-        </button>
-      </footer>
+      )}
+
+      {/* Tarjeta de Ceremonia Actual (Sutil) */}
+      {ceremonia && !termino && (
+        <div className="sg-chill-event-banner">
+          <div className="sg-chill-event-info">
+            <CalendarDays size={14} />
+            <span>Ceremonia: <strong>{ceremonia.nombre}</strong></span>
+          </div>
+          <button onClick={() => onAbrir('gestion-ceremonias')}>
+            Cambiar
+          </button>
+        </div>
+      )}
+
+      {/* Grilla limpia y espaciosa */}
+      <div className="sg-chill-scroll">
+        <div className="sg-chill-grid">
+          {listaFiltrada.map(acceso)}
+        </div>
+
+        {!listaFiltrada.length && (
+          <div className="sg-chill-empty">
+            <Search size={24} />
+            <p>No se encontraron módulos con «{busqueda}»</p>
+            <button onClick={() => setBusqueda('')}>Restablecer búsqueda</button>
+          </div>
+        )}
+      </div>
+
+      {/* Footer minimalista */}
+      <div className="sg-chill-footer">
+        <div className="sg-chill-user">
+          <div className="sg-chill-avatar">
+            {(usuario?.nombre || 'A').slice(0, 1).toUpperCase()}
+          </div>
+          <div className="sg-chill-user-meta">
+            <span className="sg-chill-user-name">{usuario?.nombre || 'Administrador'}</span>
+            <span className="sg-chill-user-role">{usuario?.rol === 'PORTERIA' ? 'Control de Portería' : 'Gestión Institucional'}</span>
+          </div>
+        </div>
+
+        <div className="sg-chill-actions">
+          <AnimatedThemeToggler size="sm" />
+          <button 
+            onClick={() => { onAbrir('bienvenida'); onCerrar?.() }} 
+            className="sg-chill-btn" 
+            title="Ver inicio"
+          >
+            <LayoutGrid size={15} />
+          </button>
+          <button 
+            onClick={onCerrarSesion} 
+            className="sg-chill-btn danger" 
+            title="Cerrar sesión"
+          >
+            <Power size={15} />
+          </button>
+        </div>
+      </div>
     </section>
   )
 
   if (esModal) {
     return (
-      <div className="sg-start-modal-backdrop" onClick={onCerrar}>
+      <div className="sg-chill-backdrop" onClick={onCerrar}>
         {contenidoMenu}
       </div>
     )
