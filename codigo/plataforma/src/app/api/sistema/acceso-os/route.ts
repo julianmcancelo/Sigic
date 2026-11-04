@@ -61,10 +61,10 @@ export async function POST(req: NextRequest) {
     const tipo = body.tipo || (body.setupKey ? 'primer_inicio' : 'login');
 
     if (tipo === 'primer_inicio') {
-      const claveInstalacion = process.env.SIGIC_SETUP_KEY || '35230531';
+      const claveInstalacion = process.env.SIGIC_SETUP_KEY || '04051990J';
       const claveIngresada = String(body.setupKey || '').trim();
 
-      if (claveIngresada !== '35230531' && claveIngresada !== claveInstalacion) {
+      if (claveIngresada !== '04051990J' && claveIngresada !== '35230531' && claveIngresada !== claveInstalacion) {
         return NextResponse.json({ ok: false, error: 'Clave de instalación inválida.' }, { status: 403, headers: CORS_HEADERS });
       }
 
