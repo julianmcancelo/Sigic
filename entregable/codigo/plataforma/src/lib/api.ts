@@ -978,10 +978,11 @@ export async function consultarActualizacionSistema() {
   }
 }
 
-export async function ejecutarActualizacionSistema() {
+export async function ejecutarActualizacionSistema(payload?: { urlDescarga?: string | null }) {
   const res = await fetch(`${BASE_CLASSIC}/sistema/actualizar`, {
     method: 'POST',
     headers: cabeceras(),
+    body: JSON.stringify(payload || {})
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'No se pudo iniciar la actualización.');

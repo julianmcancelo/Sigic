@@ -317,7 +317,7 @@ export async function GET(
 
   try {
     // -------------------------------------------------------------
-    // ACTUALIZACIONES DEL SISTEMA (DINAMICAS)
+    // ACTUALIZACIONES DEL SISTEMA (DINAMICAS & OTA ESTILO WORDPRESS)
     // -------------------------------------------------------------
     if (path === 'sistema/actualizacion') {
       const fs = await import('fs');
@@ -327,18 +327,93 @@ export async function GET(
       const bundleEnHost = fs.existsSync('/mnt/sigic_host/sigic-web-bundle.tar.gz');
 
       let fuenteDetectada: string | null = null;
-      if (bundleEnUsb) fuenteDetectada = 'USB (/media/sigic/SIGIC_UPDATE)';
-      else if (bundleEnHost) fuenteDetectada = 'Carpeta Compartida Host (/mnt/sigic_host)';
-      else if (bundleEnMnt) fuenteDetectada = 'Carpeta /mnt';
-      else if (bundleEnTmp) fuenteDetectada = 'Caché local /tmp';
+      let rutaArchivoLocal: string | null = null;
+      if (bundleEnUsb) {
+        fuenteDetectada = 'USB (/media/sigic/SIGIC_UPDATE)';
+        rutaArchivoLocal = '/media/sigic/SIGIC_UPDATE/sigic-web-bundle.tar.gz';
+      } else if (bundleEnHost) {
+        fuenteDetectada = 'Carpeta Compartida Host (/mnt/sigic_host)';
+        rutaArchivoLocal = '/mnt/sigic_host/sigic-web-bundle.tar.gz';
+      } else if (bundleEnMnt) {
+        fuenteDetectada = 'Carpeta /mnt';
+        rutaArchivoLocal = '/mnt/sigic-web-bundle.tar.gz';
+      } else if (bundleEnTmp) {
+        fuenteDetectada = 'Caché local /tmp';
+        rutaArchivoLocal = '/tmp/sigic-web-bundle.tar.gz';
+      }
+
+      const versionActual = '0.2.0';
+      let servidorOTA = process.env.SIGIC_UPDATE_SERVER_URL || 'http://host.docker.internal:3005';
+      let infoOTA: any = null;
+
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 2500);
+        const res = await fetch(`${servidorOTA}/api/actualizaciones/check?proyecto=sigic&versionActual=${versionActual}`, {
+          signal: controller.signal
+        });
+        clearTimeout(timeout);
+        if (res.ok) {
+          infoOTA = await res.json();
+        }
+      } catch (err) {
+        // Servidor OTA no disponible en este momento
+      }
+
+      const hayActualizacionRemota = Boolean(infoOTA && infoOTA.actualizacionDisponible);
+      const hayActualizacionLocal = Boolean(fuenteDetectada);
 
       return NextResponse.json({
         ok: true,
-        actualizacionDisponible: Boolean(fuenteDetectada),
-        fuente: fuenteDetectada,
-        versionActual: '0.2.0',
+        actualizacionDisponible: hayActualizacionLocal || hayActualizacionRemota,
+        versionActual,
+        nuevaVersion: hayActualizacionRemota ? infoOTA.ultimaVersion : (hayActualizacionLocal ? '0.2.1-local' : versionActual),
+        fuente: hayActualizacionLocal ? fuenteDetectada : (hayActualizacionRemota ? 'Servidor de Actualizaciones Oficial (Nube/OTA)' : null),
+        canal: hayActualizacionRemota ? 'OTA Remoto' : (hayActualizacionLocal ? 'Paquete Local/USB' : 'Al día'),
+        notas: infoOTA?.notas || ['Mejoras de rendimiento y seguridad', 'Optimización de interfaz visual', 'Sincronización de base de datos'],
+        urlDescarga: infoOTA?.urlDescarga || null,
+        requiereReinicio: true,
         plataforma: process.platform,
         modoEnVivo: process.platform === 'linux' && fs.existsSync('/usr/local/bin/sigic-actualizar')
+      }, { headers });
+    }
+
+    if (path === 'sistema/actualizar' && req.method === 'POST') {
+      const fs = await import('fs');
+      const { exec } = await import('child_process');
+      const body = await req.json().catch(() => ({}));
+      const urlDescarga = body.urlDescarga;
+
+      // Si viene por OTA remota y tenemos URL de descarga
+      if (urlDescarga && typeof urlDescarga === 'string') {
+        try {
+          const respDescarga = await fetch(urlDescarga);
+          if (!respDescarga.ok) {
+            return NextResponse.json({ ok: false, error: 'No se pudo descargar el paquete OTA del servidor' }, { status: 502, headers });
+          }
+          const arrayBuffer = await respDescarga.arrayBuffer();
+          const buffer = Buffer.from(arrayBuffer);
+          fs.writeFileSync('/tmp/sigic-web-bundle.tar.gz', buffer);
+        } catch (downloadErr: any) {
+          return NextResponse.json({ ok: false, error: 'Fallo al descargar la actualización: ' + downloadErr.message }, { status: 500, headers });
+        }
+      }
+
+      // Si estamos en entorno Linux oficial en vivo con script instalador
+      if (process.platform === 'linux' && fs.existsSync('/usr/local/bin/sigic-actualizar')) {
+        exec('sudo /usr/local/bin/sigic-actualizar > /tmp/sigic-update.log 2>&1 &');
+        return NextResponse.json({
+          ok: true,
+          mensaje: 'Actualización en vivo disparada en segundo plano.',
+          paquete: '/usr/local/bin/sigic-actualizar'
+        }, { headers });
+      }
+
+      // Entorno contenedor / desarrollo
+      return NextResponse.json({
+        ok: true,
+        mensaje: 'Paquete de actualización recibido y preparado con éxito.',
+        paquete: urlDescarga ? 'OTA Remota' : 'Local'
       }, { headers });
     }
 
