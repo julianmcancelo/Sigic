@@ -179,7 +179,7 @@ export function generarPlantillaInvitacion(nombreEgresado: string, linkRegistro:
               
               <!-- HEADER INSTITUCIONAL -->
               <tr>
-                <td align="center" bgcolor="#071b34" style="padding: 45px 30px; background: linear-gradient(135deg, #071b34 0%, #0c2d54 100%); border-bottom: 4px solid #0284c7;">
+                <td align="center" bgcolor="#002b49" style="padding: 45px 30px; background: linear-gradient(135deg, #002038 0%, #002b49 55%, #084370 100%); border-bottom: 4px solid #0284c7;">
                   <img src="${linkLogo}" alt="Instituto Tecnológico Beltrán" width="90" height="90" style="display: block; margin-bottom: 20px; outline: none; border: none; border-radius: 16px; background: #ffffff; padding: 6px;">
                   <span style="display: inline-block; padding: 4px 14px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 20px; color: #38bdf8; font-size: 10px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px;">Convocatoria Oficial</span>
                   <h1 style="color: #ffffff; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2;">Ceremonia de Graduación</h1>
@@ -268,6 +268,9 @@ export function generarPlantillaInvitacion(nombreEgresado: string, linkRegistro:
                   <p style="margin: 0 0 6px; font-weight: 700; color: #cbd5e1; text-transform: uppercase; letter-spacing: 1px;">
                     Instituto Tecnológico Beltrán
                   </p>
+                  <p style="margin: 0 0 6px; color: #38bdf8; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                    Tecnicatura Superior en Analista de Sistemas
+                  </p>
                   <p style="margin: 0 0 10px; color: #64748b; font-size: 10px;">
                     Av. Manuel Belgrano 1191, Avellaneda, Buenos Aires · Sede Central
                   </p>
@@ -307,7 +310,7 @@ export function generarPlantillaOTP(codigo: string, hostBase: string) {
               
               <!-- HEADER -->
               <tr>
-                <td align="center" bgcolor="#071b34" style="padding: 35px 25px; border-bottom: 4px solid #0284c7;">
+                <td align="center" bgcolor="#002b49" style="padding: 35px 25px; border-bottom: 4px solid #0284c7;">
                   <img src="${linkLogo}" alt="SiGIC" width="70" height="70" style="display: block; margin-bottom: 12px; border-radius: 12px; background: #ffffff; padding: 4px;">
                   <span style="color: #38bdf8; font-size: 10px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;">Autenticación Segura</span>
                   <h1 style="color: #ffffff; margin: 4px 0 0; font-size: 20px; font-weight: 800;">Código de Verificación</h1>
@@ -406,7 +409,7 @@ PORTERIA: {
               
               <!-- HEADER INSTITUCIONAL -->
               <tr>
-                <td align="center" bgcolor="#071b34" style="padding: 45px 30px; background: linear-gradient(135deg, #071b34 0%, #0c2d54 100%); border-bottom: 4px solid #0284c7;">
+                <td align="center" bgcolor="#002b49" style="padding: 45px 30px; background: linear-gradient(135deg, #002038 0%, #002b49 55%, #084370 100%); border-bottom: 4px solid #0284c7;">
                   <img src="${logo}" alt="Instituto Tecnológico Beltrán" width="90" height="90" style="display: block; margin-bottom: 20px; outline: none; border: none; border-radius: 16px; background: #ffffff; padding: 6px;">
                   <span style="display: inline-block; padding: 4px 14px; background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 20px; color: #38bdf8; font-size: 10px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px;">Acceso Institucional</span>
                   <h1 style="color: #ffffff; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2;">Bienvenido/a al Equipo</h1>
@@ -491,6 +494,9 @@ PORTERIA: {
                   <p style="margin: 0 0 6px; font-weight: 700; color: #cbd5e1; text-transform: uppercase; letter-spacing: 1px;">
                     Instituto Tecnológico Beltrán
                   </p>
+                  <p style="margin: 0 0 6px; color: #38bdf8; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                    Tecnicatura Superior en Analista de Sistemas
+                  </p>
                   <p style="margin: 0 0 10px; color: #64748b; font-size: 10px;">
                     Av. Manuel Belgrano 1191, Avellaneda, Buenos Aires · Sede Central
                   </p>
@@ -522,7 +528,7 @@ export function generarPlantillaRecuperacionContrasena(nombre: string, enlace: s
       <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#f1f5f9">
         <tr><td align="center" style="padding:40px 15px;">
           <table width="560" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="max-width:560px;border:1px solid #e2e8f0;border-radius:24px;overflow:hidden;box-shadow:0 15px 30px rgba(0,0,0,0.06);">
-            <tr><td bgcolor="#071b34" style="padding:35px;text-align:center;border-bottom:4px solid #0284c7;">
+            <tr><td bgcolor="#002b49" style="padding:35px;text-align:center;border-bottom:4px solid #0284c7;">
               <img src="${logo}" alt="SiGIC" width="60" height="60" style="display:inline-block;border-radius:12px;background:#ffffff;padding:4px;" />
               <p style="margin:12px 0 0;color:#38bdf8;font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;">Acceso Institucional</p>
               <h1 style="margin:4px 0 0;color:#ffffff;font-size:22px;font-weight:800;">Restablecer Contraseña</h1>
@@ -582,7 +588,7 @@ export function generarPlantillaCierreInscripcion(
         <tr><td align="center" style="padding:40px 15px;">
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#ffffff" style="width:100%;max-width:600px;border:1px solid #e2e8f0;border-radius:16px;overflow:hidden;">
             
-            <tr><td bgcolor="#071b34" style="padding:32px 28px;text-align:left;border-bottom:4px solid #38bdf8;">
+            <tr><td bgcolor="#002b49" style="padding:32px 28px;text-align:left;border-bottom:4px solid #38bdf8;">
               <img src="${logo}" alt="SiGIC" width="60" height="60" style="display:inline-block;border-radius:12px;background:#ffffff;padding:4px;" />
               <p style="margin:20px 0 10px;color:#7dd3fc;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;">Portal del graduado / Registro confirmado</p>
               <h1 style="margin:0;color:#ffffff;font-size:30px;line-height:1.2;font-weight:700;">Todo listo para<br>tu próximo paso.</h1>
@@ -732,7 +738,7 @@ export function generarPlantillaCredencialCeremonia({
               
               <!-- HEADER INSTITUCIONAL -->
               <tr>
-                <td bgcolor="#071b34" style="padding: 45px 35px 35px; text-align: center; background: linear-gradient(135deg, #071b34 0%, #0c2d54 100%); border-bottom: 4px solid #0284c7;">
+                <td bgcolor="#002b49" style="padding: 45px 35px 35px; text-align: center; background: linear-gradient(135deg, #002038 0%, #002b49 55%, #084370 100%); border-bottom: 4px solid #0284c7;">
                   <img src="${logo}" alt="SiGIC" width="80" height="80" style="display: inline-block; margin-bottom: 16px; border-radius: 16px; background: #ffffff; padding: 6px;" />
                   <div>
                     <span style="display: inline-block; padding: 5px 16px; background: rgba(56, 189, 248, 0.16); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 20px; color: #38bdf8; font-size: 10px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px;">
@@ -896,7 +902,7 @@ export function generarPlantillaCredencialCeremonia({
                   <!-- SECCIÓN CRUCIAL: PREPARACIÓN E INDICACIONES PARA EL DÍA DEL EVENTO -->
                   <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#f8fafc" style="border: 1px solid #cbd5e1; border-radius: 20px; margin-bottom: 32px; overflow: hidden;">
                     <tr>
-                      <td bgcolor="#071b34" style="padding: 16px 22px; color: #ffffff;">
+                      <td bgcolor="#002b49" style="padding: 16px 22px; color: #ffffff;">
                         <span style="display: block; color: #38bdf8; font-size: 9px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">Guía Oficial</span>
                         <h3 style="margin: 2px 0 0; font-size: 15px; font-weight: 800; color: #ffffff;">
                           Instrucciones y Preparación para el Día del Acto
@@ -1021,7 +1027,7 @@ export function generarPlantillaCredencialCeremonia({
                       <td align="center">
                         <table border="0" cellspacing="0" cellpadding="0">
                           <tr>
-                            <td bgcolor="#071b34" style="border-radius: 12px; border: 1px solid #1e293b;">
+                            <td bgcolor="#002b49" style="border-radius: 12px; border: 1px solid #1e293b;">
                               <a href="${googleWalletUrl}" target="_blank" style="display: inline-block; padding: 12px 28px; color: #ffffff; font-size: 13px; font-weight: 700; text-decoration: none;">
                                 Guardar en Google Wallet
                               </a>
@@ -1050,6 +1056,9 @@ export function generarPlantillaCredencialCeremonia({
                 <td align="center" bgcolor="#0f172a" style="padding: 28px 24px; border-top: 1px solid #1e293b; color: #94a3b8; font-size: 11px; line-height: 1.6;">
                   <p style="margin: 0 0 4px; font-weight: 700; color: #cbd5e1; text-transform: uppercase; letter-spacing: 1px;">
                     Instituto Tecnológico Beltrán
+                  </p>
+                  <p style="margin: 0 0 6px; color: #38bdf8; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">
+                    Tecnicatura Superior en Analista de Sistemas
                   </p>
                   <p style="margin: 0 0 10px; color: #64748b; font-size: 10px;">
                     Av. Manuel Belgrano 1191, Avellaneda, Buenos Aires · Sede Central
