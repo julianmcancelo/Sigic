@@ -378,44 +378,7 @@ export async function GET(
       }, { headers });
     }
 
-    if (path === 'sistema/actualizar' && req.method === 'POST') {
-      const fs = await import('fs');
-      const { exec } = await import('child_process');
-      const body = await req.json().catch(() => ({}));
-      const urlDescarga = body.urlDescarga;
 
-      // Si viene por OTA remota y tenemos URL de descarga
-      if (urlDescarga && typeof urlDescarga === 'string') {
-        try {
-          const respDescarga = await fetch(urlDescarga);
-          if (!respDescarga.ok) {
-            return NextResponse.json({ ok: false, error: 'No se pudo descargar el paquete OTA del servidor' }, { status: 502, headers });
-          }
-          const arrayBuffer = await respDescarga.arrayBuffer();
-          const buffer = Buffer.from(arrayBuffer);
-          fs.writeFileSync('/tmp/sigic-web-bundle.tar.gz', buffer);
-        } catch (downloadErr: any) {
-          return NextResponse.json({ ok: false, error: 'Fallo al descargar la actualización: ' + downloadErr.message }, { status: 500, headers });
-        }
-      }
-
-      // Si estamos en entorno Linux oficial en vivo con script instalador
-      if (process.platform === 'linux' && fs.existsSync('/usr/local/bin/sigic-actualizar')) {
-        exec('sudo /usr/local/bin/sigic-actualizar > /tmp/sigic-update.log 2>&1 &');
-        return NextResponse.json({
-          ok: true,
-          mensaje: 'Actualización en vivo disparada en segundo plano.',
-          paquete: '/usr/local/bin/sigic-actualizar'
-        }, { headers });
-      }
-
-      // Entorno contenedor / desarrollo
-      return NextResponse.json({
-        ok: true,
-        mensaje: 'Paquete de actualización recibido y preparado con éxito.',
-        paquete: urlDescarga ? 'OTA Remota' : 'Local'
-      }, { headers });
-    }
 
     // -------------------------------------------------------------
     // SETUP STATUS
@@ -1623,6 +1586,40 @@ export async function POST(
   }
 
   try {
+    if (path === 'sistema/actualizar') {
+      const fs = await import('fs');
+      const { exec } = await import('child_process');
+      const urlDescarga = body?.urlDescarga;
+
+      if (urlDescarga && typeof urlDescarga === 'string') {
+        try {
+          const respDescarga = await fetch(urlDescarga);
+          if (!respDescarga.ok) {
+            return NextResponse.json({ ok: false, error: 'No se pudo descargar el paquete OTA del servidor' }, { status: 502, headers });
+          }
+          const arrayBuffer = await respDescarga.arrayBuffer();
+          const buffer = Buffer.from(arrayBuffer);
+          fs.writeFileSync('/tmp/sigic-web-bundle.tar.gz', buffer);
+        } catch (downloadErr: any) {
+          return NextResponse.json({ ok: false, error: 'Fallo al descargar la actualización: ' + downloadErr.message }, { status: 500, headers });
+        }
+      }
+
+      if (process.platform === 'linux' && fs.existsSync('/usr/local/bin/sigic-actualizar')) {
+        exec('sudo /usr/local/bin/sigic-actualizar > /tmp/sigic-update.log 2>&1 &');
+        return NextResponse.json({
+          ok: true,
+          mensaje: 'Actualización en vivo disparada en segundo plano.',
+          paquete: '/usr/local/bin/sigic-actualizar'
+        }, { headers });
+      }
+
+      return NextResponse.json({
+        ok: true,
+        mensaje: 'Paquete de actualización recibido y preparado con éxito.',
+        paquete: urlDescarga ? 'OTA Remota' : 'Local'
+      }, { headers });
+    }
 
     // -------------------------------------------------------------
     // CIBERSEGURIDAD: ACTIVACION DE SERIAL ED25519, TOTP, NFC Y WEBAUTHN FIDO2
