@@ -342,7 +342,14 @@ export async function GET(
         rutaArchivoLocal = '/tmp/sigic-web-bundle.tar.gz';
       }
 
-      const versionActual = '0.2.0';
+      let versionActual = '0.3.0';
+      try {
+        const pkgPath = fs.existsSync('/app/package.json') ? '/app/package.json' : path.join(process.cwd(), 'package.json');
+        if (fs.existsSync(pkgPath)) {
+          const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+          if (pkg.version) versionActual = pkg.version;
+        }
+      } catch (_) {}
       let servidorOTA = process.env.SIGIC_UPDATE_SERVER_URL || 'http://host.docker.internal:3005';
       let infoOTA: any = null;
 
@@ -1612,6 +1619,32 @@ export async function POST(
           mensaje: 'Actualización en vivo disparada en segundo plano.',
           paquete: '/usr/local/bin/sigic-actualizar'
         }, { headers });
+      }
+
+      // Si tenemos el paquete en /tmp (descarga OTA o subida local), extraer directamente en /app y reiniciar contenedor
+      const rutaPaqueteTmp = '/tmp/sigic-web-bundle.tar.gz';
+      if (fs.existsSync(rutaPaqueteTmp)) {
+        try {
+          const destinoApp = fs.existsSync('/app/package.json') ? '/app' : process.cwd();
+          exec(`tar -xzf ${rutaPaqueteTmp} -C ${destinoApp}`, (errorExtract) => {
+            if (errorExtract) {
+              console.error('[OTA] Error al descomprimir actualización:', errorExtract);
+              return;
+            }
+            console.log('[OTA] Actualización extraída correctamente en ' + destinoApp + '. Reiniciando contenedor...');
+            setTimeout(() => {
+              process.exit(0);
+            }, 1200);
+          });
+
+          return NextResponse.json({
+            ok: true,
+            mensaje: 'Actualización aplicada con éxito. La plataforma se reiniciará en 2 segundos.',
+            paquete: urlDescarga ? 'OTA Remota' : 'Local'
+          }, { headers });
+        } catch (extErr: any) {
+          return NextResponse.json({ ok: false, error: 'Error al aplicar actualización: ' + extErr.message }, { status: 500, headers });
+        }
       }
 
       return NextResponse.json({

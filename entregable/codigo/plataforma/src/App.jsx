@@ -1534,7 +1534,7 @@ function App() {
             { id: 'manual-usuario', titulo: 'Manual Oficial', icono: BookOpen, color: 'bg-sky-600' },
             { id: 'actualizar-sigic', titulo: 'Actualizar SiGIC', icono: ArrowUpCircle, color: 'bg-emerald-600' },
             { id: 'acerca-de', titulo: 'Acerca de SiGIC', icono: Info, color: 'bg-indigo-600' },
-            { id: 'landing-page', titulo: 'Portal Institucional Colación', icono: Sparkles, color: 'bg-cyan-500' },
+            
           ]}
           usuario={adminUser}
           ceremonia={ceremoniaActiva}
@@ -1664,7 +1664,7 @@ function EscritorioSIGIC({ children, pantallaActual, onNavegar, usuario, onCerra
     { id: 'seleccion-asientos', titulo: 'Anfiteatro', icono: MapPin, color: 'bg-orange-500', escritorio: false },
     { id: 'manual-usuario', titulo: 'Manual Oficial', icono: BookOpen, color: 'bg-sky-600', escritorio: true },
     { id: 'actualizar-sigic', titulo: 'Actualizar SiGIC', icono: ArrowUpCircle, color: 'bg-emerald-600', escritorio: true },
-    { id: 'landing-page', titulo: 'Landing Evento', icono: Sparkles, color: 'bg-cyan-500', escritorio: true },
+    
     { id: 'acerca-de', titulo: 'Acerca de SiGIC', icono: Info, color: 'bg-indigo-600', escritorio: true },
     { id: 'cambiar-dashboard', titulo: 'Dashboard Web', icono: LayoutDashboard, color: 'bg-sky-600', escritorio: true },
     ...(modoDemo ? [{ id: 'operaciones-demo', titulo: 'Operaciones', icono: ClipboardCheck, color: 'bg-slate-500', escritorio: false }] : []),
