@@ -27,6 +27,7 @@ import { PantallaSeleccionLogin } from './paginas/PantallaSeleccionLogin'
 import { AsistenteSetup } from './paginas/AsistenteSetup'
 import { PantallaAceptacion } from './paginas/PantallaAceptacion'
 import { ManualUsuarioWeb } from './paginas/ManualUsuarioWeb'
+import { PaginaActualizadorSistema } from './paginas/PaginaActualizadorSistema'
 import { LandingInstitucionalBeltran as LandingPageNerdearlaStyle } from './paginas/LandingInstitucionalBeltran'
 import { PantallaBienvenidaPro, TITULOS_PANTALLAS } from './paginas/operacion/PantallaBienvenidaPro'
 import { HeaderGlobal } from './componentes/HeaderGlobal'
@@ -1313,6 +1314,13 @@ function App() {
             </div>
           )
         }
+      } else if (pantallaAdmin === 'actualizar-sigic') {
+        contenido = (
+          <PaginaActualizadorSistema
+            onVolver={() => setPantallaAdmin('bienvenida')}
+            usuario={adminUser}
+          />
+        )
       } else if (pantallaAdmin === 'manual-usuario') {
         contenido = (
           <ManualUsuarioWeb
@@ -1544,7 +1552,7 @@ function App() {
             if (id === 'cambiar-dashboard') {
               cambiarEstiloInterfaz('dashboard')
             } else if (id === 'actualizar-sigic') {
-              setMostrarModalActualizar(true)
+              setPantallaAdmin('actualizar-sigic')
             } else if (id === 'acerca-de') {
               setMostrarModalAcercaDeGlobal(true)
             } else {

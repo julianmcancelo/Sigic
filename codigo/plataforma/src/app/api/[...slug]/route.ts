@@ -321,75 +321,113 @@ export async function GET(
     // -------------------------------------------------------------
     if (path === 'sistema/actualizacion') {
       const fs = await import('fs');
-      const bundleEnTmp = fs.existsSync('/tmp/sigic-web-bundle.tar.gz');
-      const bundleEnMnt = fs.existsSync('/mnt/sigic-web-bundle.tar.gz');
-      const bundleEnUsb = fs.existsSync('/media/sigic/SIGIC_UPDATE/sigic-web-bundle.tar.gz');
-      const bundleEnHost = fs.existsSync('/mnt/sigic_host/sigic-web-bundle.tar.gz');
+      const { execSync } = await import('child_process');
 
-      let fuenteDetectada: string | null = null;
-      let rutaArchivoLocal: string | null = null;
-      if (bundleEnUsb) {
-        fuenteDetectada = 'USB (/media/sigic/SIGIC_UPDATE)';
-        rutaArchivoLocal = '/media/sigic/SIGIC_UPDATE/sigic-web-bundle.tar.gz';
-      } else if (bundleEnHost) {
-        fuenteDetectada = 'Carpeta Compartida Host (/mnt/sigic_host)';
-        rutaArchivoLocal = '/mnt/sigic_host/sigic-web-bundle.tar.gz';
-      } else if (bundleEnMnt) {
-        fuenteDetectada = 'Carpeta /mnt';
-        rutaArchivoLocal = '/mnt/sigic-web-bundle.tar.gz';
-      } else if (bundleEnTmp) {
-        fuenteDetectada = 'Caché local /tmp';
-        rutaArchivoLocal = '/tmp/sigic-web-bundle.tar.gz';
-      }
-
-      let versionActual = '0.3.0';
+      // 1. Obtener versión real actualmente instalada en el sistema (dinámica desde package.json)
+      let versionActual = '0.3.3';
       try {
         const pkgPath = fs.existsSync('/app/package.json') ? '/app/package.json' : path.join(process.cwd(), 'package.json');
         if (fs.existsSync(pkgPath)) {
           const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-          if (pkg.version) versionActual = pkg.version;
+          if (pkg.version) versionActual = String(pkg.version).trim();
         }
       } catch (_) {}
-      let servidorOTA = process.env.SIGIC_UPDATE_SERVER_URL || 'http://host.docker.internal:3005';
+
+      // 2. Comparador semver dinámico y estricto (retorna true SOLO si vNueva > vActual)
+      function esVersionEstrictamenteMayor(vNueva: string, vActual: string): boolean {
+        if (!vNueva || !vActual) return false;
+        const norm = (v: string) => v.replace(/^v/i, '').trim();
+        const pNueva = norm(vNueva).split('.').map(n => parseInt(n, 10) || 0);
+        const pActual = norm(vActual).split('.').map(n => parseInt(n, 10) || 0);
+        const maxLen = Math.max(pNueva.length, pActual.length);
+        for (let i = 0; i < maxLen; i++) {
+          const n = pNueva[i] || 0;
+          const a = pActual[i] || 0;
+          if (n > a) return true;
+          if (n < a) return false;
+        }
+        return false;
+      }
+
+      // 3. Comprobar paquetes físicos montados en disco (USB / carpeta host / mnt)
+      const bundleEnUsb = fs.existsSync('/media/sigic/SIGIC_UPDATE/sigic-web-bundle.tar.gz');
+      const bundleEnHost = fs.existsSync('/mnt/sigic_host/sigic-web-bundle.tar.gz');
+      const bundleEnMnt = fs.existsSync('/mnt/sigic-web-bundle.tar.gz');
+
+      let fuenteFisica: string | null = null;
+      let rutaFisica: string | null = null;
+      if (bundleEnUsb) {
+        fuenteFisica = 'Dispositivo USB (/media/sigic/SIGIC_UPDATE)';
+        rutaFisica = '/media/sigic/SIGIC_UPDATE/sigic-web-bundle.tar.gz';
+      } else if (bundleEnHost) {
+        fuenteFisica = 'Carpeta Compartida Host (/mnt/sigic_host)';
+        rutaFisica = '/mnt/sigic_host/sigic-web-bundle.tar.gz';
+      } else if (bundleEnMnt) {
+        fuenteFisica = 'Carpeta /mnt';
+        rutaFisica = '/mnt/sigic-web-bundle.tar.gz';
+      }
+
+      let versionPaqueteFisico: string | null = null;
+      if (rutaFisica) {
+        try {
+          const rawPkg = execSync(`tar -xOf ${rutaFisica} package.json 2>/dev/null || true`).toString().trim();
+          if (rawPkg) {
+            const parsed = JSON.parse(rawPkg);
+            if (parsed.version) versionPaqueteFisico = String(parsed.version).trim();
+          }
+        } catch (_) {}
+      }
+
+      // 4. Consultar Servidor de Actualizaciones Remoto (OTA)
+      const servidorOTA = process.env.SIGIC_UPDATE_SERVER_URL || 'http://host.docker.internal:3005';
       let infoOTA: any = null;
 
       try {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 2500);
-        const res = await fetch(`${servidorOTA}/api/actualizaciones/check?proyecto=sigic&versionActual=${versionActual}`, {
+        const timeout = setTimeout(() => controller.abort(), 2000);
+        const res = await fetch(`${servidorOTA}/api/actualizaciones/check?proyecto=sigic&versionActual=${encodeURIComponent(versionActual)}`, {
           signal: controller.signal
         });
         clearTimeout(timeout);
         if (res.ok) {
           infoOTA = await res.json();
         }
-      } catch (err) {
+      } catch (_) {
         // Servidor OTA no disponible en este momento
       }
 
-      const hayActualizacionRemota = Boolean(infoOTA && infoOTA.actualizacionDisponible);
-      const hayActualizacionLocal = Boolean(fuenteDetectada);
+      const versionRemota = infoOTA?.ultimaVersion ? String(infoOTA.ultimaVersion).trim() : null;
+      const hayActualizacionRemota = Boolean(versionRemota && esVersionEstrictamenteMayor(versionRemota, versionActual));
+      const hayActualizacionFisica = Boolean(versionPaqueteFisico && esVersionEstrictamenteMayor(versionPaqueteFisico, versionActual));
+
+      const actualizacionDisponible = hayActualizacionRemota || hayActualizacionFisica;
+      const nuevaVersion = hayActualizacionRemota 
+        ? versionRemota! 
+        : (hayActualizacionFisica ? versionPaqueteFisico! : versionActual);
+
+      const fuente = hayActualizacionRemota
+        ? 'Servidor Oficial OTA'
+        : (hayActualizacionFisica ? fuenteFisica : null);
+
+      const canal = hayActualizacionRemota
+        ? 'OTA Remoto'
+        : (hayActualizacionFisica ? 'Paquete Físico / USB' : 'Al día');
 
       return NextResponse.json({
         ok: true,
-        actualizacionDisponible: hayActualizacionLocal || hayActualizacionRemota,
+        actualizacionDisponible,
         versionActual,
-        nuevaVersion: hayActualizacionRemota ? infoOTA.ultimaVersion : (hayActualizacionLocal ? '0.2.1-local' : versionActual),
-        fuente: hayActualizacionLocal ? fuenteDetectada : (hayActualizacionRemota ? 'Servidor de Actualizaciones Oficial (Nube/OTA)' : null),
-        canal: hayActualizacionRemota ? 'OTA Remoto' : (hayActualizacionLocal ? 'Paquete Local/USB' : 'Al día'),
-        notas: infoOTA?.notas || ['Mejoras de rendimiento y seguridad', 'Optimización de interfaz visual', 'Sincronización de base de datos'],
+        nuevaVersion,
+        fuente,
+        canal,
+        notas: infoOTA?.notas || (hayActualizacionFisica ? ['Paquete físico listo para aplicar.'] : ['Tu sistema SiGIC está al día con la última versión oficial.']),
         urlDescarga: infoOTA?.urlDescarga || null,
+        servidorOTA,
         requiereReinicio: true,
         plataforma: process.platform,
         modoEnVivo: process.platform === 'linux' && fs.existsSync('/usr/local/bin/sigic-actualizar')
       }, { headers });
     }
-
-
-
-    // -------------------------------------------------------------
-    // SETUP STATUS
-    // -------------------------------------------------------------
     if (path === 'setup/status') {
       const cached = obtenerCache('setup:status');
       if (cached) return NextResponse.json(cached, { headers });
