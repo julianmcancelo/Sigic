@@ -62,7 +62,7 @@ export const MenuInicio = forwardRef(function MenuInicio({
     { id: 'todos', label: 'Todo' },
     { id: 'organizacion', label: 'Organización', apps: ['gestion-ceremonias', 'gestion-graduados', 'convocatoria', 'preparacion-ceremonia', 'despacho-credenciales', 'seleccion-asientos'] },
     { id: 'evento', label: 'En el Acto', apps: ['control-ingreso', 'estado-ceremonia', 'panel-reportes'] },
-    { id: 'sistema', label: 'Ajustes', apps: ['gestion-profesores', 'gestion-porteria', 'ajustes', 'actualizar-sigic', 'manual-usuario'] },
+    { id: 'sistema', label: 'Ajustes', apps: ['gestion-profesores', 'gestion-porteria', 'ajustes', 'actualizar-sigic', 'manual-usuario', 'acerca-de'] },
   ]
 
   let listaFiltrada = disponibles

@@ -254,6 +254,7 @@ function App() {
   const [ceremoniaActiva, setCeremoniaActiva] = useState(null)
   const [menuInicioGlobalAbierto, setMenuInicioGlobalAbierto] = useState(false)
   const [mostrarModalActualizar, setMostrarModalActualizar] = useState(false)
+  const [mostrarModalAcercaDeGlobal, setMostrarModalAcercaDeGlobal] = useState(false)
 
   // Escuchar eventos globales de Ctrl+K y apertura de menú en cualquier pantalla
   useEffect(() => {
@@ -1544,6 +1545,8 @@ function App() {
               cambiarEstiloInterfaz('dashboard')
             } else if (id === 'actualizar-sigic') {
               setMostrarModalActualizar(true)
+            } else if (id === 'acerca-de') {
+              setMostrarModalAcercaDeGlobal(true)
             } else {
               setPantallaAdmin(id)
             }
@@ -1563,6 +1566,16 @@ function App() {
         <ModalActualizarSigic
           abierto={mostrarModalActualizar}
           onCerrar={() => setMostrarModalActualizar(false)}
+        />
+      )}
+      {mostrarModalAcercaDeGlobal && (
+        <ModalAcercaDe
+          abierto={mostrarModalAcercaDeGlobal}
+          onCerrar={() => setMostrarModalAcercaDeGlobal(false)}
+          onAbrirManual={() => {
+            setMostrarModalAcercaDeGlobal(false)
+            setPantallaAdmin('manual-usuario')
+          }}
         />
       )}
     </>

@@ -1,6 +1,6 @@
 {
   "name": "plataforma",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "private": true,
   "scripts": {
     "test:security": "node --test tests/seguridad.test.cjs",
