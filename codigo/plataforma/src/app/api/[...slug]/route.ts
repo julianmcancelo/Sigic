@@ -2255,55 +2255,7 @@ export async function POST(
       }, { headers });
     }
 
-    // -------------------------------------------------------------
-    // DISPARAR ACTUALIZACION DINAMICA
-    // -------------------------------------------------------------
-    if (path === 'sistema/actualizar') {
-      const fs = await import('fs');
-      const { exec } = await import('child_process');
 
-      if (process.platform !== 'linux') {
-        return NextResponse.json({
-          ok: true,
-          simulado: true,
-          mensaje: 'Simulación de actualización en entorno de desarrollo host (Windows).'
-        }, { headers });
-      }
-
-      const script = '/usr/local/bin/sigic-actualizar';
-      if (!fs.existsSync(script)) {
-        return NextResponse.json({
-          ok: false,
-          error: 'El script de actualización del sistema no se encuentra instalado en la ruta oficial.'
-        }, { status: 400, headers });
-      }
-
-      // Ejecutar en segundo plano desacoplado para permitir el reinicio de servicios
-      let archivoBundle = '';
-      if (fs.existsSync('/media/sigic/SIGIC_UPDATE/sigic-web-bundle.tar.gz')) {
-        archivoBundle = '/media/sigic/SIGIC_UPDATE/sigic-web-bundle.tar.gz';
-      } else if (fs.existsSync('/mnt/sigic_host/sigic-web-bundle.tar.gz')) {
-        archivoBundle = '/mnt/sigic_host/sigic-web-bundle.tar.gz';
-      } else if (fs.existsSync('/mnt/sigic-web-bundle.tar.gz')) {
-        archivoBundle = '/mnt/sigic-web-bundle.tar.gz';
-      } else if (fs.existsSync('/tmp/sigic-web-bundle.tar.gz')) {
-        archivoBundle = '/tmp/sigic-web-bundle.tar.gz';
-      }
-
-      const comando = archivoBundle 
-        ? `nohup sudo ${script} "${archivoBundle}" > /tmp/sigic-update.log 2>&1 &` 
-        : `nohup sudo ${script} > /tmp/sigic-update.log 2>&1 &`;
-
-      exec(comando, (err) => {
-        if (err) console.error('Error al lanzar sigic-actualizar:', err);
-      });
-
-      return NextResponse.json({
-        ok: true,
-        mensaje: 'Actualización dinámica iniciada en segundo plano con éxito.',
-        paquete: archivoBundle || 'Descarga remota / Red'
-      }, { headers });
-    }
 
     if (path === 'dispositivos/registrar') {
       const auth = await obtenerUsuarioAutenticado(req, ROLES_LECTURA);
