@@ -978,7 +978,7 @@ export async function consultarActualizacionSistema() {
   }
 }
 
-export async function ejecutarActualizacionSistema(payload?: { urlDescarga?: string | null }) {
+export async function ejecutarActualizacionSistema(payload?: { urlDescarga?: string | null; archivoBase64?: string | null; nombreArchivo?: string | null }) {
   const res = await fetch(`${BASE_CLASSIC}/sistema/actualizar`, {
     method: 'POST',
     headers: cabeceras(),

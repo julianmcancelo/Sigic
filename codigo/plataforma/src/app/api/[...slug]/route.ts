@@ -1597,7 +1597,47 @@ export async function POST(
       const fs = await import('fs');
       const { exec } = await import('child_process');
       const urlDescarga = body?.urlDescarga;
+      const archivoBase64 = body?.archivoBase64;
+      const nombreArchivo = String(body?.nombreArchivo || '').toLowerCase();
 
+      // Caso 1: Archivo subido manualmente en Base64 (.zip, .tar.gz, .tgz, .rar)
+      if (archivoBase64 && typeof archivoBase64 === 'string') {
+        try {
+          const rawBase64 = archivoBase64.includes(',') ? archivoBase64.split(',')[1] : archivoBase64;
+          const buffer = Buffer.from(rawBase64, 'base64');
+          const esZip = nombreArchivo.endsWith('.zip') || buffer.slice(0, 4).toString('hex') === '504b0304';
+          const rutaDestinoTemp = esZip ? '/tmp/sigic-update.zip' : '/tmp/sigic-web-bundle.tar.gz';
+
+          fs.writeFileSync(rutaDestinoTemp, buffer);
+          console.log('[OTA] Archivo subido guardado en ' + rutaDestinoTemp + ' (' + buffer.length + ' bytes)');
+
+          const destinoApp = fs.existsSync('/app/package.json') ? '/app' : process.cwd();
+          const comandoExtraccion = esZip
+            ? `unzip -o ${rutaDestinoTemp} -d ${destinoApp}`
+            : `tar -xzf ${rutaDestinoTemp} -C ${destinoApp}`;
+
+          exec(comandoExtraccion, (errorExtract) => {
+            if (errorExtract) {
+              console.error('[OTA] Error al descomprimir archivo local:', errorExtract);
+              return;
+            }
+            console.log('[OTA] Paquete local extraído en ' + destinoApp + '. Reiniciando contenedor...');
+            setTimeout(() => {
+              process.exit(0);
+            }, 1200);
+          });
+
+          return NextResponse.json({
+            ok: true,
+            mensaje: 'Paquete local (' + (nombreArchivo || 'archivo') + ') instalado correctamente. Reiniciando plataforma en 2 segundos...',
+            paquete: 'Subida Directa Local'
+          }, { headers });
+        } catch (uploadErr: any) {
+          return NextResponse.json({ ok: false, error: 'Fallo al procesar el archivo subido: ' + uploadErr.message }, { status: 500, headers });
+        }
+      }
+
+      // Caso 2: Descarga remota OTA por URL (desde servidor oficial o URL personalizada)
       if (urlDescarga && typeof urlDescarga === 'string') {
         try {
           const respDescarga = await fetch(urlDescarga);
@@ -1606,12 +1646,38 @@ export async function POST(
           }
           const arrayBuffer = await respDescarga.arrayBuffer();
           const buffer = Buffer.from(arrayBuffer);
-          fs.writeFileSync('/tmp/sigic-web-bundle.tar.gz', buffer);
+          const esZip = urlDescarga.endsWith('.zip') || buffer.slice(0, 4).toString('hex') === '504b0304';
+          const rutaDestinoTemp = esZip ? '/tmp/sigic-update.zip' : '/tmp/sigic-web-bundle.tar.gz';
+
+          fs.writeFileSync(rutaDestinoTemp, buffer);
+
+          const destinoApp = fs.existsSync('/app/package.json') ? '/app' : process.cwd();
+          const comandoExtraccion = esZip
+            ? `unzip -o ${rutaDestinoTemp} -d ${destinoApp}`
+            : `tar -xzf ${rutaDestinoTemp} -C ${destinoApp}`;
+
+          exec(comandoExtraccion, (errorExtract) => {
+            if (errorExtract) {
+              console.error('[OTA] Error al descomprimir actualización OTA:', errorExtract);
+              return;
+            }
+            console.log('[OTA] Actualización OTA extraída correctamente en ' + destinoApp + '. Reiniciando contenedor...');
+            setTimeout(() => {
+              process.exit(0);
+            }, 1200);
+          });
+
+          return NextResponse.json({
+            ok: true,
+            mensaje: 'Actualización descargada y aplicada con éxito. La plataforma se reiniciará en 2 segundos.',
+            paquete: 'OTA Remota'
+          }, { headers });
         } catch (downloadErr: any) {
           return NextResponse.json({ ok: false, error: 'Fallo al descargar la actualización: ' + downloadErr.message }, { status: 500, headers });
         }
       }
 
+      // Caso 3: Script Linux de instalación física
       if (process.platform === 'linux' && fs.existsSync('/usr/local/bin/sigic-actualizar')) {
         exec('sudo /usr/local/bin/sigic-actualizar > /tmp/sigic-update.log 2>&1 &');
         return NextResponse.json({
@@ -1621,17 +1687,19 @@ export async function POST(
         }, { headers });
       }
 
-      // Si tenemos el paquete en /tmp (descarga OTA o subida local), extraer directamente en /app y reiniciar contenedor
-      const rutaPaqueteTmp = '/tmp/sigic-web-bundle.tar.gz';
+      // Caso 4: Paquete ya presente en disco /tmp
+      const rutaPaqueteTmp = fs.existsSync('/tmp/sigic-update.zip') ? '/tmp/sigic-update.zip' : '/tmp/sigic-web-bundle.tar.gz';
       if (fs.existsSync(rutaPaqueteTmp)) {
         try {
           const destinoApp = fs.existsSync('/app/package.json') ? '/app' : process.cwd();
-          exec(`tar -xzf ${rutaPaqueteTmp} -C ${destinoApp}`, (errorExtract) => {
+          const esZip = rutaPaqueteTmp.endsWith('.zip');
+          const cmd = esZip ? `unzip -o ${rutaPaqueteTmp} -d ${destinoApp}` : `tar -xzf ${rutaPaqueteTmp} -C ${destinoApp}`;
+          exec(cmd, (errorExtract) => {
             if (errorExtract) {
               console.error('[OTA] Error al descomprimir actualización:', errorExtract);
               return;
             }
-            console.log('[OTA] Actualización extraída correctamente en ' + destinoApp + '. Reiniciando contenedor...');
+            console.log('[OTA] Paquete en disco aplicado en ' + destinoApp + '. Reiniciando contenedor...');
             setTimeout(() => {
               process.exit(0);
             }, 1200);
@@ -1640,7 +1708,7 @@ export async function POST(
           return NextResponse.json({
             ok: true,
             mensaje: 'Actualización aplicada con éxito. La plataforma se reiniciará en 2 segundos.',
-            paquete: urlDescarga ? 'OTA Remota' : 'Local'
+            paquete: 'Local'
           }, { headers });
         } catch (extErr: any) {
           return NextResponse.json({ ok: false, error: 'Error al aplicar actualización: ' + extErr.message }, { status: 500, headers });
@@ -1650,7 +1718,7 @@ export async function POST(
       return NextResponse.json({
         ok: true,
         mensaje: 'Paquete de actualización recibido y preparado con éxito.',
-        paquete: urlDescarga ? 'OTA Remota' : 'Local'
+        paquete: 'Local'
       }, { headers });
     }
 
