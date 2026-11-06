@@ -41,7 +41,8 @@ const directivaCsp = [
   directivaScripts,
   "connect-src 'self' https: http: ws: wss:",
   "form-action 'self'",
-  ...(esProduccion ? ["upgrade-insecure-requests"] : []),
+  // upgrade-insecure-requests desactivado para permitir despliegues HTTP locales y Docker
+  ...(process.env.VERCEL ? ["upgrade-insecure-requests"] : []),
 ].join('; ');
 
 const nextConfig: NextConfig = {

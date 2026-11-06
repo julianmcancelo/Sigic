@@ -32,6 +32,7 @@ import { LandingInstitucionalBeltran as LandingPageNerdearlaStyle } from './pagi
 import { PantallaBienvenidaPro, TITULOS_PANTALLAS } from './paginas/operacion/PantallaBienvenidaPro'
 import { HeaderGlobal } from './componentes/HeaderGlobal'
 import { CircuitoOperativoPasosCompacto } from './componentes/CircuitoOperativoPasosCompacto'
+import { SugerenciaFlotantePaso } from './componentes/SugerenciaFlotantePaso'
 import { PanelReportes } from './paginas/operacion/PanelReportes'
 import { GestionPorteria } from './paginas/operacion/GestionPorteria'
 import { CentroControl } from './paginas/operacion/CentroControl'
@@ -255,6 +256,7 @@ function App() {
   const [ceremoniaActiva, setCeremoniaActiva] = useState(null)
   const [menuInicioGlobalAbierto, setMenuInicioGlobalAbierto] = useState(false)
   const [mostrarModalActualizar, setMostrarModalActualizar] = useState(false)
+  const [mostrarModalLoginActualizacion, setMostrarModalLoginActualizacion] = useState(false)
   const [mostrarModalAcercaDeGlobal, setMostrarModalAcercaDeGlobal] = useState(false)
 
   // Escuchar eventos globales de Ctrl+K y apertura de menú en cualquier pantalla
@@ -266,11 +268,20 @@ function App() {
       }
     }
     const handleAbrirMenu = () => setMenuInicioGlobalAbierto(abierto => !abierto)
+    const handleSolicitarActualizador = () => {
+      if (adminActivoRef.current || localStorage.getItem('sesion_admin') === 'true') {
+        setMostrarModalActualizar(true)
+      } else {
+        setMostrarModalLoginActualizacion(true)
+      }
+    }
+    window.addEventListener('sigic-solicitar-actualizador', handleSolicitarActualizador)
     window.addEventListener('keydown', handleKeyDown)
     window.addEventListener('sigic-abrir-menu', handleAbrirMenu)
     return () => {
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('sigic-abrir-menu', handleAbrirMenu)
+      window.removeEventListener('sigic-solicitar-actualizador', handleSolicitarActualizador)
     }
   }, [])
 
@@ -912,13 +923,13 @@ function App() {
     // En modo preview de admin, preservamos el JWT real del administrador para que las
     // llamadas de gestión (ej. GET /api/egresados) sigan autenticándose correctamente.
     const tokenActual = obtenerTokenSesion()
-    if (esPreview && tokenActual && !tokenActual.startsWith('bypass-')) {
-      // Preservar el JWT real del admin para no perder la sesión de gestión
-      if (typeof window !== 'undefined') {
-        if (!sessionStorage.getItem('sigic_admin_token_backup')) {
+    if (esPreview) {
+      if (tokenActual && !tokenActual.startsWith('bypass-')) {
+        if (typeof window !== 'undefined' && !sessionStorage.getItem('sigic_admin_token_backup')) {
           sessionStorage.setItem('sigic_admin_token_backup', tokenActual)
         }
       }
+      guardarTokenSesion(`bypass-egresado-${datos.id}`)
     } else if (!tokenActual || tokenActual.startsWith('bypass-')) {
       guardarTokenSesion(`bypass-egresado-${datos.id}`)
     }
@@ -1514,6 +1525,16 @@ function App() {
       {contenidoDeEscritorio}
       {modoDemoActivo && <MarcaAguaDemo />}
 
+      {/* Asistente Flotante Inteligente entre Pasos Administrativos */}
+      {adminActivo && pantallaAdmin && pantallaAdmin !== 'bienvenida' && (
+        <SugerenciaFlotantePaso
+          vistaActual={pantallaAdmin}
+          onNavegar={setPantallaAdmin}
+          ceremonia={ceremoniaActiva}
+          segundosEspera={12}
+        />
+      )}
+
       {/* Orquestador de Piloto Automático y Showcase en Vivo */}
       {demoAutomaticaActiva && (
         <GuiaDemostracionAutomatica
@@ -1575,6 +1596,37 @@ function App() {
           abierto={mostrarModalActualizar}
           onCerrar={() => setMostrarModalActualizar(false)}
         />
+      )}
+      {mostrarModalLoginActualizacion && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm p-4 animate-in fade-in">
+          <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden p-6 sm:p-8">
+            <div className="flex items-center justify-between pb-4 border-b border-slate-150 mb-5">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 bg-sky-50 text-sky-600 rounded-xl font-bold text-xs">
+                  SiGIC
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900 leading-tight">Acceso de Administrador Requerido</h3>
+                  <p className="text-[11px] text-slate-500">Iniciá sesión para gestionar o actualizar el sistema</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMostrarModalLoginActualizacion(false)}
+                className="text-slate-400 hover:text-slate-700 text-sm font-bold p-1 rounded-lg cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+            <FormularioInicioSesion
+              onInicioSesionExitoso={(usuario) => {
+                manejarLoginAdminExitoso(usuario)
+                setMostrarModalLoginActualizacion(false)
+                setMostrarModalActualizar(true)
+              }}
+            />
+          </div>
+        </div>
       )}
       {mostrarModalAcercaDeGlobal && (
         <ModalAcercaDe

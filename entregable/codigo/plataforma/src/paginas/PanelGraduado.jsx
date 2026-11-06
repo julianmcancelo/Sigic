@@ -424,9 +424,9 @@ export function PanelGraduado({ graduadoSesion, onCerrarSesion, pestanaForzada }
             </div>
           </div>
 
-          {/* Progreso de 3 etapas */}
+          {/* Progreso de 4 etapas */}
           <div className="mt-6 border-t border-white/10 pt-5">
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               {etapasPortal.map((etapa, idx) => (
                 <div key={etapa.etiqueta} className="flex items-center gap-2">
                   <span className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-[10px] font-black ${etapa.completada ? 'bg-emerald-500 text-white' : 'bg-white/10 text-white/60'}`}>

@@ -37,6 +37,9 @@ services:
       - DATABASE_URL=postgresql://sigic_admin:sigic_password_segura_2026@sigic-db:5432/sigic_db?sslmode=disable
       - JWT_SECRET=sigic_jwt_secret_beltran_institucional_2026_academico
       - NEXT_PUBLIC_APP_URL=http://localhost:3000
+      - RESEND_API_KEY=re_FdvGQaHH_2Z3hMWbTPNYw2xnZ31yoCEpB
+      - EMAIL_FROM=SiGIC <notificaciones@sigic.com.ar>
+      - SMTP_FROM=SiGIC <notificaciones@sigic.com.ar>
     depends_on:
       sigic-db:
         condition: service_healthy

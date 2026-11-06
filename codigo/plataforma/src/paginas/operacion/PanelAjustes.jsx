@@ -3,7 +3,7 @@ import {
   Settings, Save, RefreshCw, Building2, Users, MapPin, 
   Globe, Shield, ChevronRight, LogOut, LayoutGrid, Monitor, SlidersHorizontal,
   Fingerprint, CheckCircle2, Mail, Send, CircleCheck, CircleAlert,
-  Palette, Check, Grid, Layers, Sparkles, GraduationCap, BookOpen, Plus, Trash2, Edit3, Award, X, Armchair
+  Palette, Check, Grid, Layers, Sparkles, GraduationCap, BookOpen, Plus, Trash2, Edit3, Award, X, Armchair, Phone
 } from 'lucide-react'
 import { 
   obtenerAjustes, actualizarAjuste, enviarCorreoPrueba,
@@ -479,9 +479,17 @@ export function PanelAjustes({ usuario, onVolver, onCerrarSesion, onNavegar, cer
           {/* SECCIÓN 3: IDENTIDAD INSTITUCIONAL */}
           {seccionActiva === 'identidad' && (
             <section className="space-y-2.5">
-              <span className="text-[9px] font-black uppercase tracking-wider text-slate-400 ml-1">Presentación Oficial</span>
+              <div className="flex items-center justify-between ml-1">
+                <span className="text-[9px] font-black uppercase tracking-wider text-slate-400">Identidad y Datos de Contacto</span>
+                <span className="text-[9px] font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full">Formalidad Institucional</span>
+              </div>
               <div className="grid gap-2">
-                {renderFilaCompacta('nombre_institucion', 'Nombre institucional', <Building2 size={16} />, 'Utilizado en credenciales, certificados y encabezados oficiales.')}
+                {renderFilaCompacta('nombre_institucion', 'Nombre Institucional', <Building2 size={16} />, 'Nombre oficial utilizado en credenciales, certificados y membretes oficiales.')}
+                {renderFilaCompacta('sigla_institucion', 'Sigla / Acrónimo', <Globe size={16} />, 'Acrónimo corto institucional (ej: ITB).')}
+                {renderFilaCompacta('direccion_institucion', 'Dirección o Sede Central', <MapPin size={16} />, 'Dirección física mostrada en notificaciones y credenciales de acceso.')}
+                {renderFilaCompacta('contacto_email_institucion', 'Correo Institucional', <Mail size={16} />, 'Email de referencia para consultas de egresados y familias.')}
+                {renderFilaCompacta('contacto_telefono_institucion', 'Teléfono / Mesa de Ayuda', <Phone size={16} />, 'Línea de contacto para soporte protocolar y consultas telefónicas.')}
+                {renderFilaCompacta('carrera_principal', 'Carrera Institucional Oficial', <GraduationCap size={16} />, 'Carrera oficial principal de la institución.')}
               </div>
             </section>
           )}

@@ -299,6 +299,11 @@ async function ejecutarInicializacion() {
       INSERT INTO configuracion_sistema (clave, valor, descripcion) VALUES
         ('max_invitados_por_egresado','4','Máximo de acompañantes por egresado'),
         ('nombre_institucion','Instituto Tecnológico Beltrán','Institución organizadora'),
+        ('sigla_institucion','ITB','Acrónimo o sigla oficial'),
+        ('direccion_institucion','Av. Manuel Belgrano 1191, Avellaneda','Dirección o campus institucional'),
+        ('contacto_email_institucion','colaciones@ibeltran.com.ar','Correo institucional de contacto'),
+        ('contacto_telefono_institucion','+54 11 4265-0200','Teléfono o mesa de ayuda'),
+        ('carrera_principal','Tecnicatura Superior en Analista de Sistemas','Carrera institucional oficial'),
         ('portal_egresado_activo','true','Acceso público del egresado'),
         ('registro_invitados_activo','true','Registro de invitados'),
         ('setup_inicial_completado','0','Estado del asistente inicial')

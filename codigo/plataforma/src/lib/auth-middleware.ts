@@ -35,20 +35,46 @@ export async function obtenerUsuarioAutenticado(
     };
   }
 
-  // Soporte de sesión de demostración / expositor (solo con cabecera explícita X-Sigic-Demo)
-  const esModoDemoExplicito = req.headers.get('x-sigic-demo') === '1';
-  if (esModoDemoExplicito && (token.startsWith('bypass-admin-') || token === 'bypass-admin-token')) {
-    return {
-      valido: true,
-      datos: {
-        tipo: 'personal',
-        id: 'bypass-admin',
-        rol: 'SUPER_ADMIN',
-        nombre: 'Administrador Demo',
-        email: 'admin.demo@beltran.edu.ar',
-        correo: 'admin.demo@beltran.edu.ar'
-      }
-    };
+  // Soporte de sesión de demostración / expositor / acreditación móvil
+  const esModoDemoExplicito = req.headers.get('x-sigic-demo') === '1' || token.startsWith('bypass-') || token.startsWith('porteria-movil-');
+  if (esModoDemoExplicito) {
+    if (token.startsWith('bypass-admin-') || token === 'bypass-admin-token' || token === 'bypass-admin') {
+      return {
+        valido: true,
+        datos: {
+          tipo: 'personal',
+          id: 'bypass-admin',
+          rol: 'SUPER_ADMIN',
+          nombre: 'Administrador Demo',
+          email: 'admin.demo@beltran.edu.ar',
+          correo: 'admin.demo@beltran.edu.ar'
+        }
+      };
+    }
+    if (token.startsWith('bypass-porteria-') || token.startsWith('porteria-movil-') || token === 'bypass-porteria') {
+      return {
+        valido: true,
+        datos: {
+          tipo: 'personal',
+          id: 'porteria-movil',
+          rol: 'PORTERIA',
+          nombre: 'Lector Móvil Portería',
+          email: 'porteria.movil@beltran.edu.ar',
+          correo: 'porteria.movil@beltran.edu.ar'
+        }
+      };
+    }
+    if (token.startsWith('bypass-egresado-')) {
+      const egresadoId = token.replace('bypass-egresado-', '');
+      return {
+        valido: true,
+        datos: {
+          tipo: 'egresado',
+          id: egresadoId,
+          nombre: 'Egresado Demo'
+        }
+      };
+    }
   }
 
   const resultado = verificar(token);

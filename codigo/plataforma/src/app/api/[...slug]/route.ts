@@ -2545,6 +2545,12 @@ export async function POST(
         nombreEvento = 'Ceremonia de Colación',
         fechaEvento = '2026-08-27',
         lugarEvento = 'Auditorio Central Beltrán',
+        nombreInstitucion = 'Instituto Tecnológico Beltrán',
+        siglaInstitucion = 'ITB',
+        direccionInstitucion = 'Av. Manuel Belgrano 1191, Avellaneda',
+        contactoEmailInstitucion = '',
+        telefonoInstitucion = '',
+        carreraPrincipal = 'Tecnicatura Superior en Analista de Sistemas',
       } = body;
 
       if (!nombre || !email || !password) {
@@ -2594,6 +2600,26 @@ export async function POST(
            ON CONFLICT (clave)
            DO UPDATE SET valor = '1', descripcion = EXCLUDED.descripcion, actualizado_en = CURRENT_TIMESTAMP`
         );
+
+        const configsInstitucion = [
+          ['nombre_institucion', nombreInstitucion, 'Institución organizadora'],
+          ['sigla_institucion', siglaInstitucion, 'Acrónimo o sigla oficial'],
+          ['direccion_institucion', direccionInstitucion, 'Dirección o campus institucional'],
+          ['contacto_email_institucion', contactoEmailInstitucion || email.toLowerCase(), 'Correo institucional de contacto'],
+          ['contacto_telefono_institucion', telefonoInstitucion, 'Teléfono o mesa de ayuda'],
+          ['carrera_principal', carreraPrincipal, 'Carrera institucional oficial']
+        ];
+        for (const [cClave, cVal, cDesc] of configsInstitucion) {
+          if (cVal) {
+            await setupClient.query(
+              `INSERT INTO configuracion_sistema (clave, valor, descripcion, actualizado_en)
+               VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
+               ON CONFLICT (clave)
+               DO UPDATE SET valor = EXCLUDED.valor, descripcion = EXCLUDED.descripcion, actualizado_en = CURRENT_TIMESTAMP`,
+              [cClave, String(cVal), cDesc]
+            );
+          }
+        }
 
         await setupClient.query('COMMIT');
         invalidarCache('setup:status');

@@ -73,7 +73,8 @@ class DemoSandbox {
       localStorage.getItem('sigic_modo_demo') === 'true'
 
     const token = sessionStorage.getItem('sigic_token') || ''
-    const esBypass = token.startsWith('bypass-')
+    // Un token de egresado o preview real debe comunicarse directamente con la BD de PostgreSQL
+    const esBypass = token.startsWith('bypass-') && !token.startsWith('bypass-egresado-')
 
     const cabeceras = opciones?.headers || {}
     let authHeader = ''
@@ -82,7 +83,7 @@ class DemoSandbox {
     } else if (cabeceras && typeof cabeceras === 'object') {
       authHeader = cabeceras['Authorization'] || cabeceras['authorization'] || ''
     }
-    const tieneTokenBypass = authHeader.includes('bypass-')
+    const tieneTokenBypass = authHeader.includes('bypass-') && !authHeader.includes('bypass-egresado-')
 
     if (!esDemoActiva && !esBypass && !tieneTokenBypass) {
       return false

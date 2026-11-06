@@ -1,7 +1,7 @@
 ﻿import { origenPortalGraduados } from '../../lib/graduate-origin'
 import React, { useEffect, useState, useMemo } from 'react'
 import {
-  AlertCircle, Check, CheckCircle2, Clock3, Copy, CreditCard, Edit3, ExternalLink,
+  AlertCircle, ArrowLeft, Check, CheckCircle2, Clock3, Copy, CreditCard, Edit3, ExternalLink,
   Mail, MessageSquare, RefreshCw, Send, UserCheck, UserPlus, Users, X, Sparkles,
   PhoneCall, ArrowRight, Armchair, Search, Filter, CheckSquare, Square, Eye,
   FileSpreadsheet, MessageCircle, ChevronDown, CheckCheck
@@ -431,6 +431,53 @@ export function GestionConvocatoria({ onNavegar, usuario, ceremoniaActiva: cerem
             )}
           </div>
         </header>
+
+        {/* BANNER DINÁMICO DE ESTADO & SUGERENCIA DE CONTINUIDAD AL PASO 4 */}
+        {ceremonia && graduados.length > 0 && onNavegar && (
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 rounded-2xl border border-sky-100 bg-gradient-to-r from-sky-50 via-blue-50/70 to-indigo-50/50 p-4 sm:p-5 shadow-xs">
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-xl bg-sky-500 text-white flex items-center justify-center font-black text-sm shrink-0 shadow-xs">
+                {aceptados.length > 0 ? <CheckCircle2 size={20} /> : <Send size={18} />}
+              </div>
+              <div>
+                <p className="text-sm font-black text-slate-900 leading-tight">
+                  {aceptados.length > 0 
+                    ? `${aceptados.length} ${aceptados.length === 1 ? 'graduado confirmó' : 'graduados confirmaron'} asistencia oficial`
+                    : pendientes.length > 0 
+                      ? `Hay ${pendientes.length} invitaciones pendientes de envío`
+                      : `Nómina con ${graduados.length} convocatorias en curso`}
+                </p>
+                <p className="text-xs text-slate-600 font-medium mt-0.5">
+                  {aceptados.length > 0 
+                    ? '¿Avanzar al siguiente paso? Podés distribuir las butacas en el anfiteatro y configurar la ceremonia.'
+                    : 'Podés enviar invitaciones por correo, copiar enlaces directos o compartir accesos por WhatsApp.'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => onNavegar('gestion-graduados')}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 px-3.5 py-2 text-xs font-bold transition active:scale-95 cursor-pointer"
+                title="Volver a revisar el padrón oficial de graduados"
+              >
+                <ArrowLeft size={13} />
+                <span>Revisar Padrón</span>
+              </button>
+
+              <button
+                id="btn-paso4-preparacion"
+                type="button"
+                onClick={() => onNavegar('preparacion-ceremonia')}
+                className="inline-flex items-center gap-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white px-4 py-2 text-xs font-black uppercase tracking-wider shadow-xs transition active:scale-95 cursor-pointer"
+              >
+                <span>Paso 4: Asignar Butacas</span>
+                <ArrowRight size={13} />
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* ALERTA SI NO HAY CEREMONIA ACTIVA */}
         {!ceremonia && !cargando && (

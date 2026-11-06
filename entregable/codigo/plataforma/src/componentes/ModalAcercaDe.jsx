@@ -83,7 +83,7 @@ export function ModalAcercaDe({ abierto, onCerrar, onAbrirManual }) {
               <div className="flex items-center gap-2">
                 <h3>SiGIC</h3>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-500/10 border border-sky-400/20 text-sky-400">
-                  v0.3.2 Oficial
+                  v0.3.6 Oficial
                 </span>
               </div>
               <p>Sistema de Gestión Institucional de Colaciones</p>
