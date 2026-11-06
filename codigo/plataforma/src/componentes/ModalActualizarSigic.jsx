@@ -132,12 +132,17 @@ export function ModalActualizarSigic({ abierto, onCerrar }) {
               <div className="pt-2">
                 <button
                   onClick={() => {
-                    onCerrar()
-                    setTimeout(() => window.location.reload(), 800)
+                    setActualizando(true)
+                    setEtapaTexto("Reiniciando servidor de SiGIC...")
+                    setTimeout(() => {
+                      window.location.reload()
+                    }, 3500)
                   }}
-                  className="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 font-medium text-white text-xs transition shadow-lg shadow-emerald-950/40"
+                  disabled={actualizando}
+                  className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 font-medium text-white text-xs transition shadow-lg shadow-emerald-950/40 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75"
                 >
-                  Listo, recargar plataforma
+                  <RefreshCw size={14} className={actualizando ? "animate-spin" : ""} />
+                  <span>{actualizando ? "Reiniciando plataforma..." : "Listo, aplicar y recargar plataforma"}</span>
                 </button>
               </div>
             </div>
