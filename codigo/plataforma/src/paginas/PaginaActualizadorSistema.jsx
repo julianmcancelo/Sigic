@@ -84,6 +84,10 @@ export function PaginaActualizadorSistema({ onVolver, usuario }) {
   }
 
   async function instalarArchivoLocal() {
+    if (esEntornoNube) {
+      setError('En producción (Vercel) el sistema se actualiza automáticamente vía GitHub con git push. No es posible subir archivos .zip porque el servidor de Vercel es inmutable y tiene límite de 4.5 MB.')
+      return
+    }
     if (!archivoSeleccionado) return
     setActualizando(true)
     setError(null)

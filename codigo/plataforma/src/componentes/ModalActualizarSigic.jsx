@@ -7,6 +7,7 @@ import {
 import { consultarActualizacionSistema, ejecutarActualizacionSistema } from '../lib/api'
 
 export function ModalActualizarSigic({ abierto, onCerrar }) {
+  const esEntornoNube = typeof window !== 'undefined' && (window.location.hostname.includes('vercel.app') || window.location.hostname.includes('sigic.com.ar'));
   const [cargando, setCargando] = useState(false)
   const [info, setInfo] = useState(null)
   const [actualizando, setActualizando] = useState(false)
@@ -97,6 +98,10 @@ export function ModalActualizarSigic({ abierto, onCerrar }) {
   }
 
   async function instalarArchivoLocal() {
+    if (esEntornoNube) {
+      setError('En producción (Vercel) el sistema se actualiza automáticamente vía GitHub con git push. No es posible subir archivos .zip porque el servidor de Vercel es inmutable y tiene límite de 4.5 MB.')
+      return
+    }
     if (!archivoSeleccionado) return
     setActualizando(true)
     setError(null)
