@@ -20,6 +20,7 @@ import {
   Smartphone,
   UserCheck,
   Plus,
+  Activity,
 } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { VERSION_LABEL } from '../../lib/version'
