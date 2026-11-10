@@ -39,6 +39,9 @@ import {
   Send,
   HelpCircle,
   ExternalLink,
+  Minimize2,
+  Maximize2,
+  X,
 } from 'lucide-react'
 import { obtenerRegistrosAuditoria, obtenerIntegridadAuditoriaYAlertas } from '../servicios/api'
 
@@ -409,6 +412,23 @@ export function PanelAuditoriaMovimientos({ acento = '#0ea5e9' }) {
   const [densidad, setDensidad] = useState('comoda') // 'comoda' | 'compacta'
   const [tipoVista, setTipoVista] = useState('tabla') // 'tabla' | 'timeline'
 
+  // Modo Minimalista (Zen / Linear feed)
+  const [modoMinimalista, setModoMinimalista] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('sigic_auditoria_minimalista') === 'true'
+    }
+    return false
+  })
+
+  // Guardar preferencia de modo minimalista
+  const toggleModoMinimalista = (valor) => {
+    const nuevoValor = typeof valor === 'boolean' ? valor : !modoMinimalista
+    setModoMinimalista(nuevoValor)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sigic_auditoria_minimalista', String(nuevoValor))
+    }
+  }
+
   // Paginación
   const [paginaActual, setPaginaActual] = useState(1)
   const [eventosPorPagina, setEventosPorPagina] = useState(20) // 20 | 50 | 100
@@ -644,80 +664,380 @@ export function PanelAuditoriaMovimientos({ acento = '#0ea5e9' }) {
 
   return (
     <div className="space-y-4 font-sans text-slate-800 animate-in fade-in duration-150">
-      {/* 1. Barra Superior de Custodia Criptográfica SHA-256 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        {/* Eslabones Verificados */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs flex items-center justify-between relative overflow-hidden">
-          <div className="space-y-0.5 z-10">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1">
-              <ShieldCheck size={12} className="text-emerald-500" />
-              Cadena Criptográfica Inmutable
-            </span>
-            <div className="flex items-center gap-1.5">
-              <span className="text-sm font-black text-slate-800">
-                {integridad?.integra !== false ? 'Eslabones Verificados' : 'Alerta: Cadena Alterada'}
-              </span>
-              {integridad?.integra !== false ? (
-                <ShieldCheck size={16} className="text-emerald-600" />
-              ) : (
-                <ShieldAlert size={16} className="text-rose-600" />
+      {/* ======================================================== */}
+      {/* 1. MODO MINIMALISTA (ZEN / LINEAR FEED)                  */}
+      {/* ======================================================== */}
+      {modoMinimalista ? (
+        <div className="space-y-3">
+          {/* Header Minimalista: Micro-Pill de Integridad + Controles limpios */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/80 backdrop-blur-xs px-4 py-2.5 rounded-2xl border border-slate-200/80 shadow-xs">
+            {/* Micro-Pill sutil de Estado */}
+            <div className="flex items-center gap-2 text-xs">
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200/80 font-medium text-[11px]">
+                <ShieldCheck size={12} className="text-emerald-600 shrink-0" />
+                <span className="font-semibold">
+                  {integridad?.integra !== false ? 'Cadena íntegra SHA-256' : 'Alerta de integridad'}
+                </span>
+                <span className="text-emerald-400">·</span>
+                <span>{registrosFiltrados.length} eventos</span>
+                <span className="text-emerald-400">·</span>
+                <span className="inline-flex items-center gap-1">
+                  <span
+                    className={`inline-block w-1.5 h-1.5 rounded-full ${
+                      autoActualizar ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'
+                    }`}
+                  />
+                  {autoActualizar ? 'en vivo' : 'pausado'}
+                </span>
+              </div>
+
+              {cargando && (
+                <span className="text-[11px] text-slate-400 flex items-center gap-1">
+                  <RefreshCw size={11} className="animate-spin text-sky-500" />
+                  Sincronizando...
+                </span>
               )}
             </div>
-            <p className="text-[10.5px] text-slate-500 font-medium">
-              Eventos en bloque:{' '}
-              <strong className="text-slate-800">{integridad?.totalAnalizados ?? registros.length}</strong>
-              <span className="text-slate-400 ml-1">· Hash SHA-256</span>
-            </p>
+
+            {/* Acciones de la barra minimalista */}
+            <div className="flex items-center gap-2 self-end sm:self-auto">
+              <button
+                type="button"
+                onClick={cargarDatos}
+                disabled={cargando}
+                className="p-1.5 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition cursor-pointer disabled:opacity-40"
+                title="Refrescar auditoría"
+              >
+                <RefreshCw size={14} className={cargando ? 'animate-spin text-sky-500' : ''} />
+              </button>
+
+              <button
+                type="button"
+                onClick={exportarCSV}
+                disabled={registrosFiltrados.length === 0}
+                className="p-1.5 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition cursor-pointer disabled:opacity-40"
+                title="Descargar reporte forense CSV"
+              >
+                <Download size={14} />
+              </button>
+
+              <div className="h-4 w-px bg-slate-200" />
+
+              {/* Botón para volver a vista Forense Completa */}
+              <button
+                type="button"
+                onClick={() => toggleModoMinimalista(false)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition cursor-pointer active:scale-95 shadow-2xs"
+                title="Cambiar a la vista analítica detallada con tablas, métricas y timeline"
+              >
+                <Maximize2 size={12} className="text-slate-600" />
+                <span>Vista Forense Completa</span>
+              </button>
+            </div>
           </div>
-          <div className="h-11 w-11 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200/80 flex flex-col items-center justify-center font-mono font-bold text-xs shadow-xs z-10">
-            <Hash size={13} className="text-emerald-600 mb-0.5" />
-            <span className="text-[9px] leading-none">256b</span>
+
+          {/* Barra de Filtros Minimalista: Search bar fluida + Select discreto de acción */}
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+                placeholder="Filtrar movimientos (ej: egresado, IP, login, butaca, #hash)..."
+                className="w-full pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-400 shadow-2xs transition"
+              />
+              {busqueda && (
+                <button
+                  type="button"
+                  onClick={() => setBusqueda('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </div>
+
+            <select
+              value={filtroAccion}
+              onChange={(e) => setFiltroAccion(e.target.value)}
+              className="bg-white border border-slate-200 text-slate-700 text-xs rounded-xl px-3 py-2 font-medium focus:outline-none focus:ring-2 focus:ring-sky-500/20 cursor-pointer hover:border-slate-300 shadow-2xs transition max-w-[200px] truncate"
+            >
+              {FILTROS_ACCION.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.label}
+                </option>
+              ))}
+            </select>
           </div>
-          <div className="absolute right-0 bottom-0 translate-x-2 translate-y-2 opacity-5 pointer-events-none">
-            <ShieldCheck size={80} />
+
+          {/* Feed Minimalista estilo Linear / GitHub Activity */}
+          <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+            {cargando && registros.length === 0 ? (
+              <div className="py-14 text-center space-y-2">
+                <RefreshCw size={22} className="animate-spin text-slate-400 mx-auto" />
+                <p className="text-xs text-slate-500 font-medium">Cargando eventos de auditoría...</p>
+              </div>
+            ) : error ? (
+              <div className="py-10 text-center space-y-2">
+                <AlertTriangle size={22} className="text-rose-500 mx-auto" />
+                <p className="text-xs text-rose-600 font-medium">{error}</p>
+                <button
+                  type="button"
+                  onClick={cargarDatos}
+                  className="text-xs font-semibold text-sky-600 hover:underline"
+                >
+                  Reintentar
+                </button>
+              </div>
+            ) : registrosFiltrados.length === 0 ? (
+              <div className="py-14 text-center space-y-1.5">
+                <Activity size={24} className="text-slate-300 mx-auto" />
+                <p className="text-xs text-slate-700 font-semibold">Sin eventos coincidentes</p>
+                <p className="text-[11px] text-slate-400">Modificá el término de búsqueda o el filtro de acción.</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {registrosPaginados.map((r) => {
+                  const expandido = filaExpandida === r.id
+                  const tiempo = formatearTiempoRelativo(r.creado_en)
+                  const narrativa = generarNarrativaHumana(r.accion, r.entidad, r.detalles, r)
+                  const config = obtenerConfigCategoria(r.accion, r.entidad)
+                  const IconoCat = config.icono
+                  const usuarioNombre = r.usuario_correo ? r.usuario_correo.split('@')[0] : 'Sistema'
+
+                  return (
+                    <div
+                      key={r.id}
+                      className={`transition-colors duration-150 ${
+                        expandido ? 'bg-slate-50/80' : 'hover:bg-slate-50/50'
+                      }`}
+                    >
+                      {/* Línea Principal del Evento */}
+                      <div
+                        onClick={() => setFilaExpandida(expandido ? null : r.id)}
+                        className="px-4 py-3 flex items-center justify-between gap-3 cursor-pointer group"
+                      >
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          {/* Icono Plano Sutil */}
+                          <div
+                            className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border transition-transform duration-150 group-hover:scale-105 ${config.colorBadge}`}
+                          >
+                            <IconoCat size={13} />
+                          </div>
+
+                          {/* Contenido Narrativo: Qué pasó + Quién lo hizo */}
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-baseline gap-2 flex-wrap">
+                              <span className="text-xs text-slate-800 font-medium leading-relaxed">
+                                {narrativa}
+                              </span>
+                              <span className="text-[11px] text-slate-400 font-normal">
+                                por{' '}
+                                <span className="text-slate-600 font-medium" title={r.usuario_correo || 'Sistema'}>
+                                  {usuarioNombre}
+                                </span>
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Metadatos alineados a la derecha: Micro-píldora y Tiempo relativo */}
+                        <div className="flex items-center gap-2.5 shrink-0">
+                          {/* Micro-píldora con hash o acción */}
+                          {r.hash_integridad ? (
+                            <span
+                              className="hidden sm:inline-flex items-center gap-1 font-mono text-[10px] text-slate-500 bg-slate-100 hover:bg-slate-200/80 px-2 py-0.5 rounded-md transition"
+                              title={`SHA-256: ${r.hash_integridad}`}
+                            >
+                              <Hash size={9} className="text-slate-400" />
+                              {r.hash_integridad.slice(0, 7)}
+                            </span>
+                          ) : (
+                            <span className="hidden sm:inline-block font-mono text-[10px] text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                              {r.accion.slice(0, 12)}
+                            </span>
+                          )}
+
+                          {/* Tiempo Relativo */}
+                          <span
+                            className="text-[11px] font-mono text-slate-400 whitespace-nowrap min-w-[75px] text-right"
+                            title={tiempo.exacto}
+                          >
+                            {tiempo.relativo}
+                          </span>
+
+                          <div className="text-slate-300 group-hover:text-slate-600 transition-colors">
+                            {expandido ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Panel Desplegable Sutil con Detalle Técnico */}
+                      {expandido && (
+                        <div className="px-4 pb-4 pt-1">
+                          <div className="p-3.5 bg-white rounded-xl border border-slate-200/90 shadow-2xs space-y-2.5">
+                            <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-slate-100 text-xs">
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono text-[11px] font-bold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
+                                  {r.accion}
+                                </span>
+                                <span className="text-[11px] text-slate-500">
+                                  Entidad: <strong className="text-slate-700">{r.entidad}</strong>
+                                  {r.entidad_id ? ` #${r.entidad_id}` : ''}
+                                </span>
+                                {r.ip && (
+                                  <span className="text-[11px] text-slate-400 font-mono">· IP {r.ip}</span>
+                                )}
+                              </div>
+
+                              <div className="flex items-center gap-2">
+                                {r.hash_integridad && (
+                                  <BotonCopiar texto={r.hash_integridad} label="Copiar Hash" size={10} />
+                                )}
+                                <BotonCopiar
+                                  texto={
+                                    typeof r.detalles === 'object'
+                                      ? JSON.stringify(r.detalles, null, 2)
+                                      : String(r.detalles || '')
+                                  }
+                                  label="Copiar JSON"
+                                  size={10}
+                                />
+                              </div>
+                            </div>
+
+                            {/* Inspector JSON compacto */}
+                            <InspectorJson datos={r.detalles} />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* Paginación Sutil en Modo Minimalista */}
+            {!cargando && registrosFiltrados.length > 0 && (
+              <div className="px-4 py-2.5 bg-slate-50/60 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                <span className="text-[11px]">
+                  Mostrando {indiceInicio + 1}–{Math.min(indiceInicio + eventosPorPagina, registrosFiltrados.length)} de{' '}
+                  {registrosFiltrados.length}
+                </span>
+
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setPaginaActual((p) => Math.max(p - 1, 1))}
+                    disabled={paginaActual === 1}
+                    className="p-1 rounded-md hover:bg-slate-200 text-slate-600 disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
+                    title="Página anterior"
+                  >
+                    <ChevronLeft size={14} />
+                  </button>
+                  <span className="px-2 text-[11px] font-mono font-medium text-slate-700">
+                    {paginaActual} / {totalPaginas}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setPaginaActual((p) => Math.min(p + 1, totalPaginas))}
+                    disabled={paginaActual === totalPaginas}
+                    className="p-1 rounded-md hover:bg-slate-200 text-slate-600 disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer"
+                    title="Página siguiente"
+                  >
+                    <ChevronRight size={14} />
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Pie Institucional Minimalista */}
+          <div className="flex items-center justify-between text-[11px] text-slate-400 px-1 pt-1">
+            <span>SiGIC · Custodia Inmutable</span>
+            <span>Tecnicatura Superior en Analista de Sistemas</span>
           </div>
         </div>
-
-        {/* Total Eventos */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs flex items-center justify-between">
-          <div className="space-y-0.5">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Eventos en Bitácora</span>
-            <div className="flex items-center gap-1.5">
-              <span className="text-base font-black text-slate-800">{registrosFiltrados.length}</span>
-              <span className="text-xs text-slate-400 font-bold">de {registros.length} recuperados</span>
+      ) : (
+        /* ======================================================== */
+        /* 2. MODO DETALLADO / FORENSE COMPLETO (VISTA ORIGINAL)   */
+        /* ======================================================== */
+        <>
+          {/* Barra Superior de Custodia Criptográfica SHA-256 */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {/* Eslabones Verificados */}
+            <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs flex items-center justify-between relative overflow-hidden">
+              <div className="space-y-0.5 z-10">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 flex items-center gap-1">
+                  <ShieldCheck size={12} className="text-emerald-500" />
+                  Cadena Criptográfica Inmutable
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-black text-slate-800">
+                    {integridad?.integra !== false ? 'Eslabones Verificados' : 'Alerta: Cadena Alterada'}
+                  </span>
+                  {integridad?.integra !== false ? (
+                    <ShieldCheck size={16} className="text-emerald-600" />
+                  ) : (
+                    <ShieldAlert size={16} className="text-rose-600" />
+                  )}
+                </div>
+                <p className="text-[10.5px] text-slate-500 font-medium">
+                  Eventos en bloque:{' '}
+                  <strong className="text-slate-800">{integridad?.totalAnalizados ?? registros.length}</strong>
+                  <span className="text-slate-400 ml-1">· Hash SHA-256</span>
+                </p>
+              </div>
+              <div className="h-11 w-11 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200/80 flex flex-col items-center justify-center font-mono font-bold text-xs shadow-xs z-10">
+                <Hash size={13} className="text-emerald-600 mb-0.5" />
+                <span className="text-[9px] leading-none">256b</span>
+              </div>
+              <div className="absolute right-0 bottom-0 translate-x-2 translate-y-2 opacity-5 pointer-events-none">
+                <ShieldCheck size={80} />
+              </div>
             </div>
-            <p className="text-[10.5px] text-slate-500 font-medium">Registrados inmutablemente en Neon PostgreSQL</p>
-          </div>
-          <div className="h-11 w-11 rounded-xl bg-sky-50 text-sky-700 border border-sky-200/80 flex items-center justify-center shadow-xs">
-            <Activity size={20} />
-          </div>
-        </div>
 
-        {/* Monitoreo en Vivo */}
-        <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs flex items-center justify-between">
-          <div className="space-y-0.5">
-            <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Custodia en Vivo</span>
-            <div className="flex items-center gap-2">
-              <span className="relative flex h-2.5 w-2.5">
-                <span
-                  className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
-                    autoActualizar ? 'bg-emerald-400' : 'bg-slate-300'
-                  }`}
-                ></span>
-                <span
-                  className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
-                    autoActualizar ? 'bg-emerald-500' : 'bg-slate-400'
-                  }`}
-                ></span>
-              </span>
-              <span className="text-xs font-bold text-slate-700">
-                {autoActualizar ? 'Actualización cada 15s' : 'Monitoreo en Pausa'}
-              </span>
+            {/* Total Eventos */}
+            <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs flex items-center justify-between">
+              <div className="space-y-0.5">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Eventos en Bitácora</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-base font-black text-slate-800">{registrosFiltrados.length}</span>
+                  <span className="text-xs text-slate-400 font-bold">de {registros.length} recuperados</span>
+                </div>
+                <p className="text-[10.5px] text-slate-500 font-medium">Registrados inmutablemente en Neon PostgreSQL</p>
+              </div>
+              <div className="h-11 w-11 rounded-xl bg-sky-50 text-sky-700 border border-sky-200/80 flex items-center justify-center shadow-xs">
+                <Activity size={20} />
+              </div>
             </div>
-            <p className="text-[10.5px] text-slate-500 font-medium">Autoridad Forense: Julián Cancelo</p>
-          </div>
-          <button
-            type="button"
+
+            {/* Monitoreo en Vivo */}
+            <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs flex items-center justify-between">
+              <div className="space-y-0.5">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">Custodia en Vivo</span>
+                <div className="flex items-center gap-2">
+                  <span className="relative flex h-2.5 w-2.5">
+                    <span
+                      className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${
+                        autoActualizar ? 'bg-emerald-400' : 'bg-slate-300'
+                      }`}
+                    ></span>
+                    <span
+                      className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
+                        autoActualizar ? 'bg-emerald-500' : 'bg-slate-400'
+                      }`}
+                    ></span>
+                  </span>
+                  <span className="text-xs font-bold text-slate-700">
+                    {autoActualizar ? 'Actualización cada 15s' : 'Monitoreo en Pausa'}
+                  </span>
+                </div>
+                <p className="text-[10.5px] text-slate-500 font-medium">Autoridad Forense: Julián Cancelo</p>
+              </div>
+              <button
+                type="button"
             onClick={() => setAutoActualizar(!autoActualizar)}
             className="text-xs font-bold px-3 py-1.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 transition cursor-pointer shadow-xs active:scale-95"
           >
@@ -797,6 +1117,17 @@ export function PanelAuditoriaMovimientos({ acento = '#0ea5e9' }) {
             >
               <Download size={12} />
               <span>Exportar CSV</span>
+            </button>
+
+            {/* Switch a Modo Minimalista */}
+            <button
+              type="button"
+              onClick={() => toggleModoMinimalista(true)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 text-xs font-bold transition cursor-pointer active:scale-95 shadow-2xs"
+              title="Cambiar a la vista minimalista limpia y libre de ruido visual"
+            >
+              <Minimize2 size={13} className="text-sky-600" />
+              <span>Vista Minimalista</span>
             </button>
           </div>
         </div>
@@ -1372,6 +1703,8 @@ export function PanelAuditoriaMovimientos({ acento = '#0ea5e9' }) {
         </span>
         <span className="font-semibold text-slate-500">Tecnicatura Superior en Analista de Sistemas</span>
       </div>
-    </div>
+    </>
+  )}
+</div>
   )
 }
