@@ -2672,6 +2672,7 @@ export async function POST(
 
       // Conservamos el equipo administrativo: el reinicio prepara una nueva
       // ceremonia sin obligar a recrear las cuentas que gestionan SiGIC.
+      // NOTA FORENSE: 'auditoria_sistema' NUNCA se borra para preservar la cadena inmutable de custodia SHA-256.
       const tables = [
         'ceremonias_usuarios_autorizados',
         'tokens_recuperacion_contrasena',
@@ -2698,6 +2699,22 @@ export async function POST(
          ON CONFLICT (clave)
          DO UPDATE SET valor = '0', actualizado_en = CURRENT_TIMESTAMP`
       );
+
+      // REGISTRO DE AUDITORÍA INMUTABLE: FORMATEO / REINICIO DE SISTEMA
+      await registrarAuditoria({
+        usuarioId: auth.datos?.id,
+        usuarioCorreo: auth.datos?.email || auth.datos?.correo,
+        rol: auth.datos?.rol,
+        accion: 'REINICIO_SISTEMA_FORMATEO',
+        entidad: 'sistema',
+        entidadId: 'tablas_operativas',
+        detalles: {
+          motivo: 'Reinicio general de tablas operativas para nueva colación',
+          tablasLimpiadas: tables,
+          cadenaAuditoriaPreservada: true,
+        },
+        req,
+      });
 
       return NextResponse.json(
         { ok: true, mensaje: 'Sistema reseteado correctamente. Redirigiendo a la configuración inicial.' },
@@ -3549,6 +3566,23 @@ export async function POST(
         }
 
         await client.query('COMMIT');
+
+        // AUDITORÍA INMUTABLE: REGISTRO DE INVITADOS / ACOMPAÑANTES
+        await registrarAuditoria({
+          usuarioId: egresado.id,
+          usuarioCorreo: egresado.correo,
+          rol: 'EGRESADO',
+          accion: 'REGISTRAR_INVITADOS',
+          entidad: 'invitados',
+          entidadId: egresado.id,
+          detalles: {
+            egresado: egresado.nombre,
+            cantidad: registrosFinales.length,
+            invitados: registrosFinales.map((i: any) => ({ nombre: i.nombre, dni: i.dni, relacion: i.relacion })),
+          },
+          req,
+        });
+
         return NextResponse.json(registrosFinales, { status: 201, headers });
       } catch (error: any) {
         await client.query('ROLLBACK');
@@ -3680,7 +3714,29 @@ export async function POST(
       );
       invalidarCache('setup:status');
       invalidarCache('egresados:*');
-      return NextResponse.json(result.rows[0], { status: 201, headers });
+
+      const nuevoGraduado = result.rows[0];
+
+      // AUDITORÍA INMUTABLE: ALTA INDIVIDUAL DE EGRESADO
+      const auth = await obtenerUsuarioAutenticado(req, ROLES_GESTION);
+      await registrarAuditoria({
+        usuarioId: auth.datos?.id,
+        usuarioCorreo: auth.datos?.email || auth.datos?.correo,
+        rol: auth.datos?.rol,
+        accion: 'CREAR_EGRESADO',
+        entidad: 'egresados',
+        entidadId: nuevoGraduado.id,
+        detalles: {
+          nombre: nuevoGraduado.nombre,
+          dni: nuevoGraduado.dni,
+          legajo: nuevoGraduado.legajo,
+          carrera: nuevoGraduado.carrera,
+          ceremoniaId: ceremoniaIdFinal,
+        },
+        req,
+      });
+
+      return NextResponse.json(nuevoGraduado, { status: 201, headers });
     }
 
     if (path === 'egresados/bulk' || path === 'egresados/importar') {
@@ -4155,6 +4211,20 @@ export async function PUT(
         valores
       );
       if (!actualizado.rows[0]) return NextResponse.json({ error: 'Graduado no encontrado' }, { status: 404, headers });
+
+      // AUDITORÍA INMUTABLE: ACTUALIZACIÓN DE DATOS DE EGRESADO
+      const auth = await obtenerUsuarioAutenticado(req);
+      await registrarAuditoria({
+        usuarioId: auth.datos?.id,
+        usuarioCorreo: auth.datos?.email || auth.datos?.correo,
+        rol: auth.datos?.rol || 'EGRESADO',
+        accion: 'ACTUALIZAR_DATOS_EGRESADO',
+        entidad: 'egresados',
+        entidadId: slug[1],
+        detalles: { camposActualizados: campos, valoresActualizados: body },
+        req,
+      });
+
       return NextResponse.json({ ok: true, graduado: actualizado.rows[0] }, { headers });
     }
     // -------------------------------------------------------------
@@ -4208,6 +4278,20 @@ export async function PUT(
 
       invalidarCache('configuracion');
       invalidarCache('setup:status');
+
+      // AUDITORÍA INMUTABLE: MODIFICACIÓN DE PARÁMETROS GLOBALES DEL SISTEMA
+      const auth = await obtenerUsuarioAutenticado(req, ROLES_GESTION);
+      await registrarAuditoria({
+        usuarioId: auth.datos?.id,
+        usuarioCorreo: auth.datos?.email || auth.datos?.correo,
+        rol: auth.datos?.rol,
+        accion: 'MODIFICAR_CONFIGURACION_SISTEMA',
+        entidad: 'configuracion_sistema',
+        entidadId: clave,
+        detalles: { clave, nuevoValor: valor },
+        req,
+      });
+
       return NextResponse.json({ ok: true, ajuste: result.rows[0] }, { headers });
     }
 
@@ -4312,6 +4396,20 @@ export async function PUT(
           finalizada_en = CASE WHEN $1::varchar = 'FINALIZADA' THEN CURRENT_TIMESTAMP ELSE finalizada_en END,
           activa = CASE WHEN $1::varchar = 'FINALIZADA' THEN 0 ELSE activa END
         WHERE id = $2 RETURNING *`, [siguiente, slug[1]]);
+
+      // AUDITORÍA INMUTABLE: CAMBIO DE ESTADO OPERATIVO DE CEREMONIA
+      const auth = await obtenerUsuarioAutenticado(req, ROLES_GESTION);
+      await registrarAuditoria({
+        usuarioId: auth.datos?.id,
+        usuarioCorreo: auth.datos?.email || auth.datos?.correo,
+        rol: auth.datos?.rol,
+        accion: 'CAMBIAR_ESTADO_CEREMONIA',
+        entidad: 'ceremonias',
+        entidadId: slug[1],
+        detalles: { nuevoEstado: siguiente, ceremonia: result.rows[0]?.nombre },
+        req,
+      });
+
       return NextResponse.json({ ok: true, ceremonia: result.rows[0] }, { headers });
     }
 
@@ -4357,6 +4455,24 @@ export async function PUT(
       if (result.rowCount === 0) {
         return NextResponse.json({ error: 'Ceremonia no encontrada' }, { status: 404, headers });
       }
+
+      // AUDITORÍA INMUTABLE: EDICIÓN DE PARÁMETROS DE CEREMONIA
+      const auth = await obtenerUsuarioAutenticado(req, ROLES_GESTION);
+      await registrarAuditoria({
+        usuarioId: auth.datos?.id,
+        usuarioCorreo: auth.datos?.email || auth.datos?.correo,
+        rol: auth.datos?.rol,
+        accion: 'EDITAR_CEREMONIA',
+        entidad: 'ceremonias',
+        entidadId: id,
+        detalles: {
+          nombre: result.rows[0]?.nombre,
+          fecha: result.rows[0]?.fecha,
+          lugar: result.rows[0]?.lugar,
+          maxInvitados: result.rows[0]?.max_invitados,
+        },
+        req,
+      });
 
       return NextResponse.json({ ok: true, mensaje: 'Ceremonia actualizada correctamente', ceremonia: result.rows[0] }, { headers });
     }
@@ -5029,8 +5145,22 @@ export async function DELETE(
       const isPersonal = await esPersonalValido(req, ROLES_GESTION);
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
+      const auth = await obtenerUsuarioAutenticado(req, ROLES_GESTION);
+
       // Vacia los egresados de la ceremonia activa
       await query('DELETE FROM egresados WHERE ceremonia_id IN (SELECT id FROM ceremonias WHERE activa = 1)');
+
+      await registrarAuditoria({
+        usuarioId: auth.datos?.id,
+        usuarioCorreo: auth.datos?.email || auth.datos?.correo,
+        rol: auth.datos?.rol,
+        accion: 'VACIAR_EGRESADOS_CEREMONIA',
+        entidad: 'egresados',
+        entidadId: 'ceremonia_activa',
+        detalles: { motivo: 'Vaciado masivo de egresados de la ceremonia activa' },
+        req,
+      });
+
       return NextResponse.json({ ok: true, mensaje: 'Se vació la lista de egresados de la ceremonia activa' }, { headers });
     }
 
@@ -5039,10 +5169,25 @@ export async function DELETE(
       const isPersonal = await esPersonalValido(req, ROLES_GESTION);
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
+      const auth = await obtenerUsuarioAutenticado(req, ROLES_GESTION);
+      const egrExistente = await query('SELECT id, nombre, dni, legajo FROM egresados WHERE id = $1', [id]);
+
       const result = await query('DELETE FROM egresados WHERE id = $1', [id]);
       if (result.rowCount === 0) {
         return NextResponse.json({ error: 'Graduado no encontrado' }, { status: 404, headers });
       }
+
+      await registrarAuditoria({
+        usuarioId: auth.datos?.id,
+        usuarioCorreo: auth.datos?.email || auth.datos?.correo,
+        rol: auth.datos?.rol,
+        accion: 'ELIMINAR_EGRESADO',
+        entidad: 'egresados',
+        entidadId: id,
+        detalles: egrExistente.rows[0] || { id },
+        req,
+      });
+
       return NextResponse.json({ ok: true, mensaje: 'Graduado eliminado con éxito' }, { headers });
     }
 

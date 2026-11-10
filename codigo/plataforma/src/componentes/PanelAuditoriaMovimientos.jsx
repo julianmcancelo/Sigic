@@ -45,14 +45,19 @@ import { obtenerRegistrosAuditoria, obtenerIntegridadAuditoriaYAlertas } from '.
 // Filtros predefinidos para acciones y entidades
 const FILTROS_ACCION = [
   { id: 'TODAS', label: 'Todas las acciones' },
-  { id: 'LOGIN', label: 'Inicios de Sesión (Auth)' },
+  { id: 'REINICIO_SISTEMA_FORMATEO', label: 'Formateo / Reinicio de Sistema' },
+  { id: 'CREAR_EGRESADO', label: 'Alta Individual de Egresado' },
   { id: 'IMPORTAR_EXCEL', label: 'Importación Masiva (Excel)' },
+  { id: 'ACTUALIZAR_DATOS_EGRESADO', label: 'Edición de Egresado' },
+  { id: 'ELIMINAR_EGRESADO', label: 'Baja de Egresado' },
+  { id: 'REGISTRAR_INVITADOS', label: 'Registro de Acompañantes' },
   { id: 'ASIGNAR_ASIENTO', label: 'Asignación Butacas' },
   { id: 'ENVIAR_INVITACIONES', label: 'Despacho de Credenciales' },
   { id: 'INGRESAR_INVITADO', label: 'Acreditación Portería' },
+  { id: 'LOGIN', label: 'Inicios de Sesión (Auth)' },
   { id: 'ACTIVAR_BLOQUEO_SEGURIDAD', label: 'Ciberseguridad & Bloqueo' },
   { id: 'CREAR_CEREMONIA', label: 'Gestión Ceremonias' },
-  { id: 'CONFIGURACION_MODIFICADA', label: 'Configuración de Sistema' },
+  { id: 'MODIFICAR_CONFIGURACION_SISTEMA', label: 'Configuración de Sistema' },
 ]
 
 const FILTROS_ENTIDAD = [
@@ -152,19 +157,42 @@ export function generarNarrativaHumana(accion, entidad, detalles = {}, r = {}) {
     return `Operación registrada sobre la ceremonia de graduación`
   }
 
-  // Configuración / Sistema
-  if (ent === 'sistema' || ent === 'configuracion' || acc.includes('CONFIG') || acc.includes('AJUSTE')) {
+  // Configuración / Sistema / Reinicio y Formateo
+  if (ent === 'sistema' || ent === 'configuracion' || ent === 'configuracion_sistema' || acc.includes('CONFIG') || acc.includes('AJUSTE') || acc.includes('REINICIO') || acc.includes('FORMATEO') || acc.includes('RESET')) {
+    if (acc.includes('REINICIO') || acc.includes('FORMATEO') || acc.includes('RESET')) {
+      const tablas = Array.isArray(det.tablasLimpiadas) ? det.tablasLimpiadas.length : null
+      return `Reinicio y formateo general del sistema ejecutado${tablas ? ` (${tablas} tablas depuradas)` : ''}. Cadena de auditoría preservada.`
+    }
     const clave = det.clave || det.parametro || det.key || null
-    if (clave) return `Parámetro de sistema modificado: '${clave}'`
+    if (clave) return `Parámetro de sistema modificado: '${clave}' (nuevo valor: ${det.nuevoValor ?? '-'})`
     return `Ajuste global de configuración actualizado por ${usuario}`
   }
 
   // Padrón de Egresados genérico
   if (ent === 'egresados') {
-    if (acc.includes('CREAR') || acc.includes('ALTA')) return `Alta individual de egresado registrada en el sistema`
-    if (acc.includes('EDITAR') || acc.includes('ACTUALIZAR')) return `Datos académicos/personales de egresado actualizados`
+    if (acc.includes('CREAR_EGRESADO') || acc.includes('ALTA')) {
+      const nombre = det.nombre || (r.entidad_id ? `Egresado #${r.entidad_id}` : 'Nuevo graduado')
+      return `Alta individual de egresado registrada: ${nombre}${det.dni ? ` (DNI ${det.dni})` : ''}`
+    }
+    if (acc.includes('ACTUALIZAR_DATOS') || acc.includes('EDITAR')) {
+      return `Modificación de legajo/datos personales de egresado #${r.entidad_id || ''}`
+    }
+    if (acc.includes('ELIMINAR_EGRESADO') || acc.includes('BAJA')) {
+      return `Eliminación de egresado del padrón: ${det.nombre || `#${r.entidad_id || ''}`}`
+    }
+    if (acc.includes('VACIAR')) {
+      return `Vaciado masivo de egresados de la ceremonia activa`
+    }
     if (acc.includes('ESTADO')) return `Cambio de estado administrativo del egresado (${det.nuevoEstado || det.estado || 'actualizado'})`
-    if (acc.includes('ELIMINAR')) return `Baja de egresado del padrón oficial`
+  }
+
+  // Invitados / Acompañantes
+  if (ent === 'invitados' || acc.includes('INVITADO')) {
+    if (acc.includes('REGISTRAR')) {
+      const cant = det.cantidad || (Array.isArray(det.invitados) ? det.invitados.length : null)
+      return `Registro de ${cant ? `${cant} acompañante(s)` : 'acompañantes'} para egresado ${det.egresado || `#${r.entidad_id || ''}`}`
+    }
+    if (acc.includes('ELIMINAR')) return `Baja de invitado/acompañante registrado`
   }
 
   // Fallback con formato amigable
