@@ -38,10 +38,11 @@ import {
 } from '../../servicios/api'
 import { useConfirmacion } from '../../componentes/ModalConfirmacion'
 import { obtenerTemaActual } from '../../datos/fondos-pantalla'
+import { PanelAuditoriaMovimientos } from '../../componentes/PanelAuditoriaMovimientos'
 
 export function CentroControl({ usuario, onVolver }) {
   const { confirmar, dialogoConfirmacion } = useConfirmacion()
-  const [pestanaActiva, setPestanaActiva] = useState('acceso') // 'acceso' | 'gafetes-nfc' | 'certificado' | 'infraestructura'
+  const [pestanaActiva, setPestanaActiva] = useState('auditoria') // 'auditoria' | 'acceso' | 'gafetes-nfc' | 'certificado' | 'infraestructura'
   const [metricas, setMetricas] = useState({
     usuarios: 0,
     ceremonias: 0,
@@ -388,9 +389,10 @@ export function CentroControl({ usuario, onVolver }) {
     'otpauth://totp/SiGIC:juliancancelo@gmail.com?secret=SIGICJCANCELO2026CYBERSECKEY7777&issuer=SiGIC'
 
   const pestanas = [
+    { id: 'auditoria', nombre: 'Auditoría de Movimientos', icono: Activity },
     { id: 'acceso', nombre: 'PIN Maestro, QR & Bloqueo', icono: Smartphone },
     { id: 'gafetes-nfc', nombre: 'Autorizar Celulares / Personas con NFC', icono: SmartphoneNfc },
-    { id: 'certificado', nombre: 'Licencia Ed25519 & Auditoria', icono: KeyRound },
+    { id: 'certificado', nombre: 'Licencia Ed25519 & Seguridad', icono: KeyRound },
     { id: 'infraestructura', nombre: 'Base de Datos & Respaldo', icono: Database },
   ]
 
@@ -501,6 +503,13 @@ export function CentroControl({ usuario, onVolver }) {
             Cerrar
           </button>
         </div>
+      )}
+
+      {/* ===================================================================== */}
+      {/* PESTAÑA AUDITORÍA: VISOR DE MOVIMIENTOS Y CADENA DE CUSTODIA SHA-256   */}
+      {/* ===================================================================== */}
+      {pestanaActiva === 'auditoria' && (
+        <PanelAuditoriaMovimientos acento={acento} />
       )}
 
       {/* ===================================================================== */}

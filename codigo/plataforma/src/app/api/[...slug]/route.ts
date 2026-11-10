@@ -13,6 +13,7 @@ import { inicializarBaseDatos } from '@/lib/schema';
 import { generarPaseGoogleWallet } from '@/lib/google-wallet';
 import { obtenerCache, guardarCache, invalidarCache } from '@/lib/cache';
 import { registrarAuditoria, verificarIntegridadCadenaAuditoria } from '@/lib/auditoria';
+import { esAutoridadCancelo } from '@/lib/autoridad-cancelo';
 import {
   obtenerEstadoLicenciaActual,
   verificarSerialLicencia,
@@ -1012,25 +1013,38 @@ export async function GET(
     }
 
     // -------------------------------------------------------------
-    // REGISTRO DE AUDITORÍA (AUDIT LOG)
+    // REGISTRO DE AUDITORÍA (AUDIT LOG - EXCLUSIVO AUTORIDAD CANCELO)
     // -------------------------------------------------------------
     if (path === 'auditoria') {
-      const isPersonal = await esPersonalValido(req, ROLES_GESTION);
-      if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
+      const auth = await obtenerUsuarioAutenticado(req, ROLES_GESTION);
+      if (!auth.valido || !esAutoridadCancelo(auth.datos)) {
+        return NextResponse.json({ error: 'Acceso restringido exclusivamente a la Autoridad Criptográfica del Sistema.' }, { status: 403, headers });
+      }
 
       const url = new URL(req.url);
       const entidad = url.searchParams.get('entidad');
-      const limite = Math.min(Number(url.searchParams.get('limite')) || 100, 500);
+      const accion = url.searchParams.get('accion');
+      const limite = Math.min(Number(url.searchParams.get('limite')) || 150, 500);
 
       let querySql = `
-        SELECT id, usuario_id, usuario_correo, rol, accion, entidad, entidad_id, detalles, ip, creado_en
+        SELECT id, usuario_id, usuario_correo, rol, accion, entidad, entidad_id, detalles, ip, hash_previo, hash_integridad, creado_en
         FROM auditoria_sistema
       `;
       const paramsSql: any[] = [];
+      const condiciones: string[] = [];
 
-      if (entidad) {
+      if (entidad && entidad !== 'TODAS') {
         paramsSql.push(entidad);
-        querySql += ` WHERE entidad = $${paramsSql.length}`;
+        condiciones.push(`entidad = $${paramsSql.length}`);
+      }
+
+      if (accion && accion !== 'TODAS') {
+        paramsSql.push(accion);
+        condiciones.push(`accion = $${paramsSql.length}`);
+      }
+
+      if (condiciones.length > 0) {
+        querySql += ` WHERE ` + condiciones.join(' AND ');
       }
 
       querySql += ` ORDER BY creado_en DESC LIMIT ${limite}`;
@@ -1536,6 +1550,11 @@ export async function GET(
     }
 
     if (path === 'seguridad/auditoria-integridad') {
+      const auth = await obtenerUsuarioAutenticado(req, ROLES_GESTION);
+      if (!auth.valido || !esAutoridadCancelo(auth.datos)) {
+        return NextResponse.json({ error: 'Acceso restringido a la Autoridad Criptográfica.' }, { status: 403, headers });
+      }
+
       await asegurarTablasSeguridadLicencia();
       const cadena = await verificarIntegridadCadenaAuditoria();
       const alertasRes = await query(

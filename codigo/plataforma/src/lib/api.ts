@@ -989,10 +989,18 @@ export async function ejecutarActualizacionSistema(payload?: { urlDescarga?: str
   return data;
 }
 
-export async function obtenerRegistrosAuditoria(entidad?: string, limite = 100) {
+export async function obtenerRegistrosAuditoria(opciones?: { entidad?: string; accion?: string; limite?: number } | string, limite = 150) {
   const params = new URLSearchParams()
-  if (entidad) params.append('entidad', entidad)
-  if (limite) params.append('limite', String(limite))
+  if (typeof opciones === 'string') {
+    if (opciones && opciones !== 'TODAS') params.append('entidad', opciones)
+    if (limite) params.append('limite', String(limite))
+  } else if (opciones && typeof opciones === 'object') {
+    if (opciones.entidad && opciones.entidad !== 'TODAS') params.append('entidad', opciones.entidad)
+    if (opciones.accion && opciones.accion !== 'TODAS') params.append('accion', opciones.accion)
+    params.append('limite', String(opciones.limite || limite || 150))
+  } else {
+    params.append('limite', String(limite || 150))
+  }
 
   const res = await fetch(`${BASE_CLASSIC}/auditoria?${params.toString()}`, {
     headers: cabeceras()

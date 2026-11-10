@@ -1375,8 +1375,11 @@ export function PantallaBienvenida({ usuario, onCerrarSesion, onNavegar, onCambi
                 }`}>
                   {accesos
                     .filter(a => {
+                      if (a.pantalla === 'centro-control') {
+                        return esAutoridadCancelo(usuario)
+                      }
                       if (esSoporte) {
-                        return ['gestion-porteria', 'gestion-ceremonias', 'centro-control'].includes(a.pantalla)
+                        return ['gestion-porteria', 'gestion-ceremonias'].includes(a.pantalla)
                       }
                       return true
                     })
