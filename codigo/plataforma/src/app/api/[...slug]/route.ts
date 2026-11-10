@@ -2643,6 +2643,22 @@ export async function POST(
         await setupClient.query('COMMIT');
         invalidarCache('setup:status');
         const token = firmar({ id: usuarioId, email: email.toLowerCase(), nombre, rol: 'ADMINISTRATIVO' });
+
+        await registrarAuditoria({
+          usuarioId,
+          usuarioCorreo: email.toLowerCase(),
+          rol: 'ADMINISTRATIVO',
+          accion: 'INICIALIZAR_SISTEMA_SETUP',
+          entidad: 'configuracion_sistema',
+          entidadId: 'setup_inicial',
+          detalles: {
+            usuarioAdmin: { id: usuarioId, email: email.toLowerCase(), nombre },
+            ceremoniaInicial: { id: ceremoniaId, nombre: nombreEvento, fecha: fechaEvento, lugar: lugarEvento, maxInvitados: 4, maxEntregadores: 3 },
+            institucion: { nombreInstitucion, siglaInstitucion, direccionInstitucion, carreraPrincipal }
+          },
+          req
+        });
+
         return NextResponse.json({
           ok: true,
           mensaje: 'Configuración inicial creada correctamente',
@@ -2739,6 +2755,23 @@ export async function POST(
       );
       invalidarCache('anfiteatro:*');
       invalidarCache('ceremonias');
+
+      const auth = await obtenerUsuarioAutenticado(req, ROLES_GESTION);
+      await registrarAuditoria({
+        usuarioId: auth.datos?.id || modificadoPor,
+        usuarioCorreo: auth.datos?.email || auth.datos?.correo,
+        rol: auth.datos?.rol || 'ADMINISTRATIVO',
+        accion: 'GUARDAR_ESTRUCTURA_ANFITEATRO',
+        entidad: 'configuracion_anfiteatro',
+        entidadId: String(ceremoniaId),
+        detalles: {
+          ceremoniaId,
+          totalFilas: Array.isArray(estructura) ? estructura.length : (typeof estructura === 'object' && estructura ? Object.keys(estructura).length : undefined),
+          mapaRolesDefinidos: mapaRoles && typeof mapaRoles === 'object' ? Object.keys(mapaRoles).length : 0
+        },
+        req
+      });
+
       return NextResponse.json({ ok: true, mensaje: 'Estructura del anfiteatro actualizada' }, { headers });
     }
 
@@ -2760,6 +2793,23 @@ export async function POST(
       );
       invalidarCache('anfiteatro:*');
       invalidarCache('ceremonias');
+
+      const auth = await obtenerUsuarioAutenticado(req, ROLES_GESTION);
+      await registrarAuditoria({
+        usuarioId: auth.datos?.id,
+        usuarioCorreo: auth.datos?.email || auth.datos?.correo,
+        rol: auth.datos?.rol || 'ADMINISTRATIVO',
+        accion: 'GUARDAR_CONFIG_ANFITEATRO',
+        entidad: 'configuracion_anfiteatro',
+        entidadId: String(ceremoniaId),
+        detalles: {
+          ceremoniaId,
+          totalSectores: typeof estructura === 'object' && estructura ? Object.keys(estructura).length : undefined,
+          mapaRolesDefinidos: typeof mapaRoles === 'object' && mapaRoles ? Object.keys(mapaRoles).length : 0
+        },
+        req
+      });
+
       return NextResponse.json({ mensaje: 'Configuración guardada con éxito en la base de datos' }, { headers });
     }
 
@@ -3069,6 +3119,19 @@ export async function POST(
 
         await client.query('COMMIT');
         invalidarCache('profesores:*');
+
+        const auth = await obtenerUsuarioAutenticado(req, ROLES_GESTION);
+        await registrarAuditoria({
+          usuarioId: auth.datos?.id,
+          usuarioCorreo: auth.datos?.email || auth.datos?.correo,
+          rol: auth.datos?.rol,
+          accion: 'IMPORTAR_PROFESORES',
+          entidad: 'profesores',
+          entidadId: 'lote_masivo',
+          detalles: { agregados, actualizados, total: agregados + actualizados },
+          req
+        });
+
         return NextResponse.json({
           ok: true,
           mensaje: `Importación completada: ${agregados} nuevos, ${actualizados} actualizados.`,
@@ -3108,6 +3171,24 @@ export async function POST(
       }
 
       invalidarCache('profesores:*');
+
+      const auth = await obtenerUsuarioAutenticado(req, ROLES_GESTION);
+      await registrarAuditoria({
+        usuarioId: auth.datos?.id,
+        usuarioCorreo: auth.datos?.email || auth.datos?.correo,
+        rol: auth.datos?.rol,
+        accion: 'CREAR_PROFESOR',
+        entidad: 'profesores',
+        entidadId: String(nuevoProf.id),
+        detalles: {
+          nombre: nuevoProf.nombre,
+          dni: nuevoProf.dni,
+          materia: nuevoProf.materia,
+          materias_ids: Array.isArray(materias_ids) ? materias_ids : []
+        },
+        req
+      });
+
       return NextResponse.json(nuevoProf, { status: 201, headers });
     }
 
@@ -3222,6 +3303,31 @@ export async function POST(
            VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
           [egresado_id, tipo, profId, invId, nombre.trim(), ordenFinal]
         );
+
+        const auth = await obtenerUsuarioAutenticado(req);
+        const esAdmin = auth.valido && auth.datos?.tipo === 'personal';
+        const usuarioId = auth.datos?.id || egresado_id;
+        const usuarioCorreo = auth.datos?.email || auth.datos?.correo;
+        const rol = esAdmin ? (auth.datos?.rol || 'ADMINISTRATIVO') : 'EGRESADO';
+
+        await registrarAuditoria({
+          usuarioId,
+          usuarioCorreo,
+          rol,
+          accion: 'ASIGNAR_ENTREGADOR',
+          entidad: 'entregadores',
+          entidadId: String(result.rows[0].id),
+          detalles: {
+            egresadoId: egresado_id,
+            tipo,
+            profesorId: profId,
+            invitadoId: invId,
+            nombre: nombre.trim(),
+            orden: ordenFinal
+          },
+          req
+        });
+
         return NextResponse.json(result.rows[0], { status: 201, headers });
       } catch (error: any) {
         console.error('Error insertando entregador:', error);
@@ -3304,6 +3410,23 @@ export async function POST(
           console.error('No se pudo enviar la invitación por correo:', errEmail);
         }
       }
+
+      const auth = await obtenerUsuarioAutenticado(req, ROLES_GESTION);
+      await registrarAuditoria({
+        usuarioId: auth.datos?.id,
+        usuarioCorreo: auth.datos?.email || auth.datos?.correo,
+        rol: auth.datos?.rol,
+        accion: 'CREAR_USUARIO',
+        entidad: 'usuarios_sistema',
+        entidadId: id,
+        detalles: {
+          nombre,
+          email: email.toLowerCase(),
+          rol: rolNormalizado,
+          invitacionEnviada
+        },
+        req
+      });
 
       return NextResponse.json({ 
         ok: true, 
@@ -4511,6 +4634,24 @@ export async function PUT(
       }
 
       invalidarCache('profesores:*');
+
+      const auth = await obtenerUsuarioAutenticado(req, ROLES_GESTION);
+      await registrarAuditoria({
+        usuarioId: auth.datos?.id,
+        usuarioCorreo: auth.datos?.email || auth.datos?.correo,
+        rol: auth.datos?.rol,
+        accion: 'EDITAR_PROFESOR',
+        entidad: 'profesores',
+        entidadId: String(id),
+        detalles: {
+          nombre: result.rows[0]?.nombre,
+          dni: result.rows[0]?.dni,
+          materia: result.rows[0]?.materia,
+          materias_ids: Array.isArray(materias_ids) ? materias_ids : []
+        },
+        req
+      });
+
       return NextResponse.json(result.rows[0], { headers });
     }
 
@@ -4528,6 +4669,19 @@ export async function PUT(
       }
 
       const resultado = await cambiarAccesoUsuario(id, { rol });
+      if (resultado.ok) {
+        const auth = await obtenerUsuarioAutenticado(req, ROLES_GESTION);
+        await registrarAuditoria({
+          usuarioId: auth.datos?.id,
+          usuarioCorreo: auth.datos?.email || auth.datos?.correo,
+          rol: auth.datos?.rol,
+          accion: 'CAMBIAR_ROL_USUARIO',
+          entidad: 'usuarios_sistema',
+          entidadId: id,
+          detalles: { nuevoRol: rol },
+          req
+        });
+      }
       return NextResponse.json(resultado, { status: resultado.status, headers });
     }
 
@@ -4538,6 +4692,19 @@ export async function PUT(
 
       const activo = Number(body?.activo) === 1 ? 1 : 0;
       const resultado = await cambiarAccesoUsuario(id, { activo });
+      if (resultado.ok) {
+        const auth = await obtenerUsuarioAutenticado(req, ROLES_GESTION);
+        await registrarAuditoria({
+          usuarioId: auth.datos?.id,
+          usuarioCorreo: auth.datos?.email || auth.datos?.correo,
+          rol: auth.datos?.rol,
+          accion: activo === 1 ? 'ACTIVAR_USUARIO' : 'SUSPENDER_USUARIO',
+          entidad: 'usuarios_sistema',
+          entidadId: id,
+          detalles: { activo },
+          req
+        });
+      }
       return NextResponse.json(resultado, { status: resultado.status, headers });
     }
 
@@ -4577,6 +4744,25 @@ export async function PUT(
 
       const egrActual = await query('SELECT * FROM egresados WHERE id = $1', [egresadoId]);
       const invsActual = await query('SELECT * FROM invitados WHERE egresado_id = $1 ORDER BY nombre ASC', [egresadoId]);
+
+      const auth = await obtenerUsuarioAutenticado(req, ROLES_OPERACION);
+      await registrarAuditoria({
+        usuarioId: auth.datos?.id,
+        usuarioCorreo: auth.datos?.email || auth.datos?.correo,
+        rol: auth.datos?.rol,
+        accion: 'ACREDITACION_PRESENTE_GRUPO',
+        entidad: 'egresados',
+        entidadId: egresadoId,
+        detalles: {
+          egresadoId,
+          egresadoNombre: egrActual.rows[0]?.nombre,
+          egresadoDni: egrActual.rows[0]?.dni,
+          egresadoAcreditado: Boolean(acreditarEgresado),
+          invitadosAcreditados,
+          invitadoIdsSolicitados: Array.isArray(invitadoIds) ? invitadoIds : []
+        },
+        req
+      });
 
       return NextResponse.json({
         ok: true,
@@ -4659,6 +4845,24 @@ export async function PUT(
         `UPDATE invitados SET presente = TRUE, fecha_presente = CURRENT_TIMESTAMP WHERE id IN (${placeholders}) AND presente = FALSE`,
         ids
       );
+
+      const auth = await obtenerUsuarioAutenticado(req, ROLES_OPERACION);
+      await registrarAuditoria({
+        usuarioId: auth.datos?.id,
+        usuarioCorreo: auth.datos?.email || auth.datos?.correo,
+        rol: auth.datos?.rol,
+        accion: 'ACREDITACION_PRESENTE_MASIVO_INVITADOS',
+        entidad: 'invitados',
+        entidadId: 'lote_masivo',
+        detalles: {
+          totalIds: ids.length,
+          acreditados: result.rowCount,
+          omitidos: ids.length - (result.rowCount || 0),
+          ids
+        },
+        req
+      });
+
       return NextResponse.json({
         ok: true,
         cantidad_ingresos: result.rowCount,
@@ -4924,6 +5128,31 @@ export async function PUT(
 
         await client.query('COMMIT');
 
+        const auth = await obtenerUsuarioAutenticado(req);
+        const esAdmin = auth.valido && auth.datos?.tipo === 'personal';
+        const usuarioId = auth.datos?.id || id;
+        const usuarioCorreo = auth.datos?.email || auth.datos?.correo;
+        const rol = esAdmin ? (auth.datos?.rol || 'ADMINISTRATIVO') : 'EGRESADO';
+
+        await registrarAuditoria({
+          usuarioId,
+          usuarioCorreo,
+          rol,
+          accion: esPersonal ? 'CONFIRMAR_ASIENTOS_ADMIN' : 'SOLICITAR_ASIENTOS_EGRESADO',
+          entidad: 'egresados',
+          entidadId: id,
+          detalles: {
+            egresadoId: id,
+            ceremoniaId,
+            modo: esPersonal ? 'ADMINISTRATIVO' : 'EGRESADO',
+            egresadoAsiento,
+            invitadosAsientos,
+            totalAsignados: asignaciones.length,
+            estadoAsignacion: esPersonal ? 'CONFIRMADA' : 'PENDIENTE_REVISION'
+          },
+          req
+        });
+
         let resultadoCredencial: any = null;
         if (esPersonal) {
           try {
@@ -5016,6 +5245,30 @@ export async function PUT(
         }
 
         await client.query('COMMIT');
+
+        const auth = await obtenerUsuarioAutenticado(req);
+        const esAdmin = auth.valido && auth.datos?.tipo === 'personal';
+        const usuarioId = auth.datos?.id || id;
+        const usuarioCorreo = auth.datos?.email || auth.datos?.correo;
+        const rol = esAdmin ? (auth.datos?.rol || 'ADMINISTRATIVO') : 'EGRESADO';
+
+        await registrarAuditoria({
+          usuarioId,
+          usuarioCorreo,
+          rol,
+          accion: respuestaUpper === 'RECHAZADO' ? 'RECHAZAR_INVITACION' : 'ACEPTAR_INVITACION',
+          entidad: 'egresados',
+          entidadId: id,
+          detalles: {
+            egresadoId: id,
+            respuesta: respuestaUpper,
+            asientoId: asientoId || null,
+            formulaJuramento: body.formulaJuramento || body.formula_juramento || null,
+            cantidadAcompañantes: Array.isArray(acompañantes) ? acompañantes.length : 0
+          },
+          req
+        });
+
         return NextResponse.json({ ok: true }, { headers });
       } catch (error: any) {
         await client.query('ROLLBACK');
@@ -5055,10 +5308,29 @@ export async function DELETE(
       const isPersonal = await esPersonalValido(req, ROLES_GESTION);
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
+      const ceremoniaPrevia = (await query('SELECT id, nombre, fecha, lugar, activa FROM ceremonias WHERE id = $1', [id])).rows[0];
+
       const result = await query('DELETE FROM ceremonias WHERE id = $1', [id]);
       if (result.rowCount === 0) {
         return NextResponse.json({ error: 'Ceremonia no encontrada' }, { status: 404, headers });
       }
+
+      invalidarCache('ceremonias');
+      invalidarCache('ceremonias:activa');
+      invalidarCache('setup:status');
+
+      const auth = await obtenerUsuarioAutenticado(req, ROLES_GESTION);
+      await registrarAuditoria({
+        usuarioId: auth.datos?.id,
+        usuarioCorreo: auth.datos?.email || auth.datos?.correo,
+        rol: auth.datos?.rol,
+        accion: 'ELIMINAR_CEREMONIA',
+        entidad: 'ceremonias',
+        entidadId: id,
+        detalles: ceremoniaPrevia || { id },
+        req
+      });
+
       return NextResponse.json({ ok: true, mensaje: 'Ceremonia eliminada con éxito' }, { headers });
     }
 
@@ -5070,7 +5342,22 @@ export async function DELETE(
       const isPersonal = await esPersonalValido(req, ROLES_GESTION);
       if (!isPersonal) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
+      const usuarioPrevio = (await query('SELECT id, nombre, email, rol FROM usuarios_sistema WHERE id = $1', [id])).rows[0];
+
       const resultado = await cambiarAccesoUsuario(id, { eliminar: true });
+      if (resultado.ok) {
+        const auth = await obtenerUsuarioAutenticado(req, ROLES_GESTION);
+        await registrarAuditoria({
+          usuarioId: auth.datos?.id,
+          usuarioCorreo: auth.datos?.email || auth.datos?.correo,
+          rol: auth.datos?.rol,
+          accion: 'ELIMINAR_USUARIO',
+          entidad: 'usuarios_sistema',
+          entidadId: id,
+          detalles: usuarioPrevio || { id },
+          req
+        });
+      }
       return NextResponse.json(resultado, { status: resultado.status, headers });
     }
 
@@ -5092,6 +5379,19 @@ export async function DELETE(
       }
 
       invalidarCache('profesores:*');
+
+      const auth = await obtenerUsuarioAutenticado(req, ROLES_GESTION);
+      await registrarAuditoria({
+        usuarioId: auth.datos?.id,
+        usuarioCorreo: auth.datos?.email || auth.datos?.correo,
+        rol: auth.datos?.rol,
+        accion: 'DESACTIVAR_PROFESOR',
+        entidad: 'profesores',
+        entidadId: String(id),
+        detalles: { nombre: result.rows[0]?.nombre, dni: result.rows[0]?.dni, materia: result.rows[0]?.materia },
+        req
+      });
+
       return NextResponse.json({ ok: true, mensaje: 'Profesor desactivado correctamente' }, { headers });
     }
 
@@ -5109,6 +5409,27 @@ export async function DELETE(
       if (!esAutorizado) return NextResponse.json({ error: 'No autorizado' }, { status: 403, headers });
 
       const result = await query('DELETE FROM entregadores WHERE id = $1 RETURNING *', [id]);
+
+      const auth = await obtenerUsuarioAutenticado(req);
+      const esAdmin = auth.valido && auth.datos?.tipo === 'personal';
+      const usuarioId = auth.datos?.id || egresadoId;
+      const usuarioCorreo = auth.datos?.email || auth.datos?.correo;
+      const rol = esAdmin ? (auth.datos?.rol || 'ADMINISTRATIVO') : 'EGRESADO';
+
+      await registrarAuditoria({
+        usuarioId,
+        usuarioCorreo,
+        rol,
+        accion: 'REMOVER_ENTREGADOR',
+        entidad: 'entregadores',
+        entidadId: String(id),
+        detalles: {
+          egresadoId,
+          entregador: result.rows[0] || { id }
+        },
+        req
+      });
+
       return NextResponse.json({ ok: true, mensaje: 'Entregador removido correctamente' }, { headers });
     }
 
@@ -5134,6 +5455,30 @@ export async function DELETE(
       if (egresadoRes.rows[0]?.estado_asignacion_butacas === 'CONFIRMADA' || invitado.asiento_id || invitado.asiento_solicitado_id) {
         await query("UPDATE egresados SET estado_asignacion_butacas = 'PENDIENTE_REVISION' WHERE id = $1", [egresadoId]);
       }
+
+      const auth = await obtenerUsuarioAutenticado(req);
+      const esAdmin = auth.valido && auth.datos?.tipo === 'personal';
+      const usuarioId = auth.datos?.id || egresadoId;
+      const usuarioCorreo = auth.datos?.email || auth.datos?.correo;
+      const rol = esAdmin ? (auth.datos?.rol || 'ADMINISTRATIVO') : 'EGRESADO';
+
+      await registrarAuditoria({
+        usuarioId,
+        usuarioCorreo,
+        rol,
+        accion: 'ELIMINAR_INVITADO',
+        entidad: 'invitados',
+        entidadId: String(id),
+        detalles: {
+          egresadoId,
+          invitado: {
+            id,
+            asiento_id: invitado.asiento_id,
+            asiento_solicitado_id: invitado.asiento_solicitado_id
+          }
+        },
+        req
+      });
 
       return NextResponse.json({ ok: true, mensaje: 'Invitado eliminado' }, { headers });
     }

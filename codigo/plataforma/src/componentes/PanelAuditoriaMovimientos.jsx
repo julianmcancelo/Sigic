@@ -46,6 +46,7 @@ import { obtenerRegistrosAuditoria, obtenerIntegridadAuditoriaYAlertas } from '.
 const FILTROS_ACCION = [
   { id: 'TODAS', label: 'Todas las acciones' },
   { id: 'REINICIO_SISTEMA_FORMATEO', label: 'Formateo / Reinicio de Sistema' },
+  { id: 'INICIALIZAR_SISTEMA_SETUP', label: 'Inicialización Asistente Setup' },
   { id: 'CREAR_EGRESADO', label: 'Alta Individual de Egresado' },
   { id: 'IMPORTAR_EXCEL', label: 'Importación Masiva (Excel)' },
   { id: 'ACTUALIZAR_DATOS_EGRESADO', label: 'Edición de Egresado' },
@@ -55,6 +56,9 @@ const FILTROS_ACCION = [
   { id: 'ENVIAR_INVITACIONES', label: 'Despacho de Credenciales' },
   { id: 'INGRESAR_INVITADO', label: 'Acreditación Portería' },
   { id: 'LOGIN', label: 'Inicios de Sesión (Auth)' },
+  { id: 'CREAR_USUARIO', label: 'Gestión de Operadores / Cuentas' },
+  { id: 'PROFESORES', label: 'Docentes / Cuerpo Académico' },
+  { id: 'ENTREGADORES', label: 'Entregadores de Título' },
   { id: 'ACTIVAR_BLOQUEO_SEGURIDAD', label: 'Ciberseguridad & Bloqueo' },
   { id: 'CREAR_CEREMONIA', label: 'Gestión Ceremonias' },
   { id: 'MODIFICAR_CONFIGURACION_SISTEMA', label: 'Configuración de Sistema' },
@@ -62,11 +66,14 @@ const FILTROS_ACCION = [
 
 const FILTROS_ENTIDAD = [
   { id: 'TODAS', label: 'Todas las entidades' },
-  { id: 'autenticacion', label: 'Autenticación' },
+  { id: 'autenticacion', label: 'Autenticación & Sesiones' },
+  { id: 'usuarios_sistema', label: 'Cuentas & Usuarios' },
   { id: 'egresados', label: 'Egresados' },
   { id: 'invitados', label: 'Invitados / Portería' },
   { id: 'butacas', label: 'Butacas / Anfiteatro' },
   { id: 'ceremonias', label: 'Ceremonias' },
+  { id: 'profesores', label: 'Docentes' },
+  { id: 'entregadores', label: 'Entregadores' },
   { id: 'seguridad_licencia', label: 'Seguridad & Licencia' },
   { id: 'sistema', label: 'Sistema & Ajustes' },
 ]
@@ -101,8 +108,42 @@ export function generarNarrativaHumana(accion, entidad, detalles = {}, r = {}) {
     return `Importación de nómina de egresados procesada mediante planilla Excel`
   }
 
+  // Usuarios y Operadores
+  if (ent === 'usuarios' || ent === 'usuarios_sistema' || acc.includes('USUARIO')) {
+    const correoUser = det.email || det.correo || (r.entidad_id ? `Usuario #${r.entidad_id}` : '')
+    if (acc.includes('CREAR')) return `Alta de nuevo usuario del sistema: ${correoUser} (${det.rol || 'OPERADOR'})`
+    if (acc.includes('ROL')) return `Cambio de permisos/rol asignado a ${correoUser} -> ${det.nuevoRol || ''}`
+    if (acc.includes('ESTADO') || acc.includes('SUSPENDER') || acc.includes('ACTIVAR')) {
+      return `Modificación de estado operativo de ${correoUser} -> ${det.activo ? 'Activo' : 'Suspendido'}`
+    }
+    if (acc.includes('ELIMINAR')) return `Baja definitiva de cuenta de usuario: ${correoUser}`
+  }
+
+  // Profesores / Docentes
+  if (ent === 'profesores' || acc.includes('PROFESOR') || acc.includes('DOCENTE')) {
+    if (acc.includes('IMPORTAR')) return `Importación de ${det.total || det.agregados || ''} profesores al claustro docente`
+    if (acc.includes('CREAR')) return `Alta de docente: ${det.nombre || ''} (${det.materia || 'Cátedra'})`
+    if (acc.includes('EDITAR')) return `Modificación de datos del docente #${r.entidad_id || ''}`
+    if (acc.includes('DESACTIVAR') || acc.includes('ELIMINAR')) return `Baja lógica de docente del cuerpo académico`
+  }
+
+  // Entregadores de Título
+  if (ent === 'entregadores' || acc.includes('ENTREGADOR')) {
+    if (acc.includes('ASIGNAR')) return `Asignación de persona para entrega de título: ${det.nombrePersona || det.tipo || ''}`
+    if (acc.includes('REMOVER')) return `Remoción de persona asignada a entrega de diploma`
+  }
+
   // Asignación de Butacas / Anfiteatro
-  if (acc.includes('ASIENTO') || acc.includes('BUTACA') || ent === 'butacas') {
+  if (acc.includes('ASIENTO') || acc.includes('BUTACA') || ent === 'butacas' || ent === 'configuracion_anfiteatro') {
+    if (acc.includes('ESTRUCTURA') || acc.includes('CONFIG_ANFITEATRO')) {
+      return `Guardado del plano interactivo y distribución del anfiteatro (${det.totalFilas ?? det.filas ?? ''} filas)`
+    }
+    if (acc.includes('SOLICITAR_ASIENTOS')) {
+      return `Selección de butacas realizada por el graduado ${usuario}`
+    }
+    if (acc.includes('CONFIRMAR_ASIENTOS')) {
+      return `Confirmación y asignación de butacas emitida por administración`
+    }
     const fila = det.fila ?? det.fila_nombre ?? det.row ?? null
     const numero = det.numero ?? det.asiento ?? det.columna ?? null
     const graduado = det.graduadoNombre || det.egresado || det.alumno || null
